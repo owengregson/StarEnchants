@@ -31,6 +31,7 @@ final class PetsModule {
     final PetService pets;
     final PetLevelListener leveler;
     final PetSweep sweep;
+    final feature.trigger.WaterSpeedDriver waterSpeed;
     final List<Mintable> mints;
 
     PetsModule(BootCore core, EquipModule equip) {
@@ -49,6 +50,11 @@ final class PetsModule {
                 equip.refresher(), enabled());
         this.sweep = new PetSweep(core.petCodec(), leveler, () -> core.master().config().pets(),
                 equip.refresher(), enabled());
+        // The WATER_SPEED worn channel (ADR-0060): the MaxHealthDriver twin, refreshed by the end-of-refresh
+        // hook below (a suppression window applied mid-refresh lands on the next full refresh — accepted).
+        this.waterSpeed = new feature.trigger.WaterSpeedDriver(core.triggerDispatch(), core.content(),
+                core.worn(), core.stores().suppression(), core.tick()::get,
+                core.triggers().idOf("HELD").orElse(-1), core.triggers().idOf("PASSIVE").orElse(-1));
         this.mints = List.of(Mints.pet(pets, core.content()), Mints.petFood(pets));
     }
 
@@ -67,6 +73,7 @@ final class PetsModule {
                         core.sounds(), equip.refresher(), enabled))
                 .events(new PetHotbarListener(core.petCodec(), equip.refresher(), enabled))
                 .events(new PetSummonListener(enabled))
+                .install("water-speed refresh hook", () -> equip.onRefresh(waterSpeed::refresh))
                 .menu(75, new feature.menu.PetsBrowserMenu(core.content(), pets,
                         () -> core.master().config().pets(), core.caps(), core.messages(),
                         core.menusHolder()::config, core.vanillaEnchants()))
@@ -83,6 +90,7 @@ final class PetsModule {
                     }
                 }))
                 .stop("pet summon registry", engine.sink.PetSummons::clearAll)
+                .stop("bat swarms", engine.sink.SwarmSpawns::removeAll)
                 .stop("pet armed windows", core.petArmedStore()::clearAll)
                 .build();
     }
