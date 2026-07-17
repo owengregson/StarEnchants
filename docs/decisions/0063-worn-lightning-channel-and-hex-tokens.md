@@ -40,4 +40,3 @@ Both crystals' authored likeness uses `{#rrggbb}` colour tokens; their parsing i
   can miss; stacking is the plain sum of worn sources, muted live by suppression.
 - The hot path is untouched: the channel is read only when a bolt actually fires.
 - The `Ability` record, the gate order, and the fold are unchanged.
-```
