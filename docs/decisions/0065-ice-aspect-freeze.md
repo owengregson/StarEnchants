@@ -14,13 +14,15 @@ DoT, and a movement slow. None of vanilla's freeze machinery is exposed as a cle
 API, and two vanilla side-effects fight a naive pin. The design is grounded in javap over the reference cache
 (`nms-archaeology`), not guessed.
 
-Freeze-tick facts (Mojang-mapped, 1.20.6 / 26.1.2 / Folia 26.1.2 / patched 1.17.1):
+Freeze-tick facts (Mojang-mapped, 1.20.6 / 26.1.2 / Folia 1.20.6 / Folia 26.1.2 / patched 1.17.1):
 
 | Behavior | Where | Guard |
 | --- | --- | --- |
 | Freeze decays −2/tick outside powder snow | `LivingEntity.aiStep` | skipped under Paper `freezeLocked` |
 | A burning entity's freeze is zeroed + a 1009 hiss replayed | `Entity.baseTick` | `freezeLocked` on Paper ≥1.18.2; **UNguarded on 1.17.1** |
-| Fully-frozen self-damage `hurt(freeze, 1.0)` every 40t | `LivingEntity.aiStep` | **NOT** behind `freezeLocked` |
+| Fully-frozen self-damage `hurt(freeze, 1.0)` every 40t | `LivingEntity.aiStep` | **NOT** behind `freezeLocked` (Folia 1.20.6 included) |
+| A within-i-frame hit (`invulnerableTime > 10`, `amount > lastHurt`) fires the damage event with the **REDUCED base** `amount − lastHurt` on ≤1.20.6; 1.21.x+ (`hurtServer`) hands the full amount to `handleEntityDamage`, so the event base stays the authored value | `LivingEntity.hurt` / `actuallyHurt` | our §3 guard keeps production clean: a **cancelled** freeze self-hurt never arms `lastHurt`/`invulnerableTime` (both writes are after the `actuallyHurt` success check) |
+| `invulnerableTime` decays only in `baseTick`, but Folia runs entity-scheduler tasks for every region entity even in non-entity-ticking chunks — an equal-damage hurt inside a frozen i-frame window (`amount <= lastHurt`) is dropped with **no event** | `LivingEntity.baseTick` gate + Folia `MinecraftServer.tickServer` | benign in play (a frozen victim near its attacker is chunk-ticking); the live suite pins victims (`setAI(false)`) inside the force-loaded, entity-ticking arena chunk |
 | Frost slow: MOVEMENT_SPEED `−0.05 × percentFrozen` ADD, on-ground | `LivingEntity.tryAddFrost` | outside both the lock and client guards |
 | `lockFreezeTicks`/`isFreezeTickingLocked` | `org.bukkit.entity.Entity` | present from Paper 1.18.2 (absent on the 1.17.1 floor) |
 | `setTicksFrozen` writes the synced metadata directly | `Entity.setTicksFrozen` / Bukkit `setFreezeTicks` | never gated by `freezeLocked` (1.18.2 → 26.1.2 + Folia) — our pin always lands, locked or not |
