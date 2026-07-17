@@ -5,8 +5,8 @@ description:
   - "&ea spray of thorns."
 trigger: DEFENSE
 applies-to: [ARMOR]
-group: "rare"
-tier: rare
+group: "common"
+tier: common
 levels:
   1:
     chance: 12

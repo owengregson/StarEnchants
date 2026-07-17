@@ -5,8 +5,8 @@ description:
   - "&etarget, deals bonus damage."
 trigger: ATTACK
 applies-to: [SWORD]
-group: "rare"
-tier: rare
+group: "epic"
+tier: epic
 levels:
   1:
     condition: "%victim.healthpercent% <= 25"

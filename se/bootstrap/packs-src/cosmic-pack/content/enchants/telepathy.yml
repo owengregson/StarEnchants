@@ -5,8 +5,8 @@ description:
   - "&eto your inventory."
 trigger: MINE
 applies-to: [TOOL]
-group: "uncommon"
-tier: uncommon
+group: "common"
+tier: common
 levels:
   1:
     chance: 40

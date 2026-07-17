@@ -5,8 +5,8 @@ description:
   - "&eof the target's armor."
 trigger: ATTACK
 applies-to: [SWORD]
-group: "rare"
-tier: rare
+group: "common"
+tier: common
 levels:
   1:
     chance: 1.5

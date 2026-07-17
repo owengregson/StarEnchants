@@ -5,8 +5,8 @@ description:
   - "&efireballs."
 trigger: BOW_FIRE
 applies-to: [BOW]
-group: "epic"
-tier: epic
+group: "uncommon"
+tier: uncommon
 levels:
   1:
     chance: 100

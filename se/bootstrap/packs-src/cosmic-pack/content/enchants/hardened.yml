@@ -5,8 +5,8 @@ description:
   - "&elose durability."
 trigger: ITEM_DAMAGE
 applies-to: [ARMOR]
-group: "rare"
-tier: rare
+group: "uncommon"
+tier: uncommon
 condition: "%itemdamage.armor%"
 levels:
   1:

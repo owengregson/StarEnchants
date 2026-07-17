@@ -5,8 +5,8 @@ description:
   - "&eInversion heal fails."
 trigger: ATTACK
 applies-to: [AXE]
-group: "epic"
-tier: epic
+group: "uncommon"
+tier: uncommon
 levels:
   1:
     chance: 15

@@ -5,8 +5,8 @@ description:
   - "&ebut grants Strength."
 trigger: [PASSIVE, ATTACK]
 applies-to: [HELMET]
-group: "legendary"
-tier: legendary
+group: "rare"
+tier: rare
 levels:
   1:
     effects:

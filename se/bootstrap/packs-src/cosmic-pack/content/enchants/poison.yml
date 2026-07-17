@@ -5,8 +5,8 @@ description:
   - "&etarget."
 trigger: ATTACK
 applies-to: [SWORD]
-group: "rare"
-tier: rare
+group: "uncommon"
+tier: uncommon
 levels:
   1:
     chance: 12

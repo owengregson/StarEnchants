@@ -5,8 +5,8 @@ description:
   - "&efrom taking knockback."
 trigger: ATTACK
 applies-to: [WEAPON]
-group: "rare"
-tier: rare
+group: "common"
+tier: common
 levels:
   1:
     chance: 25

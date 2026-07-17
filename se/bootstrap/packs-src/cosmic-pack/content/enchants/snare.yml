@@ -5,8 +5,8 @@ description:
   - "&eFatigue to the target."
 trigger: BOW
 applies-to: [BOW]
-group: "rare"
-tier: rare
+group: "uncommon"
+tier: uncommon
 levels:
   1:
     chance: 12

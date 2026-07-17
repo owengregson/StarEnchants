@@ -4,8 +4,8 @@ description:
   - "&eYou cannot be blinded."
 trigger: REPEATING
 applies-to: [ARMOR]
-group: "legendary"
-tier: legendary
+group: "rare"
+tier: rare
 repeat: 40
 levels:
   1:

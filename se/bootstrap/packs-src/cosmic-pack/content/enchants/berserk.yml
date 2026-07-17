@@ -6,8 +6,8 @@ description:
   - "&eseconds."
 trigger: ATTACK
 applies-to: [AXE]
-group: "uncommon"
-tier: uncommon
+group: "rare"
+tier: rare
 levels:
   1:
     chance: 12

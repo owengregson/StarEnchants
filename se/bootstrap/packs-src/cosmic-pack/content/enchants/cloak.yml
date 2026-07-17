@@ -5,8 +5,8 @@ description:
   - "&eyou invisible briefly."
 trigger: DEFENSE
 applies-to: [ARMOR]
-group: "legendary"
-tier: legendary
+group: "rare"
+tier: rare
 levels:
   1:
     chance: 10

@@ -5,8 +5,8 @@ description:
   - "&eholding an axe."
 trigger: ATTACK
 applies-to: [AXE]
-group: "legendary"
-tier: legendary
+group: "rare"
+tier: rare
 levels:
   1:
     condition: "%victim.helditem% contains \"AXE\""

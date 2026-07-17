@@ -4,8 +4,8 @@ description:
   - "&eGrants a permanent Jump Boost."
 trigger: PASSIVE
 applies-to: [BOOTS]
-group: "rare"
-tier: rare
+group: "common"
+tier: common
 suppress-immune: true  # permanent worn buff — unsilenceable (Silence/Solitude/Perfect-Solitude can't disable THIS enchant; other enchants still get silenced)
 levels:
   1:

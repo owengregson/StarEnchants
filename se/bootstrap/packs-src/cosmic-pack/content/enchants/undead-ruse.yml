@@ -5,8 +5,8 @@ description:
   - "&efight for you."
 trigger: ATTACK
 applies-to: [ARMOR]
-group: "rare"
-tier: rare
+group: "common"
+tier: common
 levels:
   1:
     chance: 0.25
