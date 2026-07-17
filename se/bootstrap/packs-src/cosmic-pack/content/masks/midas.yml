@@ -2,9 +2,9 @@
 # the victim's heroic-armor reduction (percent and flat) in the damage fold. Only the enemy's heroic ARMOR
 # bonus is negated — the attacker's own heroic weapon damage is untouched.
 display: "Midas"
-color: "&6"
+color: "{#ffd55e}"
 head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjg3ZjE1MDI0ODdmNWM3ZGI3ZTlhYWE5OGQ0MmJjM2IwMjcyZDRkOGJmNWUzODhlYjBlOTA2MWUwMDAxMjkxMyJ9fX0="
 description:
-  - "&6* Negates enemy heroic armor bonuses"
+  - "{#ffd55e}* Negates enemy heroic armor bonuses"
 abilities:
   - { trigger: ATTACK, effects: [ { IGNORE_HEROIC: {} } ] }

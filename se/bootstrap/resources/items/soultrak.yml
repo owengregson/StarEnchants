@@ -5,7 +5,7 @@
 type: soultrak
 
 material: FIRE_CHARGE
-name: "&c&lSoulTrak Gem"
+name: "{#e54f00}&lSoulTrak Gem"
 # {KINDS} expands to the grammatically-joined applies-to label. Lore auto-wraps at config lore.item-wrap.
 lore:
   - "&eDisplays the amount of players killed with the weapon since it was forged."

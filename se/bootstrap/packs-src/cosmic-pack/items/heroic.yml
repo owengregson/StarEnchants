@@ -4,7 +4,7 @@
 # plugin's own combat maths (no version-specific item-attribute API). Everything below is configurable.
 type: heroic
 material: GOLD_INGOT
-name: "&e&k|||&r &6&lHeroic Ingot&r &e&k|||&r"
+name: "&e&k|||&r {#fcd549}&lHeroic Ingot&r &e&k|||&r"
 # {SUCCESS}/{FAILURE} = the success/failure rate; {OUTGOING}/{INCOMING}/{DURABILITY} = the per-stat percents;
 # {KINDS} = what it applies to (our unified item-lore tokens). Auto-wrapped where the renderer wraps.
 lore:

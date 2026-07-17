@@ -1,42 +1,42 @@
 # Yeti — icy diamond set: bites harder, shrugs off blows, slows attackers.
-display: "&b&lYeti"
-description: "&bHarness the chilling might of the Yeti set, garments imbued with the frost of the highest peaks."
+display: "{#90dae7}&lYeti"
+description: "{#90dae7}Harness the chilling might of the Yeti set, garments imbued with the frost of the highest peaks."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
-equip-message: "\n&b&l** Yeti SET EQUIPPED &b&l**\n"
+equip-message: "\n{#90dae7}&l** Yeti SET EQUIPPED {#90dae7}&l**\n"
 remove-message: "\n&7&l** Yeti SET REMOVED **\n"
 armor:
   enchants:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
-    - "&bHarness the chilling might of the Yeti set, garments imbued with the frost of the highest peaks."
+    - "{#90dae7}Harness the chilling might of the Yeti set, garments imbued with the frost of the highest peaks."
     - ""
-    - "&b&lYETI SET BONUS"
-    - "&b* Deal 10% more damage to all enemies"
-    - "&b* Enemies deal 10% less damage to you"
-    - "&b* Fortified Passive Ability"
+    - "{#90dae7}&lYETI SET BONUS"
+    - "{#90dae7}* Deal 10% more damage to all enemies"
+    - "{#90dae7}* Enemies deal 10% less damage to you"
+    - "{#90dae7}* Fortified Passive Ability"
     - ""
-    - "&b&lFORTIFIED"
-    - "&b* Chance to nullify an incoming attack and spawn a defensive Ice Wall in front of your enemy"
+    - "{#90dae7}&lFORTIFIED"
+    - "{#90dae7}* Chance to nullify an incoming attack and spawn a defensive Ice Wall in front of your enemy"
     - "&7&o(Requires all four Yeti set items.)&r"
   pieces:
-    helmet:     { material: DIAMOND_HELMET,     name: "&b&lFrozen Headgear&r" }
-    chestplate: { material: DIAMOND_CHESTPLATE, name: "&b&lArctic Plate&r" }
-    leggings:   { material: DIAMOND_LEGGINGS,   name: "&b&lGlacial Leggings&r" }
-    boots:      { material: DIAMOND_BOOTS,      name: "&b&lIcy Stompers&r" }
+    helmet:     { material: DIAMOND_HELMET,     name: "{#90dae7}&lFrozen Headgear&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "{#90dae7}&lArctic Plate&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "{#90dae7}&lGlacial Leggings&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "{#90dae7}&lIcy Stompers&r" }
 weapon:
   enchants:
     SHARPNESS: 5
     UNBREAKING: 3
   material: DIAMOND_AXE
-  name: "&b&lFrozen Mace&r"
+  name: "{#90dae7}&lFrozen Mace&r"
   lore:
-    - "&bBring the chill of the arctic with the Frozen Mace, an icy weapon that freezes all who dare oppose it."
+    - "{#90dae7}Bring the chill of the arctic with the Frozen Mace, an icy weapon that freezes all who dare oppose it."
     - ""
-    - "&b&lYETI WEAPON BONUS"
-    - "&b* Deal 10% more damage to all enemies"
+    - "{#90dae7}&lYETI WEAPON BONUS"
+    - "{#90dae7}* Deal 10% more damage to all enemies"
     - "&7&o(Requires all four Yeti set items.)"
 # Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
 bonuses:
@@ -56,8 +56,8 @@ bonuses:
       - { CANCEL: {} }
       - { TEMP_BLOCK: { shape: FOOTPRINT, material: "ICE", material2: "BLUE_ICE", material3: "PACKED_ICE", material4: "SNOW_BLOCK", radius: 1, dy: -1, ticks: 60, airOnly: false, who: "@Attacker" } }
       - { PARTICLE: { particle: SNOWFLAKE, count: 15, who: "@Attacker" } }
-      - { MESSAGE: { channel: title, text: "&b&l** FORTIFIED **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
-      - { MESSAGE: { text: "&b&l** FORTIFIED &r&7[&f{VICTIM}&7] &r&b&l**" } }
+      - { MESSAGE: { channel: title, text: "{#90dae7}&l** FORTIFIED **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
+      - { MESSAGE: { text: "{#90dae7}&l** FORTIFIED &r&7[&f{VICTIM}&7] &r{#90dae7}&l**" } }
   - on: weapon
     trigger: ATTACK
     chance: 100

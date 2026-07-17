@@ -1,41 +1,41 @@
 # Fantasy — diamond set of mythical heroes; arcane weapon and a trap passive.
-display: "&2&lFantasy"
-description: "&2Embark on epic adventures with the Fantasy set, armaments of mythical heroes and timeless tales."
+display: "{#83cb7b}&lFantasy"
+description: "{#83cb7b}Embark on epic adventures with the Fantasy set, armaments of mythical heroes and timeless tales."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
-equip-message: "\n&2&l** Fantasy SET EQUIPPED &2&l**\n"
+equip-message: "\n{#83cb7b}&l** Fantasy SET EQUIPPED {#83cb7b}&l**\n"
 remove-message: "\n&7&l** Fantasy SET REMOVED **\n"
 armor:
   enchants:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
-    - "&2Embark on epic adventures with the Fantasy set, armaments of mythical heroes and timeless tales."
+    - "{#83cb7b}Embark on epic adventures with the Fantasy set, armaments of mythical heroes and timeless tales."
     - ""
-    - "&2&lFANTASY SET BONUS"
-    - "&2* Deal 20% more damage to all enemies"
-    - "&2* Fantasy Trap Ability"
+    - "{#83cb7b}&lFANTASY SET BONUS"
+    - "{#83cb7b}* Deal 20% more damage to all enemies"
+    - "{#83cb7b}* Fantasy Trap Ability"
     - ""
-    - "&2&lFANTASY TRAP"
-    - "&2* Chance to trap your enemy in an unbreakable cobweb for 2 seconds"
+    - "{#83cb7b}&lFANTASY TRAP"
+    - "{#83cb7b}* Chance to trap your enemy in an unbreakable cobweb for 2 seconds"
     - "&7&o(Requires all four Fantasy set items.)"
   pieces:
-    helmet:     { material: DIAMOND_HELMET,     name: "&2&lEnchanted Helmet&r" }
-    chestplate: { material: DIAMOND_CHESTPLATE, name: "&2&lMythic Platemail&r" }
-    leggings:   { material: DIAMOND_LEGGINGS,   name: "&2&lLost Legwear&r" }
-    boots:      { material: DIAMOND_BOOTS,      name: "&2&lAdventurer's Boots&r" }
+    helmet:     { material: DIAMOND_HELMET,     name: "{#83cb7b}&lEnchanted Helmet&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "{#83cb7b}&lMythic Platemail&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "{#83cb7b}&lLost Legwear&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "{#83cb7b}&lAdventurer's Boots&r" }
 weapon:
   enchants:
     SHARPNESS: 5
     UNBREAKING: 3
   material: DIAMOND_SWORD
-  name: "&2&lArcane Blade&r"
+  name: "{#83cb7b}&lArcane Blade&r"
   lore:
-    - "&2Wield the mysteries of magic with the Arcane Blade, a sword infused with ancient and powerful spells."
+    - "{#83cb7b}Wield the mysteries of magic with the Arcane Blade, a sword infused with ancient and powerful spells."
     - ""
-    - "&2&lFANTASY WEAPON BONUS"
-    - "&2* Deal 5% more damage to all enemies"
+    - "{#83cb7b}&lFANTASY WEAPON BONUS"
+    - "{#83cb7b}* Deal 5% more damage to all enemies"
     - "&7&o(Requires all four Fantasy set items.)"
 # Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
 bonuses:
@@ -49,8 +49,8 @@ bonuses:
     effects:
       - { TEMP_BLOCK: { shape: POINT, material: COBWEB, ticks: 40, airOnly: true, who: "@Victim" } }
       - { POTION_LOCK: { effect: SPEED, ticks: 40, who: "@Victim" } }
-      - { MESSAGE: { channel: title, text: "&2&l** FANTASY TRAP **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
-      - { MESSAGE: { text: "&2&l** FANTASY TRAP &r&7[&f{VICTIM}&7] &r&2&l**" } }
+      - { MESSAGE: { channel: title, text: "{#83cb7b}&l** FANTASY TRAP **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
+      - { MESSAGE: { text: "{#83cb7b}&l** FANTASY TRAP &r&7[&f{VICTIM}&7] &r{#83cb7b}&l**" } }
   - on: weapon
     trigger: ATTACK
     chance: 100

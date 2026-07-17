@@ -3,12 +3,12 @@
 # damage is zeroed), and despawns when its time runs out. On the 1.8 lane it spawns as a HORSE with the
 # skeleton variant (the §6 degrade). Both the cooldown and the ride time scale with level.
 display: "Nightmare"
-color: "&c"
+color: "{#973921}"
 type: ACTIVE
 head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzJhNmEyNzA2NGZiNzViMjI4NjkyMWU4ODJlODVlNzRhZjJiNGMwNDY3OTc3NDVhMzQ1N2MwMDFhNDk5NjMyOCJ9fX0="
 descriptor: "&eA spectral steed from somewhere best left unvisited. Rides like the wind, fades like a dream."
 description:
-  - "&c* Summons a temporary rideable skeleton horse"
+  - "{#973921}* Summons a temporary rideable skeleton horse"
 levels:
   # 8m / 5s → 7m / 7s → 6m / 8s → 5m / 9s.
   # speed: 2.0 = 2x vanilla base — the owner's nightmare gallop.

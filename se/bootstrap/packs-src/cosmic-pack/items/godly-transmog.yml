@@ -4,7 +4,7 @@
 type: godly-transmog
 
 material: WRITABLE_BOOK
-name: "&6&lGodly Transmog Scroll"
+name: "{#c1522f}&lGodly Transmog Scroll"
 lore:
   - "&eAllows you to customize the order of enchantments on your equipment."
   - "&7Drag n' Drop on an item to apply."

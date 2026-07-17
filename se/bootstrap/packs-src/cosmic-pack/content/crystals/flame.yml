@@ -2,12 +2,12 @@
 # global items/crystal.yml; this file declares only the styled name, the verbatim bonus block, and the effects.
 # On ATTACK it adds a flat +3% to the additive outgoing-damage fold; a PASSIVE potion keeps Fire Resistance up
 # while worn (refreshed by the passive lifecycle, so effectively permanent). Not stackable (§0035).
-display: "&c&lFlame"
+display: "{#f88c42}&lFlame"
 description:
-  - "&c&lFLAME CRYSTAL BONUS"
-  - "&c* Deal 3% more damage to all enemies"
-  - "&c* Permanent Fire Resistance"
-  - "&c* Flame Crystal is not stackable"
+  - "{#f88c42}&lFLAME CRYSTAL BONUS"
+  - "{#f88c42}* Deal 3% more damage to all enemies"
+  - "{#f88c42}* Permanent Fire Resistance"
+  - "{#f88c42}* Flame Crystal is not stackable"
 tier: rare
 applies-to: [ARMOR]
 stackable: false

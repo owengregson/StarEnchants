@@ -2,12 +2,12 @@
 # with pet level; the 5s duration and 3m30s cooldown hold. `duration` mirrors the potion so the universal ENDED
 # message lands as the regen fades.
 display: "Cat"
-color: "&d"
+color: "{#846486}"
 type: ACTIVE
 head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzAzYmM3YTc5YzQ3MzY3NTFkOWY2N2NjYTFiN2ZjNDRmMTI4ZDc1ODg5NGNkYmU4Yzc4MGQwOTk2NGJhZGUyMiJ9fX0="
 descriptor: "&eA soft bundle of second chances. Its company mends more than moods."
 description:
-  - "&d* Grants temporary Regeneration"
+  - "{#846486}* Grants temporary Regeneration"
 levels:
   1:   { cooldown: 4200, duration: 100, effects: [ { SOUND: { sound: "ENTITY_CAT_AMBIENT", volume: 1.0, pitch: 1.0 } }, { POTION: { effect: "REGENERATION", level: 3, duration: 100, who: "@Self" } } ] }
   25:  { cooldown: 4200, duration: 100, effects: [ { SOUND: { sound: "ENTITY_CAT_AMBIENT", volume: 1.0, pitch: 1.0 } }, { POTION: { effect: "REGENERATION", level: 4, duration: 100, who: "@Self" } } ] }

@@ -5,7 +5,7 @@
 type: mobtrak
 
 material: MAGMA_CREAM
-name: "&e&lMobTrak Gem"
+name: "{#e6cb2f}&lMobTrak Gem"
 # {KINDS} expands to the grammatically-joined applies-to label. Lore auto-wraps at config lore.item-wrap.
 lore:
   - "&eDisplays the amount of mobs slain with the weapon since it was forged."

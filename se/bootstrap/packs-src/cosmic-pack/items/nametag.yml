@@ -5,7 +5,7 @@
 type: nametag
 
 material: NAME_TAG
-name: "&6&lItem Nametag"
+name: "{#e6c78d}&lItem Nametag"
 # Authored lore lines auto-wrap at config lore.item-wrap.
 lore:
   - "&eAllows you to rename and customize your equipment with customizable color and formatting codes."

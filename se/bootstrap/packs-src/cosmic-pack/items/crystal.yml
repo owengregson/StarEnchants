@@ -35,7 +35,7 @@ sounds:
 # topmost single off. On a multi-crystal ITEM it pops the topmost single.
 extractor:
   material: BUCKET
-  name: "&f&lCrystal Extractor"
+  name: "{#d9d9d9}&lCrystal Extractor"
   lore:
     - "&eRemoves a single crystal from a piece of armor or multi-crystal."
     - "&7Drag n' Drop on an item to apply."

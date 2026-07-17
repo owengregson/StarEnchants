@@ -1,41 +1,41 @@
 # Druid — nature-themed diamond set; offensive damage carried on the Earth Splitter axe.
-display: "&2&lDruid"
-description: "&2Embrace the power of nature with the Druid Set, crafted from the essence of the natural world, channeling life force and woodland grace."
+display: "{#2e9a22}&lDruid"
+description: "{#2e9a22}Embrace the power of nature with the Druid Set, crafted from the essence of the natural world, channeling life force and woodland grace."
 complete: 4
 # Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
-equip-message: "\n&2&l** Druid SET EQUIPPED &2&l**\n"
+equip-message: "\n{#2e9a22}&l** Druid SET EQUIPPED {#2e9a22}&l**\n"
 remove-message: "\n&7&l** Druid SET REMOVED **\n"
 armor:
   enchants:
     PROTECTION: 4
     UNBREAKING: 3
   lore:
-    - "&2Embrace the power of nature with the Druid Set, crafted from the essence of the natural world, channeling life force and woodland grace."
+    - "{#2e9a22}Embrace the power of nature with the Druid Set, crafted from the essence of the natural world, channeling life force and woodland grace."
     - ""
-    - "&2&lDRUID SET BONUS"
-    - "&2* Deal 23% more damage to all enemies"
-    - "&2* Terrablender Ability"
+    - "{#2e9a22}&lDRUID SET BONUS"
+    - "{#2e9a22}* Deal 23% more damage to all enemies"
+    - "{#2e9a22}* Terrablender Ability"
     - ""
-    - "&2&lTERRABLENDER"
-    - "&2* Chance to drop earth on your enemy, temporarily slowing them and dealing massive damage"
+    - "{#2e9a22}&lTERRABLENDER"
+    - "{#2e9a22}* Chance to drop earth on your enemy, temporarily slowing them and dealing massive damage"
     - "&7&o(Requires all four Druid set items.)"
   pieces:
-    helmet:     { material: DIAMOND_HELMET,     name: "&2&lNature's Hood&r" }
-    chestplate: { material: DIAMOND_CHESTPLATE, name: "&2&lEarthbound Plate&r" }
-    leggings:   { material: DIAMOND_LEGGINGS,   name: "&2&lSylvan Pants&r" }
-    boots:      { material: DIAMOND_BOOTS,      name: "&2&lGrove Trotters&r" }
+    helmet:     { material: DIAMOND_HELMET,     name: "{#2e9a22}&lNature's Hood&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "{#2e9a22}&lEarthbound Plate&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "{#2e9a22}&lSylvan Pants&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "{#2e9a22}&lGrove Trotters&r" }
 weapon:
   enchants:
     SHARPNESS: 5
     UNBREAKING: 3
   material: DIAMOND_AXE
-  name: "&2&lEarth Splitter&r"
+  name: "{#2e9a22}&lEarth Splitter&r"
   lore:
-    - "&2Wield the Earth Splitter, an axe infused with the life force of the forest, cutting through enemies with the power of nature."
+    - "{#2e9a22}Wield the Earth Splitter, an axe infused with the life force of the forest, cutting through enemies with the power of nature."
     - ""
-    - "&2&lDRUID WEAPON BONUS"
-    - "&2* Deal 5% more damage to all enemies"
+    - "{#2e9a22}&lDRUID WEAPON BONUS"
+    - "{#2e9a22}* Deal 5% more damage to all enemies"
     - "&7&o(Requires all four Druid set items.)"
 # Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
 bonuses:
@@ -50,8 +50,8 @@ bonuses:
       - { SOUND: { sound: "ENTITY_WARDEN_DIG|BLOCK_ROOTED_DIRT_BREAK", volume: 1.0, pitch: 2.0 } }
       - { FALLING_BLOCK: { material: GRASS_BLOCK, radius: 1, height: 4, ttl: 40, carry: "%damage%", who: "@Victim" } }
       - { PARTICLE: { particle: COMPOSTER, count: 15 } }
-      - { MESSAGE: { channel: title, text: "&2&l** TERRABLENDER **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
-      - { MESSAGE: { text: "&2&l** TERRABLENDER &r&7[&f{VICTIM}&7] &r&2&l**" } }
+      - { MESSAGE: { channel: title, text: "{#2e9a22}&l** TERRABLENDER **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
+      - { MESSAGE: { text: "{#2e9a22}&l** TERRABLENDER &r&7[&f{VICTIM}&7] &r{#2e9a22}&l**" } }
   # IMPACT — fired when a Terrablender grass block lands ON a player. The short cooldown dedups the grid's many
   # landings (one impact per cast). Deal 0.75x the carried hit and lock their SPEED away for 5s (continuously
   # re-stripped, so they can't re-drink it back during the window).

@@ -1,13 +1,13 @@
 # Iron Golem Pet — an ACTIVE pet (ADR-0052): right-click for temporary absorption hearts. Each absorption
 # level is two hearts (II=+4, III=+6, IV=+8, V=+10); both the hearts and how long they can last scale with
 # level. `duration` mirrors the potion so the universal ENDED message lands as the hearts fade.
-display: "Iron Golem"
-color: "&f"
+display: "Golem"
+color: "{#ccc5c1}"
 type: ACTIVE
 head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGE2ZTA0MjljY2FhYmI2ZjVmMGM1ZDUxM2M3OTViZWQ2ZDgwZmNlNzJmNTdmNGJjM2E2MTZhZWUyM2UxMjU3MiJ9fX0="
 descriptor: "&eA hulking protector with a heart of iron. Lends you its hide when the blows rain down."
 description:
-  - "&f* Grants temporary absorption health"
+  - "{#ccc5c1}* Grants temporary absorption health"
 levels:
   # +4 hearts / 10s → +6 / 15s → +8 / 20s → +10 / 25s; the cooldown holds at 2m.
   1:
