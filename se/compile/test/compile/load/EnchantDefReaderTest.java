@@ -4,9 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import compile.Compiler;
+import compile.MapSpecRegistry;
 import compile.def.AbilityDef;
+import compile.model.Snapshot;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntSupplier;
+import schema.spec.D;
+import schema.spec.ParamSpec;
 import org.junit.jupiter.api.Test;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
@@ -128,5 +134,74 @@ class EnchantDefReaderTest {
                 EnchantDefReader.read("enchants/x", root("- just\n- a\n- list\n", diags), counter(), diags);
         assertCode(diags, DiagCode.E_LOAD_ENCHANT);
         assertTrue(parsed.abilities().isEmpty());
+    }
+
+    @Test
+    void booleanFlagsAcceptTheOneTruthyVocabulary() {
+        // ADR-0042: every loader boolean parses the same vocabulary — `yes`/`on` must not silently read false.
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            trigger: ATTACK
+            requires: [enchants/base]
+            removes-required: yes
+            suppress-immune: on
+            levels:
+              1: { effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        EnchantDefReader.Parsed parsed =
+                EnchantDefReader.read("enchants/x", root(yaml, diags), counter(), diags);
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        assertTrue(parsed.def().removesRequired());
+        assertTrue(parsed.abilities().get(0).suppressImmune());
+    }
+
+    @Test
+    void aGarbageBooleanWarnsAndFallsBackFalse() {
+        // The silent-typo case: `ture` must surface in /se problems, not compile to an unprotected buff.
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            trigger: ATTACK
+            suppress-immune: ture
+            levels:
+              1: { effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        EnchantDefReader.Parsed parsed =
+                EnchantDefReader.read("enchants/x", root(yaml, diags), counter(), diags);
+        assertFalse(parsed.abilities().get(0).suppressImmune());
+        assertCode(diags, DiagCode.W_LOAD_BOOL);
+    }
+
+    @Test
+    void suppressImmuneThreadsFromYamlToTheCompiledAbility() {
+        // The full producer seam (f9): reader → AbilityDef → lower → resolve → erase → Ability. A stage
+        // quietly reverting to a back-compat ctor (defaulting the flag) is the regression class that shipped
+        // the dormant SUPPRESS no-op; the two Mockito-stubbed runtime tests cannot see it.
+        Diagnostics diags = new Diagnostics();
+        IntSupplier ids = counter();
+        String immuneYaml = """
+            trigger: ATTACK
+            suppress-immune: true
+            levels:
+              1: { effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        String plainYaml = """
+            trigger: ATTACK
+            levels:
+              1: { effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        List<AbilityDef> defs = new ArrayList<>();
+        defs.addAll(EnchantDefReader.read("enchants/immune", root(immuneYaml, diags), ids, diags).abilities());
+        defs.addAll(EnchantDefReader.read("enchants/plain", root(plainYaml, diags), ids, diags).abilities());
+
+        Snapshot snap = Compiler.of(MapSpecRegistry.of(heal())).compile(defs, 1, diags);
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        assertTrue(snap.byStableKey("enchants/immune/1").suppressImmune(),
+                "suppress-immune: true must survive reader → lower → resolve → erase");
+        assertFalse(snap.byStableKey("enchants/plain/1").suppressImmune());
+    }
+
+    private static ParamSpec heal() {
+        return ParamSpec.of("HEAL").param("amount", D.DOUBLE.min(0)).build();
     }
 }
