@@ -1,5 +1,7 @@
 package engine.sink;
 
+import java.lang.System.Logger.Level;
+import java.lang.reflect.Constructor;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -9,6 +11,7 @@ import org.bukkit.Color;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
@@ -47,6 +50,11 @@ import schema.spec.HandleCategory;
  * (which wraps {@code RenameResolvers} + {@code v1_8_R3} NMS).
  */
 public final class ModernDispatchSink extends DispatchSinkBase {
+
+    private static final System.Logger LOG = System.getLogger("StarEnchants.ModernDispatchSink");
+
+    /** The keyed AttributeModifier ctor (1.21+), where the UUID ctor no longer stores a name; else null. */
+    private static final Constructor<AttributeModifier> KEYED_MODIFIER_CTOR = keyedModifierCtor();
 
     private final RuntimeHandles handles;
 
@@ -264,7 +272,6 @@ public final class ModernDispatchSink extends DispatchSinkBase {
     }
 
     @Override
-    @SuppressWarnings({"deprecation", "removal"}) // the UUID AttributeModifier ctor: deprecated-not-removed across the range
     protected void applyFrozenSlow(LivingEntity target, double slowPercent, boolean neutralizeFrostSlow) {
         AttributeInstance speed = movementSpeed(target);
         if (speed == null) {
@@ -272,13 +279,13 @@ public final class ModernDispatchSink extends DispatchSinkBase {
         }
         removeFrozenSlow(target); // replace-by-identity (the worn-modifier idempotency rule)
         if (slowPercent > 0.0) {
-            speed.addModifier(new AttributeModifier(FROZEN_SLOW_ID, FROZEN_SLOW_NAME, -slowPercent / 100.0,
+            speed.addModifier(ownedModifier(FROZEN_SLOW_ID, FROZEN_SLOW_NAME, -slowPercent / 100.0,
                     AttributeModifier.Operation.MULTIPLY_SCALAR_1));
         }
         if (neutralizeFrostSlow) {
             // Cancels vanilla tryAddFrost's −0.05×percentFrozen ADD modifier at full pin (§1.4) in the
             // additive stage; airborne it is inert for players (air accel is the constant 0.02, §1.7).
-            speed.addModifier(new AttributeModifier(FROZEN_FROST_OFFSET_ID, FROZEN_FROST_OFFSET_NAME, 0.05,
+            speed.addModifier(ownedModifier(FROZEN_FROST_OFFSET_ID, FROZEN_FROST_OFFSET_NAME, 0.05,
                     AttributeModifier.Operation.ADD_NUMBER));
         }
     }
@@ -289,12 +296,44 @@ public final class ModernDispatchSink extends DispatchSinkBase {
         if (speed == null) {
             return;
         }
+        // Match by id OR wire name: pre-1.21 modifiers carry FROZEN_*_ID (the UUID ctor), keyed ones
+        // (1.21+) derive a different UUID from their key, so only the name identifies them.
         for (AttributeModifier modifier : List.copyOf(speed.getModifiers())) {
             if (FROZEN_SLOW_ID.equals(modifier.getUniqueId())
-                    || FROZEN_FROST_OFFSET_ID.equals(modifier.getUniqueId())) {
+                    || FROZEN_FROST_OFFSET_ID.equals(modifier.getUniqueId())
+                    || FROZEN_SLOW_NAME.equals(modifier.getName())
+                    || FROZEN_FROST_OFFSET_NAME.equals(modifier.getName())) {
                 speed.removeModifier(modifier);
             }
         }
+    }
+
+    private static Constructor<AttributeModifier> keyedModifierCtor() {
+        try {
+            return AttributeModifier.class.getConstructor(
+                    NamespacedKey.class, double.class, AttributeModifier.Operation.class);
+        } catch (NoSuchMethodException absent) {
+            return null; // ≤1.20.6: the UUID ctor stores the wire name itself
+        }
+    }
+
+    /**
+     * A plugin-owned modifier whose WIRE NAME ({@code getName()}) is version-stable. From 1.21 the
+     * (UUID, name, …) ctor DISCARDS the name — the key becomes the UUID string and {@code getName()}
+     * returns the key's path (javap: AttributeModifier, paper-api 1.21.4/26.1.2) — so there the keyed
+     * ctor carries the name as {@code starenchants:<name>}; before it, the UUID ctor stores both.
+     */
+    @SuppressWarnings({"deprecation", "removal"}) // the UUID AttributeModifier ctor: deprecated-not-removed across the range
+    private static AttributeModifier ownedModifier(UUID id, String name, double amount,
+                                                   AttributeModifier.Operation operation) {
+        if (KEYED_MODIFIER_CTOR != null) {
+            try {
+                return KEYED_MODIFIER_CTOR.newInstance(new NamespacedKey("starenchants", name), amount, operation);
+            } catch (ReflectiveOperationException e) {
+                LOG.log(Level.WARNING, "keyed AttributeModifier ctor failed", e); // fall through: the modifier still lands
+            }
+        }
+        return new AttributeModifier(id, name, amount, operation);
     }
 
     /** The MOVEMENT_SPEED instance, resolved by NAME so the 1.21.3 rename rides the alias chain. */
