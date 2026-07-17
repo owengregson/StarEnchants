@@ -8,7 +8,10 @@ import engine.spec.EffectSpec;
 import org.bukkit.Location;
 import schema.spec.D;
 
-/** {@code SOUND} — play a sound at the activation location (§7); {@code sound} interned at compile (§9). */
+/**
+ * {@code SOUND} — play a sound at the activation location (§7); {@code sound} interned at compile (§9).
+ * Emission is deduped per hit: the same sound id plays at most once per event sink ({@link CueOnce}, ADR-0066).
+ */
 public final class SoundEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("SOUND")
@@ -28,8 +31,14 @@ public final class SoundEffect implements EffectKind {
     @Override
     public void run(EffectCtx ctx, Sink sink) {
         Location loc = ctx.location();
-        if (loc != null) {
-            sink.sound(loc, ctx.integer("sound"), (float) ctx.dbl("volume"), (float) ctx.dbl("pitch"));
+        if (loc == null) {
+            return;
+        }
+        int soundId = ctx.integer("sound");
+        // ADR-0066: one audible cue per sound per hit. Same-sound co-activations inside one event walk
+        // (sibling enchants sharing a cue, worn multi-copies, the ECHO_STRIKE pass) collapse to ONE play.
+        if (CueOnce.claim(sink, soundId)) {
+            sink.sound(loc, soundId, (float) ctx.dbl("volume"), (float) ctx.dbl("pitch"));
         }
     }
 }
