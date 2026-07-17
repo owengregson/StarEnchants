@@ -1,0 +1,19 @@
+# Owl Pet — an ACTIVE pet (ADR-0061): right-click sweeps every OTHER player within the bracket radius —
+# their Invisibility is stripped AND locked out for the bracket window (POTION_LOCK: the modern potion-event
+# guard cancels any re-application; the per-tick re-strip is the sole enforcer on 1.8.9 — full fidelity on
+# every version). duration mirrors the lock ticks so the universal ENDED message lands exactly when enemies
+# may vanish again. Deliberately NO condition gate: an empty sweep still burns the cooldown — scouting for
+# hidden players is the point, and a free re-roll would make the reveal spammable.
+display: "Owl"
+color: "&6"
+type: ACTIVE
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWRiZDhiNmNiM2IxZWNkOWNhMzU5YjgzM2MxYmVmMjJlOTczMmZiN2FhMGQwZmY0ZmI1NTg4ODZmNWE2YSJ9fX0="
+descriptor: "&eA sharp-eyed sentinel that pierces every veil. Nothing stays hidden while it watches."
+description:
+  - "&6* Reveals nearby hidden players and denies their invisibility"
+levels:
+  # radius 10 → 12 → 15 → 20; lock (and window) 8s → 10s → 12s → 15s; cooldown 4m → 3m30s → 3m → 2m30s.
+  1:   { cooldown: 4800, duration: 160, effects: [ { SOUND: { sound: "ENTITY_ELDER_GUARDIAN_CURSE", volume: 0.6, pitch: 1.6 } }, { POTION_LOCK: { effect: "INVISIBILITY", ticks: 160, who: "@Aoe{r=10, filter=PLAYERS}" } } ] }
+  25:  { cooldown: 4200, duration: 200, effects: [ { SOUND: { sound: "ENTITY_ELDER_GUARDIAN_CURSE", volume: 0.6, pitch: 1.6 } }, { POTION_LOCK: { effect: "INVISIBILITY", ticks: 200, who: "@Aoe{r=12, filter=PLAYERS}" } } ] }
+  50:  { cooldown: 3600, duration: 240, effects: [ { SOUND: { sound: "ENTITY_ELDER_GUARDIAN_CURSE", volume: 0.6, pitch: 1.6 } }, { POTION_LOCK: { effect: "INVISIBILITY", ticks: 240, who: "@Aoe{r=15, filter=PLAYERS}" } } ] }
+  100: { cooldown: 3000, duration: 300, effects: [ { SOUND: { sound: "ENTITY_ELDER_GUARDIAN_CURSE", volume: 0.6, pitch: 1.6 } }, { POTION_LOCK: { effect: "INVISIBILITY", ticks: 300, who: "@Aoe{r=20, filter=PLAYERS}" } } ] }
