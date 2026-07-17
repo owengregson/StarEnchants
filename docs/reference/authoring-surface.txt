@@ -93,6 +93,8 @@ effect KNOCKBACK_CONTROL
   param duration TICKS optional min=0 max=- enum=- handle=- default=2
 effect LIGHTNING
   param damage DOUBLE optional min=0 max=- enum=- handle=- default=0
+effect LIGHTNING_MOD
+  param amount DOUBLE required min=-100 max=- enum=- handle=- default=-
 effect MARK
   param amount DOUBLE required min=- max=- enum=- handle=- default=-
   param duration TICKS optional min=0 max=- enum=- handle=- default=60

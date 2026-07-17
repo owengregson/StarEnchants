@@ -107,6 +107,7 @@ public final class BuiltinEffects {
                 .register(new CageEffect())        // Cage pet: temp sealed cage + both parties teleported inside
                 .register(new StripScrollEffect()) // Anubis pet: strip a White/Holy-White marker off victim gear
                 .register(new DigHomeEffect())     // ADR-0061 Mole pet: service-owned dig/recall-home marker
+                .register(new LightningModEffect()) // ADR-0063 worn lightning channel (Bolt crystal): no-op run
                 .build();
     }
 }

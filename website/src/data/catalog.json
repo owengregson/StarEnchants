@@ -1205,6 +1205,28 @@
       ]
     },
   {
+    "head": "LIGHTNING_MOD",
+    "doc": "While worn (PASSIVE): the wearer's LIGHTNING effects deal amount% more authored damage (summed across worn sources, suppression-aware, read when the bolt fires). Negative values reduce, floored at a cosmetic bolt; the vanilla splash is untouched.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ LIGHTNING_MOD: { amount: <double[-100..]> } }",
+    "example": "{ LIGHTNING_MOD: { amount: 10 } }",
+    "params": [
+      {
+        "name": "amount",
+        "kind": "DOUBLE",
+        "label": "double[-100..]",
+        "required": true,
+        "default": null,
+        "min": -100,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
+    },
+  {
     "head": "MARK",
     "doc": "Mark the target(s) so the actor deals an extra `amount`% damage to them for `duration` ticks. Applied by the damage fold on the actor's later hits; default target the combat victim.",
     "affinity": "CONTEXT_LOCAL",

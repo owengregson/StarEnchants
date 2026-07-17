@@ -21,6 +21,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.function.LongSupplier;
+import java.util.function.ToDoubleFunction;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
@@ -134,6 +135,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final java.util.function.DoubleSupplier moneyInterestCap;
     /** The scroll-marker seam {@code STRIP_SCROLL} mutates victim gear through (ADR-0052 Anubis). */
     private final GearProtection gearProtection;
+    /** The worn LIGHTNING_MOD channel (ADR-0063): actor UUID → summed boost fraction, read per bolt emit. */
+    private final ToDoubleFunction<UUID> lightningBoost;
 
     /** The event's own entity (the combat victim), whose zero-WAIT health writes run inline at flush (ADR-0051). */
     private LivingEntity eventEntity;
@@ -180,6 +183,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.timedReverts = env.timedReverts();
         this.moneyInterestCap = env.moneyInterestCap();
         this.gearProtection = env.gearProtection();
+        this.lightningBoost = env.lightningBoost();
         this.fold = new DamageFold();
     }
 
@@ -969,20 +973,26 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void lightningAndDamage(LivingEntity target, double amount, LivingEntity attacker) {
+        // Worn LIGHTNING_MOD channel (ADR-0063): resolve the wearer's boost NOW on the firing thread and
+        // capture the scaled primitive into the intent (§3.6 immutable-carrier rule). Clamped at 0 so a
+        // full-negation debuff yields a cosmetic bolt, never inverted damage; a cosmetic bolt stays 0.
+        double payload = amount > 0 && attacker != null
+                ? amount * Math.max(0.0, 1.0 + lightningBoost.applyAsDouble(attacker.getUniqueId()))
+                : amount;
         entityOp(target, () -> {
             World world = target.getWorld();
             if (world != null) {
                 // damage <= 0 is a cosmetic bolt only — no vanilla ~5 dmg / fire (yijki Divine Shield, any flair).
-                if (amount > 0) {
+                if (payload > 0) {
                     world.strikeLightning(target.getLocation());
                 } else {
                     world.strikeLightningEffect(target.getLocation());
                 }
             }
-            if (amount > 0) {
+            if (payload > 0) {
                 // A bolt is its own proc, never a same-hit rider (ADR-0054): always a separate,
                 // attributed application.
-                hurt(target, amount, attacker);
+                hurt(target, payload, attacker);
             }
         });
     }
