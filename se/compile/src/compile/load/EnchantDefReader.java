@@ -65,7 +65,8 @@ final class EnchantDefReader {
         // §G relationships: pure metadata, evaluated by ItemEnchanter at apply.
         List<String> requires = root.stringList("requires");
         List<String> blacklist = root.stringList("blacklist");
-        boolean removesRequired = "true".equalsIgnoreCase(root.string("removes-required"));
+        boolean removesRequired = ContentParse.boolOr(root.string("removes-required"), false, "removes-required",
+                DiagCode.W_LOAD_BOOL, root.sourceOf("removes-required"), diags);
         if (removesRequired && requires.isEmpty()) {
             diags.warning(DiagCode.W_LOAD_ENCHANT_RELATIONSHIPS,
                     "enchant '" + baseKey + "' sets removes-required but declares no 'requires'",
@@ -74,7 +75,8 @@ final class EnchantDefReader {
         int repeatTicks = ContentParse.optInt(root, "repeat", 0, diags);
         // Per-enchant suppression immunity (Silence & derivatives): when true, THIS enchant's abilities can never
         // be disabled, so a permanent buff survives while the wearer's other enchants are still silenced.
-        boolean suppressImmune = "true".equalsIgnoreCase(root.string("suppress-immune"));
+        boolean suppressImmune = ContentParse.boolOr(root.string("suppress-immune"), false, "suppress-immune",
+                DiagCode.W_LOAD_BOOL, root.sourceOf("suppress-immune"), diags);
 
         Map<Integer, YamlNode> levelNodes = new LinkedHashMap<>();
         for (YamlNode.Entry entry : root.entries("levels")) {
