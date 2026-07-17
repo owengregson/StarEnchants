@@ -189,8 +189,7 @@ public final class PetHomeSuite implements Harness.Scenario {
                 });
 
                 // (b) RECALL: walk 4 blocks (inside range 8), plain use → teleported back, window consumed.
-                user.teleport(dug.clone().add(4, 0, 0)); // same region — plain teleport on own thread is fine
-                Scheduling.onEntityLater(user, SETTLE_TICKS, () -> {
+                hop(user, dug.clone().add(4, 0, 0), () -> {
                     pets.use(user, mole);
                     Scheduling.onEntityLater(user, SETTLE_TICKS, () -> {
                         h.guard(RECALL, () -> {
@@ -216,8 +215,7 @@ public final class PetHomeSuite implements Harness.Scenario {
         user.setSneaking(true);
         pets.use(user, mole);
         user.setSneaking(false);
-        user.teleport(dug.clone().add(30, 0, 0));
-        Scheduling.onEntityLater(user, SETTLE_TICKS, () -> {
+        hop(user, dug.clone().add(30, 0, 0), () -> {
             Location far = user.getLocation().clone();
             pets.use(user, mole);
             Scheduling.onEntityLater(user, SETTLE_TICKS, () -> {
@@ -231,8 +229,7 @@ public final class PetHomeSuite implements Harness.Scenario {
                 });
 
                 // (d) TELEBLOCK: back inside range, flag armed → refused, window kept; lifted → it lands.
-                user.teleport(dug.clone().add(4, 0, 0));
-                Scheduling.onEntityLater(user, SETTLE_TICKS, () -> {
+                hop(user, dug.clone().add(4, 0, 0), () -> {
                     stores.teleblock().block(user.getUniqueId(), clock.get(), 12000);
                     pets.use(user, mole);
                     Scheduling.onEntityLater(user, SETTLE_TICKS, () -> {
@@ -276,6 +273,17 @@ public final class PetHomeSuite implements Harness.Scenario {
                 });
             });
         });
+    }
+
+    /**
+     * Folia-safe staging hop: a synchronous {@code Player.teleport} throws on Folia even from the entity's
+     * own region thread ("Must use teleportAsync while in region threading"). Continue only once the hop has
+     * landed — the +30 hop leaves the force-loaded arena chunk, so a fixed delay alone races the async chunk
+     * load — then settle on the player's entity thread. Always continues: a refused hop surfaces as a
+     * resolved guard FAIL, never an unresolved timeout.
+     */
+    private static void hop(Player user, Location to, Runnable then) {
+        user.teleportAsync(to).whenComplete((landed, err) -> Scheduling.onEntityLater(user, SETTLE_TICKS, then));
     }
 
     private void failAll(Harness h, String message) {

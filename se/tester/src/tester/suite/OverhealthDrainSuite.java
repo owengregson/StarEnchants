@@ -1,5 +1,6 @@
 package tester.suite;
 
+import engine.sink.LockedPotions;
 import engine.sink.ModernDispatchSink;
 import java.util.OptionalInt;
 import java.util.UUID;
@@ -66,6 +67,11 @@ public final class OverhealthDrainSuite implements Harness.Scenario {
     private static final int DRAIN_TICKS = 40;
     /** The potion-lock window; the re-strip backstop self-cancels this many ticks after the lock applies. */
     private static final int LOCK_TICKS = 40;
+    /** Ticks to poll for the WALL-CLOCK LockedPotions window to lapse past the tick window's end: under a
+     *  matrix catch-up burst (Paper silently repays any ≤5 s deficit with no-sleep ticks) game ticks lead the
+     *  wall clock by up to ~100 ticks, so the 2 s window can span ~140 ticks from the lock; 160 bounds the
+     *  residue with slack and keeps the chain far inside the 400-tick harness deadline. */
+    private static final int LOCK_EVICT_BUDGET = 160;
     /** Ticks to poll for a granted boost to register on the attribute before giving up. */
     private static final int GRANT_BUDGET = 40;
     /** Sample the drained cap this many ticks after flush (well inside the window; after the deferred drain lands). */
@@ -254,8 +260,21 @@ public final class OverhealthDrainSuite implements Harness.Scenario {
                                         "a locked HEALTH_BOOST re-application was NOT denied during the window");
                             }
                         });
-                        // Past the window (lock ended, LockedPotions wall-window elapsed): a fresh one must stick.
-                        Scheduling.onEntityLater(player, LOCK_TICKS, () -> {
+                        // Past the window: the re-strip task is TICK-anchored (cancelled LOCK_TICKS ticks after
+                        // the lock), but the LockedPotions denial window is WALL-CLOCK (ticks * 50 ms) — under a
+                        // matrix catch-up burst game ticks outpace the wall clock, so a fixed tick wait can land
+                        // INSIDE the wall window (the paper:1.17.1 flake). Wait the tick window out (re-strip
+                        // certainly cancelled), then OBSERVE the wall window lapse through production's own read
+                        // path before proving a fresh application sticks.
+                        Scheduling.onEntityLater(player, LOCK_TICKS, () -> awaitUntil(player,
+                                () -> !LockedPotions.isLocked(player.getUniqueId(), healthBoost.getName()),
+                                0, LOCK_EVICT_BUDGET, lapsed -> {
+                            if (!lapsed) {
+                                h.fail(reallowed, "LockedPotions wall window never lapsed within "
+                                        + LOCK_EVICT_BUDGET + " ticks of the tick window's end");
+                                rig.teardown();
+                                return;
+                            }
                             player.addPotionEffect(new PotionEffect(healthBoost, REAPPLY_DURATION, 0));
                             Scheduling.onEntityLater(player, SETTLE, () -> {
                                 h.guard(reallowed, () -> {
@@ -266,7 +285,7 @@ public final class OverhealthDrainSuite implements Harness.Scenario {
                                 });
                                 rig.teardown();
                             });
-                        });
+                        }));
                     });
                 });
             });
