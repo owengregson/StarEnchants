@@ -78,13 +78,14 @@ public final class PetService {
     private final Random rolls; // injected (never ThreadLocalRandom) so suites can stub the use-XP roll
     private final PetHomeStore homes;       // ADR-0061: the Mole dig-home windows (same-package store)
     private final TeleblockStore teleblock; // ADR-0061: the pack-wide teleport counter, read at recall
+    private final PetHomeVisuals visuals;   // ADR-0061 amendment: the window-tied pulse + recall cues
 
     public PetService(ContentHolder content, PetCodec codec, TriggerDispatch dispatch, TexturedHeads heads,
                       HeadEquip headEquip, VanillaEnchants vanilla, PetMessenger messenger, PetArmedStore armed,
                       Supplier<MasterConfig.PetsSection> pets, Supplier<PetItemConfig> likeness,
                       Supplier<PetFoodConfig> food, Consumer<Player> refresh, LongSupplier nowTicks,
                       Predicate<Material> isAir, PetLevelCue cue, Random rolls,
-                      PetHomeStore homes, TeleblockStore teleblock) {
+                      PetHomeStore homes, TeleblockStore teleblock, PetHomeVisuals visuals) {
         this.content = Objects.requireNonNull(content, "content");
         this.codec = Objects.requireNonNull(codec, "codec");
         this.dispatch = Objects.requireNonNull(dispatch, "dispatch");
@@ -103,6 +104,7 @@ public final class PetService {
         this.rolls = Objects.requireNonNull(rolls, "rolls");
         this.homes = Objects.requireNonNull(homes, "homes");
         this.teleblock = Objects.requireNonNull(teleblock, "teleblock");
+        this.visuals = Objects.requireNonNull(visuals, "visuals");
     }
 
     public boolean isPet(ItemStack stack) {
@@ -470,7 +472,10 @@ public final class PetService {
             return true;
         }
         homes.clear(player.getUniqueId());
-        dispatch.teleport(player, new Location(world, home.x(), home.y(), home.z(), home.yaw(), home.pitch()));
+        visuals.clear(player.getUniqueId());
+        Location to = new Location(world, home.x(), home.y(), home.z(), home.yaw(), home.pitch());
+        visuals.recallCues(player, def, player.getLocation(), to); // cues mark both ends before the async hop
+        dispatch.teleport(player, to);
         messenger.ended(player, def);
         creditUseExp(player, stack);
         return true;
@@ -489,8 +494,10 @@ public final class PetService {
         UUID id = player.getUniqueId();
         long generation = homes.arm(id, player.getWorld().getUID(), at.getX(), at.getY(), at.getZ(),
                 at.getYaw(), at.getPitch(), range, nowTicks.getAsLong() + window);
+        visuals.begin(player, def, generation);
         Scheduling.onEntityLater(player, window, () -> {
             if (homes.clearIfGeneration(id, generation)) {
+                visuals.endIfGeneration(id, generation);
                 messenger.ended(player, def);
             }
         });
@@ -588,5 +595,6 @@ public final class PetService {
     public void dropWindows(UUID player) {
         armed.clear(player);
         homes.clear(player); // the pending expiry task then no-ops via the generation guard — no post-death ENDED
+        visuals.clear(player);
     }
 }

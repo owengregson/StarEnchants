@@ -5,7 +5,10 @@
 # it fails a non-sneaking fresh click BEFORE the cooldown arms; the recall interception happens before the
 # gate walk entirely, so the armed cooldown never blocks the return trip. Use-XP is granted on the successful
 # RECALL, not the dig. The 30s window and 50-block range are bracket-invariant (owner-pinned); only the
-# cooldown scales with level.
+# cooldown scales with level. While the window is live the plugin draws a dust tracer line home→player and a
+# pulsating ring on the home block in the pet's colour (everyone nearby sees them — finding the home is the
+# counterplay); the recall plays burrow cues at both ends. Those visuals are code-side (PetHomeVisuals), not
+# authored here.
 display: "Mole"
 color: "{#7d6654}"
 type: ACTIVE
@@ -15,7 +18,7 @@ description:
   - "{#7d6654}* Sneak to dig a temporary home that lasts up to thirty seconds: activate again to instantly return home"
 levels:
   # 15m → 14m → 13m → 12m.
-  1:   { cooldown: 18000, condition: "%sneaking%", effects: [ { SOUND: { sound: "BLOCK_GRASS_BREAK", volume: 1.0, pitch: 0.7 } }, { DIG_HOME: { window: 600, range: 50 } } ] }
-  25:  { cooldown: 16800, condition: "%sneaking%", effects: [ { SOUND: { sound: "BLOCK_GRASS_BREAK", volume: 1.0, pitch: 0.7 } }, { DIG_HOME: { window: 600, range: 50 } } ] }
-  50:  { cooldown: 15600, condition: "%sneaking%", effects: [ { SOUND: { sound: "BLOCK_GRASS_BREAK", volume: 1.0, pitch: 0.7 } }, { DIG_HOME: { window: 600, range: 50 } } ] }
-  100: { cooldown: 14400, condition: "%sneaking%", effects: [ { SOUND: { sound: "BLOCK_GRASS_BREAK", volume: 1.0, pitch: 0.7 } }, { DIG_HOME: { window: 600, range: 50 } } ] }
+  1:   { cooldown: 18000, condition: "%sneaking%", effects: [ { SOUND: { sound: "BLOCK_GRASS_BREAK", volume: 1.0, pitch: 0.7 } }, { PARTICLE: { particle: BLOCK_CRACK, block: DIRT, count: 16, spread: 0.35 } }, { DIG_HOME: { window: 600, range: 50 } } ] }
+  25:  { cooldown: 16800, condition: "%sneaking%", effects: [ { SOUND: { sound: "BLOCK_GRASS_BREAK", volume: 1.0, pitch: 0.7 } }, { PARTICLE: { particle: BLOCK_CRACK, block: DIRT, count: 16, spread: 0.35 } }, { DIG_HOME: { window: 600, range: 50 } } ] }
+  50:  { cooldown: 15600, condition: "%sneaking%", effects: [ { SOUND: { sound: "BLOCK_GRASS_BREAK", volume: 1.0, pitch: 0.7 } }, { PARTICLE: { particle: BLOCK_CRACK, block: DIRT, count: 16, spread: 0.35 } }, { DIG_HOME: { window: 600, range: 50 } } ] }
+  100: { cooldown: 14400, condition: "%sneaking%", effects: [ { SOUND: { sound: "BLOCK_GRASS_BREAK", volume: 1.0, pitch: 0.7 } }, { PARTICLE: { particle: BLOCK_CRACK, block: DIRT, count: 16, spread: 0.35 } }, { DIG_HOME: { window: 600, range: 50 } } ] }

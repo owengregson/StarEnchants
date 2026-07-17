@@ -3,6 +3,7 @@ package bootstrap.wire;
 import feature.menu.Mintable;
 import feature.pet.PetFoodListener;
 import feature.pet.PetHomeStore;
+import feature.pet.PetHomeVisuals;
 import feature.pet.PetHotbarListener;
 import feature.pet.PetLevelCue;
 import feature.pet.PetLevelListener;
@@ -34,6 +35,7 @@ final class PetsModule {
     final PetLevelListener leveler;
     final PetSweep sweep;
     final PetHomeStore homes = new PetHomeStore(); // ADR-0061: the Mole dig-home windows
+    final PetHomeVisuals visuals; // ADR-0061 amendment: the window-tied pulse task + recall cues
     final feature.trigger.WaterSpeedDriver waterSpeed;
     final List<Mintable> mints;
 
@@ -42,6 +44,7 @@ final class PetsModule {
         this.equip = equip;
         PetMessenger messenger = new PetMessenger(core.messages(), () -> core.master().config().pets());
         PetLevelCue cue = new PetLevelCue(() -> core.master().config().pets(), core.particleFx(), core.sounds());
+        this.visuals = new PetHomeVisuals(core.triggerDispatch(), homes, core.tick()::get, core.resolvers());
         // The cold-path run reuses the shared TriggerDispatch (its runner/sink wiring), so no second engine spine.
         this.pets = new PetService(core.content(), core.petCodec(), core.triggerDispatch(),
                 core.bindings().texturedHeads(), core.bindings().headEquip(), core.vanillaEnchants(),
@@ -50,7 +53,7 @@ final class PetsModule {
                 () -> core.items().config().petOrDefault(),
                 () -> core.items().config().petFoodOrDefault(),
                 equip.refresher(), core.tick()::get, core.bindings().actorProbe()::isAir,
-                cue, core.rolls(), homes, core.stores().teleblock());
+                cue, core.rolls(), homes, core.stores().teleblock(), visuals);
         this.leveler = new PetLevelListener(pets, core.petCodec(), () -> core.master().config().pets(),
                 equip.refresher(), enabled());
         this.sweep = new PetSweep(core.petCodec(), leveler, equip.refresher(), enabled());
@@ -84,6 +87,7 @@ final class PetsModule {
                 .mints(mints)
                 .store(core.petArmedStore())
                 .store(homes) // ADR-0061: a dig-home window never survives a quit
+                .store(visuals) // its pulse task dies with it
                 .store(sweep)
                 .pluginItem(stack -> core.petCodec().isPet(stack) || core.petCodec().isPetFood(stack))
                 // "feedback" is the UNIVERSAL action-feedback root (ADR-0061) — pets is its first consumer
@@ -100,6 +104,7 @@ final class PetsModule {
                 .stop("bat swarms", engine.sink.SwarmSpawns::removeAll)
                 .stop("pet armed windows", core.petArmedStore()::clearAll)
                 .stop("pet home windows", homes::clearAll)
+                .stop("pet home visuals", visuals::clearAll)
                 .build();
     }
 }
