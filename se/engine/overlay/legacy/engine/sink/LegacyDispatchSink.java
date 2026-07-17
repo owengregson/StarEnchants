@@ -257,6 +257,47 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
         }
     }
 
+    /** 1.8 has no freeze concept — the FREEZE visual is the recorded era degrade (DoT + slow still land). */
+    @Override
+    protected boolean freezeVisualStart(LivingEntity target) {
+        return false; // nothing to pin
+    }
+
+    @Override
+    protected void freezePin(LivingEntity target) {
+        // no-op (no freeze metadata on 1.8)
+    }
+
+    @Override
+    protected void freezeVisualEnd(LivingEntity target) {
+        // no-op
+    }
+
+    @Override
+    protected void applyFrozenSlow(LivingEntity target, double slowPercent, boolean neutralizeFrostSlow) {
+        net.minecraft.server.v1_8_R3.AttributeInstance speed = movementSpeedInstance(target);
+        if (speed == null || slowPercent <= 0.0) {
+            return;
+        }
+        removeFrozenSlow(target); // idempotent replace-by-identity, mirroring addMaxHealthModifier
+        // Operation 1 = multiply-base (the modern MULTIPLY_SCALAR_1); no vanilla frost on 1.8, so the
+        // neutralize offset is never applied here.
+        speed.b(new net.minecraft.server.v1_8_R3.AttributeModifier(FROZEN_SLOW_ID, FROZEN_SLOW_NAME,
+                -slowPercent / 100.0, 1));
+    }
+
+    @Override
+    protected void removeFrozenSlow(LivingEntity target) {
+        net.minecraft.server.v1_8_R3.AttributeInstance speed = movementSpeedInstance(target);
+        if (speed == null) {
+            return;
+        }
+        net.minecraft.server.v1_8_R3.AttributeModifier existing = speed.a(FROZEN_SLOW_ID);
+        if (existing != null) {
+            speed.c(existing);
+        }
+    }
+
     /** The NMS max-health attribute instance for {@code entity}, or {@code null}. */
     private static net.minecraft.server.v1_8_R3.AttributeInstance maxHealthInstance(LivingEntity entity) {
         if (!(entity instanceof CraftLivingEntity)) {

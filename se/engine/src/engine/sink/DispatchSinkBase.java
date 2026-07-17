@@ -101,6 +101,16 @@ public abstract class DispatchSinkBase implements SinkReadback {
     protected static final UUID WORN_WATER_SPEED_ID =
             UUID.nameUUIDFromBytes("starenchants:worn_water_speed".getBytes(StandardCharsets.UTF_8));
     protected static final String WORN_WATER_SPEED_NAME = "starenchants.worn_water_speed";
+    /** The frozen-window slow modifier's identity (FREEZE, ADR-0065) — MULTIPLY_SCALAR_1, −slow/100. */
+    protected static final UUID FROZEN_SLOW_ID =
+            UUID.nameUUIDFromBytes("starenchants:frozen_slow".getBytes(StandardCharsets.UTF_8));
+    protected static final String FROZEN_SLOW_NAME = "starenchants.frozen_slow";
+    /** The vanilla-frost offset's identity (FREEZE, ADR-0065) — ADD_NUMBER +0.05, cancels tryAddFrost. */
+    protected static final UUID FROZEN_FROST_OFFSET_ID =
+            UUID.nameUUIDFromBytes("starenchants:frozen_frost_offset".getBytes(StandardCharsets.UTF_8));
+    protected static final String FROZEN_FROST_OFFSET_NAME = "starenchants.frozen_frost_offset";
+    /** Unlocked-pin slack: outruns aiStep's −2/tick decay so the SYNCED value is exactly max (§1). */
+    protected static final int FREEZE_PIN_SLACK = 2;
 
     private final EconomyService economy;
     private final SoulDebit souls;
@@ -750,6 +760,78 @@ public abstract class DispatchSinkBase implements SinkReadback {
             Scheduling.onEntityLater(target, durationTicks, () -> {
                 if (handle[0] != null) {
                     handle[0].cancel(); // end the lock at the window's close
+                }
+            });
+        });
+    }
+
+    @Override
+    public void freeze(LivingEntity target, int durationTicks, double dotPerTick, int dotPeriodTicks,
+                       double slowPercent, boolean neutralizeFrostSlow, LivingEntity attacker) {
+        if (target == null || durationTicks <= 0) {
+            return;
+        }
+        int period = Math.max(1, dotPeriodTicks);
+        entityOp(target, () -> {
+            UUID victim = target.getUniqueId();
+            long deadlineMs = System.currentTimeMillis() + durationTicks * 50L;
+            UUID attackerId = attacker != null ? attacker.getUniqueId() : null;
+            if (FrozenTargets.refresh(victim, deadlineMs, attackerId, attacker)) {
+                return; // refresh-not-stack (owner rule): the live window's tasks read the moved deadline
+            }
+            long gen = FrozenTargets.arm(victim, deadlineMs, attackerId, attacker);
+            // Players ride Paper's freeze-tick LOCK where it exists (guards vanilla's decay AND the
+            // burning-entity clear, §1.1/§1.2 — fire coexistence with zero per-tick work). Mobs never
+            // lock: freezeLocked persists to NBT (§1.6), so a mid-window chunk unload would strand a
+            // locked mob frozen forever, while an unlocked pin self-heals by the 2/tick decay.
+            boolean needsPin = !(target instanceof Player) || freezeVisualStart(target);
+            applyFrozenSlow(target, slowPercent, neutralizeFrostSlow);
+            TaskHandle[] tasks = new TaskHandle[2];
+            Runnable teardown = () -> {
+                // Idempotent + generation-guarded: quit drain, natural expiry, death, and the disable
+                // sweep may all reach here; only the first run of the CURRENT window acts.
+                if (tasks[0] != null) {
+                    tasks[0].cancel();
+                }
+                if (tasks[1] != null) {
+                    tasks[1].cancel();
+                }
+                freezeVisualEnd(target);
+                removeFrozenSlow(target);
+                FrozenTargets.disarm(victim, gen);
+            };
+            FrozenTargets.onTeardown(victim, gen, teardown);
+            // Quit-safety (players): registered like every timed buff, so a logout mid-window unlocks
+            // and strips the modifiers BEFORE the playerdata save (F07/F08).
+            long token = -1L;
+            if (target instanceof Player) {
+                token = timedReverts.begin(victim, teardown);
+            }
+            long claimed = token;
+            if (needsPin) {
+                // Unlocked pin (mobs; the 1.17.1 floor): +SLACK outruns the −2/tick decay so the synced
+                // value is exactly max (§1.1). Skipped while burning — baseTick would zero it and replay
+                // the 1009 extinguish hiss every tick (§1.2); the visual honestly drops until the fire ends.
+                tasks[1] = Scheduling.repeatingEntity(target, 1L, 1L, () -> {
+                    if (target.isValid() && FrozenTargets.isFrozen(victim, System.currentTimeMillis())) {
+                        freezePin(target);
+                    }
+                });
+            }
+            tasks[0] = Scheduling.repeatingEntity(target, period, period, () -> {
+                boolean live = target.isValid() && !target.isDead();
+                if (live && FrozenTargets.isFrozen(victim, System.currentTimeMillis())) {
+                    FrozenTargets.Window w = FrozenTargets.get(victim);
+                    // ADR-0054 deferred attributed hurt (the bleed path): EngineDamage-framed, so the
+                    // combat dispatch stands down (no proc walks, no ReHitGuard stamp, no rage advance)
+                    // and downstream sees a real killer-typed event (kill credit; Phoenix runs inline).
+                    hurt(target, dotPerTick, w != null ? w.attacker() : null);
+                    return;
+                }
+                if (claimed >= 0) {
+                    timedReverts.runOnce(victim, claimed); // claim-or-noop: the quit drain may have run it
+                } else {
+                    teardown.run();
                 }
             });
         });
@@ -2069,6 +2151,34 @@ public abstract class DispatchSinkBase implements SinkReadback {
     /** Remove the max-health modifier {@code id} if present — modern {@code getModifiers}+{@code removeModifier};
      *  1.8 NMS {@code a(UUID)}+{@code c(AttributeModifier)}. A no-op when absent (idempotent give-back). */
     protected abstract void removeMaxHealthModifier(LivingEntity entity, UUID id);
+
+    /**
+     * Begin the frozen VISUAL (FREEZE, ADR-0065) and report whether a per-tick re-pin is still needed:
+     * modern locks + pins when Paper's freeze-tick lock exists (1.18.2+ → {@code false}) and otherwise
+     * asks for the pin ({@code true}, the 1.17.1 floor); 1.8.9 is a recorded no-op ({@code false} —
+     * nothing to pin). Only ever called for players (mobs always take the unlocked pin, §1.6).
+     */
+    protected abstract boolean freezeVisualStart(LivingEntity target);
+
+    /** One unlocked re-pin at {@code max + FREEZE_PIN_SLACK}, SKIPPED while the target burns (§1.2 — the
+     *  baseTick clear + 1009 hiss). Modern only; a 1.8.9 no-op. */
+    protected abstract void freezePin(LivingEntity target);
+
+    /** End the frozen visual: unlock (if locked) + zero the freeze ticks. A 1.8.9 no-op. */
+    protected abstract void freezeVisualEnd(LivingEntity target);
+
+    /**
+     * Apply the frozen-window slow (FREEZE, ADR-0065): {@link #FROZEN_SLOW_ID} at −{@code slowPercent}/100
+     * (multiply-base) and, when {@code neutralizeFrostSlow}, {@link #FROZEN_FROST_OFFSET_ID} at +0.05
+     * (add) cancelling vanilla's {@code tryAddFrost} −0.05-at-full-freeze modifier (§1.4) so the authored
+     * percent is the real ground slow. Modern = Bukkit MOVEMENT_SPEED modifiers (name-resolved; the
+     * 1.21.3 rename rides the alias chain); 1.8 = NMS {@code GenericAttributes.MOVEMENT_SPEED} (no
+     * vanilla frost there, so the offset is never applied). Replace-by-identity, idempotent.
+     */
+    protected abstract void applyFrozenSlow(LivingEntity target, double slowPercent, boolean neutralizeFrostSlow);
+
+    /** Remove both frozen-slow modifiers if present (idempotent give-back). */
+    protected abstract void removeFrozenSlow(LivingEntity target);
 
     /** Set a freshly-spawned living entity's max + current health (SPAWN_ENTITY's {@code health} param). */
     protected abstract void applySpawnHealth(LivingEntity entity, double health);

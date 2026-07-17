@@ -56,6 +56,7 @@ public final class BuiltinEffects {
                 // Movement + vitals.
                 .register(new VelocityEffect()) // §C canonical; replaces THROW/LAUNCH/KNOCKBACK
                 .register(new WaterSpeedEffect()) // ADR-0060 worn water_movement_efficiency channel (Kraken pet)
+                .register(new FreezeEffect()) // ADR-0065 frozen window: pinned freeze visual + DoT + slow (Ice Aspect)
                 .register(new FlyEffect())
                 .register(new FlyModeEffect()) // out-of-combat flight (supreme Gifted Child)
                 .register(new HealthEffect())

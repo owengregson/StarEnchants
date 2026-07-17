@@ -64,6 +64,12 @@ effect FIREWORK
 effect FLY
   param ticks TICKS optional min=0 max=- enum=- handle=- default=200
 effect FLY_MODE
+effect FREEZE
+  param duration TICKS optional min=0 max=- enum=- handle=- default=60
+  param dot DOUBLE optional min=0 max=- enum=- handle=- default=2
+  param dot-period TICKS optional min=0 max=- enum=- handle=- default=20
+  param slow DOUBLE optional min=0 max=100 enum=- handle=- default=5
+  param neutralize-frost-slow BOOL optional min=- max=- enum=- handle=- default=true
 effect GIVE_ITEM
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
   param count INT optional min=1 max=- enum=- handle=- default=1

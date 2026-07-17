@@ -238,6 +238,72 @@ public final class ModernDispatchSink extends DispatchSinkBase {
     }
 
     @Override
+    protected boolean freezeVisualStart(LivingEntity target) {
+        if (!FreezeLock.available()) {
+            return true; // 1.17.1 floor: no lock — fall back to the per-tick pin
+        }
+        // Lock FIRST, then set: freezeLocked guards both vanilla writes (§1.1/§1.2), so from this
+        // point the metadata holds exactly max — fire coexistent, zero per-tick work.
+        FreezeLock.lock(target, true);
+        target.setFreezeTicks(target.getMaxFreezeTicks());
+        return false;
+    }
+
+    @Override
+    protected void freezePin(LivingEntity target) {
+        if (target.getFireTicks() > 0) {
+            return; // §1.2: baseTick zeroes a burning entity's freeze + replays the 1009 hiss — don't fight it
+        }
+        target.setFreezeTicks(target.getMaxFreezeTicks() + FREEZE_PIN_SLACK);
+    }
+
+    @Override
+    protected void freezeVisualEnd(LivingEntity target) {
+        FreezeLock.lock(target, false); // no-op when the lock API is absent
+        target.setFreezeTicks(0);
+    }
+
+    @Override
+    @SuppressWarnings({"deprecation", "removal"}) // the UUID AttributeModifier ctor: deprecated-not-removed across the range
+    protected void applyFrozenSlow(LivingEntity target, double slowPercent, boolean neutralizeFrostSlow) {
+        AttributeInstance speed = movementSpeed(target);
+        if (speed == null) {
+            return;
+        }
+        removeFrozenSlow(target); // replace-by-identity (the worn-modifier idempotency rule)
+        if (slowPercent > 0.0) {
+            speed.addModifier(new AttributeModifier(FROZEN_SLOW_ID, FROZEN_SLOW_NAME, -slowPercent / 100.0,
+                    AttributeModifier.Operation.MULTIPLY_SCALAR_1));
+        }
+        if (neutralizeFrostSlow) {
+            // Cancels vanilla tryAddFrost's −0.05×percentFrozen ADD modifier at full pin (§1.4) in the
+            // additive stage; airborne it is inert for players (air accel is the constant 0.02, §1.7).
+            speed.addModifier(new AttributeModifier(FROZEN_FROST_OFFSET_ID, FROZEN_FROST_OFFSET_NAME, 0.05,
+                    AttributeModifier.Operation.ADD_NUMBER));
+        }
+    }
+
+    @Override
+    protected void removeFrozenSlow(LivingEntity target) {
+        AttributeInstance speed = movementSpeed(target);
+        if (speed == null) {
+            return;
+        }
+        for (AttributeModifier modifier : List.copyOf(speed.getModifiers())) {
+            if (FROZEN_SLOW_ID.equals(modifier.getUniqueId())
+                    || FROZEN_FROST_OFFSET_ID.equals(modifier.getUniqueId())) {
+                speed.removeModifier(modifier);
+            }
+        }
+    }
+
+    /** The MOVEMENT_SPEED instance, resolved by NAME so the 1.21.3 rename rides the alias chain. */
+    private AttributeInstance movementSpeed(LivingEntity entity) {
+        Object attribute = handles.resolveByName(HandleCategory.ATTRIBUTE, "GENERIC_MOVEMENT_SPEED");
+        return attribute instanceof Attribute resolved ? entity.getAttribute(resolved) : null;
+    }
+
+    @Override
     @SuppressWarnings("deprecation") // getMaxHealth: deprecated-not-removed across the whole range.
     protected double maxHealth(LivingEntity entity) {
         AttributeInstance maxHealth = maxHealthAttribute(entity);

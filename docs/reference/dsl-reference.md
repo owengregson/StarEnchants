@@ -239,6 +239,20 @@ Grant flight to the target(s) while NOT in combat, revoke it while in combat (su
 - _target_ `who`: selector `SELF`
 - _example_: `{ FLY_MODE: { who: "@Self" } }`
 
+### FREEZE
+
+Fully freeze the target for a span of ticks (vanilla powder-snow visual: blue hearts + full vignette, held even while the victim burns), dealing dot damage every dot-period ticks (attributed to the activator; raw pre-armor half-hearts) and slowing them by slow percent. Re-procs refresh the window instead of stacking. neutralize-frost-slow cancels vanilla's own ~50% fully-frozen slow so the authored percent is the real one.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ FREEZE: { duration: <ticks[0..]=60>, dot: <double[0..]=2>, dot-period: <ticks[0..]=20>, slow: <double[0..100]=5>, neutralize-frost-slow: <bool=true> } }`
+- _param_ `duration` `ticks[0..]`
+- _param_ `dot` `double[0..]`
+- _param_ `dot-period` `ticks[0..]`
+- _param_ `slow` `double[0..100]`
+- _param_ `neutralize-frost-slow` `bool`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ FREEZE: { duration: 100, dot: 2, dot-period: 20, slow: 5 } }`
+
 ### GIVE_ITEM
 
 Give a material to the player target(s); overflow drops at their feet.
