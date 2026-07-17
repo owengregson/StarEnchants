@@ -2,33 +2,33 @@
 display: "Overwhelm"
 description:
   - "&eOn hit, disables the target's"
-  - "&eReflective Block."
+  - "&eBlock."
 trigger: ATTACK
 applies-to: [AXE]
-group: "legendary"
-tier: legendary
+group: "uncommon"
+tier: uncommon
 levels:
   1:
     chance: 15
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 10 } }
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/reflective-block", duration: 120, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:reflective-block:6 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/block", duration: 120, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:reflective-block:6 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks); retargeted to base Block (Reflective Block removed)
   2:
     chance: 20
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 10 } }
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/reflective-block", duration: 120, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:reflective-block:6 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/block", duration: 120, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:reflective-block:6 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks); retargeted to base Block (Reflective Block removed)
   3:
     chance: 25
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 10 } }
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/reflective-block", duration: 120, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:reflective-block:6 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/block", duration: 120, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:reflective-block:6 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks); retargeted to base Block (Reflective Block removed)
   4:
     chance: 30
     effects:
       - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 1.0, pitch: 1.0 } }
       - { PARTICLE: { particle: "CRIT", count: 10 } }
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/reflective-block", duration: 120, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:reflective-block:6 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/block", duration: 120, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:reflective-block:6 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks); retargeted to base Block (Reflective Block removed)
