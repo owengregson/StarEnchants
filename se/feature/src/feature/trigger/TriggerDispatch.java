@@ -376,6 +376,19 @@ public final class TriggerDispatch {
         return attempt;
     }
 
+    /**
+     * Teleport {@code player} to {@code to} through the shared sink (ADR-0061, the Mole recall): the
+     * {@code Sink.teleport} intent clones the destination, exempts the hop from a bundled anti-cheat and runs
+     * the era leaf on the player's OWN entity scheduler (async on Folia/modern, synchronous on 1.8) — the
+     * {@link #applyWornMaxHealth} passthrough idiom over a fresh per-call sink, so this is safe from any cold
+     * path (never from inside an already-flushed plan — the cage rule).
+     */
+    public void teleport(Player player, Location to) {
+        SinkReadback sink = newSink();
+        sink.teleport(player, to);
+        sink.flush();
+    }
+
     private SinkReadback newSink() {
         return sinkFactory.create(env);
     }
