@@ -6,11 +6,11 @@ description:
   - "&c&l(!)&r &7Requires &bHardened"
 trigger: ITEM_DAMAGE
 applies-to: [ARMOR]
-group: "mythic"
-tier: mythic
+group: "soul"
+tier: soul
 condition: "%itemdamage.armor%"
 requires: ["enchants/hardened"]
-removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
+removes-required: true  # the upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
   1:
     chance: 100
