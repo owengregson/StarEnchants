@@ -6,6 +6,7 @@ import engine.sink.ModernDispatchSink;
 import engine.sink.SinkFactory;
 import engine.stores.KnockbackControlStore;
 import feature.combat.EquipListener;
+import feature.combat.FreezeDamageGuardListener;
 import feature.combat.KnockbackListener;
 import feature.combat.LegacyKnockbackListener;
 import feature.combat.ModernArmourChangeListener;
@@ -209,6 +210,12 @@ public final class EraBindings implements EraServices {
     @Override
     public Listener potionLockGuard() {
         return new PotionLockListener();
+    }
+
+    /** FREEZE guard (ADR-0065): cancel vanilla freeze self-damage in a window; join-reconcile a stranded lock. */
+    @Override
+    public Listener freezeDamageGuard() {
+        return new FreezeDamageGuardListener();
     }
 
     /** ITEM_DAMAGE source (§4): modern {@code PlayerItemDamageEvent} listener (1.8 fires it from the gear poll). */

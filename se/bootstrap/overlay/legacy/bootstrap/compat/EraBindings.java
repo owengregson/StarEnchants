@@ -212,6 +212,12 @@ public final class EraBindings implements EraServices {
         return NoopListener.INSTANCE;
     }
 
+    /** FREEZE guard (ADR-0065): 1.8 has no freeze concept — inert (the recorded era degrade). */
+    @Override
+    public Listener freezeDamageGuard() {
+        return NoopListener.INSTANCE;
+    }
+
     /**
      * ITEM_DAMAGE source (§4/§6): the gear-poll durability-rise subscriber fires it; no Bukkit event on 1.8.
      * ADR-0049: carries the durability points as {@code %damage%} and armor-vs-held as {@code %itemdamage.armor%}.

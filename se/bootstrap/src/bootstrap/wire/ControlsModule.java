@@ -67,6 +67,11 @@ final class ControlsModule {
                 // POTION_LOCK guard: modern cancels EntityPotionEffectEvent for a locked type (genuine denial, so a
                 // passive re-applier cannot make the buff flash back); 1.8 binding is inert (the Sink re-strip enforces).
                 .events(core.bindings().potionLockGuard())
+                // FREEZE guard (ADR-0065): cancel vanilla freeze self-damage inside a frozen window + join-reconcile
+                // a crash-stranded freeze lock; 1.8 binding is inert. The stop runs every live window's teardown
+                // (unlock + thaw + strip the slow) best-effort — the SwarmSpawns disable-sweep shape.
+                .events(core.bindings().freezeDamageGuard())
+                .stop("frozen windows", engine.sink.FrozenTargets::teardownAll)
                 // §C KNOCKBACK_CONTROL: capability-probed onto modern-bukkit or legacy destroystokyo; inert on neither.
                 .install("KNOCKBACK_CONTROL applier", () -> {
                     var path = core.bindings().registerKnockback(core.plugin(), core.stores().knockback(),

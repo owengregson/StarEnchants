@@ -1,0 +1,34 @@
+display: "Ice Aspect"
+description:
+  - "&eYour strikes flash-freeze the victim"
+  - "&esolid; frozen foes suffer steady frost"
+  - "&edamage and move slower."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "epic"
+tier: epic
+levels:
+  1:
+    chance: 50
+    cooldown: 200
+    effects:
+      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 0.6, pitch: 1.6 } }
+      - { PARTICLE: { particle: "SNOWFLAKE", count: 12, who: "@Victim" } }
+      # Frozen window (ADR-0065): pinned powder-snow visual (fire-coexistent), 2 raw half-hearts every
+      # 20t (2x the vanilla fire cadence, attacker-attributed), 5% real slow (vanilla frost neutralized).
+      # Re-procs refresh; DoT never stacks. Duration ladder 3s/4s/5s — TUNABLE (ADR-0050 DoT budget).
+      - { FREEZE: { duration: 60, dot: 2.0, dot-period: 20, slow: 5, who: "@Victim" } }
+  2:
+    chance: 75
+    cooldown: 200
+    effects:
+      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 0.6, pitch: 1.6 } }
+      - { PARTICLE: { particle: "SNOWFLAKE", count: 12, who: "@Victim" } }
+      - { FREEZE: { duration: 80, dot: 2.0, dot-period: 20, slow: 5, who: "@Victim" } }
+  3:
+    chance: 100
+    cooldown: 200
+    effects:
+      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 0.6, pitch: 1.6 } }
+      - { PARTICLE: { particle: "SNOWFLAKE", count: 12, who: "@Victim" } }
+      - { FREEZE: { duration: 100, dot: 2.0, dot-period: 20, slow: 5, who: "@Victim" } }

@@ -51,6 +51,8 @@ class RegistryWiringTest {
 
     static final class PotionLockGuard implements Listener { }
 
+    static final class FreezeDamageGuard implements Listener { }
+
     static final class ItemDamageSource implements Listener { }
 
     static final class HeroicDurabilitySave implements Listener { }
@@ -70,7 +72,7 @@ class RegistryWiringTest {
             "GuardianHurtListener",
             "TempEquipListener", "TimedRevertListener", "TempBlockGuardListener",
             "HellfireFloorListener", "KeepOnDeathListener",
-            "TeleblockListener", "ImmuneListener", "PotionLockGuard",
+            "TeleblockListener", "ImmuneListener", "PotionLockGuard", "FreezeDamageGuard",
             "EngineStoreListener", "VanillaGuardListener", "HeadEquipGuard", "DispenseArmorGuard", "StationGuard",
             "CarrierListener", "CrystalListener",
             "HeroicListener", "HeroicDurabilitySave",
@@ -84,6 +86,7 @@ class RegistryWiringTest {
     private static final List<String> GOLDEN_STOPS = List.of(
             "REPEATING tasks", "HELD/PASSIVE buffs", "maintained passives",   // equip
             "soul aura task",                                                 // souls
+            "frozen windows",                                                 // controls (ADR-0065)
             "falling-block casts", "guardian casts", "combat tags", "damage marks", "owner zones", "temp equips", // stores
             "pet summon registry", "bat swarms", "pet armed windows", "pet home windows", // pets (0052/0059/0060/0061)
             "mask illusions", "mask provocations",                            // masks (ADR-0053)
@@ -127,6 +130,7 @@ class RegistryWiringTest {
         when(bindings.armourChangeFeeder(any())).thenReturn(new ArmourFeeder());
         when(bindings.handChangeFeeder(any())).thenReturn(new HandChangeFeeder());
         when(bindings.potionLockGuard()).thenReturn(new PotionLockGuard());
+        when(bindings.freezeDamageGuard()).thenReturn(new FreezeDamageGuard());
         when(bindings.itemDamageSource(any())).thenReturn(new ItemDamageSource());
         when(bindings.heroicDurabilitySave(any(), any())).thenReturn(new HeroicDurabilitySave());
         when(bindings.maskBreakSource(any(), any())).thenReturn(new MaskBreakSource());
