@@ -64,7 +64,7 @@
     { "key": "mobtrak", "type": "mobtrak", "material": "MAGMA_CREAM", "name": "&e&lMobTrak Gem" },
     { "key": "nametag", "type": "nametag", "material": "NAME_TAG", "name": "&bItem Nametag" },
     { "key": "pet-food", "type": "pet-food", "material": "GOLDEN_CARROT", "name": "&e&lPet Food [&r&a&n+{AMOUNT}&r&e&l]" },
-    { "key": "pet", "type": "pet", "material": null, "name": "{COLOR}&l{NAME} Pet" },
+    { "key": "pet", "type": "pet", "material": null, "name": "{COLOR}&l{NAME} Pet &7[Lvl. &f&n{LEVEL}&r&7]&r" },
     { "key": "randomizer-scroll", "type": "randomizer-scroll", "material": "SUGAR", "name": "&eRandomizer Scroll" },
     { "key": "slot-orb", "type": "slot-orb", "material": null, "name": null },
     { "key": "soul-gem", "type": "soul-gem", "material": "EMERALD", "name": "&aSoul Gem" },
