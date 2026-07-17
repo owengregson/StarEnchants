@@ -172,6 +172,12 @@ public final class EraBindings implements EraServices {
         return new item.head.ModernHeadAttributes();
     }
 
+    /** ADR-0064 illusion-marker payload: Paper {@code serializeAsBytes} probed by name (degrades inert). */
+    @Override
+    public item.head.ItemBytes itemBytes() {
+        return new item.head.ModernItemBytes();
+    }
+
     /** §I nametag rename (§4): modern opens a real anvil + colour preview. Into {@code NametagListener}. */
     @Override
     public AnvilRename anvilRename() {

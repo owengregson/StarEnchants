@@ -252,17 +252,11 @@ public final class BootCore {
 
         // Item read path: codec → ItemView cache → WornResolver → per-player WornStateStore.
         this.codec = new CombatCodec(ItemKeys.of().combat(), store);
-        // Vanilla-station guard (G04/G05/G06): set-gear test = the PDC setKey/setWeaponKey ItemEnchanter stamps
-        // (material-agnostic, so a smithing-upgraded netherite piece still reads as set gear); the three station
-        // toggles read live so a /se reload re-tunes them. Consumed by the era-seam station guard in GuardModule.
+        // Vanilla-station guard (G04/G05/G06 + the masked-helmet audit, ADR-0064): gear carrying stacked
+        // plugin value (set membership, a mask, or crystals — the single-sourced pluginValueGear predicate)
+        // is denied at the stations; the three toggles read live so a /se reload re-tunes them.
         this.stationGuardRules = new feature.guard.StationGuardRules(
-                stack -> {
-                    if (stack == null || stack.getType() == org.bukkit.Material.AIR) {
-                        return false;
-                    }
-                    item.codec.CombatState state = codec.read(stack);
-                    return state.setKey() != null || state.setWeaponKey() != null;
-                },
+                feature.guard.StationGuardRules.pluginValueGear(codec::read),
                 () -> master.config().stations().anvilGuard(),
                 () -> master.config().stations().grindstoneGuard(),
                 () -> master.config().stations().smithingGuard());

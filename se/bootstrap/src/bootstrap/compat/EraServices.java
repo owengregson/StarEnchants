@@ -94,6 +94,9 @@ public interface EraServices {
     /** Worn-tooltip attribute copier for the mask illusion's shown head (1.8.1) — {@code NONE} on 1.8. */
     item.head.HeadAttributes headAttributes();
 
+    /** Whole-ItemStack byte codec for the illusion-marker payload (ADR-0064): Paper bytes / 1.8 NBT stream. */
+    item.head.ItemBytes itemBytes();
+
     AnvilRename anvilRename();
 
     // ── era listeners / registration ──

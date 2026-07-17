@@ -169,6 +169,12 @@ public final class EraBindings implements EraServices {
         return item.head.HeadAttributes.NONE; // 1.8 renders no attribute tooltips — nothing to copy
     }
 
+    /** ADR-0064 illusion-marker payload: the v1_8_R3 NBT stream round-trip. */
+    @Override
+    public item.head.ItemBytes itemBytes() {
+        return new item.head.LegacyItemBytes();
+    }
+
     /** §I nametag rename (§4): 1.8 has no live anvil-rename field — chat capture. Into {@code NametagListener}. */
     @Override
     public AnvilRename anvilRename() {

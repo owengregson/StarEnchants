@@ -1,6 +1,7 @@
 package bootstrap.wire;
 
 import engine.stores.WardStore;
+import feature.guard.IllusionCanonGuard;
 import feature.mask.InvseeGuard;
 import feature.mask.MaskBreakSalvage;
 import feature.mask.MaskIllusionListener;
@@ -15,6 +16,7 @@ import feature.mask.MobTargetGuard;
 import feature.mask.NearGuard;
 import feature.mask.SplashHealGuard;
 import feature.menu.Mintable;
+import item.head.IllusionMark;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import platform.sched.Scheduling;
@@ -38,6 +40,8 @@ final class MasksModule {
     final MaskService masks;
     final List<Mintable> mints;
 
+    private final IllusionMark illusionMark;
+    private final IllusionCanonGuard canonGuard;
     private final MaskIllusionStore illusionStore;
     private final MaskProvocationStore provocation;
     private final MaskIllusionService illusion;
@@ -69,9 +73,13 @@ final class MasksModule {
         // refresh that re-resolves worn state — refresh() runs on the player's own region thread, exactly
         // MaskIllusionService.refresh's contract — so the equip-refresh seam feeds it directly (no extra listener).
         this.illusionStore = new MaskIllusionStore();
+        // ADR-0064: the shown head is stamped (real helmet as payload) so a client write-back is detectable
+        // and losslessly reversible everywhere; the canon guard denies/undresses at the inventory gates.
+        this.illusionMark = new IllusionMark(item.codec.ItemKeys.of(), core.store(), core.bindings().itemBytes());
+        this.canonGuard = new IllusionCanonGuard(illusionMark);
         this.illusion = new MaskIllusionService(core.bindings().equipmentRepaint(), core.bindings().texturedHeads(),
-                core.bindings().headAttributes(), () -> core.content().library(), core.itemViews(), enabled,
-                illusionStore);
+                core.bindings().headAttributes(), illusionMark, () -> core.content().library(), core.itemViews(),
+                enabled, illusionStore);
         equip.onRefresh(illusion::refresh);
         this.illusionListener = new MaskIllusionListener(illusion, enabled);
 
@@ -95,6 +103,7 @@ final class MasksModule {
         BooleanSupplier enabled = enabled();
         return FeatureModule.named("masks")
                 .toggle(Toggle.live("features.masks", enabled))
+                .events(canonGuard)
                 .events(breakListener)
                 .events(applyListener)
                 .events(removeListener)
