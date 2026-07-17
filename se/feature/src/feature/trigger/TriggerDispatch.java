@@ -389,6 +389,32 @@ public final class TriggerDispatch {
         sink.flush();
     }
 
+    /**
+     * Emit a batch of coloured-dust motes through the shared sink (ADR-0061 amendment, the Mole home-window
+     * visuals): each point rides the sink's dust intent, so it is region-routed on Folia and colour-degrades
+     * on 1.8.9 exactly like PARTICLE_LINE. Cold-path only (a 2 Hz cosmetic pulse), never from a gate walk.
+     */
+    public void dust(List<Location> points, int particleId, int r, int g, int b, float size) {
+        if (particleId < 0 || points.isEmpty()) {
+            return;
+        }
+        SinkReadback sink = newSink();
+        for (Location point : points) {
+            sink.dust(point, particleId, r, g, b, size, 1);
+        }
+        sink.flush();
+    }
+
+    /** Play a world-audible sound at {@code at} through the shared sink (region-routed, era-resolved). */
+    public void sound(Location at, int soundId, float volume, float pitch) {
+        if (soundId < 0) {
+            return;
+        }
+        SinkReadback sink = newSink();
+        sink.sound(at, soundId, volume, pitch);
+        sink.flush();
+    }
+
     private SinkReadback newSink() {
         return sinkFactory.create(env);
     }

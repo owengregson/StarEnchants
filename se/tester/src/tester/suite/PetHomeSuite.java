@@ -22,6 +22,7 @@ import feature.compat.Sounds;
 import feature.fx.ParticleFx;
 import feature.pet.PetArmedStore;
 import feature.pet.PetHomeStore;
+import feature.pet.PetHomeVisuals;
 import feature.pet.PetLevelCue;
 import feature.pet.PetMessenger;
 import feature.pet.PetService;
@@ -82,6 +83,9 @@ public final class PetHomeSuite implements Harness.Scenario {
     private static final String TELEBLOCKED = "pets.moleTeleblockDeniesRecall";
     private static final String TELEBLOCK_LIFTED = "pets.moleLiftedTeleblockRecalls";
     private static final String EXPIRES = "pets.moleWindowExpiresUnused";
+    private static final String VISUALS_ON_DIG = "pets.moleDigStartsTheHomeVisuals";
+    private static final String VISUALS_OFF_ON_RECALL = "pets.moleRecallStopsTheHomeVisuals";
+    private static final String VISUALS_OFF_ON_EXPIRY = "pets.moleExpiryStopsTheHomeVisuals";
 
     /** The recall teleport is async on modern (teleportAsync) — settle before asserting arrival. */
     private static final long SETTLE_TICKS = 10L;
@@ -100,6 +104,9 @@ public final class PetHomeSuite implements Harness.Scenario {
         h.expect(TELEBLOCKED);
         h.expect(TELEBLOCK_LIFTED);
         h.expect(EXPIRES);
+        h.expect(VISUALS_ON_DIG);
+        h.expect(VISUALS_OFF_ON_RECALL);
+        h.expect(VISUALS_OFF_ON_EXPIRY);
 
         RegistryResolvers resolvers = new RegistryResolvers();
         Compiler compiler = ContentCompiler.production(resolvers);
@@ -143,6 +150,7 @@ public final class PetHomeSuite implements Harness.Scenario {
         TriggerDispatch dispatch = new TriggerDispatch(executor,
                 dsEnv -> new engine.sink.ModernDispatchSink(handles, dsEnv), Stores.probe(), holder, worn,
                 triggers, actor -> Optional.empty(), env, Stores.hands(), Stores.dropControl());
+        PetHomeVisuals visuals = new PetHomeVisuals(dispatch, homes, clock::get, resolvers);
 
         Messages messages = Messages.defaults();
         PetMessenger messenger = new PetMessenger(messages, MasterConfig.PetsSection::defaults);
@@ -151,7 +159,7 @@ public final class PetHomeSuite implements Harness.Scenario {
                 VanillaEnchants.NONE, messenger, armed,
                 MasterConfig.PetsSection::defaults, PetItemConfig::defaults, PetFoodConfig::defaults,
                 p -> worn.refresh(p, holder.snapshot()), clock::get, m -> m == Material.AIR,
-                cue, new Random(42), homes, stores.teleblock());
+                cue, new Random(42), homes, stores.teleblock(), visuals);
 
         CombatRig rig = new CombatRig(plugin);
         // The store expiry compares against the injected clock — advance it with the real server ticks.
@@ -187,6 +195,11 @@ public final class PetHomeSuite implements Harness.Scenario {
                         throw new IllegalStateException("sneak+use did not arm the home window");
                     }
                 });
+                h.guard(VISUALS_ON_DIG, () -> {
+                    if (!visuals.active(user.getUniqueId())) {
+                        throw new IllegalStateException("the dig did not start the home-visuals task");
+                    }
+                });
 
                 // (b) RECALL: walk 4 blocks (inside range 8), plain use → teleported back, window consumed.
                 hop(user, dug.clone().add(4, 0, 0), () -> {
@@ -201,7 +214,12 @@ public final class PetHomeSuite implements Harness.Scenario {
                                 throw new IllegalStateException("recall did not consume the window");
                             }
                         });
-                        stageOutOfRange(h, user, mole, pets, homes, stores, clock, clockTask, rig, dug);
+                        h.guard(VISUALS_OFF_ON_RECALL, () -> {
+                            if (visuals.active(user.getUniqueId())) {
+                                throw new IllegalStateException("the landed recall left the visuals task running");
+                            }
+                        });
+                        stageOutOfRange(h, user, mole, pets, homes, stores, clock, clockTask, rig, dug, visuals);
                     });
                 });
             });
@@ -210,7 +228,7 @@ public final class PetHomeSuite implements Harness.Scenario {
 
     private void stageOutOfRange(Harness h, Player user, ItemStack mole, PetService pets, PetHomeStore homes,
                                  EngineStores stores, AtomicLong clock, TaskHandle[] clockTask, CombatRig rig,
-                                 Location dug) {
+                                 Location dug, PetHomeVisuals visuals) {
         // Re-dig (cooldown 0), then step far outside range 8: the recall must refuse AND keep the window.
         user.setSneaking(true);
         pets.use(user, mole);
@@ -263,6 +281,11 @@ public final class PetHomeSuite implements Harness.Scenario {
                                         throw new IllegalStateException("the window outlived its expiry");
                                     }
                                 });
+                                h.guard(VISUALS_OFF_ON_EXPIRY, () -> {
+                                    if (visuals.active(user.getUniqueId())) {
+                                        throw new IllegalStateException("the expired window left the visuals task running");
+                                    }
+                                });
                                 if (clockTask[0] != null) {
                                     clockTask[0].cancel();
                                 }
@@ -293,5 +316,8 @@ public final class PetHomeSuite implements Harness.Scenario {
         h.fail(TELEBLOCKED, message);
         h.fail(TELEBLOCK_LIFTED, message);
         h.fail(EXPIRES, message);
+        h.fail(VISUALS_ON_DIG, message);
+        h.fail(VISUALS_OFF_ON_RECALL, message);
+        h.fail(VISUALS_OFF_ON_EXPIRY, message);
     }
 }
