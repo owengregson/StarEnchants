@@ -35,7 +35,9 @@ public final class RageStacksListener implements Listener {
             return;
         }
         boolean selfInflicted = event.getDamager() == victim;
-        if (event.getDamager() instanceof Player attacker && !selfInflicted) {
+        // The dispatch's §3.7 duplicate skip (a same-swing "damage the difference" re-hit) keeps rage
+        // single-advance too; the break side stays unguarded — re-breaking a broken run is a no-op.
+        if (event.getDamager() instanceof Player attacker && !selfInflicted && !ReHitGuard.skipped(event)) {
             service.onHit(attacker); // attack side: build/advance the attacker's run
         }
         if (victim instanceof Player defender && !selfInflicted) {
