@@ -129,6 +129,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new ScrollPlayerSuite(this)); // §I: holy death-save + nametag rename
         harness.add(new TriggerSuite(this));
         harness.add(new UseItemSuite(this)); // §3.6/ADR-0048: right-click use-item → shared pipeline (potions, consume, cooldown, commands)
+        harness.add(new PetAbilitySuite(this)); // ADR-0060: pet FALL fold/cancel, kraken worn channels, SPAWN_SWARM ring+TTL
         harness.add(new WhySuite(this)); // ADR-0045: record → decode under real region threading
         harness.add(new LifecycleSuite(this)); // §B: HELD/PASSIVE start+stop + COMMAND trigger fire
         harness.add(new TeleportSuite(this));
