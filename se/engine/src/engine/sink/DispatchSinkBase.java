@@ -473,7 +473,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void setHealth(LivingEntity target, double health) {
-        healthWrite(target, () -> target.setHealth(Math.max(0.0, Math.min(health, maxHealth(target)))));
+        healthWrite(target, () -> {
+            if (health < target.getHealth() && invincibleSummon(target)) {
+                return; // ADR-0052 invincible summon: health-space damage may not lower it (raises stay fine)
+            }
+            target.setHealth(Math.max(0.0, Math.min(health, maxHealth(target))));
+        });
     }
 
     @Override
@@ -542,7 +547,22 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void kill(LivingEntity target) {
-        entityOp(target, () -> target.setHealth(0.0));
+        entityOp(target, () -> {
+            if (invincibleSummon(target)) {
+                return; // ADR-0052: KILL (slayer-style execute) may not end an invincible summon
+            }
+            target.setHealth(0.0);
+        });
+    }
+
+    /**
+     * ADR-0052 INVINCIBLE covers health-space too: the summon-guard listener zeroes every damage EVENT, but
+     * {@code kill}/{@code setHealth} never fire one — without this consult a KILL or MODIFY_HEALTH:set slips
+     * past the guard and executes the "invincible" summon.
+     */
+    private static boolean invincibleSummon(LivingEntity target) {
+        SummonFlags flags = PetSummons.flags(target.getUniqueId());
+        return flags != null && flags.invincible();
     }
 
     @Override
