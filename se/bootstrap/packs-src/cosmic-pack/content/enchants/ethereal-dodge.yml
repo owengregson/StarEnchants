@@ -2,13 +2,12 @@
 display: "Ethereal Dodge"
 description:
   - "&eNegates attacks and grants a burst of"
-  - "&eSpeed; fall damage can never touch you."
+  - "&eSpeed."
   - "&c&l(!)&r &7Requires &eDodge"
-trigger: [DEFENSE, FALL]
+trigger: [DEFENSE]
 applies-to: [BOOTS]
 group: "mythic"
 tier: mythic
-condition: "%damagecause% == \"FALL\" : %force%"
 requires: ["enchants/dodge"]
 removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
 levels:
