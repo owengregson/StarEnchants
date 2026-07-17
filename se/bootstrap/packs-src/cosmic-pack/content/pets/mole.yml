@@ -1,0 +1,21 @@
+# Mole Pet — an ACTIVE pet (ADR-0061): SNEAK + right-click DIGS a temporary home (marks your spot, arms the
+# cooldown, opens a 30s recall window); a plain right-click DURING the window instantly teleports you home if
+# you are within 50 blocks (out of range / cross-world / an active teleblock keeps the window alive for a
+# retry). The window expiring unused still spends the cooldown. The %sneaking% condition gates the DIG only —
+# it fails a non-sneaking fresh click BEFORE the cooldown arms; the recall interception happens before the
+# gate walk entirely, so the armed cooldown never blocks the return trip. Use-XP is granted on the successful
+# RECALL, not the dig. The 30s window and 50-block range are bracket-invariant (owner-pinned); only the
+# cooldown scales with level.
+display: "Mole"
+color: "&6"
+type: ACTIVE
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWUwYjVkYzU3OWM4NDRiMTAyZDk2YWNkZGI0Y2Y4YjMyNjZjNGM3OWEwZjRhOWYxMzUzNjQwYWY4MDY5Y2I4ZSJ9fX0="
+descriptor: "&eA burrower that never forgets the way back. Dig deep, wander far — one call brings you home."
+description:
+  - "&6* Sneak to dig a temporary home that lasts up to thirty seconds: activate again to instantly return home"
+levels:
+  # 15m → 14m → 13m → 12m.
+  1:   { cooldown: 18000, condition: "%sneaking%", effects: [ { SOUND: { sound: "BLOCK_GRASS_BREAK", volume: 1.0, pitch: 0.7 } }, { DIG_HOME: { window: 600, range: 50 } } ] }
+  25:  { cooldown: 16800, condition: "%sneaking%", effects: [ { SOUND: { sound: "BLOCK_GRASS_BREAK", volume: 1.0, pitch: 0.7 } }, { DIG_HOME: { window: 600, range: 50 } } ] }
+  50:  { cooldown: 15600, condition: "%sneaking%", effects: [ { SOUND: { sound: "BLOCK_GRASS_BREAK", volume: 1.0, pitch: 0.7 } }, { DIG_HOME: { window: 600, range: 50 } } ] }
+  100: { cooldown: 14400, condition: "%sneaking%", effects: [ { SOUND: { sound: "BLOCK_GRASS_BREAK", volume: 1.0, pitch: 0.7 } }, { DIG_HOME: { window: 600, range: 50 } } ] }
