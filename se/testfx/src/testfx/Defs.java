@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * Fluent builders for the compiler's pre/mid-compilation shapes — {@link AbilityDef} (lower-stage input) and
- * {@link LoweredAbility} (erase-stage input). Each 18/19-field record constructor was re-declared as a private
+ * {@link LoweredAbility} (erase-stage input). Each many-field record constructor was re-declared as a private
  * {@code def(...)}/{@code lowered(...)} helper in every stage test, so a new record field forced an edit across
  * all of them; routing construction through one builder makes a record-arity change a one-place change. Each
  * setter overrides a sensible default, so a test states only what it cares about.
@@ -53,6 +53,7 @@ public final class Defs {
         private int repeatTicks = 0;
         private Source source = Source.UNKNOWN;
         private int setPieces = 0;
+        private boolean suppressImmune = false;
 
         public AbilityBuilder sourceKind(SourceKind sourceKind) {
             this.sourceKind = sourceKind;
@@ -161,6 +162,11 @@ public final class Defs {
             return this;
         }
 
+        public AbilityBuilder suppressImmune(boolean suppressImmune) {
+            this.suppressImmune = suppressImmune;
+            return this;
+        }
+
         public AbilityDef build() {
             List<EffectLine> lines = effects;
             if (rawEffects != null) {
@@ -171,7 +177,7 @@ public final class Defs {
             }
             return new AbilityDef(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost,
                     triggers, worldBlacklist, conditionExpr, lines, suppressKey, cdScopeEnchant, cdScopeGroup,
-                    cdScopeType, repeatTicks, source, setPieces);
+                    cdScopeType, repeatTicks, source, setPieces, suppressImmune);
         }
     }
 
@@ -196,6 +202,7 @@ public final class Defs {
         private Affinity affinity = Affinity.CONTEXT_LOCAL;
         private Source source = Source.UNKNOWN;
         private int setPieces = 0;
+        private boolean suppressImmune = false;
 
         public LoweredBuilder sourceKind(SourceKind sourceKind) {
             this.sourceKind = sourceKind;
@@ -299,10 +306,15 @@ public final class Defs {
             return this;
         }
 
+        public LoweredBuilder suppressImmune(boolean suppressImmune) {
+            this.suppressImmune = suppressImmune;
+            return this;
+        }
+
         public LoweredAbility build() {
             return new LoweredAbility(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost,
                     triggers, worldBlacklist, condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup,
-                    cdScopeType, repeatTicks, affinity, source, setPieces);
+                    cdScopeType, repeatTicks, affinity, source, setPieces, suppressImmune);
         }
     }
 }

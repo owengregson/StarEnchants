@@ -1,6 +1,7 @@
 package compile;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -124,5 +125,21 @@ class CompilerTest {
         assertEquals(SourceKind.ENCHANT, snap.sourceMap().lookup(100).sourceKind());
         assertEquals("ench/lifesteal", snap.sourceMap().lookup(100).stableKey());
         assertEquals(SourceKind.CRYSTAL, snap.sourceMap().lookup(102).sourceKind());
+    }
+
+    @Test
+    void suppressImmuneSurvivesTheLowerResolveEraseSeam() {
+        // Def-level pin, isolated from the reader: a stage reverting to a back-compat ctor (which defaults
+        // the flag false) must fail HERE, not only in the reader test.
+        Diagnostics diags = new Diagnostics();
+        Snapshot snap = Compiler.of(MapSpecRegistry.of(heal())).compile(List.of(
+                        Defs.ability().stableKey("ench/immune").defId(1).suppressImmune(true)
+                                .effects(line("HEAL:1", "enchants.yml", 1)).build(),
+                        Defs.ability().stableKey("ench/plain").defId(2)
+                                .effects(line("HEAL:1", "enchants.yml", 2)).build()),
+                3, diags);
+        assertFalse(diags.hasErrors(), () -> diags.all().toString()); // staging sanity — the flag asserts are the contract
+        assertTrue(snap.byStableKey("ench/immune").suppressImmune());
+        assertFalse(snap.byStableKey("ench/plain").suppressImmune());
     }
 }
