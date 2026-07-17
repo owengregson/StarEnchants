@@ -87,7 +87,8 @@ public final class Aliases {
             Map.entry("ANVIL_LAND", "BLOCK_ANVIL_LAND"),
             Map.entry("ENDERDRAGON_GROWL", "ENTITY_ENDER_DRAGON_GROWL"),
             Map.entry("WITHER_SPAWN", "ENTITY_WITHER_SPAWN"),
-            Map.entry("DIG_GRASS", "BLOCK_GRASS_BREAK"));
+            Map.entry("DIG_GRASS", "BLOCK_GRASS_BREAK"),
+            Map.entry("ITEM_BREAK", "ENTITY_ITEM_BREAK"));
 
     /**
      * The COMPLETE 1.20.5 particle rename wave (Spigot flattened the enum), floor name → modern name,
