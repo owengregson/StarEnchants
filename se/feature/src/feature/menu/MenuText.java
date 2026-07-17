@@ -50,6 +50,26 @@ public final class MenuText {
         if (cut.charAt(cut.length() - 1) == ChatColor.COLOR_CHAR) {
             cut = cut.substring(0, cut.length() - 1);
         }
-        return cut;
+        return dropTruncatedHexRun(cut);
+    }
+
+    /**
+     * A cut landing inside a {@code §x§R§R§G§G§B§B} run (ADR-0062) leaves a PARTIAL hex colour whose leftover
+     * pairs an old client renders as ordinary colour codes — drop the whole partial run. A complete six-pair
+     * run, or a short run followed by other text (authored that way, not truncated), is kept.
+     */
+    private static String dropTruncatedHexRun(String cut) {
+        int x = Math.max(cut.lastIndexOf("§x"), cut.lastIndexOf("§X"));
+        if (x < 0) {
+            return cut;
+        }
+        int end = x + 2;
+        int pairs = 0;
+        while (pairs < 6 && end + 1 < cut.length() && cut.charAt(end) == ChatColor.COLOR_CHAR
+                && Character.digit(cut.charAt(end + 1), 16) >= 0) {
+            pairs++;
+            end += 2;
+        }
+        return pairs < 6 && end >= cut.length() ? cut.substring(0, x) : cut;
     }
 }

@@ -67,4 +67,18 @@ class MenuTextTest {
         assertTrue(MenuText.describe("", "&7").isEmpty());
         assertTrue(MenuText.describe(null, "&7").isEmpty());
     }
+
+    @Test
+    void truncationDropsAPartialHexRun() {
+        // 26 plain chars then a hex colour: the 32-char cut lands mid-§x-run → the partial run drops whole.
+        String raw = "a".repeat(26) + "{#ff0000}Name";
+        assertEquals("a".repeat(26), MenuText.title(raw, FLOOR));
+    }
+
+    @Test
+    void aCompleteHexRunSurvivesTruncation() {
+        // translate("{#ff0000}") = 14 chars of §x escape; 18 visible chars then fit under the 32 cap.
+        String raw = "{#ff0000}" + "b".repeat(40);
+        assertEquals("§x§f§f§0§0§0§0" + "b".repeat(18), MenuText.title(raw, FLOOR));
+    }
 }
