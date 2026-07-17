@@ -1,0 +1,18 @@
+# Bat Pet — an ACTIVE pet (ADR-0060): right-click to summon a swarm of temporary bats. They spawn evenly
+# spaced on a 0.5-block ring at your chest height, each facing directly outward, keep VANILLA bat AI
+# (they flutter and swirl around you — never NoAI statues), fly at half vanilla bat speed, and live 15
+# seconds or until something kills them (6 hearts, normal damage). Instant (no duration = no armed
+# window); only the swarm size and the cooldown scale with level.
+display: "Bat"
+color: "&d"
+type: ACTIVE
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODFjNWNjMWY0MDAwNWEzMzEyNGM2MDM4NGEwZjE3YTM2YTdiMTlhZTkwZjFjMzJkY2RhMTdiNWI1NjI4MGE0MyJ9fX0="
+descriptor: "&eA cave-dweller that answers to no one but you. One call and the night descends."
+description:
+  - "&d* Summons a massive swarm of temporary bats to protect you"
+levels:
+  # 10 → 20 → 30 → 40 bats; cooldown 2m30s → 2m → 1m30s → 1m.
+  1:   { cooldown: 3000, effects: [ { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 0.8 } }, { SPAWN_SWARM: { type: BAT, count: 10, radius: 0.5, ttl: 300, speed: 0.5 } } ] }
+  25:  { cooldown: 2400, effects: [ { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 0.8 } }, { SPAWN_SWARM: { type: BAT, count: 20, radius: 0.5, ttl: 300, speed: 0.5 } } ] }
+  50:  { cooldown: 1800, effects: [ { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 0.8 } }, { SPAWN_SWARM: { type: BAT, count: 30, radius: 0.5, ttl: 300, speed: 0.5 } } ] }
+  100: { cooldown: 1200, effects: [ { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 0.8 } }, { SPAWN_SWARM: { type: BAT, count: 40, radius: 0.5, ttl: 300, speed: 0.5 } } ] }
