@@ -10,8 +10,10 @@ import compile.model.Ability;
 import compile.model.CompiledEffect;
 import compile.model.Snapshot;
 import engine.effect.kind.CageEffect;
+import engine.effect.kind.DigHomeEffect;
 import engine.run.UseAttempt;
 import engine.sink.CageGeometry;
+import engine.stores.TeleblockStore;
 import feature.apply.Rolls;
 import feature.menu.MenuIcons;
 import feature.trigger.TriggerDispatch;
@@ -74,12 +76,15 @@ public final class PetService {
     private final Predicate<Material> isAir; // era-correct block-air test (ActorProbe seam) for the cage pre-check
     private final PetLevelCue cue;
     private final Random rolls; // injected (never ThreadLocalRandom) so suites can stub the use-XP roll
+    private final PetHomeStore homes;       // ADR-0061: the Mole dig-home windows (same-package store)
+    private final TeleblockStore teleblock; // ADR-0061: the pack-wide teleport counter, read at recall
 
     public PetService(ContentHolder content, PetCodec codec, TriggerDispatch dispatch, TexturedHeads heads,
                       HeadEquip headEquip, VanillaEnchants vanilla, PetMessenger messenger, PetArmedStore armed,
                       Supplier<MasterConfig.PetsSection> pets, Supplier<PetItemConfig> likeness,
                       Supplier<PetFoodConfig> food, Consumer<Player> refresh, LongSupplier nowTicks,
-                      Predicate<Material> isAir, PetLevelCue cue, Random rolls) {
+                      Predicate<Material> isAir, PetLevelCue cue, Random rolls,
+                      PetHomeStore homes, TeleblockStore teleblock) {
         this.content = Objects.requireNonNull(content, "content");
         this.codec = Objects.requireNonNull(codec, "codec");
         this.dispatch = Objects.requireNonNull(dispatch, "dispatch");
@@ -96,6 +101,8 @@ public final class PetService {
         this.isAir = Objects.requireNonNull(isAir, "isAir");
         this.cue = Objects.requireNonNull(cue, "cue");
         this.rolls = Objects.requireNonNull(rolls, "rolls");
+        this.homes = Objects.requireNonNull(homes, "homes");
+        this.teleblock = Objects.requireNonNull(teleblock, "teleblock");
     }
 
     public boolean isPet(ItemStack stack) {
@@ -370,6 +377,13 @@ public final class PetService {
             messenger.failed(player, def);
             return;
         }
+        // ADR-0061: a digger pet's click during a LIVE home window is a RECALL — resolved BEFORE the gate
+        // walk, so the cooldown armed at dig never blocks the return trip. Sneaking or not: a re-dig is
+        // impossible while the window is open (the cooldown armed at dig), so every click is the recall.
+        CompiledEffect dig = digHomeEffect(bracket);
+        if (dig != null && recallAttempt(player, def, stack)) {
+            return;
+        }
         if (cageWouldFail(player, bracket)) {
             messenger.failed(player, def); // provably-unsafe cage volume — fail BEFORE the cooldown arms
             return;
@@ -377,7 +391,11 @@ public final class PetService {
         UseAttempt attempt = dispatch.fireUse(player, bracket.useStableKeys());
         if (attempt.activated()) {
             messenger.activated(player, def);
-            creditUseExp(player, stack);
+            if (dig != null) {
+                armHome(player, def, dig); // ADR-0061: the dig is non-XP — use-XP lands on the RECALL
+            } else {
+                creditUseExp(player, stack);
+            }
             openWindow(player, def, bracket);
             return;
         }
@@ -408,6 +426,81 @@ public final class PetService {
                 refresh.accept(player);
             }
         }
+    }
+
+    /** The bracket's {@code DIG_HOME} effect, or {@code null} when this pet is not a digger (ADR-0061). */
+    private CompiledEffect digHomeEffect(PetBracket bracket) {
+        Snapshot snapshot = content.snapshot();
+        for (String key : bracket.useStableKeys()) {
+            Ability ability = snapshot.byStableKey(key);
+            if (ability == null) {
+                continue;
+            }
+            for (CompiledEffect effect : ability.effects()) {
+                if (DigHomeEffect.HEAD.equals(effect.head())) {
+                    return effect;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Try the RECALL (ADR-0061). {@code false} = no live window — the click falls through to a fresh dig
+     * attempt (the normal gate walk). {@code true} = the click was claimed: either the teleport home landed
+     * (window consumed FIRST so a re-click mid-hop cannot double-fire; universal ENDED sent; use-XP granted —
+     * the recall, never the dig, is the XP moment) or it was refused — an active teleblock (the pack-wide
+     * teleport counter; the universal pet fail line) or out of range / another world (the universal
+     * out-of-range line) — with the window KEPT alive for a retry until expiry.
+     */
+    private boolean recallAttempt(Player player, PetDef def, ItemStack stack) {
+        long now = nowTicks.getAsLong();
+        PetHomeStore.Home home = homes.get(player.getUniqueId(), now);
+        if (home == null) {
+            return false;
+        }
+        if (teleblock.isBlocked(player.getUniqueId(), now)) {
+            messenger.failed(player, def);
+            return true;
+        }
+        World world = player.getWorld();
+        if (!world.getUID().equals(home.worldId())
+                || distanceSquared(player.getLocation(), home) > home.range() * home.range()) {
+            messenger.outOfRange(player);
+            return true;
+        }
+        homes.clear(player.getUniqueId());
+        dispatch.teleport(player, new Location(world, home.x(), home.y(), home.z(), home.yaw(), home.pitch()));
+        messenger.ended(player, def);
+        creditUseExp(player, stack);
+        return true;
+    }
+
+    /**
+     * Arm the dig-home window (ADR-0061) from the bracket's {@code DIG_HOME} args: capture the digger's spot
+     * (primitives + world UID — never a retained {@code Location}), open the window and schedule the
+     * generation-guarded expiry on the player's entity scheduler — expired unused, the universal ENDED is sent
+     * and the cooldown stays spent (it armed at dig, inside the gate walk).
+     */
+    private void armHome(Player player, PetDef def, CompiledEffect dig) {
+        int window = dig.args().integer("window");
+        double range = dig.args().dbl("range");
+        Location at = player.getLocation();
+        UUID id = player.getUniqueId();
+        long generation = homes.arm(id, player.getWorld().getUID(), at.getX(), at.getY(), at.getZ(),
+                at.getYaw(), at.getPitch(), range, nowTicks.getAsLong() + window);
+        Scheduling.onEntityLater(player, window, () -> {
+            if (homes.clearIfGeneration(id, generation)) {
+                messenger.ended(player, def);
+            }
+        });
+    }
+
+    private static double distanceSquared(Location at, PetHomeStore.Home home) {
+        double dx = at.getX() - home.x();
+        double dy = at.getY() - home.y();
+        double dz = at.getZ() - home.z();
+        return dx * dx + dy * dy + dz * dz;
     }
 
     /**
@@ -491,8 +584,9 @@ public final class PetService {
         });
     }
 
-    /** Death/quit teardown for one player's windows (buffs never survive either). */
+    /** Death/quit teardown for one player's windows (buffs and dig-homes never survive either, ADR-0061). */
     public void dropWindows(UUID player) {
         armed.clear(player);
+        homes.clear(player); // the pending expiry task then no-ops via the generation guard — no post-death ENDED
     }
 }

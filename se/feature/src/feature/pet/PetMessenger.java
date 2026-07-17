@@ -48,6 +48,15 @@ public final class PetMessenger {
         send(player, pets.get().messageOnFail(), def, false, 0);
     }
 
+    /**
+     * The UNIVERSAL out-of-range line (ADR-0061) — a plugin-wide lang key rendered PREFIX-FREE (the use-item
+     * fragment+sendText idiom), so any future content can reuse the same message. The Mole recall sends it
+     * when the player is beyond the recall range or in another world; the window stays alive for a retry.
+     */
+    public void outOfRange(Player player) {
+        messages.sendText(player, Colors.translate(messages.fragment("feedback.out-of-range")));
+    }
+
     private void send(Player player, String template, PetDef def, boolean uppercase, long remainingTicks) {
         if (template == null || template.isEmpty()) {
             return; // empty = silent (the use-item.success convention)
