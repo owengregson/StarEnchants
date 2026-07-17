@@ -4,6 +4,7 @@ import compile.load.Library;
 import compile.load.MaskDef;
 import item.head.EquipmentRepaint;
 import item.head.HeadAttributes;
+import item.head.IllusionMark;
 import item.head.TexturedHeads;
 import item.view.ItemViewCache;
 import java.util.Locale;
@@ -15,6 +16,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
@@ -38,6 +40,7 @@ public final class MaskIllusionService {
     private final EquipmentRepaint repaint;
     private final TexturedHeads heads;
     private final HeadAttributes headAttributes;
+    private final IllusionMark mark;
     private final Supplier<Library> library;
     private final ItemViewCache itemViews;
     private final BooleanSupplier enabled;
@@ -46,11 +49,12 @@ public final class MaskIllusionService {
     private final ConcurrentHashMap<String, ItemStack> templates = new ConcurrentHashMap<>();
 
     public MaskIllusionService(EquipmentRepaint repaint, TexturedHeads heads, HeadAttributes headAttributes,
-                               Supplier<Library> library, ItemViewCache itemViews, BooleanSupplier enabled,
-                               MaskIllusionStore store) {
+                               IllusionMark mark, Supplier<Library> library, ItemViewCache itemViews,
+                               BooleanSupplier enabled, MaskIllusionStore store) {
         this.repaint = Objects.requireNonNull(repaint, "repaint");
         this.heads = Objects.requireNonNull(heads, "heads");
         this.headAttributes = Objects.requireNonNull(headAttributes, "headAttributes");
+        this.mark = Objects.requireNonNull(mark, "mark");
         this.library = Objects.requireNonNull(library, "library");
         this.itemViews = Objects.requireNonNull(itemViews, "itemViews");
         this.enabled = Objects.requireNonNull(enabled, "enabled");
@@ -63,6 +67,7 @@ public final class MaskIllusionService {
      * region thread: it reads their live inventory and world.
      */
     public void refresh(Player wearer) {
+        repairWorn(wearer); // ADR-0064: a leaked illusion head in the REAL slot is undressed before anything derives
         // Disabled resolves as unmasked, so a live toggle-off restores reality through this same spine.
         ItemStack shown = enabled.getAsBoolean() ? shownHeadFor(wearer) : null;
         UUID id = wearer.getUniqueId();
@@ -72,6 +77,19 @@ public final class MaskIllusionService {
         } else if (store.remove(id)) {
             broadcast(wearer, realHelmet(wearer));
         }
+    }
+
+    /**
+     * ADR-0064: if the REAL helmet slot holds a marked illusion head (a client write-back that slipped a
+     * gate), restore the helmet it was dressed from. A payload-less mark clears the slot — the visual was
+     * never a real item. MUST run on the wearer's own region thread (inventory write).
+     */
+    public void repairWorn(Player wearer) {
+        ItemStack helmet = wearer.getInventory().getHelmet();
+        if (helmet == null || !mark.isMarked(helmet)) {
+            return;
+        }
+        wearer.getInventory().setHelmet(mark.undress(helmet));
     }
 
     /** Re-assert every stored illusion to one just-joined {@code recipient}; each send hops to its thread. */
@@ -124,11 +142,20 @@ public final class MaskIllusionService {
     /** Repaint {@code wearer} to every online player in {@code world} ({@code null} = all), wearer included. */
     private void sendToWorld(Player wearer, World world, ItemStack shown) {
         for (Player recipient : Bukkit.getOnlinePlayers()) {
-            // The recipient's world is only readable on its own thread — filter inside the hop.
+            // The recipient's world/gamemode are only readable on its own thread — filter inside the hop.
             Scheduling.onEntity(recipient, () -> {
-                if (world == null || world.equals(recipient.getWorld())) {
-                    repaint.helmet(recipient, wearer, shown);
+                if (world != null && !world.equals(recipient.getWorld())) {
+                    return;
                 }
+                // ADR-0064: a CREATIVE client is inventory-authoritative — a self-view illusion is adopted into
+                // its local inventory and echoed back over the REAL helmet (the bake). The creative wearer is
+                // always shown reality; observers still see the mask.
+                if (recipient.getUniqueId().equals(wearer.getUniqueId())
+                        && recipient.getGameMode() == GameMode.CREATIVE) {
+                    repaint.helmet(recipient, wearer, realHelmet(wearer));
+                    return;
+                }
+                repaint.helmet(recipient, wearer, shown);
             });
         }
     }
@@ -182,6 +209,7 @@ public final class MaskIllusionService {
             shown.setItemMeta(shownMeta);
         }
         headAttributes.copyWorn(shown, helmet);
+        mark.stamp(shown, helmet); // ADR-0064: detectable + losslessly undressable if a client ever writes it back
         return shown;
     }
 
