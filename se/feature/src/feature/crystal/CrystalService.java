@@ -40,17 +40,19 @@ public final class CrystalService {
     private final ContentHolder content;
     private final Supplier<CrystalConfig> config;
     private final IntSupplier maxMerge; // §E crystals.max-merge — the global multi-crystal cap (read live)
+    private final ReforgeExtractor reforges; // ADR-0070: the reforge socket outranks the crystal stack at extract
     private final platform.lang.Messages messages; // §L lang.yml
 
     public CrystalService(CrystalItemCodec codec, CrystalExtractorCodec extractorCodec, ItemEnchanter enchanter,
                           ContentHolder content, Supplier<CrystalConfig> config, IntSupplier maxMerge,
-                          platform.lang.Messages messages) {
+                          ReforgeExtractor reforges, platform.lang.Messages messages) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.extractorCodec = Objects.requireNonNull(extractorCodec, "extractorCodec");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.content = Objects.requireNonNull(content, "content");
         this.config = Objects.requireNonNull(config, "config");
         this.maxMerge = Objects.requireNonNull(maxMerge, "maxMerge");
+        this.reforges = Objects.requireNonNull(reforges, "reforges");
         this.messages = Objects.requireNonNull(messages, "messages");
     }
 
@@ -142,11 +144,15 @@ public final class CrystalService {
                 messages.format("crystal.merge", "CRYSTAL", label(merged.keys())));
     }
 
-    /** Extractor gesture: pop the topmost single off a multi-crystal ITEM, else off crystal-bearing GEAR. */
+    /** Extractor gesture: pop the topmost single off a multi-crystal ITEM, else the gear's REFORGE first
+     *  (ADR-0070 — the reforge socket outranks the crystal stack), else the gear's last crystal entry. */
     public GestureOutcome extract(ItemStack cursor, ItemStack target) {
         CrystalItemData targetCrystal = codec.read(target);
         if (targetCrystal != null) {
             return extractFromCrystal(cursor, target, targetCrystal);
+        }
+        if (reforges.carries(target)) {
+            return reforges.extract(cursor, target);
         }
         return extractFromGear(cursor, target);
     }
