@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.LongSupplier;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -20,11 +21,14 @@ import platform.sched.TaskHandle;
 
 /**
  * The Mole home-window visuals (ADR-0061 amendment): while a {@link PetHomeStore} window is live, a 10-tick
- * pulse draws a dust tracer line from the home block to the player and a pulsating ring on the home block,
- * both in the pet's colour at the KOTH feet offset. Window-tied exactly like the expiry: generation-guarded,
- * self-cancelling when the store entry is consumed/expired/replaced, cleared on recall/death
- * ({@code PetService}), quit (the module store sweep) and disable ({@link #clearAll}). Every mote rides the
- * shared sink's dust intent — region-routed on Folia, offset-RGB colour on 1.8.9 (the KOTH plumbing).
+ * pulse draws a pulsating ring on the home block and, while the owner is within recall range, a dust tracer
+ * line from the home block to the player, both in the pet's colour at the KOTH feet offset. Window-tied
+ * exactly like the expiry: generation-guarded, self-cancelling when the store entry is consumed/expired/
+ * replaced, cleared on recall/death ({@code PetService}), quit (the module store sweep) and disable
+ * ({@link #clearAll}). Every mote rides the shared sink's dust intent — region-routed on Folia, offset-RGB
+ * colour on 1.8.9 (the KOTH plumbing). The class also owns the mole's five layered sound-cue tables
+ * (ADR-0067) — dig / teleport / range-exit / range-enter / expired — resolved once at construction, with any
+ * layer whose sound is absent on this version silently skipped.
  */
 public final class PetHomeVisuals implements PlayerScoped {
 
@@ -36,21 +40,26 @@ public final class PetHomeVisuals implements PlayerScoped {
     static final double[] PULSE_RADII = {0.25, 0.5, 0.7}; // expanding ping, capped at the 0.7 spec radius
     static final int[] PULSE_COUNTS = {6, 9, 12};
     static final float DUST_SIZE = 1.0f;
-    // TUNABLE(recall cues): a small colour ring + the burrow sound at each end of the hop.
+    // TUNABLE(recall cues): a small colour ring at each end of the hop; the sound layers are the `teleport` table.
     static final double BURST_RADIUS = 0.5;
     static final int BURST_COUNT = 10;
-    static final float CUE_VOLUME = 1.0f;
-    static final float DEPART_PITCH = 1.2f;
-    static final float ARRIVE_PITCH = 0.8f;
 
-    private record Task(TaskHandle handle, long generation) {
+    /** One owner-specced cue layer: the interned sound id (-1 = absent on this version → skipped) + volume/pitch. */
+    private record Cue(int sound, float volume, float pitch) {
+    }
+
+    private record Task(TaskHandle handle, long generation, AtomicBoolean inRange) {
     }
 
     private final TriggerDispatch dispatch;
     private final PetHomeStore homes;
     private final LongSupplier nowTicks;
     private final int dust; // interned REDSTONE (DUST alias) or -1: visuals silently off, never a crash
-    private final int cue;  // interned BLOCK_GRASS_BREAK (1.8 DIG_GRASS alias) or -1
+    private final Cue[] dig;      // dig home (ADR-0067 — owner-specced verbatim)
+    private final Cue[] teleport; // teleport home, played at both ends of the hop
+    private final Cue[] exit;     // leaving the recall range
+    private final Cue[] enter;    // re-entering the recall range
+    private final Cue[] expired;  // the window lapsed without a recall
     private final Map<UUID, Task> tasks = new ConcurrentHashMap<>();
 
     public PetHomeVisuals(TriggerDispatch dispatch, PetHomeStore homes, LongSupplier nowTicks,
@@ -60,7 +69,38 @@ public final class PetHomeVisuals implements PlayerScoped {
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
         Objects.requireNonNull(resolvers, "resolvers");
         this.dust = resolvers.particle("REDSTONE").orElse(-1);
-        this.cue = resolvers.sound("BLOCK_GRASS_BREAK").orElse(-1);
+        this.dig = new Cue[]{
+                cue(resolvers, "ENTITY_ENDER_EYE_DEATH", 1.0f, 0.85f),
+                cue(resolvers, "BLOCK_BAMBOO_WOOD_DOOR_OPEN", 0.7f, 1.0f),
+                cue(resolvers, "ITEM_SHOVEL_FLATTEN", 1.0f, 0.7f)};
+        this.teleport = new Cue[]{
+                cue(resolvers, "ENTITY_ENDER_EYE_DEATH", 1.0f, 1.45f),
+                cue(resolvers, "BLOCK_BAMBOO_WOOD_DOOR_OPEN", 0.7f, 1.55f),
+                cue(resolvers, "ITEM_SHOVEL_FLATTEN", 1.0f, 1.25f)};
+        this.exit = new Cue[]{
+                cue(resolvers, "BLOCK_NETHER_WOOD_DOOR_CLOSE", 0.9f, 1.0f),
+                cue(resolvers, "BLOCK_ROOTED_DIRT_BREAK", 0.55f, 0.7f),
+                cue(resolvers, "BLOCK_CANDLE_EXTINGUISH", 1.0f, 1.10f)};
+        this.enter = new Cue[]{
+                cue(resolvers, "BLOCK_AMETHYST_CLUSTER_PLACE", 0.5f, 1.20f),
+                cue(resolvers, "BLOCK_NETHER_WOOD_DOOR_OPEN", 1.0f, 1.0f),
+                cue(resolvers, "BLOCK_ROOTED_DIRT_BREAK", 0.85f, 1.15f)};
+        this.expired = new Cue[]{
+                cue(resolvers, "BLOCK_ROOTED_DIRT_BREAK", 0.55f, 0.7f),
+                cue(resolvers, "BLOCK_NETHER_WOOD_DOOR_CLOSE", 0.9f, 1.0f),
+                cue(resolvers, "BLOCK_CANDLE_EXTINGUISH", 1.0f, 1.10f),
+                cue(resolvers, "BLOCK_VAULT_DEACTIVATE", 0.75f, 0.7f),
+                cue(resolvers, "BLOCK_GLASS_BREAK", 0.3f, 0.6f)};
+    }
+
+    private static Cue cue(PlatformResolvers resolvers, String token, float volume, float pitch) {
+        return new Cue(resolvers.sound(token).orElse(-1), volume, pitch);
+    }
+
+    private void play(Location at, Cue[] cues) {
+        for (Cue cue : cues) {
+            dispatch.sound(at, cue.sound(), cue.volume(), cue.pitch()); // id < 0 (absent here) skips
+        }
     }
 
     /**
@@ -77,28 +117,35 @@ public final class PetHomeVisuals implements PlayerScoped {
         }
         int[] rgb = rgbOrWhite(def.color());
         int[] pulse = {0}; // the body always runs on the player's entity thread — no atomics needed
+        AtomicBoolean in = new AtomicBoolean(true); // dug at the home → IN; no enter-cue on creation (ADR-0067)
         TaskHandle[] handle = new TaskHandle[1];
         handle[0] = Scheduling.repeatingEntity(player, PERIOD_TICKS, PERIOD_TICKS, () -> {
-            PetHomeStore.Home home = homes.get(id, nowTicks.getAsLong());
+            PetHomeStore.Home home = homes.peek(id, nowTicks.getAsLong()); // non-evicting: §5 owns the ending
             if (home == null || home.generation() != generation || !player.isValid()) {
                 endIfGeneration(id, generation);
                 handle[0].cancel(); // belt: also stops a task the map no longer tracks
                 return;
             }
             World world = player.getWorld();
+            Location at = player.getLocation();
+            boolean now = home.inRange(world.getUID(), at.getX(), at.getY(), at.getZ());
+            if (in.compareAndSet(!now, now)) {
+                play(at, now ? enter : exit); // once per boundary crossing, at the player (ADR-0067)
+            }
             if (!world.getUID().equals(home.worldId())) {
                 return; // cross-world: nothing to draw (the recall reads it as out-of-range); window kept
             }
             int phase = pulse[0]++ % PULSE_RADII.length;
-            Location at = player.getLocation();
             List<Location> points = new ArrayList<>(MAX_LINE_STEPS + 1 + PULSE_COUNTS[phase]);
             collect(points, world, ringPoints(home.x(), home.y() + FEET_OFFSET, home.z(),
                     PULSE_RADII[phase], PULSE_COUNTS[phase]));
-            collect(points, world, linePoints(home.x(), home.y() + FEET_OFFSET, home.z(),
-                    at.getX(), at.getY() + FEET_OFFSET, at.getZ(), LINE_DENSITY, MAX_LINE_STEPS));
+            if (now) { // the tracer LINE is range-gated (the spec's "[particle effect line stops playing]")
+                collect(points, world, linePoints(home.x(), home.y() + FEET_OFFSET, home.z(),
+                        at.getX(), at.getY() + FEET_OFFSET, at.getZ(), LINE_DENSITY, MAX_LINE_STEPS));
+            }
             dispatch.dust(points, dust, rgb[0], rgb[1], rgb[2], DUST_SIZE);
         });
-        tasks.put(id, new Task(handle[0], generation));
+        tasks.put(id, new Task(handle[0], generation, in));
     }
 
     /** Departure/arrival cues for a landed recall: a small colour ring + the burrow sound at both ends. */
@@ -113,13 +160,34 @@ public final class PetHomeVisuals implements PlayerScoped {
                     BURST_RADIUS, BURST_COUNT));
             dispatch.dust(points, dust, rgb[0], rgb[1], rgb[2], DUST_SIZE);
         }
-        dispatch.sound(from, cue, CUE_VOLUME, DEPART_PITCH);
-        dispatch.sound(to, cue, CUE_VOLUME, ARRIVE_PITCH);
+        play(from, teleport);
+        play(to, teleport);
+    }
+
+    /** The dig-home layered cue (ADR-0067) at the freshly-dug home — code-side because content cannot
+     *  author tokens absent on old versions (a blocking E_UNKNOWN_HANDLE); these layers skip-absent. */
+    public void digCues(Player player) {
+        play(player.getLocation(), dig);
+    }
+
+    /** The home-expired-unused layered cue (ADR-0067) at the owner; the caller's generation guard
+     *  already proved the window died unconsumed. A gone owner is silent. */
+    public void expiredCues(Player player) {
+        if (!player.isValid()) {
+            return;
+        }
+        play(player.getLocation(), expired);
     }
 
     /** Whether a pulse task is live for {@code player} — the suite's window-tied start/stop seam. */
     public boolean active(UUID player) {
         return tasks.containsKey(player);
+    }
+
+    /** Whether the live pulse task currently holds the IN-range state — the suite's range-machine seam. */
+    public boolean inRange(UUID player) {
+        Task task = tasks.get(player);
+        return task != null && task.inRange().get();
     }
 
     /** Stop iff the tracked task is still {@code generation}'s — the scheduled expiry's twin guard. */
