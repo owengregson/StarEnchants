@@ -38,6 +38,7 @@ public final class ItemKeys {
     private final String petFood;
     private final String maskItem;
     private final String illusion;
+    private final String reforgeItem;
 
     private ItemKeys(String combat, String soul, String carrier, String guarded,
                      String crystalItem, String crystalExtractor, String heroicUpgrade,
@@ -46,7 +47,7 @@ public final class ItemKeys {
                      String trakGem, String trakBlocks, String trakMobs, String trakSouls, String trakFish,
                      String loreComposer, String useItem,
                      String pet, String petLevel, String petExp, String petExpFrac, String petFood,
-                     String maskItem, String illusion) {
+                     String maskItem, String illusion, String reforgeItem) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
@@ -75,6 +76,7 @@ public final class ItemKeys {
         this.petFood = petFood;
         this.maskItem = maskItem;
         this.illusion = illusion;
+        this.reforgeItem = reforgeItem;
     }
 
     public static ItemKeys of() {
@@ -82,7 +84,7 @@ public final class ItemKeys {
                 "heroicupgrade", "slotitem", "slotsuccess", "scroll", "scrollconvert", "unopened",
                 "godlytransmog", "appliedslot", "trakgem", "trakblocks", "trakmobs", "traksouls", "trakfish",
                 "lorecomposer", "useitem", "pet", "petlevel", "petexp", "petexpfrac", "petfood", "maskitem",
-                "illusion");
+                "illusion", "reforgeitem");
     }
 
     public String combat() {
@@ -220,5 +222,10 @@ public final class ItemKeys {
     /** A mask-illusion shown head (ADR-0064): payload = Base64 of the real helmet it dresses, {@code "-"} = none. */
     public String illusion() {
         return illusion;
+    }
+
+    /** A reforge catalogue item (ADR-0070): the PDC string under this key is the reforge's def key (pre-apply). */
+    public String reforgeItem() {
+        return reforgeItem;
     }
 }

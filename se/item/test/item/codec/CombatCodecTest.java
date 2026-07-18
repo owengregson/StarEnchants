@@ -154,6 +154,43 @@ class CombatCodecTest {
     }
 
     @Test
+    void roundTripsAppliedReforgeKey() {
+        // ADR-0070: an applied reforge key (label 'r') survives the codec, distinct from mask/set/weapon keys.
+        CombatState reforged = new CombatState(Map.of("guard", 1), List.of()).withReforge("reforges/singularity");
+        CombatState back = CombatCodec.decodeBlob(CombatCodec.encodeBlob(reforged));
+        assertEquals("reforges/singularity", back.reforgeKey());
+        assertEquals(Map.of("guard", 1), back.enchants());
+
+        // A reforge-only item (no enchants/crystals/set/heroic/slots/mask) is NOT empty — it must persist.
+        CombatState reforgeOnly = CombatState.EMPTY.withReforge("reforges/singularity");
+        assertTrue(!reforgeOnly.isEmpty());
+        assertEquals("reforges/singularity",
+                CombatCodec.decodeBlob(CombatCodec.encodeBlob(reforgeOnly)).reforgeKey());
+
+        // A blob written before reforges existed (a mask, no 'r' section) decodes to a null reforgeKey.
+        String preReforge = CombatCodec.encodeBlob(
+                new CombatState(Map.of("guard", 1), List.of()).withMask("masks/agent"));
+        assertNull(CombatCodec.decodeBlob(preReforge).reforgeKey());
+
+        // withReforge(null) pops the reforge back off — a reforge-only item then decodes to empty.
+        assertNull(reforgeOnly.withReforge(null).reforgeKey());
+        assertTrue(reforgeOnly.withReforge(null).isEmpty());
+    }
+
+    @Test
+    void copiersPreserveTheReforgeKey() {
+        // The setWeaponKey/maskKey trap now covers reforgeKey: every with* copier must carry it through — a
+        // copier that dropped the new field is the one real bug this row catches (ADR-0070).
+        CombatState reforged = new CombatState(Map.of("guard", 2), List.of("crystals/frost"),
+                "sets/yeti", null, false, new HeroicStat(0.1, 0.2, 0.3), 3, "masks/agent", "reforges/singularity");
+        assertEquals("reforges/singularity", reforged.withEnchants(Map.of("sharp", 1)).reforgeKey());
+        assertEquals("reforges/singularity", reforged.withCrystals(List.of("crystals/zap")).reforgeKey());
+        assertEquals("reforges/singularity", reforged.withHeroic(new HeroicStat(0.5, 0.5, 0.5)).reforgeKey());
+        assertEquals("reforges/singularity", reforged.withMask("masks/other").reforgeKey());
+        assertEquals("reforges/singularity", reforged.withAdded(9).reforgeKey());
+    }
+
+    @Test
     void legacyBlobWithoutSetSectionsDecodesToNoSet() {
         // An old v1 blob (no s/o labels) → setKey null, omni false (forward-compatible).
         CombatState back = CombatCodec.decodeBlob("v1efire:2c");
