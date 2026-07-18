@@ -147,6 +147,12 @@ public final class EraBindings implements EraServices {
         return VanillaStats.NONE;
     }
 
+    /** ADR-0071 Javelin: 1.8 has no weapon attribute — map the held material through the vanilla damage table. */
+    @Override
+    public feature.reforge.WeaponDamage weaponDamage() {
+        return new feature.reforge.LegacyWeaponDamage();
+    }
+
     /** ADR-0052 pet heads: 1.8 SKULL_ITEM:3 + an authlib GameProfile textures property. */
     @Override
     public TexturedHeads texturedHeads() {
