@@ -71,6 +71,12 @@ public final class PetMessenger {
         messages.sendText(player, Colors.translate(messages.fragment("feedback.out-of-range")));
     }
 
+    /** The ADR-0070 shared pet-use gate line — a plugin-wide lang key rendered PREFIX-FREE (the fragment idiom). */
+    public void sharedCooldown(Player player, long remainingTicks) {
+        messages.sendText(player, Colors.translate(messages.fragment("pet.shared-cooldown",
+                "TIME_FORMATTED", TimeFormat.hmsFromTicks(remainingTicks))));
+    }
+
     private void send(Player player, String template, PetDef def, boolean uppercase, long remainingTicks) {
         if (template == null || template.isEmpty()) {
             return; // empty = silent (the use-item.success convention)
