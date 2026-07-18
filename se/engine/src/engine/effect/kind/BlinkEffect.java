@@ -5,6 +5,9 @@ import engine.effect.EffectCtx;
 import engine.effect.EffectKind;
 import engine.sink.Sink;
 import engine.spec.EffectSpec;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 import schema.spec.D;
 
 /**
@@ -41,7 +44,14 @@ public final class BlinkEffect implements EffectKind {
 
     @Override
     public void run(EffectCtx ctx, Sink sink) {
-        // Body filled once the Sink.blinkForward intent lands (§B4.2); registered here as a compilable
-        // skeleton so the BuiltinEffects walk (spec conformance + fuzz) picks the head up.
+        Player actor = ctx.actor();
+        Location origin = ctx.actorOrigin();      // ADR-0043 snapshot: x/y/z + yaw/pitch
+        if (actor == null || origin == null) {
+            return;
+        }
+        Vector direction = origin.getDirection(); // full 3D look, |v| == 1
+        sink.blinkForward(actor, origin, direction, ctx.dbl("distance"),
+                ctx.integer("particle"), ctx.integer("r"), ctx.integer("g"), ctx.integer("b"),
+                (float) ctx.dbl("size"), ctx.integer("count"));
     }
 }
