@@ -131,7 +131,9 @@ class MaskServiceTest {
                 LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)), store);
         ItemEnchanter enchanter = new ItemEnchanter(combatCodec, lore, holder, ItemGroups.standard(),
                 () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
-                () -> ItemEnchanter.DEFAULT_MAX_MERGE, messages, item.mint.VanillaEnchants.NONE);
+                () -> ItemEnchanter.DEFAULT_MAX_MERGE,
+                () -> compile.load.MasterConfig.ReforgesSection.defaults().weaponGroups(),
+                messages, item.mint.VanillaEnchants.NONE);
         return new MaskService(maskCodec, enchanter, holder, () -> cfg, heads, item.head.HeadEquip.NONE, messages);
     }
 

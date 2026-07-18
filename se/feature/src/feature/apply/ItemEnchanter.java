@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.IntSupplier;
+import java.util.function.Supplier;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -51,13 +52,15 @@ public final class ItemEnchanter {
     private final IntSupplier baseSlots;     // §H slots.base — read live per apply so a reload re-tunes it
     private final IntSupplier crystalSlots;  // §E crystals.slots (entries per item)
     private final IntSupplier maxMerge;      // §E crystals.max-merge (components per entry)
+    private final Supplier<List<String>> weaponGroups; // ADR-0070 reforges.weapon-groups — read live per apply
     private final Messages messages;
     private final VanillaEnchants vanilla;   // §6.6 cross-version set-piece base enchants (ADR-0047 instance wiring)
 
-    /** Slot/merge caps are read per apply so a reload re-tunes them live. */
+    /** Slot/merge caps and the reforge weapon-groups are read per apply so a reload re-tunes them live. */
     public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
                          platform.item.ItemGroups groups, IntSupplier baseSlots, IntSupplier crystalSlots,
-                         IntSupplier maxMerge, Messages messages, VanillaEnchants vanilla) {
+                         IntSupplier maxMerge, Supplier<List<String>> weaponGroups, Messages messages,
+                         VanillaEnchants vanilla) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.lore = Objects.requireNonNull(lore, "lore");
         this.content = Objects.requireNonNull(content, "content");
@@ -65,6 +68,7 @@ public final class ItemEnchanter {
         this.baseSlots = Objects.requireNonNull(baseSlots, "baseSlots");
         this.crystalSlots = Objects.requireNonNull(crystalSlots, "crystalSlots");
         this.maxMerge = Objects.requireNonNull(maxMerge, "maxMerge");
+        this.weaponGroups = Objects.requireNonNull(weaponGroups, "weaponGroups");
         this.messages = Objects.requireNonNull(messages, "messages");
         this.vanilla = Objects.requireNonNull(vanilla, "vanilla");
     }
@@ -493,6 +497,73 @@ public final class ItemEnchanter {
         codec.write(gear, next);
         lore.apply(gear, next);
         return ExtractResult.ok(popped);
+    }
+
+    /**
+     * Validate (without mutating) that reforge {@code reforgeKey} may sit on {@code gear} (ADR-0070): a single
+     * WEAPON (the live {@code reforges.weapon-groups} set) whose one reforge socket is empty. Drag-apply
+     * pre-checks this BEFORE consuming the reforge item, so a violation never wastes it.
+     */
+    public ApplyResult checkReforge(ItemStack gear, String reforgeKey) {
+        if (gear == null || gear.getType() == Material.AIR) {
+            return ApplyResult.fail(messages.format("reforge.on-item"));
+        }
+        if (gear.getAmount() > 1) {
+            return ApplyResult.fail(messages.format("reforge.single-item"));
+        }
+        compile.load.ReforgeDef def = reforge(reforgeKey);
+        if (def == null) {
+            return ApplyResult.fail(messages.format("reforge.no-such", "KEY", reforgeKey));
+        }
+        if (content.snapshot().byStableKey(reforgeKey) == null) {
+            return ApplyResult.fail(messages.format("reforge.no-compile", "KEY", reforgeKey));
+        }
+        if (!groups.matches(gear.getType(), weaponGroups.get())) {
+            return ApplyResult.fail(messages.format("reforge.not-weapon", "DISPLAY", def.display()));
+        }
+        if (codec.read(gear).reforgeKey() != null) {
+            return ApplyResult.fail(messages.format("reforge.occupied"));
+        }
+        return ApplyResult.ok(messages.format("apply.ok", "DISPLAY", def.display()));
+    }
+
+    /** Stamp reforge {@code reforgeKey} onto {@code gear} in place (re-validating first); re-renders lore. */
+    public ApplyResult applyReforge(ItemStack gear, String reforgeKey) {
+        ApplyResult check = checkReforge(gear, reforgeKey);
+        if (!check.ok()) {
+            return check;
+        }
+        CombatState current = codec.read(gear);
+        CombatState next = current.withReforge(reforgeKey); // preserves every other field (the setWeaponKey trap)
+        codec.write(gear, next);
+        lore.apply(gear, next);
+        return check;
+    }
+
+    /**
+     * Pop the reforge off {@code gear} (the Item Extractor gesture, ADR-0070); re-renders lore. Returns the
+     * popped key for the caller to mint back as a reforge item. No-op fail when the weapon carries none.
+     */
+    public ExtractResult extractReforge(ItemStack gear) {
+        if (gear == null || gear.getType() == Material.AIR) {
+            return ExtractResult.fail(messages.format("apply.hold-item"));
+        }
+        if (gear.getAmount() > 1) {
+            return ExtractResult.fail(messages.format("reforge.single-item"));
+        }
+        CombatState current = codec.read(gear);
+        String popped = current.reforgeKey();
+        if (popped == null) {
+            return ExtractResult.fail(messages.format("reforge.none"));
+        }
+        CombatState next = current.withReforge(null);
+        codec.write(gear, next);
+        lore.apply(gear, next);
+        return ExtractResult.ok(popped);
+    }
+
+    private compile.load.ReforgeDef reforge(String key) {
+        return content.library().reforgeDefOf(key);
     }
 
     private EnchantDef enchant(String baseKey) {
