@@ -61,6 +61,9 @@ import tester.suite.ScrollPlayerSuite;
 import tester.suite.SinkSuite;
 import tester.suite.PetAbilitySuite;
 import tester.suite.PetHomeSuite;
+import tester.suite.ReforgeSuite;
+import tester.suite.ReforgeMotionSuite;
+import tester.suite.ReforgeCounterSuite;
 import tester.suite.WornResolverSuite;
 
 /**
@@ -136,6 +139,9 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new ScrollPlayerSuite(this)); // §I: holy death-save + nametag rename
         harness.add(new TriggerSuite(this));
         harness.add(new UseItemSuite(this)); // §3.6/ADR-0048: right-click use-item → shared pipeline (potions, consume, cooldown, commands)
+        harness.add(new ReforgeSuite(this)); // ADR-0070: weapon reforges — apply/extract/lore/activation + the shared pet gate
+        harness.add(new ReforgeMotionSuite(this)); // ADR-0071: movement/space reforge kinds (gravity well, grapple, blink, castling, javelin)
+        harness.add(new ReforgeCounterSuite(this)); // ADR-0071: combat-state reforge kinds (quickening, battery, unhanding, bell, turnkey)
         harness.add(new PetAbilitySuite(this)); // ADR-0060: pet FALL fold/cancel, kraken worn channels, SPAWN_SWARM ring+TTL
         harness.add(new BatCloudSuite(this)); // ADR-0068: attacker vision cloud — pillar publish, orbit convergence, revert, cross-region fail-closed
         harness.add(new PetHomeSuite(this)); // ADR-0061: mole dig window → recall teleport / out-of-range / teleblock / expiry
