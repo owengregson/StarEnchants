@@ -9,6 +9,7 @@ import feature.pet.PetLevelCue;
 import feature.pet.PetLevelListener;
 import feature.pet.PetMessenger;
 import feature.pet.PetService;
+import feature.pet.PetSharedUseStore;
 import feature.pet.PetSummonListener;
 import feature.pet.PetSweep;
 import feature.pet.PetUseListener;
@@ -35,6 +36,7 @@ final class PetsModule {
     final PetLevelListener leveler;
     final PetSweep sweep;
     final PetHomeStore homes = new PetHomeStore(); // ADR-0061: the Mole dig-home windows
+    final PetSharedUseStore sharedGate = new PetSharedUseStore(); // ADR-0070: the shared any-pet 2s gate
     final PetHomeVisuals visuals; // ADR-0061 amendment: the window-tied pulse task + recall cues
     final feature.trigger.WaterSpeedDriver waterSpeed;
     final List<Mintable> mints;
@@ -48,7 +50,7 @@ final class PetsModule {
         // The cold-path run reuses the shared TriggerDispatch (its runner/sink wiring), so no second engine spine.
         this.pets = new PetService(core.content(), core.petCodec(), core.triggerDispatch(),
                 core.bindings().texturedHeads(), core.bindings().headEquip(), core.vanillaEnchants(),
-                messenger, core.petArmedStore(),
+                messenger, core.petArmedStore(), sharedGate,
                 () -> core.master().config().pets(),
                 () -> core.items().config().petOrDefault(),
                 () -> core.items().config().petFoodOrDefault(),
@@ -86,6 +88,7 @@ final class PetsModule {
                         core.menusHolder()::config, core.vanillaEnchants()))
                 .mints(mints)
                 .store(core.petArmedStore())
+                .store(sharedGate) // ADR-0070: the shared any-pet 2s gate
                 .store(homes) // ADR-0061: a dig-home window never survives a quit
                 .store(visuals) // its pulse task dies with it
                 .store(sweep)
@@ -105,6 +108,7 @@ final class PetsModule {
                 .stop("bat swarms", engine.sink.SwarmSpawns::removeAll)
                 .stop("bat cloud targets", engine.sink.SwarmClouds::clearAll)
                 .stop("pet armed windows", core.petArmedStore()::clearAll)
+                .stop("pet shared-use gate", sharedGate::clearAll)
                 .stop("pet home windows", homes::clearAll)
                 .stop("pet home visuals", visuals::clearAll)
                 .build();
