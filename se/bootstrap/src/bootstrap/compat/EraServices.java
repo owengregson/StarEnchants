@@ -81,6 +81,11 @@ public interface EraServices {
 
     VanillaStats vanillaStats();
 
+    /** One weapon-swing's raw damage for the Javelin reforge (ADR-0071): modern reads the live
+     *  GENERIC_ATTACK_DAMAGE attribute through the alias chain; 1.8 maps the held material through the
+     *  vanilla damage table. */
+    feature.reforge.WeaponDamage weaponDamage();
+
     /** Base64-textured player-head minting (ADR-0052 pets): modern Paper profiles / 1.8 SKULL_ITEM+authlib. */
     TexturedHeads texturedHeads();
 

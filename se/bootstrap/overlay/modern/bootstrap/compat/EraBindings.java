@@ -150,6 +150,12 @@ public final class EraBindings implements EraServices {
         return new ModernVanillaStats();
     }
 
+    /** ADR-0071 Javelin: the live GENERIC_ATTACK_DAMAGE attribute (weapon modifier folded in on 1.9+). */
+    @Override
+    public feature.reforge.WeaponDamage weaponDamage() {
+        return new feature.reforge.ModernWeaponDamage();
+    }
+
     /** ADR-0052 pet heads: Paper profile + textures property (API surface, mapping-flip immune). */
     @Override
     public TexturedHeads texturedHeads() {
