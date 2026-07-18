@@ -274,7 +274,7 @@ public final class BootCore {
                 () -> {                                            // §L per-feature master toggles (live)
                     MasterConfig.FeaturesSection ff = master.config().features();
                     return new WornResolver.Features(ff.enchants(), ff.sets(), ff.crystals(), ff.heroic(),
-                            ff.masks());
+                            ff.masks(), ff.reforges());
                 },
                 () -> {                                            // §ADR-0035 non-stackable crystal keys (live)
                     java.util.Set<String> keys = new java.util.HashSet<>();
