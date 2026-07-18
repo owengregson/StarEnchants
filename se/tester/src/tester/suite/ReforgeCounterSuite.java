@@ -49,6 +49,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.bukkit.Difficulty;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -841,24 +842,48 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
                         rig.teardown();
                         return;
                     }
-                    ModernDispatchSink bell = new ModernDispatchSink(handles, freshEnv(() -> 0L));
-                    bell.convertSummons(ringer, 12.0);
-                    bell.flush();
-                    if (!ringer.getUniqueId().equals(GuardianCasts.owner(golemId2))) {
-                        h.fail(key, "ownership did not rebind to the ringer");
-                        forgetSummons(golemId2);
-                        rig.teardown();
-                        return;
-                    }
-                    awaitUntil(golem, () -> golem.getTarget() != null
-                            && golem.getTarget().getUniqueId().equals(enemy.getUniqueId()), 0, 10, hit -> {
-                        h.guard(key, () -> {
-                            if (!hit) {
-                                throw new IllegalStateException("the converted guard did not target its former owner");
+                    // The turn this check asserts is vanilla-IMPOSSIBLE at the matrix's PEACEFUL difficulty on
+                    // modern: NeutralMob.updatePersistentAnger (IronGolem calls it with bl=true every AI step,
+                    // javap-verified 26.1.2) runs stopBeingAngry() — nulling the target — every tick its PLAYER
+                    // anger target is creative, spectator, or the world is peaceful. Under any OTHER difficulty
+                    // the very same method auto-backs a bare setTarget with persistent anger the next tick, so
+                    // production needs no write of its own (the floor, predating the peaceful-player clear,
+                    // keeps the target either way). Hold NORMAL for just the conversion window — difficulty is
+                    // level data (global thread), set BEFORE the bell so the forced target is never cleared
+                    // once — and restore the prior difficulty on every exit.
+                    Difficulty[] prior = new Difficulty[1];
+                    Runnable restore = () -> Scheduling.onGlobal(() -> {
+                        if (prior[0] != null) {
+                            world.setDifficulty(prior[0]);
+                        }
+                    });
+                    Scheduling.onGlobal(() -> {
+                        prior[0] = world.getDifficulty();
+                        world.setDifficulty(Difficulty.NORMAL);
+                        Scheduling.onRegionLater(sky, 2L, () -> {
+                            ModernDispatchSink bell = new ModernDispatchSink(handles, freshEnv(() -> 0L));
+                            bell.convertSummons(ringer, 12.0);
+                            bell.flush();
+                            if (!ringer.getUniqueId().equals(GuardianCasts.owner(golemId2))) {
+                                h.fail(key, "ownership did not rebind to the ringer");
+                                forgetSummons(golemId2);
+                                restore.run();
+                                rig.teardown();
+                                return;
                             }
+                            awaitUntil(golem, () -> golem.getTarget() != null
+                                    && golem.getTarget().getUniqueId().equals(enemy.getUniqueId()), 0, 10, hit -> {
+                                h.guard(key, () -> {
+                                    if (!hit) {
+                                        throw new IllegalStateException(
+                                                "the converted guard did not target its former owner");
+                                    }
+                                });
+                                forgetSummons(golemId2);
+                                restore.run();
+                                rig.teardown();
+                            });
                         });
-                        forgetSummons(golemId2);
-                        rig.teardown();
                     });
                 });
             })));
