@@ -128,6 +128,48 @@ class LibraryLoaderTest {
     }
 
     @Test
+    void loadsReforgesAsTheirOwnFamilyKeyedByTheSourcePrefixedStem(@TempDir Path root) throws IOException {
+        write(root, "reforges/singularity.yml", """
+            display: "Singularity"
+            color: "&5"
+            icon: ENDER_EYE
+            cooldown: 1200
+            effects: [{ MESSAGE: { text: boom } }]
+            """);
+
+        Library lib = LibraryLoader.load(root, compiler(), 13);
+
+        assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());
+        // A reforge's stored key is the source-prefixed reforges/<stem> (the mask rule); the a0 active keys to it.
+        compile.model.Ability ability = lib.snapshot().byStableKey("reforges/singularity");
+        assertNotNull(ability);
+        assertEquals(compile.model.SourceKind.REFORGE, ability.sourceKind());
+        assertEquals(1, lib.reforges().size());
+        assertEquals("reforges/singularity", lib.reforges().get(0).key());
+        // by-key lookup resolves the codec-stored key and returns null for an unknown one (cf. maskDefOf).
+        assertNotNull(lib.reforgeDefOf("reforges/singularity"));
+        assertEquals(1200, lib.reforgeDefOf("reforges/singularity").cooldownTicks());
+        assertEquals(List.of("reforges/singularity"), lib.reforgeDefOf("reforges/singularity").useStableKeys());
+        assertNull(lib.reforgeDefOf("reforges/nope"));
+    }
+
+    @Test
+    void aReforgeFilenameReusedAcrossTierFoldersIsADuplicateKeyError(@TempDir Path root) throws IOException {
+        // Reforges have no tier economy, but the loop strips any subfolder from the key exactly like every other
+        // source, so two files with the same stem collide on reforges/<stem> — a blocking E_DUPLICATE_KEY.
+        write(root, "reforges/blink.yml", """
+            display: "Blink"
+            effects: [{ MESSAGE: { text: a } }]
+            """);
+        write(root, "reforges/mythic/blink.yml", """
+            display: "Blink"
+            effects: [{ MESSAGE: { text: b } }]
+            """);
+        Library lib = LibraryLoader.load(root, compiler(), 1);
+        assertCode(lib, DiagCode.E_DUPLICATE_KEY);
+    }
+
+    @Test
     void loadsSetsAsArmourAndWeaponAbilitiesCarryingTheCompletionThreshold(@TempDir Path root) throws IOException {
         write(root, "sets/yeti.yml", """
             display: "&bYeti"
