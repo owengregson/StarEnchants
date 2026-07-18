@@ -109,6 +109,15 @@ public final class BuiltinEffects {
                 .register(new StripScrollEffect()) // Anubis pet: strip a White/Holy-White marker off victim gear
                 .register(new DigHomeEffect())     // ADR-0061 Mole pet: service-owned dig/recall-home marker
                 .register(new LightningModEffect()) // ADR-0063 worn lightning channel (Bolt crystal): no-op run
+                // ADR-0071 reforge surfaces (appended in the pinned §2 head order; a kind's head is its
+                // identity — order is only for reading).
+                .register(new GravityWellEffect())   // Singularity: service-owned collapsing-star marker
+                .register(new GrappleEffect())       // Leviathan's Reach: service-owned reel/zip marker
+                .register(new BlinkEffect())         // Blink: farthest-open-cell forward teleport intent
+                .register(new SwapPositionEffect())  // Castling: service-owned channel marker
+                // [Plan C inserts .register(new HitTempoEffect()) HERE — §2 head order]
+                .register(new JavelinEffect())       // Javelin: service-owned particle-projectile marker
+                // [Plan C appends BATTERY / DISARM_SHUFFLE / CONVERT_SUMMON / TRAP_BREAK here]
                 .build();
     }
 }
