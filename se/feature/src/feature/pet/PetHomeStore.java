@@ -26,6 +26,21 @@ public final class PetHomeStore implements PlayerScoped {
     /** One dig-home window; {@code generation} pairs it with its scheduled expiry task. */
     public record Home(UUID worldId, double x, double y, double z, float yaw, float pitch,
                        double range, long expiryTick, long generation) {
+
+        /**
+         * Whether ({@code worldId}, x, y, z) is inside this home's recall range — the ONE boundary
+         * test the recall ({@code PetService}) and the visuals range machine share (ADR-0067):
+         * cross-world is out; the boundary itself is in.
+         */
+        public boolean inRange(UUID worldId, double x, double y, double z) {
+            if (!this.worldId.equals(worldId)) {
+                return false;
+            }
+            double dx = x - this.x;
+            double dy = y - this.y;
+            double dz = z - this.z;
+            return dx * dx + dy * dy + dz * dz <= range * range;
+        }
     }
 
     private final Map<UUID, Home> homes = new ConcurrentHashMap<>();
@@ -50,6 +65,16 @@ public final class PetHomeStore implements PlayerScoped {
             return null;
         }
         return home;
+    }
+
+    /**
+     * The live window at {@code nowTick} WITHOUT evicting an elapsed one — the visuals-pulse read, so
+     * the scheduled expiry task ({@link #clearIfGeneration}) stays the sole authority on how an
+     * untouched window ends (an evicting read here raced it and swallowed the ENDED message).
+     */
+    public Home peek(UUID player, long nowTick) {
+        Home home = homes.get(player);
+        return home == null || nowTick >= home.expiryTick() ? null : home;
     }
 
     /**

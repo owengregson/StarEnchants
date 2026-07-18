@@ -49,6 +49,28 @@ class PetHomeStoreTest {
     }
 
     @Test
+    void inRangeIsTheSharedBoundaryTruth() {
+        store.arm(player, world, 1.5, 64.0, -3.25, 90.0f, 10.0f, 50.0, 100);
+        PetHomeStore.Home home = store.get(player, 0);
+
+        // d = 50 exactly along +x: the boundary is IN, matching the recall's strict-'>' refusal.
+        assertTrue(home.inRange(world, 51.5, 64.0, -3.25));
+        assertFalse(home.inRange(world, 51.51, 64.0, -3.25), "just past the range is OUT");
+        assertFalse(home.inRange(UUID.randomUUID(), 1.5, 64.0, -3.25),
+                "another world is OUT even standing on the home block");
+    }
+
+    @Test
+    void peekReadsWithoutEvictingSoTheExpiryTaskStillOwnsTheEnd() {
+        long generation = store.arm(player, world, 0, 0, 0, 0f, 0f, 50.0, 100);
+
+        assertNotNull(store.peek(player, 99));
+        assertNull(store.peek(player, 100), "the expiry tick itself is closed");
+        // the exact §5 bug: an evicting read here would have made the scheduled expiry no-op.
+        assertTrue(store.clearIfGeneration(player, generation), "peek must not evict — the task still ends it");
+    }
+
+    @Test
     void recallQuitAndDisableTeardownDropTheWindow() {
         store.arm(player, world, 0, 0, 0, 0f, 0f, 50.0, 100);
         store.clear(player); // recall consume / death / quit sweep
