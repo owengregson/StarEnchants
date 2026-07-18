@@ -12,6 +12,7 @@ import engine.sink.DamageMarks;
 import engine.sink.EngineDamage;
 import engine.sink.SinkEnv;
 import engine.sink.SinkReadback;
+import engine.sink.SwarmClouds;
 import engine.stores.ComboStore;
 import engine.stores.DamageCapStore;
 import engine.stores.OutgoingDebuffStore;
@@ -218,6 +219,9 @@ public final class CombatDispatch {
         // victim's %recentattackers%/%attackerindex% facts already include this hit.
         if (victimEntity instanceof Player recorded) {
             recent.record(recorded.getUniqueId(), attackerId, now);
+            // Bat cloud (ADR-0068): capture the attacker ENTITY at-hit on the victim's thread; the
+            // owner-side publisher reads its pose later under a Regions guard (the ADR-0043 shape).
+            SwarmClouds.noteHit(recorded.getUniqueId(), damager, now);
         }
 
         // PvP/PvE context (config.yml combat.pvp/pve) is decided by the VICTIM's player-ness.
