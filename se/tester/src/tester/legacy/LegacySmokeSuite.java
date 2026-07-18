@@ -399,7 +399,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                 ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
                 // Always-save heroic durability (chance 1.0): nextDouble() ∈ [0,1) is always < 1.0.
                 codec.write(sword, new CombatState(Map.of(), List.of(), null, null, false,
-                        new HeroicStat(0.0, 0.0, 1.0), 0, null));
+                        new HeroicStat(0.0, 0.0, 1.0), 0, null, null));
                 setHand(p, sword); // durability 0 — the poll records this as the prior over the next few ticks
                 Scheduling.onEntityLater(p, 4L, () -> {
                     ItemStack held = handItem(p);
@@ -566,7 +566,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                     ItemStack heroic = new ItemStack(Material.DIAMOND_SWORD);
                     // Always-save heroic durability (chance 1.0), pre-damaged to 500.
                     codecB.write(heroic, new CombatState(Map.of(), List.of(), null, null, false,
-                            new HeroicStat(0.0, 0.0, 1.0), 0, null));
+                            new HeroicStat(0.0, 0.0, 1.0), 0, null, null));
                     heroic.setDurability((short) 500);
                     setHand(p, heroic);
                     Scheduling.onEntityLater(p, 6L, () -> {
@@ -629,7 +629,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
             LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)), new item.codec.NbtItemStateStore());
             enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard(),
                     () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
-                    () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults(), item.mint.VanillaEnchants.NONE);
+                    () -> ItemEnchanter.DEFAULT_MAX_MERGE, () -> java.util.List.of("SWORD", "AXE"), platform.lang.Messages.defaults(), item.mint.VanillaEnchants.NONE);
         } catch (IOException e) {
             h.fail("legacy.item.applyAndRender", e);
             return;
@@ -820,7 +820,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
             LoreRenderer lore = new LoreRenderer(LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)), new item.codec.NbtItemStateStore());
             ItemEnchanter enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard(),
                     () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
-                    () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults(), item.mint.VanillaEnchants.NONE);
+                    () -> ItemEnchanter.DEFAULT_MAX_MERGE, () -> java.util.List.of("SWORD", "AXE"), platform.lang.Messages.defaults(), item.mint.VanillaEnchants.NONE);
             // caps drives the cross-version title cap (1.8 rejects titles > 32 chars) — already version-aware.
             menu = new EnchantMenu(holder, enchanter, player -> { }, Capabilities.probe(plugin.getServer()), new feature.compat.LegacyHands());
         } catch (IOException e) {

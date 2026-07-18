@@ -210,7 +210,7 @@ public final class MaskCanonSuite implements Harness.Scenario {
     private static ItemStack maskedHelmet(CombatCodec codec) {
         ItemStack helmet = new ItemStack(Material.DIAMOND_HELMET);
         codec.write(helmet, new CombatState(Map.of(), List.of("crystals/dark"), null, null, false,
-                HeroicStat.NONE, 0, MASK_KEY));
+                HeroicStat.NONE, 0, MASK_KEY, null));
         return helmet;
     }
 
