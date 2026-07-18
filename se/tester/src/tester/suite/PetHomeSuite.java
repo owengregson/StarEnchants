@@ -86,9 +86,14 @@ public final class PetHomeSuite implements Harness.Scenario {
     private static final String VISUALS_ON_DIG = "pets.moleDigStartsTheHomeVisuals";
     private static final String VISUALS_OFF_ON_RECALL = "pets.moleRecallStopsTheHomeVisuals";
     private static final String VISUALS_OFF_ON_EXPIRY = "pets.moleExpiryStopsTheHomeVisuals";
+    private static final String RANGE_EXIT = "pets.moleRangeExitDropsTheTracer";
+    private static final String RANGE_ENTER = "pets.moleRangeReenterRestoresTheTracer";
 
     /** The recall teleport is async on modern (teleportAsync) — settle before asserting arrival. */
     private static final long SETTLE_TICKS = 10L;
+
+    /** ≥2 of the visuals' 10-tick pulse periods — long enough for the range machine to sample the new spot. */
+    private static final long PULSE_MARGIN_TICKS = 25L;
 
     private final Plugin plugin;
 
@@ -101,6 +106,8 @@ public final class PetHomeSuite implements Harness.Scenario {
         h.expect(DIG);
         h.expect(RECALL);
         h.expect(OUT_OF_RANGE);
+        h.expect(RANGE_EXIT);
+        h.expect(RANGE_ENTER);
         h.expect(TELEBLOCKED);
         h.expect(TELEBLOCK_LIFTED);
         h.expect(EXPIRES);
@@ -246,50 +253,68 @@ public final class PetHomeSuite implements Harness.Scenario {
                     }
                 });
 
-                // (d) TELEBLOCK: back inside range, flag armed → refused, window kept; lifted → it lands.
-                hop(user, dug.clone().add(4, 0, 0), () -> {
-                    stores.teleblock().block(user.getUniqueId(), clock.get(), 12000);
-                    pets.use(user, mole);
-                    Scheduling.onEntityLater(user, SETTLE_TICKS, () -> {
-                        h.guard(TELEBLOCKED, () -> {
-                            if (user.getLocation().distanceSquared(dug) < 4.0) {
-                                throw new IllegalStateException("a teleblocked recall still teleported");
-                            }
-                            if (homes.get(user.getUniqueId(), clock.get()) == null) {
-                                throw new IllegalStateException("a teleblocked recall consumed the window");
-                            }
-                        });
-                        stores.teleblock().clear(user.getUniqueId());
-                        pets.use(user, mole);
-                        Scheduling.onEntityLater(user, SETTLE_TICKS, () -> {
-                            h.guard(TELEBLOCK_LIFTED, () -> {
-                                if (user.getLocation().distanceSquared(dug) > 2.25) {
-                                    throw new IllegalStateException("the lifted-teleblock recall did not land");
-                                }
-                                if (homes.get(user.getUniqueId(), clock.get()) != null) {
-                                    throw new IllegalStateException("the landed recall did not consume");
+                // The pulse samples the far spot on the real entity scheduler: the range machine flips OUT
+                // (the decision that both fires the exit cue and drops the tracer line).
+                Scheduling.onEntityLater(user, PULSE_MARGIN_TICKS, () -> {
+                    h.guard(RANGE_EXIT, () -> {
+                        if (visuals.inRange(user.getUniqueId())) {
+                            throw new IllegalStateException("30 blocks out, the tracer state is still IN");
+                        }
+                    });
+
+                    // (d) TELEBLOCK: back inside range, flag armed → refused, window kept; lifted → it lands.
+                    hop(user, dug.clone().add(4, 0, 0), () -> {
+                        // Back inside range: the pulse re-samples IN, re-arming the tracer line + enter cue.
+                        Scheduling.onEntityLater(user, PULSE_MARGIN_TICKS, () -> {
+                            h.guard(RANGE_ENTER, () -> {
+                                if (!visuals.inRange(user.getUniqueId())) {
+                                    throw new IllegalStateException("back inside range, the tracer state is still OUT");
                                 }
                             });
-
-                            // (e) EXPIRY: dig once more, never recall — the scheduled task clears it.
-                            user.setSneaking(true);
+                            stores.teleblock().block(user.getUniqueId(), clock.get(), 12000);
                             pets.use(user, mole);
-                            user.setSneaking(false);
-                            Scheduling.onEntityLater(user, 200L + 30L, () -> { // window 200 + margin
-                                h.guard(EXPIRES, () -> {
-                                    if (homes.get(user.getUniqueId(), clock.get()) != null) {
-                                        throw new IllegalStateException("the window outlived its expiry");
+                            Scheduling.onEntityLater(user, SETTLE_TICKS, () -> {
+                                h.guard(TELEBLOCKED, () -> {
+                                    if (user.getLocation().distanceSquared(dug) < 4.0) {
+                                        throw new IllegalStateException("a teleblocked recall still teleported");
+                                    }
+                                    if (homes.get(user.getUniqueId(), clock.get()) == null) {
+                                        throw new IllegalStateException("a teleblocked recall consumed the window");
                                     }
                                 });
-                                h.guard(VISUALS_OFF_ON_EXPIRY, () -> {
-                                    if (visuals.active(user.getUniqueId())) {
-                                        throw new IllegalStateException("the expired window left the visuals task running");
-                                    }
+                                stores.teleblock().clear(user.getUniqueId());
+                                pets.use(user, mole);
+                                Scheduling.onEntityLater(user, SETTLE_TICKS, () -> {
+                                    h.guard(TELEBLOCK_LIFTED, () -> {
+                                        if (user.getLocation().distanceSquared(dug) > 2.25) {
+                                            throw new IllegalStateException("the lifted-teleblock recall did not land");
+                                        }
+                                        if (homes.get(user.getUniqueId(), clock.get()) != null) {
+                                            throw new IllegalStateException("the landed recall did not consume");
+                                        }
+                                    });
+
+                                    // (e) EXPIRY: dig once more, never recall — the scheduled task clears it.
+                                    user.setSneaking(true);
+                                    pets.use(user, mole);
+                                    user.setSneaking(false);
+                                    Scheduling.onEntityLater(user, 200L + 30L, () -> { // window 200 + margin
+                                        h.guard(EXPIRES, () -> {
+                                            if (homes.get(user.getUniqueId(), clock.get()) != null) {
+                                                throw new IllegalStateException("the window outlived its expiry");
+                                            }
+                                        });
+                                        h.guard(VISUALS_OFF_ON_EXPIRY, () -> {
+                                            if (visuals.active(user.getUniqueId())) {
+                                                throw new IllegalStateException("the expired window left the visuals task running");
+                                            }
+                                        });
+                                        if (clockTask[0] != null) {
+                                            clockTask[0].cancel();
+                                        }
+                                        rig.teardown();
+                                    });
                                 });
-                                if (clockTask[0] != null) {
-                                    clockTask[0].cancel();
-                                }
-                                rig.teardown();
                             });
                         });
                     });
@@ -313,6 +338,8 @@ public final class PetHomeSuite implements Harness.Scenario {
         h.fail(DIG, message);
         h.fail(RECALL, message);
         h.fail(OUT_OF_RANGE, message);
+        h.fail(RANGE_EXIT, message);
+        h.fail(RANGE_ENTER, message);
         h.fail(TELEBLOCKED, message);
         h.fail(TELEBLOCK_LIFTED, message);
         h.fail(EXPIRES, message);
