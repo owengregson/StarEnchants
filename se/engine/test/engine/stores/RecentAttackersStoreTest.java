@@ -1,6 +1,8 @@
 package engine.stores;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -56,6 +58,29 @@ class RecentAttackersStoreTest {
         store.record(victim, a, 211L); // a re-appears as a fresh, last-seen attacker
         assertEquals(1, store.indexOf(victim, b, 211L));
         assertEquals(2, store.indexOf(victim, a, 211L));
+    }
+
+    @Test
+    void latestPicksTheMaxTickAttackerNotFirstSeen() {
+        UUID victim = UUID.randomUUID();
+        UUID a = UUID.randomUUID();
+        UUID b = UUID.randomUUID();
+        store.record(victim, a, 10L);
+        store.record(victim, b, 20L);
+        store.record(victim, a, 30L); // first-seen order stays A,B — latest must go by tick
+        RecentAttackersStore.LastAttacker last = store.latest(victim, 35L);
+        assertNotNull(last);
+        assertEquals(a, last.attacker());
+        assertEquals(30L, last.tick());
+    }
+
+    @Test
+    void latestIsNullWhenEmptyOrExpired() {
+        UUID victim = UUID.randomUUID();
+        assertNull(store.latest(UUID.randomUUID(), 0L), "an unknown victim has no latest attacker");
+        store.record(victim, UUID.randomUUID(), 0L);
+        assertNotNull(store.latest(victim, 199L), "still inside the 200-tick window");
+        assertNull(store.latest(victim, 200L), "the 200th tick counts as elapsed (half-open, shared with evict)");
     }
 
     @Test

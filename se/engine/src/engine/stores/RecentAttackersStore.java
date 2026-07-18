@@ -75,6 +75,30 @@ public final class RecentAttackersStore implements PlayerScoped {
         }
     }
 
+    /** The most-recent in-window attacker of {@code victim} — by hit TICK, not first-seen order. */
+    public record LastAttacker(UUID attacker, long tick) {
+    }
+
+    /** The attacker with the latest in-window hit on {@code victim}, or {@code null} (ties keep first-seen). */
+    public LastAttacker latest(UUID victim, long nowTicks) {
+        Map<UUID, Long> attackers = byVictim.get(victim);
+        if (attackers == null) {
+            return null;
+        }
+        synchronized (attackers) {
+            evict(attackers, nowTicks);
+            UUID best = null;
+            long bestTick = Long.MIN_VALUE;
+            for (Map.Entry<UUID, Long> entry : attackers.entrySet()) {
+                if (entry.getValue() > bestTick) {
+                    best = entry.getKey();
+                    bestTick = entry.getValue();
+                }
+            }
+            return best == null ? null : new LastAttacker(best, bestTick);
+        }
+    }
+
     /** Drop entries whose last hit is at or beyond the window (half-open, like the other timed stores). */
     private static void evict(Map<UUID, Long> attackers, long nowTicks) {
         Iterator<Map.Entry<UUID, Long>> it = attackers.entrySet().iterator();
