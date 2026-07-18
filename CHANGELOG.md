@@ -8,6 +8,18 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Weapon Reforges — a new content family.** Every sword and axe now has a single reforge socket:
+  drag a Weapon Reforge onto it (always lands; one per weapon) and SHIFT + Right-Click while holding
+  the weapon to fire its signature ability, on its own cooldown. The weapon shows a
+  `Weapon Reforge (<name>)` lore line under its enchantment slots; the Crystal Extractor is now the
+  **Item Extractor** and pops a reforge (or, failing that, a crystal) back off intact. What counts as
+  a weapon is configurable (`reforges.weapon-groups`); browse and mint via `/enchants` →
+  Weapon Reforges, `/se menu`, `/se give reforge`, or `/se reforge <key>`. The ten shipped reforges
+  arrive with their abilities in this release (ADR-0070/0071).
+- **Pets: shared 2-second gate.** Any successful pet activation (an active's use, a Mole dig or
+  recall) now opens a short shared window during which no other pet active can fire — a hotbar of
+  pets can no longer be dumped as one burst. A Mole's own recall is exempt — the return trip is never
+  delayed.
 - **Combos stay unbroken under damage-over-time.** When the Mental combat engine is installed,
   StarEnchants damage-over-time ticks (bleeds, Ice Aspect's freeze damage, delayed strikes, enchant
   lightning) no longer interrupt an active combo: their damage banks and lands together with the
