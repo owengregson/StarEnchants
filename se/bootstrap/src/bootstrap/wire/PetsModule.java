@@ -89,6 +89,7 @@ final class PetsModule {
                 .store(homes) // ADR-0061: a dig-home window never survives a quit
                 .store(visuals) // its pulse task dies with it
                 .store(sweep)
+                .store(engine.sink.SwarmClouds.scope()) // ADR-0068: the owner's bat-cloud publisher dies with them
                 .pluginItem(stack -> core.petCodec().isPet(stack) || core.petCodec().isPetFood(stack))
                 // "feedback" is the UNIVERSAL action-feedback root (ADR-0061) — pets is its first consumer
                 // and owns it for introspection until a more central module exists.
@@ -102,6 +103,7 @@ final class PetsModule {
                 }))
                 .stop("pet summon registry", engine.sink.PetSummons::clearAll)
                 .stop("bat swarms", engine.sink.SwarmSpawns::removeAll)
+                .stop("bat cloud targets", engine.sink.SwarmClouds::clearAll)
                 .stop("pet armed windows", core.petArmedStore()::clearAll)
                 .stop("pet home windows", homes::clearAll)
                 .stop("pet home visuals", visuals::clearAll)
