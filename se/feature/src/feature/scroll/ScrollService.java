@@ -172,7 +172,7 @@ public final class ScrollService {
         }
         Map<String, Integer> reordered = sortedByTierWeight(current.enchants());
         CombatState next = new CombatState(reordered, current.crystals(), current.setKey(),
-                current.setWeaponKey(), current.omni(), current.heroic(), current.added(), current.maskKey());
+                current.setWeaponKey(), current.omni(), current.heroic(), current.added(), current.maskKey(), current.reforgeKey());
         combat.write(gear, next);
         lore.apply(gear, next); // re-renders the sorted enchant lore AND (re)stamps the §I enchant-count suffix
         consume(cursor);
@@ -214,7 +214,7 @@ public final class ScrollService {
         CombatState current = combat.read(gear);
         return reorderedEnchants(current.enchants(), orderedKeys).map(reordered -> {
             CombatState next = new CombatState(reordered, current.crystals(), current.setKey(),
-                    current.setWeaponKey(), current.omni(), current.heroic(), current.added(), current.maskKey());
+                    current.setWeaponKey(), current.omni(), current.heroic(), current.added(), current.maskKey(), current.reforgeKey());
             combat.write(gear, next);
             lore.apply(gear, next);
             return true;
@@ -266,7 +266,7 @@ public final class ScrollService {
         Map<String, Integer> remaining = new LinkedHashMap<>(current.enchants());
         remaining.remove(key);
         CombatState next = new CombatState(remaining, current.crystals(), current.setKey(),
-                current.setWeaponKey(), current.omni(), current.heroic(), current.added(), current.maskKey());
+                current.setWeaponKey(), current.omni(), current.heroic(), current.added(), current.maskKey(), current.reforgeKey());
         combat.write(gear, next);
         lore.apply(gear, next);
         ItemStack book = carriers.mintBook(key, level, convert); // extracted enchant → a book at the conversion rate
