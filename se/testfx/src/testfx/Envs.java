@@ -3,10 +3,13 @@ package testfx;
 import engine.sink.GearProtection;
 import engine.sink.SinkEnv;
 import engine.sink.SoulDebit;
+import engine.stores.BatteryStore;
 import engine.stores.ComboStore;
 import engine.stores.CooldownStore;
 import engine.stores.DamageCapStore;
+import engine.stores.DisarmWindowStore;
 import engine.stores.EngineStores;
+import engine.stores.HitTempoStore;
 import engine.stores.ImmuneStore;
 import engine.stores.KeepOnDeathStore;
 import engine.stores.KnockbackControlStore;
@@ -166,7 +169,8 @@ public final class Envs {
         public SinkEnv build() {
             EngineStores stores = storesOverride != null ? storesOverride
                     : new EngineStores(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns,
-                            combo, why, recentAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks, ward);
+                            combo, why, recentAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks, ward,
+                            new HitTempoStore(), new BatteryStore(), new DisarmWindowStore());
             return SinkEnv.of(economy, souls, stores, nowTicks, player -> { }, () -> 0,
                     GearProtection.NONE, lightningBoost);
         }

@@ -19,7 +19,8 @@ public record EngineStores(
         CooldownStore cooldowns, ComboStore combo, WhyStore why,
         RecentAttackersStore recentAttackers, ReflectMarksStore reflectMarks,
         OutgoingDebuffStore outgoingDebuff, DamageCapStore damageCap, RageStackStore rageStacks,
-        WardStore ward) {
+        WardStore ward, HitTempoStore hitTempo, BatteryStore battery,
+        DisarmWindowStore disarmWindows) {
 
     public EngineStores {
         Objects.requireNonNull(vars, "vars");
@@ -37,6 +38,9 @@ public record EngineStores(
         Objects.requireNonNull(damageCap, "damageCap");
         Objects.requireNonNull(rageStacks, "rageStacks");
         Objects.requireNonNull(ward, "ward");
+        Objects.requireNonNull(hitTempo, "hitTempo");
+        Objects.requireNonNull(battery, "battery");
+        Objects.requireNonNull(disarmWindows, "disarmWindows");
     }
 
     /** A fresh aggregate with every store newly constructed (the composition-root default). */
@@ -45,25 +49,28 @@ public record EngineStores(
                 new KeepOnDeathStore(), new TeleblockStore(), new ImmuneStore(),
                 new CooldownStore(), new ComboStore(), new WhyStore(),
                 new RecentAttackersStore(), new ReflectMarksStore(), new OutgoingDebuffStore(), new DamageCapStore(),
-                new RageStackStore(), new WardStore());
+                new RageStackStore(), new WardStore(), new HitTempoStore(), new BatteryStore(),
+                new DisarmWindowStore());
     }
 
     /** Every store as the {@link PlayerScoped} seam, in sweep order. */
     public List<PlayerScoped> all() {
         return List.of(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns, combo, why,
-                recentAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks, ward);
+                recentAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks, ward, hitTempo, battery,
+                disarmWindows);
     }
 
     /**
      * The stores forgotten WHOLESALE on quit: private/transient/diagnostic state that a relog should not carry
      * (writable vars, knockback control, keep-on-death, damage immunity, combo streak, the /se why ring, the
-     * recent-attacker gank window, the self-armed Diminish cap, the rage stacks, and the mask wards). Clearing
+     * recent-attacker gank window, the self-armed Diminish cap, the rage stacks, the mask wards, and the
+     * self-armed reforge windows/charge — Quickening tempo, the Supernova core, and the Unhanding window). Clearing
      * these on quit is the conservative direction — worn-derived buffs re-establish on rejoin and a self-armed
      * cap only protects its owner.
      */
     public List<PlayerScoped> quitVolatile() {
         return List.of(vars, knockback, keepOnDeath, immune, combo, why, recentAttackers, damageCap, rageStacks,
-                ward);
+                ward, hitTempo, battery, disarmWindows);
     }
 
     /**
