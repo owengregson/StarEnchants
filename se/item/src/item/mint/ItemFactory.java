@@ -50,7 +50,12 @@ public final class ItemFactory {
             Map.entry("WRITABLE_BOOK", "BOOK_AND_QUILL"), // 1.13 rename: the Godly Transmog scroll on the 1.8 lane
             Map.entry("DRIED_KELP", "INK_SACK"), // 1.13+ item: the Black Scroll's material → the 1.8 ink sac
             // 1.8's real red dye was INK_SACK+data (unexpressible by name here); REDSTONE is the closest red item.
-            Map.entry("RED_DYE", "REDSTONE"));
+            Map.entry("RED_DYE", "REDSTONE"),
+            Map.entry("ENDER_EYE", "EYE_OF_ENDER"),   // 1.13 rename: the Singularity reforge icon on the 1.8 lane
+            Map.entry("STONE_BRICKS", "SMOOTH_BRICK"),// 1.13 rename: the Castling reforge icon on the 1.8 lane
+            Map.entry("CHORUS_FRUIT", "ENDER_PEARL"), // 1.9+ item: the Blink reforge icon → the 1.8 pearl
+            Map.entry("TRIDENT", "ARROW"),            // 1.13+ item: the Javelin reforge icon → the 1.8 arrow
+            Map.entry("BELL", "GOLD_INGOT"));         // 1.14+ item: the Summoner's Bell reforge icon on the 1.8 lane
 
     /** The closest older-server equivalent of a newer material, or {@code null} if none is registered. */
     static String legacyFallback(String upperToken) {
