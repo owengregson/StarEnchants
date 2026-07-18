@@ -99,6 +99,30 @@ class PetDefReaderTest {
     }
 
     @Test
+    void messageOnNoHomeParsesAndDefaultsEmpty() {
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            display: "Mole"
+            type: ACTIVE
+            message-on-no-home: "&cNo home yet!"
+            levels:
+              1: { cooldown: 100, condition: "%sneaking%", effects: [ { DIG_HOME: { window: 600, range: 50 } } ] }
+            """;
+        PetDefReader.Parsed parsed = PetDefReader.read("mole", root(yaml, diags), counter(), diags);
+        assertFalse(diags.hasErrors(), () -> diags.all().toString()); // the new ROOT_KEYS entry: no unknown-key warning
+        assertEquals("&cNo home yet!", parsed.def().messageOnNoHome());
+
+        Diagnostics bare = new Diagnostics();
+        String without = """
+            display: "Mole"
+            type: ACTIVE
+            levels:
+              1: { cooldown: 100, condition: "%sneaking%", effects: [ { DIG_HOME: { window: 600, range: 50 } } ] }
+            """;
+        assertEquals("", PetDefReader.read("mole", root(without, bare), counter(), bare).def().messageOnNoHome());
+    }
+
+    @Test
     void bracketsSortAscendingRegardlessOfAuthoredOrder() {
         Diagnostics diags = new Diagnostics();
         String yaml = """

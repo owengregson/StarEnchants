@@ -30,7 +30,8 @@ import schema.grammar.EffectLine;
 final class PetDefReader {
 
     private static final Set<String> ROOT_KEYS = Set.of(
-            "display", "color", "type", "head", "material", "descriptor", "description", "permission", "levels");
+            "display", "color", "type", "head", "material", "descriptor", "description", "permission",
+            "message-on-no-home", "levels");
     private static final Set<String> ABILITY_KEYS = Set.of(
             "trigger", "disabled-worlds", "repeat", "chance", "cooldown", "soul-cost", "condition", "effects");
     private static final Set<String> BRACKET_KEYS = Set.of(
@@ -76,6 +77,7 @@ final class PetDefReader {
         List<String> descriptor = linesOf(root, "descriptor");
         List<String> description = root.stringList("description");
         String permission = orEmpty(ContentParse.blankToNull(root.string("permission")));
+        String messageOnNoHome = orEmpty(ContentParse.blankToNull(root.string("message-on-no-home")));
 
         YamlNode levels = root.child("levels");
         if (levels == null || !levels.isMapping()) {
@@ -116,7 +118,7 @@ final class PetDefReader {
         }
 
         PetDef def = new PetDef(key, display, color, active, head, material, descriptor, description, permission,
-                brackets);
+                messageOnNoHome, brackets);
         return new Parsed(def, abilities);
     }
 
