@@ -42,7 +42,68 @@ class TempBlockEffectTest {
     void pointEmitsOneBlock() {
         Sink sink = mock(Sink.class);
         new TempBlockEffect().run(ctx("POINT"), sink);
+        // POINT at dy >= 0 is an in-cell block → the confined 6-arg overload (unstubbed UUID → null here).
+        verify(sink, times(1)).tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean(), any());
+    }
+
+    @Test
+    void pointOnEntityRegistersConfinement() {
+        World world = mock(World.class);
+        LivingEntity who = mock(LivingEntity.class);
+        UUID victim = UUID.fromString("00000000-0000-0000-0000-0000000000d1");
+        when(who.getLocation()).thenReturn(new Location(world, 10, 64, 20));
+        when(who.getUniqueId()).thenReturn(victim);
+        FakeEffectCtx ctx = FakeEffectCtx.create()
+                .with("shape", "POINT").with("material", 7).with("ticks", 40)
+                .with("radius", 0).with("height", 1).with("ahead", 0).with("dy", 0).with("airOnly", true)
+                .targets("who", who);
+        Sink sink = mock(Sink.class);
+
+        new TempBlockEffect().run(ctx, sink);
+
+        // dy 0 = a block in the victim's own cell (the Fantasy web) → the confined 6-arg overload carries the UUID.
+        verify(sink, times(1)).tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean(), eq(victim));
+    }
+
+    @Test
+    void pointBelowFeetDoesNotRegisterConfinement() {
+        World world = mock(World.class);
+        LivingEntity who = mock(LivingEntity.class);
+        UUID victim = UUID.fromString("00000000-0000-0000-0000-0000000000d2");
+        when(who.getLocation()).thenReturn(new Location(world, 10, 64, 20));
+        when(who.getUniqueId()).thenReturn(victim);
+        FakeEffectCtx ctx = FakeEffectCtx.create()
+                .with("shape", "POINT").with("material", 7).with("ticks", 40)
+                .with("radius", 0).with("height", 1).with("ahead", 0).with("dy", -1).with("airOnly", true)
+                .targets("who", who);
+        Sink sink = mock(Sink.class);
+
+        new TempBlockEffect().run(ctx, sink);
+
+        // dy -1 = floor paint below the feet → the plain 5-arg path, never registered as confinement.
         verify(sink, times(1)).tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean());
+        verify(sink, never()).tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean(), any());
+    }
+
+    @Test
+    void boxPassesConfinedVictim() {
+        World world = mock(World.class);
+        LivingEntity who = mock(LivingEntity.class);
+        UUID victim = UUID.fromString("00000000-0000-0000-0000-0000000000d3");
+        when(who.getLocation()).thenReturn(new Location(world, 10, 64, 20));
+        when(who.getUniqueId()).thenReturn(victim);
+        FakeEffectCtx ctx = FakeEffectCtx.create()
+                .with("shape", "BOX").with("material", 7).with("ticks", 80)
+                .with("radius", 0).with("width", 3).with("height", 4).with("depth", 3)
+                .with("ahead", 0).with("dy", 0).with("airOnly", true)
+                .targets("who", who);
+        Sink sink = mock(Sink.class);
+
+        new TempBlockEffect().run(ctx, sink);
+
+        // BOX is always entity-centred (the Spider box) → the 8-arg tempBox overload carries the victim UUID.
+        verify(sink, times(1)).tempBox(any(Location.class), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(),
+                anyInt(), eq(victim));
     }
 
     @Test
