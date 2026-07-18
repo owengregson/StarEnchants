@@ -214,6 +214,46 @@ class ItemsLoaderTest {
     }
 
     @Test
+    void parsesAReforgeConfigIncludingSoundsAndTheDefaultFallback(@TempDir Path dir) throws Exception {
+        Files.writeString(dir.resolve("reforge.yml"), """
+                type: reforge
+                name: "&6&lWeapon Reforge ({NAME}&6&l)"
+                lore:
+                  - "&7Imbues a signature reforge."
+                  - "{DESCRIPTION}"
+                lore-while-on-item: "&6&lWeapon Reforge (&r{NAME}&6&l)"
+                sounds:
+                  apply: { sound: block.beacon.activate, volume: 0.5, pitch: 1.5 }
+                """);
+
+        ReforgeItemConfig reforge = ItemsLoader.load(dir).reforge().orElseThrow();
+        assertEquals("&6&lWeapon Reforge ({NAME}&6&l)", reforge.name());
+        assertEquals(List.of("&7Imbues a signature reforge.", "{DESCRIPTION}"), reforge.lore());
+        assertEquals("&6&lWeapon Reforge (&r{NAME}&6&l)", reforge.loreWhileOnItem());
+        assertTrue(reforge.sounds());
+        assertEquals(new SoundCue("block.beacon.activate", 0.5f, 1.5f), reforge.soundApply());
+        // an omitted remove sound falls back to the built-in default cue
+        assertEquals(ReforgeItemConfig.defaults().soundRemove(), reforge.soundRemove());
+    }
+
+    @Test
+    void reforgeAbsentFileFallsBackToTheWholeDefaultLikeness(@TempDir Path dir) throws Exception {
+        // No reforge.yml at all — reforgeOrDefault() is the whole built-in likeness (the mask precedent).
+        assertEquals(ReforgeItemConfig.defaults(), ItemsLoader.load(dir).reforgeOrDefault());
+    }
+
+    @Test
+    void aSecondReforgeConfigWarnsAndKeepsTheFirst(@TempDir Path dir) throws Exception {
+        Files.writeString(dir.resolve("a-reforge.yml"), "type: reforge\nname: \"&6First\"\n");
+        Files.writeString(dir.resolve("b-reforge.yml"), "type: reforge\nname: \"&6Second\"\n");
+
+        ItemsConfig config = ItemsLoader.load(dir);
+        assertFalse(config.hasErrors());
+        assertEquals("&6First", config.reforge().orElseThrow().name());
+        assertTrue(config.diagnostics().stream().anyMatch(d -> d.is(DiagCode.W_ITEM_DUP)));
+    }
+
+    @Test
     void crystalApplySoundAcceptsTheBracketMap(@TempDir Path dir) throws Exception {
         Files.writeString(dir.resolve("crystal.yml"), """
                 type: crystal

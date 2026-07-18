@@ -16,7 +16,7 @@ public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfi
                           Optional<EnchantBookConfig> enchantBook, Optional<DustConfig> dust,
                           Optional<WhiteScrollConfig> whiteScroll, Optional<TraksConfig> traks,
                           Optional<PetItemConfig> pet, Optional<PetFoodConfig> petFood,
-                          Optional<MaskItemConfig> mask,
+                          Optional<MaskItemConfig> mask, Optional<ReforgeItemConfig> reforge,
                           List<Diagnostic> diagnostics) {
 
     public ItemsConfig {
@@ -33,13 +33,14 @@ public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfi
         Objects.requireNonNull(pet, "pet");
         Objects.requireNonNull(petFood, "petFood");
         Objects.requireNonNull(mask, "mask");
+        Objects.requireNonNull(reforge, "reforge");
         diagnostics = List.copyOf(diagnostics);
     }
 
     public static ItemsConfig empty() {
         return new ItemsConfig(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
                 Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), List.of());
+                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), List.of());
     }
 
     public SoulGemConfig soulGemOrDefault() {
@@ -92,6 +93,10 @@ public record ItemsConfig(Optional<SoulGemConfig> soulGem, Optional<CrystalConfi
 
     public MaskItemConfig maskOrDefault() {
         return mask.orElseGet(MaskItemConfig::defaults);
+    }
+
+    public ReforgeItemConfig reforgeOrDefault() {
+        return reforge.orElseGet(ReforgeItemConfig::defaults);
     }
 
     public boolean hasErrors() {
