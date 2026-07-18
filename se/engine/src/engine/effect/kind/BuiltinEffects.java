@@ -115,9 +115,12 @@ public final class BuiltinEffects {
                 .register(new GrappleEffect())       // Leviathan's Reach: service-owned reel/zip marker
                 .register(new BlinkEffect())         // Blink: farthest-open-cell forward teleport intent
                 .register(new SwapPositionEffect())  // Castling: service-owned channel marker
-                // [Plan C inserts .register(new HitTempoEffect()) HERE — §2 head order]
+                .register(new HitTempoEffect())      // Quickening Fang: halve the holder's effective hit window
                 .register(new JavelinEffect())       // Javelin: service-owned particle-projectile marker
-                // [Plan C appends BATTERY / DISARM_SHUFFLE / CONVERT_SUMMON / TRAP_BREAK here]
+                .register(new BatteryEffect())       // Supernova Core: bank incoming, unload on the next hit
+                .register(new DisarmShuffleEffect()) // The Unhanding: armed-window hotbar shuffle + self-malus
+                .register(new ConvertSummonEffect()) // Summoner's Bell: flip enemy summons permanently
+                .register(new TrapBreakEffect())     // Turnkey: early-restore confining structures intact
                 .build();
     }
 }

@@ -114,9 +114,20 @@ public final class TempBlockEffect implements EffectKind {
                 }
                 case "BOX" ->
                     // One 3D intent: the sink owns per-tile region re-keying (a box may straddle a boundary).
+                    // A BOX is always entity-centred (the Spider box) → register it as a confining structure
+                    // (ADR-0071 TRAP_BREAK) so Turnkey can early-restore it.
                     sink.tempBox(new Location(world, bx, by, bz), palette[0],
-                            ctx.integer("width"), height, ctx.integer("depth"), ticks, mode);
-                default -> place(sink, world, bx, by, bz, palette, ticks, mode); // POINT
+                            ctx.integer("width"), height, ctx.integer("depth"), ticks, mode, who.getUniqueId());
+                default -> {
+                    // POINT: a block in the target's own cell (dy >= 0, the Fantasy web) is a confining trap —
+                    // register it via the 6-arg overload; a POINT below the feet (dy < 0) is floor paint, plain.
+                    if (dy >= 0) {
+                        sink.tempBlock(new Location(world, bx, by, bz), materialAt(palette, bx, bz), ticks, mode,
+                                false, who.getUniqueId());
+                    } else {
+                        place(sink, world, bx, by, bz, palette, ticks, mode);
+                    }
+                }
             }
         }
     }

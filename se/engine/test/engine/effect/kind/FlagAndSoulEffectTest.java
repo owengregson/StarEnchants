@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 import org.bukkit.World;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -73,6 +74,53 @@ class FlagAndSoulEffectTest {
                 flag("GRAPPLE → no intent (service-owned marker)", new GrappleEffect(), c -> { }, s -> { }),
                 flag("SWAP_POSITION → no intent (service-owned marker)", new SwapPositionEffect(), c -> { }, s -> { }),
                 flag("JAVELIN → no intent (service-owned marker)", new JavelinEffect(), c -> { }, s -> { }));
+    }
+
+    /** An armed/combat-state kind targeting @Self: it emits exactly one intent per Player target. */
+    private static DynamicTest armed(String label, EffectKind kind, Consumer<FakeEffectCtx> args,
+            java.util.function.BiConsumer<Sink, Player> verify) {
+        return dynamicTest(label, () -> {
+            Player player = mock(Player.class);
+            FakeEffectCtx ctx = FakeEffectCtx.create().targets("who", player);
+            args.accept(ctx);
+            Sink sink = mock(Sink.class);
+            kind.run(ctx, sink);
+            verify.accept(sink, player);
+            verifyNoMoreInteractions(sink);
+        });
+    }
+
+    @TestFactory
+    List<DynamicTest> reforgeCombatStateArms() {
+        return List.of(
+                // ADR-0071 reforge combat-state kinds (Plan C): each arms exactly one Sink intent for a
+                // Player target (distinct non-default values catch a transposition); a non-player target
+                // arms nothing (the Player filter).
+                armed("HIT_TEMPO → hitTempo(player, 77, MENTAL=0, 0.25, 0.5)", new HitTempoEffect(),
+                        c -> c.with("duration", 77).with("model", "MENTAL")
+                                .with("damage-percent", 25.0).with("attack-speed", 0.5),
+                        (s, p) -> verify(s).hitTempo(p, 77, 0, 0.25, 0.5)),
+                armed("BATTERY → armBattery(player, 0.15, 4)", new BatteryEffect(),
+                        c -> c.with("bank-percent", 15.0).with("hits", 4),
+                        (s, p) -> verify(s).armBattery(p, 0.15, 4)),
+                armed("DISARM_SHUFFLE → armDisarmShuffle(player, 66, 0.35)", new DisarmShuffleEffect(),
+                        c -> c.with("duration", 66).with("damage-malus", 35.0),
+                        (s, p) -> verify(s).armDisarmShuffle(p, 66, 0.35)),
+                armed("CONVERT_SUMMON → convertSummons(player, 9.5)", new ConvertSummonEffect(),
+                        c -> c.with("radius", 9.5),
+                        (s, p) -> verify(s).convertSummons(p, 9.5)),
+                armed("TRAP_BREAK → breakTraps(player)", new TrapBreakEffect(),
+                        c -> { },
+                        (s, p) -> verify(s).breakTraps(p)),
+                dynamicTest("HIT_TEMPO on a non-player target → no intent (the Player filter)", () -> {
+                    LivingEntity cow = mock(LivingEntity.class); // not a Player
+                    FakeEffectCtx ctx = FakeEffectCtx.create().targets("who", cow)
+                            .with("duration", 100).with("model", "MENTAL")
+                            .with("damage-percent", 33.3).with("attack-speed", 1.0);
+                    Sink sink = mock(Sink.class);
+                    new HitTempoEffect().run(ctx, sink);
+                    verifyNoInteractions(sink);
+                }));
     }
 
     @TestFactory
