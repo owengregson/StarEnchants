@@ -67,6 +67,7 @@
     { "key": "pet-food", "type": "pet-food", "material": "GOLDEN_CARROT", "name": "&e&lPet Food [&r&a&n+{AMOUNT}&r&e&l]" },
     { "key": "pet", "type": "pet", "material": null, "name": "{COLOR}&l{NAME} Pet &7[Lvl. &f&n{LEVEL}&r&7]&r" },
     { "key": "randomizer-scroll", "type": "randomizer-scroll", "material": "SUGAR", "name": "&eRandomizer Scroll" },
+    { "key": "reforge", "type": "reforge", "material": null, "name": "&6&lWeapon Reforge ({COLOR}{NAME}&6&l)" },
     { "key": "slot-orb", "type": "slot-orb", "material": null, "name": null },
     { "key": "soul-gem", "type": "soul-gem", "material": "EMERALD", "name": "&aSoul Gem" },
     { "key": "soultrak", "type": "soultrak", "material": "FIRE_CHARGE", "name": "{#e54f00}&lSoulTrak Gem" },
