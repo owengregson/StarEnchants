@@ -1064,10 +1064,17 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
                 rig.teardown();
                 return;
             }
+            // Pin the sky-arena actors in place. The bats FLY (never fall) while the clientless actors sink under
+            // server-side gravity, so any elapsed time drifts the FALLING ringer down out from under the hovering
+            // swarm — and the elapsed TICK count before the bell rings depends on how fast teleportAsync/chunk-load
+            // completes, which lags on the older, load-heavier floor era (its run was 150+ ticks behind). That is
+            // why the one-shot 12-block enumeration missed every bat there and the cloud never turned. Killing the
+            // actors' gravity makes the geometry deterministic and tick-independent: ringer, enemy and swarm stay
+            // co-located at Y200 regardless of era or server load, so the bell always finds the bats.
+            enemy.setGravity(false);
+            ringer.setGravity(false);
             // Act promptly (a short settle, NOT the full spawn-invuln wait): this check never damages the enemy,
-            // so it needs no invuln window — and the bats FLY (never fall) while the sky-arena actors sink under
-            // gravity, so a long wait drifts the players out from under the still-hovering swarm (worse on the
-            // floor era's shallower terrain) before the bell can enumerate them. A few ticks keeps them co-located.
+            // so it needs no invuln window — and the bell enumerates the still-clustered swarm before it disperses.
             hop(ringer, sky.clone().add(3, 0, 0), () -> hop(enemy, sky, () ->
                     Scheduling.onEntityLater(enemy, 5L, () -> {
                         ModernDispatchSink swarmSink = new ModernDispatchSink(handles, env);
