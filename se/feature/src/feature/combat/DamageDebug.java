@@ -51,11 +51,15 @@ public final class DamageDebug {
         double flatRed = fold.flatReduction() + (fold.heroicIgnored() ? 0.0 : fold.heroicFlatReduction());
         // "eff" = the same-hit rider bucket (ADR-0055): effective units, outside the scale and the
         // defense terms — shown separately so a calibration read can't mistake it for scaled flat.
+        // "malus" = the ADR-0071 reforge self-malus factor (a reforge downside prices the whole committed
+        // hit); shown only when it fired so the /se damagedebug calibration attributes the drop to it.
+        String malus = fold.finalFactor() == 1.0 ? ""
+                : String.format(Locale.ROOT, " &8| &7malus &fx%.3f", fold.finalFactor());
         String line = Colors.translate(String.format(Locale.ROOT,
                 "&8[&6dmg&8] &7base &f%.2f &8| &7+dmg &f%.0f%%&7, flat &f%.2f &8(x&f%.1f&8)&7, eff &f%.2f &8| "
-                        + "&7red &f%.0f%%&7, flatred &f%.2f &8| &6-> %.2f%s &7hits &c%.2f%s",
+                        + "&7red &f%.0f%%&7, flatred &f%.2f%s &8| &6-> %.2f%s &7hits &c%.2f%s",
                 base, fold.outgoingPercent() * 100.0, fold.flatDamage(), scale, fold.effectiveDamage(),
-                red * 100.0, flatRed, committed,
+                red * 100.0, flatRed, malus, committed,
                 committed != folded ? " &8(capped)" : "", finalDamage,
                 cancelled ? " &8(&7CANCELLED&8)" : ""));
         if (toAttacker) {
