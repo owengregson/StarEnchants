@@ -2344,15 +2344,22 @@ public abstract class DispatchSinkBase implements SinkReadback {
                         from.getY() + dir.getY() * d,
                         from.getZ() + dir.getZ() * d,
                         from.getYaw(), from.getPitch());
-                if (cell.getBlockX() == lastBx && cell.getBlockY() == lastBy && cell.getBlockZ() == lastBz) {
-                    continue; // same cell as the previous sample
+                int cbx = cell.getBlockX();
+                int cby = cell.getBlockY();
+                int cbz = cell.getBlockZ();
+                if (cbx != lastBx || cby != lastBy || cbz != lastBz) {
+                    // A new block cell: standability is re-checked once here (the dedupe only skips the
+                    // repeat leaf calls, never the landing advance below), and a blocked cell ends the walk.
+                    if (!isSafeDestination(cell, null)) {
+                        break; // first wall: never phase into or through terrain
+                    }
+                    lastBx = cbx;
+                    lastBy = cby;
+                    lastBz = cbz;
                 }
-                lastBx = cell.getBlockX();
-                lastBy = cell.getBlockY();
-                lastBz = cell.getBlockZ();
-                if (!isSafeDestination(cell, null)) {
-                    break;    // first wall: never phase into or through terrain
-                }
+                // The landing is the FARTHEST sample inside an open cell, not the entry edge of it — every
+                // sample here lies in an already-validated-open cell, so advance best to it. (Advancing only
+                // on new cells would strand the blink at each open cell's near face — a 0.5-block hop.)
                 best = cell;
             }
             if (best == null) {
