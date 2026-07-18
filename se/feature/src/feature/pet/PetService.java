@@ -408,6 +408,10 @@ public final class PetService {
         if (attempt.chanceFailed()) {
             return; // the roll just did not land — silent (the use-item convention)
         }
+        if (dig != null) {
+            messenger.noHome(player, def); // a digger's condition-fail = the plain click with no home dug (ADR-0067)
+            return;
+        }
         messenger.failed(player, def); // condition failed / blocked
     }
 
@@ -466,8 +470,8 @@ public final class PetService {
             return true;
         }
         World world = player.getWorld();
-        if (!world.getUID().equals(home.worldId())
-                || distanceSquared(player.getLocation(), home) > home.range() * home.range()) {
+        Location at = player.getLocation();
+        if (!home.inRange(world.getUID(), at.getX(), at.getY(), at.getZ())) {
             messenger.outOfRange(player);
             return true;
         }
@@ -495,19 +499,14 @@ public final class PetService {
         long generation = homes.arm(id, player.getWorld().getUID(), at.getX(), at.getY(), at.getZ(),
                 at.getYaw(), at.getPitch(), range, nowTicks.getAsLong() + window);
         visuals.begin(player, def, generation);
+        visuals.digCues(player); // the layered dig cue (ADR-0067) — was the authored SOUND op
         Scheduling.onEntityLater(player, window, () -> {
             if (homes.clearIfGeneration(id, generation)) {
                 visuals.endIfGeneration(id, generation);
+                visuals.expiredCues(player); // the home collapsed unused (ADR-0067)
                 messenger.ended(player, def);
             }
         });
-    }
-
-    private static double distanceSquared(Location at, PetHomeStore.Home home) {
-        double dx = at.getX() - home.x();
-        double dy = at.getY() - home.y();
-        double dz = at.getZ() - home.z();
-        return dx * dx + dy * dy + dz * dz;
     }
 
     /**

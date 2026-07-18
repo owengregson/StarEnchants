@@ -49,6 +49,20 @@ public final class PetMessenger {
     }
 
     /**
+     * The digger no-home line (ADR-0067): a recall-capable pet used with no live home window and a
+     * dig that could not fire (the plain non-sneaking click). Authored per-pet
+     * ({@code message-on-no-home}); an un-authored def falls back to the universal fail line.
+     */
+    public void noHome(Player player, PetDef def) {
+        String template = def.messageOnNoHome();
+        if (template == null || template.isEmpty()) {
+            failed(player, def);
+            return;
+        }
+        send(player, template, def, false, 0);
+    }
+
+    /**
      * The UNIVERSAL out-of-range line (ADR-0061) — a plugin-wide lang key rendered PREFIX-FREE (the use-item
      * fragment+sendText idiom), so any future content can reuse the same message. The Mole recall sends it
      * when the player is beyond the recall range or in another world; the window stays alive for a retry.
