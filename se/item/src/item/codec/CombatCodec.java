@@ -22,10 +22,10 @@ import org.bukkit.inventory.ItemStack;
  * {@code e} = enchants ({@code key:level} per entry), {@code c} = crystals ({@code key}),
  * {@code s} = armour-set key, {@code w} = weapon-set key (this item is that set's weapon, §6.6),
  * {@code o} = omni flag ({@code 1}), {@code h} = heroic flat stats ({@code damage:reduction:durability}),
- * {@code a} = purchased slot count (§H), {@code m} = applied mask key (helmet-only, ADR-0053). Unknown labels
- * are ignored so a newer field never breaks an older reader (and an older blob lacking
- * {@code s}/{@code w}/{@code o}/{@code h}/{@code a}/{@code m} decodes to no set / no weapon-set / not-omni /
- * no heroic / no added slots / no mask).
+ * {@code a} = purchased slot count (§H), {@code m} = applied mask key (helmet-only, ADR-0053),
+ * {@code r} = applied weapon-reforge key (ADR-0070). Unknown labels are ignored so a newer field never breaks
+ * an older reader (and an older blob lacking {@code s}/{@code w}/{@code o}/{@code h}/{@code a}/{@code m}/{@code r}
+ * decodes to no set / no weapon-set / not-omni / no heroic / no added slots / no mask / no reforge).
  */
 public final class CombatCodec {
 
@@ -114,6 +114,10 @@ public final class CombatCodec {
         if (state.maskKey() != null) {
             sb.append(US).append('m').append(US).append(state.maskKey());
         }
+        // ADR-0070: the applied reforge key, single-per-weapon — emitted after 'm' like the other single-string labels.
+        if (state.reforgeKey() != null) {
+            sb.append(US).append('r').append(US).append(state.reforgeKey());
+        }
         return sb.toString();
     }
 
@@ -133,6 +137,7 @@ public final class CombatCodec {
         HeroicStat heroic = HeroicStat.NONE;
         int added = 0;
         String maskKey = null;
+        String reforgeKey = null;
         // Sections come in (label, payload) pairs after the version token.
         for (int i = 1; i + 1 < tokens.length; i += 2) {
             String label = tokens[i];
@@ -153,10 +158,12 @@ public final class CombatCodec {
                 added = parseAdded(payload);
             } else if ("m".equals(label)) {
                 maskKey = payload.isEmpty() ? null : payload; // tolerant of an empty payload (mirrors 's'/'w')
+            } else if ("r".equals(label)) {
+                reforgeKey = payload.isEmpty() ? null : payload; // tolerant of an empty payload (mirrors 'm')
             }
             // any other label is a newer field this reader does not know — ignore it
         }
-        return new CombatState(enchants, crystals, setKey, setWeaponKey, omni, heroic, added, maskKey);
+        return new CombatState(enchants, crystals, setKey, setWeaponKey, omni, heroic, added, maskKey, reforgeKey);
     }
 
     /** Malformed/negative → {@code 0}, never throws. */
