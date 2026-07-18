@@ -854,12 +854,14 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
                 cow.setNoDamageTicks(0);
                 new JavelinService(deps.dispatch(), WEAPON, deps.resolvers())
                         .start(thrower, effect(deps, "javelin", JavelinEffect.HEAD));
-                // Speed proof: at 0.15/tick the 6-block tip arrives near t=40 — untouched at 30, struck by 55.
-                Scheduling.onEntityLater(cow, 30L, () -> {
+                // Speed proof: at 0.15/tick a hit-radius-1.5 javelin registers on a 6-block cow near t=26 (the tip
+                // reaches within radius ~1.95 blocks short of the cow centre), so the "still airborne" read must sit
+                // BEFORE that — t=18 (tip only ~2.9 blocks out) — with the strike confirmed well after.
+                Scheduling.onEntityLater(cow, 18L, () -> {
                     boolean earlyHit = cow.getHealth() < before - HEALTH_EPS;
-                    Scheduling.onEntityLater(cow, 30L, () -> { h.guard(key, () -> {
+                    Scheduling.onEntityLater(cow, 42L, () -> { h.guard(key, () -> {
                         if (earlyHit) {
-                            throw new IllegalStateException("the javelin reached a 6-block cow before t=30 (too fast)");
+                            throw new IllegalStateException("the javelin reached a 6-block cow before t=18 (too fast)");
                         }
                         double delta = before - cow.getHealth();
                         if (Math.abs(delta - expected) > HEALTH_EPS) {
@@ -922,36 +924,47 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
             place(thrower, stand, () -> place(victim, victimAt.clone().add(0, 0.0, 0), () ->
                     Scheduling.onEntityLater(thrower, SPAWN_INVULN_TICKS, () -> {
                         Scheduling.onEntity(victim, () -> victim.setNoDamageTicks(0));
+                        double before = victim.getHealth();
                         new JavelinService(deps.dispatch(), WEAPON, deps.resolvers())
                                 .start(thrower, effect(deps, "javelin", JavelinEffect.HEAD));
-                        // Impact ~t+40; lock-delay 5 + lock 20 → held from ~t+45, nausea at ~t+65. Read well inside.
-                        Scheduling.onEntityLater(victim, 55L, () -> {
-                            AtomicReference<Location> held = new AtomicReference<>(victim.getLocation().clone());
-                            boolean nauseaMidHold = !victim.getActivePotionEffects().isEmpty();
-                            Scheduling.onEntity(victim, () -> victim.teleportAsync(shove)); // the pin must snap it back
-                            Scheduling.onEntityLater(victim, 4L, () -> {
-                                double drift = horiz(victim.getLocation(), held.get());
-                                // After release: nausea has landed and a teleport now sticks.
-                                Scheduling.onEntityLater(victim, 20L, () -> {
-                                    boolean nauseaAfter = !victim.getActivePotionEffects().isEmpty();
-                                    Location free = victim.getLocation().clone().add(0, 0, 5);
-                                    Scheduling.onEntity(victim, () -> victim.teleportAsync(free));
-                                    Scheduling.onEntityLater(victim, 4L, () -> { h.guard(key, () -> {
-                                        if (drift > 1.0) {
-                                            throw new IllegalStateException("the hold did not pin the victim through a "
-                                                    + "staged teleport: drifted " + drift);
-                                        }
-                                        if (nauseaMidHold) {
-                                            throw new IllegalStateException("nausea landed DURING the hold (owner LAW: "
-                                                    + "freeze, THEN nausea)");
-                                        }
-                                        if (!nauseaAfter) {
-                                            throw new IllegalStateException("nausea never landed after the hold released");
-                                        }
-                                        if (horiz(victim.getLocation(), free) > 1.0) {
-                                            throw new IllegalStateException("the victim was still pinned after release");
-                                        }
-                                    }); rig.teardown(); });
+                        // The javelin's flight time depends on hit-radius, not just distance, so everything downstream
+                        // is timed off the IMPACT (health drop), not a fixed tick — the old fixed t+55 read landed
+                        // after the pin window and the shove stuck (drift 6.0). Impact → pin arms at +lock-delay(5),
+                        // holds for lock(20), nausea lands at +lock-delay+lock(25).
+                        awaitUntil(victim, () -> victim.getHealth() < before - HEALTH_EPS, 0, 80, hit -> {
+                            if (!hit) {
+                                h.fail(key, "the javelin never struck the held victim");
+                                rig.teardown();
+                                return;
+                            }
+                            Scheduling.onEntityLater(victim, 8L, () -> { // impact+8: firmly inside [+5, +25]
+                                AtomicReference<Location> held = new AtomicReference<>(victim.getLocation().clone());
+                                boolean nauseaMidHold = !victim.getActivePotionEffects().isEmpty();
+                                Scheduling.onEntity(victim, () -> victim.teleportAsync(shove)); // pin must snap it back
+                                Scheduling.onEntityLater(victim, 4L, () -> { // impact+12: still pinned
+                                    double drift = horiz(victim.getLocation(), held.get());
+                                    // Past release (impact+25) + nausea landing: a teleport now sticks and nausea is on.
+                                    Scheduling.onEntityLater(victim, 22L, () -> { // impact+34
+                                        boolean nauseaAfter = !victim.getActivePotionEffects().isEmpty();
+                                        Location free = victim.getLocation().clone().add(0, 0, 5);
+                                        Scheduling.onEntity(victim, () -> victim.teleportAsync(free));
+                                        Scheduling.onEntityLater(victim, 4L, () -> { h.guard(key, () -> {
+                                            if (drift > 1.0) {
+                                                throw new IllegalStateException("the hold did not pin the victim through "
+                                                        + "a staged teleport: drifted " + drift);
+                                            }
+                                            if (nauseaMidHold) {
+                                                throw new IllegalStateException("nausea landed DURING the hold (owner "
+                                                        + "LAW: freeze, THEN nausea)");
+                                            }
+                                            if (!nauseaAfter) {
+                                                throw new IllegalStateException("nausea never landed after the hold released");
+                                            }
+                                            if (horiz(victim.getLocation(), free) > 1.0) {
+                                                throw new IllegalStateException("the victim was still pinned after release");
+                                            }
+                                        }); rig.teardown(); });
+                                    });
                                 });
                             });
                         });
