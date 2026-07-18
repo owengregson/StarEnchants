@@ -266,17 +266,15 @@ public final class PetAbilitySuite implements Harness.Scenario {
                                         + (max - min) + " over " + seen + " bats");
                             }
                         });
+                        // Count only — spawn HEIGHT truth is the 2L jitter check's job. By this point
+                        // (7 ticks post-spawn) vanilla bat AI has drifted the swarm up to a block, so a
+                        // height re-assertion here just races the dive (a matrix run caught dy=-0.13).
                         Scheduling.onEntityLater(user, 5L, () -> {
                             h.guard(SWARM_RING, () -> {
                                 int bats = 0;
                                 for (Entity near : user.getNearbyEntities(5, 5, 5)) {
                                     if (near.getType() == EntityType.BAT) {
                                         bats++;
-                                        double dy = near.getLocation().getY() - user.getLocation().getY();
-                                        if (dy < 0.0 || dy > 2.6) {
-                                            throw new IllegalStateException(
-                                                    "a swarm bat spawned outside chest height: dy=" + dy);
-                                        }
                                     }
                                 }
                                 if (bats != 12) {
