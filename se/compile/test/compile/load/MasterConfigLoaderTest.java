@@ -32,6 +32,7 @@ class MasterConfigLoaderTest {
         assertEquals(defaults.crystals(), config.crystals());
         assertEquals(defaults.pets(), config.pets());
         assertEquals(defaults.masks(), config.masks());
+        assertEquals(defaults.reforges(), config.reforges()); // absent reforges section → SWORD + AXE (ADR-0070)
         assertEquals(defaults.lore(), config.lore());
         assertEquals(defaults.integrations(), config.integrations());
         assertEquals(defaults.reload(), config.reload());
@@ -264,6 +265,27 @@ class MasterConfigLoaderTest {
         MasterConfig.MasksSection d = MasterConfigLoader.load(absent).masks();
         assertEquals(java.util.List.of("near"), d.nearCommands());
         assertEquals(200, d.nearRadius());
+    }
+
+    @Test
+    void parsesTheReforgesSectionAndFeatureFlag(@TempDir Path dir) throws Exception {
+        Path file = dir.resolve("config.yml");
+        Files.writeString(file, """
+                features:
+                  reforges: false
+                reforges:
+                  weapon-groups:
+                    - sword
+                    - trident
+                """);
+
+        MasterConfig config = MasterConfigLoader.load(file);
+
+        assertFalse(config.hasErrors());
+        assertFalse(config.features().reforges());
+        assertTrue(config.features().pets()); // an omitted feature stays on
+        // weapon-groups are upper-cased at load so the ItemGroups token match is an exact compare (ADR-0070).
+        assertEquals(java.util.List.of("SWORD", "TRIDENT"), config.reforges().weaponGroups());
     }
 
     @Test
