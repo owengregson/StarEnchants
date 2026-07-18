@@ -189,23 +189,27 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
                 sink.hitTempo(holder, 100, 0 /* MENTAL */, 1.0 / 3, 0.0);
                 sink.flush();
                 victim.setNoDamageTicks(0);
-                victim.damage(4.0, holder); // MONITOR ReforgeStrikeListener writes noDamageTicks + stamps stolen
-                h.guard(key, () -> {
-                    int max = victim.getMaximumNoDamageTicks();
-                    int expected = max - (max / 2) / 2; // MENTAL: W = max/2, write = max − W/2 (15 at max 20)
-                    if (victim.getNoDamageTicks() != expected) {
-                        throw new IllegalStateException("tempo i-frame write = " + victim.getNoDamageTicks()
-                                + " != expected " + expected + " (max " + max + ")");
-                    }
-                    HitTempoStore store = env.stores().hitTempo();
-                    if (!store.stolenBlocks(victimId, thirdId, 0L)) {
-                        throw new IllegalStateException("the stolen stamp did not gate a third-party attacker");
-                    }
-                    if (store.stolenBlocks(victimId, holder.getUniqueId(), 0L)) {
-                        throw new IllegalStateException("the holder was gated by their own stolen interval");
-                    }
+                victim.damage(4.0, holder); // MONITOR marks the tempo write (deferred one tick) + stamps stolen
+                // The i-frame re-write lands on the victim's next tick — it MUST trail vanilla's post-event
+                // invulnerableTime reset — so read it a few ticks on (fake players never decay the value).
+                Scheduling.onEntityLater(victim, 3L, () -> {
+                    h.guard(key, () -> {
+                        int max = victim.getMaximumNoDamageTicks();
+                        int expected = max - (max / 2) / 2; // MENTAL: W = max/2, write = max − W/2 (15 at max 20)
+                        if (victim.getNoDamageTicks() != expected) {
+                            throw new IllegalStateException("tempo i-frame write = " + victim.getNoDamageTicks()
+                                    + " != expected " + expected + " (max " + max + ")");
+                        }
+                        HitTempoStore store = env.stores().hitTempo();
+                        if (!store.stolenBlocks(victimId, thirdId, 0L)) {
+                            throw new IllegalStateException("the stolen stamp did not gate a third-party attacker");
+                        }
+                        if (store.stolenBlocks(victimId, holder.getUniqueId(), 0L)) {
+                            throw new IllegalStateException("the holder was gated by their own stolen interval");
+                        }
+                    });
+                    rig.teardown();
                 });
-                rig.teardown();
             }));
         });
     }
@@ -361,20 +365,24 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
                 ModernDispatchSink sink = new ModernDispatchSink(handles, env);
                 sink.hitTempo(holder, 40, 1 /* VANILLA */, 1.0 / 3, 1.0);
                 sink.flush();
-                h.guard(key + ".armed", () -> {
-                    if (countTempoModifiers(instance) != 1) {
-                        throw new IllegalStateException("expected exactly one reforge_tempo modifier, saw "
-                                + countTempoModifiers(instance));
-                    }
-                });
-                Scheduling.onEntityLater(holder, 45L, () -> {
-                    h.guard(key, () -> {
-                        AttributeInstance live = holder.getAttribute(attackSpeed);
-                        if (live == null || countTempoModifiers(live) != 0) {
-                            throw new IllegalStateException("the reforge_tempo modifier survived its TimedRevert");
+                // The attack-speed modifier applies on the holder's region thread — inline on Paper, next tick
+                // on Folia (the entity scheduler never runs inline) — so poll rather than read synchronously.
+                awaitUntil(holder, () -> countTempoModifiers(instance) == 1, 0, 5, armed -> {
+                    h.guard(key + ".armed", () -> {
+                        if (!armed) {
+                            throw new IllegalStateException("expected exactly one reforge_tempo modifier, saw "
+                                    + countTempoModifiers(instance));
                         }
                     });
-                    rig.teardown();
+                    Scheduling.onEntityLater(holder, 45L, () -> {
+                        h.guard(key, () -> {
+                            AttributeInstance live = holder.getAttribute(attackSpeed);
+                            if (live == null || countTempoModifiers(live) != 0) {
+                                throw new IllegalStateException("the reforge_tempo modifier survived its TimedRevert");
+                            }
+                        });
+                        rig.teardown();
+                    });
                 });
             });
         });
@@ -1022,8 +1030,12 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
                 rig.teardown();
                 return;
             }
+            // Act promptly (a short settle, NOT the full spawn-invuln wait): this check never damages the enemy,
+            // so it needs no invuln window — and the bats FLY (never fall) while the sky-arena actors sink under
+            // gravity, so a long wait drifts the players out from under the still-hovering swarm (worse on the
+            // floor era's shallower terrain) before the bell can enumerate them. A few ticks keeps them co-located.
             hop(ringer, sky.clone().add(3, 0, 0), () -> hop(enemy, sky, () ->
-                    Scheduling.onEntityLater(enemy, SPAWN_INVULN_TICKS, () -> {
+                    Scheduling.onEntityLater(enemy, 5L, () -> {
                         ModernDispatchSink swarmSink = new ModernDispatchSink(handles, env);
                         swarmSink.spawnSwarm(enemy.getLocation(), batId, 10, 0.5, 1.0, 600, 0.5, enemy, 16.0);
                         swarmSink.flush();
@@ -1040,7 +1052,9 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
                                     }
                                 });
                                 clock[0].cancel();
-                                SwarmClouds.clearAll();
+                                SwarmClouds.scope().clear(enemyId); // drop ONLY this test's cloud — clearAll()
+                                                                    // nukes the process-global registry and would
+                                                                    // vanish a concurrent suite's live cloud
                                 despawnType(enemy, EntityType.BAT);
                                 rig.teardown();
                             });
