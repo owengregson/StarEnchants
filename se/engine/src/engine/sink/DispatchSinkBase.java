@@ -1451,6 +1451,15 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 }
                 spawned.setVelocity(new Vector(
                         SwarmRing.offsetX(yaw, SWARM_BURST), 0.0, SwarmRing.offsetZ(yaw, SWARM_BURST)));
+                if (ttlTicks > 0 && spawned instanceof LivingEntity living) {
+                    // A TTL'd summon's lifetime belongs to the engine (bindSwarmTtl + the registries) —
+                    // vanilla despawn must never race it. It DOES for ambient types: Paper's checkDespawn
+                    // hard-despawns an AMBIENT mob 128+ blocks from every spawning-affecting player, and the
+                    // patched fallback (javap-verified 1.17.1) substitutes ANY such player world-wide when
+                    // none is in range — an off-swarm fight, or a clientless actor, kills a fresh bat cloud
+                    // on its first tick. No-TTL swarms keep vanilla rules: nothing else would reap them.
+                    living.setRemoveWhenFarAway(false);
+                }
                 SwarmSpawns.bind(spawned);
                 if (cloud) {
                     SwarmClouds.track(ownerId, spawned);
