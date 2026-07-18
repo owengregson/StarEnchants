@@ -254,8 +254,15 @@ public final class ReforgeSuite implements Harness.Scenario {
                 actor -> Optional.empty(), env, Stores.hands(), Stores.dropControl());
 
         Messages messages = Messages.defaults();
+        // ADR-0070: mirror BootCore's on-weapon {NAME} lookup — a reforges/<stem> key resolves to the reforge's
+        // PLAIN display (owner spec "{NAME} = reforge display"), not the enchant/crystal/set chain (which would
+        // fall to the unknown-enchant label). Plain, NOT colour-styled: the `&r{NAME}` frame's reset stays
+        // meaningful, so the composed line is round-trip-stable through setLore/getLore.
         LoreRenderer lore = Stores.lore(LoreRenderer.Config
-                .of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key))
+                .of(LoreStyle.DEFAULT, key -> {
+                    compile.load.ReforgeDef rd = holder.library().reforgeDefOf(key);
+                    return rd != null ? rd.display() : holder.library().displayNameOf(key);
+                })
                 .withReforgeLine(() -> ReforgeItemConfig.defaults().loreWhileOnItem()) // ADR-0070 on-weapon line
                 .withCrystalLine(() -> "&8Crystal: {CRYSTAL}"));
         ItemEnchanter enchanter = new ItemEnchanter(combat, lore, holder, ItemGroups.standard(),

@@ -324,11 +324,15 @@ public final class BootCore {
         // CURRENT library, so a reload re-renders against new content.
         this.lore = new LoreRenderer(LoreRenderer.Config
                 .of(() -> loreStyle(master.config()), key -> {
-                    // ADR-0070: the on-weapon reforge line's {NAME} wants the reforge's colour-styled bold
-                    // display; a reforges/<stem> key isn't in displayNameOf's enchant/crystal/set chain.
+                    // ADR-0070: the on-weapon reforge line's {NAME} is the reforge's PLAIN display (owner spec
+                    // "{NAME} = reforge display"); a reforges/<stem> key isn't in displayNameOf's enchant/crystal/
+                    // set chain. NOT colour-styled: the owner-pinned frame is `&r{NAME}`, and a colour-led {NAME}
+                    // makes that `&r` reset redundant — the ItemMeta legacy round-trip then drops it, so the
+                    // rendered line would diverge from what LoreComposer emitted. A plain {NAME} keeps the `&r`
+                    // (a real reset from the gold-bold frame) and stays round-trip-stable.
                     compile.load.ReforgeDef reforge = content.library().reforgeDefOf(key);
                     if (reforge != null) {
-                        return reforge.color() + "&l" + reforge.display();
+                        return reforge.display();
                     }
                     // ADR-0053: the on-helmet mask line's {NAME} wants the mask's colour-styled bold display; a
                     // masks/<stem> key isn't in displayNameOf's enchant/crystal/set chain, so resolve it first —
