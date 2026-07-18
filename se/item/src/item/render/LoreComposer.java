@@ -68,6 +68,15 @@ public final class LoreComposer {
                 out.add(Colors.translate(Tokens.sub(template, "TOTAL", total, "ADDED", state.added())));
             }
         }
+        // §reforge line (ADR-0070): directly BELOW the orb-slots line and ABOVE the crystal line(s) — the
+        // owner-pinned on-weapon position. Renders whenever a reforge is socketed (the slots line itself only
+        // renders when added>0 — this line does NOT depend on it). {NAME} → the reforge's styled display.
+        if (state.reforgeKey() != null) {
+            String reforgeTemplate = config.reforgeLine().get();
+            if (reforgeTemplate != null && !reforgeTemplate.isBlank()) {
+                out.add(Colors.translate(Tokens.sub(reforgeTemplate, "NAME", nameOr(state.reforgeKey(), style))));
+            }
+        }
         // §E crystal line(s): LAST in the body — below the orb slots line — so on gear they sit above only the
         // heroic + protection + trak lines compose() appends (ADR-0034 §5). One line per socketed entry.
         String crystalTemplate = config.crystalLine().get();

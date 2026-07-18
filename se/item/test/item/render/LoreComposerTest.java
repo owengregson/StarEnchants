@@ -24,7 +24,8 @@ class LoreComposerTest {
             "enchants/venom", "Venom",
             "crystals/a", "Aaa",
             "crystals/b", "Bbb",
-            "masks/agent", "Agent")::get;
+            "masks/agent", "Agent",
+            "reforges/testforge", "Testforge")::get;
     private static final String HEROIC = "&6&lHEROIC {TYPE} (&e{+/-}{AMOUNT}% DMG&7)";
 
     private static LoreComposer composer() {
@@ -34,6 +35,7 @@ class LoreComposerTest {
                 .withCrystalLine(() -> "&8S {CRYSTAL}")
                 .withCrystalLineMulti(() -> "&8M {CRYSTAL}")
                 .withMaskLine(() -> "&8Mask: {NAME}")
+                .withReforgeLine(() -> "&8Reforge: {NAME}")
                 .withHeroicLine(() -> HEROIC));
     }
 
@@ -80,6 +82,37 @@ class LoreComposerTest {
         CombatState state = new CombatState(Map.of(), List.of("crystals/a")).withMask("masks/agent");
         List<String> body = noMaskLine.body(state);
         assertEquals(List.of("§8S Aaa"), body, "no mask template → only the crystal line, no mask line");
+    }
+
+    @Test
+    void reforgeLineLandsBetweenSlotsAndCrystalLines() {
+        // ADR-0070: on a reforged weapon the reforge line sits directly BELOW the orb-slots line and ABOVE the
+        // crystal line(s) — the owner-pinned on-weapon position. {NAME} → the reforge's styled display.
+        LoreComposer composer = composer();
+        CombatState state = new CombatState(Map.of(), List.of("crystals/a"), null, false, HeroicStat.NONE, 2)
+                .withReforge("reforges/testforge");
+        List<String> body = composer.body(state);
+        assertEquals(List.of("§a§l11 Slots +2", "§8Reforge: Testforge", "§8S Aaa"), body,
+                "slots line, then reforge line, then crystal line");
+    }
+
+    @Test
+    void reforgeLineRendersWithoutSlotsLine() {
+        // The reforge line does NOT depend on the orb-slots line (which renders only when added>0) — a reforged
+        // weapon with zero purchased slots still shows it (contracts §3 independence clause).
+        LoreComposer composer = composer();
+        CombatState state = new CombatState(Map.of(), List.of()).withReforge("reforges/testforge");
+        assertEquals(List.of("§8Reforge: Testforge"), composer.body(state));
+    }
+
+    @Test
+    void blankReforgeTemplateEmitsNoReforgeLine() {
+        // A null/blank reforge template → no line even for a reforged weapon (mirrors the mask/crystal sections).
+        LoreComposer noReforgeLine = new LoreComposer(LoreRenderer.Config.of(LoreStyle.DEFAULT, NAMES)
+                .withCrystalLine(() -> "&8S {CRYSTAL}")); // reforgeLine defaults to null
+        CombatState state = new CombatState(Map.of(), List.of("crystals/a")).withReforge("reforges/testforge");
+        assertEquals(List.of("§8S Aaa"), noReforgeLine.body(state),
+                "no reforge template → only the crystal line, no reforge line");
     }
 
     @Test
