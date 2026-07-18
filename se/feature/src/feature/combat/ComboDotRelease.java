@@ -76,12 +76,18 @@ public final class ComboDotRelease {
         });
     }
 
-    /** Apply one bucket, attributed to its attacker where that handle is live — the ONE Regions-guarded foreign read. */
+    /**
+     * Apply one bucket, attributed to its attacker only when that attacker is owned by the victim's region.
+     * Vanilla dereferences the damager to build the DamageSource ({@code CraftEntity.getHandle}), which THROWS
+     * for a cross-region entity on Folia — so attributing a cross-region attacker would kill the release and
+     * lose the banked damage. {@code isValid()} can't detect the condition (it reads a field without the region
+     * thread-check); the ownership guard can. An off-region (or gone) attacker degrades to a bare hurt that
+     * still lands — the same best-effort nullable attribution Mental itself accepts.
+     */
     private static void apply(Player victim, DotParkLedger.Bucket bucket) {
         LivingEntity attacker = bucket.attackerHandle();
-        boolean attackerLive = attacker != null
-                && Regions.read("combo-dot-release attacker", attacker::isValid, Boolean.FALSE);
-        EngineDamage.hurt(victim, bucket.amount(), attackerLive ? attacker : null);
+        boolean attributable = Regions.ownedByCurrentRegion(attacker) && attacker.isValid();
+        EngineDamage.hurt(victim, bucket.amount(), attributable ? attacker : null);
     }
 
     /** Cancel the loop and drop the ledger's in-flight flag (idempotent — clear may already have dropped it). */
