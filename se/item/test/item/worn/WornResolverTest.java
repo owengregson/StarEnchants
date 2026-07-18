@@ -296,19 +296,19 @@ class WornResolverTest {
         CombatState combat = new CombatState(Map.of("enchants/lifesteal", 3), List.of("crystals/zap"));
 
         // enchants off: only the crystal survives (id 1).
-        WornState noEnchants = resolver(new WornResolver.Features(false, true, true, true, true))
+        WornState noEnchants = resolver(new WornResolver.Features(false, true, true, true, true, true))
                 .resolveFrom(List.of(combat), KEYS, ABILITIES, 1);
         assertArrayEquals(new int[] {1}, sorted(noEnchants.byTrigger(0)), "enchant dropped, crystal kept");
 
         // crystals off: only the enchant survives (id 0) and no crystal is tracked.
-        WornState noCrystals = resolver(new WornResolver.Features(true, true, false, true, true))
+        WornState noCrystals = resolver(new WornResolver.Features(true, true, false, true, true, true))
                 .resolveFrom(List.of(combat), KEYS, ABILITIES, 1);
         assertArrayEquals(new int[] {0}, sorted(noCrystals.byTrigger(0)), "crystal dropped, enchant kept");
         assertEquals(0, noCrystals.activeCrystalAbilityIds().length);
 
         // sets off: a worn set never completes.
         CombatState piece = new CombatState(Map.of(), List.of(), "sets/yeti", false);
-        WornState noSets = resolver(new WornResolver.Features(true, false, true, true, true))
+        WornState noSets = resolver(new WornResolver.Features(true, false, true, true, true, true))
                 .resolveFrom(List.of(piece, piece, piece), SET_KEYS, SET_ABILITIES, 1);
         assertEquals(false, noSets.isSetActive(0), "sets off → no completion");
         assertEquals(0, noSets.byTrigger(1).length);
@@ -316,7 +316,7 @@ class WornResolverTest {
         // heroic off: worn heroic stats do not accumulate.
         CombatState heroicPiece =
                 new CombatState(Map.of(), List.of(), null, false, new HeroicStat(0.5, 0.5, 0.5));
-        WornState noHeroic = resolver(new WornResolver.Features(true, true, true, false, true))
+        WornState noHeroic = resolver(new WornResolver.Features(true, true, true, false, true, true))
                 .resolveFrom(List.of(heroicPiece), KEYS, ABILITIES, 1);
         assertEquals(0.0, noHeroic.heroic().percentDamage(), 1e-9, "heroic off → no flat stat");
     }
@@ -341,9 +341,52 @@ class WornResolverTest {
     void masksFeatureOffDropsTheMask() {
         // §L features.masks off: the applied mask contributes nothing.
         CombatState helmet = new CombatState(Map.of(), List.of()).withMask("masks/agent");
-        WornState worn = resolver(new WornResolver.Features(true, true, true, true, false))
+        WornState worn = resolver(new WornResolver.Features(true, true, true, true, false, true))
                 .resolveFrom(List.of(helmet), MASK_KEYS, MASK_ABILITIES, 1);
         assertEquals(0, worn.byTrigger(0).length, "masks off → the mask fires nothing");
+    }
+
+    // ── ADR-0070 reforges: a held weapon's applied reforge fires while held like any source; reforges=false skips ──
+    // id 0 = reforges/singularity (its active/primary), id 1 = reforges/singularity/a1 (a support ability) — both
+    // fire on attack trigger 0.
+    private static final StableKeyIndex REFORGE_KEYS =
+            new StableKeyIndex(List.of("reforges/singularity", "reforges/singularity/a1"));
+    private static final Ability[] REFORGE_ABILITIES = {ability(0, 1 << 0), ability(1, 1 << 0)};
+
+    @Test
+    void reforgeContributesItsDenseIdAndTheAChain() {
+        // A reforged weapon held in the MAIN hand: the reforge key resolves to its dense id AND walks the /a1
+        // multi-ability chain (ADR-0070). The 4-arg resolveFrom sets offhandFrom = size → this state is main-hand.
+        CombatState weapon = CombatState.EMPTY.withReforge("reforges/singularity");
+        WornState worn = resolver().resolveFrom(List.of(weapon), REFORGE_KEYS, REFORGE_ABILITIES, 1);
+        assertArrayEquals(new int[] {0, 1}, sorted(worn.byTrigger(0)), "reforge primary + /a1 both fire");
+        // A reforge is not a crystal/set — it joins neither accounting view.
+        assertEquals(0, worn.activeCrystalAbilityIds().length, "a reforge is never tracked as a crystal");
+    }
+
+    @Test
+    void offhandReforgeContributesNothing() {
+        // The held-gate: a reforge on an OFF-HAND item never swings (offhandFrom = 0), so it contributes nothing.
+        CombatState weapon = CombatState.EMPTY.withReforge("reforges/singularity");
+        WornState worn = resolver().resolveFrom(List.of(weapon), 0, REFORGE_KEYS, REFORGE_ABILITIES, 1);
+        assertEquals(0, worn.byTrigger(0).length, "off-hand reforge fires nothing (held-gate is main-hand only)");
+    }
+
+    @Test
+    void reforgesFeatureOffDropsTheReforge() {
+        // §L features.reforges off: the applied reforge contributes nothing.
+        CombatState weapon = CombatState.EMPTY.withReforge("reforges/singularity");
+        WornState worn = resolver(new WornResolver.Features(true, true, true, true, true, false))
+                .resolveFrom(List.of(weapon), REFORGE_KEYS, REFORGE_ABILITIES, 1);
+        assertEquals(0, worn.byTrigger(0).length, "reforges off → the reforge fires nothing");
+    }
+
+    @Test
+    void unknownReforgeKeyIsSkipped() {
+        // An unknown reforge key (content removed) resolves -1 and is skipped — never a crash.
+        CombatState weapon = CombatState.EMPTY.withReforge("reforges/missing");
+        WornState worn = resolver().resolveFrom(List.of(weapon), REFORGE_KEYS, REFORGE_ABILITIES, 1);
+        assertEquals(0, worn.byTrigger(0).length, "unknown reforge → nothing fires");
     }
 
     @Test

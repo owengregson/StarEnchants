@@ -59,8 +59,9 @@ public final class WornResolver {
     private final PetSource petSource;
 
     /** Per-feature source toggles (config.yml {@code features:}) — which sources contribute to worn state. */
-    public record Features(boolean enchants, boolean sets, boolean crystals, boolean heroic, boolean masks) {
-        public static final Features ALL = new Features(true, true, true, true, true);
+    public record Features(boolean enchants, boolean sets, boolean crystals, boolean heroic, boolean masks,
+                           boolean reforges) {
+        public static final Features ALL = new Features(true, true, true, true, true, true);
     }
 
     public WornResolver(EquipSource equipSource, ItemViewCache itemViews, int triggerCount,
@@ -250,6 +251,25 @@ public final class WornResolver {
                     // like a crystal/set (ADR-0034/0035). Walk them so every bonus fires.
                     for (int n = 1; ; n++) {
                         int extra = keys.idOf(combat.maskKey() + "/a" + n);
+                        if (extra < 0) {
+                            break;
+                        }
+                        firing.add(extra);
+                    }
+                }
+            }
+            // ADR-0070: a reforge applied onto this WEAPON fires while the weapon is HELD in the MAIN hand —
+            // it rides this combat entry like a weapon enchant, but joins `firing` ONLY (never crystal/set/
+            // heroic accounting; a reforge is its own source kind). `!offhand` is the held-gate: an off-hand
+            // item never swings, and the reforge active is a main-hand gesture (the set-weapon `on:weapon`
+            // rule). The /aN walk mirrors the mask's; USE-trigger ids landing in byTrigger[USE] are inert
+            // (every USE path passes explicit candidates — the pets precedent).
+            if (f.reforges() && combat.reforgeKey() != null && !offhand) {
+                int id = keys.idOf(combat.reforgeKey());
+                if (id >= 0) {
+                    firing.add(id);
+                    for (int n = 1; ; n++) {
+                        int extra = keys.idOf(combat.reforgeKey() + "/a" + n);
                         if (extra < 0) {
                             break;
                         }
