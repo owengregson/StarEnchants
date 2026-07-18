@@ -17,6 +17,7 @@ import tester.suite.CarrierSuite;
 import tester.suite.CatalogSuite;
 import tester.suite.CombatFlagsSuite;
 import tester.suite.CombatSuite;
+import tester.suite.ComboDotSyncSuite;
 import tester.suite.DeathRaceSuite;
 import tester.suite.MaskBreakSuite;
 import tester.suite.MaskCanonSuite;
@@ -139,6 +140,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new BatCloudSuite(this)); // ADR-0068: attacker vision cloud — pillar publish, orbit convergence, revert, cross-region fail-closed
         harness.add(new PetHomeSuite(this)); // ADR-0061: mole dig window → recall teleport / out-of-range / teleblock / expiry
         harness.add(new FreezeSuite(this)); // ADR-0065: pinned freeze holds under fire, DoT cadence+attribution, slow lifecycle
+        harness.add(new ComboDotSyncSuite(this)); // ADR-0069: SE DoT parks under a Mental combo, flushes into the hit / combo-end release
         harness.add(new WhySuite(this)); // ADR-0045: record → decode under real region threading
         harness.add(new LifecycleSuite(this)); // §B: HELD/PASSIVE start+stop + COMMAND trigger fire
         harness.add(new TeleportSuite(this));
