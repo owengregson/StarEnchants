@@ -499,18 +499,21 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
             Block sighted = world.getBlockAt(arena.getBlockX() + 4, arena.getBlockY() - 3, arena.getBlockZ());
             Location core = coreOf(sighted);
             LivingEntity cow = staticCow(rig, world, arena);
-            Location cowAt = core.clone().add(3, 0, 0); // offset from the core so the pull is observable
+            Location cowAt = core.clone().add(3, 0, 0); // east of the core → a pull points it back in −X
             caster.setGravity(false);
             place(caster, arena.clone().add(0, 0, 8), () -> place(cow, cowAt, () -> Scheduling.onEntityLater(caster, 5L, () -> {
                 GravityWellService svc = new GravityWellService(deps.dispatch(), (p, r) -> sighted,
                         deps.messages(), deps.resolvers());
                 svc.start(caster, effect(deps, "singularity", GravityWellEffect.HEAD));
-                double before = horiz(cowAt, core);
-                awaitUntil(cow, () -> horiz(cow.getLocation(), core) <= before - 1.0, 0, 30, pulled -> {
+                // The pull is a per-pulse VELOCITY toward the core (the real-player mechanic); NoAI cows and
+                // clientless players never translate velocity to a position on the server, so the well's
+                // formation above the sighted block is proven by the −X pull velocity it imparts (the §B1.15
+                // rule, and exactly how grapple-zip reads its launch). A stray core would pull some other way.
+                awaitUntil(cow, () -> cow.getVelocity().getX() < -0.05, 0, 40, pulled -> {
                     h.guard(key, () -> {
-                        if (horiz(cow.getLocation(), core) > before - 1.0) {
+                        if (cow.getVelocity().getX() >= -0.05) {
                             throw new IllegalStateException("the well did not form above the sighted block: cow "
-                                    + horiz(cow.getLocation(), core) + " from the expected core (was " + before + ")");
+                                    + "pull velocity x=" + cow.getVelocity().getX() + " (expected < 0 toward the core)");
                         }
                     });
                     rig.teardown();
@@ -541,11 +544,14 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
                         GravityWellService svc = new GravityWellService(deps.dispatch(), (p, r) -> sighted,
                                 deps.messages(), deps.resolvers());
                         svc.start(caster, effect(deps, "singularity", GravityWellEffect.HEAD));
-                        Scheduling.onEntityLater(caster, 24L, () -> pullReadout(rig, east, west, core, (de, dw) -> {
+                        // The pull imparts a toward-core VELOCITY every pulse; NoAI cows don't move from velocity
+                        // (only teleports relocate them — see grapple-reel), so the inward drag is read as the
+                        // pull velocity itself. Opposite sides catch a sign error: east must gain −X, west +X.
+                        Scheduling.onEntityLater(caster, 24L, () -> pullVelReadout(east, west, (ve, vw) -> {
                                 h.guard(key, () -> {
-                                    if (de > 3.0 || dw > 3.0) {
-                                        throw new IllegalStateException("a cow was not dragged inward: east="
-                                                + de + " west=" + dw + " (staged at 4)");
+                                    if (ve >= -0.05 || vw <= 0.05) {
+                                        throw new IllegalStateException("a cow was not dragged inward: east v.x="
+                                                + ve + " west v.x=" + vw + " (expected east<0, west>0 toward core)");
                                     }
                                 }); rig.teardown(); }));
                     }))));
@@ -630,18 +636,20 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
             }
             Block sighted = world.getBlockAt(arena.getBlockX(), arena.getBlockY() - 3, arena.getBlockZ());
             Location core = coreOf(sighted);
-            Location standAt = core.clone().add(3, 0, 0); // inside the radius — self-pull true drags the caster
+            Location standAt = core.clone().add(3, 0, 0); // east of the core → self-pull drags the caster back in −X
             caster.setGravity(false);
             place(caster, standAt, () -> Scheduling.onEntityLater(caster, 5L, () -> {
-                double before = horiz(standAt, core);
                 GravityWellService svc = new GravityWellService(deps.dispatch(), (p, r) -> sighted,
                         deps.messages(), deps.resolvers());
                 svc.start(caster, effect(deps, "singularity", GravityWellEffect.HEAD));
-                awaitUntil(caster, () -> horiz(caster.getLocation(), core) <= before - 1.0, 0, 30, pulled -> {
+                // A clientless caster never moves from velocity, so the authored self-pull downside is proven by
+                // the −X drag velocity it gains (the §B1.15 rule; grapple-zip reads a fake player's launch the
+                // same way).
+                awaitUntil(caster, () -> caster.getVelocity().getX() < -0.05, 0, 40, pulled -> {
                         h.guard(key, () -> {
-                            if (horiz(caster.getLocation(), core) > before - 1.0) {
+                            if (caster.getVelocity().getX() >= -0.05) {
                                 throw new IllegalStateException("self-pull did not drag the caster inward: "
-                                        + horiz(caster.getLocation(), core) + " from core (was " + before + ")");
+                                        + "pull velocity x=" + caster.getVelocity().getX() + " (expected < 0 toward core)");
                             }
                         }); rig.teardown(); });
             }));
@@ -881,9 +889,11 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
                 cow.setNoDamageTicks(0);
                 new JavelinService(deps.dispatch(), WEAPON, deps.resolvers())
                         .start(thrower, effect(deps, "javelin", JavelinEffect.HEAD));
-                awaitUntil(cow, () -> cow.getLocation().getX() - cowAt.getX() > 0.2, 0, 70, knocked -> {
+                // Knockback is a VELOCITY along the flight (+X); a NoAI cow never converts it to a position, and the
+                // camera-lock pin zeroes velocity ~5 ticks after impact, so poll every tick for the impulse itself.
+                awaitUntil(cow, () -> cow.getVelocity().getX() > 0.2, 0, 70, knocked -> {
                         h.guard(key, () -> {
-                            double along = cow.getLocation().getX() - cowAt.getX(); // flight is +X → dot is the x-delta
+                            double along = cow.getVelocity().getX(); // flight is +X → dot is the x-velocity
                             if (along <= 0.2) {
                                 throw new IllegalStateException("the javelin did not knock the victim along its flight: "
                                         + along);
@@ -1081,15 +1091,12 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
         return Math.hypot(a.getX() - b.getX(), a.getZ() - b.getZ());
     }
 
-    /** Read both pull-cow distances-to-core on the first cow's thread, hopping to the second for its read. */
-    private void pullReadout(CombatRig rig, LivingEntity east, LivingEntity west, Location core,
-                             java.util.function.BiConsumer<Double, Double> then) {
+    /** Read both pull-cow x-velocities on each cow's own thread (hopping east→west), then hand them over. */
+    private void pullVelReadout(LivingEntity east, LivingEntity west,
+                               java.util.function.BiConsumer<Double, Double> then) {
         Scheduling.onEntity(east, () -> {
-            double de = horiz(east.getLocation(), core);
-            Scheduling.onEntity(west, () -> {
-                double dw = horiz(west.getLocation(), core);
-                then.accept(de, dw);
-            });
+            double ve = east.getVelocity().getX();
+            Scheduling.onEntity(west, () -> then.accept(ve, west.getVelocity().getX()));
         });
     }
 
