@@ -391,15 +391,17 @@ public final class PetService {
         if (dig != null && recallAttempt(player, def, stack)) {
             return;
         }
-        // ADR-0070 rider: the shared any-pet gate — a successful activation of ANY pet (an active's use or a
-        // dig) arms a 2s window every pet USE attempt checks here, so a hotbar of actives cannot fire as one
-        // burst. Resolved AFTER the recall branch above (owner ruling 2026-07-18): a pending home recall is
-        // EXEMPT — the return trip never consults the gate, and a successful recall arms it at its own point of
-        // no return. Active uses and fresh digs are guarded.
-        long sharedLeft = sharedGate.remaining(player.getUniqueId(), nowTicks.getAsLong());
-        if (sharedLeft > 0) {
-            messenger.sharedCooldown(player, sharedLeft);
-            return;
+        // ADR-0070 rider: the shared any-pet gate — a successful activation of ANY pet arms a 2s window so a
+        // hotbar of DIFFERENT pet actives cannot fire as one burst. Only a NON-digger active consults the gate
+        // (owner ruling 2026-07-18): a digger's whole cycle is EXEMPT from the CHECK — the recall resolved
+        // above, and a fresh dig is that same cycle's outbound leg, never delayed by a gate its own prior
+        // dig/recall armed (the pre-gate mole flow). Every successful use still ARMS the gate below.
+        if (dig == null) {
+            long sharedLeft = sharedGate.remaining(player.getUniqueId(), nowTicks.getAsLong());
+            if (sharedLeft > 0) {
+                messenger.sharedCooldown(player, sharedLeft);
+                return;
+            }
         }
         if (cageWouldFail(player, bracket)) {
             messenger.failed(player, def); // provably-unsafe cage volume — fail BEFORE the cooldown arms
