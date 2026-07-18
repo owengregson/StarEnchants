@@ -60,6 +60,9 @@ import platform.text.Tokens;
  */
 public final class PetService {
 
+    /** ADR-0070 rider: the shared any-pet gate a successful activation arms (2s). */
+    private static final long SHARED_USE_GATE_TICKS = 40L;
+
     private final ContentHolder content;
     private final PetCodec codec;
     private final TriggerDispatch dispatch;
@@ -68,6 +71,7 @@ public final class PetService {
     private final VanillaEnchants vanilla; // glint lives at the feature layer (the use-item precedent)
     private final PetMessenger messenger;
     private final PetArmedStore armed;
+    private final PetSharedUseStore sharedGate; // ADR-0070: the shared any-pet 2s gate
     private final Supplier<MasterConfig.PetsSection> pets;
     private final Supplier<PetItemConfig> likeness;
     private final Supplier<PetFoodConfig> food;
@@ -82,9 +86,9 @@ public final class PetService {
 
     public PetService(ContentHolder content, PetCodec codec, TriggerDispatch dispatch, TexturedHeads heads,
                       HeadEquip headEquip, VanillaEnchants vanilla, PetMessenger messenger, PetArmedStore armed,
-                      Supplier<MasterConfig.PetsSection> pets, Supplier<PetItemConfig> likeness,
-                      Supplier<PetFoodConfig> food, Consumer<Player> refresh, LongSupplier nowTicks,
-                      Predicate<Material> isAir, PetLevelCue cue, Random rolls,
+                      PetSharedUseStore sharedGate, Supplier<MasterConfig.PetsSection> pets,
+                      Supplier<PetItemConfig> likeness, Supplier<PetFoodConfig> food, Consumer<Player> refresh,
+                      LongSupplier nowTicks, Predicate<Material> isAir, PetLevelCue cue, Random rolls,
                       PetHomeStore homes, TeleblockStore teleblock, PetHomeVisuals visuals) {
         this.content = Objects.requireNonNull(content, "content");
         this.codec = Objects.requireNonNull(codec, "codec");
@@ -94,6 +98,7 @@ public final class PetService {
         this.vanilla = Objects.requireNonNull(vanilla, "vanilla");
         this.messenger = Objects.requireNonNull(messenger, "messenger");
         this.armed = Objects.requireNonNull(armed, "armed");
+        this.sharedGate = Objects.requireNonNull(sharedGate, "sharedGate");
         this.pets = Objects.requireNonNull(pets, "pets");
         this.likeness = Objects.requireNonNull(likeness, "likeness");
         this.food = Objects.requireNonNull(food, "food");
@@ -386,12 +391,23 @@ public final class PetService {
         if (dig != null && recallAttempt(player, def, stack)) {
             return;
         }
+        // ADR-0070 rider: the shared any-pet gate — a successful activation of ANY pet (an active's use or a
+        // dig) arms a 2s window every pet USE attempt checks here, so a hotbar of actives cannot fire as one
+        // burst. Resolved AFTER the recall branch above (owner ruling 2026-07-18): a pending home recall is
+        // EXEMPT — the return trip never consults the gate, and a successful recall arms it at its own point of
+        // no return. Active uses and fresh digs are guarded.
+        long sharedLeft = sharedGate.remaining(player.getUniqueId(), nowTicks.getAsLong());
+        if (sharedLeft > 0) {
+            messenger.sharedCooldown(player, sharedLeft);
+            return;
+        }
         if (cageWouldFail(player, bracket)) {
             messenger.failed(player, def); // provably-unsafe cage volume — fail BEFORE the cooldown arms
             return;
         }
         UseAttempt attempt = dispatch.fireUse(player, bracket.useStableKeys());
         if (attempt.activated()) {
+            sharedGate.arm(player.getUniqueId(), nowTicks.getAsLong() + SHARED_USE_GATE_TICKS); // ADR-0070 rider
             messenger.activated(player, def);
             if (dig != null) {
                 armHome(player, def, dig); // ADR-0061: the dig is non-XP — use-XP lands on the RECALL
@@ -476,6 +492,7 @@ public final class PetService {
             return true;
         }
         homes.clear(player.getUniqueId());
+        sharedGate.arm(player.getUniqueId(), now + SHARED_USE_GATE_TICKS); // ADR-0070: a successful recall arms the shared gate
         visuals.clear(player.getUniqueId());
         Location to = new Location(world, home.x(), home.y(), home.z(), home.yaw(), home.pitch());
         visuals.recallCues(player, def, player.getLocation(), to); // cues mark both ends before the async hop
