@@ -25,6 +25,7 @@ import feature.combat.ProjectileHoming;
 import feature.compat.DropControl;
 import feature.compat.Hands;
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -417,6 +418,34 @@ public final class TriggerDispatch {
         SinkReadback sink = newSink();
         sink.grapple(actor, eye, victim, reelTo, hookPoint, flightTicks, slowPotionId, slowAmplifier,
                 slowTicks, zip, particleId, r, g, b, size, density);
+        sink.flush();
+    }
+
+    /**
+     * Entity-typed teleport through a fresh sink (ADR-0071): Castling swaps a possibly-mob victim and the
+     * Javelin camera-lock re-asserts the victim's position every tick — both need the {@link engine.sink.Sink#teleport(Entity, Location)}
+     * intent (era leaf on the target's own scheduler, {@code teleportAsync} on Folia), which the {@link #teleport(Player, Location)}
+     * passthrough could not reach because its parameter was a {@link Player}. Same fresh-per-call idiom, so it is
+     * safe from any cold path (never from inside an already-flushed plan — the cage rule).
+     */
+    public void teleportEntity(Entity target, Location to) {
+        SinkReadback sink = newSink();
+        sink.teleport(target, to);
+        sink.flush();
+    }
+
+    /**
+     * Apply one potion effect through a fresh sink (ADR-0071, the Javelin post-lock Nausea): the sink's
+     * {@code potion} intent resolves the interned effect id through the era leaf, so this is the same
+     * era-resolution path as an authored POTION op. A {@code < 0} id (absent on this version) skips silently —
+     * the cue-table {@code orElse(-1)} convention. Cold-path only, never from inside a flushed plan.
+     */
+    public void potion(LivingEntity target, int potionEffectId, int amplifier, int durationTicks) {
+        if (potionEffectId < 0) {
+            return;
+        }
+        SinkReadback sink = newSink();
+        sink.potion(target, potionEffectId, amplifier, durationTicks);
         sink.flush();
     }
 
