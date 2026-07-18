@@ -2287,6 +2287,14 @@ public abstract class DispatchSinkBase implements SinkReadback {
      */
     protected abstract boolean isSafeDestination(Location dest, Location from);
 
+    /**
+     * A coloured-dust mote batch at {@code at}, run ON {@code at}'s owning thread with NO plan wrapper — the
+     * machine-visual leaf (ADR-0071). The public {@link #dust} intent is {@code regionOp(at, () -> dustDirect(…))};
+     * long-lived machine/task closures call this directly on a thread they already own (e.g. a blink walk on the
+     * actor's scheduler, a grapple line hopped per straddling chunk), never re-entering an already-flushed plan.
+     */
+    protected abstract void dustDirect(Location at, int particleId, int r, int g, int b, float size, int count);
+
     /** The player's main-hand item ({@code getItemInMainHand} on modern; {@code getItemInHand} on 1.8). */
     protected abstract ItemStack mainHand(Player target);
 
