@@ -13,6 +13,12 @@ versioning: [Semantic Versioning](https://semver.org/).
   move and turn (within 16 blocks, last 10 seconds, most recent attacker wins; with no such attacker
   they flutter with vanilla AI exactly as before). Swarm spawn heights now scatter ±0.6 blocks
   around the ring.
+- **Mole pet soundscape reworked.** Digging, teleporting home, stepping out of / back into the
+  50-block home range, and a home expiring unused each play their own layered cue, and the tracer
+  line now switches off outside recall range (the home ring stays). Using the Mole with no home
+  dug now explains itself — "You have no home to return to! Sneak and activate to dig one." — via
+  a new per-pet `message-on-no-home` field, instead of the generic can't-use line. On servers
+  older than a layer's sound, that layer simply stays silent.
 
 ## [1.9.0-beta] — 2026-07-17
 
