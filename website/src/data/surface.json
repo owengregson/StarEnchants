@@ -12,6 +12,7 @@
     { "name": "removeenchant", "args": "<key>", "description": "Strip an enchant from the held item.", "alias": false },
     { "name": "unenchant", "args": "", "description": "Alias of /se removeenchant.", "alias": true },
     { "name": "crystal", "args": "<key>", "description": "Mint a socketable crystal to yourself.", "alias": false },
+    { "name": "reforge", "args": "<key>", "description": "Mint a weapon reforge to yourself.", "alias": false },
     { "name": "heroic", "args": "", "description": "Mint a Heroic upgrade item to yourself.", "alias": false },
     { "name": "orb", "args": "", "description": "Mint a slot-expander orb to yourself.", "alias": false },
     { "name": "gem", "args": "[amount]", "description": "Mint a soul gem to yourself (optionally pre-loaded with that many souls).", "alias": false },

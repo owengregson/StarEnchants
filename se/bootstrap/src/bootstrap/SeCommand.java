@@ -81,6 +81,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             CommandInfo.of("removeenchant", "<key>", "Strip an enchant from the held item."),
             CommandInfo.alias("unenchant", "removeenchant"),
             CommandInfo.of("crystal", "<key>", "Mint a socketable crystal to yourself."),
+            CommandInfo.of("reforge", "<key>", "Mint a weapon reforge to yourself."),
             CommandInfo.of("heroic", "", "Mint a Heroic upgrade item to yourself."),
             CommandInfo.of("orb", "", "Mint a slot-expander orb to yourself."),
             CommandInfo.of("gem", "[amount]", "Mint a soul gem to yourself (optionally pre-loaded with that many souls)."),

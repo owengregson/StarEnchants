@@ -1,0 +1,6 @@
+# Weapon Reforges GUI — browse every reforge as its catalogue icon; operators click to mint one.
+# Tiles come from the content library. See menus/apply.yml for the full field list.
+
+title: "&6&l✦ Weapon Reforges ✦"
+frame: "border"
+filler: "BLACK_STAINED_GLASS_PANE"

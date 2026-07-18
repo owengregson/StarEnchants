@@ -30,6 +30,7 @@ public final class Modules {
     final UseItemsModule useItems;
     final PetsModule pets;
     final MasksModule masks;
+    final ReforgesModule reforges;
     final ScrollsModule scrolls;
     final TraksModule traks;
     final EnchantsModule enchants;
@@ -50,7 +51,10 @@ public final class Modules {
         this.stores = new StoresModule(core);
         this.guard = new GuardModule(core);
         this.carriers = new CarriersModule(core);
-        this.crystals = new CrystalsModule(core);
+        // ADR-0070: constructed before crystals (the extractor hook); REGISTRY keeps reforges directly after masks —
+        // the reload↔menus precedent (construction order ≠ fold order).
+        this.reforges = new ReforgesModule(core);
+        this.crystals = new CrystalsModule(core, reforges.reforges);
         this.heroic = new HeroicModule(core);
         this.slots = new SlotsModule(core);
         this.scrolls = new ScrollsModule(core, carriers, souls);  // carrier economy + soul-gem holy re-render (§4)
@@ -75,6 +79,7 @@ public final class Modules {
         allMintables.addAll(useItems.mints);
         allMintables.addAll(pets.mints);
         allMintables.addAll(masks.mints); // ADR-0053
+        allMintables.addAll(reforges.mints); // ADR-0070
         allMintables.addAll(scrolls.mints);
         allMintables.addAll(traks.mints);
         allMintables.addAll(sets.mints);
@@ -91,6 +96,7 @@ public final class Modules {
                 controls.module(), stores.module(), guard.module(), carriers.module(), crystals.module(),
                 heroic.module(), slots.module(), books.module(), useItems.module(), pets.module(),
                 masks.module(), // ADR-0053 directly after pets
+                reforges.module(), // ADR-0070 directly after masks
                 scrolls.module(), traks.module(), enchants.module(), sets.module(), menus.module(),
                 reload.module(), commands.module());
     }

@@ -61,13 +61,16 @@ public final class UserHubMenu extends HubMenu {
         tile(holder, 33, MenuIcons.tile(vanilla,"AMETHYST_SHARD", Material.QUARTZ, "&3&lCrystals",
                 List.of("&7Browse every socketable crystal", "&7and what it grants your gear."),
                 "&eClick to browse."), open("crystals"));
-        // Row 2 centre — the head-item catalogues (pets ADR-0052, masks ADR-0053), a centred pair.
-        tile(holder, 21, MenuIcons.tile(vanilla,"PLAYER_HEAD", Material.GOLDEN_CARROT, "&6&lPets",
+        // Row 2 centre — the item catalogues (pets ADR-0052, masks ADR-0053, reforges ADR-0070), a centred triple.
+        tile(holder, 20, MenuIcons.tile(vanilla,"PLAYER_HEAD", Material.GOLDEN_CARROT, "&6&lPets",
                 List.of("&7Browse every pet — hold one in", "&7your hotbar and level it up."),
                 "&eClick to browse."), open("pets"));
-        tile(holder, 23, MenuIcons.tile(vanilla,"PLAYER_HEAD", Material.PUMPKIN, "&8&lMasks",
+        tile(holder, 22, MenuIcons.tile(vanilla,"PLAYER_HEAD", Material.PUMPKIN, "&8&lMasks",
                 List.of("&7Browse every mask — drag one onto", "&7a helmet to wear its likeness."),
                 "&eClick to browse."), open("masks"));
+        tile(holder, 24, MenuIcons.tile(vanilla,"ANVIL", Material.ANVIL, "&6&lWeapon Reforges",
+                List.of("&7Browse every weapon reforge — socket", "&7one and shift + right-click to fire it."),
+                "&eClick to browse."), open("reforges"));
     }
 
     /** A tile action that drills into the sibling menu registered under {@code name}. */
