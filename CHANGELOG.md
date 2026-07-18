@@ -6,6 +6,16 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Combos stay unbroken under damage-over-time.** When the Mental combat engine is installed,
+  StarEnchants damage-over-time ticks (bleeds, Ice Aspect's freeze damage, delayed strikes, enchant
+  lightning) no longer interrupt an active combo: their damage banks and lands together with the
+  combo's own hits — no stray knockback, no stolen hit-invulnerability — and anything still owed is
+  paid out the moment the combo ends (`integrations.named.mental-combo-sync`, on by default).
+  Protection covers a started combo; the formation window before Mental activates one is documented
+  in ADR-0069.
+
 ### Changed
 
 - **Bat swarm rework.** Summoned bats now cloud the vision of whoever attacked you most recently —
