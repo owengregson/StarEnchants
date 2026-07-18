@@ -75,13 +75,16 @@ public final class OperatorConsoleMenu extends HubMenu {
                 List.of("&7Rebuild and hot-swap the content", "&7library off-thread.", "",
                         "&8Right-click to validate only (dry run)."),
                 "&eClick to reload."), reload());
-        // Row 2 centre — the head-item mints (pet level-drill ADR-0052, mask ADR-0053), a centred pair.
-        tile(holder, 21, MenuIcons.tile(vanilla,"PLAYER_HEAD", Material.GOLDEN_CARROT, "&6&lPets",
+        // Row 2 centre — the item catalogues (pets ADR-0052, masks ADR-0053, reforges ADR-0070), a centred triple.
+        tile(holder, 20, MenuIcons.tile(vanilla,"PLAYER_HEAD", Material.GOLDEN_CARROT, "&6&lPets",
                 List.of("&7Drill into any pet and mint it", "&7at the level you pick."),
                 "&eClick to open."), open("pets"));
-        tile(holder, 23, MenuIcons.tile(vanilla,"PLAYER_HEAD", Material.PUMPKIN, "&8&lMasks",
+        tile(holder, 22, MenuIcons.tile(vanilla,"PLAYER_HEAD", Material.PUMPKIN, "&8&lMasks",
                 List.of("&7Browse every mask and mint", "&7one to yourself to apply."),
                 "&eClick to open."), open("masks"));
+        tile(holder, 24, MenuIcons.tile(vanilla,"ANVIL", Material.ANVIL, "&6&lWeapon Reforges",
+                List.of("&7Browse every reforge and mint", "&7one to yourself to socket."),
+                "&eClick to open."), open("reforges"));
     }
 
     private ClickAction open(String name) {

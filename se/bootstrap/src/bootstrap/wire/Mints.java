@@ -169,12 +169,12 @@ final class Mints {
                 .build();
     }
 
-    /** {@code extractor} — the crystal extractor (crystals); no self row. */
+    /** {@code extractor} — the ONE Item Extractor, ADR-0070 (crystals); no self row. */
     static Mintable extractor(CrystalService crystals) {
         return Mint.type("extractor")
                 .give((sender, target, args, io) -> io.deliver().to(sender, target,
-                        crystals.mintExtractor(), "command.give.extractor", "crystal extractor"))
-                .tiles(40, library -> List.of(new MintCatalog.Entry("crystal extractor", crystals::mintExtractor)))
+                        crystals.mintExtractor(), "command.give.extractor", "item extractor"))
+                .tiles(40, library -> List.of(new MintCatalog.Entry("item extractor", crystals::mintExtractor)))
                 .build();
     }
 
@@ -601,6 +601,66 @@ final class Mints {
                         // MaskDef keys carry the masks/ source prefix; tiles read like the pets' bare stems.
                         String stem = defKey.substring(defKey.indexOf('/') + 1);
                         out.add(new MintCatalog.Entry(stem + " mask", () -> masks.mint(defKey)));
+                    }
+                    return out;
+                })
+                .build();
+    }
+
+    /** {@code reforge} (alias {@code reforges}) — a weapon reforge by key (ADR-0070); with a SELF row for calibration. */
+    static Mintable reforge(feature.reforge.ReforgeService reforges, ContentHolder content) {
+        return Mint.type("reforge").aliases("reforges")
+                .give((sender, target, args, io) -> {
+                    if (args.length < 4) {
+                        sender.sendMessage(io.messages().format("command.reforge.usage"));
+                        return;
+                    }
+                    String key = Give.normalize(args[3], "reforges/"); // a reforged weapon stores the source-prefixed key
+                    if (content.library().reforgeDefOf(key) == null) {
+                        sender.sendMessage(io.messages().format("command.error.no-such-reforge", "KEY", key));
+                        return;
+                    }
+                    Scheduling.onEntity(target, () -> {
+                        ItemStack item = reforges.mint(key);
+                        if (item != null) {
+                            Inventories.giveOrDrop(target, item);
+                        }
+                        target.sendMessage(io.messages().format("command.give.reforge", "KEY", key));
+                    });
+                    if (Give.notSelf(sender, target)) {
+                        Give.tell(sender, io.messages().format("command.give.delivered",
+                                "ITEM", key, "PLAYER", target.getName()));
+                    }
+                })
+                .self((sender, args, io) -> {
+                    if (!(sender instanceof Player player)) {
+                        sender.sendMessage(io.messages().format("command.not-a-player"));
+                        return;
+                    }
+                    if (args.length < 2) {
+                        sender.sendMessage(io.messages().format("command.reforge.usage"));
+                        return;
+                    }
+                    String key = Give.normalize(args[1], "reforges/");
+                    if (content.library().reforgeDefOf(key) == null) {
+                        player.sendMessage(io.messages().format("command.error.no-such-reforge", "KEY", key));
+                        return;
+                    }
+                    Scheduling.onEntity(player, () -> {
+                        ItemStack item = reforges.mint(key);
+                        if (item != null) {
+                            Inventories.giveOrDrop(player, item);
+                        }
+                        player.sendMessage(io.messages().format("command.give.reforge", "KEY", key));
+                    });
+                })
+                .tiles(163, library -> {
+                    List<MintCatalog.Entry> out = new java.util.ArrayList<>();
+                    for (compile.load.ReforgeDef def : library.reforges()) {
+                        String defKey = def.key();
+                        // ReforgeDef keys carry the reforges/ source prefix; tiles read like the masks' bare stems.
+                        String stem = defKey.substring(defKey.indexOf('/') + 1);
+                        out.add(new MintCatalog.Entry(stem + " reforge", () -> reforges.mint(defKey)));
                     }
                     return out;
                 })

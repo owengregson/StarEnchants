@@ -154,6 +154,7 @@ public final class BootCore {
     private final item.codec.PetCodec petCodec;
     private final feature.pet.PetArmedStore petArmedStore;
     private final item.codec.MaskCodec maskCodec;
+    private final item.codec.ReforgeCodec reforgeCodec;
     private final LoreRenderer lore;
     private final ItemGroups itemGroups;
     private final Consumer<ItemStack> recompose;
@@ -269,6 +270,9 @@ public final class BootCore {
         // ADR-0053 masks: the ONE mask-item identity codec, next to petCodec — shared by the MasksModule's mint,
         // apply/remove gestures, and the plugin-item guard. On-helmet mask state rides the combat blob, not here.
         this.maskCodec = new item.codec.MaskCodec(ItemKeys.of(), store);
+        // ADR-0070 reforges: the ONE reforge-item identity codec, next to maskCodec — shared by the ReforgesModule's
+        // mint, apply gesture, and the plugin-item guard. On-weapon reforge state rides the combat blob, not here.
+        this.reforgeCodec = new item.codec.ReforgeCodec(ItemKeys.of(), store);
         this.wornResolver = new WornResolver(bindings.equipSource(), itemViews, triggers.count(),
                 triggers.attackTriggers(), triggers.defenseTriggers(),
                 () -> {                                            // §L per-feature master toggles (live)
@@ -320,6 +324,12 @@ public final class BootCore {
         // CURRENT library, so a reload re-renders against new content.
         this.lore = new LoreRenderer(LoreRenderer.Config
                 .of(() -> loreStyle(master.config()), key -> {
+                    // ADR-0070: the on-weapon reforge line's {NAME} wants the reforge's colour-styled bold
+                    // display; a reforges/<stem> key isn't in displayNameOf's enchant/crystal/set chain.
+                    compile.load.ReforgeDef reforge = content.library().reforgeDefOf(key);
+                    if (reforge != null) {
+                        return reforge.color() + "&l" + reforge.display();
+                    }
                     // ADR-0053: the on-helmet mask line's {NAME} wants the mask's colour-styled bold display; a
                     // masks/<stem> key isn't in displayNameOf's enchant/crystal/set chain, so resolve it first —
                     // null for any other unknown key stays the renderer's unknown-label path.
@@ -357,7 +367,8 @@ public final class BootCore {
                 .withHeroicLine(() -> items.config().heroicOrDefault().loreLine()) // §F HEROIC line template
                 .withCrystalLine(() -> items.config().crystalOrDefault().loreWhileOnItem())        // §E on-gear line
                 .withCrystalLineMulti(() -> items.config().crystalOrDefault().loreWhileOnItemMulti()) // §E merged
-                .withMaskLine(() -> items.config().maskOrDefault().loreWhileOnItem()), // ADR-0053 on-helmet mask line
+                .withMaskLine(() -> items.config().maskOrDefault().loreWhileOnItem()) // ADR-0053 on-helmet mask line
+                .withReforgeLine(() -> items.config().reforgeOrDefault().loreWhileOnItem()), // ADR-0070 on-weapon line
                 store); // ADR-0044 the item-data store backs the renderer's composer-migration marker
         this.itemGroups = ItemGroups.standard();                 // §I shared by the enchanter + trak gems
         // ADR-0040 the ONE recompose seam: a feature mutates PDC then asks the composer to re-render from state.
@@ -368,6 +379,7 @@ public final class BootCore {
                 () -> master.config().slots().base(),          // §H base enchant slots
                 () -> master.config().crystals().slots(),      // §E per-item crystal slots (entries)
                 () -> master.config().crystals().maxMerge(),   // §E components per entry (merge cap)
+                () -> master.config().reforges().weaponGroups(), // ADR-0070 reforge weapon-groups (apply gate)
                 messages, vanillaEnchants);                    // §L ApplyResult strings + §6.6 vanilla enchants
 
         // ONE RNG for every apply/mint economy — injected so rolls are stubbable (Rolls).
@@ -585,6 +597,8 @@ public final class BootCore {
     public feature.pet.PetArmedStore petArmedStore() { return petArmedStore; }
 
     public item.codec.MaskCodec maskCodec() { return maskCodec; }
+
+    public item.codec.ReforgeCodec reforgeCodec() { return reforgeCodec; }
 
     public LoreRenderer lore() { return lore; }
 

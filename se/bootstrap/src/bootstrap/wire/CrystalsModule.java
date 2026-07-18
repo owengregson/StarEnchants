@@ -20,14 +20,16 @@ final class CrystalsModule {
     final CrystalService crystals;
     final List<Mintable> mints;
 
-    CrystalsModule(BootCore core) {
+    CrystalsModule(BootCore core, feature.crystal.ReforgeExtractor reforges) {
         this.core = core;
         CrystalItemCodec crystalItemCodec = new CrystalItemCodec(ItemKeys.of().crystalItem(), core.store());
         CrystalExtractorCodec crystalExtractorCodec =
                 new CrystalExtractorCodec(ItemKeys.of().crystalExtractor(), core.store());
+        // ADR-0070: the ONE Item Extractor pops a reforge FIRST via this hook, then crystals — the reforge
+        // module owns the reforge-side economy while the extractor cursor stays claimed by CrystalListener alone.
         this.crystals = new CrystalService(crystalItemCodec, crystalExtractorCodec, core.enchanter(), core.content(),
                 () -> core.items().config().crystalOrDefault(), () -> core.master().config().crystals().maxMerge(),
-                core.messages());
+                reforges, core.messages());
         this.mints = List.of(Mints.crystal(crystals, core.content()), Mints.extractor(crystals));
     }
 
