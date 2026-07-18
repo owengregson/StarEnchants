@@ -291,10 +291,12 @@ public interface Sink {
      * outward, keeping VANILLA AI, auto-removed after {@code ttlTicks} (SPAWN_SWARM, ADR-0060).
      * {@code speedFraction < 1} slows each summon to that fraction of its vanilla steady-state AI speed
      * via a per-tick velocity damp on its own entity scheduler. Tracked in {@link SwarmSpawns} for the
-     * disable sweep.
+     * disable sweep. {@code cloudOwner} non-null arms the ADR-0068 attacker cloud for that player (the
+     * summons orbit the most-recent nearby attacker's facing pillar within {@code cloudRange} blocks);
+     * null = plain ADR-0060 behaviour.
      */
     void spawnSwarm(Location origin, int entityTypeId, int count, double radius, double rise,
-                    int ttlTicks, double speedFraction);
+                    int ttlTicks, double speedFraction, Player cloudOwner, double cloudRange);
 
     /**
      * Spawn ONE falling block of an interned material at {@code at} that never drops an item or hurts entities

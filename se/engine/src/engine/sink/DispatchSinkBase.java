@@ -8,6 +8,7 @@ import engine.stores.ImmuneStore;
 import engine.stores.KeepOnDeathStore;
 import engine.stores.KnockbackControlStore;
 import engine.stores.OutgoingDebuffStore;
+import engine.stores.RecentAttackersStore;
 import engine.stores.ReflectMarksStore;
 import engine.stores.SuppressionStore;
 import engine.stores.TeleblockStore;
@@ -135,6 +136,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final ReflectMarksStore reflectMarks;   // ADR-0049 Hex reflect windows
     private final OutgoingDebuffStore outgoingDebuff; // ADR-0049 Weaken/Destruction outgoing nerfs
     private final DamageCapStore damageCap;          // ADR-0049 Diminish last-taken + armed cap
+    private final RecentAttackersStore recentAttackers; // ADR-0068 bat-cloud arm-time seed
     /** The ONE per-boot ledger (via {@link SinkEnv}), so temp blocks from separate events compound, not clobber. */
     private final TempBlockLedger<BlockState> tempBlocks;
     /** The ONE per-boot trail memory (via {@link SinkEnv}), so the footprint snake connects across activations. */
@@ -186,6 +188,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.reflectMarks = env.stores().reflectMarks();
         this.outgoingDebuff = env.stores().outgoingDebuff();
         this.damageCap = env.stores().damageCap();
+        this.recentAttackers = env.stores().recentAttackers();
         this.nowTicks = env.nowTicks();
         this.movementExemption = env.movementExemption();
         this.tempBlocks = env.tempBlocks();
@@ -1251,18 +1254,26 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void spawnSwarm(Location origin, int entityTypeId, int count, double radius, double rise,
-                           int ttlTicks, double speedFraction) {
+                           int ttlTicks, double speedFraction, Player cloudOwner, double cloudRange) {
         Location center = origin.clone(); // own the spawn point: a WAIT tier can defer this to a later tick
         regionOp(center, () -> {
             World world = center.getWorld();
             if (world == null || count <= 0) {
                 return;
             }
+            boolean cloud = cloudOwner != null;
+            UUID ownerId = cloud ? cloudOwner.getUniqueId() : null;
+            if (cloud) {
+                SwarmClouds.arm(cloudOwner, cloudRange, ttlTicks, nowTicks,
+                        () -> recentAttackers.latest(ownerId, nowTicks.getAsLong()));
+            }
             double damping = SwarmRing.dampingFactor(speedFraction);
             for (int i = 0; i < count; i++) {
                 float yaw = SwarmRing.yawDegrees(i, count);
+                // ADR-0068: ring X/Z, scattered Y (rise ± 0.6) — the no-arg TLR roll is the JDG-safe shape.
+                double jitter = SwarmRing.yJitter(ThreadLocalRandom.current().nextDouble());
                 Location at = center.clone().add(
-                        SwarmRing.offsetX(yaw, radius), rise, SwarmRing.offsetZ(yaw, radius));
+                        SwarmRing.offsetX(yaw, radius), rise + jitter, SwarmRing.offsetZ(yaw, radius));
                 at.setYaw(yaw); // spawn applies the location's yaw → each summon faces outward
                 at.setPitch(0.0f);
                 Entity spawned = spawnTyped(world, at, entityTypeId);
@@ -1272,8 +1283,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 spawned.setVelocity(new Vector(
                         SwarmRing.offsetX(yaw, SWARM_BURST), 0.0, SwarmRing.offsetZ(yaw, SWARM_BURST)));
                 SwarmSpawns.bind(spawned);
-                if (damping < 1.0) {
-                    armSwarmDamping(spawned, damping);
+                if (cloud) {
+                    SwarmClouds.track(ownerId, spawned);
+                }
+                if (damping < 1.0 || cloud) {
+                    armSwarmSteer(spawned, damping, ownerId,
+                            SwarmRing.orbitPhase(i, count), SwarmRing.bandHeight(i), nowTicks);
                 }
                 bindSwarmTtl(spawned, ttlTicks);
             }
@@ -1292,13 +1307,20 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     /**
-     * The per-tick AI-speed damp (ADR-0060): Bat-style AI writes velocity directly and never reads the
-     * movement-speed attribute, so the only honest slow-down is scaling the velocity each tick on the
-     * summon's own entity scheduler. Self-cancels when the entity dies/despawns (on Paper the fallback
-     * scheduler does not stop on entity removal; on Folia it does — the guard covers both).
+     * The per-tick swarm steer (ADR-0068, extending the ADR-0060 damp): Bat-style AI rewrites velocity
+     * every tick (v' = v + (signum(target−pos)·s − v)·0.1, javap-verified 1.8.8→26.1.2) and ignores the
+     * speed attribute, so both the half-speed damp and the attacker-cloud orbit are per-tick velocity
+     * writes on the summon's own entity scheduler. With a live cloud target the bat seeks its slot on
+     * the orbit around the attacker's facing pillar (the AI's same-tick write perturbs ours ≤ ~10% —
+     * organic flutter, stated honestly); with none it falls back to the pure damp. Reads ONLY its own
+     * entity plus the immutable published snapshot — never the owner or attacker (Folia). Self-cancels
+     * when the entity dies/despawns (on Paper the fallback scheduler does not stop on entity removal;
+     * on Folia it does — the guard covers both).
      */
-    private static void armSwarmDamping(Entity spawned, double damping) {
+    private static void armSwarmSteer(Entity spawned, double damping, UUID cloudOwner,
+                                      double phase, double band, LongSupplier nowTicks) {
         TaskHandle[] handle = new TaskHandle[1];
+        long[] t = new long[1];
         handle[0] = Scheduling.repeatingEntity(spawned, 1L, 1L, () -> {
             if (!spawned.isValid()) {
                 SwarmSpawns.forget(spawned.getUniqueId());
@@ -1307,7 +1329,21 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 }
                 return;
             }
-            spawned.setVelocity(spawned.getVelocity().multiply(damping));
+            t[0]++;
+            SwarmClouds.CloudTarget cloud = cloudOwner == null
+                    ? null : SwarmClouds.target(cloudOwner, nowTicks.getAsLong());
+            if (cloud == null) {
+                if (damping < 1.0) {
+                    spawned.setVelocity(spawned.getVelocity().multiply(damping));
+                }
+                return;
+            }
+            Location at = spawned.getLocation(); // region-local: this task runs on the bat's own thread
+            double dx = SwarmRing.orbitX(cloud.x(), phase, t[0]) - at.getX();
+            double dy = SwarmRing.orbitY(cloud.y(), band, phase, t[0]) - at.getY();
+            double dz = SwarmRing.orbitZ(cloud.z(), phase, t[0]) - at.getZ();
+            double clamp = SwarmRing.chaseScale(dx, dy, dz);
+            spawned.setVelocity(new Vector(dx * clamp, dy * clamp, dz * clamp));
         });
     }
 
