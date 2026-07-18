@@ -1056,9 +1056,40 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 }
                 if (retarget) {
                     setGuardTarget(near, former); // target the FORMER owner (the era leaf guard() uses)
+                    holdConvertedTarget(near, former); // and HOLD it against modern AI revalidation (ADR-0071)
                 }
             });
         }
+    }
+
+    /**
+     * Hold a bell-converted summon on its forced {@code target} against modern mob-AI target-goal
+     * revalidation (ADR-0071). A manually set target with no anger/revenge memory behind it — a player
+     * is not a natural golem/guard/mount target — is dropped within a few ticks on 1.20.5+, so the
+     * converted summon would stop attacking its former owner almost immediately (the 1.17.1 floor
+     * happens to retain it, which is why only modern regressed). Re-assert the target each tick on the
+     * summon's OWN scheduler for a bounded window, then release to natural AI — the summon durably
+     * turns on its former owner on every era. Region-safe: {@link #setGuardTarget} only stores the
+     * reference (no cross-region read) and the liveness check is region-local; a no-op reinforcement
+     * where the target already sticks. Bounded (the summon's TTL outlives it — never a leaked task) and
+     * self-cancelling once the summon is gone (the freeze/potion-lock idiom).
+     */
+    private void holdConvertedTarget(Entity summon, LivingEntity target) {
+        TaskHandle[] handle = new TaskHandle[1];
+        handle[0] = Scheduling.repeatingEntity(summon, 1L, 1L, () -> {
+            if (!summon.isValid()) {
+                if (handle[0] != null) {
+                    handle[0].cancel();
+                }
+                return;
+            }
+            setGuardTarget(summon, target); // re-store the reference the AI keeps dropping
+        });
+        Scheduling.onEntityLater(summon, CONVERTED_TARGET_HOLD_TICKS, () -> {
+            if (handle[0] != null) {
+                handle[0].cancel(); // release to natural AI at the window's close
+            }
+        });
     }
 
     /**
@@ -1415,6 +1446,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     /** SPAWN_SWARM's initial outward nudge (blocks/tick) — cosmetic: the ring visibly bursts outward. */
     private static final double SWARM_BURST = 0.2;
+
+    /** How long a bell-converted summon's forced target is re-asserted against modern AI revalidation (ADR-0071). */
+    private static final int CONVERTED_TARGET_HOLD_TICKS = 100;
 
     @Override
     public void spawnSwarm(Location origin, int entityTypeId, int count, double radius, double rise,
