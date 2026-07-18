@@ -279,7 +279,7 @@ public final class ItemEnchanter {
             // §6.6 configured weapon enchants: custom ones stamp into the combat state (so the engine runs
             // them while held), vanilla names apply cross-version at mint.
             CombatState next = new CombatState(customEnchants(def.weaponEnchants()), List.of(), null, setKey,
-                    false, item.codec.HeroicStat.NONE, 0, null); // weaponMember(setKey) + carried custom enchants
+                    false, item.codec.HeroicStat.NONE, 0, null, null); // weaponMember(setKey) + carried custom enchants
             codec.write(stack, next);
             lore.apply(stack, next);
             vanilla.apply(stack, vanillaEnchants(def.weaponEnchants()));
