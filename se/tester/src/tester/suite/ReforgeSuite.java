@@ -460,23 +460,27 @@ public final class ReforgeSuite implements Harness.Scenario {
         reforgeService.apply(reforgeService.mint(REFORGE_KEY), weapon);
         player.getInventory().setItemInMainHand(weapon);
 
+        // A synthetic RIGHT_CLICK_AIR event has no clicked block, so useInteractedBlock()==DENY and thus
+        // isCancelled()==true FROM CONSTRUCTION (paper-api PlayerInteractEvent contract) — regardless of any
+        // listener. So isCancelled() cannot tell "fell through untouched" from "claimed". The listener claims by
+        // setCancelled(true), which flips useItemInHand() to DENY; an untouched event keeps it DEFAULT. Read that.
         player.setSneaking(false);
         PlayerInteractEvent plain = interact(player, weapon);
         reforgeUse.onInteract(plain);
-        boolean plainCancelled = plain.isCancelled();
+        boolean plainClaimed = plain.useItemInHand() == org.bukkit.event.Event.Result.DENY;
 
         player.setSneaking(true);
         PlayerInteractEvent sneak = interact(player, weapon);
         reforgeUse.onInteract(sneak);
-        boolean sneakCancelled = sneak.isCancelled();
+        boolean sneakClaimed = sneak.useItemInHand() == org.bukkit.event.Event.Result.DENY;
         player.setSneaking(false);
 
         Scheduling.onEntityLater(player, POTION_SETTLE, () -> {
             h.guard(ACTIVATION, () -> {
-                if (plainCancelled) {
+                if (plainClaimed) {
                     throw new IllegalStateException("a non-sneak right-click was claimed (event cancelled)");
                 }
-                if (!sneakCancelled) {
+                if (!sneakClaimed) {
                     throw new IllegalStateException("the sneak right-click did not cancel the event");
                 }
                 if (!player.hasPotionEffect(speed)) {
