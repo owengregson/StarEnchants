@@ -13,7 +13,7 @@ import schema.diag.Diagnostic;
  */
 public record Library(Snapshot snapshot, List<EnchantDef> catalog, List<CrystalDef> crystals,
                       List<SetDef> sets, List<UseItemDef> useItems, List<PetDef> pets, List<MaskDef> masks,
-                      TierRegistry tiers, List<Diagnostic> diagnostics) {
+                      List<ReforgeDef> reforges, TierRegistry tiers, List<Diagnostic> diagnostics) {
 
     public Library {
         catalog = List.copyOf(catalog);
@@ -22,6 +22,7 @@ public record Library(Snapshot snapshot, List<EnchantDef> catalog, List<CrystalD
         useItems = List.copyOf(useItems);
         pets = List.copyOf(pets);
         masks = List.copyOf(masks);
+        reforges = List.copyOf(reforges);
         diagnostics = List.copyOf(diagnostics);
     }
 
@@ -105,9 +106,19 @@ public record Library(Snapshot snapshot, List<EnchantDef> catalog, List<CrystalD
         return null;
     }
 
+    /** The parsed {@link ReforgeDef} for a reforge key (as a reforged weapon stores it), or {@code null} if none defines it. */
+    public ReforgeDef reforgeDefOf(String key) {
+        for (ReforgeDef def : reforges) {
+            if (def.key().equals(key)) {
+                return def;
+            }
+        }
+        return null;
+    }
+
     /** An empty library around an already-compiled (empty) snapshot — the boot-failure fallback. */
     public static Library empty(Snapshot snapshot, List<Diagnostic> diagnostics) {
-        return new Library(snapshot, List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
+        return new Library(snapshot, List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(),
                 TierRegistry.BUILTIN, diagnostics);
     }
 

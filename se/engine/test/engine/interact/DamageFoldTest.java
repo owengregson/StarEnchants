@@ -397,4 +397,86 @@ class DamageFoldTest {
         f.addHeroicReduction(0.30);
         assertEquals(7.0, f.apply(10.0), EPS); // heroic folds again after reset (the flag did not leak)
     }
+
+    // ── ADR-0071 self-malus channel (mulFinal): prices the WHOLE committed hit, scale-immune ──────
+
+    @Test
+    void mulFinalPricesWholeHitAtScaleFive() {
+        // The pack's flat-forward shape at scale 5.0: (7 × (1 + 0.10×5) + 0.1×5) + 1.5 = 11.0 + 1.5
+        // = 12.5, then the −20% self-malus prices the whole hit: 12.5 × 0.8 = 10.0 (felt −20%).
+        DamageFold f = new DamageFold();
+        f.attackScale(5.0);
+        f.addOutgoing(0.10);
+        f.addFlatDamage(0.1);
+        f.addEffectiveDamage(1.5);
+        f.mulFinal(0.8);
+        assertEquals(10.0, f.apply(7.0), EPS);
+    }
+
+    @Test
+    void mulFinalPricesWholeHitAtScaleOne() {
+        // Same buckets at scale 1.0: (7 × 1.1 + 0.1) + 1.5 = 9.3, then ×0.8 = 7.44 — felt −20% at
+        // BOTH scales (the point of a post-fold multiplicative factor).
+        DamageFold f = new DamageFold();
+        f.attackScale(1.0);
+        f.addOutgoing(0.10);
+        f.addFlatDamage(0.1);
+        f.addEffectiveDamage(1.5);
+        f.mulFinal(0.8);
+        assertEquals(7.44, f.apply(7.0), EPS);
+    }
+
+    @Test
+    void negativeOutgoingIsScaleTrapped() {
+        // Pins the TRAP mulFinal exists for (ADR-0071): authoring the −20% as addOutgoing(−0.2) at
+        // scale 5.0 folds Σout to +0.10−0.20 = −0.10 → (7 × (1 + (−0.10)×5) + 0.1×5) = 3.5 + 0.5 =
+        // 4.0, NOT the intended −20% of the 11.0 economy (8.8). The scale multiplies the malus into
+        // a −63.6% overshoot — which is why the malus rides mulFinal, never the outgoing bucket.
+        DamageFold f = new DamageFold();
+        f.attackScale(5.0);
+        f.addOutgoing(0.10);
+        f.addFlatDamage(0.1);
+        f.addOutgoing(-0.20);
+        assertEquals(4.0, f.apply(7.0), EPS);
+    }
+
+    @Test
+    void mulFinalStacksMultiplicatively() {
+        // Two self-maluses both apply, order-free: 9.0 × 0.8 × (1/3) = 2.4.
+        DamageFold f = new DamageFold();
+        f.mulFinal(0.8);
+        f.mulFinal(1.0 / 3.0);
+        assertEquals(2.4, f.apply(9.0), EPS);
+    }
+
+    @Test
+    void mulFinalClampsToUnitInterval() {
+        // A factor > 1 is clamped to 1.0 — no multiplicative BUFF can be smuggled through (ADR-0012).
+        DamageFold buff = new DamageFold();
+        buff.mulFinal(1.5);
+        assertEquals(10.0, buff.apply(10.0), EPS);
+        // A negative factor clamps to 0.0 — zeroes the hit, never heals.
+        DamageFold neg = new DamageFold();
+        neg.mulFinal(-0.5);
+        assertEquals(0.0, neg.apply(10.0), EPS);
+    }
+
+    @Test
+    void mulFinalAppliesToRiderOnlyHits() {
+        // The factor prices the rider bucket too (it applies to the whole result): 0 base + 2.0
+        // rider = 2.0, ×0.5 = 1.0.
+        DamageFold f = new DamageFold();
+        f.addEffectiveDamage(2.0);
+        f.mulFinal(0.5);
+        assertEquals(1.0, f.apply(0.0), EPS);
+    }
+
+    @Test
+    void resetRestoresFinalFactor() {
+        DamageFold f = new DamageFold();
+        f.mulFinal(0.5);
+        f.reset();
+        assertEquals(1.0, f.finalFactor(), EPS);
+        assertEquals(4.0, f.apply(4.0), EPS);
+    }
 }
