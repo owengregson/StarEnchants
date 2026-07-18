@@ -78,7 +78,9 @@ class ItemEnchanterMaskTest {
                 LoreRenderer.Config.of(LoreStyle.DEFAULT, key -> holder.library().displayNameOf(key)), store);
         enchanter = new ItemEnchanter(codec, lore, holder, ItemGroups.standard(),
                 () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
-                () -> ItemEnchanter.DEFAULT_MAX_MERGE, messages, item.mint.VanillaEnchants.NONE);
+                () -> ItemEnchanter.DEFAULT_MAX_MERGE,
+                () -> compile.load.MasterConfig.ReforgesSection.defaults().weaponGroups(),
+                messages, item.mint.VanillaEnchants.NONE);
     }
 
     /** A mocked gear stack: type/amount stubbed, meta absent (the lore recompose no-ops on it). */
