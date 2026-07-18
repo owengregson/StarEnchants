@@ -21,6 +21,7 @@ features:
   use-items: true  # right-click use-items fire their abilities (§3.6); false leaves a held use-item inert
   pets: true       # pets contribute to worn state and the pet gestures are live (ADR-0052); false = inert heads
   masks: true      # masks contribute to worn state, the mask gestures (apply/remove) + worn repaint are live (ADR-0053); false = inert
+  reforges: true   # weapon reforges contribute while HELD and the reforge gestures (apply / shift-right-click active) are live (ADR-0070); false = inert
 
 # Combat caps (cross-cutting). The additive damage fold (ADR-0012) sums every source's outgoing% and
 # reduction%; these ceil those sums (a negative value = no cap). The 0.70 outgoing cap is a PRE-SCALE ceiling on
@@ -182,6 +183,15 @@ pets:
 masks:
   near-commands: ["near"]   # command names NearGuard intercepts (no leading slash); [] disables the interception
   near-radius: 200          # radius in blocks the owned /near listing scans
+
+# Weapon Reforges (ADR-0070). A reforge drag-applies onto a WEAPON (one socket per weapon — the ONLY knob
+# here decides what counts as a weapon) and its signature ability fires on SHIFT + Right Click while that
+# weapon is held. The reforge ITEM's likeness lives in items/reforge.yml; each reforge's identity + ability
+# in content/reforges/<key>.yml. Removal is the Item Extractor (items/crystal.yml `extractor:`). weapon-groups
+# takes ItemGroups tokens (SWORD, AXE, TRIDENT, MACE, or the WEAPON composite); a token's materials that don't
+# exist on this server version are simply skipped. Read live on /se reload.
+reforges:
+  weapon-groups: [SWORD, AXE]
 
 # Heroic (§F / ADR-0037). The granted percents, success range and material-upgrade map are the upgrade's
 # likeness in items/heroic.yml. A heroic piece's percents feed the SAME additive damage fold every enchant

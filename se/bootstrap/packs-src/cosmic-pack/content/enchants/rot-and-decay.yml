@@ -15,7 +15,7 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_ZOMBIE_INFECT", volume: 0.9, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 10 } }
-      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "none", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
+      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "activator", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
       - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
   2:
     chance: 2
@@ -23,7 +23,7 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_ZOMBIE_INFECT", volume: 0.9, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 10 } }
-      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "none", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
+      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "activator", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
       - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
   3:
     chance: 3
@@ -31,7 +31,7 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_ZOMBIE_INFECT", volume: 0.9, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 10 } }
-      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "none", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
+      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "activator", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
       - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
   4:
     chance: 4
@@ -39,7 +39,7 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_ZOMBIE_INFECT", volume: 0.9, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 10 } }
-      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "none", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
+      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "activator", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
       - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
   5:
     chance: 5
@@ -47,7 +47,7 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_ZOMBIE_INFECT", volume: 0.9, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 10 } }
-      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "none", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
+      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "activator", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
       - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
   6:
     chance: 6
@@ -55,7 +55,7 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_ZOMBIE_INFECT", volume: 0.9, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 10 } }
-      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "none", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
+      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "activator", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
       - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
   7:
     chance: 7
@@ -63,7 +63,7 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_ZOMBIE_INFECT", volume: 0.9, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 10 } }
-      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "none", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
+      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "activator", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
       - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
   8:
     chance: 8
@@ -71,7 +71,7 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_ZOMBIE_INFECT", volume: 0.9, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 10 } }
-      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "none", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
+      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "activator", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
       - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
   9:
     chance: 9
@@ -79,7 +79,7 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_ZOMBIE_INFECT", volume: 0.9, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 10 } }
-      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "none", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
+      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "activator", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
       - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
   10:
     chance: 10
@@ -87,5 +87,5 @@ levels:
     effects:
       - { SOUND: { sound: "ENTITY_ZOMBIE_INFECT", volume: 0.9, pitch: 0.9 } }
       - { PARTICLE: { particle: "SOUL", count: 10 } }
-      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "none", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
+      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "activator", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
       - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe

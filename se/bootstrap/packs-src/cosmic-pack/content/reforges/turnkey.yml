@@ -1,0 +1,17 @@
+# Turnkey — TRAP_BREAK (ADR-0071). Instantly cancels whatever confining trap is on you — the
+# Fantasy cobweb, a Spider web box, a Cage cell — restoring the trapped blocks to their true
+# originals early and intact. Floor paint (Hell's Kitchen, frost floors) is not confinement and is
+# untouched. A block restore, not an ability negation: works through Silence by construction.
+display: "Turnkey"
+color: "&7"
+icon: TRIPWIRE_HOOK
+description:
+  - "&eInstantly break out of any confinement —"
+  - "&ewebs, web boxes, and cage cells shatter"
+  - "&eback to the blocks they replaced."
+cooldown: 600          # 30s
+chance: 100
+condition: ""
+effects:
+  - { SOUND: { sound: "BLOCK_IRON_TRAPDOOR_OPEN", volume: 1.0, pitch: 1.4 } }
+  - { TRAP_BREAK: { who: "@Self" } }

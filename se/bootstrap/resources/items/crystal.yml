@@ -30,12 +30,13 @@ sounds:
   enabled: true
   apply: "block.amethyst_block.chime"
   remove: "block.amethyst_cluster.break"
-# The crystal EXTRACTOR. On crystal-bearing GEAR it pops the whole last crystal off intact — a multi-crystal
-# comes back as one multi-crystal (ADR-0035); apply it again to that crystal item to split its topmost single.
-# On a multi-crystal ITEM it pops the topmost single.
+# The ITEM EXTRACTOR. On gear carrying a weapon reforge it pops the REFORGE off first, intact (ADR-0070);
+# otherwise on crystal-bearing GEAR it pops the whole last crystal off intact — a multi-crystal comes back as
+# one multi-crystal (ADR-0035); apply it again to that crystal item to split its topmost single. On a
+# multi-crystal ITEM it pops the topmost single.
 extractor:
   material: AMETHYST_CLUSTER
-  name: "&dCrystal Extractor"
+  name: "&dItem Extractor"
   lore:
-    - "&7Drag onto gear to pop its crystal off"
-    - "&7whole, or onto a multi-crystal to split it."
+    - "&7Drag onto gear to pop its reforge or crystal"
+    - "&7off whole, or onto a multi-crystal to split it."

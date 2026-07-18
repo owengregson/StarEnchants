@@ -1,0 +1,13 @@
+# Blink — Weapon Reforge (ADR-0070/0071). SHIFT+right-click: instantly teleport up to 4 blocks
+# along your facing if the path is clear — stops at the last open block, never phases into or
+# through terrain. Downside (owner-authored): short range, walls stop it — a reposition, not a
+# terrain escape; a point-blank wall still spends the use.
+display: "Blink"
+color: "&e"
+icon: CHORUS_FRUIT
+description:
+  - "&eInstantly blink up to four blocks in your facing direction. Walls stop you short."
+abilities:
+  - cooldown: 200
+    effects:
+      - { BLINK: { distance: 4, particle: REDSTONE, r: 170, g: 60, b: 220, size: 1.0, count: 10 } }
