@@ -40,6 +40,7 @@ public final class ItemsLoader {
         Optional<PetItemConfig> pet = Optional.empty();
         Optional<PetFoodConfig> petFood = Optional.empty();
         Optional<MaskItemConfig> mask = Optional.empty();
+        Optional<ReforgeItemConfig> reforge = Optional.empty();
         // Scroll family: each member is its own file, assembled into one ScrollsConfig below (§I).
         Optional<ScrollsConfig.Black> black = Optional.empty();
         Optional<ScrollsConfig.Randomizer> randomizer = Optional.empty();
@@ -244,6 +245,14 @@ public final class ItemsLoader {
                         mask = Optional.of(readMask(root, diags));
                     }
                 }
+                case "reforge", "reforges", "weapon-reforge" -> {
+                    if (reforge.isPresent()) {
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one reforge config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        reforge = Optional.of(readReforge(root, diags));
+                    }
+                }
                 default -> diags.warning(DiagCode.W_ITEM_TYPE, "unknown item type '" + type + "' in " + name, root.source());
             }
         }
@@ -270,7 +279,7 @@ public final class ItemsLoader {
             traks = Optional.empty();
         }
         return new ItemsConfig(soulGem, crystal, heroic, slots, scrolls, unopenedBook, enchantBook,
-                dust, whiteScroll, traks, pet, petFood, mask, diags.all());
+                dust, whiteScroll, traks, pet, petFood, mask, reforge, diags.all());
     }
 
     /** items/mask.yml — the universal mask likeness (ADR-0053): name/lore templates + the on-helmet line + cues. */
@@ -278,6 +287,20 @@ public final class ItemsLoader {
         MaskItemConfig d = MaskItemConfig.defaults();
         YamlNode sounds = root.child("sounds");
         return new MaskItemConfig(
+                orDefault(root.string("name"), d.name()),
+                root.has("lore") ? root.stringList("lore") : d.lore(),
+                orDefault(root.string("lore-while-on-item"), d.loreWhileOnItem()),
+                root.has("sounds") && sounds.has("enabled")
+                        ? !"false".equalsIgnoreCase(sounds.string("enabled")) : d.sounds(),
+                SoundCue.fromField(sounds, "apply", d.soundApply(), diags),
+                SoundCue.fromField(sounds, "remove", d.soundRemove(), diags));
+    }
+
+    /** items/reforge.yml — the universal weapon-reforge likeness (ADR-0070): name/lore templates + the on-weapon line + cues. */
+    private static ReforgeItemConfig readReforge(YamlNode root, Diagnostics diags) {
+        ReforgeItemConfig d = ReforgeItemConfig.defaults();
+        YamlNode sounds = root.child("sounds");
+        return new ReforgeItemConfig(
                 orDefault(root.string("name"), d.name()),
                 root.has("lore") ? root.stringList("lore") : d.lore(),
                 orDefault(root.string("lore-while-on-item"), d.loreWhileOnItem()),
