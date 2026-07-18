@@ -14,8 +14,11 @@ import engine.sink.EngineDamage;
 import engine.sink.SinkEnv;
 import engine.sink.SinkReadback;
 import engine.sink.SwarmClouds;
+import engine.stores.BatteryStore;
 import engine.stores.ComboStore;
 import engine.stores.DamageCapStore;
+import engine.stores.DisarmWindowStore;
+import engine.stores.HitTempoStore;
 import engine.stores.OutgoingDebuffStore;
 import engine.stores.RecentAttackersStore;
 import engine.stores.ReflectMarksStore;
@@ -62,6 +65,10 @@ public final class CombatDispatch {
     private final OutgoingDebuffStore outgoingDebuff; // §4 Weaken/Destruction
     private final DamageCapStore damageCap;         // §5 Diminish
     private final SuppressionStore suppression;      // §7 one-shot Neutralize consume
+    // ADR-0071 reforge armed-window stores: consulted at the hit site here, armed by the sink intents (shared via the env).
+    private final HitTempoStore hitTempo;           // Quickening tempo window + per-victim stolen stamps
+    private final BatteryStore battery;             // Supernova core (banked, discharged on the next hit)
+    private final DisarmWindowStore disarmWindows;  // the Unhanding one-shot window
     private final LongSupplier nowTicks;
     private final java.util.function.DoubleSupplier maxBonusDamage;    // §L config.yml combat.max-bonus-damage (<0 = uncapped)
     private final java.util.function.DoubleSupplier maxBonusReduction; // §L config.yml combat.max-bonus-reduction (<0 = uncapped)
@@ -87,6 +94,15 @@ public final class CombatDispatch {
     /** Install the friendly-fire gate (boot-time). A {@code null} predicate resets to "never friendly". */
     public static void friendlyFire(java.util.function.BiPredicate<Player, Player> predicate) {
         friendlyFire = predicate == null ? (attacker, victim) -> false : predicate;
+    }
+
+    /**
+     * Whether two players are friendly under the installed gate (ADR-0071 §2.6): the reforge strike listener's
+     * Supernova bank reads this so a charge never banks in a context where it could never discharge — the same
+     * defense-side {@code !friendly} predicate the dispatch applies. Same package, no second install path.
+     */
+    static boolean friendly(Player attacker, Player victim) {
+        return friendlyFire.test(attacker, victim);
     }
 
     /**
@@ -124,6 +140,9 @@ public final class CombatDispatch {
         this.outgoingDebuff = env.stores().outgoingDebuff();
         this.damageCap = env.stores().damageCap();
         this.suppression = env.stores().suppression();
+        this.hitTempo = env.stores().hitTempo();
+        this.battery = env.stores().battery();
+        this.disarmWindows = env.stores().disarmWindows();
         this.nowTicks = env.nowTicks();
         this.maxBonusDamage = caps.maxBonusDamage();
         this.maxBonusReduction = caps.maxBonusReduction();
@@ -283,6 +302,33 @@ public final class CombatDispatch {
             double weaken = outgoingDebuff.active(attackerPlayer.getUniqueId(), now);
             if (weaken != 0.0) {
                 sink.fold().addOutgoing(-weaken / 100.0);
+            }
+            // ADR-0071 reforge armed-window consults. Melee-only (the reforge lives on a held melee weapon):
+            // rawDamager must be the player, not a projectile. Contributions are optimistic; consumption commits
+            // at MONITOR via ReforgeStrikeRelay iff the event survives (ReforgeStrikeListener), so a Dodge/negate
+            // never eats a window or a charge. These consults inherit this branch's pvp/pve + friendly gate by
+            // construction — reforge windows are SE combat economy and vanish wherever all other SE combat does.
+            boolean meleeHit = rawDamager == damager;
+            ReforgeStrikeRelay.Pending reforgePending = null;
+            if (meleeHit && victim != null) {
+                HitTempoStore.Window tempo = hitTempo.window(attackerPlayer.getUniqueId(), now);
+                if (tempo != null) {
+                    sink.fold().mulFinal(tempo.damageFactor());
+                    reforgePending = ReforgeStrikeRelay.tempo(reforgePending, tempo);
+                }
+                DisarmWindowStore.Arm unhanding = disarmWindows.armed(attackerPlayer.getUniqueId(), now);
+                if (unhanding != null && victimEntity instanceof Player) {
+                    sink.fold().mulFinal(1.0 - unhanding.malusFraction());
+                    reforgePending = ReforgeStrikeRelay.disarm(reforgePending);
+                }
+                if (battery.armed(attackerPlayer.getUniqueId())) {
+                    sink.fold().addEffectiveDamage(battery.peek(attackerPlayer.getUniqueId()));
+                    reforgePending = ReforgeStrikeRelay.battery(reforgePending);
+                }
+                if (reforgePending != null) {
+                    ReforgeStrikeRelay.mark(event, env.stores(), attackerPlayer.getUniqueId(),
+                            victimEntity.getUniqueId(), reforgePending);
+                }
             }
             int attackerRecent = recent.distinctCount(attackerPlayer.getUniqueId(), now); // how many are ganking the attacker (Anti Gank)
             ActivationContext attackCtx = new ActivationContext(attackerPlayer, victim, null, at, incomingDamage,
