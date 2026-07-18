@@ -715,16 +715,18 @@ Spawn count entities of type at the target's (or activation) location; ttl ticks
 
 ### SPAWN_SWARM
 
-Summon count entities of type evenly spaced on a radius-block ring around the activator, raised rise blocks (chest height), each facing directly outward, with VANILLA AI, auto-removed after ttl ticks. speed < 1 slows each to that fraction of its vanilla AI speed via a per-tick velocity damp (Bat-style AI ignores the speed attribute).
+Summon count entities of type evenly spaced on a radius-block ring around the activator, raised rise blocks (chest height), each facing directly outward, with VANILLA AI, auto-removed after ttl ticks. speed < 1 slows each to that fraction of its vanilla AI speed via a per-tick velocity damp (Bat-style AI ignores the speed attribute). cloud: true makes the summons orbit the 1x2x1 pillar directly in front of whoever attacked the activator most recently within cloud-range blocks (vision cloud); with no such attacker they keep vanilla AI. While clouding, the orbit's own pacing overrides speed.
 
 - _affinity_: `REGION`
-- _usage_: `{ SPAWN_SWARM: { type: <entity_type>, count: <int[1..]=1>, radius: <double[0..]=0.5>, rise: <double[0..]=1.2>, ttl: <ticks[0..]=300>, speed: <double[0..1]=1> } }`
+- _usage_: `{ SPAWN_SWARM: { type: <entity_type>, count: <int[1..]=1>, radius: <double[0..]=0.5>, rise: <double[0..]=1.2>, ttl: <ticks[0..]=300>, speed: <double[0..1]=1>, cloud: <bool=false>, cloud-range: <double[1..]=16> } }`
 - _param_ `type` `entity_type`
 - _param_ `count` `int[1..]`
 - _param_ `radius` `double[0..]`
 - _param_ `rise` `double[0..]`
 - _param_ `ttl` `ticks[0..]`
 - _param_ `speed` `double[0..1]`
+- _param_ `cloud` `bool`
+- _param_ `cloud-range` `double[1..]`
 - _example_: `{ SPAWN_SWARM: { type: BAT, count: 10, radius: 0.5, ttl: 300, speed: 0.5 } }`
 
 ### STRIP_SCROLL

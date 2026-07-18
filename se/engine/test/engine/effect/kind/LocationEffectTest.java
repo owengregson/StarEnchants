@@ -265,29 +265,44 @@ class LocationEffectTest {
                     Location origin = mock(Location.class);
                     FakeEffectCtx ctx = FakeEffectCtx.create()
                             .with("type", 5).with("count", 12).with("radius", 0.5).with("rise", 1.2)
-                            .with("ttl", 300).with("speed", 0.5).actor(self).actorOrigin(origin);
+                            .with("ttl", 300).with("speed", 0.5).with("cloud", true).with("cloud-range", 16.0)
+                            .actor(self).actorOrigin(origin);
                     Sink sink = mock(Sink.class);
                     new SpawnSwarmEffect().run(ctx, sink);
-                    verify(sink).spawnSwarm(origin, 5, 12, 0.5, 1.2, 300, 0.5);
+                    verify(sink).spawnSwarm(origin, 5, 12, 0.5, 1.2, 300, 0.5, self, 16.0);
                     verify(self, never()).getLocation(); // the snapshot is the sole actor read (ADR-0043)
                     verifyNoMoreInteractions(sink);
                 }),
                 dynamicTest("SPAWN_SWARM with no origin → activation-location fallback", () -> {
+                    Player self = mock(Player.class);
                     Location fallback = mock(Location.class);
                     FakeEffectCtx ctx = FakeEffectCtx.create()
                             .with("type", 7).with("count", 3).with("radius", 1.0).with("rise", 1.2)
-                            .with("ttl", 60).with("speed", 1.0).location(fallback);
+                            .with("ttl", 60).with("speed", 1.0).with("cloud", false).with("cloud-range", 16.0)
+                            .actor(self).location(fallback);
                     Sink sink = mock(Sink.class);
                     new SpawnSwarmEffect().run(ctx, sink);
-                    verify(sink).spawnSwarm(fallback, 7, 3, 1.0, 1.2, 60, 1.0);
+                    // cloud: false must pass a NULL owner even with an actor present
+                    verify(sink).spawnSwarm(fallback, 7, 3, 1.0, 1.2, 60, 1.0, null, 16.0);
                     verifyNoMoreInteractions(sink);
                 }),
                 dynamicTest("SPAWN_SWARM with no origin and no location → no intent", () -> {
                     FakeEffectCtx ctx = FakeEffectCtx.create()
                             .with("type", 7).with("count", 3).with("radius", 1.0).with("rise", 1.2)
-                            .with("ttl", 60).with("speed", 1.0);
+                            .with("ttl", 60).with("speed", 1.0).with("cloud", true).with("cloud-range", 16.0);
                     Sink sink = mock(Sink.class);
                     new SpawnSwarmEffect().run(ctx, sink);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("SPAWN_SWARM cloud with no actor → null owner", () -> {
+                    Location origin = mock(Location.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("type", 5).with("count", 12).with("radius", 0.5).with("rise", 1.2)
+                            .with("ttl", 300).with("speed", 0.5).with("cloud", true).with("cloud-range", 16.0)
+                            .actorOrigin(origin);
+                    Sink sink = mock(Sink.class);
+                    new SpawnSwarmEffect().run(ctx, sink);
+                    verify(sink).spawnSwarm(origin, 5, 12, 0.5, 1.2, 300, 0.5, null, 16.0);
                     verifyNoMoreInteractions(sink);
                 }));
     }

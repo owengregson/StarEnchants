@@ -217,6 +217,8 @@ effect SPAWN_SWARM
   param rise DOUBLE optional min=0 max=- enum=- handle=- default=1.2
   param ttl TICKS optional min=0 max=- enum=- handle=- default=300
   param speed DOUBLE optional min=0 max=1 enum=- handle=- default=1
+  param cloud BOOL optional min=- max=- enum=- handle=- default=false
+  param cloud-range DOUBLE optional min=1 max=- enum=- handle=- default=16
 effect STRIP_SCROLL
   param scroll ENUM optional min=- max=- enum=HOLY,WHITE handle=- default=HOLY
   param hand BOOL optional min=- max=- enum=- handle=- default=true
