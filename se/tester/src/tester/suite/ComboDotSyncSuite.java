@@ -47,6 +47,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.plugin.Plugin;
+import platform.caps.Capabilities;
 import platform.economy.EconomyService;
 import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
@@ -151,12 +152,23 @@ public final class ComboDotSyncSuite implements Harness.Scenario {
                 return;
             }
             UUID victimId = victim.getUniqueId();
-            AtomicInteger damageEvents = new AtomicInteger();
+            UUID attackerId = attacker.getUniqueId();
+            AtomicInteger seLeaks = new AtomicInteger();                    // a leaked SE parked DoT (attributed to the attacker)
+            AtomicReference<Double> vanillaFreeze = new AtomicReference<>(0.0); // the freeze VISUAL's own vanilla FREEZE damage
             rig.listen(new Listener() {
                 @EventHandler(priority = EventPriority.MONITOR)
                 public void onDamage(EntityDamageEvent e) {
-                    if (e.getEntity().getUniqueId().equals(victimId)) {
-                        damageEvents.incrementAndGet();
+                    if (!e.getEntity().getUniqueId().equals(victimId)) {
+                        return;
+                    }
+                    // A leaked SE parked DoT is an attributed hurt (EngineDamage.hurt with the attacker in scope,
+                    // so an EntityDamageByEntityEvent from the attacker). The freeze VISUAL's own vanilla FREEZE
+                    // damage is a vanilla-mechanism DoT the design does NOT park (§7.9) — expected, not a leak.
+                    if (e instanceof EntityDamageByEntityEvent edbe
+                            && edbe.getDamager().getUniqueId().equals(attackerId)) {
+                        seLeaks.incrementAndGet();
+                    } else if (e.getCause() == EntityDamageEvent.DamageCause.FREEZE) {
+                        vanillaFreeze.updateAndGet(v -> v + e.getFinalDamage());
                     }
                 }
             });
@@ -174,13 +186,15 @@ public final class ComboDotSyncSuite implements Harness.Scenario {
                 Scheduling.onEntityLater(victim, 60L, () -> {
                     double owed = drainSum(ledger, victimId, attacker.getUniqueId());
                     h.guard(key, () -> {
-                        if (Math.abs(victim.getHealth() - victim.getMaxHealth()) > EPS) {
-                            throw new IllegalStateException("a parked victim lost health: " + victim.getHealth()
-                                    + "/" + victim.getMaxHealth() + " — banked damage leaked through");
+                        double freezeToll = vanillaFreeze.get();
+                        if ((victim.getMaxHealth() - victim.getHealth()) - freezeToll > EPS) {
+                            throw new IllegalStateException("a parked victim lost health beyond the design-excluded"
+                                    + " vanilla freeze (" + freezeToll + "): " + victim.getHealth() + "/"
+                                    + victim.getMaxHealth() + " — banked SE damage leaked through");
                         }
-                        if (damageEvents.get() != 0) {
-                            throw new IllegalStateException("a parked victim saw " + damageEvents.get()
-                                    + " damage event(s); nothing should reach vanilla mid-combo");
+                        if (seLeaks.get() != 0) {
+                            throw new IllegalStateException("a parked victim saw " + seLeaks.get()
+                                    + " SE damage-over-time event(s); no engine DoT should reach vanilla mid-combo");
                         }
                         if (Math.abs(owed - 12.0) > EPS) {
                             throw new IllegalStateException("banked total " + owed
@@ -310,6 +324,11 @@ public final class ComboDotSyncSuite implements Harness.Scenario {
                 release.begin(victim);
                 Scheduling.onEntityLater(victim, 3L, () -> {
                     int early = releaseHits.get(); // window still armed here → must be zero
+                    // Now clear the window so the release lands promptly and deterministically. Fake players do
+                    // NOT decay noDamageTicks on their own on 1.17.1, so relying on natural decay races the wait
+                    // budget there (the release only forces through at WINDOW_WAIT_CAP_TICKS) — clear it, like
+                    // clearMidReleaseAllowsAFreshBegin does.
+                    victim.setNoDamageTicks(0);
                     Scheduling.onEntityLater(victim, 40L, () -> {
                         h.guard(key, () -> {
                             if (early != 0) {
@@ -595,6 +614,14 @@ public final class ComboDotSyncSuite implements Harness.Scenario {
         ComboDotRelease release = new ComboDotRelease(ledger, () -> 0L);
         Location farAt = at.clone().add(CrossRegion.GAP, 0, CrossRegion.GAP); // far enough to own a distinct Folia region
         rig.onArena(at, farAt, () -> {
+            // The cross-region degrade only exists on a regionized server: on single-threaded Paper there are no
+            // regions to cross (the far attacker is just a far entity), so this scenario is vacuous there — like
+            // the other cross-region suites (CrossRegionTeleportSuite / AffinityAutogenSuite), skip it.
+            if (!Capabilities.foliaPresent()) {
+                plugin.getLogger().info("[combodot] single-threaded Paper — cross-region release degrade not applicable");
+                h.pass(key);
+                return;
+            }
             Player victim;
             try {
                 victim = rig.spawnFake(world, "se_cds_xr_v"); // FakePlayers spawns at world spawn (primary region)
@@ -632,8 +659,9 @@ public final class ComboDotSyncSuite implements Harness.Scenario {
                     ledger.tryPark(victimId, farAttacker, PARKED, 0L); // handle stored, never dereferenced here
                     ledger.comboEnded(victimId);
                     try {
-                        // Runs on the victim's (primary) thread; the release's ONE liveness read of the far attacker
-                        // is Regions.read-guarded, so on Folia it degrades to a bare hurt rather than a wrong-thread throw.
+                        // Runs on the victim's (primary) thread; the release's attacker-ownership check sees the far
+                        // attacker is off-region and degrades to a BARE hurt, which lands — rather than attributing
+                        // a cross-region damager (which vanilla dereferences → a wrong-thread throw).
                         release.begin(victim);
                     } catch (Throwable t) {
                         h.fail(key, "release.begin threw: " + t);
