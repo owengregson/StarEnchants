@@ -1,0 +1,14 @@
+# Javelin — Weapon Reforge (ADR-0070/0071). SHIFT+right-click: hurl a straight particle javelin at
+# 3 blocks per second (deliberately slow — sidestep it), max 12 blocks. First living hit takes one
+# weapon-swing's damage, 1.3x knockback straight back along the javelin's angle, a 1-second
+# camera-lock + movement-freeze, then Nausea for 5 seconds. A wall stops it; a miss is wasted.
+# JAVELIN is a service-owned marker (the DIG_HOME rule).
+display: "Javelin"
+color: "&e"
+icon: TRIDENT
+description:
+  - "&eHurl a slow, straight javelin: the first enemy it finds is struck, hurled back along its flight, locked in place for a second and left reeling."
+abilities:
+  - cooldown: 600
+    effects:
+      - { JAVELIN: { speed: 0.15, max-travel: 12, hit-radius: 0.9, damage-mode: WEAPON, damage: 7.0, knockback: 1.3, knockback-base: 0.45, lock: 20, lock-delay: 5, nausea-effect: "CONFUSION", nausea-duration: 100, particle: REDSTONE, r: 120, g: 200, b: 255, size: 1.2 } }

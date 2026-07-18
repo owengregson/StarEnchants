@@ -1,0 +1,18 @@
+# The Unhanding — DISARM_SHUFFLE (ADR-0071). 4s armed window: your next landed melee hit on a
+# player knocks their held item into a random OTHER hotbar slot (re-selectable — shuffled, not
+# locked; the scramble breaks weapon-gated rhythm like Rage naturally). Downside: the shuffling
+# hit deals -20% damage (the fold's self-malus channel — survives combat.attack-scale).
+display: "The Unhanding"
+color: "&f"
+icon: SHEARS
+description:
+  - "&eFor 4 seconds your next landed hit knocks"
+  - "&ethe victim's held item into a random other"
+  - "&ehotbar slot."
+  - "&cThe shuffling hit deals 20% less damage."
+cooldown: 400          # 20s
+chance: 100
+condition: ""
+effects:
+  - { SOUND: { sound: "ENTITY_SHEEP_SHEAR", volume: 1.0, pitch: 1.3 } }
+  - { DISARM_SHUFFLE: { duration: 80, damage-malus: 20, who: "@Self" } }

@@ -1,0 +1,14 @@
+# Castling — Weapon Reforge (ADR-0070/0071). SHIFT+right-click: lock the enemy in your crosshair
+# (12 blocks, line of sight); a 2-second channel counts down with audible ticks and warnings BOTH
+# sides, then you swap positions — velocities zeroed, each keeps their own facing. Downside: the
+# ticks warn them (breaking line of sight cancels it — and the cooldown stays spent), and you
+# inherit their exact spot. SWAP_POSITION is a service-owned marker (the DIG_HOME rule).
+display: "Castling"
+color: "&6"
+icon: STONE_BRICKS
+description:
+  - "&eChannel for two loud seconds on the enemy in your crosshair, then trade places with them. Breaking your line of sight cancels it."
+abilities:
+  - cooldown: 600
+    effects:
+      - { SWAP_POSITION: { range: 12, channel: 40, check-period: 2, cue-period: 10, range-slack: 2 } }

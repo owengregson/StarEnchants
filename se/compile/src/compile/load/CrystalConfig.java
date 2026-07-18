@@ -76,7 +76,7 @@ public record CrystalConfig(
                 new SoundCue("block.amethyst_block.chime", 1.0f, 1.0f),
                 new SoundCue("block.amethyst_cluster.break", 1.0f, 1.0f),
                 "AMETHYST_CLUSTER",
-                "&dCrystal Extractor",
-                List.of("&7Drag onto a crystal-bearing item or a", "&7multi-crystal to pop its topmost crystal."));
+                "&dItem Extractor",
+                List.of("&7Drag onto gear to pop its reforge or crystal", "&7off whole, or onto a multi-crystal to split it."));
     }
 }

@@ -1,0 +1,16 @@
+# Leviathan's Reach — Weapon Reforge (ADR-0070/0071). SHIFT+right-click: a grappling line along
+# your facing (range 14). An enemy in sight is reeled to ~2 blocks in front of you with a brief
+# Slowness and NO damage; open terrain instead zips YOU to it. A real FishHook is not spawnable
+# anywhere in the supported range, so the hook is a dust-line sim (evidence in ADR-0071). The
+# GRAPPLE head is a service-owned marker (the DIG_HOME rule): the reforge service resolves BOTH
+# rays itself — the runtime carries one selector slot per effect, so the two raycasts cannot be
+# authored as selectors. The closer of entity-vs-block wins the ray; open air is a wasted throw.
+display: "Leviathan's Reach"
+color: "&6"
+icon: FISHING_ROD
+description:
+  - "&eThrow a grappling line: hook an enemy to reel them to your feet, or hook terrain to zip yourself to it."
+abilities:
+  - cooldown: 400
+    effects:
+      - { GRAPPLE: { range: 14, hook-speed: 2.0, reel-distance: 2.0, slow-effect: "SLOW", slow-level: 2, slow-duration: 60, zip-strength: 0.34, zip-cap: 3.2, zip-rise: 0.25, particle: REDSTONE, r: 200, g: 220, b: 255, size: 1.0, density: 3 } }

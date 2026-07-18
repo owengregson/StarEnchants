@@ -1,0 +1,19 @@
+# Summoner's Bell — CONVERT_SUMMON (ADR-0071). Ring it: every enemy-summoned ally within 12 blocks
+# permanently joins your side — summoned guards/zombies/sentries/mounts rebind ownership (their
+# GUARDIAN_HURT now fires for YOU), targeting summons turn on their former owner, tamed summons
+# re-tame, and bat swarm clouds permanently swarm their former owner. Rot-and-Decay's zombies bind
+# owner: "activator" (ADR-0070 ruling R3), so the Bell converts them too — their former owner is the
+# enchant's activator.
+display: "Summoner's Bell"
+color: "&e"
+icon: BELL
+description:
+  - "&eRing the bell: every enemy summon within"
+  - "&e12 blocks joins your side permanently and"
+  - "&eturns on its former master."
+cooldown: 900          # 45s
+chance: 100
+condition: ""
+effects:
+  - { SOUND: { sound: "BLOCK_BELL_USE", volume: 1.0, pitch: 1.0 } }
+  - { CONVERT_SUMMON: { radius: 12, who: "@Self" } }

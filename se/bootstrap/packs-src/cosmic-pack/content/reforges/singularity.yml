@@ -1,0 +1,15 @@
+# Singularity — Weapon Reforge (ADR-0070/0071). SHIFT+right-click: throw a particle beam onto the
+# block in your sights (max 12); a collapsing star forms above it, drags everything within 6 blocks
+# toward the core for 3 seconds, then implodes for ~4 hearts with distance falloff. Downside: it
+# pulls — and hurts — YOU too if you stand inside. The GRAVITY_WELL head is a service-owned marker
+# (the DIG_HOME rule): the reforge service raycasts, beams, pulls and implodes; every number below
+# is the single source the service reads.
+display: "Singularity"
+color: "&d"
+icon: ENDER_EYE
+description:
+  - "&eThrow a collapsing star onto a block in your sights: it drags everything nearby inward for three seconds, then implodes. Careful - it pulls you too."
+abilities:
+  - cooldown: 1200
+    effects:
+      - { GRAVITY_WELL: { range: 12, radius: 6, rise: 2.5, duration: 60, period: 2, pull: 0.28, damage: 8.0, falloff-floor: 0.25, self-pull: true, self-damage: true, r: 190, g: 120, b: 255 } }
