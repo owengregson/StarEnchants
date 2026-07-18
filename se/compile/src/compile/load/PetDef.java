@@ -24,6 +24,9 @@ import java.util.List;
  *                    empty = the template's descriptor line renders nothing
  * @param description authored ability description lines, verbatim (filled as {@code {DESCRIPTION}})
  * @param permission  Bukkit permission gating use, checked at use time; {@code ""} = everyone
+ * @param messageOnNoHome optional line sent when a digger pet is used with no home dug
+ *                    ({@code message-on-no-home}); {@code ""} = fall back to the universal fail template
+ *                    (ADR-0067)
  * @param brackets    the authored level brackets, sorted ascending by {@link PetBracket#floor()}
  */
 public record PetDef(
@@ -36,6 +39,7 @@ public record PetDef(
         List<String> descriptor,
         List<String> description,
         String permission,
+        String messageOnNoHome,
         List<PetBracket> brackets) {
 
     public PetDef {
