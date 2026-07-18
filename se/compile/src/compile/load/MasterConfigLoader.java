@@ -39,6 +39,7 @@ public final class MasterConfigLoader {
                     MasterConfig.SlotsSection.defaults(), MasterConfig.SoulsSection.defaults(),
                     MasterConfig.CrystalsSection.defaults(),
                     MasterConfig.PetsSection.defaults(), MasterConfig.MasksSection.defaults(),
+                    MasterConfig.ReforgesSection.defaults(),
                     MasterConfig.LoreSection.defaults(), MasterConfig.IntegrationsSection.defaults(),
                     MasterConfig.ReloadSection.defaults(), MasterConfig.CommandTriggerSection.defaults(),
                     MasterConfig.MessageOnActivateSection.defaults(), MasterConfig.SetsSection.defaults(),
@@ -62,6 +63,7 @@ public final class MasterConfigLoader {
                 readCrystals(root.child("crystals"), diags),
                 readPets(root.child("pets"), diags),
                 readMasks(root.child("masks"), diags),
+                readReforges(root.child("reforges"), diags),
                 readLore(root.child("lore"), diags),
                 readIntegrations(root.child("integrations"), diags),
                 readReload(root.child("reload"), diags),
@@ -123,7 +125,17 @@ public final class MasterConfigLoader {
                 parseBool(n.string("scrolls"), d.scrolls(), n, diags),
                 parseBool(n.string("use-items"), d.useItems(), n, diags),
                 parseBool(n.string("pets"), d.pets(), n, diags),
-                parseBool(n.string("masks"), d.masks(), n, diags));
+                parseBool(n.string("masks"), d.masks(), n, diags),
+                parseBool(n.string("reforges"), d.reforges(), n, diags));
+    }
+
+    /** The weapon-reforge knobs (ADR-0070): which ItemGroups tokens count as a WEAPON for the one socket. */
+    private static MasterConfig.ReforgesSection readReforges(YamlNode n, Diagnostics diags) {
+        MasterConfig.ReforgesSection d = MasterConfig.ReforgesSection.defaults();
+        // upper-cased at load so the ItemGroups match is an exact token compare (the masks case-fold idiom).
+        List<String> groups = n.has("weapon-groups") ? n.stringList("weapon-groups") : d.weaponGroups();
+        return new MasterConfig.ReforgesSection(
+                groups.stream().map(g -> g.toUpperCase(Locale.ROOT)).toList());
     }
 
     /** The mask cross-cutting knobs (ADR-0053 §8): the owned {@code /near} interception's command list + radius. */
