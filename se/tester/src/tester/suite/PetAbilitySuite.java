@@ -59,7 +59,7 @@ import tester.harness.Harness;
  * environmental damage event through WornState (uncapped defense percents + CANCEL immunity), (b) the
  * PASSIVE potion + WATER_SPEED worn channels maintain Water Breathing and the water-movement attribute
  * modifier (1.21+; passed-with-note where the attribute is absent), and (c) SPAWN_SWARM spawns a ring of
- * vanilla-AI summons at chest height that the TTL removes. Test-owned defs; clientless fake player
+ * vanilla-AI summons at Y-scattered chest height (ADR-0068) that the TTL removes. Test-owned defs; clientless fake player
  * (players do not fall server-side, so the FALL event is synthesized — the PlayerItemDamageEvent rule).
  */
 @SuppressWarnings("deprecation") // EntityDamageEvent(Entity,DamageCause,double): the floor-stable synthetic-fall ctor (A13), deprecated-not-removed across the range
@@ -84,7 +84,7 @@ public final class PetAbilitySuite implements Harness.Scenario {
             display: Bat
             type: ACTIVE
             levels:
-              1: { cooldown: 0, effects: [ { SPAWN_SWARM: { type: BAT, count: 6, radius: 0.5, ttl: 60, speed: 0.5 } } ] }
+              1: { cooldown: 0, effects: [ { SPAWN_SWARM: { type: BAT, count: 12, radius: 0.5, ttl: 60, speed: 0.5 } } ] }
             """;
 
     private static final String FALL_REDUCED = "pets.sheepFallReduced";
@@ -92,6 +92,7 @@ public final class PetAbilitySuite implements Harness.Scenario {
     private static final String BREATHING = "pets.krakenWaterBreathingMaintained";
     private static final String WATER_SPEED = "pets.krakenWaterSpeedModifier";
     private static final String SWARM_RING = "pets.batSwarmRingSpawns";
+    private static final String SWARM_JITTER = "pets.batSwarmSpawnYJitterSpreads";
     private static final String SWARM_TTL = "pets.batSwarmTtlRemoves";
 
     private final Plugin plugin;
@@ -107,6 +108,7 @@ public final class PetAbilitySuite implements Harness.Scenario {
         h.expect(BREATHING);
         h.expect(WATER_SPEED);
         h.expect(SWARM_RING);
+        h.expect(SWARM_JITTER);
         h.expect(SWARM_TTL);
 
         RegistryResolvers resolvers = new RegistryResolvers();
@@ -236,32 +238,61 @@ public final class PetAbilitySuite implements Harness.Scenario {
                     // (c) Bat: fire the live bracket's USE keys straight through the shared spine.
                     List<String> useKeys = holder.library().petDefOf("bat").bracketFor(1).useStableKeys();
                     dispatch.fireUse(user, useKeys);
-                    Scheduling.onEntityLater(user, 5L, () -> {
-                        h.guard(SWARM_RING, () -> {
-                            int bats = 0;
+                    // ADR-0068 spawn-Y jitter: captured EARLY (2 ticks), before AI drift widens the band —
+                    // [0.45, 1.95] = rise 1.2 ± jitter 0.6 ± 0.15 drift; a near-equal spread means the
+                    // scatter never applied (P(span < 0.15 | 12 uniform rolls) ≈ 2e-10 — flake-proof).
+                    Scheduling.onEntityLater(user, 2L, () -> {
+                        h.guard(SWARM_JITTER, () -> {
+                            double min = Double.POSITIVE_INFINITY;
+                            double max = Double.NEGATIVE_INFINITY;
+                            int seen = 0;
                             for (Entity near : user.getNearbyEntities(5, 5, 5)) {
                                 if (near.getType() == EntityType.BAT) {
-                                    bats++;
                                     double dy = near.getLocation().getY() - user.getLocation().getY();
-                                    if (dy < 0.2 || dy > 2.5) {
+                                    if (dy < 1.2 - 0.75 || dy > 1.2 + 0.75) {
                                         throw new IllegalStateException(
-                                                "a swarm bat spawned outside chest height: dy=" + dy);
+                                                "a swarm bat spawned outside the jitter band: dy=" + dy);
                                     }
+                                    min = Math.min(min, dy);
+                                    max = Math.max(max, dy);
+                                    seen++;
                                 }
                             }
-                            if (bats != 6) {
-                                throw new IllegalStateException("expected 6 swarm bats, found " + bats);
+                            if (seen == 0) {
+                                throw new IllegalStateException("no swarm bats present 2 ticks after the summon");
+                            }
+                            if (max - min < 0.15) {
+                                throw new IllegalStateException("spawn heights did not scatter: span="
+                                        + (max - min) + " over " + seen + " bats");
                             }
                         });
-                        Scheduling.onEntityLater(user, 75L, () -> { // ttl 60 + margin
-                            h.guard(SWARM_TTL, () -> {
-                                for (Entity near : user.getNearbyEntities(8, 8, 8)) {
+                        Scheduling.onEntityLater(user, 5L, () -> {
+                            h.guard(SWARM_RING, () -> {
+                                int bats = 0;
+                                for (Entity near : user.getNearbyEntities(5, 5, 5)) {
                                     if (near.getType() == EntityType.BAT) {
-                                        throw new IllegalStateException("a swarm bat outlived its TTL");
+                                        bats++;
+                                        double dy = near.getLocation().getY() - user.getLocation().getY();
+                                        if (dy < 0.0 || dy > 2.6) {
+                                            throw new IllegalStateException(
+                                                    "a swarm bat spawned outside chest height: dy=" + dy);
+                                        }
                                     }
                                 }
+                                if (bats != 12) {
+                                    throw new IllegalStateException("expected 12 swarm bats, found " + bats);
+                                }
                             });
-                            rig.teardown();
+                            Scheduling.onEntityLater(user, 75L, () -> { // ttl 60 + margin
+                                h.guard(SWARM_TTL, () -> {
+                                    for (Entity near : user.getNearbyEntities(8, 8, 8)) {
+                                        if (near.getType() == EntityType.BAT) {
+                                            throw new IllegalStateException("a swarm bat outlived its TTL");
+                                        }
+                                    }
+                                });
+                                rig.teardown();
+                            });
                         });
                     });
                 });
@@ -275,6 +306,7 @@ public final class PetAbilitySuite implements Harness.Scenario {
         h.fail(BREATHING, message);
         h.fail(WATER_SPEED, message);
         h.fail(SWARM_RING, message);
+        h.fail(SWARM_JITTER, message);
         h.fail(SWARM_TTL, message);
     }
 

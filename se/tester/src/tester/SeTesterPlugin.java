@@ -10,6 +10,7 @@ import platform.sched.Scheduling;
 import tester.harness.Harness;
 import tester.suite.AffinityAutogenSuite;
 import tester.suite.ApplyGestureSuite;
+import tester.suite.BatCloudSuite;
 import tester.suite.ApplySuite;
 import tester.suite.CapabilitiesSuite;
 import tester.suite.CarrierSuite;
@@ -135,6 +136,7 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new TriggerSuite(this));
         harness.add(new UseItemSuite(this)); // §3.6/ADR-0048: right-click use-item → shared pipeline (potions, consume, cooldown, commands)
         harness.add(new PetAbilitySuite(this)); // ADR-0060: pet FALL fold/cancel, kraken worn channels, SPAWN_SWARM ring+TTL
+        harness.add(new BatCloudSuite(this)); // ADR-0068: attacker vision cloud — pillar publish, orbit convergence, revert, cross-region fail-closed
         harness.add(new PetHomeSuite(this)); // ADR-0061: mole dig window → recall teleport / out-of-range / teleblock / expiry
         harness.add(new FreezeSuite(this)); // ADR-0065: pinned freeze holds under fire, DoT cadence+attribution, slow lifecycle
         harness.add(new WhySuite(this)); // ADR-0045: record → decode under real region threading
