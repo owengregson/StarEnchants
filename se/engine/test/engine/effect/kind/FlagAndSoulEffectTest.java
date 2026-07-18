@@ -66,7 +66,13 @@ class FlagAndSoulEffectTest {
                 // engine intent here would double-apply the boost.
                 flag("LIGHTNING_MOD → no intent (worn channel)", new LightningModEffect(),
                         c -> c.with("amount", 10.0),
-                        s -> { }));
+                        s -> { }),
+                // ADR-0071 reforge markers (Plan B): the run MUST emit nothing — the reforge service arms each
+                // machine from the compiled args at the activation success point; an engine intent would double-arm.
+                flag("GRAVITY_WELL → no intent (service-owned marker)", new GravityWellEffect(), c -> { }, s -> { }),
+                flag("GRAPPLE → no intent (service-owned marker)", new GrappleEffect(), c -> { }, s -> { }),
+                flag("SWAP_POSITION → no intent (service-owned marker)", new SwapPositionEffect(), c -> { }, s -> { }),
+                flag("JAVELIN → no intent (service-owned marker)", new JavelinEffect(), c -> { }, s -> { }));
     }
 
     @TestFactory

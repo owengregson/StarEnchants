@@ -686,4 +686,15 @@ public interface Sink {
      * steering task. Inert outside a bow shot.
      */
     void seek();
+
+    // ── ADR-0071 reforge movement intents (Plan B) ──
+
+    /**
+     * BLINK: teleport {@code actor} forward along {@code direction} to the farthest standable cell
+     * (feet + head passable) within {@code maxDistance} blocks of {@code origin}, checking every cell
+     * along the ray and stopping at the first blocked one. No open cell → no movement (the attempt is
+     * still spent). A dust puff of {@code count} motes tinted r/g/b marks departure and arrival.
+     */
+    void blinkForward(Player actor, Location origin, org.bukkit.util.Vector direction, double maxDistance,
+                      int particleId, int r, int g, int b, float size, int count);
 }

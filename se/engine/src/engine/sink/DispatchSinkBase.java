@@ -2161,6 +2161,53 @@ public abstract class DispatchSinkBase implements SinkReadback {
         echoRequested = true; // inline read-back: the combat dispatcher re-runs the attacker walk once
     }
 
+    // ── ADR-0071 reforge movement intents (Plan B) ──
+
+    @Override
+    public void blinkForward(Player actor, Location origin, Vector direction, double maxDistance,
+                             int particleId, int r, int g, int b, float size, int count) {
+        Location from = origin.clone();
+        Vector dir = direction.clone();
+        double max = Math.max(0, maxDistance);
+        entityOp(actor, () -> {
+            // Walk the ray in 0.5-block samples from the actor's own thread; a sample cell must be
+            // standable (feet + head passable — the era isSafeDestination leaf with no sight check).
+            // Cells are deduped by block coords; the walk stops at the FIRST blocked cell, and the
+            // landing is the LAST open cell seen. Adjacent-region block reads are inside the leaf's
+            // own Regions.read guard (returns false on fault → treated as blocked → the blink
+            // shortens, never crashes: fail-closed).
+            Location best = null;
+            int lastBx = from.getBlockX();
+            int lastBy = from.getBlockY();
+            int lastBz = from.getBlockZ();
+            for (double d = 0.5; d <= max + 1.0e-9; d += 0.5) {
+                Location cell = new Location(from.getWorld(),
+                        from.getX() + dir.getX() * d,
+                        from.getY() + dir.getY() * d,
+                        from.getZ() + dir.getZ() * d,
+                        from.getYaw(), from.getPitch());
+                if (cell.getBlockX() == lastBx && cell.getBlockY() == lastBy && cell.getBlockZ() == lastBz) {
+                    continue; // same cell as the previous sample
+                }
+                lastBx = cell.getBlockX();
+                lastBy = cell.getBlockY();
+                lastBz = cell.getBlockZ();
+                if (!isSafeDestination(cell, null)) {
+                    break;    // first wall: never phase into or through terrain
+                }
+                best = cell;
+            }
+            if (best == null) {
+                return;       // point-blank wall: zero blink, attempt spent (authored downside)
+            }
+            dustDirect(from.clone().add(0, 1, 0), particleId, r, g, b, size, count); // departure puff (actor-region)
+            exemptMovement(actor);
+            teleportTo(actor, best);
+            Location arrival = best.clone().add(0, 1, 0);
+            Scheduling.onRegion(arrival, () -> dustDirect(arrival, particleId, r, g, b, size, count));
+        });
+    }
+
     /** Strip temporarily-granted flight, but never from a player who can fly by game mode. */
     private static void clearTemporaryFlight(Player player) {
         GameMode mode = player.getGameMode();
