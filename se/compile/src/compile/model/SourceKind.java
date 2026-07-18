@@ -27,5 +27,9 @@ public enum SourceKind {
     PET,
 
     /** A mask ability ({@code content/masks/}, ADR-0053) — resolved from a masked helmet's stored key, helmets-only. */
-    MASK
+    MASK,
+
+    /** A weapon-reforge ability ({@code content/reforges/}, ADR-0070) — resolved from a reforged weapon's stored
+     *  key while that weapon is HELD; the active fires on the implicit USE trigger (shift+right-click). */
+    REFORGE
 }

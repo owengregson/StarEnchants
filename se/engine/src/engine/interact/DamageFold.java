@@ -52,6 +52,13 @@ public final class DamageFold {
     // normalized human scale; ONE multiplier adapts it to the server's armor pipeline (a 1.8-era
     // flat armor+Prot stack passes only ~5% of a hit, so the cosmic pack ships 5.0 there).
     private double attackScale = 1.0;
+    // ADR-0071 self-malus channel: a reforge downside prices the attacker's OWN committed hit.
+    // Multiplicative and applied to the WHOLE result (base + scaled economy + riders) by design:
+    // it is the only shape that survives combat.attack-scale AND the rider bucket — an additive
+    // outgoing term is multiplied by the scale (−0.2 × 5 = −100%, the scale trap) and can never
+    // reach the base or the riders. Clamped to [0,1] so content cannot smuggle a multiplicative
+    // BUFF through it (ADR-0012 stays intact: buffs remain additive-only).
+    private double finalFactor = 1.0;
 
     /**
      * Additive combat caps for this event (config.yml {@code combat.max-bonus-damage} /
@@ -71,6 +78,20 @@ public final class DamageFold {
      */
     public void attackScale(double scale) {
         this.attackScale = scale <= 0 ? 1.0 : scale;
+    }
+
+    /**
+     * Multiply the committed hit by {@code factor} (clamped to [0,1]) — the ADR-0071 self-malus
+     * channel a reforge downside prices its holder's own hit through. Factors accumulate
+     * multiplicatively, so two self-maluses both apply, order-free.
+     */
+    public void mulFinal(double factor) {
+        finalFactor *= Math.max(0.0, Math.min(1.0, factor));
+    }
+
+    /** The accumulated self-malus factor (1.0 = none) — diagnostics/display. */
+    public double finalFactor() {
+        return finalFactor;
     }
 
     /** Contribute an outgoing-damage bonus, e.g. {@code 0.25} for +25% (may be negative). */
@@ -134,7 +155,8 @@ public final class DamageFold {
         double mitigated = outgoing * Math.max(0.0, 1.0 - cappedReduction) - flatRed;
         // The rider bucket joins AFTER the inner clamp: flat reduction may zero the scaled economy but can
         // never reach into the riders (pre-1.8.2 they were separate events it could not absorb, ADR-0055).
-        return Math.max(0.0, Math.max(0.0, mitigated) + effectiveDamage);
+        // The self-malus factor prices the WHOLE committed hit last (ADR-0071), after the riders join.
+        return Math.max(0.0, Math.max(0.0, mitigated) + effectiveDamage) * finalFactor;
     }
 
     /** Reset every bucket for reuse on the next event. */
@@ -148,6 +170,7 @@ public final class DamageFold {
         heroicFlatReduction = 0.0;
         heroicIgnored = false;
         attackScale = 1.0;
+        finalFactor = 1.0;
     }
 
     // Summed-bucket accessors for diagnostics / display.

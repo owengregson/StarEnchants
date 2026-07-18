@@ -96,6 +96,8 @@ public enum DiagCode {
     E_LOAD_PET,            // a pet file is not a YAML mapping, is missing its display/type, or has an empty/malformed levels map
     W_LOAD_PET_TRIGGER,    // a pet ability's trigger is inconsistent with its type (ACTIVE default USE; a PASSIVE pet may not author USE) — forced/ignored
     E_LOAD_MASK,           // a mask file is not a YAML mapping, is missing its display, or declares no ability (crystal dual form; no trigger)
+    E_LOAD_REFORGE,        // a reforge file is not a YAML mapping, is missing its display, or declares no ability
+    W_LOAD_REFORGE_TRIGGER,// the reforge ACTIVE (a0) declares a trigger — USE is implicit on it, forced; support abilities (a1+) may author PASSIVE etc.
     E_LOAD_SET,            // a set file is not a YAML mapping
     E_LOAD_SET_ARMOR,      // a set is missing its armor: block or declares no pieces
     E_LOAD_SET_MEMBER,     // an armour piece declares no material
