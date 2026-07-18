@@ -135,7 +135,7 @@ public final class MaskBreakSuite implements Harness.Scenario {
         Damageable meta = (Damageable) helmet.getItemMeta();
         meta.setDamage(damage);
         helmet.setItemMeta(meta);
-        codec.write(helmet, new CombatState(Map.of(), List.of(), null, null, false, HeroicStat.NONE, 0, MASK_KEY));
+        codec.write(helmet, new CombatState(Map.of(), List.of(), null, null, false, HeroicStat.NONE, 0, MASK_KEY, null));
         return helmet;
     }
 

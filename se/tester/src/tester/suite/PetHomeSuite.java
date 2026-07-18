@@ -163,7 +163,7 @@ public final class PetHomeSuite implements Harness.Scenario {
         PetMessenger messenger = new PetMessenger(messages, MasterConfig.PetsSection::defaults);
         PetLevelCue cue = new PetLevelCue(MasterConfig.PetsSection::defaults, ParticleFx.NONE, Sounds.NONE);
         PetService pets = new PetService(holder, petCodec, dispatch, TexturedHeads.NONE, HeadEquip.NONE,
-                VanillaEnchants.NONE, messenger, armed,
+                VanillaEnchants.NONE, messenger, armed, new feature.pet.PetSharedUseStore(),
                 MasterConfig.PetsSection::defaults, PetItemConfig::defaults, PetFoodConfig::defaults,
                 p -> worn.refresh(p, holder.snapshot()), clock::get, m -> m == Material.AIR,
                 cue, new Random(42), homes, stores.teleblock(), visuals);

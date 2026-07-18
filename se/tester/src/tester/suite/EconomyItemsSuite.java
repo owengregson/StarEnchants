@@ -106,7 +106,7 @@ public final class EconomyItemsSuite implements Harness.Scenario {
                 .withBaseSlots(() -> ItemEnchanter.DEFAULT_BASE_SLOTS));
         ItemEnchanter enchanter = new ItemEnchanter(combat, lore, holder, ItemGroups.standard(),
                 () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
-                () -> ItemEnchanter.DEFAULT_MAX_MERGE, platform.lang.Messages.defaults(), item.mint.VanillaEnchants.NONE);
+                () -> ItemEnchanter.DEFAULT_MAX_MERGE, () -> java.util.List.of("SWORD", "AXE"), platform.lang.Messages.defaults(), item.mint.VanillaEnchants.NONE);
         CarrierCodec carrierCodec = new CarrierCodec(keys.carrier(), keys.guarded(), Stores.state());
         CarrierService carriers = new CarrierService(carrierCodec, enchanter, holder, new Random(1),
                 compile.load.EnchantBookConfig::defaults, compile.load.DustConfig::defaults,
