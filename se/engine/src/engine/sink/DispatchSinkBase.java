@@ -989,16 +989,18 @@ public abstract class DispatchSinkBase implements SinkReadback {
         if (holder == null) {
             return;
         }
-        // Runs on the holder's own thread (entityOp): the store arm plus the 1.9+ attack-speed modifier and
-        // its TimedRevert are all region-correct there (the drainMaxHealth shape). The store window is then
-        // consulted on the holder's future melee hits.
-        entityOp(holder, () -> {
-            hitTempoStore.arm(holder.getUniqueId(), nowTicks.getAsLong(), durationTicks, windowModel, damageFactor);
-            if (attackSpeedBonus > 0) {
+        // Arm the store INLINE — a thread-free UUID-keyed map write (the armBattery/armDisarmShuffle shape).
+        // The combat dispatcher consults this window on the holder's very next melee hit; a plan-deferred
+        // entityOp lands NEXT TICK on Folia (the entity scheduler never runs inline), leaving the window
+        // invisible for the hit it is meant to tax. Only the 1.9+ attack-speed modifier + its TimedRevert
+        // genuinely need the holder's region thread (attribute mutation), so that alone hops via entityOp.
+        hitTempoStore.arm(holder.getUniqueId(), nowTicks.getAsLong(), durationTicks, windowModel, damageFactor);
+        if (attackSpeedBonus > 0) {
+            entityOp(holder, () -> {
                 applyTempoAttackSpeed(holder, attackSpeedBonus);
                 revertLater(holder, durationTicks, () -> clearTempoAttackSpeed(holder));
-            }
-        });
+            });
+        }
     }
 
     @Override
@@ -1022,37 +1024,55 @@ public abstract class DispatchSinkBase implements SinkReadback {
         if (ringer == null) {
             return;
         }
-        // Enumerate on the ringer's own region (sanctioned); mutate each summon on ITS OWN scheduler.
-        entityOp(ringer, () -> {
-            UUID ringerId = ringer.getUniqueId();
-            for (Entity near : ringer.getNearbyEntities(radius, radius, radius)) {
-                UUID id = near.getUniqueId();
-                if (near instanceof Bat) {
-                    // Swarm bats carry no GuardianCasts entry — cloud MEMBERSHIP decides (region-free UUID match).
-                    SwarmClouds.turnByBat(ringerId, id);
-                    continue;
-                }
-                UUID owner = GuardianCasts.owner(id);
-                if (owner == null || owner.equals(ringerId) || !(near instanceof LivingEntity)) {
-                    continue; // a wild/unowned spawn, or already ours
-                }
-                GuardianCasts.bind(id, ringerId); // ownership + GUARDIAN_HURT flip (concurrent map)
-                Player former = Bukkit.getPlayer(owner); // may be null/offline — fail-open to vanilla AI
-                SummonFlags flags = PetSummons.flags(id);
-                boolean retarget = former != null && (flags == null || !flags.noTarget());
-                // Hop each summon to its OWN thread DIRECTLY (the cageTeleport rule): this body runs during the
-                // plan flush, so a plan-backed entityOp would append to an already-dispatched batch and be lost.
-                Scheduling.onEntity(near, () -> {
-                    if (near instanceof Tameable tame) {
-                        tame.setOwner(ringer);
-                        tame.setTamed(true);
-                    }
-                    if (retarget) {
-                        setGuardTarget(near, former); // target the FORMER owner (the era leaf guard() uses)
-                    }
-                });
+        // A CONTEXT_LOCAL self ability: this already runs on the ringer's OWN region thread, so enumerate +
+        // rebind INLINE — ownership must be visible the instant the bell rings, and a plan-deferred entityOp
+        // lands NEXT TICK on Folia (the entity scheduler never runs inline), leaving a converted guard still
+        // registered to its old owner when the caller reads back. Snapshot the ring once: the former owner a
+        // bell flips a summon onto is by construction within that ring, so resolve them REGION-LOCALLY from
+        // this same list (Bukkit.getPlayer misses an actor absent from the online list — a fake/clientless
+        // player, an owner mid-relog). Each per-summon entity mutation still hops to the summon's own scheduler.
+        UUID ringerId = ringer.getUniqueId();
+        List<Entity> nearby = new ArrayList<>(ringer.getNearbyEntities(radius, radius, radius));
+        for (Entity near : nearby) {
+            UUID id = near.getUniqueId();
+            if (near instanceof Bat) {
+                // Swarm bats carry no GuardianCasts entry — cloud MEMBERSHIP decides (region-free UUID match).
+                SwarmClouds.turnByBat(ringerId, id);
+                continue;
             }
-        });
+            UUID owner = GuardianCasts.owner(id);
+            if (owner == null || owner.equals(ringerId) || !(near instanceof LivingEntity)) {
+                continue; // a wild/unowned spawn, or already ours
+            }
+            GuardianCasts.bind(id, ringerId); // ownership + GUARDIAN_HURT flip (concurrent map), visible now
+            LivingEntity former = formerOwner(owner, nearby); // in-ring first, else the online player list
+            SummonFlags flags = PetSummons.flags(id);
+            boolean retarget = former != null && (flags == null || !flags.noTarget());
+            // Hop each summon to its OWN scheduler (the cross-entity rule); the former reference is only stored.
+            Scheduling.onEntity(near, () -> {
+                if (near instanceof Tameable tame) {
+                    tame.setOwner(ringer);
+                    tame.setTamed(true);
+                }
+                if (retarget) {
+                    setGuardTarget(near, former); // target the FORMER owner (the era leaf guard() uses)
+                }
+            });
+        }
+    }
+
+    /**
+     * The former owner as a live target for a converted summon (ADR-0071): the in-ring entity carrying that
+     * UUID (region-local — robust for an actor absent from the online player list, e.g. a fake/clientless
+     * player), else the online player of that UUID (an owner who summoned from outside the bell's ring).
+     */
+    private static LivingEntity formerOwner(UUID owner, List<Entity> nearby) {
+        for (Entity near : nearby) {
+            if (near.getUniqueId().equals(owner) && near instanceof LivingEntity living) {
+                return living;
+            }
+        }
+        return Bukkit.getPlayer(owner);
     }
 
     @Override
