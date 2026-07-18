@@ -2208,6 +2208,68 @@ public abstract class DispatchSinkBase implements SinkReadback {
         });
     }
 
+    @Override
+    public void grapple(Player actor, Location eye, LivingEntity victim, Location reelTo, Location hookPoint,
+                        int flightTicks, int slowPotionId, int slowAmplifier, int slowTicks,
+                        Vector zip, int particleId, int r, int g, int b, float size, double density) {
+        Location from = eye.clone();
+        Location end = victim == null ? (hookPoint == null ? null : hookPoint.clone()) : null; // victim end read on its own thread
+        int flight = Math.max(1, flightTicks);
+        if (victim != null) {
+            Location dest = reelTo.clone();
+            // Line drawn now to the victim's LAST KNOWN point (the kind measured it); yank runs on the
+            // victim's own scheduler after the flight — never re-enters this plan (the cage rule).
+            entityOp(victim, () -> {
+                drawLine(from, victim.getLocation(), particleId, r, g, b, size, density); // victim-thread read: region-correct
+                Scheduling.onEntityLater(victim, flight, () -> {
+                    if (!victim.isValid()) {
+                        return;
+                    }
+                    exemptMovement(victim);
+                    teleportTo(victim, dest);
+                    victim.setVelocity(new Vector(0, 0, 0));
+                    PotionEffectType slow = potionEffect(slowPotionId);
+                    if (slow != null && slowTicks > 0) {
+                        victim.addPotionEffect(new PotionEffect(slow, slowTicks, slowAmplifier));
+                    }
+                });
+            });
+        } else if (end != null && zip != null) {
+            Vector pullV = zip.clone();
+            regionOp(end, () -> drawLine(from, end, particleId, r, g, b, size, density));
+            entityOp(actor, () -> Scheduling.onEntityLater(actor, flight, () -> {
+                if (actor.isValid()) {
+                    exemptMovement(actor);
+                    actor.setVelocity(pullV);
+                }
+            }));
+        }
+    }
+
+    /**
+     * A straight dust line from → to at {@code density} motes/block, RUN AFTER FLUSH: each mote fans to its
+     * own owning region thread via {@code Scheduling.onRegion} (a ≤14-block line can straddle chunks) and draws
+     * directly through the {@code dustDirect} leaf — never the plan-based {@link #dust}, which would append to
+     * an already-dispatched batch (the cage rule).
+     */
+    private void drawLine(Location from, Location to, int particleId, int r, int g, int b,
+                          float size, double density) {
+        if (from == null || to == null) {
+            return;
+        }
+        double dx = to.getX() - from.getX();
+        double dy = to.getY() - from.getY();
+        double dz = to.getZ() - from.getZ();
+        double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        int steps = Math.max(1, (int) Math.round(dist * density));
+        for (int s = 0; s <= steps; s++) {
+            double t = (double) s / steps;
+            Location point = new Location(from.getWorld(),
+                    from.getX() + dx * t, from.getY() + dy * t, from.getZ() + dz * t);
+            Scheduling.onRegion(point, () -> dustDirect(point, particleId, r, g, b, size, 1));
+        }
+    }
+
     /** Strip temporarily-granted flight, but never from a player who can fly by game mode. */
     private static void clearTemporaryFlight(Player player) {
         GameMode mode = player.getGameMode();
