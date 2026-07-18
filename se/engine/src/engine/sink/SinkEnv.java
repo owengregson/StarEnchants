@@ -28,14 +28,15 @@ import platform.economy.EconomyService;
  * activations a REPEATING trigger fires. {@code timedReverts} is the ONE per-boot {@link TimedRevert} for the
  * same reason: a timed buff's revert closure must outlive the per-event sink so the quit drain can run it when
  * a player logs out mid-window (F07/F08). {@code dotPark} is the ONE per-boot combo-DoT park ledger (ADR-0069),
- * shared so a park and its flush (separate events) see the same buckets. All four shared via the env like the
- * stores, never a mutable static.
+ * shared so a park and its flush (separate events) see the same buckets. {@code trapStructures} is the ONE
+ * per-boot {@link TrapStructures} registry (ADR-0071), shared so a confining placement and its Turnkey break
+ * (separate events) see the same structures. All shared via the env like the stores, never a mutable static.
  */
 public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
                       Consumer<Player> movementExemption, TempBlockLedger<BlockState> tempBlocks,
                       TrailWalker trails, TimedRevert timedReverts, DotParkLedger dotPark,
                       DoubleSupplier moneyInterestCap, GearProtection gearProtection,
-                      ToDoubleFunction<UUID> lightningBoost) {
+                      ToDoubleFunction<UUID> lightningBoost, TrapStructures trapStructures) {
 
     public SinkEnv {
         Objects.requireNonNull(economy, "economy");
@@ -50,6 +51,7 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
         Objects.requireNonNull(moneyInterestCap, "moneyInterestCap");
         Objects.requireNonNull(gearProtection, "gearProtection");
         Objects.requireNonNull(lightningBoost, "lightningBoost");
+        Objects.requireNonNull(trapStructures, "trapStructures");
     }
 
     /** The four-arg shape every non-root site used before the exemption rode the env — no-op movement hook. */
@@ -84,6 +86,6 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
                              GearProtection gearProtection, ToDoubleFunction<UUID> lightningBoost) {
         return new SinkEnv(economy, souls, stores, nowTicks, movementExemption, BukkitBlockOps.ledger(),
                 new TrailWalker(), new TimedRevert(), new DotParkLedger(), moneyInterestCap, gearProtection,
-                lightningBoost);
+                lightningBoost, new TrapStructures());
     }
 }
