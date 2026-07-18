@@ -2,8 +2,11 @@ package engine.sink;
 
 import compile.model.ScopeKinds;
 import engine.interact.DamageFold;
+import engine.stores.BatteryStore;
 import engine.stores.CooldownStore;
 import engine.stores.DamageCapStore;
+import engine.stores.DisarmWindowStore;
+import engine.stores.HitTempoStore;
 import engine.stores.ImmuneStore;
 import engine.stores.KeepOnDeathStore;
 import engine.stores.KnockbackControlStore;
@@ -15,8 +18,10 @@ import engine.stores.TeleblockStore;
 import engine.stores.VarStore;
 import engine.stores.WardStore;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -33,6 +38,7 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
+import org.bukkit.entity.Bat;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -112,6 +118,10 @@ public abstract class DispatchSinkBase implements SinkReadback {
     protected static final String FROZEN_FROST_OFFSET_NAME = "starenchants.frozen_frost_offset";
     /** Unlocked-pin slack: outruns aiStep's −2/tick decay so the SYNCED value is exactly max (§1). */
     protected static final int FREEZE_PIN_SLACK = 2;
+    /** The Quickening attack-speed modifier's identity (HIT_TEMPO, ADR-0071) — ADD_SCALAR, the 1.9+ swing meter. */
+    protected static final UUID REFORGE_TEMPO_ID =
+            UUID.nameUUIDFromBytes("starenchants:reforge_tempo".getBytes(StandardCharsets.UTF_8));
+    protected static final String REFORGE_TEMPO_NAME = "starenchants.reforge_tempo";
 
     private final EconomyService economy;
     private final SoulDebit souls;
@@ -151,6 +161,14 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final GearProtection gearProtection;
     /** The worn LIGHTNING_MOD channel (ADR-0063): actor UUID → summed boost fraction, read per bolt emit. */
     private final ToDoubleFunction<UUID> lightningBoost;
+    /** Quickening tempo windows + stolen-interval stamps (ADR-0071 HIT_TEMPO). */
+    private final HitTempoStore hitTempoStore;
+    /** Supernova cores (ADR-0071 BATTERY). */
+    private final BatteryStore batteryStore;
+    /** Unhanding armed windows (ADR-0071 DISARM_SHUFFLE). */
+    private final DisarmWindowStore disarmWindowStore;
+    /** The ONE per-boot confining-structure registry (via {@link SinkEnv}), so Turnkey can early-restore a trap. */
+    private final TrapStructures trapStructures;
 
     /** The event's own entity (the combat victim), whose zero-WAIT health writes run inline at flush (ADR-0051). */
     private LivingEntity eventEntity;
@@ -200,6 +218,10 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.moneyInterestCap = env.moneyInterestCap();
         this.gearProtection = env.gearProtection();
         this.lightningBoost = env.lightningBoost();
+        this.hitTempoStore = env.stores().hitTempo();
+        this.batteryStore = env.stores().battery();
+        this.disarmWindowStore = env.stores().disarmWindows();
+        this.trapStructures = env.trapStructures();
         this.fold = new DamageFold();
     }
 
@@ -959,6 +981,110 @@ public abstract class DispatchSinkBase implements SinkReadback {
         }
     }
 
+    // ── ADR-0071 reforge combat-state intents (Plan C) ──
+
+    @Override
+    public void hitTempo(Player holder, int durationTicks, int windowModel, double damageFactor,
+                         double attackSpeedBonus) {
+        if (holder == null) {
+            return;
+        }
+        // Runs on the holder's own thread (entityOp): the store arm plus the 1.9+ attack-speed modifier and
+        // its TimedRevert are all region-correct there (the drainMaxHealth shape). The store window is then
+        // consulted on the holder's future melee hits.
+        entityOp(holder, () -> {
+            hitTempoStore.arm(holder.getUniqueId(), nowTicks.getAsLong(), durationTicks, windowModel, damageFactor);
+            if (attackSpeedBonus > 0) {
+                applyTempoAttackSpeed(holder, attackSpeedBonus);
+                revertLater(holder, durationTicks, () -> clearTempoAttackSpeed(holder));
+            }
+        });
+    }
+
+    @Override
+    public void armBattery(Player holder, double bankFraction, int maxHits) {
+        if (holder != null) {
+            // Inline per-player core write (the mark() shape); the strike side banks incoming / spends on hit.
+            batteryStore.arm(holder.getUniqueId(), bankFraction, maxHits);
+        }
+    }
+
+    @Override
+    public void armDisarmShuffle(Player holder, int durationTicks, double malusFraction) {
+        if (holder != null) {
+            // Inline per-player one-shot window write; consumed at the landed hit (the mark() shape).
+            disarmWindowStore.arm(holder.getUniqueId(), nowTicks.getAsLong(), durationTicks, malusFraction);
+        }
+    }
+
+    @Override
+    public void convertSummons(Player ringer, double radius) {
+        if (ringer == null) {
+            return;
+        }
+        // Enumerate on the ringer's own region (sanctioned); mutate each summon on ITS OWN scheduler.
+        entityOp(ringer, () -> {
+            UUID ringerId = ringer.getUniqueId();
+            for (Entity near : ringer.getNearbyEntities(radius, radius, radius)) {
+                UUID id = near.getUniqueId();
+                if (near instanceof Bat) {
+                    // Swarm bats carry no GuardianCasts entry — cloud MEMBERSHIP decides (region-free UUID match).
+                    SwarmClouds.turnByBat(ringerId, id);
+                    continue;
+                }
+                UUID owner = GuardianCasts.owner(id);
+                if (owner == null || owner.equals(ringerId) || !(near instanceof LivingEntity)) {
+                    continue; // a wild/unowned spawn, or already ours
+                }
+                GuardianCasts.bind(id, ringerId); // ownership + GUARDIAN_HURT flip (concurrent map)
+                Player former = Bukkit.getPlayer(owner); // may be null/offline — fail-open to vanilla AI
+                SummonFlags flags = PetSummons.flags(id);
+                boolean retarget = former != null && (flags == null || !flags.noTarget());
+                // Hop each summon to its OWN thread DIRECTLY (the cageTeleport rule): this body runs during the
+                // plan flush, so a plan-backed entityOp would append to an already-dispatched batch and be lost.
+                Scheduling.onEntity(near, () -> {
+                    if (near instanceof Tameable tame) {
+                        tame.setOwner(ringer);
+                        tame.setTamed(true);
+                    }
+                    if (retarget) {
+                        setGuardTarget(near, former); // target the FORMER owner (the era leaf guard() uses)
+                    }
+                });
+            }
+        });
+    }
+
+    @Override
+    public void breakTraps(Player actor) {
+        if (actor == null) {
+            return;
+        }
+        entityOp(actor, () -> {
+            Location at = actor.getLocation(); // own thread — inline read
+            World world = at.getWorld();
+            if (world == null) {
+                return;
+            }
+            UUID worldId = world.getUID();
+            List<TrapStructures.Structure> confining = trapStructures.confining(
+                    actor.getUniqueId(), worldId, at.getBlockX(), at.getBlockY(), at.getBlockZ(),
+                    nowTicks.getAsLong());
+            for (TrapStructures.Structure structure : confining) {
+                trapStructures.remove(structure.id());
+                for (int[] tile : structure.tilesSnapshot()) {
+                    int tx = tile[0];
+                    int ty = tile[1];
+                    int tz = tile[2];
+                    // reclaim on the tile's OWNING region (the ledger's sanctioned early-restore: all layers
+                    // popped, true original back, every pending revert no-ops on the entry-null guard).
+                    Scheduling.onRegion(new Location(world, tx, ty, tz),
+                            () -> tempBlocks.reclaim(worldId, tx, ty, tz));
+                }
+            }
+        });
+    }
+
     @Override
     public void disarm(LivingEntity target) {
         // Runs on the target's own thread (entityOp), so reading its equipment + dropping at its
@@ -1547,6 +1673,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void tempBlock(Location at, int materialId, int durationTicks, int replaceMode, boolean unbreakable) {
+        tempBlock(at, materialId, durationTicks, replaceMode, unbreakable, null);
+    }
+
+    @Override
+    public void tempBlock(Location at, int materialId, int durationTicks, int replaceMode, boolean unbreakable,
+                          UUID confined) {
         Location pos = at.clone(); // own the position: a WAIT tier can defer this to a later tick
         regionOp(pos, () -> {
             Material material = material(materialId);
@@ -1567,6 +1699,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
             TempBlockLedger.Key key = new TempBlockLedger.Key(
                     world.getUID(), pos.getBlockX(), pos.getBlockY(), pos.getBlockZ());
             TempBlockLedger.Pending pending = tempBlocks.place(key, material.ordinal(), durationTicks, nowTicks.getAsLong());
+            if (confined != null) {
+                // A block in the victim's own cell (ADR-0071 TRAP_BREAK, the Fantasy web): register the placed
+                // tile as a one-tile confining structure so Turnkey can early-restore it intact.
+                long sid = trapStructures.open(world.getUID(), Set.of(confined), nowTicks.getAsLong(), durationTicks);
+                trapStructures.tile(sid, pos.getBlockX(), pos.getBlockY(), pos.getBlockZ());
+            }
             Scheduling.onRegionLater(pos, pending.delayTicks(),
                     () -> tempBlocks.revert(key, pending.layerId(), pending.seq(), nowTicks.getAsLong()));
         });
@@ -1575,6 +1713,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
     @Override
     public void tempBox(Location center, int materialId, int width, int height, int depth, int durationTicks,
                         int replaceMode) {
+        tempBox(center, materialId, width, height, depth, durationTicks, replaceMode, null);
+    }
+
+    @Override
+    public void tempBox(Location center, int materialId, int width, int height, int depth, int durationTicks,
+                        int replaceMode, UUID confined) {
         Location origin = center.clone(); // own the centre: a WAIT tier can defer this to a later tick
         regionOp(origin, () -> {
             Material material = material(materialId);
@@ -1590,6 +1734,10 @@ public abstract class DispatchSinkBase implements SinkReadback {
             int typeId = material.ordinal();
             long now = nowTicks.getAsLong();
             UUID worldId = world.getUID();
+            // An entity-anchored box (ADR-0071 TRAP_BREAK, the Spider box) opens ONE confining structure; each
+            // successfully-placed tile registers to it so Turnkey can early-restore the whole box intact.
+            long sid = confined == null ? -1L
+                    : trapStructures.open(worldId, Set.of(confined), now, durationTicks);
             for (int dx = -hx; dx < width - hx; dx++) {
                 for (int dz = -hz; dz < depth - hz; dz++) {
                     for (int dy = 0; dy < height; dy++) {
@@ -1607,6 +1755,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
                             }
                             TempBlockLedger.Key key = new TempBlockLedger.Key(worldId, bx, by, bz);
                             TempBlockLedger.Pending pending = tempBlocks.place(key, typeId, durationTicks, now);
+                            if (sid >= 0) {
+                                trapStructures.tile(sid, bx, by, bz); // only tiles the ledger actually placed
+                            }
                             Scheduling.onRegionLater(tileAt, pending.delayTicks(),
                                     () -> tempBlocks.revert(key, pending.layerId(), pending.seq(), nowTicks.getAsLong()));
                         });
@@ -1647,6 +1798,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
             }
             long now = nowTicks.getAsLong();
             UUID worldId = world.getUID();
+            // The cage confines BOTH teleported parties (ADR-0071 TRAP_BREAK): open ONE structure now and
+            // register every placed cell below, so either party's Turnkey early-restores the whole cell intact.
+            Set<UUID> caged = new HashSet<>(2);
+            caged.add(first.getUniqueId());
+            caged.add(second.getUniqueId());
+            long cageSid = trapStructures.open(worldId, caged, now, durationTicks);
             for (int dx = -hx - 1; dx < width - hx + 1; dx++) {
                 for (int dz = -hz - 1; dz < depth - hz + 1; dz++) {
                     boolean ring = ringCell(dx, dz, hx, hz, width, depth);
@@ -1683,6 +1840,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
                             }
                             TempBlockLedger.Key key = new TempBlockLedger.Key(worldId, bx, by, bz);
                             TempBlockLedger.Pending pending = tempBlocks.place(key, typeId, durationTicks, now);
+                            trapStructures.tile(cageSid, bx, by, bz); // register the placed wall/floor/roof cell
                             if (connect) {
                                 // A no-physics place leaves a modern fence-like block unconnected (walk-through
                                 // "beams"); flag its along-the-ring faces so the wall is solid.
@@ -2472,4 +2630,17 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     /** Create an explosion honouring {@code breakBlocks}, never fire (the overload with a block-break flag differs by era). */
     protected abstract void doExplosion(World world, Location at, double power, boolean breakBlocks);
+
+    /**
+     * Reconcile the ONE plugin-owned Quickening attack-speed modifier on {@code target} to
+     * {@code addScalar} (ADD_SCALAR: ×(1+addScalar)) — the 1.9+ swing meter, HIT_TEMPO/ADR-0071. Base =
+     * recorded no-op: the attribute does not exist below 1.9 (the 1.8.9 tree), where the swing meter it
+     * compensates for also does not exist and the i-frame write alone carries the full effect there.
+     */
+    protected void applyTempoAttackSpeed(Player target, double addScalar) {
+    }
+
+    /** Remove the Quickening attack-speed modifier (HIT_TEMPO/ADR-0071); base = recorded no-op (see above). */
+    protected void clearTempoAttackSpeed(Player target) {
+    }
 }
