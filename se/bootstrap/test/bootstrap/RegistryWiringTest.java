@@ -36,7 +36,7 @@ import platform.item.ItemGroups;
 
 /**
  * The semantic golden gate over the REAL {@link Modules} registry (ADR-0047 §8.2): the strongest lock. Builds the
- * real 19-module registry against test doubles ({@code mock(BootCore)} + inert era listeners) and asserts the
+ * real 20-module registry against test doubles ({@code mock(BootCore)} + inert era listeners) and asserts the
  * orders and sets the fold materializes — the golden listener sequence (with the two proven-disjoint moves), the
  * onDisable stop order, the menu order, the derived mint sets/tiles, toggle-key validity, and the
  * COMMANDS&harr;self-mint drift lock. Every feature-service ctor is pure field assignment, so the registry
@@ -80,6 +80,7 @@ class RegistryWiringTest {
             "PetUseListener", "PetLevelListener", "PetFoodListener", "PetHotbarListener", "PetSummonListener",
             "IllusionCanonGuard", "MaskBreakSource", "MaskListener", "MaskRemoveListener", "MaskIllusionListener", "MobTargetGuard", "InvseeGuard",
             "NearGuard", "SplashHealGuard",
+            "ReforgeListener", "ReforgeUseListener", "ReforgeStrikeListener", "ReforgeTempoGuardListener", // ADR-0070/0071
             "ScrollListener", "HolyScrollListener", "NametagListener", "TrakListener", "ShotWeapons",
             "MenuListener", "GodlyTransmogListener");
 
@@ -88,24 +89,26 @@ class RegistryWiringTest {
             "soul aura task",                                                 // souls
             "frozen windows",                                                 // controls (ADR-0065)
             "falling-block casts", "guardian casts", "combat tags", "damage marks", "owner zones", "temp equips", // stores
-            "pet summon registry", "bat swarms", "bat cloud targets", "pet armed windows", "pet home windows", "pet home visuals", // pets (0052/0059/0060/0061/0068)
+            "pet summon registry", "bat swarms", "bat cloud targets", "pet armed windows", "pet shared-use gate", "pet home windows", "pet home visuals", // pets (0052/0059/0060/0061/0068/0070)
             "mask illusions", "mask provocations",                            // masks (ADR-0053)
+            "gravity wells", "castling channels", "javelin flights",          // reforges (ADR-0070/0071 Plan B)
             "bStats");                                                        // coreStops
 
     private static final List<String> GOLDEN_MENUS = List.of("hub", "console", "mint", "apply", "enchants", "sets",
-            "crystals", "pets", "masks", "reference", "transmog", "enchanter", "alchemist", "tinkerer", "admin");
+            "crystals", "pets", "masks", "reforges", "reference", "transmog", "enchanter", "alchemist", "tinkerer",
+            "admin");
 
     private static final Set<String> GOLDEN_GIVE_KEYS = Set.of("gem", "dust", "whitescroll", "book", "unopened",
             "useitem", "use-item", "crystal", "extractor", "heroic", "upgrade", "orb", "blackscroll", "randomizer",
             "transmog", "godlytransmog", "holy", "nametag", "blocktrak", "mobtrak", "soultrak", "fishtrak", "set",
-            "pet", "pets", "petfood", "pet-food", "mask", "masks");
+            "pet", "pets", "petfood", "pet-food", "mask", "masks", "reforge", "reforges");
 
     private static final Set<String> GOLDEN_SELF_MINTS = Set.of("gem", "crystal", "heroic", "orb", "book",
             "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag", "dust", "whitescroll",
-            "unopened");
+            "unopened", "reforge");
 
     private static final List<String> GOLDEN_TILE_LABELS = List.of("soul gem", "slot expander", "heroic upgrade",
-            "crystal extractor", "black scroll", "randomizer scroll", "transmog scroll", "godly transmog",
+            "item extractor", "black scroll", "randomizer scroll", "transmog scroll", "godly transmog",
             "holy white scroll", "item nametag", "success dust", "white scroll",
             "blocktrak gem", "mobtrak gem", "soultrak gem", "fishtrak gem", "pet food");
 
@@ -136,6 +139,7 @@ class RegistryWiringTest {
         when(bindings.maskBreakSource(any(), any())).thenReturn(new MaskBreakSource());
         when(bindings.stationGuard(any())).thenReturn(new StationGuard());
         when(bindings.dispenseArmorGuard(any())).thenReturn(new DispenseArmorGuard()); // 1.8.4 dispenser head-equip guard
+        when(bindings.weaponDamage()).thenReturn(feature.reforge.WeaponDamage.NONE); // ADR-0071 Javelin swing seam (JavelinService ctor)
 
         org.bukkit.plugin.java.JavaPlugin plugin = mock(org.bukkit.plugin.java.JavaPlugin.class);
         org.bukkit.Server server = mock(org.bukkit.Server.class);
@@ -150,6 +154,7 @@ class RegistryWiringTest {
         when(library.tiers().tiers()).thenReturn(List.of()); // no rarity tiers → unopened contributes no tiles
         when(library.pets()).thenReturn(List.of()); // no pet defs → the per-pet tiles are empty
         when(library.masks()).thenReturn(List.of()); // no mask defs → the per-mask tiles are empty (ADR-0053)
+        when(library.reforges()).thenReturn(List.of()); // no reforge defs → the per-reforge tiles are empty (ADR-0070)
 
         bootstrap.wire.BootCore core = mock(bootstrap.wire.BootCore.class);
         when(core.plugin()).thenReturn(plugin);
@@ -183,6 +188,8 @@ class RegistryWiringTest {
         when(core.petArmedStore()).thenReturn(new feature.pet.PetArmedStore());
         when(core.maskCodec()).thenReturn(new item.codec.MaskCodec(item.codec.ItemKeys.of(),
                 mock(item.codec.ItemStateStore.class))); // ADR-0053 mask-item identity codec
+        when(core.reforgeCodec()).thenReturn(new item.codec.ReforgeCodec(item.codec.ItemKeys.of(),
+                mock(item.codec.ItemStateStore.class))); // ADR-0070 reforge-item identity codec
         when(core.lore()).thenReturn(mock(item.render.LoreRenderer.class));
         when(core.itemGroups()).thenReturn(ItemGroups.standard());
         when(core.recompose()).thenReturn(stack -> { });
@@ -360,10 +367,11 @@ class RegistryWiringTest {
         for (FeatureModule module : modules.registry()) {
             declared.addAll(module.playerStores());
         }
-        // souls (soul-total cache) + pets (armed windows + dig homes + home visuals + sweep fingerprints
-        // + bat-cloud publisher (ADR-0068), ADR-0052/0061) + masks (illusion cache + provocations, ADR-0053)
-        // + scrolls (kept items + nametag captures) + combat (combo-DoT park ledger, ADR-0069)
-        // = 11 module-owned stores swept on quit.
-        assertEquals(11, declared.size());
+        // souls (soul-total cache) + pets (armed windows + shared 2s use gate (ADR-0070) + dig homes + home
+        // visuals + sweep fingerprints + bat-cloud publisher (ADR-0068), ADR-0052/0061) + masks (illusion cache
+        // + provocations, ADR-0053) + scrolls (kept items + nametag captures) + combat (combo-DoT park ledger,
+        // ADR-0069) + reforges (gravity-well + castling + javelin machine scopes, ADR-0071 Plan B)
+        // = 15 module-owned stores swept on quit.
+        assertEquals(15, declared.size());
     }
 }
