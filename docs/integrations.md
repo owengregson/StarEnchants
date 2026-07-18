@@ -21,9 +21,11 @@ integrations:
 ```
 
 `named.<id>: false` disables one integration; an unlisted id is enabled. Ids: `worldguard`, `towny`,
-`lands`, `superiorskyblock`, `factions`, `vault`, `placeholderapi`, `mental`, `nocheatplus`, `grim`,
-`vulcan`, `matrix`, `spartan`, `mcmmo`, `mythicmobs`, `itemsadder`, `oraxen`. Integration discovery is read
-once at boot, so a change here takes effect on the next server start.
+`lands`, `superiorskyblock`, `factions`, `vault`, `placeholderapi`, `mental`, `mental-combo-sync`,
+`nocheatplus`, `grim`, `vulcan`, `matrix`, `spartan`, `mcmmo`, `mythicmobs`, `itemsadder`, `oraxen`.
+Integration discovery is read once at boot, so a change here takes effect on the next server start.
+`mental-combo-sync` is a sub-toggle of `mental`: it turns off combo-DoT parking (ADR-0069) while
+keeping the knockback coordination; `mental: false` disables both.
 
 ## Protection / region plugins
 
