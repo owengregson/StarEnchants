@@ -190,15 +190,36 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
                 sink.flush();
                 victim.setNoDamageTicks(0);
                 victim.damage(4.0, holder); // MONITOR marks the tempo write (deferred one tick) + stamps stolen
-                // The i-frame re-write lands on the victim's next tick — it MUST trail vanilla's post-event
-                // invulnerableTime reset — so read it a few ticks on (fake players never decay the value).
-                Scheduling.onEntityLater(victim, 3L, () -> {
+                // The halving re-write lands ONE tick after the hit (production defers it past vanilla's own
+                // post-event invulnerableTime reset) and then DECAYS 1/tick like any i-frame — a live fake
+                // player ticks noDamageTicks on the server, so a single late equality read is wrong (it caught
+                // the ladder two ticks decayed: 13 not 15). Sample the ladder instead and recover the write from
+                // it below.
+                List<Integer> ladder = new ArrayList<>();
+                sampleNoDamage(victim, ladder, 4, () -> {
                     h.guard(key, () -> {
                         int max = victim.getMaximumNoDamageTicks();
                         int expected = max - (max / 2) / 2; // MENTAL: W = max/2, write = max − W/2 (15 at max 20)
-                        if (victim.getNoDamageTicks() != expected) {
-                            throw new IllegalStateException("tempo i-frame write = " + victim.getNoDamageTicks()
-                                    + " != expected " + expected + " (max " + max + ")");
+                        // The halving write drops noDamageTicks BELOW the natural decay floor (max − k at k ticks
+                        // in — vanilla i-frames decay at most 1/tick so can never fall below it), and the PEAK of
+                        // that written-then-decaying ladder IS the write value. Recover it as the largest
+                        // below-floor sample: it proves a write landed (cannot false-pass vanilla decay) and pins
+                        // the value to `expected`, tolerating the one tick on which the entity's own decrement
+                        // races our read.
+                        int peak = Integer.MIN_VALUE;
+                        for (int k = 1; k <= ladder.size(); k++) {
+                            int sample = ladder.get(k - 1);
+                            if (sample < max - k) {
+                                peak = Math.max(peak, sample);
+                            }
+                        }
+                        if (peak == Integer.MIN_VALUE) {
+                            throw new IllegalStateException("tempo i-frame ladder " + ladder + " never dropped below "
+                                    + "the natural decay floor — the halving write did not land (max " + max + ")");
+                        }
+                        if (peak < expected - 1 || peak > expected) {
+                            throw new IllegalStateException("tempo i-frame write peak = " + peak + " != expected "
+                                    + expected + " (±1 tick) — ladder " + ladder + " (max " + max + ")");
                         }
                         HitTempoStore store = env.stores().hitTempo();
                         if (!store.stolenBlocks(victimId, thirdId, 0L)) {
@@ -396,6 +417,19 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
             }
         }
         return n;
+    }
+
+    /** Collect {@code victim.getNoDamageTicks()} once per tick for {@code samples} ticks (starting next tick),
+     *  each read on the victim's own region thread, then run {@code done} — the tempo i-frame decay ladder. */
+    private static void sampleNoDamage(LivingEntity victim, List<Integer> out, int samples, Runnable done) {
+        Scheduling.onEntityLater(victim, 1L, () -> {
+            out.add(victim.getNoDamageTicks());
+            if (samples <= 1) {
+                done.run();
+            } else {
+                sampleNoDamage(victim, out, samples - 1, done);
+            }
+        });
     }
 
     // ── BATTERY ─────────────────────────────────────────────────────────────────────────────────
