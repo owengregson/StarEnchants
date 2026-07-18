@@ -9,6 +9,7 @@ import engine.run.ActorProbe;
 import engine.run.FactPopulator;
 import engine.sink.CombatTag;
 import engine.sink.DamageMarks;
+import engine.sink.DotParkLedger;
 import engine.sink.EngineDamage;
 import engine.sink.SinkEnv;
 import engine.sink.SinkReadback;
@@ -22,6 +23,7 @@ import engine.stores.SuppressionStore;
 import feature.soul.SoulBinding;
 import feature.trigger.TriggerRunner;
 import item.worn.WornStateStore;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -74,6 +76,10 @@ public final class CombatDispatch {
     // §3.7 hit identity: the last landed (victim ← attacker) stamp, discriminating a same-swing re-hit from a
     // distinct hit inside the victim's SHARED i-frame window (which fire/DoT/other attackers also arm).
     private final ReHitGuard reHits = new ReHitGuard();
+    // ADR-0069 combo-DoT sync: the shared park ledger, drained into a hit's fold here, plus the paced release
+    // armed when leftover buckets remain and no combo is active (the post-combo leftover kick).
+    private final DotParkLedger dotPark;
+    private final ComboDotRelease dotRelease;
 
     /** §N friendly-fire gate (ADR-0027): two friendly players get NO SE combat effects. No-op by default. */
     private static volatile java.util.function.BiPredicate<Player, Player> friendlyFire = (attacker, victim) -> false;
@@ -132,6 +138,13 @@ public final class CombatDispatch {
         this.defenseTriggerId = defenseTriggerId;
         this.bowTriggerId = bowTriggerId;
         this.tridentTriggerId = tridentTriggerId;
+        this.dotPark = env.dotPark();
+        this.dotRelease = new ComboDotRelease(env.dotPark(), env.nowTicks());
+    }
+
+    /** The combo-DoT paced release (ADR-0069) — read by the ControlsModule install; internal composition. */
+    public ComboDotRelease dotRelease() {
+        return dotRelease;
     }
 
     // /se damagedebug (ADR-0050 R3): owned here so the readout sees the same fold/caps this dispatch commits.
@@ -194,6 +207,7 @@ public final class CombatDispatch {
             }
         }
         ReHitGuard.clearSkipped();
+        ParkFlushRelay.clear();
         Location at = victimEntity.getLocation();
         // Capture BEFORE the fold mutates it, so the %damage% fact reads the hit's value at activation time.
         double incomingDamage = event.getDamage();
@@ -206,6 +220,27 @@ public final class CombatDispatch {
         // ADR-0051: same-hit health writes to the victim land inline at flush — before this event's damage
         // applies — so a defensive heal (Phoenix's death-save) joins the kill decision instead of racing it.
         sink.eventEntity(victim);
+
+        // ADR-0069: DoT damage parked while Mental held a combo on this victim joins THIS hit's damage moment
+        // (one event, one immunity window, one knockback — the ADR-0054 rider economy). Only THIS attacker's own
+        // buckets plus the unattributed bucket join, so a third party's bleed is never credited to this attacker;
+        // their buckets wait for their own hit, the combo-end release, or the post-combo leftover kick below —
+        // NEVER a mid-combo release (an attributed release hurt is a melee to Mental; a third-party knock would
+        // end the active combo). Re-parked at MONITOR if the event ends cancelled (ComboDotSyncListener).
+        if (victimEntity instanceof Player parkVictim) {
+            List<DotParkLedger.Bucket> drained = dotPark.drainFor(parkVictim.getUniqueId(), attackerId);
+            if (!drained.isEmpty()) {
+                double owed = 0.0;
+                for (DotParkLedger.Bucket b : drained) {
+                    owed += b.amount();
+                }
+                sink.fold().addEffectiveDamage(owed);
+                ParkFlushRelay.mark(event, parkVictim.getUniqueId(), drained);
+            }
+            if (!dotPark.comboActive(parkVictim.getUniqueId(), now) && dotPark.hasParked(parkVictim.getUniqueId())) {
+                dotRelease.begin(parkVictim); // post-combo leftover kick: third-party/stale buckets pace out to their owners
+            }
+        }
 
         // Combat tag (supreme's out-of-combat fly): both parties count as fighting on any hit between them.
         if (damager instanceof Player ap) {
