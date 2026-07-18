@@ -405,6 +405,21 @@ public final class TriggerDispatch {
         sink.flush();
     }
 
+    /**
+     * GRAPPLE reel/zip through a fresh sink (ADR-0071, Leviathan's Reach): GrappleService has already resolved
+     * the mode and geometry on the actor's thread, so this just mints + flushes the {@code grapple} intent —
+     * safe from the cold activation path (never from inside an already-flushed plan, the teleport/dust idiom).
+     */
+    public void grapple(Player actor, Location eye, LivingEntity victim, Location reelTo, Location hookPoint,
+                        int flightTicks, int slowPotionId, int slowAmplifier, int slowTicks,
+                        org.bukkit.util.Vector zip, int particleId, int r, int g, int b, float size,
+                        double density) {
+        SinkReadback sink = newSink();
+        sink.grapple(actor, eye, victim, reelTo, hookPoint, flightTicks, slowPotionId, slowAmplifier,
+                slowTicks, zip, particleId, r, g, b, size, density);
+        sink.flush();
+    }
+
     /** Play a world-audible sound at {@code at} through the shared sink (region-routed, era-resolved). */
     public void sound(Location at, int soundId, float volume, float pitch) {
         if (soundId < 0) {

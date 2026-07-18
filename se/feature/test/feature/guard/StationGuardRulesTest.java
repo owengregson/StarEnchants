@@ -113,7 +113,7 @@ class StationGuardRulesTest {
         ItemStack setPiece = item(Material.IRON_LEGGINGS);
         ItemStack enchantedOnly = item(Material.IRON_BOOTS);
         state.put(masked, new item.codec.CombatState(java.util.Map.of(), java.util.List.of(), null, null,
-                false, item.codec.HeroicStat.NONE, 0, "masks/blaze"));
+                false, item.codec.HeroicStat.NONE, 0, "masks/blaze", null));
         state.put(crystalled, new item.codec.CombatState(java.util.Map.of(), java.util.List.of("crystals/dark")));
         state.put(setPiece, new item.codec.CombatState(java.util.Map.of(), java.util.List.of(), "sets/x", false));
         state.put(enchantedOnly, new item.codec.CombatState(java.util.Map.of("enchants/haste", 1), java.util.List.of()));

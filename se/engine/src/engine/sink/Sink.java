@@ -697,4 +697,17 @@ public interface Sink {
      */
     void blinkForward(Player actor, Location origin, org.bukkit.util.Vector direction, double maxDistance,
                       int particleId, int r, int g, int b, float size, int count);
+
+    /**
+     * GRAPPLE: fishing-rod-style hook resolved BEFORE EMIT (GrappleService already picked
+     * entity-vs-terrain on the actor's thread). Entity mode ({@code victim != null}): draw the dust
+     * line eye→victim, then after {@code flightTicks} reel the victim to {@code reelTo} (velocity
+     * zeroed, own facing kept) and apply Slowness {@code slowAmplifier} for {@code slowTicks} — no
+     * damage. Terrain mode ({@code victim == null, hookPoint != null}): draw the line and after
+     * {@code flightTicks} launch the actor with velocity {@code zip}. All positional args are
+     * pre-computed snapshots.
+     */
+    void grapple(Player actor, Location eye, LivingEntity victim, Location reelTo, Location hookPoint,
+                 int flightTicks, int slowPotionId, int slowAmplifier, int slowTicks,
+                 org.bukkit.util.Vector zip, int particleId, int r, int g, int b, float size, double density);
 }
