@@ -308,6 +308,41 @@ public final class ModernDispatchSink extends DispatchSinkBase {
         }
     }
 
+    @Override
+    protected void applyTempoAttackSpeed(Player target, double addScalar) {
+        AttributeInstance speed = attackSpeed(target);
+        if (speed == null) {
+            return; // pre-1.9 / unresolved: the i-frame write alone carries the effect (the recorded degrade)
+        }
+        clearTempoAttackSpeed(target); // replace-by-identity (the worn-modifier idempotency rule)
+        if (addScalar > 0.0) {
+            // ADD_SCALAR ×(1 + addScalar): +1.0 doubles the 4.0 swing meter to 8.0 (recharge 20t → 10t).
+            speed.addModifier(ownedModifier(REFORGE_TEMPO_ID, REFORGE_TEMPO_NAME, addScalar,
+                    AttributeModifier.Operation.ADD_SCALAR));
+        }
+    }
+
+    @Override
+    protected void clearTempoAttackSpeed(Player target) {
+        AttributeInstance speed = attackSpeed(target);
+        if (speed == null) {
+            return;
+        }
+        // Match by id OR wire name (the removeFrozenSlow rule): pre-1.21 carries the UUID, keyed 1.21+ the name.
+        for (AttributeModifier modifier : List.copyOf(speed.getModifiers())) {
+            if (REFORGE_TEMPO_ID.equals(modifier.getUniqueId())
+                    || REFORGE_TEMPO_NAME.equals(modifier.getName())) {
+                speed.removeModifier(modifier);
+            }
+        }
+    }
+
+    /** The ATTACK_SPEED instance, resolved by NAME so the 1.21.3 rename rides the alias chain; null pre-1.9. */
+    private AttributeInstance attackSpeed(Player player) {
+        Object attribute = handles.resolveByName(HandleCategory.ATTRIBUTE, "GENERIC_ATTACK_SPEED");
+        return attribute instanceof Attribute resolved ? player.getAttribute(resolved) : null;
+    }
+
     private static Constructor<AttributeModifier> keyedModifierCtor() {
         try {
             return AttributeModifier.class.getConstructor(

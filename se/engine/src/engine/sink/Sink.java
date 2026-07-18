@@ -710,4 +710,69 @@ public interface Sink {
     void grapple(Player actor, Location eye, LivingEntity victim, Location reelTo, Location hookPoint,
                  int flightTicks, int slowPotionId, int slowAmplifier, int slowTicks,
                  org.bukkit.util.Vector zip, int particleId, int r, int g, int b, float size, double density);
+
+    // ── ADR-0071 reforge combat-state intents (Plan C) ──
+
+    /**
+     * Arm {@code holder}'s Quickening tempo window for {@code durationTicks} (HIT_TEMPO): while live,
+     * the combat dispatcher taxes each of the holder's melee hits by {@code damageFactor} and, on each
+     * LANDED hit, rewrites the victim's i-frames so the holder's next full hit is admitted in HALF the
+     * model's effective window. {@code windowModel}: 0 = MENTAL (effective window =
+     * maximumNoDamageTicks/2, the 1.8-combat gate), 1 = VANILLA (= maximumNoDamageTicks, the 1.9+
+     * cadence). {@code attackSpeedBonus > 0} additionally reconciles a plugin-owned ADD_SCALAR
+     * attack-speed modifier on the holder for the window (the 1.9+ swing meter; a recorded no-op where
+     * the attribute does not exist — 1.8.9).
+     */
+    void hitTempo(Player holder, int durationTicks, int windowModel, double damageFactor,
+                  double attackSpeedBonus);
+
+    /**
+     * Arm {@code holder}'s Supernova core (BATTERY): the next {@code maxHits} LANDED hits they take each
+     * bank {@code bankFraction} of the hit's final damage; their next landed hit spends the whole bank
+     * as a same-hit rider — even a zero bank (the core is consumed regardless, owner-ruled). A per-player
+     * store write, inline like {@link #mark}.
+     */
+    void armBattery(Player holder, double bankFraction, int maxHits);
+
+    /**
+     * Arm {@code holder}'s Unhanding window for {@code durationTicks} (DISARM_SHUFFLE): their next landed
+     * melee hit on a PLAYER within it swaps the victim's held item with a random OTHER hotbar slot (held
+     * slot selection unchanged — shuffled, not locked) and is taxed by {@code malusFraction} through the
+     * fold's self-malus channel. A store write, inline like {@link #mark}.
+     */
+    void armDisarmShuffle(Player holder, int durationTicks, double malusFraction);
+
+    /**
+     * Ring the Summoner's Bell (CONVERT_SUMMON): every tracked enemy-owned summon within {@code radius}
+     * blocks of {@code ringer} permanently changes sides — its {@code GuardianCasts} owner rebinds to the
+     * ringer (GUARDIAN_HURT follows), a Tameable is re-tamed to the ringer, its guard target is set to
+     * its FORMER owner, and an enemy bat cloud is TURNED (it permanently orbits/blinds its former owner).
+     * Runs on the ringer's thread; per-summon mutations hop to each summon's own scheduler.
+     */
+    void convertSummons(Player ringer, double radius);
+
+    /**
+     * Break every confining trap structure currently on {@code actor} (TRAP_BREAK): each structure
+     * registered in the env's {@code TrapStructures} whose victims include the actor or whose bounds
+     * contain them has ALL its tiles early-restored intact through {@code TempBlockLedger.reclaim} on
+     * each tile's owning region. Floors/trails are never registered, so area paint is untouched.
+     */
+    void breakTraps(Player actor);
+
+    /**
+     * {@link #tempBlock(Location, int, int, int, boolean)} that, when {@code confined != null}, also
+     * registers the placed tile as a one-tile confining structure (ADR-0071 TRAP_BREAK) whose sole
+     * victim is {@code confined}, so Turnkey can early-restore it. A {@code null} confined is byte-for-byte
+     * the 5-arg form.
+     */
+    void tempBlock(Location at, int materialId, int durationTicks, int replaceMode, boolean unbreakable,
+                   UUID confined);
+
+    /**
+     * {@link #tempBox(Location, int, int, int, int, int, int)} that, when {@code confined != null},
+     * registers the placed volume as a confining structure (ADR-0071 TRAP_BREAK) whose sole victim is
+     * {@code confined}. A {@code null} confined is byte-for-byte the 7-arg form.
+     */
+    void tempBox(Location center, int materialId, int width, int height, int depth, int durationTicks,
+                 int replaceMode, UUID confined);
 }

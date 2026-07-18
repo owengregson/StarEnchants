@@ -46,6 +46,7 @@ public final class SwarmClouds {
         volatile double rangeSq;
         volatile double releaseRangeSq;
         volatile boolean seeded;
+        volatile boolean turned; // ADR-0071 CONVERT_SUMMON: permanently target the former owner themself
         volatile TaskHandle publisher;
         final Set<Entity> bats = ConcurrentHashMap.newKeySet();
     }
@@ -58,11 +59,52 @@ public final class SwarmClouds {
     /** CombatDispatch producer: stamp {@code attacker} as {@code owner}'s most recent (overwrite = recency). No-op unless a cloud is armed. */
     public static void noteHit(UUID owner, Entity attacker, long nowTicks) {
         OwnerCloud cloud = LIVE.get(owner);
-        if (cloud == null || attacker == null) {
-            return;
+        if (cloud == null || attacker == null || cloud.turned) {
+            return; // a turned cloud (Bell-converted) permanently targets its former owner — ignore new hits
         }
         cloud.attacker = attacker;
         cloud.attackerTick = nowTicks;
+    }
+
+    /**
+     * Bell conversion (ADR-0071 CONVERT_SUMMON): TURN the cloud containing {@code batId}, unless it
+     * belongs to {@code ringer} or is already turned. A turned cloud permanently publishes its own owner
+     * as the pillar target (the swarm orbits/blinds its former owner), ignores further {@link #noteHit}
+     * stamps and the recency window, and dies exactly as before (TTL deadline, owner quit, disable).
+     * Returns the former owner's UUID iff THIS call flipped the cloud (null: the ringer's own cloud,
+     * already turned, or an untracked bat) — the caller counts each cloud once however many of its bats
+     * the enumeration yields. Pure map/set reads plus one volatile flag write: membership is matched by
+     * {@code getUniqueId()} over each cloud's bats set (UUIDs are immutable — region-free on Folia), so
+     * this is exactly as region-safe as the caller's own {@code getNearbyEntities} enumeration; no bat
+     * position is ever read.
+     */
+    public static UUID turnByBat(UUID ringer, UUID batId) {
+        if (batId == null) {
+            return null;
+        }
+        for (Map.Entry<UUID, OwnerCloud> entry : LIVE.entrySet()) {
+            UUID ownerId = entry.getKey();
+            if (ownerId.equals(ringer)) {
+                continue; // the ringer's own cloud never turns on them
+            }
+            OwnerCloud cloud = entry.getValue();
+            boolean member = false;
+            for (Entity bat : cloud.bats) {
+                if (batId.equals(bat.getUniqueId())) { // UUID read only — immutable, region-free
+                    member = true;
+                    break;
+                }
+            }
+            if (!member) {
+                continue;
+            }
+            if (cloud.turned) {
+                return null; // already turned — the caller counts each cloud once
+            }
+            cloud.turned = true;
+            return ownerId; // the former owner, now the swarm's permanent target
+        }
+        return null; // untracked bat
     }
 
     /** Arm (or refresh) {@code owner}'s cloud: the entry plus ONE publisher task on the owner's scheduler. */
@@ -119,6 +161,18 @@ public final class SwarmClouds {
             if (handle[0] != null) {
                 handle[0].cancel();
             }
+            return;
+        }
+        if (cloud.turned) {
+            // Bell-converted: permanently target the FORMER owner themself (this task runs on the owner's
+            // thread, so reading their own location is region-local). The bats' steer tasks keep their
+            // original owner-UUID key, so the whole swarm converges on the former owner with no re-arm.
+            Location opos = owner.getLocation();
+            float oyaw = opos.getYaw();
+            cloud.target = new CloudTarget(
+                    opos.getX() + SwarmRing.offsetX(oyaw, SwarmRing.CLOUD_PILLAR_FORWARD),
+                    opos.getY(),
+                    opos.getZ() + SwarmRing.offsetZ(oyaw, SwarmRing.CLOUD_PILLAR_FORWARD), now);
             return;
         }
         if (!cloud.seeded) {
