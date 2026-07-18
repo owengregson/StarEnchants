@@ -27,11 +27,13 @@ import platform.economy.EconomyService;
  * {@link TrailWalker} for the same reason: the footprint snake's path memory must survive across the SEPARATE
  * activations a REPEATING trigger fires. {@code timedReverts} is the ONE per-boot {@link TimedRevert} for the
  * same reason: a timed buff's revert closure must outlive the per-event sink so the quit drain can run it when
- * a player logs out mid-window (F07/F08). All three shared via the env like the stores, never a mutable static.
+ * a player logs out mid-window (F07/F08). {@code dotPark} is the ONE per-boot combo-DoT park ledger (ADR-0069),
+ * shared so a park and its flush (separate events) see the same buckets. All four shared via the env like the
+ * stores, never a mutable static.
  */
 public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
                       Consumer<Player> movementExemption, TempBlockLedger<BlockState> tempBlocks,
-                      TrailWalker trails, TimedRevert timedReverts,
+                      TrailWalker trails, TimedRevert timedReverts, DotParkLedger dotPark,
                       DoubleSupplier moneyInterestCap, GearProtection gearProtection,
                       ToDoubleFunction<UUID> lightningBoost) {
 
@@ -44,6 +46,7 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
         Objects.requireNonNull(tempBlocks, "tempBlocks");
         Objects.requireNonNull(trails, "trails");
         Objects.requireNonNull(timedReverts, "timedReverts");
+        Objects.requireNonNull(dotPark, "dotPark");
         Objects.requireNonNull(moneyInterestCap, "moneyInterestCap");
         Objects.requireNonNull(gearProtection, "gearProtection");
         Objects.requireNonNull(lightningBoost, "lightningBoost");
@@ -80,6 +83,7 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
                              Consumer<Player> movementExemption, DoubleSupplier moneyInterestCap,
                              GearProtection gearProtection, ToDoubleFunction<UUID> lightningBoost) {
         return new SinkEnv(economy, souls, stores, nowTicks, movementExemption, BukkitBlockOps.ledger(),
-                new TrailWalker(), new TimedRevert(), moneyInterestCap, gearProtection, lightningBoost);
+                new TrailWalker(), new TimedRevert(), new DotParkLedger(), moneyInterestCap, gearProtection,
+                lightningBoost);
     }
 }
