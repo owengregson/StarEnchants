@@ -4,6 +4,7 @@ import engine.sink.TempBlockLedger;
 import feature.combat.HellfireFloorListener;
 import feature.combat.ImmuneListener;
 import feature.combat.KeepOnDeathListener;
+import feature.combat.MentalComboBridge;
 import feature.combat.MentalKnockbackBridge;
 import feature.combat.TempBlockGuardListener;
 import feature.combat.TempEquipListener;
@@ -83,6 +84,15 @@ final class ControlsModule {
                     var path = MentalKnockbackBridge.register(core.plugin(), core.stores().knockback(),
                             core.tick()::get, core.master().config().integrations().enabled("mental"));
                     core.plugin().getLogger().info("Mental knockback coordination: " + path);
+                })
+                // ADR-0069: park SE DoT ticks while Mental holds a combo on the victim; flush into the next hit /
+                // combo end. All Mental reads stay inside the lambda (RegistryWiringTest constructs with mocks).
+                .install("Mental combo-DoT sync", () -> {
+                    var path = MentalComboBridge.register(core.plugin(), core.sinkEnv().dotPark(),
+                            core.dispatch().dotRelease(), core.tick()::get,
+                            core.master().config().integrations().enabled("mental")
+                                    && core.master().config().integrations().enabled("mental-combo-sync"));
+                    core.plugin().getLogger().info("Mental combo-DoT sync: " + path);
                 })
                 .build();
     }

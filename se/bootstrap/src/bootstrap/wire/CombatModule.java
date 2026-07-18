@@ -2,6 +2,7 @@ package bootstrap.wire;
 
 import compile.model.Snapshot;
 import feature.combat.CombatListener;
+import feature.combat.ComboDotSyncListener;
 import feature.combat.RageStacksListener;
 import feature.combat.RageStacksService;
 import item.worn.WornState;
@@ -51,6 +52,11 @@ final class CombatModule {
         return FeatureModule.named("combat")
                 .events(new CombatListener(core.dispatch()))
                 .events(new RageStacksListener(rageStacks))
+                // ADR-0069 combo-DoT sync: MONITOR confirm (re-park a cancelled flush) + death clear; the park
+                // ledger joins the structural quit sweep as a module player store (clear drops buckets, combo
+                // state AND the release in-flight flag — the Folia mid-release-quit cleanup path).
+                .events(new ComboDotSyncListener(core.sinkEnv().dotPark()))
+                .store(core.sinkEnv().dotPark())
                 .lang("combat", "rage")
                 .build();
     }

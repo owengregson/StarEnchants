@@ -66,7 +66,7 @@ class RegistryWiringTest {
     /** The golden global listener registration sequence, all toggles on (§2 with EngineStoreListener after Immune,
      *  heroic-durability right after Heroic). Fold Events + the materialized guard/sweep, in registry order. */
     private static final List<String> GOLDEN_LISTENERS = List.of(
-            "CombatListener", "RageStacksListener", "EquipListener", "ArmourFeeder", "HandChangeFeeder",
+            "CombatListener", "RageStacksListener", "ComboDotSyncListener", "EquipListener", "ArmourFeeder", "HandChangeFeeder",
             "SoulListener", "SoulInteractListener", "SoulInventoryListener",
             "TriggerListeners", "PlacedBlockTracker", "ItemDamageSource", "FallingBlockListener",
             "GuardianHurtListener",
@@ -362,7 +362,8 @@ class RegistryWiringTest {
         }
         // souls (soul-total cache) + pets (armed windows + dig homes + home visuals + sweep fingerprints
         // + bat-cloud publisher (ADR-0068), ADR-0052/0061) + masks (illusion cache + provocations, ADR-0053)
-        // + scrolls (kept items + nametag captures) = 10 module-owned stores swept on quit.
-        assertEquals(10, declared.size());
+        // + scrolls (kept items + nametag captures) + combat (combo-DoT park ledger, ADR-0069)
+        // = 11 module-owned stores swept on quit.
+        assertEquals(11, declared.size());
     }
 }
