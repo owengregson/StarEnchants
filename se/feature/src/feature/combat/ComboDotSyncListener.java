@@ -25,7 +25,7 @@ public final class ComboDotSyncListener implements Listener {
     /** NOT ignoreCancelled — the cancelled outcome is the one this confirm acts on (re-park owed damage). */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onDamageResolved(EntityDamageByEntityEvent event) {
-        ParkFlushRelay.Pending pending = ParkFlushRelay.consume(event);
+        ParkFlushRelay.Pending pending = ParkFlushRelay.consume(event, ledger);
         if (pending != null && event.isCancelled()) {
             ledger.restore(pending.victim(), pending.drained());
         }

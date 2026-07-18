@@ -55,7 +55,7 @@ class ComboDotSyncListenerTest {
         EntityDamageByEntityEvent marked = mock(EntityDamageByEntityEvent.class);
         EntityDamageByEntityEvent foreign = mock(EntityDamageByEntityEvent.class);
         when(foreign.isCancelled()).thenReturn(true);
-        ParkFlushRelay.mark(marked, victimId, drained);
+        ParkFlushRelay.mark(marked, ledger, victimId, drained);
 
         // A DIFFERENT (cancelled) event must not consume the mark left for `marked` — no restore fires.
         listener.onDamageResolved(foreign);

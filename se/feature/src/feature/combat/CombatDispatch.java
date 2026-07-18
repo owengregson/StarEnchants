@@ -207,7 +207,6 @@ public final class CombatDispatch {
             }
         }
         ReHitGuard.clearSkipped();
-        ParkFlushRelay.clear();
         Location at = victimEntity.getLocation();
         // Capture BEFORE the fold mutates it, so the %damage% fact reads the hit's value at activation time.
         double incomingDamage = event.getDamage();
@@ -235,7 +234,7 @@ public final class CombatDispatch {
                     owed += b.amount();
                 }
                 sink.fold().addEffectiveDamage(owed);
-                ParkFlushRelay.mark(event, parkVictim.getUniqueId(), drained);
+                ParkFlushRelay.mark(event, dotPark, parkVictim.getUniqueId(), drained);
             }
             if (!dotPark.comboActive(parkVictim.getUniqueId(), now) && dotPark.hasParked(parkVictim.getUniqueId())) {
                 dotRelease.begin(parkVictim); // post-combo leftover kick: third-party/stale buckets pace out to their owners
