@@ -2,6 +2,139 @@
 "version": 1,
 "effects": [
   {
+    "head": "BATTERY",
+    "doc": "Arm a damage battery on the wearer: the next `hits` landed hits they take each bank `bank-percent`% of the final damage; their next landed hit on an enemy unloads the entire bank as bonus damage on that hit, then the core resets — a hit with nothing banked still spends the core. No time limit; the ability cooldown paces re-arms. Cleared on death.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ BATTERY: { bank-percent: <double[0..100]=20>, hits: <int[1..10]=3> } }",
+    "example": "{ BATTERY: { bank-percent: 20, hits: 3 } }",
+    "params": [
+      {
+        "name": "bank-percent",
+        "kind": "DOUBLE",
+        "label": "double[0..100]",
+        "required": false,
+        "default": "20",
+        "min": 0,
+        "max": 100,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "hits",
+        "kind": "INT",
+        "label": "int[1..10]",
+        "required": false,
+        "default": "3",
+        "min": 1,
+        "max": 10,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "BLINK",
+    "doc": "Blink (reforges): instantly teleport up to distance blocks along your facing if the path is clear — stops at the last open block, never phases into or through terrain. Walls stop it; the use is spent either way.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ BLINK: { distance: <double[1..16]=4>, particle: <particle=REDSTONE>, r: <int[0..255]=170>, g: <int[0..255]=60>, b: <int[0..255]=220>, size: <double[0..]=1>, count: <int[0..]=10> } }",
+    "example": "{ BLINK: { distance: 4 } }",
+    "params": [
+      {
+        "name": "distance",
+        "kind": "DOUBLE",
+        "label": "double[1..16]",
+        "required": false,
+        "default": "4",
+        "min": 1,
+        "max": 16,
+        "enum": [],
+        "handle": null,
+        "doc": "max blink distance in blocks"
+        },
+      {
+        "name": "particle",
+        "kind": "HANDLE",
+        "label": "particle",
+        "required": false,
+        "default": "REDSTONE",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "PARTICLE",
+        "doc": ""
+        },
+      {
+        "name": "r",
+        "kind": "INT",
+        "label": "int[0..255]",
+        "required": false,
+        "default": "170",
+        "min": 0,
+        "max": 255,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "g",
+        "kind": "INT",
+        "label": "int[0..255]",
+        "required": false,
+        "default": "60",
+        "min": 0,
+        "max": 255,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "b",
+        "kind": "INT",
+        "label": "int[0..255]",
+        "required": false,
+        "default": "220",
+        "min": 0,
+        "max": 255,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "size",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "count",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "10",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "departure/arrival puff motes"
+        }
+      ],
+    "targets": []
+    },
+  {
     "head": "BREAK_BLOCK",
     "doc": "Break the target block(s) (default @Here; drops=false clears). @Vein/@Tunnel/@Trench for shapes.",
     "affinity": "REGION",
@@ -147,6 +280,33 @@
     "example": "{ CANCEL: {} }",
     "params": [],
     "targets": []
+    },
+  {
+    "head": "CONVERT_SUMMON",
+    "doc": "Convert every enemy-summoned ally within `radius` blocks of the wearer to the wearer's side, permanently: summoned guards/zombies/sentries/mounts rebind their ownership (a hit on them now fires the wearer's GUARDIAN_HURT), targeting summons turn on their former owner, tamed summons re-tame, and bat swarm clouds permanently swarm their former owner instead.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ CONVERT_SUMMON: { radius: <double[1..32]=12> } }",
+    "example": "{ CONVERT_SUMMON: { radius: 12 } }",
+    "params": [
+      {
+        "name": "radius",
+        "kind": "DOUBLE",
+        "label": "double[1..32]",
+        "required": false,
+        "default": "12",
+        "min": 1,
+        "max": 32,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
     },
   {
     "head": "CURE",
@@ -436,6 +596,45 @@
       {
         "name": "who",
         "selector": "VICTIM"
+        }
+      ]
+    },
+  {
+    "head": "DISARM_SHUFFLE",
+    "doc": "Arm an unhanding window on the wearer for `duration` ticks: their next landed melee hit on a player knocks the victim's held item into a random other hotbar slot (the victim can re-select it — shuffled, not locked; weapon-gated combos like Rage break naturally) and that hit deals `damage-malus`% less damage. One shot; a dodged/negated hit keeps the window armed.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ DISARM_SHUFFLE: { duration: <ticks[0..]=80>, damage-malus: <double[0..100]=20> } }",
+    "example": "{ DISARM_SHUFFLE: { duration: 80, damage-malus: 20 } }",
+    "params": [
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "80",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "damage-malus",
+        "kind": "DOUBLE",
+        "label": "double[0..100]",
+        "required": false,
+        "default": "20",
+        "min": 0,
+        "max": 100,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
         }
       ]
     },
@@ -938,6 +1137,362 @@
       ]
     },
   {
+    "head": "GRAPPLE",
+    "doc": "Leviathan's Reach (reforges): throw a grappling line along your facing (range blocks). An enemy in sight closer than the first block is reeled to reel-distance blocks in front of you with a brief slow and no damage; otherwise you zip to the terrain point. Open air wastes the throw. Reforge-service-owned: this effect emits no intent of its own.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ GRAPPLE: { range: <double[1..]=14>, hook-speed: <double[0.5..]=2.0>, reel-distance: <double[0.5..]=2.0>, slow-effect: <potion_effect=SLOW>, slow-level: <int[1..10]=2>, slow-duration: <ticks[0..]=60>, zip-strength: <double[0..]=0.34>, zip-cap: <double[0..]=3.2>, zip-rise: <double[0..]=0.25>, particle: <particle=REDSTONE>, r: <int[0..255]=200>, g: <int[0..255]=220>, b: <int[0..255]=255>, size: <double[0..]=1>, density: <double[0..]=3> } }",
+    "example": "{ GRAPPLE: { range: 14, hook-speed: 2.0, reel-distance: 2.0 } }",
+    "params": [
+      {
+        "name": "range",
+        "kind": "DOUBLE",
+        "label": "double[1..]",
+        "required": false,
+        "default": "14",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "hook range in blocks (both rays)"
+        },
+      {
+        "name": "hook-speed",
+        "kind": "DOUBLE",
+        "label": "double[0.5..]",
+        "required": false,
+        "default": "2.0",
+        "min": 0.5,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "hook flight speed, blocks per tick (cosmetic delay)"
+        },
+      {
+        "name": "reel-distance",
+        "kind": "DOUBLE",
+        "label": "double[0.5..]",
+        "required": false,
+        "default": "2.0",
+        "min": 0.5,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "where a hooked enemy lands, blocks in front of you"
+        },
+      {
+        "name": "slow-effect",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": "SLOW",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": "the brief debuff a reeled enemy gets"
+        },
+      {
+        "name": "slow-level",
+        "kind": "INT",
+        "label": "int[1..10]",
+        "required": false,
+        "default": "2",
+        "min": 1,
+        "max": 10,
+        "enum": [],
+        "handle": null,
+        "doc": "its amplifier + 1 (authoring convention)"
+        },
+      {
+        "name": "slow-duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "60",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "its length"
+        },
+      {
+        "name": "zip-strength",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0.34",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "terrain mode: velocity per block of distance (capped)"
+        },
+      {
+        "name": "zip-cap",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "3.2",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "terrain mode: velocity magnitude cap"
+        },
+      {
+        "name": "zip-rise",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0.25",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "terrain mode: extra upward boost"
+        },
+      {
+        "name": "particle",
+        "kind": "HANDLE",
+        "label": "particle",
+        "required": false,
+        "default": "REDSTONE",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "PARTICLE",
+        "doc": ""
+        },
+      {
+        "name": "r",
+        "kind": "INT",
+        "label": "int[0..255]",
+        "required": false,
+        "default": "200",
+        "min": 0,
+        "max": 255,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "g",
+        "kind": "INT",
+        "label": "int[0..255]",
+        "required": false,
+        "default": "220",
+        "min": 0,
+        "max": 255,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "b",
+        "kind": "INT",
+        "label": "int[0..255]",
+        "required": false,
+        "default": "255",
+        "min": 0,
+        "max": 255,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "size",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "density",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "3",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "line motes per block"
+        }
+      ],
+    "targets": []
+    },
+  {
+    "head": "GRAVITY_WELL",
+    "doc": "Singularity (reforges): throw a particle beam onto the block in your sights (max range); a collapsing star forms rise blocks above it, drags every living thing within radius toward the core for duration ticks, then implodes for damage (linear falloff to falloff-floor at the edge). Pulls — and hurts — the caster too unless self-pull/self-damage are off. Reforge-service-owned: this effect emits no intent of its own.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ GRAVITY_WELL: { range: <double[1..]=12>, radius: <double[0.5..]=6>, rise: <double[0..]=2.5>, duration: <ticks[0..]=60>, period: <int[1..20]=2>, pull: <double[0..]=0.28>, damage: <double[0..]=8.0>, falloff-floor: <double[0..1]=0.25>, self-pull: <bool=true>, self-damage: <bool=true>, r: <int[0..255]=190>, g: <int[0..255]=120>, b: <int[0..255]=255> } }",
+    "example": "{ GRAVITY_WELL: { range: 12, radius: 6, duration: 60, damage: 8.0 } }",
+    "params": [
+      {
+        "name": "range",
+        "kind": "DOUBLE",
+        "label": "double[1..]",
+        "required": false,
+        "default": "12",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "max block-selection distance (blocks)"
+        },
+      {
+        "name": "radius",
+        "kind": "DOUBLE",
+        "label": "double[0.5..]",
+        "required": false,
+        "default": "6",
+        "min": 0.5,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "pull + implosion radius around the core"
+        },
+      {
+        "name": "rise",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "2.5",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "core height above the selected block"
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "60",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "pull phase length before the implosion"
+        },
+      {
+        "name": "period",
+        "kind": "INT",
+        "label": "int[1..20]",
+        "required": false,
+        "default": "2",
+        "min": 1,
+        "max": 20,
+        "enum": [],
+        "handle": null,
+        "doc": "pull cadence in ticks"
+        },
+      {
+        "name": "pull",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0.28",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "per-pulse velocity magnitude toward the core"
+        },
+      {
+        "name": "damage",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "8.0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "implosion damage at the core, RAW health-space (8.0 = 4 hearts)"
+        },
+      {
+        "name": "falloff-floor",
+        "kind": "DOUBLE",
+        "label": "double[0..1]",
+        "required": false,
+        "default": "0.25",
+        "min": 0,
+        "max": 1,
+        "enum": [],
+        "handle": null,
+        "doc": "damage fraction kept at the radius edge"
+        },
+      {
+        "name": "self-pull",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "true",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "the caster is dragged too (the authored downside)"
+        },
+      {
+        "name": "self-damage",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "true",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "the implosion hits the caster too if inside"
+        },
+      {
+        "name": "r",
+        "kind": "INT",
+        "label": "int[0..255]",
+        "required": false,
+        "default": "190",
+        "min": 0,
+        "max": 255,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "g",
+        "kind": "INT",
+        "label": "int[0..255]",
+        "required": false,
+        "default": "120",
+        "min": 0,
+        "max": 255,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "b",
+        "kind": "INT",
+        "label": "int[0..255]",
+        "required": false,
+        "default": "255",
+        "min": 0,
+        "max": 255,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
+    },
+  {
     "head": "GUARD",
     "doc": "Summon count guardian mobs of type at the activation location, each targeting the attacker, auto-removed after ttl ticks (default 200; 0 = permanent); optional custom name. A targeted SPAWN_ENTITY for retaliation — author on DEFENSE.",
     "affinity": "REGION",
@@ -1013,6 +1568,72 @@
         "label": "double[0..]",
         "required": true,
         "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "HIT_TEMPO",
+    "doc": "Arm a hit-tempo window on the wearer for `duration` ticks: their melee victims' damage-immunity window is halved for the wearer's hits only (model MENTAL = the 1.8-combat half-window gate; VANILLA = the 1.9+ full-window cadence), each such hit deals `damage-percent`% of its normal damage, and on 1.9+ the wearer gains `attack-speed` (+1.0 = doubled) swing speed for the window. Third-party attackers are unaffected — their hits keep natural immunity.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ HIT_TEMPO: { duration: <ticks[0..]=100>, model: <enum{VANILLA|MENTAL}=VANILLA>, damage-percent: <double[0..100]=33.3>, attack-speed: <double[0..]=1.0> } }",
+    "example": "{ HIT_TEMPO: { duration: 100, model: MENTAL, damage-percent: 33.3, attack-speed: 1.0 } }",
+    "params": [
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "100",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "model",
+        "kind": "ENUM",
+        "label": "enum{VANILLA|MENTAL}",
+        "required": false,
+        "default": "VANILLA",
+        "min": null,
+        "max": null,
+        "enum": [
+          "VANILLA",
+          "MENTAL"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "damage-percent",
+        "kind": "DOUBLE",
+        "label": "double[0..100]",
+        "required": false,
+        "default": "33.3",
+        "min": 0,
+        "max": 100,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "attack-speed",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1.0",
         "min": 0,
         "max": null,
         "enum": [],
@@ -1171,6 +1792,211 @@
         "selector": "SELF"
         }
       ]
+    },
+  {
+    "head": "JAVELIN",
+    "doc": "Javelin (reforges): a straight particle javelin at speed blocks/tick, max-travel blocks. On the first living hit: one weapon-swing's damage (or FLAT damage), knockback × along the flight angle, a lock-tick camera+movement hold, then nausea. Deliberately slow — sidestepping it is the counterplay; a miss is wasted. Reforge-service-owned: this effect emits no intent of its own.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ JAVELIN: { speed: <double[0.05..]=0.15>, max-travel: <double[1..]=12>, hit-radius: <double[0.1..]=0.9>, damage-mode: <enum{WEAPON|FLAT}=WEAPON>, damage: <double[0..]=7.0>, knockback: <double[0..]=1.3>, knockback-base: <double[0..]=0.45>, lock: <ticks[0..]=20>, lock-delay: <ticks[0..]=5>, nausea-effect: <potion_effect=CONFUSION>, nausea-duration: <ticks[0..]=100>, particle: <particle=REDSTONE>, r: <int[0..255]=120>, g: <int[0..255]=200>, b: <int[0..255]=255>, size: <double[0..]=1.2> } }",
+    "example": "{ JAVELIN: { speed: 0.15, max-travel: 12, knockback: 1.3, lock: 20 } }",
+    "params": [
+      {
+        "name": "speed",
+        "kind": "DOUBLE",
+        "label": "double[0.05..]",
+        "required": false,
+        "default": "0.15",
+        "min": 0.05,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "flight speed, blocks per tick (0.15 = 3 blocks/s)"
+        },
+      {
+        "name": "max-travel",
+        "kind": "DOUBLE",
+        "label": "double[1..]",
+        "required": false,
+        "default": "12",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "max flight distance in blocks"
+        },
+      {
+        "name": "hit-radius",
+        "kind": "DOUBLE",
+        "label": "double[0.1..]",
+        "required": false,
+        "default": "0.9",
+        "min": 0.1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "hit detection radius around the tip"
+        },
+      {
+        "name": "damage-mode",
+        "kind": "ENUM",
+        "label": "enum{WEAPON|FLAT}",
+        "required": false,
+        "default": "WEAPON",
+        "min": null,
+        "max": null,
+        "enum": [
+          "WEAPON",
+          "FLAT"
+          ],
+        "handle": null,
+        "doc": "WEAPON = one swing of the held weapon (era-read); FLAT = the damage param"
+        },
+      {
+        "name": "damage",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "7.0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "FLAT mode damage, RAW health-space"
+        },
+      {
+        "name": "knockback",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1.3",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "knockback multiplier along the flight angle"
+        },
+      {
+        "name": "knockback-base",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0.45",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "base knockback velocity one multiplier buys"
+        },
+      {
+        "name": "lock",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "20",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "camera-lock + movement-freeze length"
+        },
+      {
+        "name": "lock-delay",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "5",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "ticks after impact before the pin arms (lets the knock land)"
+        },
+      {
+        "name": "nausea-effect",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": "CONFUSION",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": "the post-lock debuff"
+        },
+      {
+        "name": "nausea-duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "100",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "its length (100 = 5 s)"
+        },
+      {
+        "name": "particle",
+        "kind": "HANDLE",
+        "label": "particle",
+        "required": false,
+        "default": "REDSTONE",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "PARTICLE",
+        "doc": ""
+        },
+      {
+        "name": "r",
+        "kind": "INT",
+        "label": "int[0..255]",
+        "required": false,
+        "default": "120",
+        "min": 0,
+        "max": 255,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "g",
+        "kind": "INT",
+        "label": "int[0..255]",
+        "required": false,
+        "default": "200",
+        "min": 0,
+        "max": 255,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "b",
+        "kind": "INT",
+        "label": "int[0..255]",
+        "required": false,
+        "default": "255",
+        "min": 0,
+        "max": 255,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "size",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1.2",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
     },
   {
     "head": "KEEP_ON_DEATH",
@@ -2955,6 +3781,76 @@
       ]
     },
   {
+    "head": "SWAP_POSITION",
+    "doc": "Castling (reforges): lock the enemy in your crosshair (range, line of sight), channel for channel ticks with audible countdown cues and a warning to the victim, then both of you swap positions — velocities zeroed, each keeps their own facing. Line of sight broken, range + slack exceeded, a world change or a death aborts it; the use stays spent. Reforge-service-owned: this effect emits no intent of its own.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ SWAP_POSITION: { range: <double[1..]=12>, channel: <ticks[0..]=40>, check-period: <int[1..10]=2>, cue-period: <ticks[0..]=10>, range-slack: <double[0..]=2> } }",
+    "example": "{ SWAP_POSITION: { range: 12, channel: 40 } }",
+    "params": [
+      {
+        "name": "range",
+        "kind": "DOUBLE",
+        "label": "double[1..]",
+        "required": false,
+        "default": "12",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "crosshair target acquisition + max channel distance"
+        },
+      {
+        "name": "channel",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "40",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "channel length (the 2-second countdown)"
+        },
+      {
+        "name": "check-period",
+        "kind": "INT",
+        "label": "int[1..10]",
+        "required": false,
+        "default": "2",
+        "min": 1,
+        "max": 10,
+        "enum": [],
+        "handle": null,
+        "doc": "LOS/validity re-check cadence, ticks"
+        },
+      {
+        "name": "cue-period",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "10",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "countdown tick-cue cadence"
+        },
+      {
+        "name": "range-slack",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "2",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "extra blocks past range before a drift aborts"
+        }
+      ],
+    "targets": []
+    },
+  {
     "head": "TELEBLOCK",
     "doc": "Block the target player(s) from teleporting (ender pearl / chorus fruit) for duration ticks.",
     "affinity": "CONTEXT_LOCAL",
@@ -3250,6 +4146,20 @@
       {
         "name": "who",
         "selector": "VICTIM"
+        }
+      ]
+    },
+  {
+    "head": "TRAP_BREAK",
+    "doc": "Break every confining trap currently on the wearer — encasing webs, web boxes, cage cells — restoring the trapped blocks to their true originals immediately. Area floors and trails are unaffected. Works through ability silence (it is a block restore, not an ability negation).",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ TRAP_BREAK: {} }",
+    "example": "{ TRAP_BREAK: { } }",
+    "params": [],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
         }
       ]
     },

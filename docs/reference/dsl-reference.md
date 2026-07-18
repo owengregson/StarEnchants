@@ -6,6 +6,32 @@ _Generated from the engine's effect / selector / trigger / condition / variable 
 
 The actions an ability runs. Each is a block map `{ HEAD: { param: value, who:, wait: } }` in an enchant/set/crystal's `effects:` list.
 
+### BATTERY
+
+Arm a damage battery on the wearer: the next `hits` landed hits they take each bank `bank-percent`% of the final damage; their next landed hit on an enemy unloads the entire bank as bonus damage on that hit, then the core resets — a hit with nothing banked still spends the core. No time limit; the ability cooldown paces re-arms. Cleared on death.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ BATTERY: { bank-percent: <double[0..100]=20>, hits: <int[1..10]=3> } }`
+- _param_ `bank-percent` `double[0..100]`
+- _param_ `hits` `int[1..10]`
+- _target_ `who`: selector `SELF`
+- _example_: `{ BATTERY: { bank-percent: 20, hits: 3 } }`
+
+### BLINK
+
+Blink (reforges): instantly teleport up to distance blocks along your facing if the path is clear — stops at the last open block, never phases into or through terrain. Walls stop it; the use is spent either way.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ BLINK: { distance: <double[1..16]=4>, particle: <particle=REDSTONE>, r: <int[0..255]=170>, g: <int[0..255]=60>, b: <int[0..255]=220>, size: <double[0..]=1>, count: <int[0..]=10> } }`
+- _param_ `distance` `double[1..16]` — max blink distance in blocks
+- _param_ `particle` `particle`
+- _param_ `r` `int[0..255]`
+- _param_ `g` `int[0..255]`
+- _param_ `b` `int[0..255]`
+- _param_ `size` `double[0..]`
+- _param_ `count` `int[0..]` — departure/arrival puff motes
+- _example_: `{ BLINK: { distance: 4 } }`
+
 ### BREAK_BLOCK
 
 Break the target block(s) (default @Here; drops=false clears). @Vein/@Tunnel/@Trench for shapes.
@@ -40,6 +66,16 @@ Cancel the Bukkit event that triggered this activation.
 - _affinity_: `CONTEXT_LOCAL`
 - _usage_: `{ CANCEL: {} }`
 - _example_: `{ CANCEL: {} }`
+
+### CONVERT_SUMMON
+
+Convert every enemy-summoned ally within `radius` blocks of the wearer to the wearer's side, permanently: summoned guards/zombies/sentries/mounts rebind their ownership (a hit on them now fires the wearer's GUARDIAN_HURT), targeting summons turn on their former owner, tamed summons re-tame, and bat swarm clouds permanently swarm their former owner instead.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ CONVERT_SUMMON: { radius: <double[1..32]=12> } }`
+- _param_ `radius` `double[1..32]`
+- _target_ `who`: selector `SELF`
+- _example_: `{ CONVERT_SUMMON: { radius: 12 } }`
 
 ### CURE
 
@@ -116,6 +152,17 @@ Make the target(s) drop their held (main-hand) item.
 - _usage_: `{ DISARM: {} }`
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ DISARM: {} }`
+
+### DISARM_SHUFFLE
+
+Arm an unhanding window on the wearer for `duration` ticks: their next landed melee hit on a player knocks the victim's held item into a random other hotbar slot (the victim can re-select it — shuffled, not locked; weapon-gated combos like Rage break naturally) and that hit deals `damage-malus`% less damage. One shot; a dodged/negated hit keeps the window armed.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ DISARM_SHUFFLE: { duration: <ticks[0..]=80>, damage-malus: <double[0..100]=20> } }`
+- _param_ `duration` `ticks[0..]`
+- _param_ `damage-malus` `double[0..100]`
+- _target_ `who`: selector `SELF`
+- _example_: `{ DISARM_SHUFFLE: { duration: 80, damage-malus: 20 } }`
 
 ### DROP_ITEM
 
@@ -264,6 +311,50 @@ Give a material to the player target(s); overflow drops at their feet.
 - _target_ `who`: selector `SELF`
 - _example_: `{ GIVE_ITEM: { material: DIAMOND, count: 1, who: "@Self" } }`
 
+### GRAPPLE
+
+Leviathan's Reach (reforges): throw a grappling line along your facing (range blocks). An enemy in sight closer than the first block is reeled to reel-distance blocks in front of you with a brief slow and no damage; otherwise you zip to the terrain point. Open air wastes the throw. Reforge-service-owned: this effect emits no intent of its own.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ GRAPPLE: { range: <double[1..]=14>, hook-speed: <double[0.5..]=2.0>, reel-distance: <double[0.5..]=2.0>, slow-effect: <potion_effect=SLOW>, slow-level: <int[1..10]=2>, slow-duration: <ticks[0..]=60>, zip-strength: <double[0..]=0.34>, zip-cap: <double[0..]=3.2>, zip-rise: <double[0..]=0.25>, particle: <particle=REDSTONE>, r: <int[0..255]=200>, g: <int[0..255]=220>, b: <int[0..255]=255>, size: <double[0..]=1>, density: <double[0..]=3> } }`
+- _param_ `range` `double[1..]` — hook range in blocks (both rays)
+- _param_ `hook-speed` `double[0.5..]` — hook flight speed, blocks per tick (cosmetic delay)
+- _param_ `reel-distance` `double[0.5..]` — where a hooked enemy lands, blocks in front of you
+- _param_ `slow-effect` `potion_effect` — the brief debuff a reeled enemy gets
+- _param_ `slow-level` `int[1..10]` — its amplifier + 1 (authoring convention)
+- _param_ `slow-duration` `ticks[0..]` — its length
+- _param_ `zip-strength` `double[0..]` — terrain mode: velocity per block of distance (capped)
+- _param_ `zip-cap` `double[0..]` — terrain mode: velocity magnitude cap
+- _param_ `zip-rise` `double[0..]` — terrain mode: extra upward boost
+- _param_ `particle` `particle`
+- _param_ `r` `int[0..255]`
+- _param_ `g` `int[0..255]`
+- _param_ `b` `int[0..255]`
+- _param_ `size` `double[0..]`
+- _param_ `density` `double[0..]` — line motes per block
+- _example_: `{ GRAPPLE: { range: 14, hook-speed: 2.0, reel-distance: 2.0 } }`
+
+### GRAVITY_WELL
+
+Singularity (reforges): throw a particle beam onto the block in your sights (max range); a collapsing star forms rise blocks above it, drags every living thing within radius toward the core for duration ticks, then implodes for damage (linear falloff to falloff-floor at the edge). Pulls — and hurts — the caster too unless self-pull/self-damage are off. Reforge-service-owned: this effect emits no intent of its own.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ GRAVITY_WELL: { range: <double[1..]=12>, radius: <double[0.5..]=6>, rise: <double[0..]=2.5>, duration: <ticks[0..]=60>, period: <int[1..20]=2>, pull: <double[0..]=0.28>, damage: <double[0..]=8.0>, falloff-floor: <double[0..1]=0.25>, self-pull: <bool=true>, self-damage: <bool=true>, r: <int[0..255]=190>, g: <int[0..255]=120>, b: <int[0..255]=255> } }`
+- _param_ `range` `double[1..]` — max block-selection distance (blocks)
+- _param_ `radius` `double[0.5..]` — pull + implosion radius around the core
+- _param_ `rise` `double[0..]` — core height above the selected block
+- _param_ `duration` `ticks[0..]` — pull phase length before the implosion
+- _param_ `period` `int[1..20]` — pull cadence in ticks
+- _param_ `pull` `double[0..]` — per-pulse velocity magnitude toward the core
+- _param_ `damage` `double[0..]` — implosion damage at the core, RAW health-space (8.0 = 4 hearts)
+- _param_ `falloff-floor` `double[0..1]` — damage fraction kept at the radius edge
+- _param_ `self-pull` `bool` — the caster is dragged too (the authored downside)
+- _param_ `self-damage` `bool` — the implosion hits the caster too if inside
+- _param_ `r` `int[0..255]`
+- _param_ `g` `int[0..255]`
+- _param_ `b` `int[0..255]`
+- _example_: `{ GRAVITY_WELL: { range: 12, radius: 6, duration: 60, damage: 8.0 } }`
+
 ### GUARD
 
 Summon count guardian mobs of type at the activation location, each targeting the attacker, auto-removed after ttl ticks (default 200; 0 = permanent); optional custom name. A targeted SPAWN_ENTITY for retaliation — author on DEFENSE.
@@ -286,6 +377,19 @@ Bonus maximum health. On PASSIVE/HELD @Self it is a maintained worn bonus (recon
 - _param_ `amount` `double[0..]`
 - _target_ `who`: selector `SELF`
 - _example_: `{ HEALTH: { amount: 4 } }`
+
+### HIT_TEMPO
+
+Arm a hit-tempo window on the wearer for `duration` ticks: their melee victims' damage-immunity window is halved for the wearer's hits only (model MENTAL = the 1.8-combat half-window gate; VANILLA = the 1.9+ full-window cadence), each such hit deals `damage-percent`% of its normal damage, and on 1.9+ the wearer gains `attack-speed` (+1.0 = doubled) swing speed for the window. Third-party attackers are unaffected — their hits keep natural immunity.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ HIT_TEMPO: { duration: <ticks[0..]=100>, model: <enum{VANILLA|MENTAL}=VANILLA>, damage-percent: <double[0..100]=33.3>, attack-speed: <double[0..]=1.0> } }`
+- _param_ `duration` `ticks[0..]`
+- _param_ `model` `enum{VANILLA|MENTAL}`
+- _param_ `damage-percent` `double[0..100]`
+- _param_ `attack-speed` `double[0..]`
+- _target_ `who`: selector `SELF`
+- _example_: `{ HIT_TEMPO: { duration: 100, model: MENTAL, damage-percent: 33.3, attack-speed: 1.0 } }`
 
 ### IGNITE
 
@@ -343,6 +447,30 @@ Make the target invulnerable for a span of ticks, then restore.
 - _param_ `ticks` `ticks[0..]`
 - _target_ `who`: selector `SELF`
 - _example_: `{ INVINCIBLE: { ticks: 100 } }`
+
+### JAVELIN
+
+Javelin (reforges): a straight particle javelin at speed blocks/tick, max-travel blocks. On the first living hit: one weapon-swing's damage (or FLAT damage), knockback × along the flight angle, a lock-tick camera+movement hold, then nausea. Deliberately slow — sidestepping it is the counterplay; a miss is wasted. Reforge-service-owned: this effect emits no intent of its own.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ JAVELIN: { speed: <double[0.05..]=0.15>, max-travel: <double[1..]=12>, hit-radius: <double[0.1..]=0.9>, damage-mode: <enum{WEAPON|FLAT}=WEAPON>, damage: <double[0..]=7.0>, knockback: <double[0..]=1.3>, knockback-base: <double[0..]=0.45>, lock: <ticks[0..]=20>, lock-delay: <ticks[0..]=5>, nausea-effect: <potion_effect=CONFUSION>, nausea-duration: <ticks[0..]=100>, particle: <particle=REDSTONE>, r: <int[0..255]=120>, g: <int[0..255]=200>, b: <int[0..255]=255>, size: <double[0..]=1.2> } }`
+- _param_ `speed` `double[0.05..]` — flight speed, blocks per tick (0.15 = 3 blocks/s)
+- _param_ `max-travel` `double[1..]` — max flight distance in blocks
+- _param_ `hit-radius` `double[0.1..]` — hit detection radius around the tip
+- _param_ `damage-mode` `enum{WEAPON|FLAT}` — WEAPON = one swing of the held weapon (era-read); FLAT = the damage param
+- _param_ `damage` `double[0..]` — FLAT mode damage, RAW health-space
+- _param_ `knockback` `double[0..]` — knockback multiplier along the flight angle
+- _param_ `knockback-base` `double[0..]` — base knockback velocity one multiplier buys
+- _param_ `lock` `ticks[0..]` — camera-lock + movement-freeze length
+- _param_ `lock-delay` `ticks[0..]` — ticks after impact before the pin arms (lets the knock land)
+- _param_ `nausea-effect` `potion_effect` — the post-lock debuff
+- _param_ `nausea-duration` `ticks[0..]` — its length (100 = 5 s)
+- _param_ `particle` `particle`
+- _param_ `r` `int[0..255]`
+- _param_ `g` `int[0..255]`
+- _param_ `b` `int[0..255]`
+- _param_ `size` `double[0..]`
+- _example_: `{ JAVELIN: { speed: 0.15, max-travel: 12, knockback: 1.3, lock: 20 } }`
 
 ### KEEP_ON_DEATH
 
@@ -764,6 +892,19 @@ Make the target(s) immune to suppression (DISABLE_ENCHANT/GROUP/TYPE) while worn
 - _target_ `who`: selector `SELF`
 - _example_: `{ SUPPRESS_IMMUNE: { chance: 4, who: "@Self" } }`
 
+### SWAP_POSITION
+
+Castling (reforges): lock the enemy in your crosshair (range, line of sight), channel for channel ticks with audible countdown cues and a warning to the victim, then both of you swap positions — velocities zeroed, each keeps their own facing. Line of sight broken, range + slack exceeded, a world change or a death aborts it; the use stays spent. Reforge-service-owned: this effect emits no intent of its own.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ SWAP_POSITION: { range: <double[1..]=12>, channel: <ticks[0..]=40>, check-period: <int[1..10]=2>, cue-period: <ticks[0..]=10>, range-slack: <double[0..]=2> } }`
+- _param_ `range` `double[1..]` — crosshair target acquisition + max channel distance
+- _param_ `channel` `ticks[0..]` — channel length (the 2-second countdown)
+- _param_ `check-period` `int[1..10]` — LOS/validity re-check cadence, ticks
+- _param_ `cue-period` `ticks[0..]` — countdown tick-cue cadence
+- _param_ `range-slack` `double[0..]` — extra blocks past range before a drift aborts
+- _example_: `{ SWAP_POSITION: { range: 12, channel: 40 } }`
+
 ### TELEBLOCK
 
 Block the target player(s) from teleporting (ender pearl / chorus fruit) for duration ticks.
@@ -825,6 +966,15 @@ Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRIN
 - _param_ `airOnly` `bool`
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ TEMP_BLOCK: { shape: COLUMN, material: ICE, height: 2, ahead: 1, ticks: 60, who: "@Attacker" } }`
+
+### TRAP_BREAK
+
+Break every confining trap currently on the wearer — encasing webs, web boxes, cage cells — restoring the trapped blocks to their true originals immediately. Area floors and trails are unaffected. Works through ability silence (it is a block restore, not an ability negation).
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ TRAP_BREAK: {} }`
+- _target_ `who`: selector `SELF`
+- _example_: `{ TRAP_BREAK: { } }`
 
 ### VELOCITY
 

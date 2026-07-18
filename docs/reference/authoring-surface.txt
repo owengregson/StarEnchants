@@ -1,5 +1,16 @@
 starenchants authoring surface v1
 [effects]
+effect BATTERY
+  param bank-percent DOUBLE optional min=0 max=100 enum=- handle=- default=20
+  param hits INT optional min=1 max=10 enum=- handle=- default=3
+effect BLINK
+  param distance DOUBLE optional min=1 max=16 enum=- handle=- default=4
+  param particle HANDLE optional min=- max=- enum=- handle=PARTICLE default=REDSTONE
+  param r INT optional min=0 max=255 enum=- handle=- default=170
+  param g INT optional min=0 max=255 enum=- handle=- default=60
+  param b INT optional min=0 max=255 enum=- handle=- default=220
+  param size DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param count INT optional min=0 max=- enum=- handle=- default=10
 effect BREAK_BLOCK
   param drops BOOL optional min=- max=- enum=- handle=- default=true
 effect CAGE
@@ -12,6 +23,8 @@ effect CAGE
   param rise INT optional min=0 max=8 enum=- handle=- default=2
   param ticks TICKS optional min=0 max=- enum=- handle=- default=150
 effect CANCEL
+effect CONVERT_SUMMON
+  param radius DOUBLE optional min=1 max=32 enum=- handle=- default=12
 effect CURE
   param category ENUM optional min=- max=- enum=ALL,BENEFICIAL,HARMFUL,NEUTRAL handle=- default=ALL
 effect DAMAGE
@@ -34,6 +47,9 @@ effect DIG_HOME
   param window TICKS optional min=0 max=- enum=- handle=- default=600
   param range DOUBLE optional min=0 max=- enum=- handle=- default=50
 effect DISARM
+effect DISARM_SHUFFLE
+  param duration TICKS optional min=0 max=- enum=- handle=- default=80
+  param damage-malus DOUBLE optional min=0 max=100 enum=- handle=- default=20
 effect DROP_ITEM
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
   param count INT optional min=1 max=- enum=- handle=- default=1
@@ -73,6 +89,36 @@ effect FREEZE
 effect GIVE_ITEM
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
   param count INT optional min=1 max=- enum=- handle=- default=1
+effect GRAPPLE
+  param range DOUBLE optional min=1 max=- enum=- handle=- default=14
+  param hook-speed DOUBLE optional min=0.5 max=- enum=- handle=- default=2.0
+  param reel-distance DOUBLE optional min=0.5 max=- enum=- handle=- default=2.0
+  param slow-effect HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=SLOW
+  param slow-level INT optional min=1 max=10 enum=- handle=- default=2
+  param slow-duration TICKS optional min=0 max=- enum=- handle=- default=60
+  param zip-strength DOUBLE optional min=0 max=- enum=- handle=- default=0.34
+  param zip-cap DOUBLE optional min=0 max=- enum=- handle=- default=3.2
+  param zip-rise DOUBLE optional min=0 max=- enum=- handle=- default=0.25
+  param particle HANDLE optional min=- max=- enum=- handle=PARTICLE default=REDSTONE
+  param r INT optional min=0 max=255 enum=- handle=- default=200
+  param g INT optional min=0 max=255 enum=- handle=- default=220
+  param b INT optional min=0 max=255 enum=- handle=- default=255
+  param size DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param density DOUBLE optional min=0 max=- enum=- handle=- default=3
+effect GRAVITY_WELL
+  param range DOUBLE optional min=1 max=- enum=- handle=- default=12
+  param radius DOUBLE optional min=0.5 max=- enum=- handle=- default=6
+  param rise DOUBLE optional min=0 max=- enum=- handle=- default=2.5
+  param duration TICKS optional min=0 max=- enum=- handle=- default=60
+  param period INT optional min=1 max=20 enum=- handle=- default=2
+  param pull DOUBLE optional min=0 max=- enum=- handle=- default=0.28
+  param damage DOUBLE optional min=0 max=- enum=- handle=- default=8.0
+  param falloff-floor DOUBLE optional min=0 max=1 enum=- handle=- default=0.25
+  param self-pull BOOL optional min=- max=- enum=- handle=- default=true
+  param self-damage BOOL optional min=- max=- enum=- handle=- default=true
+  param r INT optional min=0 max=255 enum=- handle=- default=190
+  param g INT optional min=0 max=255 enum=- handle=- default=120
+  param b INT optional min=0 max=255 enum=- handle=- default=255
 effect GUARD
   param type HANDLE required min=- max=- enum=- handle=ENTITY_TYPE default=-
   param count INT optional min=1 max=- enum=- handle=- default=1
@@ -80,6 +126,11 @@ effect GUARD
   param name STRING optional min=- max=- enum=- handle=- default=
 effect HEALTH
   param amount DOUBLE required min=0 max=- enum=- handle=- default=-
+effect HIT_TEMPO
+  param duration TICKS optional min=0 max=- enum=- handle=- default=100
+  param model ENUM optional min=- max=- enum=MENTAL,VANILLA handle=- default=VANILLA
+  param damage-percent DOUBLE optional min=0 max=100 enum=- handle=- default=33.3
+  param attack-speed DOUBLE optional min=0 max=- enum=- handle=- default=1.0
 effect IGNITE
   param duration TICKS required min=0 max=- enum=- handle=- default=-
 effect IGNORE_ARMOR
@@ -91,6 +142,23 @@ effect INVERT_VAR
   param name STRING required min=- max=- enum=- handle=- default=-
 effect INVINCIBLE
   param ticks TICKS optional min=0 max=- enum=- handle=- default=100
+effect JAVELIN
+  param speed DOUBLE optional min=0.05 max=- enum=- handle=- default=0.15
+  param max-travel DOUBLE optional min=1 max=- enum=- handle=- default=12
+  param hit-radius DOUBLE optional min=0.1 max=- enum=- handle=- default=0.9
+  param damage-mode ENUM optional min=- max=- enum=FLAT,WEAPON handle=- default=WEAPON
+  param damage DOUBLE optional min=0 max=- enum=- handle=- default=7.0
+  param knockback DOUBLE optional min=0 max=- enum=- handle=- default=1.3
+  param knockback-base DOUBLE optional min=0 max=- enum=- handle=- default=0.45
+  param lock TICKS optional min=0 max=- enum=- handle=- default=20
+  param lock-delay TICKS optional min=0 max=- enum=- handle=- default=5
+  param nausea-effect HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=CONFUSION
+  param nausea-duration TICKS optional min=0 max=- enum=- handle=- default=100
+  param particle HANDLE optional min=- max=- enum=- handle=PARTICLE default=REDSTONE
+  param r INT optional min=0 max=255 enum=- handle=- default=120
+  param g INT optional min=0 max=255 enum=- handle=- default=200
+  param b INT optional min=0 max=255 enum=- handle=- default=255
+  param size DOUBLE optional min=0 max=- enum=- handle=- default=1.2
 effect KEEP_ON_DEATH
   param duration TICKS optional min=0 max=- enum=- handle=- default=200
 effect KILL
@@ -230,6 +298,12 @@ effect SUPPRESS
   param charges INT optional min=1 max=- enum=- handle=- default=1
 effect SUPPRESS_IMMUNE
   param chance INT optional min=0 max=100 enum=- handle=- default=100
+effect SWAP_POSITION
+  param range DOUBLE optional min=1 max=- enum=- handle=- default=12
+  param channel TICKS optional min=0 max=- enum=- handle=- default=40
+  param check-period INT optional min=1 max=10 enum=- handle=- default=2
+  param cue-period TICKS optional min=0 max=- enum=- handle=- default=10
+  param range-slack DOUBLE optional min=0 max=- enum=- handle=- default=2
 effect TELEBLOCK
   param duration TICKS optional min=0 max=- enum=- handle=- default=400
 effect TELEPORT
@@ -253,6 +327,7 @@ effect TEMP_BLOCK
   param ahead INT optional min=0 max=8 enum=- handle=- default=0
   param dy INT optional min=-4 max=4 enum=- handle=- default=0
   param airOnly BOOL optional min=- max=- enum=- handle=- default=true
+effect TRAP_BREAK
 effect VELOCITY
   param mode ENUM optional min=- max=- enum=add,away handle=- default=add
   param x DOUBLE optional min=- max=- enum=- handle=- default=0
