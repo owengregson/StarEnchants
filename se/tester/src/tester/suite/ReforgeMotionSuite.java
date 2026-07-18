@@ -1023,31 +1023,36 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
             Block sighted = world.getBlockAt(arena.getBlockX(), arena.getBlockY() - 3, arena.getBlockZ());
             Location core = coreOf(sighted);
             Location cowAt = core.clone().add(1, 0, 0);
-            place(cow, cowAt, () -> Scheduling.onRegion(far, () -> {
-                Player caster;
-                try {
-                    caster = rig.spawnFake(world, "se_rf_xr"); // spawns primary; hopped to the far region below
-                } catch (Throwable t) {
-                    h.fail(key, t);
-                    rig.teardown();
-                    return;
-                }
-                caster.setGravity(false);
-                place(caster, far, () -> Scheduling.onEntityLater(caster, 10L, () -> {
+            // FakePlayers registers the player into the WORLD-SPAWN chunk, which this primary region owns but the
+            // far region (GAP blocks away, a distinct Folia region) does not — spawning on the far region thread
+            // threw "Cannot add entity off-main thread". So spawn here on the primary thread and teleport out.
+            Player caster;
+            try {
+                caster = rig.spawnFake(world, "se_rf_xr");
+            } catch (Throwable t) {
+                h.fail(key, "fake-player spawn: " + t);
+                rig.teardown();
+                return;
+            }
+            caster.setGravity(false);
+            place(cow, cowAt, () -> place(caster, far, () -> Scheduling.onEntityLater(caster, 10L, () -> {
+                // Prime the cow's baseline and schedule the read on ITS OWN (primary) thread — never cross-region;
+                // the well is armed on the caster's (far) thread, exactly as production's activation hook would fire.
+                Scheduling.onEntity(cow, () -> {
                     double before = cow.getHealth();
-                    Scheduling.onEntity(cow, () -> cow.setNoDamageTicks(0));
-                    // The well core lives in the primary region; the owner sits in the far one, so at implosion the
-                    // guarded ownership read is false and the hurt degrades to bare rather than throwing.
-                    GravityWellService svc = new GravityWellService(deps.dispatch(), (p, r) -> sighted,
-                            deps.messages(), deps.resolvers());
-                    svc.start(caster, effect(deps, "singularity-quick", GravityWellEffect.HEAD));
-                    Scheduling.onEntityLater(cow, 24L, () -> { h.guard(key, () -> {
+                    cow.setNoDamageTicks(0);
+                    Scheduling.onEntityLater(cow, 30L, () -> { h.guard(key, () -> {
                         if (cow.getHealth() >= before - HEALTH_EPS) {
                             throw new IllegalStateException("the cross-region implosion never landed a bare hurt");
                         }
                     }); rig.teardown(); });
-                }));
-            }));
+                });
+                // The well core lives in the primary region; the owner sits in the far one, so at implosion the
+                // guarded ownership read is false and the hurt degrades to bare rather than throwing.
+                GravityWellService svc = new GravityWellService(deps.dispatch(), (p, r) -> sighted,
+                        deps.messages(), deps.resolvers());
+                svc.start(caster, effect(deps, "singularity-quick", GravityWellEffect.HEAD));
+            })));
         });
     }
 
