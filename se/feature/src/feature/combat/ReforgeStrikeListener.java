@@ -23,6 +23,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import platform.lang.Messages;
+import platform.sched.Scheduling;
 import platform.text.Colors;
 
 /**
@@ -133,7 +134,13 @@ public final class ReforgeStrikeListener implements Listener {
         if (pending.tempoHit() && victimLiving != null) {
             int max = victimLiving.getMaximumNoDamageTicks();
             int window = pending.tempoWindow().model() == 0 ? max / 2 : max; // MENTAL = max/2, VANILLA = max
-            victimLiving.setNoDamageTicks(max - window / 2); // admit the holder's next full hit after HALF the window
+            int write = max - window / 2; // admit the holder's next full hit after HALF the window
+            LivingEntity victim = victimLiving;
+            // NMS's hurt() fresh-hit branch re-sets invulnerableTime = maximumNoDamageTicks AFTER this event
+            // fires (the putfield trails the event dispatch — verified in LivingEntity.hurtServer), so an inline
+            // write here is immediately clobbered back to the full window. Re-apply the shortened window on the
+            // victim's own region the next tick, once that reset has landed, so the mechanic actually takes.
+            Scheduling.onEntityLater(victim, 1L, () -> victim.setNoDamageTicks(write));
             stores.hitTempo().stampStolen(pending.victim(), pending.attacker(), nowTicks.getAsLong() + max / 2);
         }
     }

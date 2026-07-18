@@ -37,7 +37,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import platform.lang.Messages;
+import platform.sched.Scheduling;
 import testfx.Snapshots;
+import testfx.SyncSchedulerBackend;
 
 /**
  * The MONITOR commit + bank side of the reforge armed windows (ADR-0071 §2.6): a landed hit spends the
@@ -60,6 +62,9 @@ class ReforgeStrikeListenerTest {
 
     @BeforeEach
     void setUp() {
+        // The tempo i-frame write hops one tick (it must survive vanilla's post-event invulnerableTime reset);
+        // the sync backend runs that hop inline so the write is observable in-test.
+        Scheduling.install(new SyncSchedulerBackend());
         listener = new ReforgeStrikeListener(stores, worn, content, messages, sounds, () -> clock[0],
                 () -> pvp[0], () -> pve[0]);
     }
