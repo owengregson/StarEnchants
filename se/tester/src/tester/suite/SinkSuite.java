@@ -65,8 +65,13 @@ public final class SinkSuite implements Harness.Scenario {
 
                 // ADR-0052 INVINCIBLE, health-space: spawned here (region thread — a GLOBAL spawn is illegal
                 // on Folia), exercised from the GLOBAL block below. Held still so only health writes act on it.
+                // Open sky, dead-center of the FORCED chunk, not spawn+3: the tester wires no production
+                // summon guard, so a sentry spawned into a hillside suffocates on vanilla damage before the
+                // sink intents ever run — the first matrix run failed exactly that way — and a spawn-relative
+                // offset can cross out of the forced chunk entirely. y=200 has nothing to touch it.
+                org.bukkit.Location sentryAt = new org.bukkit.Location(world, cx * 16 + 8.5, 200, cz * 16 + 8.5);
                 org.bukkit.entity.LivingEntity sentry = (org.bukkit.entity.LivingEntity)
-                        world.spawnEntity(at.clone().add(8, 3, 0), EntityType.CREEPER);
+                        world.spawnEntity(sentryAt, EntityType.CREEPER);
                 sentry.setAI(false);
                 sentry.setGravity(false);
                 engine.sink.PetSummons.bind(sentry.getUniqueId(), new engine.sink.SummonFlags(
