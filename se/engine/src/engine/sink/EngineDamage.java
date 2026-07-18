@@ -1,5 +1,7 @@
 package engine.sink;
 
+import org.bukkit.entity.LivingEntity;
+
 /**
  * Marks the frames in which StarEnchants itself is applying entity damage (ADR-0054). Engine-issued
  * damage is attributed to an attacker where one is in scope — so downstream plugins see a real
@@ -38,5 +40,20 @@ public final class EngineDamage {
         } finally {
             DEPTH.set(DEPTH.get() - 1);
         }
+    }
+
+    /**
+     * The one engine-issued damage application (ADR-0054): attributed when an attacker is in scope and not the
+     * target, else bare; always inside the re-entrancy frame. Callers run on the target's owning thread; the
+     * attacker handle is only handed to vanilla as the damage source, never dereferenced (Folia-safe).
+     */
+    public static void hurt(LivingEntity target, double amount, LivingEntity attacker) {
+        frame(() -> {
+            if (attacker != null && !attacker.equals(target)) {
+                target.damage(amount, attacker);
+            } else {
+                target.damage(amount);
+            }
+        });
     }
 }

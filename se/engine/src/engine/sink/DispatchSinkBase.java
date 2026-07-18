@@ -143,6 +143,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final TrailWalker trails;
     /** The ONE per-boot timed-revert registry (via {@link SinkEnv}), so the quit drain can restore a logout-stranded buff. */
     private final TimedRevert timedReverts;
+    /** The ONE per-boot combo-DoT park ledger (via {@link SinkEnv}); banks a mid-combo hurt instead of applying it (ADR-0069). */
+    private final DotParkLedger dotPark;
     /** LIVE ceiling on one {@code interest_percent} deposit ({@code <= 0} = uncapped) — ADR-0052 Fish. */
     private final java.util.function.DoubleSupplier moneyInterestCap;
     /** The scroll-marker seam {@code STRIP_SCROLL} mutates victim gear through (ADR-0052 Anubis). */
@@ -194,6 +196,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.tempBlocks = env.tempBlocks();
         this.trails = env.trails();
         this.timedReverts = env.timedReverts();
+        this.dotPark = env.dotPark();
         this.moneyInterestCap = env.moneyInterestCap();
         this.gearProtection = env.gearProtection();
         this.lightningBoost = env.lightningBoost();
@@ -428,7 +431,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
             fold.addEffectiveDamage(amount);
             return;
         }
-        entityOp(target, () -> hurt(target, amount, attacker));
+        entityOp(target, () -> hurtOrPark(target, amount, attacker));
     }
 
     @Override
@@ -445,7 +448,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         }
         // The max-health read and the damage both run on the target's own thread (entityOp) — never a cross-region
         // max-health read. Uses the era-adaptive maxHealth() leaf, so it is version-stable.
-        entityOp(target, () -> hurt(target, maxHealth(target) * percentOfMax / 100.0, attacker));
+        entityOp(target, () -> hurtOrPark(target, maxHealth(target) * percentOfMax / 100.0, attacker));
     }
 
     /**
@@ -460,13 +463,28 @@ public abstract class DispatchSinkBase implements SinkReadback {
      * for the events this call fires.
      */
     private static void hurt(LivingEntity target, double amount, LivingEntity attacker) {
-        EngineDamage.frame(() -> {
-            if (attacker != null && !attacker.equals(target)) {
-                target.damage(amount, attacker);
-            } else {
-                target.damage(amount);
-            }
-        });
+        EngineDamage.hurt(target, amount, attacker);
+    }
+
+    /**
+     * ADR-0069: an engine hurt that does not ride its own triggering hit is BANKED while Mental holds an
+     * active combo on a player target — a mid-combo hurt re-arms the vanilla immunity window (era rule:
+     * the next melee lands difference-only with NO knock), starving Mental's shipped-knock combo feed, and
+     * an attributed one is melee-shaped by Mental (a phantom knock + tracker takeover). Parked damage joins
+     * the victim's next real hit via the fold (CombatDispatch) or the combo-end paced release
+     * (ComboDotRelease). Continuation-only: Mental exposes no developing-chain signal, so the formation
+     * window before ComboStart is unprotected (ADR-0069 §limitation). Runs on the target's owning thread
+     * (the plan routed it here), so the ledger write is region-correct; a non-player target or no active
+     * combo applies normally.
+     */
+    private void hurtOrPark(LivingEntity target, double amount, LivingEntity attacker) {
+        if (amount > 0 && target instanceof Player p
+                && dotPark.tryPark(p.getUniqueId(),
+                        attacker != null && !attacker.equals(target) ? attacker : null,
+                        amount, nowTicks.getAsLong())) {
+            return;
+        }
+        hurt(target, amount, attacker);
     }
 
     @Override
@@ -856,7 +874,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
                         // ADR-0054 deferred attributed hurt (the bleed path): EngineDamage-framed, so the
                         // combat dispatch stands down (no proc walks, no ReHitGuard stamp, no rage advance)
                         // and downstream sees a real killer-typed event (kill credit; Phoenix runs inline).
-                        hurt(target, dotPerTick, w.attacker());
+                        hurtOrPark(target, dotPerTick, w.attacker());
                     }
                     if (w.hasNextSlot(period)) {
                         return;
@@ -1108,7 +1126,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
             if (payload > 0) {
                 // A bolt is its own proc, never a same-hit rider (ADR-0054): always a separate,
                 // attributed application.
-                hurt(target, payload, attacker);
+                hurtOrPark(target, payload, attacker);
             }
         });
     }
