@@ -4,6 +4,16 @@ All notable changes to StarEnchants are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- **Bat swarm rework.** Summoned bats now cloud the vision of whoever attacked you most recently —
+  orbiting the two-block pillar directly in front of the attacker's face and tracking them as they
+  move and turn (within 16 blocks, last 10 seconds, most recent attacker wins; with no such attacker
+  they flutter with vanilla AI exactly as before). Swarm spawn heights now scatter ±0.6 blocks
+  around the ring.
+
 ## [1.9.0-beta] — 2026-07-17
 
 ### Added
