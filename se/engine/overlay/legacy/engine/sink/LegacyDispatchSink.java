@@ -552,30 +552,33 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
 
     @Override
     public void dust(Location at, int particleId, int r, int g, int b, float size, int count) {
+        regionOp(at, () -> dustDirect(at, particleId, r, g, b, size, count));
+    }
+
+    @Override
+    protected void dustDirect(Location at, int particleId, int r, int g, int b, float size, int count) {
         // 1.8 has no DustOptions: the redstone particle's colour rides the packet OFFSET as r/g/b in [0,1]
         // (data 1, count 0 = one coloured mote). A zero red is nudged to 0.001 to dodge the engine's
         // "exactly 0 = default red" special case. `size`/`count` have no 1.8 analogue and are ignored.
-        regionOp(at, () -> {
-            EnumParticle resolved = particle(particleId);
-            World world = at.getWorld();
-            if (resolved == null || world == null) {
-                return;
+        EnumParticle resolved = particle(particleId);
+        World world = at.getWorld();
+        if (resolved == null || world == null) {
+            return;
+        }
+        float fr = Math.max(0.001f, clampChannel(r) / 255f);
+        float fg = clampChannel(g) / 255f;
+        float fb = clampChannel(b) / 255f;
+        PacketPlayOutWorldParticles packet = new PacketPlayOutWorldParticles(
+                resolved, true,
+                (float) at.getX(), (float) at.getY(), (float) at.getZ(),
+                fr, fg, fb, // the colour rides the offset
+                1f,         // data/speed = 1 for the redstone colour packet
+                0);         // count 0: a single coloured mote per packet
+        for (Player viewer : world.getPlayers()) {
+            if (viewer.getLocation().distanceSquared(at) <= 64 * 64) {
+                sendPacket(viewer, packet);
             }
-            float fr = Math.max(0.001f, clampChannel(r) / 255f);
-            float fg = clampChannel(g) / 255f;
-            float fb = clampChannel(b) / 255f;
-            PacketPlayOutWorldParticles packet = new PacketPlayOutWorldParticles(
-                    resolved, true,
-                    (float) at.getX(), (float) at.getY(), (float) at.getZ(),
-                    fr, fg, fb, // the colour rides the offset
-                    1f,         // data/speed = 1 for the redstone colour packet
-                    0);         // count 0: a single coloured mote per packet
-            for (Player viewer : world.getPlayers()) {
-                if (viewer.getLocation().distanceSquared(at) <= 64 * 64) {
-                    sendPacket(viewer, packet);
-                }
-            }
-        });
+        }
     }
 
     /** The 1.8 NMS {@link EnumParticle} for an interned id, or {@code null} on a miss / unknown constant. */

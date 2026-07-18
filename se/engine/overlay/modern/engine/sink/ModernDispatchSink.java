@@ -564,22 +564,25 @@ public final class ModernDispatchSink extends DispatchSinkBase {
 
     @Override
     public void dust(Location at, int particleId, int r, int g, int b, float size, int count) {
-        regionOp(at, () -> {
-            Particle resolved = handles.particle(particleId);
-            World world = at.getWorld();
-            if (resolved == null || world == null) {
-                return;
-            }
-            Color color = Color.fromRGB(clampChannel(r), clampChannel(g), clampChannel(b));
-            float scale = size <= 0f ? 1f : size;
-            int n = Math.max(1, count);
-            try {
-                world.spawnParticle(resolved, at, n, 0.0, 0.0, 0.0, 0.0, new Particle.DustOptions(color, scale));
-            } catch (IllegalArgumentException notDust) {
-                // the resolved particle takes no dust colour — a plain burst, with ITS required data defaulted
-                spawnPlain(world, resolved, at, n, 0.0, 0.0, 0.0);
-            }
-        });
+        regionOp(at, () -> dustDirect(at, particleId, r, g, b, size, count));
+    }
+
+    @Override
+    protected void dustDirect(Location at, int particleId, int r, int g, int b, float size, int count) {
+        Particle resolved = handles.particle(particleId);
+        World world = at.getWorld();
+        if (resolved == null || world == null) {
+            return;
+        }
+        Color color = Color.fromRGB(clampChannel(r), clampChannel(g), clampChannel(b));
+        float scale = size <= 0f ? 1f : size;
+        int n = Math.max(1, count);
+        try {
+            world.spawnParticle(resolved, at, n, 0.0, 0.0, 0.0, 0.0, new Particle.DustOptions(color, scale));
+        } catch (IllegalArgumentException notDust) {
+            // the resolved particle takes no dust colour — a plain burst, with ITS required data defaulted
+            spawnPlain(world, resolved, at, n, 0.0, 0.0, 0.0);
+        }
     }
 
     // ── Player-feedback leaves (modern Spigot chat / title API) ───────────────────────────────────
