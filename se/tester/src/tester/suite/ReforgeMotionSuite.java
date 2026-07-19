@@ -132,6 +132,7 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
     private static final int A_JAV_HOLD = 17;
     private static final int A_JAV_WALL = 18;
     private static final int A_XREGION = 19;
+    private static final int A_BLINK_PITCH = 20;
 
     // ── Test defs (own numbers, LibraryLoader-compiled like BatCloudSuite; keys are reforges/<stem>) ──
 
@@ -260,6 +261,7 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
         blinkLandsShortOfAWall(h, deps, world, spawn);
         blinkZeroAgainstPointBlankWall(h, deps, world, spawn);
         blinkNeverPhasesIntoTerrain(h, deps, world, spawn);
+        blinkPitchedLookStillTravels(h, deps, world, spawn);
         grappleReelsTheEntityInSight(h, deps, world, spawn);
         grappleZipsToTerrainWhenNoEntity(h, deps, world, spawn);
         grappleWallShieldedEntityIsNotReeled(h, deps, world, spawn);
@@ -371,6 +373,45 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
                         if (!feet.isPassable() || !head.isPassable()) {
                             throw new IllegalStateException("blink landed inside terrain: feet="
                                     + feet.getType() + " head=" + head.getType());
+                        }
+                    });
+                    rig.teardown();
+                });
+            }));
+        });
+    }
+
+    private void blinkPitchedLookStillTravels(Harness h, Deps deps, World world, Location spawn) {
+        final String key = "reforge.blink.pitchedLookStillTravels";
+        h.expect(key);
+        CombatRig rig = new CombatRig(plugin);
+        Location arena = arena(world, spawn, A_BLINK_PITCH);
+        int bx = arena.getBlockX();
+        int by = arena.getBlockY();
+        int bz = arena.getBlockZ();
+        rig.onArena(arena, () -> {
+            Player caster = spawnFake(h, key, rig, world, "se_rf_blk4");
+            if (caster == null) {
+                return;
+            }
+            // A real floor under the whole path: the 1.10 regression was a pitched ray grounding in the
+            // floor cell within the first sample — a zero blink on every grounded look-down. Real players
+            // look slightly down almost always, so this is THE real-play posture (fake casters default to
+            // pitch 0, which is exactly how the bug shipped green).
+            for (int i = 0; i <= 6; i++) {
+                solid(world, bx + i, by - 1, bz);
+            }
+            Location stand = centerFacing(arena, -90.0f); // facing +X
+            stand.setPitch(35.0f);                        // looking down at the ground ahead
+            caster.setGravity(false);
+            place(caster, stand, () -> Scheduling.onEntityLater(caster, 5L, () -> {
+                deps.dispatch().fireUse(caster, keys(deps, "blink"));
+                awaitUntil(caster, () -> forwardX(caster, stand) >= 3.0, 0, 30, moved -> {
+                    h.guard(key, () -> {
+                        double dx = forwardX(caster, stand);
+                        if (dx < 3.0) {
+                            throw new IllegalStateException("a pitched look zeroed the blink again: moved "
+                                    + dx + " blocks of the authored 4");
                         }
                     });
                     rig.teardown();
