@@ -10,7 +10,6 @@ description:
 abilities:
   - cooldown: 3600
     effects:
-      - { SOUND: { sound: "BLOCK_BEACON_ACTIVATE", volume: 0.8, pitch: 1.6 } }
-      - { SOUND: { sound: "BLOCK_END_PORTAL_FRAME_FILL", volume: 0.6, pitch: 0.7 } }
-      - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_LAUNCH", volume: 0.5, pitch: 0.6 } }
+      # The soundscape is service-owned (launch/collapse/implosion layers in GravityWellService) —
+      # authored SOUND rows here would double the launch.
       - { GRAVITY_WELL: { range: 12, radius: 6, rise: 2.5, duration: 60, period: 2, pull: 0.28, damage: 8.0, falloff-floor: 0.25, self-pull: true, self-damage: true, r: 190, g: 120, b: 255 } }

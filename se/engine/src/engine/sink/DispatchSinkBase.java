@@ -2416,7 +2416,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void blinkForward(Player actor, Location origin, Vector direction, double maxDistance,
-                             int particleId, int r, int g, int b, float size, int count) {
+                             int particleId, int r, int g, int b, float size, int count,
+                             int arrivalSoundId, float arrivalVolume, float arrivalPitch,
+                             int arrivalAccentId, float accentVolume, float accentPitch) {
         Location from = origin.clone();
         Vector dir = direction.clone();
         double max = Math.max(0, maxDistance);
@@ -2472,6 +2474,15 @@ public abstract class DispatchSinkBase implements SinkReadback {
             teleportTo(actor, best);
             Location arrival = best.clone().add(0, 1, 0);
             Scheduling.onRegion(arrival, () -> dustDirect(arrival, particleId, r, g, b, size, count));
+            // The arrival cue rides the PLAYER two ticks after the hop: a sound at either endpoint at
+            // dispatch time misses them — the client has not landed to receive the packet.
+            Scheduling.onEntityLater(actor, 2L, () -> {
+                if (actor.isValid()) {
+                    Location landed = actor.getLocation();
+                    playCueInline(landed, arrivalSoundId, arrivalVolume, arrivalPitch);
+                    playCueInline(landed, arrivalAccentId, accentVolume, accentPitch);
+                }
+            });
         });
     }
 

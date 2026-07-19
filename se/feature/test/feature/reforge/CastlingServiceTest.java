@@ -280,10 +280,12 @@ class CastlingServiceTest {
         when(actor.hasLineOfSight(target)).thenReturn(true);
         service((p, d) -> target).start(actor, castlingFx());
 
-        driveTicks(20); // completion → the swap crack at both endpoints
+        driveTicks(20);       // completion tick
+        backend.runDelayed(); // the +2 post-hop crack rides each party's own scheduler (the zero-velocity idiom)
 
-        // The 0.5-volume anvil layer once per endpoint: the old BLOCK_ANVIL_LAND + ANVIL_LAND twins BOTH
-        // resolved on every era (the alias chain is bidirectional) and doubled it to 4.
+        // The 0.5-volume anvil layer once per PARTY, played after their hop lands (a dest-anchored play
+        // at dispatch time never reaches the arriving client): the old BLOCK_ANVIL_LAND + ANVIL_LAND
+        // twins BOTH resolved on every era (the alias chain is bidirectional) and doubled it to 4.
         verify(dispatch, times(2)).sound(any(), anyInt(), eq(0.5f), anyFloat());
     }
 

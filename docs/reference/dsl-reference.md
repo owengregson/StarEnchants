@@ -22,7 +22,7 @@ Arm a damage battery on the wearer: the next `hits` landed hits they take each b
 Blink (reforges): instantly teleport up to distance blocks along your facing if the path is clear — stops at the last open block, never phases into or through terrain. Walls stop it; the use is spent either way.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ BLINK: { distance: <double[1..16]=4>, particle: <particle=REDSTONE>, r: <int[0..255]=170>, g: <int[0..255]=60>, b: <int[0..255]=220>, size: <double[0..]=1>, count: <int[0..]=10> } }`
+- _usage_: `{ BLINK: { distance: <double[1..16]=4>, particle: <particle=REDSTONE>, r: <int[0..255]=170>, g: <int[0..255]=60>, b: <int[0..255]=220>, size: <double[0..]=1>, count: <int[0..]=10>, arrival-sound: <sound=ENTITY_ENDERMAN_TELEPORT>, arrival-volume: <double[0..]=0.6>, arrival-pitch: <double[0..]=1.8>, arrival-accent: <sound=BLOCK_AMETHYST_BLOCK_CHIME>, accent-volume: <double[0..]=0.4>, accent-pitch: <double[0..]=1.6> } }`
 - _param_ `distance` `double[1..16]` — max blink distance in blocks
 - _param_ `particle` `particle`
 - _param_ `r` `int[0..255]`
@@ -30,6 +30,12 @@ Blink (reforges): instantly teleport up to distance blocks along your facing if 
 - _param_ `b` `int[0..255]`
 - _param_ `size` `double[0..]`
 - _param_ `count` `int[0..]` — departure/arrival puff motes
+- _param_ `arrival-sound` `sound` — played ON the player after the hop lands — a sound at the origin is never heard by someone who just teleported away from it
+- _param_ `arrival-volume` `double[0..]`
+- _param_ `arrival-pitch` `double[0..]`
+- _param_ `arrival-accent` `sound` — the shimmer layer over the arrival body
+- _param_ `accent-volume` `double[0..]`
+- _param_ `accent-pitch` `double[0..]`
 - _example_: `{ BLINK: { distance: 4 } }`
 
 ### BREAK_BLOCK

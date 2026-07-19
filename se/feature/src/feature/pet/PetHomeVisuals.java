@@ -161,7 +161,13 @@ public final class PetHomeVisuals implements PlayerScoped {
             dispatch.dust(points, dust, rgb[0], rgb[1], rgb[2], DUST_SIZE);
         }
         play(from, teleport);
-        play(to, teleport);
+        // The arrival burrow AFTER the async hop: a dest-anchored play now reaches bystanders but not
+        // the recalled player — their client is not there yet to receive the sound packet.
+        platform.sched.Scheduling.onEntityLater(player, 2L, () -> {
+            if (player.isValid()) {
+                play(player.getLocation(), teleport);
+            }
+        });
     }
 
     /** The dig-home layered cue (ADR-0067) at the freshly-dug home — code-side because content cannot

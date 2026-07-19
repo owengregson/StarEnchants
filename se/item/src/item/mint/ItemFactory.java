@@ -55,7 +55,14 @@ public final class ItemFactory {
             Map.entry("STONE_BRICKS", "SMOOTH_BRICK"),// 1.13 rename: the Castling reforge icon on the 1.8 lane
             Map.entry("CHORUS_FRUIT", "ENDER_PEARL"), // 1.9+ item: the Blink reforge icon → the 1.8 pearl
             Map.entry("TRIDENT", "ARROW"),            // 1.13+ item: the Javelin reforge icon → the 1.8 arrow
-            Map.entry("BELL", "GOLD_INGOT"));         // 1.14+ item: the Summoner's Bell reforge icon on the 1.8 lane
+            Map.entry("BELL", "GOLD_INGOT"),          // 1.14+ item: the Grand Bell reforge icon on the 1.8 lane
+            // The identity-rework reforge icons (ADR-0070): each post-1.8 material degrades to the closest
+            // 1.8-name likeness so the legacy catalogue keeps a readable identity.
+            Map.entry("END_CRYSTAL", "EYE_OF_ENDER"),       // 1.9+ item: The Singularity
+            Map.entry("SOUL_CAMPFIRE", "FURNACE"),          // 1.16+ item: Spell Grappler
+            Map.entry("GLOW_BERRIES", "SPECKLED_MELON"),    // 1.17+ item: Berry Overdrive
+            Map.entry("HEART_OF_THE_SEA", "PRISMARINE_SHARD"), // 1.13+ item: Star Battery
+            Map.entry("LIGHT_BLUE_CANDLE", "TORCH"));       // 1.17+ item: Spectral Javelin
 
     /** The closest older-server equivalent of a newer material, or {@code null} if none is registered. */
     static String legacyFallback(String upperToken) {
