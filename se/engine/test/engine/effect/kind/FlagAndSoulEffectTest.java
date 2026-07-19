@@ -106,12 +106,12 @@ class FlagAndSoulEffectTest {
                 armed("DISARM_SHUFFLE → armDisarmShuffle(player, 66, 0.35)", new DisarmShuffleEffect(),
                         c -> c.with("duration", 66).with("damage-malus", 35.0),
                         (s, p) -> verify(s).armDisarmShuffle(p, 66, 0.35)),
-                armed("CONVERT_SUMMON → convertSummons(player, 9.5)", new ConvertSummonEffect(),
-                        c -> c.with("radius", 9.5),
-                        (s, p) -> verify(s).convertSummons(p, 9.5)),
-                armed("TRAP_BREAK → breakTraps(player)", new TrapBreakEffect(),
-                        c -> { },
-                        (s, p) -> verify(s).breakTraps(p)),
+                armed("CONVERT_SUMMON → convertSummons(player, 9.5, whiff 7)", new ConvertSummonEffect(),
+                        c -> c.with("radius", 9.5).with("whiff-sound", 7),
+                        (s, p) -> verify(s).convertSummons(p, 9.5, 7)),
+                armed("TRAP_BREAK → breakTraps(player, whiff 7)", new TrapBreakEffect(),
+                        c -> c.with("whiff-sound", 7),
+                        (s, p) -> verify(s).breakTraps(p, 7)),
                 dynamicTest("HIT_TEMPO on a non-player target → no intent (the Player filter)", () -> {
                     LivingEntity cow = mock(LivingEntity.class); // not a Player
                     FakeEffectCtx ctx = FakeEffectCtx.create().targets("who", cow)

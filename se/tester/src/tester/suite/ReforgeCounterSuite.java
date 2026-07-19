@@ -862,7 +862,7 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
                         world.setDifficulty(Difficulty.NORMAL);
                         Scheduling.onRegionLater(sky, 2L, () -> {
                             ModernDispatchSink bell = new ModernDispatchSink(handles, freshEnv(() -> 0L));
-                            bell.convertSummons(ringer, 12.0);
+                            bell.convertSummons(ringer, 12.0, -1);
                             bell.flush();
                             if (!ringer.getUniqueId().equals(GuardianCasts.owner(golemId2))) {
                                 h.fail(key, "ownership did not rebind to the ringer");
@@ -923,7 +923,7 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
                     rig.track(wolf);
                     UUID wolfUid = wolf.getUniqueId();
                     ModernDispatchSink bell = new ModernDispatchSink(handles, freshEnv(() -> 0L));
-                    bell.convertSummons(ringer, 12.0);
+                    bell.convertSummons(ringer, 12.0, -1);
                     bell.flush();
                     awaitUntil(wolf, () -> wolf instanceof Tameable t
                             && t.getOwner() != null
@@ -979,7 +979,7 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
                     rig.track(sentry);
                     UUID sentryUid = sentry.getUniqueId();
                     ModernDispatchSink bell = new ModernDispatchSink(handles, freshEnv(() -> 0L));
-                    bell.convertSummons(ringer, 12.0);
+                    bell.convertSummons(ringer, 12.0, -1);
                     bell.flush();
                     Scheduling.onRegionLater(sky, 6L, () -> {
                         h.guard(key, () -> {
@@ -1044,7 +1044,7 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
                         UUID ownUid = own.getUniqueId();
                         UUID farUid = far.getUniqueId();
                         ModernDispatchSink bell = new ModernDispatchSink(handles, freshEnv(() -> 0L));
-                        bell.convertSummons(ringer, 12.0);
+                        bell.convertSummons(ringer, 12.0, -1);
                         bell.flush();
                         Scheduling.onRegionLater(sky, 6L, () -> {
                             h.guard(key, () -> {
@@ -1108,7 +1108,7 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
                         UUID enemyId = enemy.getUniqueId();
                         Scheduling.onEntityLater(enemy, 5L, () -> Scheduling.onEntity(ringer, () -> {
                             ModernDispatchSink bell = new ModernDispatchSink(handles, freshEnv(tick::get));
-                            bell.convertSummons(ringer, 12.0);
+                            bell.convertSummons(ringer, 12.0, -1);
                             bell.flush();
                             awaitTurned(enemy, enemyId, tick, 0, 3, 40, ok -> {
                                 h.guard(key, () -> {
@@ -1206,7 +1206,7 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
                         return;
                     }
                     ModernDispatchSink turnkey = new ModernDispatchSink(handles, env);
-                    turnkey.breakTraps(victim);
+                    turnkey.breakTraps(victim, -1);
                     turnkey.flush();
                     Scheduling.onRegionLater(base, 8L, () -> {
                         h.guard(key, () -> assertTilesRestored(world, env, tiles));
@@ -1251,7 +1251,7 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
                         return;
                     }
                     ModernDispatchSink turnkey = new ModernDispatchSink(handles, env);
-                    turnkey.breakTraps(victim);
+                    turnkey.breakTraps(victim, -1);
                     turnkey.flush();
                     Scheduling.onRegionLater(base, 8L, () -> {
                         h.guard(key, () -> {
@@ -1293,7 +1293,7 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
                 sink.flush();
                 Scheduling.onRegionLater(stand, 5L, () -> {
                     ModernDispatchSink turnkey = new ModernDispatchSink(handles, env);
-                    turnkey.breakTraps(victim);
+                    turnkey.breakTraps(victim, -1);
                     turnkey.flush();
                     Scheduling.onRegionLater(stand, 8L, () -> {
                         h.guard(key, () -> {
@@ -1352,7 +1352,7 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
                         return;
                     }
                     ModernDispatchSink turnkey = new ModernDispatchSink(handles, env);
-                    turnkey.breakTraps(victim);
+                    turnkey.breakTraps(victim, -1);
                     turnkey.flush();
                     Scheduling.onRegionLater(base, 10L, () -> {
                         h.guard(key, () -> assertTilesRestored(world, env, tiles));

@@ -1020,10 +1020,11 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void convertSummons(Player ringer, double radius) {
+    public void convertSummons(Player ringer, double radius, int whiffSoundId) {
         if (ringer == null) {
             return;
         }
+        int converted = 0;
         // A CONTEXT_LOCAL self ability: this already runs on the ringer's OWN region thread, so enumerate +
         // rebind INLINE — ownership must be visible the instant the bell rings, and a plan-deferred entityOp
         // lands NEXT TICK on Folia (the entity scheduler never runs inline), leaving a converted guard still
@@ -1037,7 +1038,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
             UUID id = near.getUniqueId();
             if (near instanceof Bat) {
                 // Swarm bats carry no GuardianCasts entry — cloud MEMBERSHIP decides (region-free UUID match).
-                SwarmClouds.turnByBat(ringerId, id);
+                if (SwarmClouds.turnByBat(ringerId, id) != null) {
+                    converted++;
+                }
                 continue;
             }
             UUID owner = GuardianCasts.owner(id);
@@ -1045,6 +1048,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 continue; // a wild/unowned spawn, or already ours
             }
             GuardianCasts.bind(id, ringerId); // ownership + GUARDIAN_HURT flip (concurrent map), visible now
+            converted++;
             LivingEntity former = formerOwner(owner, nearby); // in-ring first, else the online player list
             SummonFlags flags = PetSummons.flags(id);
             boolean retarget = former != null && (flags == null || !flags.noTarget());
@@ -1066,6 +1070,23 @@ public abstract class DispatchSinkBase implements SinkReadback {
                     holdConvertedTarget(near, former);
                 }
             });
+        }
+        if (converted == 0) {
+            // The authored ring sound alone reads as success; an empty ring must sound like an empty ring
+            // (in real PvE almost nothing nearby is a registry summon — this was the dominant outcome).
+            playCueInline(ringer.getLocation(), whiffSoundId, 0.8f, 0.55f);
+        }
+    }
+
+    /** Play an interned-id cue directly on an already-owned thread (post-flush; the dustDirect idiom). */
+    private void playCueInline(Location at, int soundId, float volume, float pitch) {
+        if (soundId < 0 || at == null) {
+            return;
+        }
+        Sound resolved = sound(soundId);
+        World world = at.getWorld();
+        if (resolved != null && world != null) {
+            world.playSound(at, resolved, volume, pitch);
         }
     }
 
@@ -1110,7 +1131,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void breakTraps(Player actor) {
+    public void breakTraps(Player actor, int whiffSoundId) {
         if (actor == null) {
             return;
         }
@@ -1135,6 +1156,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
                     Scheduling.onRegion(new Location(world, tx, ty, tz),
                             () -> tempBlocks.reclaim(worldId, tx, ty, tz));
                 }
+            }
+            // A live freeze is confinement too (the owner's "any active confinement on self"): thaw it —
+            // we are on the actor's own thread, which is what the teardown's entity writes require.
+            boolean thawed = FrozenTargets.breakNow(actor.getUniqueId());
+            if (confining.isEmpty() && !thawed) {
+                playCueInline(at, whiffSoundId, 0.8f, 0.55f); // nothing held you: the key turns on air
             }
         });
     }
@@ -2456,7 +2483,17 @@ public abstract class DispatchSinkBase implements SinkReadback {
         Location end = victim == null ? (hookPoint == null ? null : hookPoint.clone()) : null; // victim end read on its own thread
         int flight = Math.max(1, flightTicks);
         if (victim != null) {
-            Location dest = reelTo.clone();
+            Location checked = reelTo.clone();
+            if (!isSafeDestination(checked, null)) {
+                // A slab/fence lip at the reel point (the eye ray clears above it): step the landing up
+                // one, else fall back to the caster's own cell — never bury the victim in a block. Checked
+                // HERE on the caster's thread (reelTo is a couple of blocks from them), not in the
+                // victim-side yank, where a Folia cross-region block read would fail closed and kill the
+                // reel outright.
+                Location raised = checked.clone().add(0, 1, 0);
+                checked = isSafeDestination(raised, null) ? raised : actor.getLocation().clone();
+            }
+            Location dest = checked;
             // The line flies: one growing frame per flight tick on the victim's scheduler, each frame's
             // end re-read there (region-correct) so the line tracks a moving victim; the yank runs after
             // the last frame — never re-entering this plan (the cage rule).

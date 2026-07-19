@@ -106,6 +106,9 @@ class ModuleTreeGateTest {
      * (DispatchSinkBase.movementExemption → SinkEnv, ItemFactory.enchantResolver → VanillaEnchants) are ABSENT.
      * Colors#hexMode is adjudicated (ADR-0062): the era-selected {#RRGGBB} translation mode, installed once in
      * the BootCore ctor — the ItemFactory#itemWrapWidth idiom, a render-prep knob with no per-event state.
+     * SpawnInvulnerability#resolved is adjudicated (ADR-0071 amendments): a per-JVM reflective MEMO of the
+     * 1.16.5–1.20.6 companion-timer field — no boot-time install, no teardown, derived purely from the handle
+     * class; volatile only for safe cross-thread publication of the resolved Field.
      */
     private static final Set<String> FROZEN_STATICS = Set.of(
             "CombatDispatch#friendlyFire",
@@ -115,7 +118,8 @@ class ModuleTreeGateTest {
             "Colors#hexMode",
             "Allies#hook",
             "Regions#folia",
-            "Scheduling#backend");
+            "Scheduling#backend",
+            "SpawnInvulnerability#resolved");
 
     private static final Pattern STATIC_VOLATILE =
             Pattern.compile("private\\s+static\\s+volatile\\s+[\\w.<>,\\[\\]\\s]+?\\s+(\\w+)\\s*[=;]");

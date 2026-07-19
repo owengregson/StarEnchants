@@ -20,6 +20,9 @@ public final class ConvertSummonEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("CONVERT_SUMMON")
             .param("radius", D.DOUBLE.range(1, 32).def(12))
+            .param("whiff-sound", D.sound().def("BLOCK_ANVIL_LAND"),
+                    "played (low-pitched) when the ring converts nothing — the ring sound alone reads "
+                            + "as success")
             .target("who", T.SELF)
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Convert every enemy-summoned ally within `radius` blocks of the wearer to the "
@@ -39,7 +42,7 @@ public final class ConvertSummonEffect implements EffectKind {
     public void run(EffectCtx ctx, Sink sink) {
         for (LivingEntity who : ctx.targets("who")) {
             if (who instanceof Player p) {
-                sink.convertSummons(p, ctx.dbl("radius"));
+                sink.convertSummons(p, ctx.dbl("radius"), ctx.integer("whiff-sound"));
             }
         }
     }
