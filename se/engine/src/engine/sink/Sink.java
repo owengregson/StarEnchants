@@ -747,17 +747,21 @@ public interface Sink {
      * blocks of {@code ringer} permanently changes sides — its {@code GuardianCasts} owner rebinds to the
      * ringer (GUARDIAN_HURT follows), a Tameable is re-tamed to the ringer, its guard target is set to
      * its FORMER owner, and an enemy bat cloud is TURNED (it permanently orbits/blinds its former owner).
-     * Runs on the ringer's thread; per-summon mutations hop to each summon's own scheduler.
+     * Runs on the ringer's thread; per-summon mutations hop to each summon's own scheduler. A ring that
+     * converts NOTHING plays {@code whiffSoundId} at the ringer ({@code < 0} skips) — the authored ring
+     * sound alone reads as success, and a silent no-op is indistinguishable from a broken feature.
      */
-    void convertSummons(Player ringer, double radius);
+    void convertSummons(Player ringer, double radius, int whiffSoundId);
 
     /**
      * Break every confining trap structure currently on {@code actor} (TRAP_BREAK): each structure
      * registered in the env's {@code TrapStructures} whose victims include the actor or whose bounds
      * contain them has ALL its tiles early-restored intact through {@code TempBlockLedger.reclaim} on
-     * each tile's owning region. Floors/trails are never registered, so area paint is untouched.
+     * each tile's owning region, and a live freeze window on the actor is thawed (a freeze is
+     * confinement). Floors/trails are never registered, so area paint is untouched. Breaking NOTHING
+     * plays {@code whiffSoundId} at the actor ({@code < 0} skips) — see {@link #convertSummons}.
      */
-    void breakTraps(Player actor);
+    void breakTraps(Player actor, int whiffSoundId);
 
     /**
      * {@link #tempBlock(Location, int, int, int, boolean)} that, when {@code confined != null}, also

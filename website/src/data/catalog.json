@@ -285,7 +285,7 @@
     "head": "CONVERT_SUMMON",
     "doc": "Convert every enemy-summoned ally within `radius` blocks of the wearer to the wearer's side, permanently: summoned guards/zombies/sentries/mounts rebind their ownership (a hit on them now fires the wearer's GUARDIAN_HURT), targeting summons turn on their former owner, tamed summons re-tame, and bat swarm clouds permanently swarm their former owner instead.",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ CONVERT_SUMMON: { radius: <double[1..32]=12> } }",
+    "usage": "{ CONVERT_SUMMON: { radius: <double[1..32]=12>, whiff-sound: <sound=BLOCK_ANVIL_LAND> } }",
     "example": "{ CONVERT_SUMMON: { radius: 12 } }",
     "params": [
       {
@@ -299,6 +299,18 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "whiff-sound",
+        "kind": "HANDLE",
+        "label": "sound",
+        "required": false,
+        "default": "BLOCK_ANVIL_LAND",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "SOUND",
+        "doc": "played (low-pitched) when the ring converts nothing — the ring sound alone reads as success"
         }
       ],
     "targets": [
@@ -4153,9 +4165,22 @@
     "head": "TRAP_BREAK",
     "doc": "Break every confining trap currently on the wearer — encasing webs, web boxes, cage cells — restoring the trapped blocks to their true originals immediately. Area floors and trails are unaffected. Works through ability silence (it is a block restore, not an ability negation).",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ TRAP_BREAK: {} }",
+    "usage": "{ TRAP_BREAK: { whiff-sound: <sound=BLOCK_ANVIL_LAND> } }",
     "example": "{ TRAP_BREAK: { } }",
-    "params": [],
+    "params": [
+      {
+        "name": "whiff-sound",
+        "kind": "HANDLE",
+        "label": "sound",
+        "required": false,
+        "default": "BLOCK_ANVIL_LAND",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "SOUND",
+        "doc": "played (low-pitched) when nothing confining was found — a silent no-op is indistinguishable from a broken feature"
+        }
+      ],
     "targets": [
       {
         "name": "who",

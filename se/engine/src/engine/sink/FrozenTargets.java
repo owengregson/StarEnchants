@@ -154,6 +154,23 @@ public final class FrozenTargets {
         WINDOWS.remove(victim);
     }
 
+    /**
+     * TRAP_BREAK (ADR-0071): run {@code victim}'s live window teardown NOW — a freeze is confinement, so
+     * Turnkey thaws it like any registered trap. Call on the victim's own thread (the teardown touches the
+     * entity); idempotent + generation-guarded by the owning chain's contract. False = nothing to thaw.
+     */
+    public static boolean breakNow(UUID victim) {
+        Window w = WINDOWS.get(victim);
+        if (w == null) {
+            return false;
+        }
+        Runnable teardown = w.teardown;
+        if (teardown != null) {
+            teardown.run();
+        }
+        return true;
+    }
+
     /** Disable stop: best-effort run of every live window's teardown (the SwarmSpawns.removeAll shape). */
     public static void teardownAll() {
         for (Window w : WINDOWS.values()) {

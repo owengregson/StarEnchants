@@ -72,8 +72,9 @@ Cancel the Bukkit event that triggered this activation.
 Convert every enemy-summoned ally within `radius` blocks of the wearer to the wearer's side, permanently: summoned guards/zombies/sentries/mounts rebind their ownership (a hit on them now fires the wearer's GUARDIAN_HURT), targeting summons turn on their former owner, tamed summons re-tame, and bat swarm clouds permanently swarm their former owner instead.
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ CONVERT_SUMMON: { radius: <double[1..32]=12> } }`
+- _usage_: `{ CONVERT_SUMMON: { radius: <double[1..32]=12>, whiff-sound: <sound=BLOCK_ANVIL_LAND> } }`
 - _param_ `radius` `double[1..32]`
+- _param_ `whiff-sound` `sound` — played (low-pitched) when the ring converts nothing — the ring sound alone reads as success
 - _target_ `who`: selector `SELF`
 - _example_: `{ CONVERT_SUMMON: { radius: 12 } }`
 
@@ -972,7 +973,8 @@ Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRIN
 Break every confining trap currently on the wearer — encasing webs, web boxes, cage cells — restoring the trapped blocks to their true originals immediately. Area floors and trails are unaffected. Works through ability silence (it is a block restore, not an ability negation).
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ TRAP_BREAK: {} }`
+- _usage_: `{ TRAP_BREAK: { whiff-sound: <sound=BLOCK_ANVIL_LAND> } }`
+- _param_ `whiff-sound` `sound` — played (low-pitched) when nothing confining was found — a silent no-op is indistinguishable from a broken feature
 - _target_ `who`: selector `SELF`
 - _example_: `{ TRAP_BREAK: { } }`
 

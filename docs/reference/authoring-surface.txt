@@ -25,6 +25,7 @@ effect CAGE
 effect CANCEL
 effect CONVERT_SUMMON
   param radius DOUBLE optional min=1 max=32 enum=- handle=- default=12
+  param whiff-sound HANDLE optional min=- max=- enum=- handle=SOUND default=BLOCK_ANVIL_LAND
 effect CURE
   param category ENUM optional min=- max=- enum=ALL,BENEFICIAL,HARMFUL,NEUTRAL handle=- default=ALL
 effect DAMAGE
@@ -328,6 +329,7 @@ effect TEMP_BLOCK
   param dy INT optional min=-4 max=4 enum=- handle=- default=0
   param airOnly BOOL optional min=- max=- enum=- handle=- default=true
 effect TRAP_BREAK
+  param whiff-sound HANDLE optional min=- max=- enum=- handle=SOUND default=BLOCK_ANVIL_LAND
 effect VELOCITY
   param mode ENUM optional min=- max=- enum=add,away handle=- default=add
   param x DOUBLE optional min=- max=- enum=- handle=- default=0
