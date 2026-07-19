@@ -4,6 +4,70 @@ All notable changes to StarEnchants are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [Semantic Versioning](https://semver.org/).
 
+## [1.11.0-beta] — 2026-07-18
+
+The 1.10 repair release: every Weapon Reforge ability was audited end-to-end under real-play
+conditions (real look angles, real hitbox rays, real hostile-mob AI, the Mental combat profile)
+and each confirmed defect fixed. The live suites had been green because they stubbed the
+acquisition rays, bypassed the activation listener, and staged pitch-0 floating fake casters —
+that gap is closed too (ADR-0071 amendments).
+
+### Fixed
+
+- **Blink actually blinks.** The ray followed the full 3D look, so a grounded player looking even
+  slightly down grounded the walk in the floor cell — every real blink teleported zero blocks and
+  burned the cooldown. The ray is now yaw-only, and a single 1-block rise reads as a step (a
+  2-high face still stops you — the authored downside stands).
+- **Leviathan's Reach shows and lands its hook.** The line now visibly flies out over the flight
+  (it was one invisible eye-anchored frame), acquisition uses a forgiving inflated ray instead of
+  requiring pixel-perfect hitbox aim, the enemy-vs-terrain pick no longer flips to "zip yourself
+  into the enemy" when aiming at their feet, a reeled victim can't be buried in a slab or yanked
+  across worlds, and an open-air whiff draws the empty throw and says so instead of silence.
+- **Singularity forms where you aim.** Skyline aims (no block in range) anchor the well mid-air at
+  the ray's end instead of wasting the minute-long cooldown; the well no longer lands on a grass
+  tuft two blocks ahead (and self-nukes you) because the block ray now ignores decoration; the
+  pull/implosion radius is a true sphere (the old cube reached ~1.7× radius at corners).
+- **Castling is winnable counterplay for both sides.** The victim now gets the per-second
+  countdown too, the authored `cue-period` drives the pling cadence, swapped players no longer
+  carry residual momentum through the hop, armor stands can't eat the crosshair, and the anvil cue
+  plays once (an alias collision doubled it).
+- **Quickening Fang works with Mental's 1.8 profile — and never inverts.** Under the ct8c i-frame
+  bundle the steal wrote a value the natural decay had already reached (a no-op) while the 1/3
+  damage tax still applied — a pure self-nerf; the window model now reads a shrunken max as the
+  full-window gate. Worse, on 1.17.1–1.20.6 the i-frame write also armed the victim's
+  respawn-invulnerability timer, making them UNHITTABLE by everyone; a self-verifying companion
+  disarm zeroes it (a no-op on unaffected versions).
+- **Javelin reaches its target.** Same pitch bug class as Blink — the flight now flies level at
+  eye height (its deliberately dodgeable 3 b/s speed is unchanged), hits a cornered victim before
+  the wall behind them, respects pvp/pve/friendly context like every other combat surface, skips
+  armor stands, thuds audibly when it hits terrain, and the camera lock no longer rubber-bands the
+  victim with a teleport every tick.
+- **Supernova Core saves its charge for players.** A stray mob swat mid-fight no longer dumps the
+  whole bank into a cow and spends the 45 s core.
+- **The Unhanding no longer arms fist-fighters.** Striking an empty-handed victim used to hand
+  them a random hotbar item; now the window simply stays armed for a hit that has something to
+  shuffle.
+- **Summoner's Bell conversions stick — and summons never turn on you.** A release-window change
+  removed the per-tick target hold on golem-only test evidence; converted zombies/blazes dropped
+  their forced target within ticks and usually attacked the ringer. The hold is restored, and a
+  new guard stops ANY owned summon from ever targeting its own summoner. A ring that converts
+  nothing now sounds like one (only enemy summons convert — by design).
+- **Turnkey breaks freezes too, and a wasted turn is audible.** "Any active confinement on self"
+  now includes a live freeze window; turning the key on nothing plays a distinct dud cue instead
+  of the success sound with a silently burned cooldown.
+- **Reforges can be applied in creative mode.** The drag-apply gesture ignored creative-mode
+  clicks, so operators who minted a reforge in creative could never socket it.
+
+### Changed
+
+- Look-targeted acquisition (Castling, Leviathan's Reach, Singularity) rides new shared era rays:
+  a 0.3-inflated entity ray with wall clipping, and a decoration-ignoring block ray that reads
+  open air as null on BOTH eras (on 1.8 a skyline aim previously zipped you toward nothing).
+- New live coverage drives the full production activation chain — a synthesized sneaking
+  right-click through the use listener, runner, machines, and real raycast semantics, with
+  pitched-down casters on real floors — so this class of "green matrix, broken game" cannot ship
+  silently again.
+
 ## [1.10.0-beta] — 2026-07-18
 
 ### Added
