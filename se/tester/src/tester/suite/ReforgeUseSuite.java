@@ -80,8 +80,10 @@ import tester.harness.Harness;
  * broken listener gate, machine routing, or real-ray semantics shipped matrix-green and died in real play.
  *
  * <p>Every scenario runs on its own {@link CombatRig} at its own elevated void arena, on a row
- * ({@code ARENA_BASE} 2048) the other reforge suites never touch. Cows and casters are gravity-pinned;
- * waits are tick-anchored. Defs reuse the {@link ReforgeMotionSuite} authored numbers so felt-units match
+ * ({@code ARENA_BASE} 2048) the other reforge suites never touch — a genuinely distinct Folia region, so
+ * fake players spawn on the world-spawn region thread and teleport in ({@link #spawnFakeAtSpawn}) while
+ * blocks and cows stage on the arena's own region. Cows and casters are gravity-pinned; waits are
+ * tick-anchored. Defs reuse the {@link ReforgeMotionSuite} authored numbers so felt-units match
  * the shipped pack. Modern-build suite (the 1.8.9 lane's compile gate covers the era leaves).
  */
 public final class ReforgeUseSuite implements Harness.Scenario {
@@ -215,19 +217,16 @@ public final class ReforgeUseSuite implements Harness.Scenario {
         int by = arena.getBlockY();
         int bz = arena.getBlockZ();
         rig.onArena(arena, () -> {
-            Player caster = spawnFake(h, key, rig, world, "se_rfu_blk1");
-            if (caster == null) {
-                return;
-            }
             // A real floor under the path + a grounded look-down: the real-play posture the v1.10 suites
             // never staged (their pitch-0 floating casters passed while every grounded blink zeroed).
+            // Staged HERE — block writes belong to the arena's own region thread.
             for (int i = 0; i <= 6; i++) {
                 solid(world, bx + i, by - 1, bz);
             }
             Location stand = centerFacing(arena, -90.0f); // yaw -90 → facing +X
             stand.setPitch(30.0f);
-            caster.setGravity(false);
-            place(caster, stand, () -> Scheduling.onEntityLater(caster, 5L, () -> {
+            spawnFakeAtSpawn(h, key, rig, world, "se_rfu_blk1", caster ->
+                    place(caster, stand, () -> Scheduling.onEntityLater(caster, 5L, () -> {
                 arm(deps, caster, "blink");
                 ReforgeUseListener listener = chain(deps, deps.messages());
                 boolean claimed = use(listener, caster, true);
@@ -245,7 +244,7 @@ public final class ReforgeUseSuite implements Harness.Scenario {
                     });
                     rig.teardown();
                 });
-            }));
+            })));
         });
     }
 
@@ -258,17 +257,13 @@ public final class ReforgeUseSuite implements Harness.Scenario {
         int by = arena.getBlockY();
         int bz = arena.getBlockZ();
         rig.onArena(arena, () -> {
-            Player caster = spawnFake(h, key, rig, world, "se_rfu_blk2");
-            if (caster == null) {
-                return;
-            }
             for (int i = 0; i <= 6; i++) {
                 solid(world, bx + i, by - 1, bz);
             }
             Location stand = centerFacing(arena, -90.0f);
             stand.setPitch(30.0f);
-            caster.setGravity(false);
-            place(caster, stand, () -> Scheduling.onEntityLater(caster, 5L, () -> {
+            spawnFakeAtSpawn(h, key, rig, world, "se_rfu_blk2", caster ->
+                    place(caster, stand, () -> Scheduling.onEntityLater(caster, 5L, () -> {
                 arm(deps, caster, "blink"); // stamped and held — the fall-through is the SNEAK gate alone
                 ReforgeUseListener listener = chain(deps, deps.messages());
                 boolean claimed = use(listener, caster, false);
@@ -283,7 +278,7 @@ public final class ReforgeUseSuite implements Harness.Scenario {
                                 + " blocks");
                     }
                 }); rig.teardown(); });
-            }));
+            })));
         });
     }
 
@@ -296,10 +291,7 @@ public final class ReforgeUseSuite implements Harness.Scenario {
         int by = arena.getBlockY();
         int bz = arena.getBlockZ();
         rig.onArena(arena, () -> {
-            Player caster = spawnFake(h, key, rig, world, "se_rfu_grp1");
-            if (caster == null) {
-                return;
-            }
+            // Cow + floor staged HERE — entity adds and block writes belong to the arena's own region thread.
             LivingEntity cow = staticCow(rig, world, arena);
             // One shared floor line under caster and cow — the real block ray must NOT ground in it.
             for (int i = -1; i <= 10; i++) {
@@ -311,8 +303,8 @@ public final class ReforgeUseSuite implements Harness.Scenario {
             stand.setPitch((float) Math.toDegrees(Math.atan2(1.62 - 0.7, 8.0)));
             Location cowAt = stand.clone().add(8, 0, 0);  // dead-ahead on the facing line, same floor
             Location reelTo = stand.clone().add(2, 0, 0); // reel-distance 2 in front, feet Y kept
-            caster.setGravity(false);
-            place(caster, stand, () -> place(cow, cowAt, () -> Scheduling.onEntityLater(caster, 5L, () -> {
+            spawnFakeAtSpawn(h, key, rig, world, "se_rfu_grp1", caster ->
+                    place(caster, stand, () -> place(cow, cowAt, () -> Scheduling.onEntityLater(caster, 5L, () -> {
                 arm(deps, caster, "leviathans-reach");
                 ReforgeUseListener listener = chain(deps, deps.messages());
                 boolean claimed = use(listener, caster, true);
@@ -329,7 +321,7 @@ public final class ReforgeUseSuite implements Harness.Scenario {
                     });
                     rig.teardown();
                 });
-            })));
+            }))));
         });
     }
 
@@ -339,15 +331,11 @@ public final class ReforgeUseSuite implements Harness.Scenario {
         CombatRig rig = new CombatRig(plugin);
         Location arena = arena(world, spawn, A_GRAPPLE_WHIFF);
         rig.onArena(arena, () -> {
-            Player caster = spawnFake(h, key, rig, world, "se_rfu_grp2");
-            if (caster == null) {
-                return;
-            }
             Location stand = centerFacing(arena, -90.0f); // pitch 0 into open void: both real rays miss
-            caster.setGravity(false);
             AtomicInteger whiffs = new AtomicInteger();
             AtomicInteger cooldowns = new AtomicInteger();
-            place(caster, stand, () -> Scheduling.onEntityLater(caster, 5L, () -> {
+            spawnFakeAtSpawn(h, key, rig, world, "se_rfu_grp2", caster ->
+                    place(caster, stand, () -> Scheduling.onEntityLater(caster, 5L, () -> {
                 arm(deps, caster, "leviathans-reach");
                 ReforgeUseListener listener = chain(deps, countingMessages(caster, whiffs, cooldowns));
                 use(listener, caster, true); // open-air whiff — the fragment renders, the cooldown arms
@@ -369,7 +357,7 @@ public final class ReforgeUseSuite implements Harness.Scenario {
                         }
                     }); rig.teardown(); });
                 });
-            }));
+            })));
         });
     }
 
@@ -379,17 +367,13 @@ public final class ReforgeUseSuite implements Harness.Scenario {
         CombatRig rig = new CombatRig(plugin);
         Location arena = arena(world, spawn, A_SING_SKY);
         rig.onArena(arena, () -> {
-            Player caster = spawnFake(h, key, rig, world, "se_rfu_sng1");
-            if (caster == null) {
-                return;
-            }
-            LivingEntity cow = staticCow(rig, world, arena);
+            LivingEntity cow = staticCow(rig, world, arena); // added HERE, on the arena's own region thread
             Location stand = centerFacing(arena, -90.0f); // pitch 0 at open sky — the REAL block ray finds nothing
             // Air-anchored core = eye + dir × range (12 ahead); the cow floats one block short of it, well
             // inside radius 6 under either the standing or sneak-pose eye height.
             Location cowAt = stand.clone().add(11, 1.0, 0);
-            caster.setGravity(false);
-            place(caster, stand, () -> place(cow, cowAt, () -> Scheduling.onEntityLater(caster, 5L, () -> {
+            spawnFakeAtSpawn(h, key, rig, world, "se_rfu_sng1", caster ->
+                    place(caster, stand, () -> place(cow, cowAt, () -> Scheduling.onEntityLater(caster, 5L, () -> {
                 arm(deps, caster, "singularity");
                 ReforgeUseListener listener = chain(deps, deps.messages());
                 boolean claimed = use(listener, caster, true);
@@ -408,7 +392,7 @@ public final class ReforgeUseSuite implements Harness.Scenario {
                     });
                     rig.teardown();
                 });
-            })));
+            }))));
         });
     }
 
@@ -532,14 +516,27 @@ public final class ReforgeUseSuite implements Harness.Scenario {
         return cow;
     }
 
-    private Player spawnFake(Harness h, String key, CombatRig rig, World world, String name) {
-        try {
-            return rig.spawnFake(world, name);
-        } catch (Throwable t) {
-            h.fail(key, "fake-player spawn: " + t);
-            rig.teardown();
-            return null;
-        }
+    /**
+     * FakePlayers registers the new player into the WORLD-SPAWN chunk, which this suite's 2048-offset arena
+     * region threads do NOT own on Folia ("Cannot add entity off-main thread") — so spawn on the spawn-owning
+     * region thread, gravity-pin there, and hand the caster back for the {@code teleportAsync} hop into the
+     * arena (the {@code crossRegionAttributionDegradesOffRegion} idiom; on single-threaded Paper the hop is a
+     * no-op).
+     */
+    private void spawnFakeAtSpawn(Harness h, String key, CombatRig rig, World world, String name,
+                                  Consumer<Player> then) {
+        Scheduling.onRegion(world.getSpawnLocation(), () -> {
+            Player caster;
+            try {
+                caster = rig.spawnFake(world, name);
+            } catch (Throwable t) {
+                h.fail(key, "fake-player spawn: " + t);
+                rig.teardown();
+                return;
+            }
+            caster.setGravity(false);
+            then.accept(caster);
+        });
     }
 
     private static double forwardX(Player p, Location from) {
