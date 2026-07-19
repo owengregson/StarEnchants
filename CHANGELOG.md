@@ -4,6 +4,46 @@ All notable changes to StarEnchants are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [Semantic Versioning](https://semver.org/).
 
+## [1.12.0-beta] — 2026-07-19
+
+The Weapon Reforges identity release: every reforge gets its finished name, look, voice, and
+chat presence, plus the Mental timing API groundwork for Berry Overdrive.
+
+### Changed
+
+- **Ten finished identities.** The reforges are now The Singularity, Spell Grappler, Quantum
+  Blink, The Turnkey, Berry Overdrive, Star Battery, Grand Bell, Spectral Javelin, The Ace, and
+  Cursed Castle — each with its own hex color, a new catalogue material (ender pearl, glow
+  berries, heart of the sea, blaze powder, compass, light blue candle, end crystal, soul
+  campfire, anvil — with 1.8-lane fallbacks), and a rewritten description in the pets bullet
+  style. All reforge cooldowns are **tripled**.
+- **A new universal item likeness.** Bold name frame (`Weapon Reforge (<Name>)` fully bolded in
+  the reforge's color), an `ACTIVE | PASSIVE REFORGE ABILITY` header driven by a new per-reforge
+  `type:` field (the pets convention; all ten ship ACTIVE), the cooldown / applies-to footer,
+  and an enchant glint on every minted reforge. The on-weapon lore line now renders the
+  reforge's color-styled bold display.
+- **Chat messages, exactly like pets.** A successful use announces the ability
+  (`** REFORGE ABILITY: <NAME> **`), a timed ability (Berry Overdrive, The Ace) announces
+  `ENDED` when its window closes, and the on-cooldown / can't-use lines match the pets shape —
+  all four templates live in `config.yml` under `reforges:` and are edit-live.
+- **Every reforge sounds finished.** Layered activation cues throughout (a body layer plus
+  quieter accents at spread pitches — the set equip-sound formula); machine-owned soundscapes
+  (Spectral Javelin, The Singularity) stay code-side so nothing doubles. **Teleport arrival
+  sounds now play on the player after the hop lands** — Quantum Blink's arrival, the Cursed
+  Castle swap crack, and the Mole pet's recall burrow were inaudible to the teleported player
+  because the sound fired at a spot their client hadn't reached yet.
+- **Spectral Javelin flies like a javelin**: five times the speed (0.75 blocks/tick) over 36
+  blocks, with an audible layered hit on the victim (and the throw gains a spectral top layer).
+- **Quantum Blink reaches 5 blocks; Spell Grappler reaches 12** (matching their new copy).
+
+### Added
+
+- **Mental hit-timing override groundwork.** A full developer spec for a Mental
+  `HitTimingOverrides` service (temporary per-victim-per-attacker window re-pricing inside
+  Mental's own timing math) ships to the Mental repo, and StarEnchants already carries the
+  consumer: the moment Mental registers the service, Berry Overdrive stops touching vanilla
+  i-frames entirely — until then the current fallback runs unchanged.
+
 ## [1.11.0-beta] — 2026-07-18
 
 The 1.10 repair release: every Weapon Reforge ability was audited end-to-end under real-play
