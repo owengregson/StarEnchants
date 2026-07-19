@@ -345,9 +345,10 @@ reforge.cooldown: "&c&l(!) {NAME}&r&c&l is on cooldown for another &f&n{TIME_FOR
 reforge.fail: "&c&l(!) You cannot use {NAME}&r&c&l right now!"
 # Per-reforge cues (ADR-0071). Singularity/Castling name a target; Supernova Core banks/discharges; The
 # Unhanding shuffles. Javelin/Blink/Grapple ship no messages (a miss is wasted silently). All prefix-free.
-reforge.singularity.no-target: "&c&l(!) &cNo block in your sights within {RANGE} blocks."
+reforge.grapple.whiff: "&c&l(!) &cYour hook finds nothing within {RANGE} blocks."
 reforge.castling.no-target: "&c&l(!) &cNo enemy in your crosshair within {RANGE} blocks."
 reforge.castling.countdown: "&e&lCastling… &f{SECONDS}"
+reforge.castling.countdown-victim: "&c&lCastling bears down… &f{SECONDS}"
 reforge.castling.warned: "&c&l(!) &cA castling bears down on you — break line of sight!"
 reforge.castling.aborted: "&c&l(!) &cThe castling fizzles — you lost sight of your target."
 reforge.castling.swapped: "&e&lCastled! &fYou traded places with &e{TARGET}&f."

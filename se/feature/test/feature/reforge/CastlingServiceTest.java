@@ -3,6 +3,7 @@ package feature.reforge;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyFloat;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -20,6 +21,7 @@ import java.util.function.BiFunction;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.junit.jupiter.api.AfterEach;
@@ -89,9 +91,13 @@ class CastlingServiceTest {
     }
 
     private static CompiledEffect castlingFx() {
+        return castlingFx(10);
+    }
+
+    private static CompiledEffect castlingFx(int cuePeriod) {
         Args args = Args.empty()
                 .with("range", 12.0).with("channel", 40).with("check-period", 2)
-                .with("cue-period", 10).with("range-slack", 2.0);
+                .with("cue-period", cuePeriod).with("range-slack", 2.0);
         return new CompiledEffect("SWAP_POSITION", args, null, 0, Affinity.CONTEXT_LOCAL);
     }
 
@@ -185,6 +191,53 @@ class CastlingServiceTest {
 
         // Exactly one countdown per second-change: at start (2 left) and at 20t elapsed (1 left); the 0 = swap, no cue.
         verify(messages, times(2)).fragment(eq("reforge.castling.countdown"), eq("SECONDS"), anyInt());
+        // The victim reads the same countdown (the counterplay legibility), on top of the one-time initial warning.
+        verify(messages, times(2)).fragment(eq("reforge.castling.countdown-victim"), eq("SECONDS"), anyInt());
+        verify(messages, times(1)).fragment(eq("reforge.castling.warned"));
+    }
+
+    @Test
+    void mobVictimGetsNoCountdownFragments() {
+        Player actor = caster(new Location(world, 0, 64, 0));
+        LivingEntity mob = mock(LivingEntity.class);
+        when(mob.getUniqueId()).thenReturn(UUID.randomUUID());
+        when(mob.isValid()).thenReturn(true);
+        when(mob.isDead()).thenReturn(false);
+        when(mob.getWorld()).thenReturn(world);
+        when(mob.getLocation()).thenReturn(new Location(world, 8, 64, 0));
+        when(actor.hasLineOfSight(mob)).thenReturn(true);
+        service((p, d) -> mob).start(actor, castlingFx());
+
+        driveTicks(20);
+
+        verify(messages, never()).fragment(eq("reforge.castling.countdown-victim"), eq("SECONDS"), anyInt());
+        verify(messages, never()).fragment(eq("reforge.castling.warned"));
+        verify(dispatch).teleportEntity(eq(mob), any()); // the swap itself is species-blind
+    }
+
+    @Test
+    void cuePeriodDrivesThePlingCadence() {
+        Player actor = caster(new Location(world, 0, 64, 0));
+        Player target = victim(new Location(world, 8, 64, 0));
+        when(actor.hasLineOfSight(target)).thenReturn(true);
+        service((p, d) -> target).start(actor, castlingFx(20)); // half the default pling density
+
+        driveTicks(19); // elapsed 38 — pre-swap, so every sound so far is a pling
+
+        // Cue moments at 0t and 20t only; each = 2 cue layers × 2 endpoints (caster + victim).
+        verify(dispatch, times(8)).sound(any(), anyInt(), anyFloat(), anyFloat());
+    }
+
+    @Test
+    void defaultCuePeriodPlingsEveryTenTicks() {
+        Player actor = caster(new Location(world, 0, 64, 0));
+        Player target = victim(new Location(world, 8, 64, 0));
+        when(actor.hasLineOfSight(target)).thenReturn(true);
+        service((p, d) -> target).start(actor, castlingFx());
+
+        driveTicks(19); // elapsed 38 — cue moments at 0/10/20/30t
+
+        verify(dispatch, times(16)).sound(any(), anyInt(), anyFloat(), anyFloat());
     }
 
     @Test
@@ -210,9 +263,28 @@ class CastlingServiceTest {
         assertEquals(10f, casterDest.getValue().getYaw());        // keeping the CASTER's own facing
         assertEquals(5f, casterDest.getValue().getPitch());
 
+        // The velocity zero must land AFTER the (next-tick) teleport intent — an inline zero preceded the hop
+        // and let swapped players carry residual momentum out of it.
+        verify(target, never()).setVelocity(any());
+        verify(actor, never()).setVelocity(any());
+        backend.runDelayed(); // the hop tick: intent first (registered first), then the zero
         verify(target).setVelocity(new Vector(0, 0, 0));
         verify(actor).setVelocity(new Vector(0, 0, 0));
         assertFalse(CastlingService.channelActive(CASTER_ID));
+    }
+
+    @Test
+    void swapAnvilCueAuthorsOnce() {
+        Player actor = caster(new Location(world, 0, 64, 0));
+        Player target = victim(new Location(world, 8, 64, 0));
+        when(actor.hasLineOfSight(target)).thenReturn(true);
+        service((p, d) -> target).start(actor, castlingFx());
+
+        driveTicks(20); // completion → the swap crack at both endpoints
+
+        // The 0.5-volume anvil layer once per endpoint: the old BLOCK_ANVIL_LAND + ANVIL_LAND twins BOTH
+        // resolved on every era (the alias chain is bidirectional) and doubled it to 4.
+        verify(dispatch, times(2)).sound(any(), anyInt(), eq(0.5f), anyFloat());
     }
 
     @Test

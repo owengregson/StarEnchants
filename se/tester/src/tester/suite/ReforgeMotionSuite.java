@@ -439,7 +439,7 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
             caster.setGravity(false);
             place(caster, stand, () -> place(cow, cowAt, () -> Scheduling.onEntityLater(caster, 5L, () -> {
                 GrappleService grapple = new GrappleService(deps.dispatch(),
-                        (p, r) -> cow, (p, r) -> null); // entity ray hits the cow, no terrain
+                        (p, r) -> cow, (p, r) -> null, deps.messages()); // entity ray hits the cow, no terrain
                 grapple.start(caster, effect(deps, "leviathans-reach", GrappleEffect.HEAD));
                 awaitUntil(cow, () -> horiz(cow.getLocation(), reelTo) <= 1.0, 0, 30, reeled -> {
                     h.guard(key, () -> {
@@ -475,7 +475,7 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
             caster.setGravity(false);
             place(caster, stand, () -> Scheduling.onEntityLater(caster, 5L, () -> {
                 GrappleService grapple = new GrappleService(deps.dispatch(),
-                        (p, r) -> null, (p, r) -> hook); // no entity, terrain at 10 → zip the caster
+                        (p, r) -> null, (p, r) -> hook, deps.messages()); // no entity, terrain at 10 → zip the caster
                 grapple.start(caster, effect(deps, "leviathans-reach", GrappleEffect.HEAD));
                 // Terrain zip is a launched velocity, applied flightTicks (~5) after the emit.
                 awaitUntil(caster, () -> caster.getVelocity().getX() > 0.05, 0, 20, zipped -> {
@@ -510,7 +510,7 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
                 // The closer-of rule: the wall block (4) is nearer than the cow (6), so terrain mode wins and
                 // the shielded cow is untouched — the same rule that compensates the 1.8 dot-scan's wall-blindness.
                 GrappleService grapple = new GrappleService(deps.dispatch(),
-                        (p, r) -> cow, (p, r) -> wall);
+                        (p, r) -> cow, (p, r) -> wall, deps.messages());
                 grapple.start(caster, effect(deps, "leviathans-reach", GrappleEffect.HEAD));
                 Scheduling.onEntityLater(caster, 18L, () -> { h.guard(key, () -> {
                     if (horiz(cow.getLocation(), cowAt) > POS_EPS) {
@@ -544,7 +544,7 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
             caster.setGravity(false);
             place(caster, arena.clone().add(0, 0, 8), () -> place(cow, cowAt, () -> Scheduling.onEntityLater(caster, 5L, () -> {
                 GravityWellService svc = new GravityWellService(deps.dispatch(), (p, r) -> sighted,
-                        deps.messages(), deps.resolvers());
+                        deps.resolvers());
                 svc.start(caster, effect(deps, "singularity", GravityWellEffect.HEAD));
                 // The pull is a per-pulse VELOCITY toward the core (the real-player mechanic); NoAI cows and
                 // clientless players never translate velocity to a position on the server, so the well's
@@ -583,7 +583,7 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
             place(caster, arena.clone().add(0, 0, 8), () -> place(east, eastAt, () -> place(west, westAt, () ->
                     Scheduling.onEntityLater(caster, 5L, () -> {
                         GravityWellService svc = new GravityWellService(deps.dispatch(), (p, r) -> sighted,
-                                deps.messages(), deps.resolvers());
+                                deps.resolvers());
                         svc.start(caster, effect(deps, "singularity", GravityWellEffect.HEAD));
                         // The pull imparts a toward-core VELOCITY every pulse; NoAI cows don't move from velocity
                         // (only teleports relocate them — see grapple-reel), so the inward drag is read as the
@@ -638,7 +638,7 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
                                 far.setNoDamageTicks(0);
                                 Scheduling.onEntity(victim, () -> victim.setNoDamageTicks(0));
                                 GravityWellService svc = new GravityWellService(deps.dispatch(), (p, r) -> sighted,
-                                        deps.messages(), deps.resolvers());
+                                        deps.resolvers());
                                 svc.start(caster, effect(deps, "singularity-quick", GravityWellEffect.HEAD));
                                 Scheduling.onEntityLater(caster, 20L, () ->
                                         implodeReadout(rig, near, far, (nearNow, farNow) -> { h.guard(key, () -> {
@@ -681,7 +681,7 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
             caster.setGravity(false);
             place(caster, standAt, () -> Scheduling.onEntityLater(caster, 5L, () -> {
                 GravityWellService svc = new GravityWellService(deps.dispatch(), (p, r) -> sighted,
-                        deps.messages(), deps.resolvers());
+                        deps.resolvers());
                 svc.start(caster, effect(deps, "singularity", GravityWellEffect.HEAD));
                 // A clientless caster never moves from velocity, so the authored self-pull downside is proven by
                 // the −X drag velocity it gains (the §B1.15 rule; grapple-zip reads a fake player's launch the
@@ -863,7 +863,7 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
             thrower.setGravity(false);
             place(thrower, stand, () -> place(cow, cowAt, () -> Scheduling.onEntityLater(thrower, 5L, () -> {
                 double before = cow.getHealth();
-                new JavelinService(deps.dispatch(), WEAPON, deps.resolvers())
+                new JavelinService(deps.dispatch(), WEAPON, deps.resolvers(), () -> true, () -> true, (a, b) -> false)
                         .start(thrower, effect(deps, "javelin", JavelinEffect.HEAD));
                 // Budget = ceil(12 / 0.15) = 80 steps; give it well past the miss teardown.
                 Scheduling.onEntityLater(cow, 100L, () -> { h.guard(key, () -> {
@@ -893,7 +893,7 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
                 double before = cow.getHealth();
                 double expected = WEAPON.swingDamage(thrower); // single-sourced through the same seam the service uses
                 cow.setNoDamageTicks(0);
-                new JavelinService(deps.dispatch(), WEAPON, deps.resolvers())
+                new JavelinService(deps.dispatch(), WEAPON, deps.resolvers(), () -> true, () -> true, (a, b) -> false)
                         .start(thrower, effect(deps, "javelin", JavelinEffect.HEAD));
                 // Speed proof: at 0.15/tick a hit-radius-1.5 javelin registers on a 6-block cow near t=26 (the tip
                 // reaches within radius ~1.95 blocks short of the cow centre), so the "still airborne" read must sit
@@ -930,7 +930,7 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
             thrower.setGravity(false);
             place(thrower, stand, () -> place(cow, cowAt, () -> Scheduling.onEntityLater(thrower, 5L, () -> {
                 cow.setNoDamageTicks(0);
-                new JavelinService(deps.dispatch(), WEAPON, deps.resolvers())
+                new JavelinService(deps.dispatch(), WEAPON, deps.resolvers(), () -> true, () -> true, (a, b) -> false)
                         .start(thrower, effect(deps, "javelin", JavelinEffect.HEAD));
                 // Knockback is a VELOCITY along the flight (+X); a NoAI cow never converts it to a position, and the
                 // camera-lock pin zeroes velocity ~5 ticks after impact, so poll every tick for the impulse itself.
@@ -966,7 +966,7 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
                     Scheduling.onEntityLater(thrower, SPAWN_INVULN_TICKS, () -> {
                         Scheduling.onEntity(victim, () -> victim.setNoDamageTicks(0));
                         double before = victim.getHealth();
-                        new JavelinService(deps.dispatch(), WEAPON, deps.resolvers())
+                        new JavelinService(deps.dispatch(), WEAPON, deps.resolvers(), () -> true, () -> true, (a, b) -> false)
                                 .start(thrower, effect(deps, "javelin", JavelinEffect.HEAD));
                         // The javelin's flight time depends on hit-radius, not just distance, so everything downstream
                         // is timed off the IMPACT (health drop), not a fixed tick — the old fixed t+55 read landed
@@ -1034,7 +1034,7 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
             solid(world, wx, wy + 1, arena.getBlockZ());
             place(thrower, stand, () -> place(cow, cowAt, () -> Scheduling.onEntityLater(thrower, 5L, () -> {
                 double before = cow.getHealth();
-                new JavelinService(deps.dispatch(), WEAPON, deps.resolvers())
+                new JavelinService(deps.dispatch(), WEAPON, deps.resolvers(), () -> true, () -> true, (a, b) -> false)
                         .start(thrower, effect(deps, "javelin", JavelinEffect.HEAD));
                 Scheduling.onEntityLater(cow, 70L, () -> { h.guard(key, () -> {
                     if (cow.getHealth() < before - HEALTH_EPS) {
@@ -1091,7 +1091,7 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
                 // The well core lives in the primary region; the owner sits in the far one, so at implosion the
                 // guarded ownership read is false and the hurt degrades to bare rather than throwing.
                 GravityWellService svc = new GravityWellService(deps.dispatch(), (p, r) -> sighted,
-                        deps.messages(), deps.resolvers());
+                        deps.resolvers());
                 svc.start(caster, effect(deps, "singularity-quick", GravityWellEffect.HEAD));
             })));
         });

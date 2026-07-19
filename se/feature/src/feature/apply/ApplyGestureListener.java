@@ -108,7 +108,10 @@ public abstract class ApplyGestureListener implements Listener {
 
     /** Which click shapes begin the gesture; default plain LEFT/RIGHT (crystal adds SWAP_WITH_CURSOR). */
     protected boolean claimsClick(InventoryClickEvent event) {
-        return event.getClick() == ClickType.LEFT || event.getClick() == ClickType.RIGHT;
+        // CREATIVE is the plain-click shape creative-mode clients deliver; they are inventory-authoritative,
+        // and updateInventory() repaints them after the commit.
+        return event.getClick() == ClickType.LEFT || event.getClick() == ClickType.RIGHT
+                || event.getClick() == ClickType.CREATIVE;
     }
 
     protected abstract boolean claimsCursor(ItemStack cursor);

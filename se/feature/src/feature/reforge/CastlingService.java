@@ -41,17 +41,21 @@ public final class CastlingService {
         final double rangeSq;      // (range + range-slack)^2
         final int channelTicks;
         final int checkPeriod;
+        final int cuePeriod;       // authored pling cadence, ticks (decoupled from the whole-second messages)
         int elapsed;
         int lastCueSecond = Integer.MIN_VALUE;
+        int nextCueAt;
         TaskHandle task;
 
-        Channel(UUID casterId, Player caster, LivingEntity victim, double rangeSq, int channelTicks, int checkPeriod) {
+        Channel(UUID casterId, Player caster, LivingEntity victim, double rangeSq, int channelTicks,
+                int checkPeriod, int cuePeriod) {
             this.casterId = casterId;
             this.caster = caster;
             this.victim = victim;
             this.rangeSq = rangeSq;
             this.channelTicks = channelTicks;
             this.checkPeriod = checkPeriod;
+            this.cuePeriod = cuePeriod;
         }
     }
 
@@ -75,8 +79,9 @@ public final class CastlingService {
                 cue(resolvers, "NOTE_PLING", 1.0f, 1.0f)};
         this.swapCue = new Cue[]{
                 cue(resolvers, "ENTITY_ENDERMAN_TELEPORT", 1.0f, 0.9f),
-                cue(resolvers, "BLOCK_ANVIL_LAND", 0.5f, 1.2f),
-                cue(resolvers, "ANVIL_LAND", 0.5f, 1.2f)};
+                // No ANVIL_LAND twin: the alias chain is bidirectional, so both twins resolve on EVERY era
+                // and the anvil doubled its volume. The modern token alone covers 1.8.
+                cue(resolvers, "BLOCK_ANVIL_LAND", 0.5f, 1.2f)};
         this.abortCue = new Cue[]{
                 cue(resolvers, "BLOCK_FIRE_EXTINGUISH", 1.0f, 0.8f),
                 cue(resolvers, "FIZZ", 1.0f, 0.8f)};
@@ -88,6 +93,7 @@ public final class CastlingService {
         double range = a.dbl("range");
         int channel = a.integer("channel");
         int checkPeriod = a.integer("check-period");
+        int cuePeriod = Math.max(1, a.integer("cue-period"));
         double rangeSlack = a.dbl("range-slack");
 
         UUID casterId = actor.getUniqueId();
@@ -106,10 +112,12 @@ public final class CastlingService {
         }
 
         double reach = range + rangeSlack;
-        Channel ch = new Channel(casterId, actor, victim, reach * reach, channel, checkPeriod);
+        Channel ch = new Channel(casterId, actor, victim, reach * reach, channel, checkPeriod, cuePeriod);
         LIVE.put(casterId, ch);
         int seconds = (int) Math.ceil(channel / 20.0);
         ch.lastCueSecond = seconds;
+        ch.nextCueAt = cuePeriod;
+        cueTick(ch, seconds);
         announceSecond(ch, seconds);
         if (victim instanceof Player warned) {
             messages.sendText(warned, Colors.translate(messages.fragment("reforge.castling.warned")));
@@ -139,6 +147,12 @@ public final class CastlingService {
             return;
         }
         int secondsLeft = (int) Math.ceil((ch.channelTicks - ch.elapsed) / 20.0);
+        if (ch.elapsed < ch.channelTicks && ch.elapsed >= ch.nextCueAt) {
+            cueTick(ch, secondsLeft); // pling cadence = the authored cue-period, not the message cadence
+            do {
+                ch.nextCueAt += ch.cuePeriod;
+            } while (ch.nextCueAt <= ch.elapsed); // a coarse check-period may skip boundaries; never double-fire
+        }
         if (secondsLeft != ch.lastCueSecond && secondsLeft > 0) {
             ch.lastCueSecond = secondsLeft;
             announceSecond(ch, secondsLeft); // once per second-change, both sides (never announces the 0 = swap moment)
@@ -159,7 +173,7 @@ public final class CastlingService {
             Location victimLoc = ch.victim.getLocation().clone(); // victim thread — owned here
             Location victimDest = keepFacing(casterLoc, victimLoc.getYaw(), victimLoc.getPitch());
             dispatch.teleportEntity(ch.victim, victimDest); // fresh sink: era teleport leaf, mob or player
-            ch.victim.setVelocity(new Vector(0, 0, 0));
+            zeroAfterHop(ch.victim);
             play(victimDest, swapCue);
             if (ch.victim instanceof Player victimPlayer) {
                 messages.sendText(victimPlayer, Colors.translate(
@@ -171,7 +185,7 @@ public final class CastlingService {
                 }
                 Location casterDest = keepFacing(victimLoc, casterLoc.getYaw(), casterLoc.getPitch());
                 dispatch.teleportEntity(ch.caster, casterDest);
-                ch.caster.setVelocity(new Vector(0, 0, 0));
+                zeroAfterHop(ch.caster);
                 play(casterDest, swapCue);
                 messages.sendText(ch.caster, Colors.translate(
                         messages.fragment("reforge.castling.swapped", "TARGET", victimName(ch.victim))));
@@ -217,14 +231,34 @@ public final class CastlingService {
         return LIVE.size();
     }
 
-    /** The audible + written second-tick, both parties (the owner-required "audible countdown"). */
+    /**
+     * The teleport intent is next-tick; an inline zero would land a tick BEFORE the hop and let the mover
+     * carry residual momentum out of the swap. Same-tick ordering: the intent registered first, so it runs first.
+     */
+    private static void zeroAfterHop(LivingEntity party) {
+        Scheduling.onEntityLater(party, 1L, () -> {
+            if (party.isValid()) {
+                party.setVelocity(new Vector(0, 0, 0));
+            }
+        });
+    }
+
+    /** The written second-tick, both parties (the owner-required countdown legibility — the victim reads it too). */
     private void announceSecond(Channel ch, int secondsLeft) {
+        messages.sendText(ch.caster, Colors.translate(
+                messages.fragment("reforge.castling.countdown", "SECONDS", secondsLeft)));
+        if (ch.victim instanceof Player victimPlayer) {
+            messages.sendText(victimPlayer, Colors.translate(
+                    messages.fragment("reforge.castling.countdown-victim", "SECONDS", secondsLeft)));
+        }
+    }
+
+    /** The audible pling, both parties, on the authored {@code cue-period} cadence. */
+    private void cueTick(Channel ch, int secondsLeft) {
         float pitch = 1.0f + 0.3f * Math.max(0, 2 - secondsLeft); // audibly rising as the swap nears
         for (Cue base : tickCue) {
             play2(ch, base.sound(), base.volume(), pitch);
         }
-        messages.sendText(ch.caster, Colors.translate(
-                messages.fragment("reforge.castling.countdown", "SECONDS", secondsLeft)));
     }
 
     private void play2(Channel ch, int sound, float volume, float pitch) {

@@ -52,12 +52,14 @@ final class ReforgesModule {
         // Javelin swing reads the WeaponDamage era leaf.
         bootstrap.compat.EraServices bindings = core.bindings();
         GravityWellService gravityWell = new GravityWellService(core.triggerDispatch(), bindings::targetBlock,
-                core.messages(), core.resolvers());
+                core.resolvers());
         GrappleService grapple = new GrappleService(core.triggerDispatch(), bindings::targetEntity,
-                bindings::targetBlock);
+                bindings::targetBlock, core.messages());
         CastlingService castling = new CastlingService(core.triggerDispatch(), bindings::targetEntity,
                 core.messages(), core.resolvers());
-        JavelinService javelin = new JavelinService(core.triggerDispatch(), bindings.weaponDamage(), core.resolvers());
+        JavelinService javelin = new JavelinService(core.triggerDispatch(), bindings.weaponDamage(), core.resolvers(),
+                () -> core.master().config().combat().pvp(), () -> core.master().config().combat().pve(),
+                feature.combat.CombatDispatch::friendly);
         ReforgeMachines machines = new ReforgeMachines(core.content(), gravityWell, grapple, castling, javelin);
 
         ReforgeRunner runner = new ReforgeRunner(core.content(), core.triggerDispatch(), core.messages(), machines);

@@ -98,10 +98,10 @@ public final class CombatDispatch {
 
     /**
      * Whether two players are friendly under the installed gate (ADR-0071 §2.6): the reforge strike listener's
-     * Supernova bank reads this so a charge never banks in a context where it could never discharge — the same
-     * defense-side {@code !friendly} predicate the dispatch applies. Same package, no second install path.
+     * Supernova bank and the Javelin impact read this so nothing lands in a context where the dispatch's own
+     * defense-side {@code !friendly} predicate would stand down. A reader — never a second install path.
      */
-    static boolean friendly(Player attacker, Player victim) {
+    public static boolean friendly(Player attacker, Player victim) {
         return friendlyFire.test(attacker, victim);
     }
 

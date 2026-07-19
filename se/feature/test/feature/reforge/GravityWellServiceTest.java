@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -32,16 +31,17 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import platform.caps.Capabilities;
 import platform.caps.Regions;
-import platform.lang.Messages;
 import platform.sched.Scheduling;
 import schema.spec.Args;
 import testfx.RecordingSchedulerBackend;
 
 /**
  * The Singularity collapsing star (ADR-0071): the reforge service raycasts the sighted block, beams to it,
- * pulses every living thing toward the core, then implodes with linear falloff floored at {@code falloff-floor}.
- * Wells are location-anchored (an owner quit drops only attribution). Core at a round point so the pull/implode
- * geometry is hand-checkable; the repeating body is driven tick-by-tick through {@link RecordingSchedulerBackend}.
+ * pulses every living thing within the radius SPHERE toward the core, then implodes with linear falloff floored
+ * at {@code falloff-floor}. A skyline aim (no block, or a faulted Folia raycast) anchors a mid-air core at
+ * eye + direction × range instead of aborting. Wells are location-anchored (an owner quit drops only
+ * attribution). Core at a round point so the pull/implode geometry is hand-checkable; the repeating body is
+ * driven tick-by-tick through {@link RecordingSchedulerBackend}.
  */
 class GravityWellServiceTest {
 
@@ -50,7 +50,6 @@ class GravityWellServiceTest {
     private RecordingSchedulerBackend backend;
     private final World world = mock(World.class);
     private final TriggerDispatch dispatch = mock(TriggerDispatch.class);
-    private final Messages messages = mock(Messages.class);
 
     @BeforeEach
     void setUp() {
@@ -67,7 +66,7 @@ class GravityWellServiceTest {
     }
 
     private GravityWellService service(BiFunction<Player, Integer, Block> targetBlock) {
-        return new GravityWellService(dispatch, targetBlock, messages, PlatformResolvers.none());
+        return new GravityWellService(dispatch, targetBlock, PlatformResolvers.none());
     }
 
     private Player actor() {
@@ -117,12 +116,59 @@ class GravityWellServiceTest {
     }
 
     @Test
-    void noTargetBlockSendsFragmentAndArmsNothing() {
+    void skylineAimAnchorsAMidAirCore() {
+        // Eye (0.5, 66, 0.5) yaw 0 → +Z; range 12 → the air core sits at (0.5, 66, 12.5).
+        LivingEntity shy = livingAt(UUID.randomUUID(), new Location(world, 0.5, 66, 10.5)); // 2 short of the core
+        stageNearby(List.of(shy));
+
         service((p, d) -> null).start(actor(), wellFx(60, 2, true, true));
 
-        verify(messages).fragment(eq("reforge.singularity.no-target"), eq("RANGE"), anyInt());
-        assertEquals(0, GravityWellService.liveCount());
-        assertTrue(backend.repeating.isEmpty(), "no repeating task is armed when the raycast misses");
+        assertEquals(1, GravityWellService.liveCount());
+        tick();
+        ArgumentCaptor<Vector> v = ArgumentCaptor.forClass(Vector.class);
+        verify(shy).setVelocity(v.capture());
+        assertEquals(0.0, v.getValue().getX(), 1.0e-9);
+        assertEquals(0.04, v.getValue().getY(), 1.0e-9);
+        assertEquals(0.28, v.getValue().getZ(), 1.0e-9); // pulled +Z toward the mid-air core
+    }
+
+    @Test
+    void faultedSightRaycastFallsIntoTheAirAnchor() {
+        stageNearby(List.of());
+        service((p, d) -> {
+            throw new IllegalStateException("cross-region read"); // the Folia unowned-region fault
+        }).start(actor(), wellFx(60, 2, true, true));
+
+        assertEquals(1, GravityWellService.liveCount());
+    }
+
+    @Test
+    void cubeCornerOutsideTheSphereIsSpared() {
+        // (5.5, 65, 4.5) vs core (0.5, 65, 0.5): dx 5, dz 4 → dist √41 ≈ 6.4 — inside the r=6 CUBE that
+        // getNearbyEntities scans, outside the authored sphere.
+        LivingEntity corner = livingAt(UUID.randomUUID(), new Location(world, 5.5, 65, 4.5));
+        LivingEntity inside = livingAt(UUID.randomUUID(), new Location(world, 3.5, 65, 0.5));
+        stageNearby(List.of(corner, inside));
+
+        service((p, d) -> blockAtOrigin()).start(actor(), wellFx(60, 2, true, true));
+        tick(); // a pull pulse
+
+        verify(corner, never()).setVelocity(any(Vector.class));
+        verify(inside).setVelocity(any(Vector.class));
+    }
+
+    @Test
+    void implosionTrimsTheCubeCornerToTheSphere() {
+        LivingEntity corner = livingAt(UUID.randomUUID(), new Location(world, 5.5, 65, 4.5)); // dist √41 > 6
+        LivingEntity inside = livingAt(UUID.randomUUID(), new Location(world, 3.5, 65, 0.5)); // dist 3
+        stageNearby(List.of(corner, inside));
+
+        service((p, d) -> blockAtOrigin()).start(actor(), wellFx(2, 2, true, true));
+        tick(); // elapsed 2 >= 2 → implosion
+
+        verify(corner, never()).damage(anyDouble(), any());
+        verify(corner, never()).damage(anyDouble());
+        verify(inside).damage(eq(4.0), any(LivingEntity.class)); // 8 × (1 − 3/6)
     }
 
     @Test
