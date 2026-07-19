@@ -1,19 +1,19 @@
-# Summoner's Bell — CONVERT_SUMMON (ADR-0071). Ring it: every enemy-summoned ally within 12 blocks
-# permanently joins your side — summoned guards/zombies/sentries/mounts rebind ownership (their
-# GUARDIAN_HURT now fires for YOU), targeting summons turn on their former owner, tamed summons
-# re-tame, and bat swarm clouds permanently swarm their former owner. Rot-and-Decay's zombies bind
-# owner: "activator" (ADR-0070 ruling R3), so the Bell converts them too — their former owner is the
-# enchant's activator.
-display: "Summoner's Bell"
-color: "&e"
+# Grand Bell — CONVERT_SUMMON (ADR-0071). Ring it: every enemy summon within twelve blocks
+# permanently joins your side — ownership (and GUARDIAN_HURT) rebinds, targeting summons turn on
+# their former owner (held against goal revalidation), tamed summons re-tame, bat clouds swarm
+# their former owner. Rot-and-Decay zombies bind owner:"activator" (ruling R3) so they convert.
+# An empty ring sounds like one (the whiff cue).
+display: "Grand Bell"
+color: "{#fcf59a}"
 icon: BELL
+type: ACTIVE
 description:
-  - "&eRing the bell: every enemy summon within"
-  - "&e12 blocks joins your side permanently and"
-  - "&eturns on its former master."
-cooldown: 900          # 45s
+  - "{#fcf59a}* Converts all nearby summoned entities within twelve blocks to your team, causing them to fight for you"
+cooldown: 2700
 chance: 100
 condition: ""
 effects:
   - { SOUND: { sound: "BLOCK_BELL_USE", volume: 1.0, pitch: 1.0 } }
+  - { SOUND: { sound: "BLOCK_BELL_RESONATE", volume: 0.7, pitch: 0.9 } }
+  - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.35, pitch: 1.4 } }
   - { CONVERT_SUMMON: { radius: 12, who: "@Self" } }

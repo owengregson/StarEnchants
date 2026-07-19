@@ -16,7 +16,7 @@ final class PetTokens {
     }
 
     static String colorTolerant(String template) {
-        return template.replace("&{COLOR}", "{COLOR}");
+        return platform.text.Tokens.colorTolerant(template); // the shared fold (promoted for reforges)
     }
 
     static List<String> colorTolerant(List<String> lines) {

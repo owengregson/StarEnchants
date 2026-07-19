@@ -19,7 +19,9 @@ import schema.spec.D;
  */
 public final class HitTempoEffect implements EffectKind {
 
-    static final EffectSpec SPEC = EffectSpec.of("HIT_TEMPO")
+    public static final String HEAD = "HIT_TEMPO";
+
+    static final EffectSpec SPEC = EffectSpec.of(HEAD)
             .param("duration", D.TICKS.def(100))
             .param("model", D.enumOf("VANILLA", "MENTAL").def("VANILLA"))
             .param("damage-percent", D.DOUBLE.range(0, 100).def(33.3))

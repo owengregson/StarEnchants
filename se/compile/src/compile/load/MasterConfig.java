@@ -221,16 +221,26 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
      * The weapon-reforge cross-cutting knobs (ADR-0070), read live. {@code weaponGroups} defines what counts
      * as a WEAPON for the one reforge socket — {@code ItemGroups} primitive/composite tokens (the resolver
      * skips materials absent on this server version). The reforge ITEM's likeness lives in items/reforge.yml.
+     * The four message templates + {@code uppercase} are the pets convention 1:1 (ADR-0052) — the universal
+     * ability-activated / ended / on-cooldown / fail chat lines, tokens {@code {COLOR}}/{@code {NAME}}/
+     * {@code {TIME_FORMATTED}}; an empty template is silent.
      *
      * @param weaponGroups the ItemGroups tokens a reforge may apply to (default swords + axes)
      */
-    public record ReforgesSection(List<String> weaponGroups) {
+    public record ReforgesSection(List<String> weaponGroups,
+                                  String messageOnActivate, String messageOnEnd,
+                                  String messageOnCooldown, String messageOnFail, boolean uppercase) {
         public ReforgesSection {
             weaponGroups = List.copyOf(weaponGroups);
         }
 
         public static ReforgesSection defaults() {
-            return new ReforgesSection(List.of("SWORD", "AXE"));
+            return new ReforgesSection(List.of("SWORD", "AXE"),
+                    "&{COLOR}&l** REFORGE ABILITY: &f&l&n{NAME}&r &{COLOR}&l**",
+                    "&{COLOR}&l** REFORGE ABILITY: &r&c&l&nENDED&r &{COLOR}&l**",
+                    "&c&l(!) {NAME}&r&c&l is on cooldown for another &f&n{TIME_FORMATTED}&r&c&l!",
+                    "&c&l(!) You cannot use {NAME}&r&c&l right now!",
+                    true);
         }
     }
 

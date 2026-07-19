@@ -33,6 +33,7 @@ import feature.pet.PetService;
 import feature.pet.PetSharedUseStore;
 import feature.pet.PetWornSource;
 import feature.reforge.ReforgeListener;
+import feature.reforge.ReforgeMessenger;
 import feature.reforge.ReforgeRunner;
 import feature.reforge.ReforgeService;
 import feature.reforge.ReforgeUseListener;
@@ -269,9 +270,10 @@ public final class ReforgeSuite implements Harness.Scenario {
                 () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
                 () -> ItemEnchanter.DEFAULT_MAX_MERGE, () -> List.of("SWORD", "AXE"), messages, VanillaEnchants.NONE);
         ReforgeService reforgeService = new ReforgeService(reforgeCodec, combat, enchanter, holder,
-                ReforgeItemConfig::defaults, () -> List.of("SWORD", "AXE"), messages);
-        ReforgeRunner runner = new ReforgeRunner(holder, dispatch, messages, (p, d) -> {
-        }); // testforge's POTION runs in-engine; no ReforgeMachines marker to route
+                ReforgeItemConfig::defaults, () -> List.of("SWORD", "AXE"), messages, VanillaEnchants.NONE);
+        ReforgeRunner runner = new ReforgeRunner(holder, dispatch,
+                new ReforgeMessenger(messages, compile.load.MasterConfig.ReforgesSection::defaults), (p, d) -> {
+                }, stores, () -> 0L); // testforge's POTION runs in-engine; no ReforgeMachines marker to route
         ReforgeUseListener reforgeUse = new ReforgeUseListener(runner, combat, Stores.hands(), () -> true);
         ReforgeListener reforgeApply = new ReforgeListener(reforgeService, messages, Stores.sounds());
         CrystalService crystals = new CrystalService(crystalItemCodec, crystalExtractorCodec, enchanter, holder,

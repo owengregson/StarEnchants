@@ -192,6 +192,15 @@ masks:
 # exist on this server version are simply skipped. Read live on /se reload.
 reforges:
   weapon-groups: [SWORD, AXE]
+  # The universal reforge chat lines — the pets convention 1:1 (ADR-0052 shape): activated on a successful
+  # SHIFT+right-click, ENDED when a timed window (Berry Overdrive, The Ace) closes, plus the on-cooldown /
+  # fail lines. Tokens: {COLOR} the reforge's colour, {NAME} its display (uppercased on activate/end when
+  # `uppercase` is on), {TIME_FORMATTED} the remaining cooldown. Empty = silent.
+  message-on-activate: "&{COLOR}&l** REFORGE ABILITY: &f&l&n{NAME}&r &{COLOR}&l**"
+  message-on-end: "&{COLOR}&l** REFORGE ABILITY: &r&c&l&nENDED&r &{COLOR}&l**"
+  message-on-cooldown: "&c&l(!) {NAME}&r&c&l is on cooldown for another &f&n{TIME_FORMATTED}&r&c&l!"
+  message-on-fail: "&c&l(!) You cannot use {NAME}&r&c&l right now!"
+  uppercase: true
 
 # Heroic (§F / ADR-0037). The granted percents, success range and material-upgrade map are the upgrade's
 # likeness in items/heroic.yml. A heroic piece's percents feed the SAME additive damage fold every enchant

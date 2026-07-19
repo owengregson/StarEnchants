@@ -18,7 +18,9 @@ import schema.spec.D;
  */
 public final class DisarmShuffleEffect implements EffectKind {
 
-    static final EffectSpec SPEC = EffectSpec.of("DISARM_SHUFFLE")
+    public static final String HEAD = "DISARM_SHUFFLE";
+
+    static final EffectSpec SPEC = EffectSpec.of(HEAD)
             .param("duration", D.TICKS.def(80))
             .param("damage-malus", D.DOUBLE.range(0, 100).def(20))
             .target("who", T.SELF)

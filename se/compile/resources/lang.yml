@@ -337,14 +337,10 @@ reforge.occupied: "&cThat weapon already holds a reforge — extract it with an 
 reforge.none: "&cThat weapon carries no reforge to extract."
 reforge.apply-success: "&aApplied &f{REFORGE}&a to your weapon."
 reforge.extract-success: "&aExtracted &f{REFORGE}&a back into a reforge."
-# The universal SHIFT+right-click activation feedback (the use-item trio; prefix-free). A blank success is
-# silent (the ability is its own feedback). {NAME} = the reforge's styled display; {TIME_FORMATTED} = the
-# remaining cooldown; {CONDITION} = the failed condition source (may be empty).
-reforge.success: ""
-reforge.cooldown: "&c&l(!) {NAME}&r&c&l is on cooldown for another &f&n{TIME_FORMATTED}&r&c&l!"
-reforge.fail: "&c&l(!) You cannot use {NAME}&r&c&l right now!"
+# The universal SHIFT+right-click feedback (activated/ended/on-cooldown/fail) lives in config.yml
+# `reforges:` templates — the pets convention 1:1 (identity rework), not lang keys.
 # Per-reforge cues (ADR-0071). Singularity/Castling name a target; Supernova Core banks/discharges; The
-# Unhanding shuffles. Javelin/Blink/Grapple ship no messages (a miss is wasted silently). All prefix-free.
+# Unhanding shuffles; the Grappler speaks its whiff. All prefix-free.
 reforge.grapple.whiff: "&c&l(!) &cYour hook finds nothing within {RANGE} blocks."
 reforge.castling.no-target: "&c&l(!) &cNo enemy in your crosshair within {RANGE} blocks."
 reforge.castling.countdown: "&e&lCastling… &f{SECONDS}"
