@@ -12,10 +12,12 @@ import schema.spec.D;
 
 /**
  * {@code BLINK} — the Blink reforge (ADR-0071): teleport the caster up to {@code distance} blocks
- * along their full look direction (pitch included — chorus-fruit feel), landing on the FARTHEST
- * standable cell before the first blocked one; never phases into or through terrain. Facing a wall
- * point-blank blinks zero blocks and the attempt is still spent (the authored downside: walls stop
- * it — a reposition, not a terrain escape). No target slot: self-only by design.
+ * along their facing, landing on the FARTHEST standable cell before the first blocked one; never
+ * phases into or through terrain. The ray is YAW-ONLY: a grounded player looks slightly down almost
+ * always, and a pitched ray would enter the floor cell within the first sample — every real-play
+ * blink would zero out with the cooldown spent. Facing a wall point-blank still blinks zero blocks
+ * and spends the attempt (the authored downside: walls stop it — a reposition, not a terrain
+ * escape). No target slot: self-only by design.
  */
 public final class BlinkEffect implements EffectKind {
 
@@ -49,7 +51,9 @@ public final class BlinkEffect implements EffectKind {
         if (actor == null || origin == null) {
             return;
         }
-        Vector direction = origin.getDirection(); // full 3D look, |v| == 1
+        Location level = origin.clone();
+        level.setPitch(0.0f); // yaw-only: a look-down ray would ground the walk in the floor cell
+        Vector direction = level.getDirection();
         sink.blinkForward(actor, origin, direction, ctx.dbl("distance"),
                 ctx.integer("particle"), ctx.integer("r"), ctx.integer("g"), ctx.integer("b"),
                 (float) ctx.dbl("size"), ctx.integer("count"));

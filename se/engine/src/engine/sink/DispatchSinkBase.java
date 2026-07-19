@@ -2372,10 +2372,11 @@ public abstract class DispatchSinkBase implements SinkReadback {
             int lastBx = from.getBlockX();
             int lastBy = from.getBlockY();
             int lastBz = from.getBlockZ();
+            double lift = 0.0; // accumulated step-up: a 1-block rise is a step, not a wall
             for (double d = 0.5; d <= max + 1.0e-9; d += 0.5) {
                 Location cell = new Location(from.getWorld(),
                         from.getX() + dir.getX() * d,
-                        from.getY() + dir.getY() * d,
+                        from.getY() + dir.getY() * d + lift,
                         from.getZ() + dir.getZ() * d,
                         from.getYaw(), from.getPitch());
                 int cbx = cell.getBlockX();
@@ -2383,9 +2384,17 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 int cbz = cell.getBlockZ();
                 if (cbx != lastBx || cby != lastBy || cbz != lastBz) {
                     // A new block cell: standability is re-checked once here (the dedupe only skips the
-                    // repeat leaf calls, never the landing advance below), and a blocked cell ends the walk.
+                    // repeat leaf calls, never the landing advance below). A blocked cell first probes one
+                    // block up — walking would climb a single rise, so the blink does too; only a 2-high
+                    // face ends the walk.
                     if (!isSafeDestination(cell, null)) {
-                        break; // first wall: never phase into or through terrain
+                        Location raised = cell.clone().add(0, 1, 0);
+                        if (!isSafeDestination(raised, null)) {
+                            break; // a real wall: never phase into or through terrain
+                        }
+                        lift += 1.0;
+                        cell = raised;
+                        cby = cell.getBlockY();
                     }
                     lastBx = cbx;
                     lastBy = cby;

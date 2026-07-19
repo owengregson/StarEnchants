@@ -78,6 +78,28 @@ class BlinkForwardTest {
     }
 
     @Test
+    void stepsUpASingleRiseLikeWalking() {
+        RecordingSink sink = sink();
+        // A 1-block rise at x=2 (open above it): walking would step onto it, so the blink does too —
+        // the walk lifts to y=65 and carries on. Only a 2-high face reads as a wall.
+        sink.safe = cell -> !(cell.getBlockX() == 2 && cell.getBlockY() == 64);
+        blink(sink, 4);
+        assertEquals(1, sink.teleports.size());
+        assertEquals(4, sink.teleports.get(0).getBlockX()); // full distance, not stranded at the rise
+        assertEquals(65, sink.teleports.get(0).getBlockY()); // landed ON the step, not inside it
+    }
+
+    @Test
+    void twoHighFaceStillStopsTheWalk() {
+        RecordingSink sink = sink();
+        sink.safe = cell -> cell.getBlockX() < 2; // x=2 blocked at EVERY height: a wall, not a step
+        blink(sink, 4);
+        assertEquals(1, sink.teleports.size());
+        assertEquals(1, sink.teleports.get(0).getBlockX()); // stopped short — the authored downside holds
+        assertEquals(64, sink.teleports.get(0).getBlockY());
+    }
+
+    @Test
     void dedupesSamplesInsideOneCell() {
         RecordingSink sink = sink();
         sink.safe = cell -> true; // all open to the max
