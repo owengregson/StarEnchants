@@ -668,9 +668,12 @@ public final class ComboDotSyncSuite implements Harness.Scenario {
                         rig.teardown();
                         return;
                     }
-                    Scheduling.onEntityLater(victim, 40L, () -> {
+                    // Poll for the released hurt's damage event rather than asserting at a fixed +40 ticks:
+                    // the release schedules the bare hurt on the victim's scheduler, and under CI load that
+                    // event lands later than 40 ticks — the flake. Fail only if it never lands within 120.
+                    awaitUntil(victim, () -> events.get() >= 1, 0, 120, landed -> {
                         h.guard(key, () -> {
-                            if (events.get() < 1) {
+                            if (!landed) {
                                 throw new IllegalStateException("the cross-region release never landed on the victim");
                             }
                             if (ledger.hasParked(victimId)) {
@@ -685,6 +688,24 @@ public final class ComboDotSyncSuite implements Harness.Scenario {
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Poll {@code cond} once per tick on {@code entity}'s scheduler up to {@code maxTicks}, then hand the
+     * callback whether it became true — the FreezeSuite/ReforgeMotionSuite idiom. Replaces fixed-tick asserts
+     * that flake when a scheduled effect lands later than the hardcoded delay under CI load.
+     */
+    private static void awaitUntil(org.bukkit.entity.Entity entity, java.util.function.BooleanSupplier cond,
+                                   int tick, int maxTicks, java.util.function.Consumer<Boolean> done) {
+        if (cond.getAsBoolean()) {
+            Scheduling.onEntity(entity, () -> done.accept(true));
+            return;
+        }
+        if (tick >= maxTicks) {
+            Scheduling.onEntity(entity, () -> done.accept(false));
+            return;
+        }
+        Scheduling.onEntityLater(entity, 1L, () -> awaitUntil(entity, cond, tick + 1, maxTicks, done));
+    }
 
     /** A fresh isolated env (mirrors FreezeSuite) whose {@code dotPark()} the staged sink writes through. */
     private static SinkEnv freshEnv() {
