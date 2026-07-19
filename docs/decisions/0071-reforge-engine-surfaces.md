@@ -196,3 +196,49 @@ walk entirely.
   reforge consults — effects cannot reach it, keeping ADR-0012's additive-only policy intact.
 - No suppression-system change, no pipeline special-case: the counters work through Silence by
   construction.
+
+## Amendments — the post-1.10.0-beta real-play audit
+
+v1.10.0-beta shipped matrix-green and broke in real play: the suites stubbed both era rays,
+bypassed the activation listener, and staged pitch-0 gravity-off fake casters on peaceful
+servers — none of which resembles a real player. A four-surface adversarial audit produced these
+ratified revisions (the BLINK amendment above is part of the same batch):
+
+- **Era acquisition rays.** Modern `targetEntity` is a 0.3-inflated `rayTraceEntities` capped by a
+  COLLIDER block pre-clip (`getTargetEntity`'s pickRadius-0 exact-hitbox ray whiffed most real
+  attempts); modern `targetBlock` is COLLIDER-mode (OUTLINE collided with tall grass — Singularity
+  self-nukes). Both eras scan living, non-armor-stand, non-spectator candidates only, and legacy
+  `targetBlock` folds the 1.8 never-null air tail to null. The logic lives in
+  `ModernTargets`/`LegacyTargets` (G1-b: bindings stay composition-only).
+- **Every spent use is audible.** The never-refund economy stands, but a whiff must not be silent:
+  GRAPPLE draws its line to the empty ray-end + a `reforge.grapple.whiff` fragment; CONVERT_SUMMON
+  and TRAP_BREAK gained a `whiff-sound` param played low-pitched when the op finds no work.
+- **GRAPPLE.** Mode pick measures both rays from the EYE (feet-distance flips zipped the caster
+  into the enemy); the reel destination is standability-checked at emit on the caster's thread
+  (step-up probe, caster-cell fallback); the line FLIES — one growing frame per flight tick,
+  victim-tracking, first motes ~0.9 blocks clear of the first-person camera; a victim who changed
+  worlds mid-flight is never yanked back.
+- **GRAVITY_WELL.** No sighted block (the skyline aim — the dominant real-play outcome) anchors the
+  core at eye + direction × range instead of wasting the throw; the victim scans are spherical
+  (the box corners reached 1.7 × radius).
+- **CONVERT_SUMMON.** The per-tick converted-target hold is RESTORED and permanent-by-window: anger
+  auto-backing is a NeutralMob fact, and the shipped convertibles are Monsters whose goal
+  revalidation drops unbacked targets (the v1.10.0 removal generalized golem-only suite evidence).
+- **TRAP_BREAK.** A live freeze window is confinement (owner: "any active confinement on self") —
+  Turnkey thaws it via `FrozenTargets.breakNow` on the actor's thread.
+- **HIT_TEMPO.** The MENTAL window model (`W = max/2`) describes Mental's default profile only; the
+  ct8c 1.8-feel bundle rewrites `max` to `min(attackDelay, 10)` with a full-window gate, where
+  `max/2` degenerates to a no-op steal under a live 1/3 tax. An observed `max <= 10` now reads as
+  that profile (`W = max`). And on 1.16.5–1.20.6 `CraftPlayer.setNoDamageTicks` also arms the
+  respawn-invulnerability timer whose gate voids every subsequent hit — the steal made victims
+  UNHITTABLE there; `platform.caps.SpawnInvulnerability.disarm` (self-verifying reflective
+  companion write) zeroes it, a structural no-op on unaffected bands.
+- **BATTERY.** The discharge consult requires a Player victim (the disarm gate's rule) — a stray
+  mob swat must not dump the bank.
+- **DISARM_SHUFFLE.** An empty-handed victim has nothing to unhand: the window stays armed and
+  expires naturally (the shipped commit handed a fist-fighter a weapon).
+- **JAVELIN / SWAP_POSITION.** Javelin flies yaw-only at eye height (the BLINK pitch class; the
+  3 b/s felt-unit is untouched), scans victims before walls, context/friendly-gates its impact,
+  thuds audibly on terrain, and the camera lock re-asserts only past 0.5 blocks of drift.
+  Castling messages BOTH sides each second, honours the authored `cue-period`, zeroes velocity
+  AFTER the hop, and authors the anvil cue once (the alias chain is bidirectional — twins doubled).
