@@ -5,13 +5,17 @@ import compile.resolve.PlatformResolvers;
 import engine.sink.EngineDamage;
 import engine.stores.PlayerScoped;
 import feature.trigger.TriggerDispatch;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiPredicate;
+import java.util.function.BooleanSupplier;
 import org.bukkit.Location;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -91,13 +95,21 @@ public final class JavelinService {
 
     private final TriggerDispatch dispatch;
     private final WeaponDamage weaponDamage; // §B6.2 seam, injected from the bindings
+    private final BooleanSupplier pvpEnabled;  // the ReforgeStrikeListener context-gate shape:
+    private final BooleanSupplier pveEnabled;  // a Player victim needs pvp, anything else pve
+    private final BiPredicate<Player, Player> friendly; // the installed CombatDispatch gate, injected (package boundary)
     private final Cue[] throwCue;
     private final Cue[] impactCue;
     private final Cue[] thudCue; // wall hit
 
-    public JavelinService(TriggerDispatch dispatch, WeaponDamage weaponDamage, PlatformResolvers resolvers) {
+    public JavelinService(TriggerDispatch dispatch, WeaponDamage weaponDamage, PlatformResolvers resolvers,
+                          BooleanSupplier pvpEnabled, BooleanSupplier pveEnabled,
+                          BiPredicate<Player, Player> friendly) {
         this.dispatch = Objects.requireNonNull(dispatch, "dispatch");
         this.weaponDamage = Objects.requireNonNull(weaponDamage, "weaponDamage");
+        this.pvpEnabled = Objects.requireNonNull(pvpEnabled, "pvpEnabled");
+        this.pveEnabled = Objects.requireNonNull(pveEnabled, "pveEnabled");
+        this.friendly = Objects.requireNonNull(friendly, "friendly");
         Objects.requireNonNull(resolvers, "resolvers");
         this.throwCue = new Cue[]{
                 cue(resolvers, "ITEM_TRIDENT_THROW", 1.0f, 0.8f),
@@ -132,7 +144,9 @@ public final class JavelinService {
 
         double damage = weaponMode ? weaponDamage.swingDamage(actor) : flatDamage; // priced at THROW
         Location eye = actor.getEyeLocation();
-        Vector step = eye.getDirection().multiply(speed);
+        Location level = eye.clone();
+        level.setPitch(0.0f); // yaw-only (the BLINK pitch class): a real player's down-look grounds a pitched flight short
+        Vector step = level.getDirection().multiply(speed);
         int budget = Math.min(HARD_STEP_CAP, (int) Math.ceil(maxTravel / speed));
         play(eye, throwCue);
 
@@ -152,18 +166,19 @@ public final class JavelinService {
         }
         f.tip.add(f.step);
         f.steps++;
-        if (!isPassableHere(f.tip)) {
-            play(f.tip, thudCue);
-            drop(id);
-            return; // a wall stops it
-        }
-        // Region honesty: the advance in (2) may cross a Folia boundary, so the off-region scan is guarded
+        // Victims scan BEFORE the wall check: a victim backed against a wall is hit, not shielded by it.
+        // Region honesty: the advance may cross a Folia boundary, so the off-region scan is guarded
         // and fails closed — the next re-keyed step re-covers the sliver (hit-radius ≫ the advance).
         LivingEntity victim = Regions.read("JavelinService.scan", () -> firstVictim(f), null);
         if (victim != null) {
             impact(f, victim);
             drop(id);
             return;
+        }
+        if (!isPassableHere(f.tip)) {
+            thud(f);
+            drop(id);
+            return; // a wall stops it
         }
         dispatch.dust(List.of(f.tip.clone()), f.particleId, f.r, f.g, f.b, f.size);
         if (f.steps >= f.budget || distanceSq(f.start, f.tip) > f.maxSq) {
@@ -175,15 +190,37 @@ public final class JavelinService {
 
     private LivingEntity firstVictim(Flight f) {
         for (Entity e : f.tip.getWorld().getNearbyEntities(f.tip, f.hitRadius, f.hitRadius, f.hitRadius)) {
-            if (e instanceof LivingEntity le && !le.getUniqueId().equals(f.throwerId)) {
-                return le;
+            if (!(e instanceof LivingEntity le) || le.getUniqueId().equals(f.throwerId)) {
+                continue;
             }
+            if (le instanceof ArmorStand) {
+                continue; // raw getNearbyEntities scan — the era ray's stand exclusion doesn't reach here
+            }
+            if (le instanceof Player victim) {
+                if (!pvpEnabled.getAsBoolean()
+                        || (f.thrower instanceof Player thrower && friendly.test(thrower, victim))) {
+                    continue;
+                }
+            } else if (!pveEnabled.getAsBoolean()) {
+                continue;
+            }
+            return le;
         }
         return null;
     }
 
     private boolean isPassableHere(Location at) {
         return Regions.read("JavelinService.wall", () -> !at.getBlock().getType().isSolid(), true);
+    }
+
+    /** Terrain stop feedback: the thud layers + a small burst of the flight's own dust at the stop point. */
+    private void thud(Flight f) {
+        play(f.tip, thudCue);
+        List<Location> burst = new ArrayList<>(6);
+        for (double[] o : new double[][]{{0.25, 0, 0}, {-0.25, 0, 0}, {0, 0.25, 0}, {0, -0.25, 0}, {0, 0, 0.25}, {0, 0, -0.25}}) {
+            burst.add(f.tip.clone().add(o[0], o[1], o[2]));
+        }
+        dispatch.dust(burst, f.particleId, f.r, f.g, f.b, f.size);
     }
 
     /** Impact on the tip's region; every victim mutation hops to the victim's own scheduler. */
@@ -235,10 +272,13 @@ public final class JavelinService {
                     }
                     return;
                 }
-                // Folia's sync teleport throws unconditionally, so the pin rides the era teleport leaf every tick
-                // (modern = teleportAsync completes the zero-distance same-region hop within the tick; legacy sync).
-                dispatch.teleportEntity(victim, held);
                 victim.setVelocity(new Vector(0, 0, 0)); // own-scheduler velocity write: legal both platforms
+                // Re-assert only past 0.5 blocks of drift — an every-tick teleport rubber-bands real clients and
+                // fires a PlayerTeleportEvent per tick (anticheat bait). When it fires, the pin rides the era
+                // teleport leaf (Folia's sync teleport throws unconditionally; modern = teleportAsync, legacy sync).
+                if (distanceSq(held, victim.getLocation()) > 0.25) {
+                    dispatch.teleportEntity(victim, held);
+                }
             });
             HOLDS.put(vid, h[0]);
         });

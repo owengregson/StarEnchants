@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import compile.model.Affinity;
 import compile.model.CompiledEffect;
 import feature.trigger.TriggerDispatch;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import org.bukkit.Location;
@@ -24,13 +25,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import platform.lang.Messages;
 import schema.spec.Args;
 
 /**
  * GrappleService's mode pick (ADR-0071): the service resolves BOTH rays via the era raycast refs and emits
- * ONE {@code grapple} intent for the closer of entity-vs-block — reel an in-sight enemy, or zip to terrain.
- * Origin at a block centre (0.5, 64.5, 0.5) facing +X (yaw -90) so the geometry is hand-checkable. A wall
- * between caster and enemy shows up as a nearer block, so the closer-of rule IS the 1.8 wall-blindness fix.
+ * ONE {@code grapple} intent for the closer of entity-vs-block — reel an in-sight enemy, or zip to terrain —
+ * with both distances measured from the EYE, where the rays cast. An open-air whiff draws the throw line and
+ * speaks (cooldown stays spent). Origin at a block centre (0.5, 64.5, 0.5) facing +X (yaw -90) so the
+ * geometry is hand-checkable. A wall between caster and enemy shows up as a nearer block, so the closer-of
+ * rule IS the 1.8 wall-blindness fix.
  */
 class GrappleServiceTest {
 
@@ -39,6 +43,7 @@ class GrappleServiceTest {
     private final Location origin = new Location(world, 0.5, 64.5, 0.5, -90f, 0f);
     private final Location eye = new Location(world, 0.5, 65.0, 0.5, -90f, 0f);
     private final TriggerDispatch dispatch = mock(TriggerDispatch.class);
+    private final Messages messages = mock(Messages.class);
 
     private Player actor() {
         Player p = mock(Player.class);
@@ -73,7 +78,7 @@ class GrappleServiceTest {
 
     private GrappleService service(BiFunction<Player, Integer, Entity> entity,
                                    BiFunction<Player, Integer, Block> block) {
-        return new GrappleService(dispatch, entity, block);
+        return new GrappleService(dispatch, entity, block, messages);
     }
 
     @Test
@@ -120,11 +125,38 @@ class GrappleServiceTest {
     }
 
     @Test
-    void openAirEmitsNothing() {
-        service((p, d) -> null, (p, d) -> null).start(actor(), grappleFx());
+    void modePickMeasuresFromTheEyeNotTheFeet() {
+        // Victim head-high (feet at eye Y): eye-measured 16 vs the block's 16.25 → entity mode. Feet-measured
+        // the ranking flips (16.25 vs 16) and the caster would zip INTO the enemy.
+        LivingEntity victim = mock(LivingEntity.class);
+        when(victim.getUniqueId()).thenReturn(UUID.randomUUID());
+        when(victim.getLocation()).thenReturn(new Location(world, 4.5, 65.0, 0.5));
+        Player actor = actor();
+        service((p, d) -> victim, (p, d) -> blockAt(4)).start(actor, grappleFx());
+
+        verify(dispatch).grapple(eq(actor), eq(eye), eq(victim), any(Location.class), isNull(),
+                anyInt(), eq(5), eq(1), eq(60), isNull(), eq(7), eq(200), eq(220), eq(255), eq(1.0f), eq(3.0));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void openAirWhiffDrawsTheThrowAndSpeaks() {
+        Player actor = actor();
+        service((p, d) -> null, (p, d) -> null).start(actor, grappleFx());
+
         verify(dispatch, never()).grapple(any(), any(), any(), any(), any(), anyInt(), anyInt(), anyInt(),
                 anyInt(), any(), anyInt(), anyInt(), anyInt(), anyInt(), org.mockito.ArgumentMatchers.anyFloat(),
                 org.mockito.ArgumentMatchers.anyDouble());
+        ArgumentCaptor<List<Location>> line = ArgumentCaptor.forClass(List.class);
+        verify(dispatch).dust(line.capture(), eq(7), eq(200), eq(220), eq(255), eq(1.0f));
+        List<Location> points = line.getValue(); // eye→(eye + facing(+X) × 14) at 3 points/block → 43 samples
+        assertEquals(43, points.size());
+        assertEquals(0.5, points.get(0).getX(), 1.0e-6);
+        assertEquals(65.0, points.get(0).getY(), 1.0e-6);
+        assertEquals(14.5, points.get(points.size() - 1).getX(), 1.0e-6);
+        assertEquals(65.0, points.get(points.size() - 1).getY(), 1.0e-6);
+        assertEquals(0.5, points.get(points.size() - 1).getZ(), 1.0e-6);
+        verify(messages).fragment("reforge.grapple.whiff", "RANGE", 14);
     }
 
     @Test

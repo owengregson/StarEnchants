@@ -69,7 +69,7 @@ class RegistryWiringTest {
             "CombatListener", "RageStacksListener", "ComboDotSyncListener", "EquipListener", "ArmourFeeder", "HandChangeFeeder",
             "SoulListener", "SoulInteractListener", "SoulInventoryListener",
             "TriggerListeners", "PlacedBlockTracker", "ItemDamageSource", "FallingBlockListener",
-            "GuardianHurtListener",
+            "GuardianHurtListener", "SummonTargetGuardListener", // ADR-0071 amendments: never target your summoner
             "TempEquipListener", "TimedRevertListener", "TempBlockGuardListener",
             "HellfireFloorListener", "KeepOnDeathListener",
             "TeleblockListener", "ImmuneListener", "PotionLockGuard", "FreezeDamageGuard",

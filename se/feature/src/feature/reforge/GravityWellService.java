@@ -20,15 +20,14 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import platform.caps.Regions;
-import platform.lang.Messages;
 import platform.sched.Scheduling;
 import platform.sched.TaskHandle;
-import platform.text.Colors;
 import schema.spec.Args;
 
 /**
  * The Singularity collapsing star (ADR-0071): per activation, ONE region task at the well core — beam to the
- * sighted block, per-period pull pulses, then a single implosion — armed from the compiled {@code GRAVITY_WELL}
+ * anchor (the sighted block, or mid-air at full range when the aim finds none), per-period pull pulses, then a
+ * single implosion — armed from the compiled {@code GRAVITY_WELL}
  * args at the reforge activation success point (the {@code PetService.digHomeEffect} template). Visuals/cues ride
  * fresh per-call {@link TriggerDispatch} sinks; every victim mutation hops to the victim's own scheduler; the
  * implosion attributes to the caster only when the caster handle is region-owned at hurt time (the
@@ -84,17 +83,15 @@ public final class GravityWellService {
 
     private final TriggerDispatch dispatch;
     private final BiFunction<Player, Integer, Block> targetBlock; // era raycast ref (§B2.5 composition-only seam)
-    private final Messages messages;
     private final int dustId; // interned REDSTONE or -1 (the PetHomeVisuals idiom)
     private final Cue[] launch;   // beam-throw cues
     private final Cue[] collapse; // periodic groan during the pull phase
     private final Cue[] implodeCue; // the implosion crack
 
     public GravityWellService(TriggerDispatch dispatch, BiFunction<Player, Integer, Block> targetBlock,
-                              Messages messages, PlatformResolvers resolvers) {
+                              PlatformResolvers resolvers) {
         this.dispatch = Objects.requireNonNull(dispatch, "dispatch");
         this.targetBlock = Objects.requireNonNull(targetBlock, "targetBlock");
-        this.messages = Objects.requireNonNull(messages, "messages");
         Objects.requireNonNull(resolvers, "resolvers");
         this.dustId = resolvers.particle("REDSTONE").orElse(-1);
         this.launch = new Cue[]{
@@ -125,16 +122,23 @@ public final class GravityWellService {
         int g = a.integer("g");
         int b = a.integer("b");
 
-        Block block = targetBlock.apply(actor, (int) Math.ceil(range));
-        if (block == null) {
-            messages.sendText(actor, Colors.translate(
-                    messages.fragment("reforge.singularity.no-target", "RANGE", (int) range)));
-            return; // the cooldown stays spent (the family norm; the Javelin "a miss is wasted" economy)
-        }
+        // Guarded: on Folia a ray crossing an unowned region can throw; a faulted (null) read falls into the
+        // air anchor below (pure math, region-safe).
+        int reach = (int) Math.ceil(range);
+        Block block = Regions.read("GravityWellService.sight", () -> targetBlock.apply(actor, reach), null);
         Location eye = actor.getEyeLocation();
-        Location blockCenter = block.getLocation().clone().add(0.5, 0.5, 0.5);
-        Location core = block.getLocation().clone().add(0.5, 1.0 + rise, 0.5);
-        dispatch.dust(beam(eye, blockCenter), dustId, r, g, b, 1.0f);
+        Location core;
+        Location beamEnd;
+        if (block == null) {
+            // Skyline aim — the dominant real-aim outcome: anchor a mid-air singularity at full range
+            // instead of wasting the activation (same mechanic, aimed).
+            core = eye.clone().add(eye.getDirection().multiply(range));
+            beamEnd = core;
+        } else {
+            beamEnd = block.getLocation().clone().add(0.5, 0.5, 0.5);
+            core = block.getLocation().clone().add(0.5, 1.0 + rise, 0.5);
+        }
+        dispatch.dust(beam(eye, beamEnd), dustId, r, g, b, 1.0f);
         play(eye, launch);
 
         long id = IDS.incrementAndGet();
@@ -181,6 +185,9 @@ public final class GravityWellService {
             double dy = w.core.getY() - vloc.getY();
             double dz = w.core.getZ() - vloc.getZ();
             double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            if (dist > w.radius) {
+                continue; // getNearbyEntities scans a CUBE whose corners reach r·√3 — trim to the authored sphere
+            }
             if (dist < 0.4) {
                 continue; // already at the core
             }
@@ -205,6 +212,9 @@ public final class GravityWellService {
                 continue;
             }
             double dist = distance(w.core, vloc);
+            if (dist > w.radius) {
+                continue; // cube corner outside the authored sphere
+            }
             double dmg = w.damage * Math.max(w.falloffFloor, 1.0 - dist / w.radius);
             Scheduling.onEntity(victim, () -> {
                 LivingEntity owner = w.owner;
