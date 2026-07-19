@@ -1390,7 +1390,8 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
                 actor -> Optional.empty(), env, CombatDispatch.Caps.unlimited(), Stores.projectiles());
         rig.listen(new CombatListener(dispatch));
         rig.listen(new ReforgeStrikeListener(env.stores(), worn, content, Messages.defaults(), Stores.sounds(),
-                env.nowTicks(), () -> true, () -> true));
+                env.nowTicks(), () -> true, () -> true,
+                feature.combat.TimingOverrideBridge.NONE));
         rig.listen(new ReforgeTempoGuardListener(env.stores().hitTempo(), env.nowTicks()));
     }
 
