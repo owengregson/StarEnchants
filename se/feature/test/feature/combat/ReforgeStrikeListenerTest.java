@@ -258,6 +258,46 @@ class ReforgeStrikeListenerTest {
     }
 
     @Test
+    void tempoWriteShrunkenMaxTreatsWholeWindowAsGate() {
+        // A combat plugin's 1.8-feel profile rewrites max to min(attackDelay, 10) with a full-window gate
+        // (Mental ct8c). Reading MENTAL's max/2 there produced write = max − 1 ≈ the naturally-decayed
+        // counter — a no-op steal while the 1/3 tax still landed. An observed max ≤ 10 IS that profile.
+        UUID vid = UUID.randomUUID();
+        UUID aid = UUID.randomUUID();
+        Player victim = player(vid);
+        when(victim.getMaximumNoDamageTicks()).thenReturn(7); // sword under ct8c
+        Player attacker = player(aid);
+        EntityDamageByEntityEvent event = damageEvent(attacker, victim, false, 0.0);
+        ReforgeStrikeRelay.mark(event, stores, aid, vid,
+                ReforgeStrikeRelay.tempo(null, new HitTempoStore.Window(100L, 0, 1.0 / 3.0)));
+
+        listener.onDamageResolved(event);
+
+        verify(victim).setNoDamageTicks(4); // max 7 ≤ 10 → W=7 → 7 − 7/2 = 4, a real steal (decay sits at 6)
+    }
+
+    @Test
+    void emptyHandedVictimKeepsTheUnhandingArmed() {
+        UUID vid = UUID.randomUUID();
+        UUID aid = UUID.randomUUID();
+        stores.disarmWindows().arm(aid, 0L, 80, 0.20);
+        Player victim = player(vid);
+        PlayerInventory inv = mock(PlayerInventory.class);
+        when(victim.getInventory()).thenReturn(inv);
+        when(inv.getHeldItemSlot()).thenReturn(0);
+        when(inv.getItem(0)).thenReturn(null); // fists — nothing to unhand
+        Player attacker = player(aid);
+        EntityDamageByEntityEvent event = damageEvent(attacker, victim, false, 0.0);
+        ReforgeStrikeRelay.mark(event, stores, aid, vid, ReforgeStrikeRelay.disarm(null));
+
+        listener.onDamageResolved(event);
+
+        assertNotNull(stores.disarmWindows().armed(aid, 0L), "an empty hand must not consume the window");
+        verify(inv, times(0)).setItem(eq(0), eq(null));  // and must never HAND the victim a hotbar item
+        verify(victim, times(0)).updateInventory();
+    }
+
+    @Test
     void tempoWriteOddMax() {
         UUID vid = UUID.randomUUID();
         UUID aid = UUID.randomUUID();

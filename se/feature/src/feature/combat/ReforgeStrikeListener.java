@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BooleanSupplier;
 import java.util.function.LongSupplier;
+import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -22,6 +23,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
+import platform.caps.SpawnInvulnerability;
 import platform.lang.Messages;
 import platform.sched.Scheduling;
 import platform.text.Colors;
@@ -110,12 +112,14 @@ public final class ReforgeStrikeListener implements Listener {
             }
         }
 
-        if (pending.disarmStrike()) {
-            stores.disarmWindows().consume(pending.attacker());
-            if (event.getEntity() instanceof Player victim) {
-                int held = victim.getInventory().getHeldItemSlot();
+        if (pending.disarmStrike() && event.getEntity() instanceof Player victim) {
+            int held = victim.getInventory().getHeldItemSlot();
+            ItemStack heldItem = victim.getInventory().getItem(held);
+            // An empty hand has nothing to unhand — the shipped commit HANDED a random hotbar item TO an
+            // empty-handed victim, arming a fist-fighter. The window stays armed (it expires on its own).
+            if (heldItem != null && heldItem.getType() != Material.AIR) {
+                stores.disarmWindows().consume(pending.attacker());
                 int target = shuffleTarget(held, Math.floorMod(ThreadLocalRandom.current().nextInt(), 8));
-                ItemStack heldItem = victim.getInventory().getItem(held);
                 ItemStack targetItem = victim.getInventory().getItem(target);
                 victim.getInventory().setItem(held, targetItem); // held slot SELECTION stays — shuffled, not locked
                 victim.getInventory().setItem(target, heldItem);
@@ -133,14 +137,27 @@ public final class ReforgeStrikeListener implements Listener {
 
         if (pending.tempoHit() && victimLiving != null) {
             int max = victimLiving.getMaximumNoDamageTicks();
-            int window = pending.tempoWindow().model() == 0 ? max / 2 : max; // MENTAL = max/2, VANILLA = max
+            // MENTAL = gate at max/2 — but that models the DEFAULT profile, where max stays vanilla (20).
+            // Mental's ct8c-iframes bundle rewrites max to min(attackDelay, 10) per hit with a full-window
+            // gate; reading max/2 there makes write ≈ the naturally-decayed counter — a no-op steal while
+            // the 1/3 tax still lands (a pure self-nerf). An observed max ≤ 10 IS that profile: treat the
+            // whole window as the gate, same as VANILLA.
+            int window = pending.tempoWindow().model() == 0 && max > 10 ? max / 2 : max;
             int write = max - window / 2; // admit the holder's next full hit after HALF the window
             LivingEntity victim = victimLiving;
             // NMS's hurt() fresh-hit branch re-sets invulnerableTime = maximumNoDamageTicks AFTER this event
             // fires (the putfield trails the event dispatch — verified in LivingEntity.hurtServer), so an inline
             // write here is immediately clobbered back to the full window. Re-apply the shortened window on the
             // victim's own region the next tick, once that reset has landed, so the mechanic actually takes.
-            Scheduling.onEntityLater(victim, 1L, () -> victim.setNoDamageTicks(write));
+            Scheduling.onEntityLater(victim, 1L, () -> {
+                victim.setNoDamageTicks(write);
+                if (victim instanceof Player player) {
+                    // 1.16.5–1.20.6: the Bukkit setter ALSO arms the player's respawn-invulnerability
+                    // timer, whose ServerPlayer gate then voids EVERY hit — the exact inverse of the
+                    // steal. Zero the companion; a no-op on every other band.
+                    SpawnInvulnerability.disarm(player, write);
+                }
+            });
             stores.hitTempo().stampStolen(pending.victim(), pending.attacker(), nowTicks.getAsLong() + max / 2);
         }
     }

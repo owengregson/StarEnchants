@@ -181,6 +181,21 @@ class CombatDispatchReforgeTest {
     }
 
     @Test
+    void batterySkipsMobVictims() {
+        CombatDispatch dispatch = dispatch(CombatDispatch.Caps.unlimited());
+        env.stores().battery().arm(attackerId, 1.0, 3);
+        env.stores().battery().bank(attackerId, 3.0);
+        double[] committed = {Double.NaN};
+        EntityDamageByEntityEvent event = hit(attacker(), victimMob(), 7.0, committed);
+
+        dispatch.onDamage(event);
+
+        assertEquals(7.0, committed[0], 1e-9, "a stray mob swat must not dump the bank — the core waits");
+        assertNull(ReforgeStrikeRelay.consume(event, env.stores()), "no relay mark on a mob victim");
+        assertEquals(3.0, env.stores().battery().peek(attackerId), 1e-9, "the charge is untouched");
+    }
+
+    @Test
     void batteryPeekJoinsAsUnscaledRider() {
         CombatDispatch dispatch = dispatch(new CombatDispatch.Caps(() -> -1.0, () -> -1.0, () -> 5.0,
                 () -> true, () -> true));
