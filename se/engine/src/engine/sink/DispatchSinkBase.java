@@ -1055,15 +1055,44 @@ public abstract class DispatchSinkBase implements SinkReadback {
                     tame.setTamed(true);
                 }
                 if (retarget) {
-                    // Target the FORMER owner (the era leaf guard() uses). This is durable everywhere the
-                    // behavior can exist: the floor retains a manual target natively, and modern NeutralMob
-                    // AI auto-backs it with persistent anger the next tick (updatePersistentAnger, bl=true,
-                    // javap-verified 26.1.2). The one true clear — stopBeingAngry() for a PLAYER anger
-                    // target under PEACEFUL/creative/spectator — is vanilla semantics no write can outrun.
+                    // Target the FORMER owner (the era leaf guard() uses) AND hold it: anger auto-backing
+                    // (updatePersistentAnger, javap-verified 26.1.2) is a NeutralMob fact — golems. The
+                    // shipped convertible summons are Monsters (zombie, blaze), whose target-goal
+                    // revalidation drops an unbacked manual target within a few ticks on 1.20.5+; without
+                    // the hold a converted summon retargets naturally — usually the ringer standing inside
+                    // the ring. Where anger backing exists the hold is a no-op reinforcement. (The v1.10.0
+                    // release removed this hold on golem-only suite evidence — the audited A1 regression.)
                     setGuardTarget(near, former);
+                    holdConvertedTarget(near, former);
                 }
             });
         }
+    }
+
+    /**
+     * Re-assert a bell-converted summon's forced {@code target} each tick on the summon's OWN scheduler
+     * for a bounded window, then release to natural AI (ADR-0071). Bounded (the summon's TTL outlives
+     * it — never a leaked task), self-cancelling once the summon is gone, region-safe: the era leaf only
+     * stores the reference and the liveness check is region-local (the freeze/potion-lock idiom). Under
+     * PEACEFUL a PLAYER target is vanilla-cleared same-tick faster than any write — irrelevant in real
+     * play, where hostile summons cannot exist at peaceful either.
+     */
+    private void holdConvertedTarget(Entity summon, LivingEntity target) {
+        TaskHandle[] handle = new TaskHandle[1];
+        handle[0] = Scheduling.repeatingEntity(summon, 1L, 1L, () -> {
+            if (!summon.isValid() || !target.isValid()) {
+                if (handle[0] != null) {
+                    handle[0].cancel();
+                }
+                return;
+            }
+            setGuardTarget(summon, target); // re-store the reference the goal revalidation keeps dropping
+        });
+        Scheduling.onEntityLater(summon, CONVERTED_TARGET_HOLD_TICKS, () -> {
+            if (handle[0] != null) {
+                handle[0].cancel(); // release to natural AI at the window's close
+            }
+        });
     }
 
     /**
@@ -1420,6 +1449,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     /** SPAWN_SWARM's initial outward nudge (blocks/tick) — cosmetic: the ring visibly bursts outward. */
     private static final double SWARM_BURST = 0.2;
+
+    /** How long a bell-converted summon's forced target is re-asserted against goal revalidation (ADR-0071). */
+    private static final int CONVERTED_TARGET_HOLD_TICKS = 100;
 
     @Override
     public void spawnSwarm(Location origin, int entityTypeId, int count, double radius, double rise,
@@ -2425,13 +2457,28 @@ public abstract class DispatchSinkBase implements SinkReadback {
         int flight = Math.max(1, flightTicks);
         if (victim != null) {
             Location dest = reelTo.clone();
-            // Line drawn now to the victim's LAST KNOWN point (the kind measured it); yank runs on the
-            // victim's own scheduler after the flight — never re-enters this plan (the cage rule).
+            // The line flies: one growing frame per flight tick on the victim's scheduler, each frame's
+            // end re-read there (region-correct) so the line tracks a moving victim; the yank runs after
+            // the last frame — never re-entering this plan (the cage rule).
             entityOp(victim, () -> {
-                drawLine(from, victim.getLocation(), particleId, r, g, b, size, density); // victim-thread read: region-correct
+                for (int t = 0; t < flight; t++) {
+                    double frac = (t + 1) / (double) flight;
+                    Runnable frame = () -> {
+                        if (!victim.isValid()) {
+                            return;
+                        }
+                        Location tip = lerp(from, victim.getLocation(), frac);
+                        drawLine(from, tip, particleId, r, g, b, size, density);
+                    };
+                    if (t == 0) {
+                        frame.run(); // first frame now (this closure already owns the victim's thread)
+                    } else {
+                        Scheduling.onEntityLater(victim, t, frame);
+                    }
+                }
                 Scheduling.onEntityLater(victim, flight, () -> {
-                    if (!victim.isValid()) {
-                        return;
+                    if (!victim.isValid() || victim.getWorld() != dest.getWorld()) {
+                        return; // gone, or hopped worlds mid-flight — never yank across worlds
                     }
                     exemptMovement(victim);
                     teleportTo(victim, dest);
@@ -2444,14 +2491,33 @@ public abstract class DispatchSinkBase implements SinkReadback {
             });
         } else if (end != null && zip != null) {
             Vector pullV = zip.clone();
-            regionOp(end, () -> drawLine(from, end, particleId, r, g, b, size, density));
-            entityOp(actor, () -> Scheduling.onEntityLater(actor, flight, () -> {
-                if (actor.isValid()) {
-                    exemptMovement(actor);
-                    actor.setVelocity(pullV);
+            entityOp(actor, () -> {
+                for (int t = 0; t < flight; t++) {
+                    double frac = (t + 1) / (double) flight;
+                    Runnable frame =
+                            () -> drawLine(from, lerp(from, end, frac), particleId, r, g, b, size, density);
+                    if (t == 0) {
+                        frame.run();
+                    } else {
+                        Scheduling.onEntityLater(actor, t, frame);
+                    }
                 }
-            }));
+                Scheduling.onEntityLater(actor, flight, () -> {
+                    if (actor.isValid()) {
+                        exemptMovement(actor);
+                        actor.setVelocity(pullV);
+                    }
+                });
+            });
         }
+    }
+
+    /** The point {@code frac} of the way from → to (world/yaw/pitch of {@code from}). */
+    private static Location lerp(Location from, Location to, double frac) {
+        return new Location(from.getWorld(),
+                from.getX() + (to.getX() - from.getX()) * frac,
+                from.getY() + (to.getY() - from.getY()) * frac,
+                from.getZ() + (to.getZ() - from.getZ()) * frac);
     }
 
     /**
@@ -2470,8 +2536,14 @@ public abstract class DispatchSinkBase implements SinkReadback {
         double dz = to.getZ() - from.getZ();
         double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
         int steps = Math.max(1, (int) Math.round(dist * density));
+        // Motes at the eye itself are invisible in first person (spawned inside the camera): start the
+        // visible line ~0.9 blocks out — the "hook doesn't even appear" report was partly this.
+        double startT = dist <= 1.2 ? 0.0 : 0.9 / dist;
         for (int s = 0; s <= steps; s++) {
             double t = (double) s / steps;
+            if (t < startT) {
+                continue;
+            }
             Location point = new Location(from.getWorld(),
                     from.getX() + dx * t, from.getY() + dy * t, from.getZ() + dz * t);
             Scheduling.onRegion(point, () -> dustDirect(point, particleId, r, g, b, size, 1));
