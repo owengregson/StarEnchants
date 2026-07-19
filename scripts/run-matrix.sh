@@ -176,15 +176,6 @@ view-distance=4
 simulation-distance=4
 server-port=$port
 EOF
-  if [ "$platform" = "folia" ]; then
-    # Pin the region tick-thread pool: early Folia's `threads: -1` auto-sizing degenerates to ONE
-    # tick thread on some machines (observed: 1.19.4 on a 10-core mac), and a single thread serving
-    # the world-spawn region plus every suite arena deterministically starves entity ticks — a broad
-    #, reproducible-to-the-float FAIL set that the SAME code passes on correctly-sized builds. Four
-    # threads matches what newer builds auto-pick here and what any real operator would run.
-    mkdir -p "$run/config"
-    printf 'threaded-regions:\n  threads: 4\n' > "$run/config/paper-global.yml"
-  fi
 
   local started; started="$(date +%s)"
   # caffeinate keeps a background JVM awake on macOS (App Nap stalls a server for tens of seconds, which reads
