@@ -57,10 +57,12 @@ public final class ReforgeStrikeListener implements Listener {
     private final LongSupplier nowTicks;
     private final BooleanSupplier pvpEnabled; // the same MasterConfig-backed suppliers CombatDispatch reads —
     private final BooleanSupplier pveEnabled; // the §2.5 context-gate symmetry (bank mirrors discharge)
+    private final TimingOverrideBridge timing; // Mental's (future) window service — present ⇒ no vanilla writes
 
     public ReforgeStrikeListener(EngineStores stores, WornStateStore worn, ContentHolder content,
                                  Messages messages, Sounds sounds, LongSupplier nowTicks,
-                                 BooleanSupplier pvpEnabled, BooleanSupplier pveEnabled) {
+                                 BooleanSupplier pvpEnabled, BooleanSupplier pveEnabled,
+                                 TimingOverrideBridge timing) {
         this.stores = Objects.requireNonNull(stores, "stores");
         this.worn = Objects.requireNonNull(worn, "worn");
         this.content = Objects.requireNonNull(content, "content");
@@ -69,6 +71,7 @@ public final class ReforgeStrikeListener implements Listener {
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
         this.pvpEnabled = Objects.requireNonNull(pvpEnabled, "pvpEnabled");
         this.pveEnabled = Objects.requireNonNull(pveEnabled, "pveEnabled");
+        this.timing = Objects.requireNonNull(timing, "timing");
     }
 
     /** NOT ignoreCancelled — it acts on BOTH outcomes: the bank runs on a landed hit, a cancel keeps windows armed. */
@@ -137,6 +140,14 @@ public final class ReforgeStrikeListener implements Listener {
 
         if (pending.tempoHit() && victimLiving != null) {
             int max = victimLiving.getMaximumNoDamageTicks();
+            // Service-backed steal (api-timing-overrides.md): Mental re-prices its OWN admission gate for
+            // this (victim, holder) pair — 0.5 = the authored "twice as fast", refreshed per landed hit
+            // for one admission window. Accepted ⇒ nothing vanilla is written (no clobber re-apply, no
+            // spawn-invulnerability companion) and nothing global was erased, so the third-party fairness
+            // stamp stays un-set.
+            if (timing.overrideWindow(pending.victim(), pending.attacker(), 0.5, Math.max(1, max))) {
+                return;
+            }
             // MENTAL = gate at max/2 — but that models the DEFAULT profile, where max stays vanilla (20).
             // Mental's ct8c-iframes bundle rewrites max to min(attackDelay, 10) per hit with a full-window
             // gate; reading max/2 there makes write ≈ the naturally-decayed counter — a no-op steal while

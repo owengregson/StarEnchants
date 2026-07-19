@@ -22,7 +22,9 @@ import engine.stores.EngineStores;
 import engine.stores.HitTempoStore;
 import feature.compat.Sounds;
 import item.worn.WornStateStore;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.bukkit.Location;
@@ -57,6 +59,8 @@ class ReforgeStrikeListenerTest {
     private final long[] clock = {0};
     private final boolean[] pvp = {true};
     private final boolean[] pve = {true};
+    private final boolean[] serviceBacked = {false};       // flip true = Mental's window service accepted
+    private final List<Object[]> overrides = new ArrayList<>(); // every (victim, attacker, factor, duration) offered
 
     private ReforgeStrikeListener listener;
 
@@ -66,7 +70,10 @@ class ReforgeStrikeListenerTest {
         // the sync backend runs that hop inline so the write is observable in-test.
         Scheduling.install(new SyncSchedulerBackend());
         listener = new ReforgeStrikeListener(stores, worn, content, messages, sounds, () -> clock[0],
-                () -> pvp[0], () -> pve[0]);
+                () -> pvp[0], () -> pve[0], (v, a, f, d) -> {
+                    overrides.add(new Object[]{v, a, f, d});
+                    return serviceBacked[0];
+                });
     }
 
     @AfterEach
@@ -255,6 +262,33 @@ class ReforgeStrikeListenerTest {
         listener.onDamageResolved(event);
 
         verify(victim).setNoDamageTicks(10); // max 20, VANILLA W=20 → 20 − 20/2
+    }
+
+    @Test
+    void serviceBackedTempoSkipsEveryVanillaWrite() {
+        // api-timing-overrides.md: an accepted override means Mental re-priced its own gate — the vanilla
+        // i-frame write, the companion disarm and the third-party fairness stamp must all stay un-run.
+        serviceBacked[0] = true;
+        UUID vid = UUID.randomUUID();
+        UUID aid = UUID.randomUUID();
+        Player victim = player(vid);
+        when(victim.getMaximumNoDamageTicks()).thenReturn(20);
+        Player attacker = player(aid);
+        EntityDamageByEntityEvent event = damageEvent(attacker, victim, false, 0.0);
+        ReforgeStrikeRelay.mark(event, stores, aid, vid,
+                ReforgeStrikeRelay.tempo(null, new HitTempoStore.Window(100L, 0, 1.0 / 3.0)));
+
+        listener.onDamageResolved(event);
+
+        assertEquals(1, overrides.size(), "exactly one override offered per landed hit");
+        Object[] offered = overrides.get(0);
+        assertEquals(vid, offered[0]);
+        assertEquals(aid, offered[1]);
+        assertEquals(0.5, (double) offered[2], 1e-9, "the authored twice-as-fast factor");
+        assertEquals(20, (int) offered[3], "one admission window, refreshed per hit");
+        verify(victim, times(0)).setNoDamageTicks(org.mockito.ArgumentMatchers.anyInt());
+        assertFalse(stores.hitTempo().stolenBlocks(vid, UUID.randomUUID(), 1L),
+                "no erased frames ⇒ no fairness stamp");
     }
 
     @Test

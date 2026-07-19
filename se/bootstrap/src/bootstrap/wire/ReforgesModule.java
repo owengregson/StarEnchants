@@ -74,7 +74,8 @@ final class ReforgesModule {
         // MONITOR + battery bank) and the third-party i-frame fairness gate (LOWEST). Both read the shared stores.
         this.strikeListener = new ReforgeStrikeListener(core.stores(), core.worn(), core.content(), core.messages(),
                 core.sounds(), core.tick()::get,
-                () -> core.master().config().combat().pvp(), () -> core.master().config().combat().pve());
+                () -> core.master().config().combat().pvp(), () -> core.master().config().combat().pve(),
+                new feature.combat.MentalTimingBridge()); // Mental's window service, capability-detected per hit
         this.tempoGuardListener = new ReforgeTempoGuardListener(core.stores().hitTempo(), core.tick()::get);
 
         this.mints = List.of(Mints.reforge(reforges, core.content()));
