@@ -148,6 +148,11 @@ public final class ReforgeUseSuite implements Harness.Scenario {
     /** Test-owned sentinel templates ({@link #countingMessages}) — the test owns both ends, no catalogue re-type. */
     private static final String WHIFF_MARK = "whiff-fragment-rendered";
     private static final String COOLDOWN_MARK = "cooldown-fragment-rendered";
+    /** The runner speaks through config templates (the pets convention) — sentinel those too: silent
+     *  activate/end lines keep the motion scenarios clean; the cooldown line is the countable mark. */
+    private static final compile.load.MasterConfig.ReforgesSection SENTINEL_SECTION =
+            new compile.load.MasterConfig.ReforgesSection(java.util.List.of("SWORD", "AXE"),
+                    "", "", COOLDOWN_MARK, "", true);
 
     /** No javelin def here — the machines ctor still needs the seam. */
     private static final WeaponDamage WEAPON = p -> 6.0;
@@ -411,7 +416,7 @@ public final class ReforgeUseSuite implements Harness.Scenario {
                 () -> true, () -> true, (a, b) -> false);
         ReforgeMachines machines = new ReforgeMachines(deps.holder(), gravityWell, grapple, castling, javelin);
         ReforgeRunner runner = new ReforgeRunner(deps.holder(), deps.dispatch(),
-                new ReforgeMessenger(messages, compile.load.MasterConfig.ReforgesSection::defaults), machines,
+                new ReforgeMessenger(messages, () -> SENTINEL_SECTION), machines,
                 EngineStores.fresh(), () -> 0L); // no windowed kinds here — the ENDED reads never fire
         return new ReforgeUseListener(runner, deps.combat(), Stores.hands(), () -> true);
     }
@@ -448,9 +453,7 @@ public final class ReforgeUseSuite implements Harness.Scenario {
      */
     private static Messages countingMessages(Player caster, AtomicInteger whiffs, AtomicInteger cooldowns) {
         Lang lang = new Lang(Map.of(
-                "reforge.grapple.whiff", WHIFF_MARK,
-                "reforge.cooldown", COOLDOWN_MARK,
-                "reforge.success", ""), Map.of(), List.of());
+                "reforge.grapple.whiff", WHIFF_MARK), Map.of(), List.of());
         return new Messages(() -> lang, () -> "", () -> true, (p, text) -> {
             if (p.getUniqueId().equals(caster.getUniqueId())) {
                 if (WHIFF_MARK.equals(text)) {
