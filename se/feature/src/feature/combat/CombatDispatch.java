@@ -321,7 +321,9 @@ public final class CombatDispatch {
                     sink.fold().mulFinal(1.0 - unhanding.malusFraction());
                     reforgePending = ReforgeStrikeRelay.disarm(reforgePending);
                 }
-                if (battery.armed(attackerPlayer.getUniqueId())) {
+                if (battery.armed(attackerPlayer.getUniqueId()) && victimEntity instanceof Player) {
+                    // Player victims only (the disarm gate's rule): the bank charges off PvP hits taken, so
+                    // a stray mob swat mid-scrap must not dump it — the armed core waits for a real enemy.
                     sink.fold().addEffectiveDamage(battery.peek(attackerPlayer.getUniqueId()));
                     reforgePending = ReforgeStrikeRelay.battery(reforgePending);
                 }
