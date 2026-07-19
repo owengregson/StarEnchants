@@ -23,6 +23,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.plugin.Plugin;
 import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
+import engine.sink.FrozenTargets;
 import platform.sched.Scheduling;
 import schema.spec.HandleCategory;
 import tester.harness.CombatRig;
@@ -378,10 +379,17 @@ public final class FreezeSuite implements Harness.Scenario {
                 ModernDispatchSink sink = newSink(handles);
                 sink.freeze(frozen, 60, 0.0, 20, 0.0, true, null);
                 sink.flush();
-                Scheduling.onEntityLater(frozen, 5L, () -> {
-                    boolean cancelledOnFrozen = callFreezeDamage(frozen);
-                    boolean cancelledOnControl = callFreezeDamage(control); // same region (same chunk) — region-correct
+                UUID frozenId = frozen.getUniqueId();
+                // Poll until the freeze WINDOW is actually registered (the guard cancels off the SAME
+                // FrozenTargets.isFrozen read), not a fixed 5-tick wait: under CI load the arm map-write
+                // lands later than 5 ticks and the guard sees a not-yet-frozen victim — the flake.
+                awaitUntil(frozen, () -> FrozenTargets.isFrozen(frozenId, System.currentTimeMillis()), 0, 60, armed -> {
                     h.guard(key, () -> {
+                        if (!armed) {
+                            throw new IllegalStateException("the freeze window never registered within 60 ticks");
+                        }
+                        boolean cancelledOnFrozen = callFreezeDamage(frozen);
+                        boolean cancelledOnControl = callFreezeDamage(control); // same region — region-correct
                         if (!cancelledOnFrozen) {
                             throw new IllegalStateException("vanilla FREEZE self-damage was NOT cancelled on a frozen victim");
                         }
