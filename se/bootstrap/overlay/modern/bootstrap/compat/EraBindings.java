@@ -309,12 +309,37 @@ public final class EraBindings implements EraServices {
     // ── targeting (1.13+ raytrace) + dynamic commands (Server.getCommandMap) ──
     @Override
     public Entity targetEntity(Player from, int maxDistance) {
-        return from.getTargetEntity(maxDistance);
+        // Not getTargetEntity: that ray inflates candidate boxes only by getPickRadius() — 0.0 for
+        // players and mobs — so acquisition needs an exact server-side hitbox intersection at click
+        // time, which whiffs most real attempts against a moving target under latency (the reforge
+        // actives then burn their cooldown on silence). A 0.3-inflated ray is the forgiving-but-fair
+        // acquisition every look-targeted active wants; the COLLIDER block pre-clip keeps walls
+        // shielding targets without letting tall grass eat the ray.
+        org.bukkit.Location eye = from.getEyeLocation();
+        org.bukkit.util.Vector dir = eye.getDirection();
+        double range = maxDistance;
+        org.bukkit.util.RayTraceResult wall = from.getWorld().rayTraceBlocks(eye, dir, range,
+                org.bukkit.FluidCollisionMode.NEVER, true);
+        if (wall != null) {
+            range = Math.max(0.0, wall.getHitPosition().distance(eye.toVector()));
+        }
+        org.bukkit.util.RayTraceResult hit = from.getWorld().rayTraceEntities(eye, dir, range, 0.3,
+                e -> e != from && e instanceof org.bukkit.entity.LivingEntity
+                        && !(e instanceof org.bukkit.entity.ArmorStand)
+                        && !(e instanceof Player p && p.getGameMode() == org.bukkit.GameMode.SPECTATOR));
+        return hit == null ? null : hit.getHitEntity();
     }
 
     @Override
     public Block targetBlock(Player from, int maxDistance) {
-        return from.getTargetBlockExact(maxDistance);
+        // Not getTargetBlockExact: its OUTLINE clip collides with no-collision decoration (tall
+        // grass, flowers, signs), which anchored Singularity wells on the tuft two blocks ahead of
+        // the caster. COLLIDER semantics (ignorePassableBlocks) target what a player means by "that
+        // block".
+        org.bukkit.Location eye = from.getEyeLocation();
+        org.bukkit.util.RayTraceResult hit = from.getWorld().rayTraceBlocks(eye, eye.getDirection(),
+                maxDistance, org.bukkit.FluidCollisionMode.NEVER, true);
+        return hit == null ? null : hit.getHitBlock();
     }
 
     @Override
