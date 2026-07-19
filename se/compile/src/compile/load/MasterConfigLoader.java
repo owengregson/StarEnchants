@@ -129,13 +129,18 @@ public final class MasterConfigLoader {
                 parseBool(n.string("reforges"), d.reforges(), n, diags));
     }
 
-    /** The weapon-reforge knobs (ADR-0070): which ItemGroups tokens count as a WEAPON for the one socket. */
+    /** The weapon-reforge knobs (ADR-0070): the WEAPON groups + the pets-convention message templates. */
     private static MasterConfig.ReforgesSection readReforges(YamlNode n, Diagnostics diags) {
         MasterConfig.ReforgesSection d = MasterConfig.ReforgesSection.defaults();
         // upper-cased at load so the ItemGroups match is an exact token compare (the masks case-fold idiom).
         List<String> groups = n.has("weapon-groups") ? n.stringList("weapon-groups") : d.weaponGroups();
         return new MasterConfig.ReforgesSection(
-                groups.stream().map(g -> g.toUpperCase(Locale.ROOT)).toList());
+                groups.stream().map(g -> g.toUpperCase(Locale.ROOT)).toList(),
+                template(n, "message-on-activate", d.messageOnActivate()),
+                template(n, "message-on-end", d.messageOnEnd()),
+                template(n, "message-on-cooldown", d.messageOnCooldown()),
+                template(n, "message-on-fail", d.messageOnFail()),
+                parseBool(n.string("uppercase"), d.uppercase(), n, diags));
     }
 
     /** The mask cross-cutting knobs (ADR-0053 §8): the owned {@code /near} interception's command list + radius. */

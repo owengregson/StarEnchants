@@ -28,7 +28,7 @@ import schema.grammar.EffectLine;
 final class ReforgeDefReader {
 
     private static final Set<String> ROOT_KEYS = Set.of(
-            "display", "color", "icon", "material", "description", "abilities",
+            "display", "color", "icon", "material", "type", "description", "abilities",
             // single-ability shorthand (a reforge whose whole behaviour is the active):
             "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "condition", "effects");
     private static final Set<String> ABILITY_KEYS = Set.of(
@@ -62,6 +62,14 @@ final class ReforgeDefReader {
             iconRaw = ContentParse.blankToNull(root.string("material"));
         }
         String icon = orDefault(iconRaw, "ANVIL");
+        // ACTIVE|PASSIVE — the pets `type:` convention, the likeness {TYPE} header word. Unknown values warn
+        // back to ACTIVE (every shipped reforge is an active) rather than fail the def.
+        String type = orDefault(ContentParse.blankToNull(root.string("type")), "ACTIVE").toUpperCase(java.util.Locale.ROOT);
+        if (!type.equals("ACTIVE") && !type.equals("PASSIVE")) {
+            diags.warning(DiagCode.W_LOAD_REFORGE_TRIGGER, "reforge '" + baseKey + "' declares type '" + type
+                    + "' — expected ACTIVE or PASSIVE; treated as ACTIVE", root.sourceOf("type"));
+            type = "ACTIVE";
+        }
         List<String> description = root.stringList("description");
 
         // Behaviours: the unified abilities list (or the top-level shorthand for a single-ability reforge). The
@@ -103,7 +111,7 @@ final class ReforgeDefReader {
 
         // Lore {TIME_FORMATTED} renders a0's cooldown (the use-item rule); a def with no abilities carries zero.
         int cooldownTicks = abilities.isEmpty() ? 0 : abilities.get(0).cooldownTicks();
-        ReforgeDef def = new ReforgeDef(baseKey, display, color, description, icon, cooldownTicks,
+        ReforgeDef def = new ReforgeDef(baseKey, display, color, description, icon, type, cooldownTicks,
                 useStableKeys, conditionSources, fileSource);
         return new Parsed(def, abilities);
     }

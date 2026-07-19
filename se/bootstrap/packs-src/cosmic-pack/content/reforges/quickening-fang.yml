@@ -1,19 +1,17 @@
-# Quickening Fang — HIT_TEMPO (ADR-0071). Shift+right-click the reforged weapon: for 5s your melee
-# victims' hit-immunity window is HALVED for your hits only (~2x hit-rate; on 1.9+ your swing speed
-# doubles to match; third parties keep natural immunity). Downside: every hit inside the window
-# deals 1/3 normal damage — tempo pressure, not raw DPS. model: MENTAL targets the 1.8-combat
-# deployment gate (noDamageTicks <= max/2); use VANILLA on stock modern servers.
-display: "Quickening Fang"
-color: "&d"
-icon: SUGAR
+# Berry Overdrive — HIT_TEMPO (ADR-0071). Five seconds of doubled strike cadence against your
+# victims (their hit-immunity is halved against you alone), taxed at 1/3 damage per accelerated
+# hit (owner ruling R2 — tempo, not burst).
+display: "Berry Overdrive"
+color: "{#f0a15b}"
+icon: GLOW_BERRIES
+type: ACTIVE
 description:
-  - "&eFor 5 seconds your strikes come twice as"
-  - "&efast — your victims' hit-immunity is halved"
-  - "&eagainst you alone."
-  - "&cAccelerated hits deal 1/3 normal damage."
-cooldown: 500          # 25s
+  - "{#f0a15b}* Temporarily doubles the frequency you can attack your enemy, at the cost of reduced damage"
+cooldown: 1500
 chance: 100
 condition: ""
 effects:
   - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 1.8 } }
+  - { SOUND: { sound: "BLOCK_SWEET_BERRY_BUSH_PICK_BERRIES", volume: 0.6, pitch: 1.2 } }
+  - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 0.4, pitch: 1.5 } }
   - { HIT_TEMPO: { duration: 100, model: MENTAL, damage-percent: 33.3, attack-speed: 1.0, who: "@Self" } }

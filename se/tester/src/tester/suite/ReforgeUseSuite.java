@@ -24,6 +24,7 @@ import feature.reforge.GravityWellService;
 import feature.reforge.GrappleService;
 import feature.reforge.JavelinService;
 import feature.reforge.ReforgeMachines;
+import feature.reforge.ReforgeMessenger;
 import feature.reforge.ReforgeRunner;
 import feature.reforge.ReforgeUseListener;
 import feature.reforge.WeaponDamage;
@@ -409,7 +410,9 @@ public final class ReforgeUseSuite implements Harness.Scenario {
         JavelinService javelin = new JavelinService(deps.dispatch(), WEAPON, deps.resolvers(),
                 () -> true, () -> true, (a, b) -> false);
         ReforgeMachines machines = new ReforgeMachines(deps.holder(), gravityWell, grapple, castling, javelin);
-        ReforgeRunner runner = new ReforgeRunner(deps.holder(), deps.dispatch(), messages, machines);
+        ReforgeRunner runner = new ReforgeRunner(deps.holder(), deps.dispatch(),
+                new ReforgeMessenger(messages, compile.load.MasterConfig.ReforgesSection::defaults), machines,
+                EngineStores.fresh(), () -> 0L); // no windowed kinds here — the ENDED reads never fire
         return new ReforgeUseListener(runner, deps.combat(), Stores.hands(), () -> true);
     }
 

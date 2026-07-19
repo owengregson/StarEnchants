@@ -47,4 +47,15 @@ public final class Tokens {
         }
         return out;
     }
+
+    /**
+     * Template tolerance for a colour token (ADR-0052, promoted for reforges): pack specs write
+     * {@code &{COLOR}} (the colour as a bare code) while the substituted value carries its own
+     * ampersands ({@code "&7"} / {@code "{#RRGGBB}"}), which would render a literal {@code &}. Both
+     * authored forms mean the same thing, so {@code &{COLOR}} folds to {@code {COLOR}} before
+     * substitution — never a per-render policy an operator has to know about.
+     */
+    public static String colorTolerant(String template) {
+        return template.replace("&{COLOR}", "{COLOR}");
+    }
 }

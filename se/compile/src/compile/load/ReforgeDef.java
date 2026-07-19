@@ -15,6 +15,8 @@ import schema.diag.Source;
  * @param color            the reforge's colour code sequence (e.g. {@code "&5"}), filled as {@code {COLOR}}
  * @param description      the authored description lines, verbatim (filled as {@code {DESCRIPTION}})
  * @param icon             material token — the cosmetic catalogue identity (resolved cross-version at mint)
+ * @param type             {@code ACTIVE} or {@code PASSIVE} — the pets convention, surfaced in lore as the
+ *                         {@code {TYPE}} header word ("ACTIVE REFORGE ABILITY"); every shipped reforge is ACTIVE
  * @param cooldownTicks    the ACTIVE (a0)'s cooldown, surfaced in lore as {@code {TIME_FORMATTED}}
  * @param useStableKeys    stable keys of the USE-trigger abilities, in authored order — what
  *                         {@code TriggerDispatch.fireUse} runs on activation (the {@code PetBracket.useStableKeys}
@@ -28,6 +30,7 @@ public record ReforgeDef(
         String color,
         List<String> description,
         String icon,
+        String type,
         int cooldownTicks,
         List<String> useStableKeys,
         List<String> conditionSources,

@@ -1,19 +1,17 @@
-# Supernova Core — BATTERY (ADR-0071). Arm the core; your next 3 landed hits TAKEN each bank 20%
-# of their final damage; your next landed hit unloads the whole bank on top of that hit (a
-# same-hit rider — one hurt, one immunity window). OWNER-RULED: the next hit discharges whatever
-# is banked, even nothing (the core is spent regardless). No time limit; cleared on death.
-display: "Supernova Core"
-color: "&6"
-icon: FIRE_CHARGE
+# Star Battery — BATTERY (ADR-0071). Arm the core: the next three hits you take each bank 20%
+# of their damage; your next landed hit on a player unloads the whole bank as an un-scaled
+# rider. Discharges on that next hit no matter how much was banked (owner-ruled).
+display: "Star Battery"
+color: "{#3ba1b9}"
+icon: HEART_OF_THE_SEA
+type: ACTIVE
 description:
-  - "&eArm the core: the next 3 hits you take each"
-  - "&echarge it with 20% of their damage."
-  - "&eYour next landed hit unloads everything."
-  - "&cDischarges on your next hit no matter how"
-  - "&cmuch was banked."
-cooldown: 900          # 45s
+  - "{#3ba1b9}* The next three hits you take charge the battery with up to 20% of their incoming damage; your next hit discharges the battery on your enemy"
+cooldown: 2700
 chance: 100
 condition: ""
 effects:
   - { SOUND: { sound: "ITEM_FIRECHARGE_USE", volume: 0.8, pitch: 0.7 } }
+  - { SOUND: { sound: "BLOCK_RESPAWN_ANCHOR_CHARGE", volume: 0.6, pitch: 1.4 } }
+  - { SOUND: { sound: "BLOCK_BEACON_POWER_SELECT", volume: 0.4, pitch: 1.8 } }
   - { BATTERY: { bank-percent: 20, hits: 3, who: "@Self" } }

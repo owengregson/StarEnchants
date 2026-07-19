@@ -12,6 +12,7 @@ import feature.crystal.ReforgeExtractor;
 import item.codec.CombatCodec;
 import item.codec.ReforgeCodec;
 import item.mint.ItemFactory;
+import item.mint.VanillaEnchants;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -40,10 +41,12 @@ public final class ReforgeService implements ReforgeExtractor {
     private final Supplier<ReforgeItemConfig> config;
     private final Supplier<List<String>> weaponGroups; // config.yml reforges.weapon-groups, read live
     private final Messages messages;
+    private final VanillaEnchants vanilla; // §3.5 glint lives at the feature layer (the menus' glow helper)
 
     public ReforgeService(ReforgeCodec itemCodec, CombatCodec combatCodec, ItemEnchanter enchanter,
                           ContentHolder content, Supplier<ReforgeItemConfig> config,
-                          Supplier<List<String>> weaponGroups, Messages messages) {
+                          Supplier<List<String>> weaponGroups, Messages messages,
+                          VanillaEnchants vanilla) {
         this.itemCodec = Objects.requireNonNull(itemCodec, "itemCodec");
         this.combatCodec = Objects.requireNonNull(combatCodec, "combatCodec");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
@@ -51,6 +54,7 @@ public final class ReforgeService implements ReforgeExtractor {
         this.config = Objects.requireNonNull(config, "config");
         this.weaponGroups = Objects.requireNonNull(weaponGroups, "weaponGroups");
         this.messages = Objects.requireNonNull(messages, "messages");
+        this.vanilla = Objects.requireNonNull(vanilla, "vanilla");
     }
 
     public boolean isReforge(ItemStack stack) {
@@ -72,6 +76,7 @@ public final class ReforgeService implements ReforgeExtractor {
         ItemStack stack = ItemFactory.buildItem(def.icon(), Material.PAPER, null, null);
         itemCodec.stamp(stack, key);
         render(stack, def);
+        feature.menu.MenuIcons.glow(vanilla, stack); // every reforge is shiny; a refusing server just skips it
         return stack;
     }
 
@@ -82,6 +87,7 @@ public final class ReforgeService implements ReforgeExtractor {
                 "COLOR", def.color(),
                 "NAME", def.display(),
                 "NAME_UPPER", def.display().toUpperCase(Locale.ROOT),
+                "TYPE", def.type(),                                     // ACTIVE | PASSIVE header word
                 "APPLIES", ItemGroups.kindsLabel(weaponGroups.get()),   // live weapon-groups label
                 "TIME_FORMATTED", TimeFormat.hmsFromTicks(def.cooldownTicks()),
         };

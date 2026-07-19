@@ -15,8 +15,10 @@ import compile.load.ContentHolder;
 import compile.load.Lang;
 import compile.load.Library;
 import compile.load.LibraryLoader;
+import compile.load.MasterConfig;
 import compile.load.ReforgeDef;
 import engine.run.UseAttempt;
+import engine.stores.EngineStores;
 import feature.trigger.TriggerDispatch;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -24,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,18 +34,21 @@ import org.junit.jupiter.api.io.TempDir;
 import platform.lang.Messages;
 import platform.text.Colors;
 import platform.text.TimeFormat;
+import platform.text.Tokens;
 import schema.spec.D;
 import schema.spec.ParamSpec;
 
 /**
- * The reforge activation tail (ADR-0070): {@link ReforgeRunner#activate} collapses the {@link UseAttempt}
- * outcome to the universal prefix-free feedback and — only on ACTIVATED, after the success line — runs the
- * §B0.4 cross-plan machines hook. {@link TriggerDispatch} is mocked (its outcomes are the axis under test);
- * expected lines come from the SAME {@link Messages} instance the runner renders with (writing-tests Rule 1).
+ * The reforge activation tail (ADR-0070, identity rework): {@link ReforgeRunner#activate} collapses the
+ * {@link UseAttempt} outcome to the universal pets-convention messages ({@link ReforgeMessenger} over the
+ * live {@code reforges:} templates) and — only on ACTIVATED, after the success line — runs the §B0.4
+ * cross-plan machines hook. {@link TriggerDispatch} is mocked (its outcomes are the axis under test);
+ * expected lines render through the SAME template/token chain the messenger uses (writing-tests Rule 1).
  */
 class ReforgeRunnerTest {
 
     private static final String KEY = "reforges/testforge";
+    private static final MasterConfig.ReforgesSection SECTION = MasterConfig.ReforgesSection.defaults();
 
     @TempDir
     Path root;
@@ -71,27 +77,30 @@ class ReforgeRunnerTest {
         ContentHolder holder = new ContentHolder(lib);
         def = holder.library().reforgeDefOf(KEY);
         dispatch = mock(TriggerDispatch.class);
-        runner = new ReforgeRunner(holder, dispatch, messages, (p, d) -> {
+        runner = new ReforgeRunner(holder, dispatch, new ReforgeMessenger(messages, () -> SECTION), (p, d) -> {
             activatedPlayers.add(p);
             activatedDefs.add(d);
-        });
+        }, EngineStores.fresh(), () -> 0L);
     }
 
-    private String name() {
-        return def.color() + "&l" + def.display();
+    /** The messenger's own render chain over the defaults section — never a re-typed literal (Rule 1). */
+    private String expected(String template, boolean uppercase, long remainingTicks) {
+        String name = uppercase ? def.display().toUpperCase(Locale.ROOT) : def.display();
+        return Colors.translate(Tokens.sub(Tokens.colorTolerant(template),
+                "COLOR", def.color(), "NAME", name, "TIME_FORMATTED", TimeFormat.hmsFromTicks(remainingTicks)));
     }
 
     @Test
-    void activatedFiresTheMachinesHookAndStaysSilent() {
+    void activatedSpeaksTheUniversalLineAndFiresTheMachinesHook() {
         Player player = mock(Player.class);
         when(dispatch.fireUse(any(), any())).thenReturn(new UseAttempt(true, false, 0, -1, false));
 
         runner.activate(player, KEY);
 
         verify(dispatch).fireUse(player, def.useStableKeys()); // the def's USE candidates, verbatim
+        verify(player).sendMessage(expected(SECTION.messageOnActivate(), SECTION.uppercase(), 0));
         assertEquals(List.of(player), activatedPlayers, "the §B0.4 hook fires exactly on ACTIVATED");
         assertEquals(List.of(def), activatedDefs);
-        verify(player, never()).sendMessage(anyString()); // blank reforge.success = silent
     }
 
     @Test
@@ -101,8 +110,7 @@ class ReforgeRunnerTest {
 
         runner.activate(player, KEY);
 
-        verify(player).sendMessage(Colors.translate(messages.fragment("reforge.cooldown",
-                "NAME", name(), "TIME_FORMATTED", TimeFormat.hmsFromTicks(40))));
+        verify(player).sendMessage(expected(SECTION.messageOnCooldown(), false, 40));
         assertTrue(activatedDefs.isEmpty(), "a blocked use never runs the machines hook");
     }
 
@@ -113,20 +121,18 @@ class ReforgeRunnerTest {
 
         runner.activate(player, KEY);
 
-        verify(player).sendMessage(Colors.translate(messages.fragment("reforge.fail",
-                "NAME", name(), "CONDITION", def.conditionSources().get(0))));
+        verify(player).sendMessage(expected(SECTION.messageOnFail(), false, 0));
         assertTrue(activatedDefs.isEmpty());
     }
 
     @Test
-    void staleKeySendsFailWithoutFiring() {
+    void staleKeyIsASilentNoop() {
         Player player = mock(Player.class);
 
         runner.activate(player, "reforges/ghost");
 
-        verify(dispatch, never()).fireUse(any(), any()); // no def → nothing to fire
-        verify(player).sendMessage(Colors.translate(messages.fragment("reforge.fail",
-                "NAME", "", "CONDITION", "")));
+        verify(dispatch, never()).fireUse(any(), any()); // no def → nothing to fire, nothing to name
+        verify(player, never()).sendMessage(anyString());
         assertTrue(activatedDefs.isEmpty());
     }
 

@@ -7,6 +7,7 @@
 #   {COLOR}          = the reforge's colour codes (content/reforges/<key>.yml `color`) — carries its own &
 #   {NAME}           = the reforge's display name (bare, no colour codes)
 #   {NAME_UPPER}     = the display name upper-cased — the SET-BONUS/pets header convention
+#   {TYPE}           = ACTIVE or PASSIVE (content/reforges/<key>.yml `type`, the pets convention)
 #   {DESCRIPTION}    = the reforge's description block, one lore line per authored line (line-expanding)
 #   {APPLIES}        = the item kinds a reforge applies to (config.yml reforges.weapon-groups)
 #   {TIME_FORMATTED} = the signature ability's cooldown, humanised (e.g. "1m 30s")
@@ -15,19 +16,19 @@
 type: reforge
 
 # The minted reforge item's display name — the crystal-family bracket convention.
-name: "&6&lWeapon Reforge ({COLOR}{NAME}&6&l)"
+name: "{COLOR}&lWeapon Reforge (&r{COLOR}&l{NAME}&r{COLOR}&l)"
 lore:
-  - "&eImbues a single weapon with a signature reforge ability, fired with SHIFT + Right Click while held."
+  - "&eImbues a single weapon with a magic reforge ability. Shift + Right Click while holding to activate."
   - ""
-  - "{COLOR}&l{NAME_UPPER} REFORGE BONUS"
+  - "{COLOR}&l{TYPE} REFORGE ABILITY"
   - "{DESCRIPTION}"
   - ""
-  - "&eCooldown: &f{TIME_FORMATTED}"
-  - "&eApplies to: &f&n{APPLIES}&r"
+  - "&eCooldown: &r&f&n{TIME_FORMATTED}"
+  - "&eApplies to: &r&f&n{APPLIES}"
   - "&7Drag n' Drop on an item to apply."
 # The single line shown on a reforged WEAPON, rendered directly BELOW the enchantment orb slots line (its own
-# LoreComposer section). VERBATIM owner spec — {NAME} expands to the reforge's colour-styled display.
-lore-while-on-item: "&6&lWeapon Reforge (&r{NAME}&6&l)"
+# LoreComposer section). {NAME} expands to the reforge's colour-styled BOLD display (the mask rule).
+lore-while-on-item: "&6&lWeapon Reforge ({NAME}&r&6&l)"
 # Apply / extract gesture sounds — anvil cues: a reforge is smithing identity, distinct from the amethyst
 # crystal/mask family. They play across the modern range; the 1.8 lane predates these Sound names and simply
 # stays silent (the crystal/mask cue precedent). apply plays on a successful drag-onto-weapon; remove plays

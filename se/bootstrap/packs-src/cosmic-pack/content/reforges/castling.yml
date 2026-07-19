@@ -1,14 +1,16 @@
-# Castling — Weapon Reforge (ADR-0070/0071). SHIFT+right-click: lock the enemy in your crosshair
-# (12 blocks, line of sight); a 2-second channel counts down with audible ticks and warnings BOTH
-# sides, then you swap positions — velocities zeroed, each keeps their own facing. Downside: the
-# ticks warn them (breaking line of sight cancels it — and the cooldown stays spent), and you
-# inherit their exact spot. SWAP_POSITION is a service-owned marker (the DIG_HOME rule).
-display: "Castling"
-color: "&6"
-icon: STONE_BRICKS
+# Cursed Castle — SWAP_POSITION (ADR-0071). Channel on the enemy in your crosshair (audible
+# rising countdown, messages BOTH sides each second), then trade places. Breaking line of sight
+# cancels the countdown — and the cooldown stays spent (the counterplay pricing).
+display: "Cursed Castle"
+color: "{#b2b2b2}"
+icon: COMPASS
+type: ACTIVE
 description:
-  - "&eChannel for two loud seconds on the enemy in your crosshair, then trade places with them. Breaking your line of sight cancels it."
+  - "{#b2b2b2}* Charge for a few seconds, then trade places with the enemy you are facing: breaking line of sight cancels the countdown"
 abilities:
-  - cooldown: 600
+  - cooldown: 1800
     effects:
+      - { SOUND: { sound: "BLOCK_END_PORTAL_FRAME_FILL", volume: 0.8, pitch: 0.5 } }
+      - { SOUND: { sound: "ENTITY_EVOKER_CAST_SPELL", volume: 0.5, pitch: 1.2 } }
+      - { SOUND: { sound: "BLOCK_BELL_RESONATE", volume: 0.4, pitch: 0.6 } }
       - { SWAP_POSITION: { range: 12, channel: 40, check-period: 2, cue-period: 10, range-slack: 2 } }

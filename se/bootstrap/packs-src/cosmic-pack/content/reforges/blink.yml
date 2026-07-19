@@ -1,13 +1,16 @@
-# Blink — Weapon Reforge (ADR-0070/0071). SHIFT+right-click: instantly teleport up to 4 blocks
-# along your facing if the path is clear — stops at the last open block, never phases into or
-# through terrain. Downside (owner-authored): short range, walls stop it — a reposition, not a
-# terrain escape; a point-blank wall still spends the use.
-display: "Blink"
-color: "&e"
-icon: CHORUS_FRUIT
+# Quantum Blink — BLINK (ADR-0071). Instantly teleport up to five blocks along your facing
+# (yaw-only — a grounded look-down must not ray into the floor; single rises read as steps).
+# Walls stop it short; a point-blank wall still spends the use (the authored downside). The
+# arrival cue plays POST-teleport on the player (they are not at the origin to hear one).
+display: "Quantum Blink"
+color: "{#62baa2}"
+icon: ENDER_PEARL
+type: ACTIVE
 description:
-  - "&eInstantly blink up to four blocks in your facing direction. Walls stop you short."
+  - "{#62baa2}* Instantly teleport up to five blocks in the direction you are facing, but does not pass through walls"
 abilities:
-  - cooldown: 200
+  - cooldown: 600
     effects:
-      - { BLINK: { distance: 4, particle: REDSTONE, r: 170, g: 60, b: 220, size: 1.0, count: 10 } }
+      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 1.6 } }
+      - { SOUND: { sound: "BLOCK_AMETHYST_BLOCK_CHIME", volume: 0.5, pitch: 1.2 } }
+      - { BLINK: { distance: 5, particle: REDSTONE, r: 98, g: 186, b: 162, size: 1.0, count: 10 } }

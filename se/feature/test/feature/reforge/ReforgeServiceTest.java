@@ -119,7 +119,8 @@ class ReforgeServiceTest {
                 () -> MasterConfig.ReforgesSection.defaults().weaponGroups(),
                 messages, item.mint.VanillaEnchants.NONE);
         return new ReforgeService(reforgeCodec, combatCodec, enchanter, holder, () -> cfg,
-                () -> MasterConfig.ReforgesSection.defaults().weaponGroups(), messages);
+                () -> MasterConfig.ReforgesSection.defaults().weaponGroups(), messages,
+                item.mint.VanillaEnchants.NONE);
     }
 
     /** Route the icon token through a fixed stack (clone → itself) so mint captures the token, not a live Material. */

@@ -9,6 +9,7 @@ import feature.reforge.GravityWellService;
 import feature.reforge.JavelinService;
 import feature.reforge.ReforgeListener;
 import feature.reforge.ReforgeMachines;
+import feature.reforge.ReforgeMessenger;
 import feature.reforge.ReforgeRunner;
 import feature.reforge.ReforgeService;
 import feature.reforge.ReforgeUseListener;
@@ -44,7 +45,7 @@ final class ReforgesModule {
         BooleanSupplier enabled = enabled();
         this.reforges = new ReforgeService(core.reforgeCodec(), core.codec(), core.enchanter(), core.content(),
                 () -> core.items().config().reforgeOrDefault(),
-                () -> core.master().config().reforges().weaponGroups(), core.messages());
+                () -> core.master().config().reforges().weaponGroups(), core.messages(), core.vanillaEnchants());
         this.applyListener = new ReforgeListener(reforges, core.messages(), core.sounds());
 
         // ADR-0071 Plan B: the four service-owned movement/space machines + the dispatcher the runner hands the
@@ -62,7 +63,11 @@ final class ReforgesModule {
                 feature.combat.CombatDispatch::friendly);
         ReforgeMachines machines = new ReforgeMachines(core.content(), gravityWell, grapple, castling, javelin);
 
-        ReforgeRunner runner = new ReforgeRunner(core.content(), core.triggerDispatch(), core.messages(), machines);
+        // The pets-convention universal messages (activated/ended/cooldown/fail) + the window-ENDED reads.
+        ReforgeMessenger reforgeMessages = new ReforgeMessenger(core.messages(),
+                () -> core.master().config().reforges());
+        ReforgeRunner runner = new ReforgeRunner(core.content(), core.triggerDispatch(), reforgeMessages,
+                machines, core.stores(), core.tick()::get);
         this.useListener = new ReforgeUseListener(runner, core.codec(), core.hands(), enabled);
 
         // ADR-0071 Plan C: the two combat-state listeners — the strike relay (tempo/battery/disarm commit at
