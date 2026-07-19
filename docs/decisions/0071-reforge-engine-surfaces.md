@@ -59,11 +59,18 @@ Terrain mode: a capped computed velocity zip. Open air wastes the throw.
 
 ## BLINK — real kind + one intent
 
-A 0.5-block-sampled walk along the full 3D look direction (pitch included — the chorus fantasy),
-cell-deduped, each cell tested with the existing era `isSafeDestination(cell, null)` leaf
-(feet+head passable); land on the LAST open cell before the FIRST blocked one, never scanning
-past a wall. A point-blank wall blinks zero and still spends (owner: walls stop it — a
-reposition, not an escape).
+A 0.5-block-sampled walk along the YAW-ONLY look direction, cell-deduped, each cell tested with
+the existing era `isSafeDestination(cell, null)` leaf (feet+head passable); land on the LAST open
+cell before the FIRST blocked one, never scanning past a wall. A blocked cell first probes one
+block up — a single rise is a step (walking would climb it), only a 2-high face is a wall. A
+point-blank wall blinks zero and still spends (owner: walls stop it — a reposition, not an
+escape).
+
+**Amended post-1.10.0 (real-play evidence):** as shipped the ray was the full 3D look ("the
+chorus fantasy"). A grounded player looks slightly down almost always, so the pitched ray entered
+the floor cell within the first 0.5-block sample and every real-play blink zeroed with the
+cooldown spent; the matrix stayed green because fake casters float at pitch 0. Pitch is now
+stripped and the walk steps up single rises.
 
 ## SWAP_POSITION (Castling) — service-owned marker
 
