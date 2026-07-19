@@ -31,12 +31,15 @@ class BlinkEffectTest {
         FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor).actorOrigin(origin)
                 .with("distance", 3.5).with("particle", 7)
                 .with("r", 11).with("g", 22).with("b", 33)
-                .with("size", 1.5).with("count", 9);
+                .with("size", 1.5).with("count", 9)
+                .with("arrival-sound", 41).with("arrival-volume", 0.6).with("arrival-pitch", 1.8)
+                .with("arrival-accent", 42).with("accent-volume", 0.4).with("accent-pitch", 1.6);
         Sink sink = mock(Sink.class);
 
         new BlinkEffect().run(ctx, sink);
 
-        verify(sink).blinkForward(actor, origin, expectedDir, 3.5, 7, 11, 22, 33, 1.5f, 9);
+        verify(sink).blinkForward(actor, origin, expectedDir, 3.5, 7, 11, 22, 33, 1.5f, 9,
+                41, 0.6f, 1.8f, 42, 0.4f, 1.6f);
         verifyNoMoreInteractions(sink);
     }
 
@@ -47,13 +50,16 @@ class BlinkEffectTest {
         FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor).actorOrigin(origin)
                 .with("distance", 4.0).with("particle", 1)
                 .with("r", 1).with("g", 2).with("b", 3)
-                .with("size", 1.0).with("count", 1);
+                .with("size", 1.0).with("count", 1)
+                .with("arrival-sound", 41).with("arrival-volume", 0.6).with("arrival-pitch", 1.8)
+                .with("arrival-accent", 42).with("accent-volume", 0.4).with("accent-pitch", 1.6);
         Sink sink = mock(Sink.class);
 
         new BlinkEffect().run(ctx, sink);
 
         Vector expectedDir = new Location(null, 0, 64, 0, 0f, 0f).getDirection(); // unit +Z, no y component
-        verify(sink).blinkForward(actor, origin, expectedDir, 4.0, 1, 1, 2, 3, 1.0f, 1);
+        verify(sink).blinkForward(actor, origin, expectedDir, 4.0, 1, 1, 2, 3, 1.0f, 1,
+                41, 0.6f, 1.8f, 42, 0.4f, 1.6f);
     }
 
     @Test

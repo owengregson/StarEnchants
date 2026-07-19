@@ -174,7 +174,7 @@ public final class CastlingService {
             Location victimDest = keepFacing(casterLoc, victimLoc.getYaw(), victimLoc.getPitch());
             dispatch.teleportEntity(ch.victim, victimDest); // fresh sink: era teleport leaf, mob or player
             zeroAfterHop(ch.victim);
-            play(victimDest, swapCue);
+            playAfterHop(ch.victim);
             if (ch.victim instanceof Player victimPlayer) {
                 messages.sendText(victimPlayer, Colors.translate(
                         messages.fragment("reforge.castling.swapped-victim", "PLAYER", ch.caster.getName())));
@@ -186,10 +186,23 @@ public final class CastlingService {
                 Location casterDest = keepFacing(victimLoc, casterLoc.getYaw(), casterLoc.getPitch());
                 dispatch.teleportEntity(ch.caster, casterDest);
                 zeroAfterHop(ch.caster);
-                play(casterDest, swapCue);
+                playAfterHop(ch.caster);
                 messages.sendText(ch.caster, Colors.translate(
                         messages.fragment("reforge.castling.swapped", "TARGET", victimName(ch.victim))));
             });
+        });
+    }
+
+    /**
+     * The swap crack AFTER the hop: the teleport intent lands next tick, so a dest-anchored play at
+     * dispatch time reaches everyone EXCEPT the arriving party — their client is not there yet to
+     * receive the sound packet. Two ticks on their own scheduler puts the crack at their landed spot.
+     */
+    private void playAfterHop(org.bukkit.entity.Entity party) {
+        Scheduling.onEntityLater(party, 2L, () -> {
+            if (party.isValid()) {
+                play(party.getLocation(), swapCue);
+            }
         });
     }
 

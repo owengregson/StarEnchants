@@ -696,7 +696,9 @@ public interface Sink {
      * still spent). A dust puff of {@code count} motes tinted r/g/b marks departure and arrival.
      */
     void blinkForward(Player actor, Location origin, org.bukkit.util.Vector direction, double maxDistance,
-                      int particleId, int r, int g, int b, float size, int count);
+                      int particleId, int r, int g, int b, float size, int count,
+                      int arrivalSoundId, float arrivalVolume, float arrivalPitch,
+                      int arrivalAccentId, float accentVolume, float accentPitch);
 
     /**
      * GRAPPLE: fishing-rod-style hook resolved BEFORE EMIT (GrappleService already picked

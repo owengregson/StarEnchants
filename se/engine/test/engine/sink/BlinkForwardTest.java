@@ -45,7 +45,8 @@ class BlinkForwardTest {
     private static void blink(RecordingSink sink, double maxDistance) {
         Player actor = mock(Player.class);
         Location origin = new Location(null, 0.5, 64, 0.5, 0f, 0f);
-        sink.blinkForward(actor, origin, new Vector(1, 0, 0), maxDistance, 1, 10, 20, 30, 1f, 5);
+        sink.blinkForward(actor, origin, new Vector(1, 0, 0), maxDistance, 1, 10, 20, 30, 1f, 5,
+                -1, 0f, 0f, -1, 0f, 0f); // no arrival cue under test — the walk is the axis
         sink.flush();
     }
 

@@ -113,7 +113,8 @@ public final class JavelinService {
         Objects.requireNonNull(resolvers, "resolvers");
         this.throwCue = new Cue[]{
                 cue(resolvers, "ITEM_TRIDENT_THROW", 1.0f, 0.8f),
-                cue(resolvers, "ENTITY_ARROW_SHOOT", 1.0f, 0.7f)};
+                cue(resolvers, "ENTITY_ARROW_SHOOT", 1.0f, 0.7f),
+                cue(resolvers, "ENTITY_VEX_AMBIENT", 0.35f, 1.5f)}; // the spectral top layer
         this.impactCue = new Cue[]{
                 cue(resolvers, "ITEM_TRIDENT_HIT", 1.0f, 1.0f),
                 cue(resolvers, "ENTITY_PLAYER_ATTACK_CRIT", 0.7f, 0.9f)};

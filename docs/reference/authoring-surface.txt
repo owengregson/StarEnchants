@@ -11,6 +11,12 @@ effect BLINK
   param b INT optional min=0 max=255 enum=- handle=- default=220
   param size DOUBLE optional min=0 max=- enum=- handle=- default=1
   param count INT optional min=0 max=- enum=- handle=- default=10
+  param arrival-sound HANDLE optional min=- max=- enum=- handle=SOUND default=ENTITY_ENDERMAN_TELEPORT
+  param arrival-volume DOUBLE optional min=0 max=- enum=- handle=- default=0.6
+  param arrival-pitch DOUBLE optional min=0 max=- enum=- handle=- default=1.8
+  param arrival-accent HANDLE optional min=- max=- enum=- handle=SOUND default=BLOCK_AMETHYST_BLOCK_CHIME
+  param accent-volume DOUBLE optional min=0 max=- enum=- handle=- default=0.4
+  param accent-pitch DOUBLE optional min=0 max=- enum=- handle=- default=1.6
 effect BREAK_BLOCK
   param drops BOOL optional min=- max=- enum=- handle=- default=true
 effect CAGE

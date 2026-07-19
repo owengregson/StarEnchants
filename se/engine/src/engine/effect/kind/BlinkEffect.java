@@ -31,6 +31,14 @@ public final class BlinkEffect implements EffectKind {
             .param("b", D.INT.range(0, 255).def(220))
             .param("size", D.DOUBLE.min(0).def(1))
             .param("count", D.INT.min(0).def(10), "departure/arrival puff motes")
+            .param("arrival-sound", D.sound().def("ENTITY_ENDERMAN_TELEPORT"),
+                    "played ON the player after the hop lands — a sound at the origin is never heard "
+                            + "by someone who just teleported away from it")
+            .param("arrival-volume", D.DOUBLE.min(0).def(0.6))
+            .param("arrival-pitch", D.DOUBLE.min(0).def(1.8))
+            .param("arrival-accent", D.sound().def("BLOCK_AMETHYST_BLOCK_CHIME"), "the shimmer layer over the arrival body")
+            .param("accent-volume", D.DOUBLE.min(0).def(0.4))
+            .param("accent-pitch", D.DOUBLE.min(0).def(1.6))
             .affinity(Affinity.TARGET_ENTITY)
             .actorOrigin()
             .doc("Blink (reforges): instantly teleport up to distance blocks along your facing if the path is "
@@ -56,6 +64,8 @@ public final class BlinkEffect implements EffectKind {
         Vector direction = level.getDirection();
         sink.blinkForward(actor, origin, direction, ctx.dbl("distance"),
                 ctx.integer("particle"), ctx.integer("r"), ctx.integer("g"), ctx.integer("b"),
-                (float) ctx.dbl("size"), ctx.integer("count"));
+                (float) ctx.dbl("size"), ctx.integer("count"),
+                ctx.integer("arrival-sound"), (float) ctx.dbl("arrival-volume"), (float) ctx.dbl("arrival-pitch"),
+                ctx.integer("arrival-accent"), (float) ctx.dbl("accent-volume"), (float) ctx.dbl("accent-pitch"));
     }
 }
