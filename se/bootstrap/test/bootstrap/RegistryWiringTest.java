@@ -91,7 +91,7 @@ class RegistryWiringTest {
             "falling-block casts", "guardian casts", "combat tags", "damage marks", "owner zones", "temp equips", // stores
             "pet summon registry", "bat swarms", "bat cloud targets", "pet armed windows", "pet shared-use gate", "pet home windows", "pet home visuals", // pets (0052/0059/0060/0061/0068/0070)
             "mask illusions", "mask provocations",                            // masks (ADR-0053)
-            "gravity wells", "castling channels", "javelin flights",          // reforges (ADR-0070/0071 Plan B)
+            "gravity wells", "castling channels", "javelin flights", "control locks", // reforges (ADR-0070/0071 Plan B)
             "bStats");                                                        // coreStops
 
     private static final List<String> GOLDEN_MENUS = List.of("hub", "console", "mint", "apply", "enchants", "sets",

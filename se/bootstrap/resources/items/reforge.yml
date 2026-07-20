@@ -16,7 +16,7 @@
 type: reforge
 
 # The minted reforge item's display name — the crystal-family bracket convention.
-name: "{COLOR}&lWeapon Reforge (&r{COLOR}&l{NAME}&r{COLOR}&l)"
+name: "&6&lWeapon Reforge ({COLOR}&l{NAME}&r&6&l)"
 lore:
   - "&eImbues a single weapon with a magic reforge ability. Shift + Right Click while holding to activate."
   - ""

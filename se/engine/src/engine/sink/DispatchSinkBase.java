@@ -38,6 +38,7 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Bat;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Entity;
@@ -1043,31 +1044,43 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 }
                 continue;
             }
+            // ALL mobs convert now (owner ruling): a wild spawn joins your side exactly like an enemy summon —
+            // Players, ArmorStands, the ringer itself, and anything already the ringer's are the only exclusions.
+            if (!(near instanceof LivingEntity) || near instanceof Player || near instanceof ArmorStand
+                    || id.equals(ringerId)) {
+                continue;
+            }
             UUID owner = GuardianCasts.owner(id);
-            if (owner == null || owner.equals(ringerId) || !(near instanceof LivingEntity)) {
-                continue; // a wild/unowned spawn, or already ours
+            if (owner != null && owner.equals(ringerId)) {
+                continue; // already ours
             }
             GuardianCasts.bind(id, ringerId); // ownership + GUARDIAN_HURT flip (concurrent map), visible now
             converted++;
-            LivingEntity former = formerOwner(owner, nearby); // in-ring first, else the online player list
+            // Whom the convert fights: an enemy SUMMON turns on its FORMER owner; a WILD mob (no owner) turns on
+            // the ringer's nearest enemy player in the ring. Either can be absent (a wild mob alone with the
+            // ringer) — then just drop its aggro on the ringer.
+            LivingEntity target = owner != null ? formerOwner(owner, nearby) : null; // in-ring first, else online
+            if (target == null) {
+                target = firstOtherPlayer(ringerId, nearby);
+            }
             SummonFlags flags = PetSummons.flags(id);
-            boolean retarget = former != null && (flags == null || !flags.noTarget());
-            // Hop each summon to its OWN scheduler (the cross-entity rule); the former reference is only stored.
+            LivingEntity fightTarget = (target != null && (flags == null || !flags.noTarget())) ? target : null;
+            // Hop each summon to its OWN scheduler (the cross-entity rule); the target reference is only stored.
             Scheduling.onEntity(near, () -> {
                 if (near instanceof Tameable tame) {
                     tame.setOwner(ringer);
                     tame.setTamed(true);
                 }
-                if (retarget) {
-                    // Target the FORMER owner (the era leaf guard() uses) AND hold it: anger auto-backing
-                    // (updatePersistentAnger, javap-verified 26.1.2) is a NeutralMob fact — golems. The
-                    // shipped convertible summons are Monsters (zombie, blaze), whose target-goal
-                    // revalidation drops an unbacked manual target within a few ticks on 1.20.5+; without
-                    // the hold a converted summon retargets naturally — usually the ringer standing inside
-                    // the ring. Where anger backing exists the hold is a no-op reinforcement. (The v1.10.0
-                    // release removed this hold on golem-only suite evidence — the audited A1 regression.)
-                    setGuardTarget(near, former);
-                    holdConvertedTarget(near, former);
+                if (fightTarget != null) {
+                    // Target the enemy AND hold it: anger auto-backing (updatePersistentAnger, javap-verified
+                    // 26.1.2) is a NeutralMob fact — golems. Monsters (zombie, blaze) and now wild spawns have
+                    // their target-goal revalidation drop an unbacked manual target within a few ticks on
+                    // 1.20.5+; without the hold a convert retargets naturally — usually the ringer standing in
+                    // the ring. Where anger backing exists the hold is a no-op reinforcement.
+                    setGuardTarget(near, fightTarget);
+                    holdConvertedTarget(near, fightTarget);
+                } else {
+                    setGuardTarget(near, null); // no enemy in the ring: at least drop its aggro on the ringer
                 }
             });
         }
@@ -1128,6 +1141,20 @@ public abstract class DispatchSinkBase implements SinkReadback {
             }
         }
         return Bukkit.getPlayer(owner);
+    }
+
+    /**
+     * The first OTHER player in the ring — the "enemy" a wild (unowned) convert is turned on when it has no
+     * former owner to fight. Region-safe: an identity/type scan of the {@code getNearbyEntities} snapshot only,
+     * no location read. {@code null} when the ringer stands alone (then the convert's target is simply cleared).
+     */
+    private static LivingEntity firstOtherPlayer(UUID ringerId, List<Entity> nearby) {
+        for (Entity near : nearby) {
+            if (near instanceof Player other && !other.getUniqueId().equals(ringerId)) {
+                return other;
+            }
+        }
+        return null;
     }
 
     @Override

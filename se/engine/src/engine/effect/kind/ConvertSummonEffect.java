@@ -11,10 +11,11 @@ import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**
- * {@code CONVERT_SUMMON} — the Summoner's Bell (ADR-0071): every tracked enemy-owned summon within
- * {@code radius} blocks permanently changes sides — ownership (and GUARDIAN_HURT) rebinds to the wearer,
- * Tameables are re-tamed, converted guards target their FORMER owner, and enemy bat clouds are turned to
- * orbit/blind their former owner. Unowned wild spawns have no side to flip and are untouched.
+ * {@code CONVERT_SUMMON} — the Grand Bell (ADR-0071): EVERY mob within {@code radius} blocks permanently
+ * joins the wearer's side (owner ruling) — ownership (and GUARDIAN_HURT) rebinds to the wearer, Tameables
+ * are re-tamed, and each convert is turned on an enemy (an enemy summon on its FORMER owner, a wild mob on
+ * the wearer's nearest enemy player), and enemy bat clouds are turned to orbit/blind their former owner.
+ * Only Players, ArmorStands, and the wearer are exempt.
  */
 public final class ConvertSummonEffect implements EffectKind {
 
@@ -25,11 +26,12 @@ public final class ConvertSummonEffect implements EffectKind {
                             + "as success")
             .target("who", T.SELF)
             .affinity(Affinity.CONTEXT_LOCAL)
-            .doc("Convert every enemy-summoned ally within `radius` blocks of the wearer to the "
-                    + "wearer's side, permanently: summoned guards/zombies/sentries/mounts rebind "
-                    + "their ownership (a hit on them now fires the wearer's GUARDIAN_HURT), "
-                    + "targeting summons turn on their former owner, tamed summons re-tame, and "
-                    + "bat swarm clouds permanently swarm their former owner instead.")
+            .doc("Convert EVERY mob within `radius` blocks of the wearer to the wearer's side, "
+                    + "permanently: each rebinds its ownership (a hit on it now fires the wearer's "
+                    + "GUARDIAN_HURT) and tamed mobs re-tame; an enemy summon turns on its former "
+                    + "owner, a wild mob on the wearer's nearest enemy player, and bat swarm clouds "
+                    + "permanently swarm their former owner. Only players, armour stands and the "
+                    + "wearer are exempt.")
             .example("{ CONVERT_SUMMON: { radius: 12 } }")
             .build();
 

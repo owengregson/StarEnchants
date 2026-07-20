@@ -2,8 +2,6 @@ package feature.reforge;
 
 import compile.model.CompiledEffect;
 import feature.trigger.TriggerDispatch;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import org.bukkit.Location;
@@ -13,15 +11,14 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import platform.caps.Regions;
-import platform.lang.Messages;
-import platform.text.Colors;
 import schema.spec.Args;
 
 /**
  * The Leviathan's Reach resolver (ADR-0071): resolve-and-emit, no per-tick machine, no LIVE map —
  * both rays via the era raycast on the actor's thread at the reforge activation success point, the
  * closer (eye-measured) wins, then ONE {@code grapple} intent through a fresh {@link TriggerDispatch}
- * sink; an open-air whiff still draws the throw line and cues the caster (cooldown stays spent).
+ * sink; an open-air aim (neither ray connects) ZIPS the caster toward the point at full range along
+ * the facing — grappling air pulls you to where you aimed, it never fails (cooldown stays spent).
  * Stateless: registers no store and no stop. The runtime resolves one selector per effect, so
  * GRAPPLE cannot author its two rays as selectors — the service resolves entity + block directly
  * through the era raycast method refs (the composition-only seam: no era class named in feature
@@ -32,16 +29,13 @@ public final class GrappleService {
     private final TriggerDispatch dispatch;
     private final BiFunction<Player, Integer, Entity> targetEntity;
     private final BiFunction<Player, Integer, Block> targetBlock;
-    private final Messages messages;
 
     public GrappleService(TriggerDispatch dispatch,
                           BiFunction<Player, Integer, Entity> targetEntity,
-                          BiFunction<Player, Integer, Block> targetBlock,
-                          Messages messages) {
+                          BiFunction<Player, Integer, Block> targetBlock) {
         this.dispatch = Objects.requireNonNull(dispatch, "dispatch");
         this.targetEntity = Objects.requireNonNull(targetEntity, "targetEntity");
         this.targetBlock = Objects.requireNonNull(targetBlock, "targetBlock");
-        this.messages = Objects.requireNonNull(messages, "messages");
     }
 
     /** Reforge runner hook: the def activated with a GRAPPLE effect — resolve both rays and emit (or whiff). */
@@ -99,9 +93,14 @@ public final class GrappleService {
             int flightTicks = Math.max(1, (int) Math.round(Math.sqrt(dVictim) / hookSpeed));
             dispatch.grapple(actor, eye, victim, reelTo, null, flightTicks,
                     slowId, slowLevel - 1, slowTicks, null, particleId, r, g, b, size, density);
-        } else if (blockCenter != null) {
-            // TERRAIN MODE: zip the caster toward the block with a capped computed velocity + a small rise.
-            Vector delta = blockCenter.toVector().subtract(origin.toVector());
+        } else {
+            // TERRAIN or AIR: zip the caster toward the sighted block, or — when neither ray connects — toward
+            // the point at full range along the facing (grappling air pulls you where you aimed; ADR-0071 owner
+            // ruling: a miss reels you, it never fails). Same capped velocity + rise; cooldown stays spent.
+            Location hookPoint = blockCenter != null
+                    ? blockCenter
+                    : eye.clone().add(eye.getDirection().multiply(range));
+            Vector delta = hookPoint.toVector().subtract(origin.toVector());
             double dist = delta.length();
             Vector zip;
             if (dist < 1.0e-6) {
@@ -111,27 +110,8 @@ public final class GrappleService {
                 zip.setY(zip.getY() + zipRise);
             }
             int flightTicks = Math.max(1, (int) Math.round(dist / hookSpeed));
-            dispatch.grapple(actor, eye, null, null, blockCenter, flightTicks,
+            dispatch.grapple(actor, eye, null, null, hookPoint, flightTicks,
                     0, 0, 0, zip, particleId, r, g, b, size, density);
-        } else {
-            // Open-air whiff: still draw the throw and say so — a silent spent cooldown reads as broken.
-            // The cooldown stays spent (ADR-0071: never refund).
-            dispatch.dust(whiffLine(eye, range, density), particleId, r, g, b, size);
-            messages.sendText(actor, Colors.translate(
-                    messages.fragment("reforge.grapple.whiff", "RANGE", (int) range)));
         }
-    }
-
-    /** Sample the eye→(eye + direction × range) segment at {@code density} points/block. */
-    private static List<Location> whiffLine(Location eye, double range, double density) {
-        Vector dir = eye.getDirection();
-        int steps = Math.max(1, (int) Math.round(range * density));
-        List<Location> points = new ArrayList<>(steps + 1);
-        for (int s = 0; s <= steps; s++) {
-            double t = range * s / steps;
-            points.add(new Location(eye.getWorld(),
-                    eye.getX() + dir.getX() * t, eye.getY() + dir.getY() * t, eye.getZ() + dir.getZ() * t));
-        }
-        return points;
     }
 }

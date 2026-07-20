@@ -75,7 +75,7 @@ Cancel the Bukkit event that triggered this activation.
 
 ### CONVERT_SUMMON
 
-Convert every enemy-summoned ally within `radius` blocks of the wearer to the wearer's side, permanently: summoned guards/zombies/sentries/mounts rebind their ownership (a hit on them now fires the wearer's GUARDIAN_HURT), targeting summons turn on their former owner, tamed summons re-tame, and bat swarm clouds permanently swarm their former owner instead.
+Convert EVERY mob within `radius` blocks of the wearer to the wearer's side, permanently: each rebinds its ownership (a hit on it now fires the wearer's GUARDIAN_HURT) and tamed mobs re-tame; an enemy summon turns on its former owner, a wild mob on the wearer's nearest enemy player, and bat swarm clouds permanently swarm their former owner. Only players, armour stands and the wearer are exempt.
 
 - _affinity_: `CONTEXT_LOCAL`
 - _usage_: `{ CONVERT_SUMMON: { radius: <double[1..32]=12>, whiff-sound: <sound=BLOCK_ANVIL_LAND> } }`
@@ -457,7 +457,7 @@ Make the target invulnerable for a span of ticks, then restore.
 
 ### JAVELIN
 
-Javelin (reforges): a straight particle javelin at speed blocks/tick, max-travel blocks. On the first living hit: one weapon-swing's damage (or FLAT damage), knockback × along the flight angle, a lock-tick camera+movement hold, then nausea. Deliberately slow — sidestepping it is the counterplay; a miss is wasted. Reforge-service-owned: this effect emits no intent of its own.
+Javelin (reforges): a straight particle javelin at speed blocks/tick along the FULL facing (pitch included), max-travel blocks. On the first living hit: one weapon-swing's damage (or FLAT damage), knockback × along the flight angle, a lock-tick control lock (view snapped back + walk/jump locked; driven down a tracked arc), then nausea. Speed is authored (sidestep to dodge); a miss is wasted. Reforge-service-owned: this effect emits no intent of its own.
 
 - _affinity_: `CONTEXT_LOCAL`
 - _usage_: `{ JAVELIN: { speed: <double[0.05..]=0.15>, max-travel: <double[1..]=12>, hit-radius: <double[0.1..]=0.9>, damage-mode: <enum{WEAPON|FLAT}=WEAPON>, damage: <double[0..]=7.0>, knockback: <double[0..]=1.3>, knockback-base: <double[0..]=0.45>, lock: <ticks[0..]=20>, lock-delay: <ticks[0..]=5>, nausea-effect: <potion_effect=CONFUSION>, nausea-duration: <ticks[0..]=100>, particle: <particle=REDSTONE>, r: <int[0..255]=120>, g: <int[0..255]=200>, b: <int[0..255]=255>, size: <double[0..]=1.2> } }`
@@ -468,8 +468,8 @@ Javelin (reforges): a straight particle javelin at speed blocks/tick, max-travel
 - _param_ `damage` `double[0..]` — FLAT mode damage, RAW health-space
 - _param_ `knockback` `double[0..]` — knockback multiplier along the flight angle
 - _param_ `knockback-base` `double[0..]` — base knockback velocity one multiplier buys
-- _param_ `lock` `ticks[0..]` — camera-lock + movement-freeze length
-- _param_ `lock-delay` `ticks[0..]` — ticks after impact before the pin arms (lets the knock land)
+- _param_ `lock` `ticks[0..]` — control-lock length: view snapped, walk+jump locked, driven down a tracked arc
+- _param_ `lock-delay` `ticks[0..]` — ticks after impact before the lock arms (lets the knock land first)
 - _param_ `nausea-effect` `potion_effect` — the post-lock debuff
 - _param_ `nausea-duration` `ticks[0..]` — its length (100 = 5 s)
 - _param_ `particle` `particle`

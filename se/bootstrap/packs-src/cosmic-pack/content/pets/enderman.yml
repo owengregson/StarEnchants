@@ -9,30 +9,32 @@ descriptor: "&eA warper of space with a grudge against monsters. Best not to mak
 description:
   - "{#b620b1}* Temporarily deal much more damage to mobs"
 levels:
-  # +25% / 2m → +50% / 1m30s → +75% / 1m → +100% / 30s; the boost window is 10s (200 ticks) at every bracket.
-  # CALIBRATION: amounts are EFFECTIVE under combat.attack-scale 5.0 (5/10/15/20 land as +25/50/75/100%
+  # Mob damage DOUBLED (buff) at every bracket; base cooldown ×1.5 (2m → 3m), scaling steepened to compensate
+  # so the max-level cooldown still lands at 30s: +50% / 3m → +100% / 2m10s → +150% / 1m20s → +200% / 30s.
+  # The boost window is 10s (200 ticks) at every bracket.
+  # CALIBRATION: amounts are EFFECTIVE under combat.attack-scale 5.0 (10/20/30/40 land as +50/100/150/200%
   # final, ADR-0050 R2); retune if you change the knob.
   1:
-    cooldown: 2400
-    duration: 200
-    abilities:
-      - { effects: [ { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1.0, pitch: 0.7 } } ] }
-      - { trigger: ATTACK, condition: "%victim.type% != \"PLAYER\"", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 5 } } ] }
-  25:
-    cooldown: 1800
+    cooldown: 3600
     duration: 200
     abilities:
       - { effects: [ { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1.0, pitch: 0.7 } } ] }
       - { trigger: ATTACK, condition: "%victim.type% != \"PLAYER\"", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 10 } } ] }
-  50:
-    cooldown: 1200
+  25:
+    cooldown: 2600
     duration: 200
     abilities:
       - { effects: [ { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1.0, pitch: 0.7 } } ] }
-      - { trigger: ATTACK, condition: "%victim.type% != \"PLAYER\"", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 15 } } ] }
+      - { trigger: ATTACK, condition: "%victim.type% != \"PLAYER\"", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 20 } } ] }
+  50:
+    cooldown: 1600
+    duration: 200
+    abilities:
+      - { effects: [ { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1.0, pitch: 0.7 } } ] }
+      - { trigger: ATTACK, condition: "%victim.type% != \"PLAYER\"", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } } ] }
   100:
     cooldown: 600
     duration: 200
     abilities:
       - { effects: [ { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1.0, pitch: 0.7 } } ] }
-      - { trigger: ATTACK, condition: "%victim.type% != \"PLAYER\"", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 20 } } ] }
+      - { trigger: ATTACK, condition: "%victim.type% != \"PLAYER\"", effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 40 } } ] }
