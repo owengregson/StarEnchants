@@ -2,23 +2,23 @@ package engine.selector.kind;
 
 import engine.selector.SelectorCtx;
 import java.util.Locale;
+import java.util.Set;
 import org.bukkit.entity.EnderDragon;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Ghast;
-import org.bukkit.entity.Hoglin;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
-import org.bukkit.entity.Phantom;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Shulker;
 import org.bukkit.entity.Slime;
 
 /**
  * Target filtering for area selectors. {@code filter} is a closed enum so an unknown value is rejected at
- * compile time. "Hostile" is {@link #isHostile} — {@link Monster} PLUS the historical non-Monster hostiles
- * (slimes, ghasts, phantoms, shulkers, hoglins, the ender dragon), all present at the 1.17.1 floor (the modern
- * {@code Enemy} marker is not, so it is deliberately unused). {@code ENEMIES}/{@code ALLIES} additionally
- * consult the {@link Allies} soft-hook; with no team bridge installed every other player is an enemy (vanilla
- * free-for-all PvP).
+ * compile time. "Hostile" is {@link #isHostile} — {@link Monster} PLUS the non-Monster hostiles: slimes,
+ * ghasts and the ender dragon by class (present at the 1.8 floor the shared core ALSO compiles against), and
+ * shulkers/phantoms/hoglins by {@code EntityType} name (absent from the 1.8 API, so a class reference would not
+ * compile). The modern {@code Enemy} marker (1.19.4+) is deliberately unused for the same reason.
+ * {@code ENEMIES}/{@code ALLIES} additionally consult the {@link Allies} soft-hook; with no team bridge
+ * installed every other player is an enemy (vanilla free-for-all PvP).
  */
 final class Targets {
 
@@ -50,20 +50,25 @@ final class Targets {
         }
     }
 
+    /** Hostile mob types absent from the 1.8 API (Shulker 1.9, Phantom 1.13, Hoglin 1.16) — matched by
+     * {@code EntityType} NAME so the shared core still compiles against the legacy tree (the legacy-1.8.9 rule).
+     * Enum constant names are stable across the modern range; an unmatched name just fails closed. */
+    private static final Set<String> NEWER_HOSTILE_TYPES = Set.of("SHULKER", "PHANTOM", "HOGLIN");
+
     /**
      * Every hostile mob, cross-version: {@link Monster} (zombies, skeletons, blazes, guardians, withers,
-     * zoglins, piglins/brutes, …) PLUS the historical non-Monster hostiles — {@link Slime} (and magma cubes,
-     * its subclass), {@link Ghast}, {@link Phantom}, {@link Shulker}, {@link Hoglin} and the {@link EnderDragon}.
-     * All exist at the 1.17.1 floor, so no version-gated {@code Enemy} reference (absent before 1.19.4).
+     * zoglins, piglins/brutes, …) PLUS the non-Monster hostiles — {@link Slime} (and magma cubes, its subclass),
+     * {@link Ghast} and the {@link EnderDragon} by class, and shulkers/phantoms/hoglins by {@code EntityType}
+     * name (their classes are absent from the 1.8 API the shared core also compiles against; {@code Enemy} is
+     * 1.19.4+ and equally unavailable).
      */
     static boolean isHostile(LivingEntity entity) {
-        return entity instanceof Monster
-                || entity instanceof Slime
-                || entity instanceof Ghast
-                || entity instanceof Phantom
-                || entity instanceof Shulker
-                || entity instanceof Hoglin
-                || entity instanceof EnderDragon;
+        if (entity instanceof Monster || entity instanceof Slime || entity instanceof Ghast
+                || entity instanceof EnderDragon) {
+            return true;
+        }
+        EntityType type = entity.getType(); // only reached for a non-Monster class; null-guarded for test mocks
+        return type != null && NEWER_HOSTILE_TYPES.contains(type.name());
     }
 
     /** The validated {@code filter} argument (defaults to {@link Filter#ALL}). */
