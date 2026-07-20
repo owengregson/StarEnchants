@@ -276,7 +276,7 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
         javelinTravelsAtAuthoredSpeedAndMisses(h, deps, world, spawn);
         javelinHitsFirstVictimWithSwingDamage(h, deps, world, spawn);
         javelinKnockbackReversedAlongFlight(h, deps, world, spawn);
-        javelinVictimHeldForLockTicks(h, deps, world, spawn);
+        javelinVictimControlLockedNotFrozen(h, deps, world, spawn);
         javelinWallStopsTheFlight(h, deps, world, spawn);
         crossRegionAttributionDegradesOffRegion(h, deps, world, spawn);
     }
@@ -946,8 +946,8 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
         });
     }
 
-    private void javelinVictimHeldForLockTicks(Harness h, Deps deps, World world, Location spawn) {
-        final String key = "reforge.javelin.victimHeldForLockTicks";
+    private void javelinVictimControlLockedNotFrozen(Harness h, Deps deps, World world, Location spawn) {
+        final String key = "reforge.javelin.victimControlLockedNotFrozen";
         h.expect(key);
         CombatRig rig = new CombatRig(plugin);
         Location arena = arena(world, spawn, A_JAV_HOLD);
@@ -958,48 +958,49 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
                 return;
             }
             Location stand = centerFacing(arena, -90.0f);
-            Location victimAt = stand.clone().add(6, 0, 0).add(0, 0, 0);
-            Location shove = victimAt.clone().add(0, 0, 6); // a mid-hold teleport the pin must re-assert against
+            Location victimAt = stand.clone().add(6, 0, 0);
+            Location shove = victimAt.clone().add(0, 0, 6); // a mid-lock teleport — the lock must NOT pin it back
             thrower.setGravity(false);
             victim.setGravity(false);
-            place(thrower, stand, () -> place(victim, victimAt.clone().add(0, 0.0, 0), () ->
+            place(thrower, stand, () -> place(victim, victimAt.clone(), () ->
                     Scheduling.onEntityLater(thrower, SPAWN_INVULN_TICKS, () -> {
                         Scheduling.onEntity(victim, () -> victim.setNoDamageTicks(0));
                         double before = victim.getHealth();
                         new JavelinService(deps.dispatch(), WEAPON, deps.resolvers(), () -> true, () -> true, (a, b) -> false)
                                 .start(thrower, effect(deps, "javelin", JavelinEffect.HEAD));
-                        // The javelin's flight time depends on hit-radius, not just distance, so everything downstream
-                        // is timed off the IMPACT (health drop), not a fixed tick — the old fixed t+55 read landed
-                        // after the pin window and the shove stuck (drift 6.0). Impact → pin arms at +lock-delay(5),
-                        // holds for lock(20), nausea lands at +lock-delay+lock(25).
+                        // The flight time depends on hit-radius, so everything downstream is timed off the IMPACT
+                        // (health drop), not a fixed tick. Impact → the control-lock arms at +lock-delay(5), holds for
+                        // lock(20), nausea lands at +lock-delay+lock(25). The NEW behaviour: the victim is control-
+                        // locked (slowness + a negative jump boost) but is NOT frozen in place — a mid-lock shove
+                        // sticks (they fall the arc), and after release everything frees up.
                         awaitUntil(victim, () -> victim.getHealth() < before - HEALTH_EPS, 0, 80, hit -> {
                             if (!hit) {
-                                h.fail(key, "the javelin never struck the held victim");
+                                h.fail(key, "the javelin never struck the victim");
                                 rig.teardown();
                                 return;
                             }
-                            Scheduling.onEntityLater(victim, 8L, () -> { // impact+8: firmly inside [+5, +25]
+                            Scheduling.onEntityLater(victim, 8L, () -> { // impact+8: firmly inside the lock [+5, +25]
                                 AtomicReference<Location> held = new AtomicReference<>(victim.getLocation().clone());
-                                boolean nauseaMidHold = !victim.getActivePotionEffects().isEmpty();
-                                Scheduling.onEntity(victim, () -> victim.teleportAsync(shove)); // pin must snap it back
-                                Scheduling.onEntityLater(victim, 4L, () -> { // impact+12: still pinned
+                                boolean lockedPotions = !victim.getActivePotionEffects().isEmpty(); // slowness + jump lock
+                                Scheduling.onEntity(victim, () -> victim.teleportAsync(shove)); // a shove the lock must NOT undo
+                                Scheduling.onEntityLater(victim, 4L, () -> { // impact+12: still inside the lock
                                     double drift = horiz(victim.getLocation(), held.get());
-                                    // Past release (impact+25) + nausea landing: a teleport now sticks and nausea is on.
+                                    // Past release (impact+25): the lock potions have expired, nausea has landed.
                                     Scheduling.onEntityLater(victim, 22L, () -> { // impact+34
-                                        boolean nauseaAfter = !victim.getActivePotionEffects().isEmpty();
+                                        boolean nauseaAfter = !victim.getActivePotionEffects().isEmpty(); // lock gone by +25; nausea from +25
                                         Location free = victim.getLocation().clone().add(0, 0, 5);
                                         Scheduling.onEntity(victim, () -> victim.teleportAsync(free));
                                         Scheduling.onEntityLater(victim, 4L, () -> { h.guard(key, () -> {
-                                            if (drift > 1.0) {
-                                                throw new IllegalStateException("the hold did not pin the victim through "
-                                                        + "a staged teleport: drifted " + drift);
+                                            if (!lockedPotions) {
+                                                throw new IllegalStateException("the control-lock never applied its "
+                                                        + "movement/jump potions during the lock");
                                             }
-                                            if (nauseaMidHold) {
-                                                throw new IllegalStateException("nausea landed DURING the hold (owner "
-                                                        + "LAW: freeze, THEN nausea)");
+                                            if (drift <= 1.0) {
+                                                throw new IllegalStateException("the victim was FROZEN in place — a mid-lock "
+                                                        + "shove was pinned back (drift " + drift + "); it must fall the arc, not freeze");
                                             }
                                             if (!nauseaAfter) {
-                                                throw new IllegalStateException("nausea never landed after the hold released");
+                                                throw new IllegalStateException("nausea never landed after the lock released");
                                             }
                                             if (horiz(victim.getLocation(), free) > 1.0) {
                                                 throw new IllegalStateException("the victim was still pinned after release");
@@ -1233,7 +1234,7 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
                 "reforge.castling.swapCompletesWithVelocitiesZeroed", "reforge.castling.losBreakAborts",
                 "reforge.castling.countdownCuesAreAudible", "reforge.castling.cooldownStaysSpentOnAbort",
                 "reforge.javelin.travelsAtAuthoredSpeedAndMisses", "reforge.javelin.hitsFirstVictimWithSwingDamage",
-                "reforge.javelin.knockbackReversedAlongFlight", "reforge.javelin.victimHeldForLockTicks",
+                "reforge.javelin.knockbackReversedAlongFlight", "reforge.javelin.victimControlLockedNotFrozen",
                 "reforge.javelin.wallStopsTheFlight", "reforge.crossregion.attributionDegradesOffRegion")) {
             h.expect(check);
             h.fail(check, message);
