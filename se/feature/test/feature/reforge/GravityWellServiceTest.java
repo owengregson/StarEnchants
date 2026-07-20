@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -38,8 +40,9 @@ import testfx.RecordingSchedulerBackend;
 /**
  * The Singularity collapsing star (ADR-0071): the reforge service raycasts the sighted block, beams to it,
  * pulses every living thing within the radius SPHERE toward the core, then implodes with linear falloff floored
- * at {@code falloff-floor}. A skyline aim (no block, or a faulted Folia raycast) anchors a mid-air core at
- * eye + direction × range instead of aborting. Wells are location-anchored (an owner quit drops only
+ * at {@code falloff-floor}. An air aim (no block, or a faulted Folia raycast) DROPS the core to the ground
+ * beneath the ray's end; only a bottomless drop keeps a mid-air core at eye + direction × range. Wells are
+ * location-anchored (an owner quit drops only
  * attribution). Core at a round point so the pull/implode geometry is hand-checkable; the repeating body is
  * driven tick-by-tick through {@link RecordingSchedulerBackend}.
  */
@@ -57,6 +60,11 @@ class GravityWellServiceTest {
         Scheduling.install(backend);
         Regions.install(false);
         GravityWellService.clearAll();
+        // Default the world to open AIR so an air aim's ground-drop scan finds nothing → the mid-air fallback is
+        // exercised legitimately (not by a swallowed mock NPE). The ground-drop test overrides one column cell.
+        Block air = mock(Block.class);
+        when(air.getType()).thenReturn(Material.AIR);
+        when(world.getBlockAt(anyInt(), anyInt(), anyInt())).thenReturn(air);
     }
 
     @AfterEach
@@ -116,8 +124,9 @@ class GravityWellServiceTest {
     }
 
     @Test
-    void skylineAimAnchorsAMidAirCore() {
-        // Eye (0.5, 66, 0.5) yaw 0 → +Z; range 12 → the air core sits at (0.5, 66, 12.5).
+    void bottomlessAirAimKeepsTheMidAirCore() {
+        // Eye (0.5, 66, 0.5) yaw 0 → +Z; range 12, no ground anywhere below (all-air world) → the core stays at
+        // the ray's end, mid-air, (0.5, 66, 12.5).
         LivingEntity shy = livingAt(UUID.randomUUID(), new Location(world, 0.5, 66, 10.5)); // 2 short of the core
         stageNearby(List.of(shy));
 
@@ -130,6 +139,29 @@ class GravityWellServiceTest {
         assertEquals(0.0, v.getValue().getX(), 1.0e-9);
         assertEquals(0.04, v.getValue().getY(), 1.0e-9);
         assertEquals(0.28, v.getValue().getZ(), 1.0e-9); // pulled +Z toward the mid-air core
+    }
+
+    @Test
+    void airAimDropsToGroundBeneathTheRayEnd() {
+        // Eye (0.5,66,0.5) yaw 0 → +Z; range 12 → the ray ends in air at (0.5,66,12.5). A solid block at (0,60,12)
+        // beneath it → the well DROPS to the ground core (0.5, 60+1+rise=61, 12.5), NOT the mid-air point.
+        Block ground = mock(Block.class);
+        when(ground.getType()).thenReturn(Material.STONE);
+        when(ground.getLocation()).thenReturn(new Location(world, 0, 60, 12));
+        when(world.getBlockAt(0, 60, 12)).thenReturn(ground); // the first solid straight down the ray-end column
+
+        LivingEntity above = livingAt(UUID.randomUUID(), new Location(world, 0.5, 65, 12.5)); // 4 ABOVE the ground core
+        stageNearby(List.of(above));
+
+        service((p, d) -> null).start(actor(), wellFx(60, 2, true, true));
+
+        assertEquals(1, GravityWellService.liveCount());
+        tick();
+        ArgumentCaptor<Vector> v = ArgumentCaptor.forClass(Vector.class);
+        verify(above).setVelocity(v.capture());
+        assertEquals(0.0, v.getValue().getX(), 1.0e-9);
+        assertEquals(0.0, v.getValue().getZ(), 1.0e-9);
+        assertTrue(v.getValue().getY() < 0, "pulled DOWN toward the ground-dropped core, not up to a mid-air one");
     }
 
     @Test

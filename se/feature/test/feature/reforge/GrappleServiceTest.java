@@ -6,14 +6,12 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import compile.model.Affinity;
 import compile.model.CompiledEffect;
 import feature.trigger.TriggerDispatch;
-import java.util.List;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import org.bukkit.Location;
@@ -25,16 +23,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import platform.lang.Messages;
 import schema.spec.Args;
 
 /**
  * GrappleService's mode pick (ADR-0071): the service resolves BOTH rays via the era raycast refs and emits
  * ONE {@code grapple} intent for the closer of entity-vs-block — reel an in-sight enemy, or zip to terrain —
- * with both distances measured from the EYE, where the rays cast. An open-air whiff draws the throw line and
- * speaks (cooldown stays spent). Origin at a block centre (0.5, 64.5, 0.5) facing +X (yaw -90) so the
- * geometry is hand-checkable. A wall between caster and enemy shows up as a nearer block, so the closer-of
- * rule IS the 1.8 wall-blindness fix.
+ * with both distances measured from the EYE, where the rays cast. When NEITHER ray connects the caster zips
+ * toward the point at full range along the facing (grappling air pulls you there; the cooldown stays spent).
+ * Origin at a block centre (0.5, 64.5, 0.5) facing +X (yaw -90) so the geometry is hand-checkable. A wall
+ * between caster and enemy shows up as a nearer block, so the closer-of rule IS the 1.8 wall-blindness fix.
  */
 class GrappleServiceTest {
 
@@ -43,7 +40,6 @@ class GrappleServiceTest {
     private final Location origin = new Location(world, 0.5, 64.5, 0.5, -90f, 0f);
     private final Location eye = new Location(world, 0.5, 65.0, 0.5, -90f, 0f);
     private final TriggerDispatch dispatch = mock(TriggerDispatch.class);
-    private final Messages messages = mock(Messages.class);
 
     private Player actor() {
         Player p = mock(Player.class);
@@ -78,7 +74,7 @@ class GrappleServiceTest {
 
     private GrappleService service(BiFunction<Player, Integer, Entity> entity,
                                    BiFunction<Player, Integer, Block> block) {
-        return new GrappleService(dispatch, entity, block, messages);
+        return new GrappleService(dispatch, entity, block);
     }
 
     @Test
@@ -139,33 +135,33 @@ class GrappleServiceTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    void openAirWhiffDrawsTheThrowAndSpeaks() {
+    void openAirZipsTowardTheAimedPoint() {
+        // Neither ray connects: grappling air pulls the caster toward the point at full range along the facing
+        // (never a whiff, cooldown stays spent) — the same capped zip as terrain mode, aimed at eye + dir×range.
         Player actor = actor();
         service((p, d) -> null, (p, d) -> null).start(actor, grappleFx());
 
-        verify(dispatch, never()).grapple(any(), any(), any(), any(), any(), anyInt(), anyInt(), anyInt(),
-                anyInt(), any(), anyInt(), anyInt(), anyInt(), anyInt(), org.mockito.ArgumentMatchers.anyFloat(),
-                org.mockito.ArgumentMatchers.anyDouble());
-        ArgumentCaptor<List<Location>> line = ArgumentCaptor.forClass(List.class);
-        verify(dispatch).dust(line.capture(), eq(7), eq(200), eq(220), eq(255), eq(1.0f));
-        List<Location> points = line.getValue(); // eye→(eye + facing(+X) × 14) at 3 points/block → 43 samples
-        assertEquals(43, points.size());
-        assertEquals(0.5, points.get(0).getX(), 1.0e-6);
-        assertEquals(65.0, points.get(0).getY(), 1.0e-6);
-        assertEquals(14.5, points.get(points.size() - 1).getX(), 1.0e-6);
-        assertEquals(65.0, points.get(points.size() - 1).getY(), 1.0e-6);
-        assertEquals(0.5, points.get(points.size() - 1).getZ(), 1.0e-6);
-        verify(messages).fragment("reforge.grapple.whiff", "RANGE", 14);
+        ArgumentCaptor<Location> hook = ArgumentCaptor.forClass(Location.class);
+        ArgumentCaptor<Vector> zip = ArgumentCaptor.forClass(Vector.class);
+        verify(dispatch).grapple(eq(actor), eq(eye), isNull(), isNull(), hook.capture(),
+                eq(7), eq(0), eq(0), eq(0), zip.capture(), eq(7), eq(200), eq(220), eq(255), eq(1.0f), eq(3.0));
+        Location hookPoint = hook.getValue(); // eye + facing(+X) × range(14)
+        assertEquals(14.5, hookPoint.getX(), 1.0e-6);
+        assertEquals(65.0, hookPoint.getY(), 1.0e-6);
+        assertEquals(0.5, hookPoint.getZ(), 1.0e-6);
+        Vector v = zip.getValue(); // normalize((14,0.5,0)) × min(3.2, 0.34×14.0089=4.76→3.2) + (0,0.25,0)
+        assertEquals(3.197961, v.getX(), 1.0e-4);
+        assertEquals(0.364213, v.getY(), 1.0e-4);
+        assertEquals(0.0, v.getZ(), 1.0e-6);
     }
 
     @Test
-    void selfHitRejected() {
-        Player actor = actor(); // the entity ray returns the caster itself
+    void selfHitRejectedFallsToAirZip() {
+        Player actor = actor(); // the entity ray returns the caster itself → rejected, no block → air zip
         service((p, d) -> actor, (p, d) -> null).start(actor, grappleFx());
-        verify(dispatch, never()).grapple(any(), any(), any(), any(), any(), anyInt(), anyInt(), anyInt(),
-                anyInt(), any(), anyInt(), anyInt(), anyInt(), anyInt(), org.mockito.ArgumentMatchers.anyFloat(),
-                org.mockito.ArgumentMatchers.anyDouble());
+        verify(dispatch).grapple(eq(actor), eq(eye), isNull(), isNull(), any(Location.class),
+                anyInt(), eq(0), eq(0), eq(0), any(Vector.class), anyInt(), anyInt(), anyInt(), anyInt(),
+                eq(1.0f), eq(3.0));
     }
 
     @Test

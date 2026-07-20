@@ -4,6 +4,7 @@ import feature.combat.ReforgeStrikeListener;
 import feature.combat.ReforgeTempoGuardListener;
 import feature.menu.Mintable;
 import feature.reforge.CastlingService;
+import feature.reforge.ControlLockService;
 import feature.reforge.GrappleService;
 import feature.reforge.GravityWellService;
 import feature.reforge.JavelinService;
@@ -55,7 +56,7 @@ final class ReforgesModule {
         GravityWellService gravityWell = new GravityWellService(core.triggerDispatch(), bindings::targetBlock,
                 core.resolvers());
         GrappleService grapple = new GrappleService(core.triggerDispatch(), bindings::targetEntity,
-                bindings::targetBlock, core.messages());
+                bindings::targetBlock);
         CastlingService castling = new CastlingService(core.triggerDispatch(), bindings::targetEntity,
                 core.messages(), core.resolvers());
         JavelinService javelin = new JavelinService(core.triggerDispatch(), bindings.weaponDamage(), core.resolvers(),
@@ -105,6 +106,7 @@ final class ReforgesModule {
                 .stop("gravity wells", GravityWellService::clearAll)
                 .stop("castling channels", CastlingService::clearAll)
                 .stop("javelin flights", JavelinService::clearAll)
+                .stop("control locks", ControlLockService::clearAll) // the extracted javelin stun
                 .build();
     }
 }

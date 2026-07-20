@@ -1,7 +1,8 @@
-# Spectral Javelin — JAVELIN (ADR-0071). A fast level javelin along your facing (yaw-only — the
-# blink pitch rule): the first enemy it finds is struck with your weapon's swing damage, hurled
-# back along the flight, pinned for a second and left reeling. Walls thud audibly; the hit cue
-# plays at the victim (JavelinService).
+# Spectral Javelin — JAVELIN (ADR-0071). A fast javelin fired straight out along your facing (ANY
+# angle, pitch included): the first enemy it finds is struck with your weapon's swing damage, hurled
+# back along the flight, and left reeling for a second — they still FALL down the knockback arc, they
+# just can't steer or turn during the lock. Walls thud audibly; the hit cue plays at the victim
+# (JavelinService).
 display: "Spectral Javelin"
 color: "{#62c4ef}"
 icon: LIGHT_BLUE_CANDLE
@@ -13,4 +14,4 @@ abilities:
     effects:
       # The soundscape is service-owned (throw/impact/thud layers in JavelinService) — authored
       # SOUND rows here would double the throw.
-      - { JAVELIN: { speed: 0.75, max-travel: 36, hit-radius: 0.9, damage-mode: WEAPON, damage: 7.0, knockback: 1.3, knockback-base: 0.45, lock: 20, lock-delay: 5, nausea-effect: "CONFUSION", nausea-duration: 100, particle: REDSTONE, r: 98, g: 196, b: 239, size: 1.2 } }
+      - { JAVELIN: { speed: 1.5, max-travel: 36, hit-radius: 0.9, damage-mode: WEAPON, damage: 7.0, knockback: 1.3, knockback-base: 0.45, lock: 20, lock-delay: 5, nausea-effect: "CONFUSION", nausea-duration: 100, particle: REDSTONE, r: 98, g: 196, b: 239, size: 1.2 } }

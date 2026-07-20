@@ -101,14 +101,14 @@ public final class ReforgeUseSuite implements Harness.Scenario {
     private static final int A_BLINK_FIRE = 0;
     private static final int A_BLINK_PLAIN = 1;
     private static final int A_GRAPPLE_RAY = 2;
-    private static final int A_GRAPPLE_WHIFF = 3;
+    private static final int A_GRAPPLE_AIR = 3;
     private static final int A_SING_SKY = 4;
 
     private static final String K_BLINK = "reforge.use.sneakRightClickFiresBlinkThroughTheListener";
     private static final String K_PLAIN = "reforge.use.nonSneakClickFallsThrough";
     private static final String K_REEL = "reforge.use.grappleReelsThroughRealRays";
-    private static final String K_WHIFF = "reforge.use.grappleWhiffIsAudibleNotSilent";
-    private static final String K_SKY = "reforge.use.singularitySkylineAnchorsMidAir";
+    private static final String K_AIR = "reforge.use.grappleAirZipsAndArmsCooldown";
+    private static final String K_SKY = "reforge.use.singularityAirAimDropsToGround";
 
     // ── Test defs — the ReforgeMotionSuite constants verbatim (same authored numbers) ──────────────
 
@@ -194,7 +194,7 @@ public final class ReforgeUseSuite implements Harness.Scenario {
                 triggers.count(), triggers.attackTriggers(), triggers.defenseTriggers())::resolve);
         AbilityExecutor executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
                 new ActivationPipeline(new CooldownStore(), SoulSpender.NONE), AreaScan.NONE);
-        // Constant tick: a gate-6 cooldown reads its full remainder, so the whiff scenario's immediate second
+        // Constant tick: a gate-6 cooldown reads its full remainder, so the air-zip scenario's immediate second
         // use is deterministically cooldown-gated (the ReforgeMotionSuite clock idiom).
         SinkEnv env = SinkEnv.of(EconomyService.NONE, SoulDebit.NONE, EngineStores.fresh(), () -> 0L);
         TriggerDispatch dispatch = new TriggerDispatch(executor,
@@ -208,8 +208,8 @@ public final class ReforgeUseSuite implements Harness.Scenario {
         sneakRightClickFiresBlinkThroughTheListener(h, deps, world, spawn);
         nonSneakClickFallsThrough(h, deps, world, spawn);
         grappleReelsThroughRealRays(h, deps, world, spawn);
-        grappleWhiffIsAudibleNotSilent(h, deps, world, spawn);
-        singularitySkylineAnchorsMidAir(h, deps, world, spawn);
+        grappleAirZipsAndArmsCooldown(h, deps, world, spawn);
+        singularityAirAimDropsToGround(h, deps, world, spawn);
     }
 
     // ── The listener chain: SHIFT + right-click on a stamped weapon, exactly as production wires it ─
@@ -331,74 +331,89 @@ public final class ReforgeUseSuite implements Harness.Scenario {
         });
     }
 
-    private void grappleWhiffIsAudibleNotSilent(Harness h, Deps deps, World world, Location spawn) {
-        final String key = K_WHIFF;
+    private void grappleAirZipsAndArmsCooldown(Harness h, Deps deps, World world, Location spawn) {
+        final String key = K_AIR;
         h.expect(key);
         CombatRig rig = new CombatRig(plugin);
-        Location arena = arena(world, spawn, A_GRAPPLE_WHIFF);
+        Location arena = arena(world, spawn, A_GRAPPLE_AIR);
         rig.onArena(arena, () -> {
-            Location stand = centerFacing(arena, -90.0f); // pitch 0 into open void: both real rays miss
+            Location stand = centerFacing(arena, -90.0f); // pitch 0 into open void: both real rays miss → air zip
             AtomicInteger whiffs = new AtomicInteger();
             AtomicInteger cooldowns = new AtomicInteger();
             spawnFakeAtSpawn(h, key, rig, world, "se_rfu_grp2", caster ->
                     place(caster, stand, () -> Scheduling.onEntityLater(caster, 5L, () -> {
                 arm(deps, caster, "leviathans-reach");
                 ReforgeUseListener listener = chain(deps, countingMessages(caster, whiffs, cooldowns));
-                use(listener, caster, true); // open-air whiff — the fragment renders, the cooldown arms
+                use(listener, caster, true); // open-air use — grappling air ZIPS the caster (never a whiff), arms cooldown
                 Scheduling.onEntityLater(caster, 2L, () -> {
                     use(listener, caster, true); // immediate re-use — gated by the armed (never-refunded) cooldown
-                    Scheduling.onEntityLater(caster, 5L, () -> { h.guard(key, () -> {
-                        if (whiffs.get() != 1) {
-                            throw new IllegalStateException("the whiff fragment rendered " + whiffs.get()
-                                    + " time(s), expected exactly once (a silent spent cooldown reads as broken)");
-                        }
-                        if (cooldowns.get() != 1) {
-                            throw new IllegalStateException("the second use rendered the cooldown fragment "
-                                    + cooldowns.get() + " time(s), expected exactly once (the whiffed use "
-                                    + "must have armed it — the never-refund economy)");
-                        }
-                        if (horiz(caster.getLocation(), stand) > POS_EPS) {
-                            throw new IllegalStateException("an open-air whiff still moved the caster "
-                                    + horiz(caster.getLocation(), stand) + " blocks");
-                        }
-                    }); rig.teardown(); });
+                    // The zip is a launched velocity applied ~flightTicks (~7) after the emit — catch it the tick it lands.
+                    awaitUntil(caster, () -> caster.getVelocity().getX() > 0.05, 0, 30, zipped -> {
+                        h.guard(key, () -> {
+                            if (caster.getVelocity().getX() <= 0.05) {
+                                throw new IllegalStateException("grappling air did not zip the caster toward the "
+                                        + "aimed point: v=" + caster.getVelocity());
+                            }
+                            if (whiffs.get() != 0) {
+                                throw new IllegalStateException("air grapple rendered the removed whiff fragment "
+                                        + whiffs.get() + " time(s) — it must ZIP now, never whiff");
+                            }
+                            if (cooldowns.get() != 1) {
+                                throw new IllegalStateException("the second use rendered the cooldown fragment "
+                                        + cooldowns.get() + " time(s), expected exactly once (the air zip must "
+                                        + "have armed it — the never-refund economy)");
+                            }
+                        });
+                        rig.teardown();
+                    });
                 });
             })));
         });
     }
 
-    private void singularitySkylineAnchorsMidAir(Harness h, Deps deps, World world, Location spawn) {
+    private void singularityAirAimDropsToGround(Harness h, Deps deps, World world, Location spawn) {
         final String key = K_SKY;
         h.expect(key);
         CombatRig rig = new CombatRig(plugin);
         Location arena = arena(world, spawn, A_SING_SKY);
         rig.onArena(arena, () -> {
-            LivingEntity cow = staticCow(rig, world, arena); // added HERE, on the arena's own region thread
-            Location stand = centerFacing(arena, -90.0f); // pitch 0 at open sky — the REAL block ray finds nothing
-            // Air-anchored core = eye + dir × range (12 ahead); the cow floats one block short of it, well
-            // inside radius 6 under either the standing or sneak-pose eye height.
-            Location cowAt = stand.clone().add(11, 1.0, 0);
-            spawnFakeAtSpawn(h, key, rig, world, "se_rfu_sng1", caster ->
-                    place(caster, stand, () -> place(cow, cowAt, () -> Scheduling.onEntityLater(caster, 5L, () -> {
-                arm(deps, caster, "singularity");
-                ReforgeUseListener listener = chain(deps, deps.messages());
-                boolean claimed = use(listener, caster, true);
-                // The pull is a per-pulse toward-core VELOCITY; a NoAI cow never translates it, so the
-                // mid-air anchor is proven by the +X drag it imparts (the ReforgeMotionSuite §B1.15 read).
-                awaitUntil(cow, () -> cow.getVelocity().getX() > 0.05, 0, 40, pulled -> {
-                    h.guard(key, () -> {
-                        if (!claimed) {
-                            throw new IllegalStateException("the sneak right-click was not claimed");
-                        }
-                        if (cow.getVelocity().getX() <= 0.05) {
-                            throw new IllegalStateException("a skyline aim never formed the mid-air well: cow "
-                                    + "pull velocity x=" + cow.getVelocity().getX()
-                                    + " (expected > 0 toward the air core)");
-                        }
+            // Aim pitch 0 into open sky: the REAL block ray finds nothing ahead, so the well DROPS straight down
+            // from the ray's end (eye + dir×range = 12 along +X) to the first solid block and anchors above it.
+            // Plant that ground block below eye level (the horizontal ray flies over it) at the ray-end column
+            // (arena X+12, Z), so the drop target — and thus the core — is deterministic.
+            int gx = arena.getBlockX() + 12;
+            int gy = arena.getBlockY() - 3;
+            int gz = arena.getBlockZ();
+            solid(world, gx, gy, gz);
+            LivingEntity cow = staticCow(rig, world, arena);
+            Location stand = centerFacing(arena, -90.0f);
+            // Ground core = ground-block centre + (0, 1 + rise(2.5), 0). Float the cow 3 east of it (inside radius
+            // 6): a well that dropped to the ground drags it back in −X (the ReforgeMotionSuite §B1.15 velocity read).
+            Location core = new Location(world, gx + 0.5, gy + 1.0 + 2.5, gz + 0.5);
+            Location cowAt = core.clone().add(3, 0, 0);
+            spawnFakeAtSpawn(h, key, rig, world, "se_rfu_sng1", caster -> {
+                caster.setGravity(false); // keep the eye (the drop column's top) stable through activation
+                place(caster, stand, () -> place(cow, cowAt, () -> Scheduling.onEntityLater(caster, 5L, () -> {
+                    arm(deps, caster, "singularity");
+                    ReforgeUseListener listener = chain(deps, deps.messages());
+                    boolean claimed = use(listener, caster, true);
+                    // The pull is a per-pulse toward-core VELOCITY; a NoAI cow never translates it, so the
+                    // ground-dropped well is proven by the −X drag it imparts (the §B1.15 read).
+                    awaitUntil(cow, () -> cow.getVelocity().getX() < -0.05, 0, 40, pulled -> {
+                        h.guard(key, () -> {
+                            if (!claimed) {
+                                throw new IllegalStateException("the sneak right-click was not claimed");
+                            }
+                            if (cow.getVelocity().getX() >= -0.05) {
+                                throw new IllegalStateException("an air aim never dropped the well to the ground: "
+                                        + "cow pull velocity x=" + cow.getVelocity().getX()
+                                        + " (expected < 0 toward the ground core)");
+                            }
+                        });
+                        rig.teardown();
                     });
-                    rig.teardown();
-                });
-            }))));
+                })));
+            });
         });
     }
 
@@ -409,7 +424,7 @@ public final class ReforgeUseSuite implements Harness.Scenario {
         GravityWellService gravityWell = new GravityWellService(deps.dispatch(),
                 ReforgeUseSuite::targetBlock, deps.resolvers());
         GrappleService grapple = new GrappleService(deps.dispatch(),
-                ReforgeUseSuite::targetEntity, ReforgeUseSuite::targetBlock, messages);
+                ReforgeUseSuite::targetEntity, ReforgeUseSuite::targetBlock);
         CastlingService castling = new CastlingService(deps.dispatch(),
                 ReforgeUseSuite::targetEntity, messages, deps.resolvers());
         JavelinService javelin = new JavelinService(deps.dispatch(), WEAPON, deps.resolvers(),
@@ -583,7 +598,7 @@ public final class ReforgeUseSuite implements Harness.Scenario {
     }
 
     private void failAll(Harness h, String message) {
-        for (String check : List.of(K_BLINK, K_PLAIN, K_REEL, K_WHIFF, K_SKY)) {
+        for (String check : List.of(K_BLINK, K_PLAIN, K_REEL, K_AIR, K_SKY)) {
             h.expect(check);
             h.fail(check, message);
         }

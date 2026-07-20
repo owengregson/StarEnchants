@@ -1,5 +1,5 @@
-# The Singularity — GRAVITY_WELL (ADR-0071). Launch a collapsing star along your facing (a
-# skyline aim anchors it mid-air at ray's end); it drags everything nearby inward, then implodes.
+# The Singularity — GRAVITY_WELL (ADR-0071). Launch a collapsing star along your facing (an into-air
+# aim drops it to the ground beneath the ray's end); it drags everything nearby inward, then implodes.
 # Pulls and hurts the caster too (the authored downside).
 display: "The Singularity"
 color: "{#be95d4}"

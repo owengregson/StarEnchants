@@ -439,7 +439,7 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
             caster.setGravity(false);
             place(caster, stand, () -> place(cow, cowAt, () -> Scheduling.onEntityLater(caster, 5L, () -> {
                 GrappleService grapple = new GrappleService(deps.dispatch(),
-                        (p, r) -> cow, (p, r) -> null, deps.messages()); // entity ray hits the cow, no terrain
+                        (p, r) -> cow, (p, r) -> null); // entity ray hits the cow, no terrain
                 grapple.start(caster, effect(deps, "leviathans-reach", GrappleEffect.HEAD));
                 awaitUntil(cow, () -> horiz(cow.getLocation(), reelTo) <= 1.0, 0, 30, reeled -> {
                     h.guard(key, () -> {
@@ -475,7 +475,7 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
             caster.setGravity(false);
             place(caster, stand, () -> Scheduling.onEntityLater(caster, 5L, () -> {
                 GrappleService grapple = new GrappleService(deps.dispatch(),
-                        (p, r) -> null, (p, r) -> hook, deps.messages()); // no entity, terrain at 10 → zip the caster
+                        (p, r) -> null, (p, r) -> hook); // no entity, terrain at 10 → zip the caster
                 grapple.start(caster, effect(deps, "leviathans-reach", GrappleEffect.HEAD));
                 // Terrain zip is a launched velocity, applied flightTicks (~5) after the emit.
                 awaitUntil(caster, () -> caster.getVelocity().getX() > 0.05, 0, 20, zipped -> {
@@ -510,7 +510,7 @@ public final class ReforgeMotionSuite implements Harness.Scenario {
                 // The closer-of rule: the wall block (4) is nearer than the cow (6), so terrain mode wins and
                 // the shielded cow is untouched — the same rule that compensates the 1.8 dot-scan's wall-blindness.
                 GrappleService grapple = new GrappleService(deps.dispatch(),
-                        (p, r) -> cow, (p, r) -> wall, deps.messages());
+                        (p, r) -> cow, (p, r) -> wall);
                 grapple.start(caster, effect(deps, "leviathans-reach", GrappleEffect.HEAD));
                 Scheduling.onEntityLater(caster, 18L, () -> { h.guard(key, () -> {
                     if (horiz(cow.getLocation(), cowAt) > POS_EPS) {

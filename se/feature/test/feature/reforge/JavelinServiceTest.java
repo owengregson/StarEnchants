@@ -45,11 +45,12 @@ import schema.spec.Args;
 import testfx.RecordingSchedulerBackend;
 
 /**
- * The Javelin flight + camera-lock (ADR-0071): a slow straight particle javelin priced AT THROW, the first
- * living hit takes the swing, knockback back along the flight angle, a per-tick position pin for {@code lock}
- * ticks, then — only after the pin releases — Nausea. A wall or the budget ends the flight. The self-rescheduling
- * chain and the pin are driven through {@link RecordingSchedulerBackend}: immediate hops run inline, {@code *Later}
- * hops are replayed by delay.
+ * The Javelin flight + control-lock (ADR-0071): a straight particle javelin along the FULL facing (pitch
+ * included), priced AT THROW; the first living hit takes the swing, knockback back along the flight angle, a
+ * per-tick control-lock for {@code lock} ticks (the view is snapped back only on drift, movement is slowed —
+ * position is NEVER pinned, so the victim falls the knockback arc), then — only after the lock releases —
+ * Nausea. A wall or the budget ends the flight. The self-rescheduling chain and the lock are driven through
+ * {@link RecordingSchedulerBackend}: immediate hops run inline, {@code *Later} hops are replayed by delay.
  */
 class JavelinServiceTest {
 
@@ -67,6 +68,7 @@ class JavelinServiceTest {
         Scheduling.install(backend);
         Regions.install(false);
         JavelinService.clearAll();
+        ControlLockService.clearAll(); // the hold moved to its own service — clear it too
         airBlock = mock(Block.class);
         when(airBlock.getType()).thenReturn(Material.AIR);
         allAir();
@@ -75,6 +77,7 @@ class JavelinServiceTest {
     @AfterEach
     void tearDown() {
         JavelinService.clearAll();
+        ControlLockService.clearAll();
         Regions.install(Capabilities.foliaPresent());
     }
 
@@ -212,8 +215,8 @@ class JavelinServiceTest {
     }
 
     @Test
-    void pitchedLookFliesLevelAtEyeHeight() {
-        Player actor = thrower(-90f, 45f); // a hard down-look; the shipped pitched ray grounded ~1.6/sin(pitch) out
+    void fullAngleFliesAlongTheFacingPitchIncluded() {
+        Player actor = thrower(-90f, 45f); // a hard down-look — the javelin now flies DOWN along it (no yaw-only grounding)
         stageNearby(List.of());
         List<Location> trail = new ArrayList<>();
         doAnswer(inv -> {
@@ -225,10 +228,13 @@ class JavelinServiceTest {
         advanceFlight(9); // steps 2..10
 
         assertEquals(10, trail.size());
-        assertEquals(0.65, trail.get(0).getX(), 1.0e-9); // full 0.15 b/t horizontally — the owner felt-unit intact
+        // yaw -90, pitch 45 → dir (√½, -√½, 0); each step advances +X AND descends by the same y-component.
+        double comp = 0.15 * Math.sqrt(0.5); // ≈ 0.10607 per axis per step
+        assertEquals(0.5 + comp, trail.get(0).getX(), 1.0e-9);
+        assertEquals(65 - comp, trail.get(0).getY(), 1.0e-9);
         assertEquals(0.5, trail.get(0).getZ(), 1.0e-9);
-        for (Location p : trail) {
-            assertEquals(65, p.getY(), 1.0e-9, "yaw-only flight stays at eye height");
+        for (int i = 0; i < trail.size(); i++) {
+            assertEquals(65 - comp * (i + 1), trail.get(i).getY(), 1.0e-6, "the flight descends along the pitch");
         }
     }
 
@@ -329,14 +335,12 @@ class JavelinServiceTest {
 
     @Test
     void knockbackIsAlongTheFlightAngleTimesFactor() {
-        Player actor = thrower(30f, -20f); // pitched look — the knock rides the LEVELLED flight angle (x/z differ)
+        Player actor = thrower(30f, -20f); // pitched look — the knock rides the FULL flight angle (pitch included)
         when(weaponDamage.swingDamage(actor)).thenReturn(5.0);
         LivingEntity victim = cow(new Location(world, 1, 66, 1));
         stageNearby(List.of(victim));
 
-        Location level = actor.getEyeLocation().clone();
-        level.setPitch(0f); // the flight is yaw-only, so the knock angle is too
-        Vector expected = level.getDirection().multiply(0.45 * 1.3); // knockback-base × knockback along the angle
+        Vector expected = actor.getEyeLocation().getDirection().multiply(0.45 * 1.3); // base × factor along the full angle
         expected.setY(Math.max(0.12, expected.getY() + 0.12)); // a touch of lift
 
         service().start(actor, javelinFx("WEAPON", 7.0));
@@ -346,45 +350,6 @@ class JavelinServiceTest {
         assertEquals(expected.getX(), kb.getValue().getX(), 1.0e-6);
         assertEquals(expected.getY(), kb.getValue().getY(), 1.0e-6);
         assertEquals(expected.getZ(), kb.getValue().getZ(), 1.0e-6);
-    }
-
-    @Test
-    void holdZerosVelocityEveryTickButTeleportsOnlyPastDrift() {
-        Player actor = thrower(-90f, 0f);
-        when(weaponDamage.swingDamage(actor)).thenReturn(5.0);
-        Location cowLoc = new Location(world, 4, 65, 0.5, 33f, 7f);
-        LivingEntity victim = cow(cowLoc);
-        stageNearby(List.of(victim));
-
-        service().start(actor, javelinFx("WEAPON", 7.0)); // impact schedules the hold-arm at delay 5
-        runDue(5); // the pin arms: captures the held loc, starts the 1-tick repeating pin
-
-        RecordingSchedulerBackend.Repeat pin = backend.repeating.get(0);
-        for (int i = 0; i < 5; i++) {
-            pin.task.run();
-        }
-        verify(victim, times(5)).setVelocity(new Vector(0, 0, 0)); // the freeze half holds every tick
-        // No re-assert while un-drifted: an every-tick teleport rubber-bands real clients and fires
-        // a PlayerTeleportEvent per tick (anticheat bait).
-        verify(dispatch, never()).teleportEntity(any(), any());
-
-        when(victim.getLocation()).thenReturn(new Location(world, 4.3, 65, 0.5, 33f, 7f)); // 0.3 — inside the leash
-        pin.task.run();
-        verify(dispatch, never()).teleportEntity(any(), any());
-
-        when(victim.getLocation()).thenReturn(new Location(world, 5.2, 65, 0.5, 33f, 7f)); // 1.2 — past the 0.5 leash
-        pin.task.run();
-        verify(dispatch, times(1)).teleportEntity(eq(victim), eq(cowLoc)); // re-pinned to the captured point + look
-
-        when(victim.getLocation()).thenReturn(cowLoc); // back on the pin
-        for (int i = 0; i < 13; i++) {
-            pin.task.run(); // ticks 8..20
-        }
-        pin.task.run(); // the 21st tick passes the deadline → release
-        assertEquals(0, JavelinService.holdCount());
-        assertTrue(pin.isCancelled());
-        verify(victim, times(20)).setVelocity(new Vector(0, 0, 0)); // no 21st write
-        verify(dispatch, times(1)).teleportEntity(any(), any()); // still just the one drift re-assert
     }
 
     @Test
@@ -402,7 +367,7 @@ class JavelinServiceTest {
         runDue(5); // pin #2 arms → must cancel pin #1 (refresh-not-stack)
 
         assertTrue(firstPin.isCancelled(), "the earlier pin is cancelled, not stacked");
-        assertEquals(1, JavelinService.holdCount());
+        assertEquals(1, ControlLockService.lockCount()); // the extracted lock refresh-not-stacks
     }
 
     @Test
@@ -414,7 +379,7 @@ class JavelinServiceTest {
 
         service().start(actor, javelinFx("WEAPON", 7.0));
 
-        verify(dispatch, never()).potion(any(), anyInt(), anyInt(), anyInt()); // NOT at impact (freeze first)
+        verify(dispatch, never()).potion(any(), anyInt(), anyInt(), anyInt()); // NOT at impact (the lock lands first)
         runDue(25); // lock-delay 5 + lock 20 — the sequenced nausea moment
         verify(dispatch).potion(victim, 9, 0, 100); // Nausea I for the authored duration, after the hold
     }
@@ -429,7 +394,7 @@ class JavelinServiceTest {
         stageNearby(List.of(victim));
 
         service().start(actor, javelinFx("WEAPON", 7.0)); // impact while valid
-        valid.set(false); // the victim died/left during the freeze
+        valid.set(false); // the victim died/left during the lock
         runDue(25);
 
         verify(dispatch, never()).potion(any(), anyInt(), anyInt(), anyInt());
@@ -453,7 +418,7 @@ class JavelinServiceTest {
     }
 
     @Test
-    void clearAllReleasesFlightsAndHolds() {
+    void clearAllReleasesFlightsAndControlLocks() {
         Player actor = thrower(-90f, 0f);
         when(weaponDamage.swingDamage(actor)).thenReturn(5.0);
         List<Entity> nearby = new ArrayList<>();
@@ -461,9 +426,9 @@ class JavelinServiceTest {
         nearby.add(victim);
         when(world.getNearbyEntities(any(Location.class), anyDouble(), anyDouble(), anyDouble())).thenReturn(nearby);
 
-        service().start(actor, javelinFx("WEAPON", 7.0)); // hits → impact → hold-arm scheduled
-        runDue(5); // pin armed
-        assertEquals(1, JavelinService.holdCount());
+        service().start(actor, javelinFx("WEAPON", 7.0)); // hits → impact → control-lock armed
+        runDue(5); // lock armed
+        assertEquals(1, ControlLockService.lockCount());
 
         nearby.clear(); // the lane is now open
         Player second = mock(Player.class);
@@ -473,10 +438,11 @@ class JavelinServiceTest {
         service().start(second, javelinFx("FLAT", 7.0)); // misses → a live flight persists
         assertEquals(1, JavelinService.liveFlightCount());
 
-        JavelinService.clearAll();
+        JavelinService.clearAll();            // the flight stop clears flights…
+        ControlLockService.clearAll();        // …the control-lock stop clears held victims (both wired on disable)
 
         assertEquals(0, JavelinService.liveFlightCount());
-        assertEquals(0, JavelinService.holdCount());
-        assertTrue(backend.repeating.get(0).isCancelled()); // the pin is released, never stranded
+        assertEquals(0, ControlLockService.lockCount());
+        assertTrue(backend.repeating.get(0).isCancelled()); // the lock task is released, never stranded
     }
 }

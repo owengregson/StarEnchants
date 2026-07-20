@@ -9,9 +9,11 @@ import static org.mockito.Mockito.when;
 import engine.selector.SelectorCtx;
 import java.util.List;
 import org.bukkit.Location;
+import org.bukkit.entity.Ghast;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Slime;
 import org.junit.jupiter.api.Test;
 import schema.spec.Args;
 
@@ -88,6 +90,20 @@ class AreaSelectorsTest {
         SelectorCtx ctx = ctx(actor, 7.0, "ENEMIES", 0, List.of(mob, foe, actor));
 
         assertEquals(List.of(mob, foe), new AoeSelector().resolve(ctx)); // actor excluded; mob + foe are enemies
+    }
+
+    @Test
+    void aoeEnemiesCatchesNonMonsterHostiles() {
+        // The widened hostile check: slimes/ghasts (and phantoms/shulkers/hoglins/the ender dragon) are enemies
+        // too — they don't implement Monster, and the modern Enemy marker is absent at the floor. Passive mobs stay out.
+        Player actor = mock(Player.class);
+        Slime slime = mock(Slime.class);
+        Ghast ghast = mock(Ghast.class);
+        LivingEntity passive = mock(LivingEntity.class); // a cow etc. — still never an enemy
+
+        SelectorCtx ctx = ctx(actor, 7.0, "ENEMIES", 0, List.of(slime, ghast, passive));
+
+        assertEquals(List.of(slime, ghast), new AoeSelector().resolve(ctx));
     }
 
     @Test

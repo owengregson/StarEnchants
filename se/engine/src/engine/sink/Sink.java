@@ -745,13 +745,14 @@ public interface Sink {
     void armDisarmShuffle(Player holder, int durationTicks, double malusFraction);
 
     /**
-     * Ring the Summoner's Bell (CONVERT_SUMMON): every tracked enemy-owned summon within {@code radius}
-     * blocks of {@code ringer} permanently changes sides — its {@code GuardianCasts} owner rebinds to the
-     * ringer (GUARDIAN_HURT follows), a Tameable is re-tamed to the ringer, its guard target is set to
-     * its FORMER owner, and an enemy bat cloud is TURNED (it permanently orbits/blinds its former owner).
-     * Runs on the ringer's thread; per-summon mutations hop to each summon's own scheduler. A ring that
-     * converts NOTHING plays {@code whiffSoundId} at the ringer ({@code < 0} skips) — the authored ring
-     * sound alone reads as success, and a silent no-op is indistinguishable from a broken feature.
+     * Ring the Summoner's Bell (CONVERT_SUMMON): EVERY mob within {@code radius} blocks of {@code ringer}
+     * permanently joins the ringer's side (owner ruling) — Players, ArmorStands, and the ringer itself are
+     * the only exclusions. Each convert's {@code GuardianCasts} owner rebinds to the ringer (GUARDIAN_HURT
+     * follows), a Tameable is re-tamed, and it is turned on an enemy: an enemy summon on its FORMER owner, a
+     * wild mob on the ringer's nearest enemy player in the ring (else its target is simply cleared). An enemy
+     * bat cloud is TURNED (it permanently orbits/blinds its former owner). Runs on the ringer's thread;
+     * per-convert mutations hop to each one's own scheduler. A ring that converts NOTHING plays {@code
+     * whiffSoundId} at the ringer ({@code < 0} skips) — the authored ring sound alone reads as success.
      */
     void convertSummons(Player ringer, double radius, int whiffSoundId);
 

@@ -355,7 +355,7 @@
     },
   {
     "head": "CONVERT_SUMMON",
-    "doc": "Convert every enemy-summoned ally within `radius` blocks of the wearer to the wearer's side, permanently: summoned guards/zombies/sentries/mounts rebind their ownership (a hit on them now fires the wearer's GUARDIAN_HURT), targeting summons turn on their former owner, tamed summons re-tame, and bat swarm clouds permanently swarm their former owner instead.",
+    "doc": "Convert EVERY mob within `radius` blocks of the wearer to the wearer's side, permanently: each rebinds its ownership (a hit on it now fires the wearer's GUARDIAN_HURT) and tamed mobs re-tame; an enemy summon turns on its former owner, a wild mob on the wearer's nearest enemy player, and bat swarm clouds permanently swarm their former owner. Only players, armour stands and the wearer are exempt.",
     "affinity": "CONTEXT_LOCAL",
     "usage": "{ CONVERT_SUMMON: { radius: <double[1..32]=12>, whiff-sound: <sound=BLOCK_ANVIL_LAND> } }",
     "example": "{ CONVERT_SUMMON: { radius: 12 } }",
@@ -1879,7 +1879,7 @@
     },
   {
     "head": "JAVELIN",
-    "doc": "Javelin (reforges): a straight particle javelin at speed blocks/tick, max-travel blocks. On the first living hit: one weapon-swing's damage (or FLAT damage), knockback × along the flight angle, a lock-tick camera+movement hold, then nausea. Deliberately slow — sidestepping it is the counterplay; a miss is wasted. Reforge-service-owned: this effect emits no intent of its own.",
+    "doc": "Javelin (reforges): a straight particle javelin at speed blocks/tick along the FULL facing (pitch included), max-travel blocks. On the first living hit: one weapon-swing's damage (or FLAT damage), knockback × along the flight angle, a lock-tick control lock (view snapped back + walk/jump locked; driven down a tracked arc), then nausea. Speed is authored (sidestep to dodge); a miss is wasted. Reforge-service-owned: this effect emits no intent of its own.",
     "affinity": "CONTEXT_LOCAL",
     "usage": "{ JAVELIN: { speed: <double[0.05..]=0.15>, max-travel: <double[1..]=12>, hit-radius: <double[0.1..]=0.9>, damage-mode: <enum{WEAPON|FLAT}=WEAPON>, damage: <double[0..]=7.0>, knockback: <double[0..]=1.3>, knockback-base: <double[0..]=0.45>, lock: <ticks[0..]=20>, lock-delay: <ticks[0..]=5>, nausea-effect: <potion_effect=CONFUSION>, nausea-duration: <ticks[0..]=100>, particle: <particle=REDSTONE>, r: <int[0..255]=120>, g: <int[0..255]=200>, b: <int[0..255]=255>, size: <double[0..]=1.2> } }",
     "example": "{ JAVELIN: { speed: 0.15, max-travel: 12, knockback: 1.3, lock: 20 } }",
@@ -1981,7 +1981,7 @@
         "max": null,
         "enum": [],
         "handle": null,
-        "doc": "camera-lock + movement-freeze length"
+        "doc": "control-lock length: view snapped, walk+jump locked, driven down a tracked arc"
         },
       {
         "name": "lock-delay",
@@ -1993,7 +1993,7 @@
         "max": null,
         "enum": [],
         "handle": null,
-        "doc": "ticks after impact before the pin arms (lets the knock land)"
+        "doc": "ticks after impact before the lock arms (lets the knock land first)"
         },
       {
         "name": "nausea-effect",

@@ -1,14 +1,14 @@
-# Grand Bell — CONVERT_SUMMON (ADR-0071). Ring it: every enemy summon within twelve blocks
-# permanently joins your side — ownership (and GUARDIAN_HURT) rebinds, targeting summons turn on
-# their former owner (held against goal revalidation), tamed summons re-tame, bat clouds swarm
-# their former owner. Rot-and-Decay zombies bind owner:"activator" (ruling R3) so they convert.
-# An empty ring sounds like one (the whiff cue).
+# Grand Bell — CONVERT_SUMMON (ADR-0071). Ring it: EVERY mob within twelve blocks permanently joins
+# your side — ownership (and GUARDIAN_HURT) rebinds, tamed mobs re-tame, an enemy summon turns on its
+# former owner and a wild mob on your nearest enemy (held against goal revalidation), bat clouds swarm
+# their former owner. Rot-and-Decay zombies bind owner:"activator" (ruling R3). Only players and armour
+# stands are exempt. An empty ring sounds like one (the whiff cue).
 display: "Grand Bell"
 color: "{#fcf59a}"
 icon: BELL
 type: ACTIVE
 description:
-  - "{#fcf59a}* Converts all nearby summoned entities within twelve blocks to your team, causing them to fight for you"
+  - "{#fcf59a}* Converts all nearby mobs within twelve blocks to your team, causing them to fight for you"
 cooldown: 2700
 chance: 100
 condition: ""

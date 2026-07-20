@@ -26,8 +26,9 @@ import schema.spec.Args;
 
 /**
  * The Singularity collapsing star (ADR-0071): per activation, ONE region task at the well core — beam to the
- * anchor (the sighted block, or mid-air at full range when the aim finds none), per-period pull pulses, then a
- * single implosion — armed from the compiled {@code GRAVITY_WELL}
+ * anchor (the sighted block, or the ground straight beneath the ray's end when the aim finds only air; mid-air
+ * only over a bottomless drop), per-period pull pulses, then a single implosion — armed from the compiled
+ * {@code GRAVITY_WELL}
  * args at the reforge activation success point (the {@code PetService.digHomeEffect} template). Visuals/cues ride
  * fresh per-call {@link TriggerDispatch} sinks; every victim mutation hops to the victim's own scheduler; the
  * implosion attributes to the caster only when the caster handle is region-owned at hurt time (the
@@ -80,6 +81,8 @@ public final class GravityWellService {
 
     private static final Map<Long, Well> LIVE = new ConcurrentHashMap<>();
     private static final AtomicLong IDS = new AtomicLong();
+    /** Max blocks an into-air aim drops looking for ground before it settles for a mid-air anchor. */
+    private static final int GROUND_DROP_LIMIT = 128;
 
     private final TriggerDispatch dispatch;
     private final BiFunction<Player, Integer, Block> targetBlock; // era raycast ref (§B2.5 composition-only seam)
@@ -129,14 +132,23 @@ public final class GravityWellService {
         Location eye = actor.getEyeLocation();
         Location core;
         Location beamEnd;
-        if (block == null) {
-            // Skyline aim — the dominant real-aim outcome: anchor a mid-air singularity at full range
-            // instead of wasting the activation (same mechanic, aimed).
-            core = eye.clone().add(eye.getDirection().multiply(range));
-            beamEnd = core;
-        } else {
+        if (block != null) {
             beamEnd = block.getLocation().clone().add(0.5, 0.5, 0.5);
             core = block.getLocation().clone().add(0.5, 1.0 + rise, 0.5);
+        } else {
+            // Air aim — the ray reached full range without hitting terrain. Drop STRAIGHT DOWN from the ray's
+            // end to the first solid block and anchor the well above it (the terrain rule), so an into-air aim
+            // still lands a real ground singularity where you pointed. Only a bottomless drop (deep void / a
+            // very high aim) keeps the mid-air anchor. Guarded: the column read may cross an unowned region.
+            Location airPoint = eye.clone().add(eye.getDirection().multiply(range));
+            Block ground = Regions.read("GravityWellService.drop", () -> groundUnder(airPoint), null);
+            if (ground != null) {
+                beamEnd = ground.getLocation().clone().add(0.5, 0.5, 0.5);
+                core = ground.getLocation().clone().add(0.5, 1.0 + rise, 0.5);
+            } else {
+                core = airPoint;
+                beamEnd = airPoint;
+            }
         }
         dispatch.dust(beam(eye, beamEnd), dustId, r, g, b, 1.0f);
         play(eye, launch);
@@ -282,6 +294,28 @@ public final class GravityWellService {
 
     private static Cue cue(PlatformResolvers resolvers, String token, float volume, float pitch) {
         return new Cue(resolvers.sound(token).orElse(-1), volume, pitch);
+    }
+
+    /**
+     * The first solid block straight down from {@code airPoint} (inclusive of the block it sits in), scanning a
+     * bounded column — the ground an air-aimed well drops onto. {@code null} when nothing solid is within
+     * {@link #GROUND_DROP_LIMIT} (a bottomless drop). Version-safe: a fixed step budget, no {@code
+     * World#getMinHeight} (absent pre-1.17 / on the legacy tree).
+     */
+    private static Block groundUnder(Location airPoint) {
+        if (airPoint.getWorld() == null) {
+            return null;
+        }
+        int x = airPoint.getBlockX();
+        int z = airPoint.getBlockZ();
+        int top = airPoint.getBlockY();
+        for (int drop = 0; drop <= GROUND_DROP_LIMIT; drop++) {
+            Block candidate = airPoint.getWorld().getBlockAt(x, top - drop, z);
+            if (candidate.getType().isSolid()) {
+                return candidate;
+            }
+        }
+        return null;
     }
 
     /** Sample the eye→block-center segment at 3 points/block for the throw beam. */
