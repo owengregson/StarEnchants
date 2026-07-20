@@ -4,6 +4,39 @@ All notable changes to StarEnchants are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [Semantic Versioning](https://semver.org/).
 
+## [1.13.0-beta] — 2026-07-19
+
+A reforge + pet polish pass: the weapon reforges gain their intended feel, two pets are rebalanced,
+and set/enchant lightning now finds every hostile mob.
+
+### Changed
+
+- **Reforge item name.** The minted "Weapon Reforge" item now reads exactly like the line shown on
+  the reforged weapon — a gold bold frame with the reforge's own colour on the inner name.
+- **Spectral Javelin.** Twice as fast, and it now flies straight out along your **full facing**
+  (any angle, pitch included) instead of always level. A struck enemy is no longer frozen in
+  mid-air: they **fall down the knockback arc** while their camera, movement and **jump** are
+  locked for the second — and the fall stays a smooth arc no matter how hard they fight the camera.
+  A hit lands an audible cue.
+- **Grand Bell.** Now converts **every** mob within its radius to your side, not only enemy summons
+  (players, armour stands and your own mobs excluded).
+- **Grappler (Leviathan's Reach).** Grappling open air no longer fails — it pulls you toward the
+  point you aimed at, out to full range.
+- **The Singularity.** Aiming into open air now drops the collapsing star to the **ground beneath**
+  the ray's end instead of hanging it in mid-air.
+- **Stormcaller & other AoE lightning.** The shared "enemies" targeting now strikes **all hostile
+  mobs** — slimes, ghasts, phantoms, shulkers, hoglins and the ender dragon in addition to the usual
+  monsters — so Stormcaller, Destruction, Nature's Wrath, Anti-Gank and the Wither mask all reach
+  them. Passive animals and allies are still spared.
+- **Bat pet.** Base cooldown doubled (with the level scaling steepened so max level still lands at
+  one minute); trimmed to a single lore line.
+- **Enderman pet.** Damage to mobs doubled; base cooldown ×1.5 (scaling steepened so max level still
+  lands at 30 seconds).
+
+### Internal
+
+- The javelin's camera/movement stun is now a reusable `ControlLockService`; the javelin just arms it.
+
 ## [1.12.0-beta] — 2026-07-19
 
 The Weapon Reforges identity release: every reforge gets its finished name, look, voice, and
