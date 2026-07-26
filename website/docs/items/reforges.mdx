@@ -1,0 +1,137 @@
+---
+id: reforges
+title: Weapon reforges
+sidebar_position: 10
+description: Socket one signature active ability into a sword or axe, fired with shift + right-click.
+---
+
+# Weapon reforges
+
+A **weapon reforge** sockets **one signature active ability** into a melee weapon. Every sword and axe
+has exactly one reforge socket, so a reforge is a single deliberate choice rather than another stackable
+bonus — and unlike enchants and crystals it is a thing you *fire*, not a thing that procs.
+
+Hold the reforged weapon and press **Shift + Right-Click** to activate it, on that reforge's own
+cooldown.
+
+:::tip Reforges work through Silence
+Reforge abilities deliberately bypass enchant suppression. A Silenced player still has their reforge.
+:::
+
+## Applying and removing
+
+- **Apply.** Drag the reforge item onto a weapon. It **always succeeds** — there is no roll. The only
+  rejections are a non-weapon target and a weapon whose socket is already filled.
+- **On the weapon.** A reforged weapon gains one lore line, `Weapon Reforge (<Name>)`, rendered below
+  the enchantment-slots line and above the crystal lines.
+- **Remove.** The **Item Extractor** (`items/crystal.yml`, the `extractor:` block — a bucket in the
+  shipped pack). Drag it onto the gear; when the item holds both a reforge and crystals, the reforge
+  pops off first, intact, as its own item again. See [crystals](./crystals.mdx).
+
+What counts as a weapon is one knob, read live on `/se reload`:
+
+```yaml
+reforges:
+  weapon-groups: [SWORD, AXE]   # ItemGroups tokens: SWORD, AXE, TRIDENT, MACE, or the WEAPON composite
+```
+
+Tokens naming materials that do not exist on the running server version are simply skipped. The whole
+family is gated by `features.reforges` in [config.yml](../configuring/index.mdx), also live; `false`
+leaves reforges inert.
+
+## The shared reforge item — `items/reforge.yml`
+
+There is no per-reforge item file. Every reforge is minted from this one likeness, in gold bold with the
+reforge's own hex colour inside the bracket, carrying an enchant glint. Unlike the crystal likeness there
+is no `material:` here — the item's material is each reforge's own `icon:`.
+
+```yaml
+type: reforge
+name: "&6&lWeapon Reforge ({COLOR}&l{NAME}&r&6&l)"
+lore:
+  - "&eImbues a single weapon with a magic reforge ability. Shift + Right Click while holding to activate."
+  - ""
+  - "{COLOR}&l{TYPE} REFORGE ABILITY"
+  - "{DESCRIPTION}"
+  - ""
+  - "&eCooldown: &r&f&n{TIME_FORMATTED}"
+  - "&eApplies to: &r&f&n{APPLIES}"
+  - "&7Drag n' Drop on an item to apply."
+# The one line shown on a reforged WEAPON, below the slots line.
+lore-while-on-item: "&6&lWeapon Reforge ({NAME}&r&6&l)"
+sounds:
+  enabled: true
+  apply: "block.anvil.use"      # a reforge is smithing identity — anvil cues, not the amethyst family
+  remove: "block.anvil.land"
+```
+
+| Token | Renders |
+| --- | --- |
+| `{COLOR}` | the reforge's colour codes — carries its own `&` |
+| `{NAME}` | the reforge's display name |
+| `{NAME_UPPER}` | that name upper-cased |
+| `{TYPE}` | `ACTIVE` or `PASSIVE` |
+| `{DESCRIPTION}` | the reforge's description block, one lore line per authored line |
+| `{APPLIES}` | the item kinds a reforge applies to, from `reforges.weapon-groups` |
+| `{TIME_FORMATTED}` | the signature ability's cooldown, humanised |
+
+## Cues
+
+Activating a reforge prints `** REFORGE ABILITY: <NAME> **` in that reforge's colour; a timed one
+announces `ENDED` when its window closes. Cooldown and failure each have their own line. All four are
+universal templates in the `reforges:` block of `config.yml`, and an empty template is silent.
+
+:::warning Every spent use is audible
+Cooldowns spend **per attempt** and are never refunded, so a whiff still costs you the cooldown — a low
+dud cue plays so you always know an attempt was consumed rather than swallowed.
+:::
+
+## Defining a reforge — `content/reforges/<key>.yml`
+
+Each file is one reforge; the filename stem is its key. It declares the identity the likeness renders,
+the catalogue `icon:`, the cooldown, and the ability itself:
+
+```yaml
+display: "Berry Overdrive"
+color: "{#f0a15b}"
+type: ACTIVE
+icon: GLOW_BERRIES
+cooldown: 1500            # ticks — 75s; also what {TIME_FORMATTED} shows
+description:
+  - "{#f0a15b}* Temporarily doubles the frequency you can attack your enemy, at the cost of reduced damage"
+```
+
+## The shipped reforges
+
+| Reforge | Icon | Cooldown | What it does |
+| --- | --- | --- | --- |
+| Quantum Blink | `ENDER_PEARL` | 30s | teleport up to five blocks along your facing; walls stop it short |
+| Cursed Castle | `COMPASS` | 90s | channel a countdown on the enemy in your crosshair, then trade places |
+| Spectral Javelin | `LIGHT_BLUE_CANDLE` | 90s | throw a fast spectral javelin for your weapon's swing damage, knocking the victim back and locking their controls for about a second |
+| Spell Grappler | `SOUL_CAMPFIRE` | 60s | throw a line up to twelve blocks — it reels an enemy to you, or zips you to terrain |
+| Berry Overdrive | `GLOW_BERRIES` | 75s | five seconds of doubled attack cadence at a third less damage per hit |
+| The Singularity | `END_CRYSTAL` | 180s | launch a collapsing star that drags everything nearby inward, then implodes |
+| Grand Bell | `BELL` | 135s | every mob within twelve blocks permanently joins your side |
+| Star Battery | `HEART_OF_THE_SEA` | 135s | your next three hits taken each bank 20% of their damage; your next hit on a player unloads it |
+| The Ace | `BLAZE_POWDER` | 60s | for four seconds, your next landed hit shuffles the victim's held item to a random hotbar slot |
+| The Turnkey | `ANVIL` | 90s | instantly clears confining traps on you — webs, cages — and thaws a live freeze |
+
+A few carry deliberate costs. Cursed Castle's swap cancels if line of sight breaks, and the cooldown
+stays spent. The Singularity pulls and hurts *you* too. Grand Bell exempts players — only mobs convert.
+The Ace's shuffling hit lands at 20% less damage.
+
+## Minting & giving
+
+```text
+/se reforge <key>                    # mint a reforge to yourself (key from content/reforges/)
+/se give reforge <player> <key>
+/se menu                             # the operator mint console
+/se menu reforges                    # the Weapon Reforges browser
+```
+
+:::note Operator-only for now
+There is no player-facing shortcut to the reforges browser the way `/masks` and `/pets` reach theirs, so
+today reforges arrive through an operator or whatever route your server builds on top of them.
+:::
+
+Layout for the browser lives in `menus/reforges.yml`.

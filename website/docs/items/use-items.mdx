@@ -1,0 +1,87 @@
+---
+id: use-items
+title: Use-items
+sidebar_position: 11
+description: Right-click items whose own abilities fire on use, compiled through the enchant pipeline.
+---
+
+# Use-items
+
+A **use-item** is a right-click item that carries its own abilities and fires them on use. It is the
+mirror image of an [enchant book](./enchant-books.mdx): a book is *applied to* gear and then lives
+there, while a use-item *is* the ability — you hold it and click.
+
+Its abilities compile through the same engine pipeline and the same gate order as an enchant's
+(suppression → cooldown → condition → chance → souls), so a use-item interacts with every other feature
+for free — cooldowns, suppression, soul costs, and conditions all behave exactly as they do on gear.
+
+## Defining one — `content/use-items/<key>.yml`
+
+Drop a YAML file in `content/use-items/`; the filename stem is the key the minted item stores. The
+shipped pack ships one, the **Rage Crystal**, which doubles as the annotated template for the family:
+
+```yaml
+name: "&c&lRage Crystal&r &7(Right Click)&r"
+material: RED_DYE       # resolved cross-version at mint (degrades to REDSTONE on the 1.8 lane)
+consumable: true        # true = one item is consumed on a successful use; false = a reusable tool
+shiny: false            # true = the minted item carries an enchant glint
+lore:
+  - "&eConsume to gain a temporary strength buff, at the cost of movement speed."
+  - ""
+  - "&eCooldown: &f&n{TIME_FORMATTED}&r"
+  - "&7Right Click while holding to apply."
+permission: ""          # optional Bukkit permission checked at use time; empty = everyone
+cooldown: 1200          # ticks — 60s; also what {TIME_FORMATTED} shows
+chance: 100             # activation chance percent
+condition: ""           # optional condition DSL, same grammar as enchants
+effects:                # Strength II + Slowness I on self for 12s
+  - { POTION: { effect: "INCREASE_DAMAGE", level: 2, duration: 240, who: "@Self" } }
+  - { POTION: { effect: "SLOW", level: 1, duration: 240, who: "@Self" } }
+commands: []            # console strings, or { as: player|console, run: "…" }
+```
+
+`{TIME_FORMATTED}` in a lore line renders the cooldown humanised (hours, minutes, seconds). In
+`commands:`, the tokens `{PLAYER}`, `{UUID}`, and `{WORLD}` are substituted for the user.
+
+:::note The USE trigger is implicit
+Do **not** declare a `trigger:` on a use-item. The right-click *is* the trigger; an authored one is
+warned about and forced back to `USE`.
+:::
+
+The gate fields above are the **single-ability shorthand** — `chance`, `cooldown`, `condition`, and
+`effects` authored at the top level. An item that needs several independent abilities lists them under
+`abilities:` instead, each with its own gates.
+
+## Consumable, reusable, edible
+
+`consumable: true` spends one item on a *successful* use; `consumable: false` makes it a reusable tool
+that only pays its cooldown.
+
+`is-food: true` turns the item into something you must actually **eat** — the real eating animation,
+with no hunger effect — instead of a plain right-click. That needs the server-side edibility seam
+introduced in **1.20.5**; below that version, and on 1.8, an `is-food` item gracefully degrades to an
+ordinary one-click use-item.
+
+## Feedback
+
+Three universal, prefix-free keys in `lang.yml` cover every use-item, so a new one needs no messages of
+its own:
+
+```yaml
+use-item.success: ""     # blank = silent (the effect is its own feedback)
+use-item.cooldown: "&c&l(!) {NAME}&r&c&l is on cooldown for another &f&n{TIME_FORMATTED}&r&c&l!"
+use-item.fail: "&c&l(!) You cannot use {NAME}&r&c&l right now!"
+```
+
+`{NAME}` is the item's display name, `{TIME_FORMATTED}` the remaining cooldown, and `{CONDITION}` — in
+the fail line — the condition that blocked the use.
+
+The family is gated by `features.use-items` in [config.yml](../configuring/index.mdx), read live on
+`/se reload`; set it to `false` and a held use-item is inert.
+
+## Minting & giving
+
+```text
+/se give useitem <player> <key> [amount]   # key from content/use-items/
+/se menu                                   # the operator mint console
+```
