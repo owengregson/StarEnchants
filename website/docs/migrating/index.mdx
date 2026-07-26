@@ -62,6 +62,28 @@ does a faithful best-effort translation and flags the rest, but a quick read of 
 any leftover schema issues before swapping.
 :::
 
+## Importing a single enchant — `/se import`
+
+The migrator is for whole configs. To bring in **one** enchant — most often one you just built in the
+[Enchant Creator](/creator) and exported — paste its code instead:
+
+```text
+/se import <code>
+```
+
+An `SE1:` code carries a complete enchant. The command validates it first, through the same compiler
+`/se reload --dry-run` uses; only if it compiles clean does it write
+`content/enchants/<key>.yml` and then reload transactionally. If anything fails to validate, it
+reports the errors and **nothing is written** — your live content is never left half-updated.
+
+An import overwrites an existing file with the same key, which is how you iterate: tweak the enchant in
+the Creator, re-export, re-import, and the new version is live.
+
+:::note Enchants only
+`/se import` always writes under `content/enchants/`. Sets, crystals, and the other content families
+aren't part of the code format — author those as files, or bring them across with `/se migrate`.
+:::
+
 ## After migrating
 
 - Polish the migrated enchants against the [DSL reference](/docs/reference/effects) — you may find

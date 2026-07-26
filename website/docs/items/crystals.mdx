@@ -14,49 +14,65 @@ This page covers the **physical crystal item** — applying, merging, and extrac
 
 ## The shared crystal item — `items/crystal.yml`
 
-Each crystal in `content/crystals/` declares its own material/name/lore so it self-explains. The
-fields here are the **shared fallback** (used when a crystal omits one) and the look of a **merged**
-multi-crystal, whose two effects can't share one material:
+There is **one** global crystal likeness. A crystal in `content/crystals/` declares only its styled
+display name, its description block, and its effects — it has no material, name, or lore of its own.
+The material/name/lore below are shared by *every* minted crystal, single or merged:
 
 ```yaml
 type: crystal
 material: AMETHYST_SHARD
-name: "&d{CRYSTAL} Crystal"
+name: "&d{CRYSTAL} &7Crystal"
+name-multi: "&d{CRYSTAL} &7Multi-Crystal"
 lore:
-  - "&7Drag onto gear to apply."
-  - "&7Merge two crystals into a multi-crystal."
-success-chance: 75               # apply success roll
-consume-on-fail: true            # a failed apply consumes the crystal
+  - "&7Imbues a piece of gear with crystal magic. Merge with other crystals to combine their effects."
+  - ""
+  - "{DESCRIPTION}"
+  - ""
+  - "&7Applies to: &f&n{KINDS}"
+  - "&7Drag n' Drop on an item to apply."
+# The line shown on crystal-bearing gear (below the orb-slots line, above the heroic line).
+lore-while-on-item: "&d{CRYSTAL} &7Crystal"
+lore-while-on-item-multi: "&d{CRYSTAL} &7Multi-Crystal"
+# Apply/merge and extract gesture sounds. `apply`/`remove` also accept the bracket form
+# { sound: NAME, volume: V, pitch: P }; a bare string plays at volume/pitch 1.0.
 sounds:
   enabled: true
   apply: "block.amethyst_block.chime"
   remove: "block.amethyst_cluster.break"
-# The crystal EXTRACTOR — drag onto crystal-bearing gear to pop its last crystal back into an item.
+# The ITEM EXTRACTOR — pops a reforge or a crystal back off gear, or splits a multi-crystal.
 extractor:
   material: AMETHYST_CLUSTER
-  name: "&dCrystal Extractor"
+  name: "&dItem Extractor"
   lore:
-    - "&7Drag onto crystal-bearing gear"
-    - "&7to extract its last crystal."
+    - "&7Drag onto gear to pop its reforge or crystal"
+    - "&7off whole, or onto a multi-crystal to split it."
 ```
 
 | Token | Renders |
 | --- | --- |
-| `{CRYSTAL}` | the component crystal name(s) |
+| `{CRYSTAL}` | the component crystal name(s), comma-joined — a merge reads each name in its own colour |
+| `{DESCRIPTION}` | each component's authored description block, stacked with a blank line between blocks |
+| `{KINDS}` | the item kinds the crystal applies to (the *intersection* for a merge) |
+
+A merged crystal (2+ components) takes `name-multi` / `lore-while-on-item-multi` instead. Each defaults
+to its single-crystal form, so a pack that doesn't distinguish the two keeps one uniform name.
 
 ## Applying, merging, extracting
 
-- **Apply.** Drag a crystal onto gear; the apply rolls `success-chance`. On a miss, `consume-on-fail`
-  decides whether the crystal is lost.
-- **Merge.** Drag one crystal onto another to combine them into a **multi-crystal** — two effects in a
-  single socket. The merged item's lore is each component's own lore, concatenated.
-- **Extract.** The **crystal extractor** pops the last-applied crystal back off socketed gear as a
-  whole item.
+- **Apply.** Drag a crystal onto gear. Applying **always succeeds** — there is no roll, and nothing is
+  ever lost to a failed apply.
+- **Merge.** Drag one crystal onto another to combine them into a **multi-crystal** whose effects
+  stack, up to `crystals.max-merge`. The merged item takes the multi name and stacks each component's
+  description block.
+- **Extract.** The **Item Extractor** pops things back off, whole. On gear it takes a
+  [weapon reforge](./reforges.mdx) first if one is present; otherwise it pops the **whole last crystal
+  entry** intact — a merged multi comes back as one multi-crystal. Use the extractor *again* on that
+  popped multi-crystal to split its topmost single off.
 
 :::note Sockets are separate from enchant slots
-How many crystals a piece can hold is governed by `crystals.slots` (default 1) and the absolute
-`crystals.max-stack` (default 16) in [config.yml](../configuring/index.mdx) — a different ledger from
-[enchant slots](../concepts/slots.mdx).
+How many crystal entries a piece can hold is `crystals.slots` (default 1) in
+[config.yml](../configuring/index.mdx), and how many crystals may fuse into one entry is
+`crystals.max-merge` (default 2) — a different ledger from [enchant slots](../concepts/slots.mdx).
 :::
 
 ## Minting & giving
@@ -64,5 +80,5 @@ How many crystals a piece can hold is governed by `crystals.slots` (default 1) a
 ```text
 /se crystal <key>                # mint a specific crystal to yourself (key from content/crystals/)
 /se give crystal <player> <key>
-/se give extractor <player>      # give a crystal extractor
+/se give extractor <player>      # give an Item Extractor
 ```

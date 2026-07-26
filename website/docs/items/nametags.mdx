@@ -7,8 +7,9 @@ description: Rename a piece of gear, with a banned-word filter.
 
 # Item nametags
 
-An **item nametag** lets a player rename a piece of gear: drag the tag onto the item, then type the
-new name in chat. A blacklist filter can reject names containing banned words.
+An **item nametag** lets a player rename a piece of gear: drag the tag onto the item and an **anvil
+GUI** opens where you type the new name (legacy `&` colour codes are parsed). A blacklist filter can
+reject names containing banned words.
 
 ## The nametag — `items/nametag.yml`
 
@@ -17,11 +18,16 @@ type: nametag
 material: NAME_TAG
 name: "&bItem Nametag"
 lore:
-  - "&7Drag onto gear, then type the"
-  - "&7new name in chat."
+  - "&7Drag onto gear to rename it"
+  - "&7(& colour codes work)."
 # Words a renamed item may not contain (case-insensitive substring of the colour-stripped name).
 blacklist: []                    # empty = allow any name
 ```
+
+:::note Anvil GUI, with a 1.8.9 fallback
+On modern servers the drag opens our own anvil rename GUI (a real anvil is never hijacked). Typing the
+name **in chat** is the 1.8.9 fork's fallback path only.
+:::
 
 The blacklist is matched **case-insensitively** as a substring of the color-stripped name, so adding
 `["slur", "admin"]` blocks any name containing those anywhere. An empty list allows anything.

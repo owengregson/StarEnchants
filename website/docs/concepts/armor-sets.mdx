@@ -17,14 +17,47 @@ A set declares three things:
   look (material, name, lore).
 - **A completion threshold** — how many pieces must be worn for the bonus to activate (a set might
   need 4 of 4, or fire at 3 of 4).
-- **The bonus** — a trigger + effects block, exactly like an enchant's, that fires once the set is
-  complete.
+- **Its bonuses** — a top-level `bonuses:` **list**, each entry a trigger + effects block exactly
+  like an enchant's, that fires once the set is complete.
+
+## The bonuses list
+
+Bonuses are a flat list at the top level of the set file — they are *not* nested under `armor:` or
+`weapon:`. Each entry declares which side it hangs off with `on: armor` or `on: weapon`, and a set
+may carry several entries per side:
+
+```yaml
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
+bonuses:
+  - on: armor
+    trigger: DEFENSE
+    chance: 45
+    cooldown: 100
+    effects:
+      - { IGNITE: { duration: 80, who: "@Attacker" } }
+      - { POTION: { effect: FIRE_RESISTANCE, level: 1, duration: 100, who: "@Self" } }
+      - { PARTICLE: { particle: FLAME, count: 12 } }
+  - on: weapon
+    trigger: ATTACK
+    chance: 60
+    effects:
+      - { IGNITE: { duration: 60, who: "@Victim" } }
+```
+
+An entry's shape is `{ on, trigger, chance, cooldown, effects }`.
 
 ## The matched weapon
 
-A set can optionally include a **matched weapon** — a sword or axe whose bonus fires *only while the
-full set is worn*. The Inferno Set, for example, has an Inferno Blade that sets foes alight on hit,
-but only if you are also wearing the four armor pieces.
+A set can optionally include a **matched weapon** — a sword or axe whose `on: weapon` bonuses fire
+*only while the full set is worn*. The Inferno Set, for example, has an Inferno Blade that sets foes
+alight on hit, but only if you are also wearing the four armor pieces.
+
+## Omni pieces
+
+An **omni** piece is a wildcard: it counts toward completing *any* set the player already owns at
+least one real piece of, and it can count toward several partially-worn sets at once. It can never
+complete a set on its own — a set needs at least one genuine piece of its own before an omni piece
+will top it up.
 
 ## How sets feed the engine
 
@@ -44,5 +77,7 @@ enchant/crystal lore; a set's identity is its pieces.
 
 - **[Heroic upgrades](./heroic-upgrades.mdx)** — a separate, non-set-bound power-up for any gear.
 - **[Enchants](./enchants.mdx)** — the same trigger/effect model on individual items.
+- **[Masks](../items/masks.mdx)** and **[pets](../items/pets.mdx)** — the other worn ability sources
+  alongside armor sets and crystals.
 
 To build one, see **[Defining a set](../configuring/index.mdx)**.

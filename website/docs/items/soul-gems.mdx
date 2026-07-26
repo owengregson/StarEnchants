@@ -18,7 +18,7 @@ type: soul-gem
 material: EMERALD
 name: "&aSoul Gem"
 lore:
-  - "&7Souls: {SOUL-COLOR}{AMOUNT}"
+  - "&7Souls: {SOUL_COLOR}{AMOUNT}"
   - "&7Right-click to toggle soul mode."
 
 # Acquisition (deposit on any kill).
@@ -29,30 +29,47 @@ souls-per-mob:
   ENDER_DRAGON: 250
   PLAYER: 10
 
-# Soul-colour tiers for {SOUL-COLOR} (min count -> &colour); the highest match wins.
+# Soul-colour tiers for the {SOUL_COLOR} placeholder (min count -> &colour); the highest match wins.
 soul-colors:
   1: "&f"
   64: "&a"
   256: "&b"
   1024: "&d"
-empty-soul-color: "&7"          # colour shown for an empty gem
+empty-soul-color: "&7"          # colour shown below every tier (an empty gem)
 
+# Sounds — the unified bracket form { sound: NAME, volume: V, pitch: P } (volume/pitch default 1.0).
+# Each action takes a LIST, so it can play several at once; an empty/omitted list is silent.
 sounds:
-  enabled: true
-  activate: "entity.player.levelup"
-  deactivate: "ui.button.click"
-  combine: "block.anvil.use"
+  toggle-on:                                                    # entering soul mode
+    - { sound: BLOCK_RESPAWN_ANCHOR_CHARGE, volume: 1.0, pitch: 0.1 }
+    - { sound: ITEM_CHORUS_FRUIT_TELEPORT, volume: 1.0, pitch: 1.7 }
+  toggle-off:                                                   # leaving soul mode
+    - { sound: BLOCK_GLASS_BREAK, volume: 1.0, pitch: 0.1 }
+  use:                                                          # souls spent by an enchant / REMOVE_SOULS
+    - { sound: ENTITY_GENERIC_EAT, volume: 10.0, pitch: 1.0 }
+  combine:                                                      # stacking one gem onto another
+    - { sound: ENTITY_EXPERIENCE_ORB_PICKUP, volume: 1.0, pitch: 1.0 }
+  split:                                                        # /splitsouls (or /se split)
+    - { sound: BLOCK_GLASS_BREAK, volume: 1.0, pitch: 1.4 }
 
+# Particles — the unified bracket form. `color` applies only to the dust particle (REDSTONE/DUST);
+# `spread` is the scatter radius; `y-offset` raises the spawn above the player's feet. ONE spec per key;
+# an omitted spec spawns nothing.
 particles:
-  active: [SOUL]                 # while-active aura, spawned each tick on players in soul mode
-  on-activate: [SOUL_FIRE_FLAME, HAPPY_VILLAGER]
-  on-deactivate: [SMOKE]
+  enable:  { particle: REDSTONE, count: 20, color: { r: 91,  g: 245, b: 83 }, spread: 1.25, y-offset: 1.0 }
+  disable: { particle: REDSTONE, count: 20, color: { r: 250, g: 55,  b: 74 }, spread: 1.25, y-offset: 1.0 }
+  idle:    { particle: ENCHANTMENT_TABLE, count: 8,  spread: 0.75, y-offset: 1.0 }
+  use:     { particle: SPELL_WITCH,       count: 15, spread: 0.75, y-offset: 1.0 }
 ```
 
 | Token | Renders |
 | --- | --- |
 | `{AMOUNT}` | the gem's current soul count |
-| `{SOUL-COLOR}` | the color for that count, from `soul-colors` |
+| `{SOUL_COLOR}` | the colour for that count, from `soul-colors` |
+
+Both tokens work in **name and lore** and re-render live on every change — put `{AMOUNT}` in the name to
+show the count there (the cosmic pack does). The `idle` particle is the while-active aura, spawned at
+each player in soul mode every few ticks; `use` fires when souls are spent.
 
 ## How souls flow
 
@@ -60,7 +77,12 @@ particles:
   `souls-per-kill` (or the per-mob override) into the carried gem.
 - **Soul mode.** Right-click the gem to toggle soul mode. Souls are only *spent* while soul mode is
   on — this is what lets `soul-cost` enchants and the `REMOVE_SOULS` effect draw from your balance.
+- **Spending.** A charge draws on your **soul pool**: the *sum* across every gem you carry, not one
+  gem at a time. The charge is all-or-nothing (a cost you can't cover in total is simply refused), and
+  it drains your gems **least-first**, so the small ones empty before the big one is touched.
 - **Combining.** Drag one gem onto another to combine their souls into one.
+- **Splitting.** `/splitsouls <amount>` (or `/se split <amount>`) carves souls off the held gem into a
+  new gem.
 
 :::note Master switch
 The deposit-on-kill mechanic is gated by `souls.deposit-on-any-kill` in
@@ -74,5 +96,6 @@ split commands and soul-cost spending working.
 /se gem [souls]                  # mint a gem to yourself (optionally pre-filled with souls)
 /se give gem <player> [souls]
 /se split <amount>               # carve souls off your gem into a new gem
+/splitsouls <amount>             # the player-facing alias of /se split
 /se soulmode                     # toggle your own soul mode
 ```

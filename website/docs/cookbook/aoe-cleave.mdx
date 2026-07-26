@@ -58,5 +58,12 @@ levels:
   - { POTION: { effect: SLOWNESS, level: 2, duration: 60, who: "@Aoe{r=4}" } }
   ```
 
+- **Spare the one you actually swung at** — hit only the crowd around them:
+
+  ```yaml
+  - { DAMAGE: { amount: 4, who: "@Aoe{r=5, exclude=victim}" } }
+  ```
+
 See the [`@Aoe` selector](/docs/reference/selectors) for `filter` (`ALL` / `PLAYERS` / `MONSTERS` /
-`MOBS`) and `limit`.
+`MOBS` / `ENEMIES` / `ALLIES`), `limit`, and `exclude` (`none` — the default — or `victim`, which
+removes the combat victim from the matches).

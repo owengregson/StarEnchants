@@ -2,41 +2,52 @@
 id: groups
 title: Groups
 sidebar_position: 8
-description: Shared cooldown and suppression buckets for related enchants.
+description: Suppression match keys that tie related enchants together.
 ---
 
 # Groups
 
-A **group** is a shared bucket that ties related enchants together for **cooldowns** and
-**suppression**. You give an enchant a `group:` (a free-form name like `combat`, `defense`, or
-`mining`), and that name becomes a handle the engine and other effects can act on.
+A **group** is a shared label that ties related enchants together for **suppression**. You give an
+enchant a `group:` (a free-form name like `combat`, `defense`, or `mining`), and that name becomes a
+handle a `SUPPRESS` effect can aim at.
 
-Groups are how you stop a pile of similar enchants from all firing at once, and how one enchant can
-shut another down.
+Groups are how one enchant can shut a whole family of others down.
+
+:::warning Groups do not share cooldowns
+Cooldowns are **per-enchant only** (`ENCHANT` scope). An enchant's cooldown never touches its
+group-mates. Group and type ids survive purely as **suppression match keys** — the handles a
+`SUPPRESS` effect can target. Arming a cooldown on a group once locked out every cooldown-0 sibling
+in it, which silently disabled swathes of a full kit, so it was removed.
+:::
 
 ## What a group is for
 
-- **Shared cooldowns.** Enchants in the same group can share a cooldown bucket, so a player can't
-  chain every combat enchant they own on a single swing.
-- **Suppression.** The `SUPPRESS` effect can disable an entire group on a target for a duration —
-  `{ SUPPRESS: { scope: GROUP, key: combat, duration: 200 } }` silences every combat-group enchant on
-  the victim for 200 ticks. (It can also suppress a single `ENCHANT` or a whole item `TYPE`.)
+Suppression. The `SUPPRESS` effect can disable an entire group on a target —
+`{ SUPPRESS: { scope: GROUP, key: combat, duration: 200 } }` silences every combat-group enchant on
+the victim for 200 ticks.
+
+- **`scope`** is one of `ENCHANT`, `GROUP`, `TYPE`, or `KIND` — a single enchant, a whole group, a
+  whole item type, or every ability built on a given effect kind.
+- **`mode`** is `timed` (the default — a duration window) or `next-hit`, a one-shot that clears
+  after the target's next incoming hits.
+- **`charges`** is how many incoming hits a `next-hit` suppression absorbs before it lapses.
 
 ## Choosing group names
 
 Group names are yours to define — there is no fixed list. The default content uses sensible buckets
 like `combat`, `defense`, `mining`, and `utility`. Pick names that describe *what the enchant is
-for*, since that is what suppression and cooldown logic will act on.
+for*, since that is what suppression will act on.
 
-:::tip Keep groups meaningful
-Two enchants that should never fire on the same event (say, two different on-hit lifesteal effects)
-belong in the same group. Two unrelated enchants (a mining buff and a defensive shield) should be in
-different groups so they don't fight over a cooldown.
+:::tip Group by what you'd want to silence together
+Because a group is a suppression target, the useful question is: *if one effect were to shut this
+family down, which enchants should go quiet together?* A "silence their offense" effect wants every
+on-hit enchant under one `combat` group; a mining buff and a defensive shield belong in different
+groups because no single effect should ever silence both.
 :::
 
 ## Related concepts
 
-- **[Rarity tiers](./rarity-tiers.mdx)** — cosmetic grouping, unrelated to cooldowns.
+- **[Rarity tiers](./rarity-tiers.mdx)** — cosmetic grouping, unrelated to suppression.
 - **[Enchants](./enchants.mdx)** — where the `group:` field lives.
 
 For the `SUPPRESS` effect and how suppression resolves, see the

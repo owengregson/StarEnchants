@@ -42,7 +42,7 @@ levels:
 ## How it works
 
 - **`trigger: COMMAND`** fires when the player runs the configured command (default `/cast`). It runs
-  through the full gate sequence — chance, cooldown, condition, souls — exactly like `ATTACK`; only
+  through the full gate sequence — cooldown, condition, chance, souls — exactly like `ATTACK`; only
   the entry point differs.
 - **`cooldown: 600`** ticks (30 seconds) keeps it from being spammed. This is the main balance lever.
 - The effects all target the player (`@Self` defaults), so this is a self-buff.

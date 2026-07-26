@@ -22,20 +22,30 @@ A soul gem is a distinct item players carry. It has two jobs:
   *spent* while soul mode is on — that is the gate that lets `soul-cost` enchants and the
   `REMOVE_SOULS` effect draw from your balance.
 
-The gem's lore shows the running total, color-coded by tier (white → green → aqua → pink as the
-count climbs).
+The gem's lore shows the running total via the `{SOUL_COLOR}` token, color-coded by tier (white →
+green → aqua → pink as the count climbs).
 
 ## Combining and splitting
 
 Drag one gem onto another to **combine** them — their souls sum into a single gem. Use
-`/se split <amount>` to carve some souls off into a fresh gem. This makes souls tradeable and
-storable.
+`/splitsouls <amount>` (or its alias `/se split <amount>`) to carve some souls off into a fresh gem.
+This makes souls tradeable and storable.
 
 ## Spending souls
 
 An enchant can charge a `soul-cost` per activation, and the `REMOVE_SOULS` effect can debit a
-balance directly. Either way, the player must be in soul mode with enough souls banked, or the
-spend is a no-op and the enchant simply doesn't fire.
+balance directly. Spending does **not** draw on one nominated gem — it draws on a cross-gem **soul
+pool**:
+
+- **The balance is the sum.** While soul mode is on, the spendable total is every carried gem's
+  souls added together. Ten gems of 5 souls spend exactly like one gem of 50.
+- **Spends are all-or-nothing.** If the pool can't cover the full cost, nothing is debited and the
+  enchant simply doesn't fire — there is no partial spend.
+- **Gems drain least-full-first.** Once a cost is charged, it comes out of the emptiest gems first,
+  which tidies small gems away instead of nibbling every gem at once.
+
+The player must still be in soul mode for any of this to happen; out of soul mode, a `soul-cost`
+enchant is a no-op.
 
 ## Related concepts
 

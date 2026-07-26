@@ -13,7 +13,10 @@ slots, and players can buy more with a **slot-expander orb**.
 - **Base slots.** Every item starts with `slots.base` enchant slots (default **9**), set in
   `config.yml`.
 - **Expanding.** A slot-expander orb adds `+orb-amount` slots when dragged onto gear (default **+3**
-  per orb).
+  per orb). The orb's `applies-to` is `[ARMOR, WEAPON, TOOL]`.
+- **An apply roll.** Each minted orb carries a success percentage rolled from the `min-success` and
+  `max-success` range in the slot-orb item file (default **100/100**, so it always works). A failed
+  roll consumes the orb and adds no slots — it never harms the gear.
 - **The hard cap.** An item can never exceed a universal ceiling on *total* slots (base + purchased),
   set by `hard-cap` in the slot-orb item file (default **15**).
 
@@ -28,7 +31,7 @@ added. This gives you a natural lever on how heavily-enchanted gear can get.
 ## Related concepts
 
 - **[Enchants](./enchants.mdx)** — what fills the slots.
-- **[Slot orbs (item)](../items/index.mdx)** — minting and giving expanders.
+- **[Slot orbs (item)](../items/slot-orbs.mdx)** — minting and giving expanders.
 
 Base slots are tuned in [config.yml](../configuring/index.mdx); the orb's `+N` and `hard-cap` live
 in the slot-orb item file.

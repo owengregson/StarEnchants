@@ -43,7 +43,7 @@ function HomepageHeader() {
           </Link>
         </div>
         <div className={styles.badges}>
-          <span className={styles.badge}>✦ 51 effects</span>
+          <span className={styles.badge}>✦ 88 effects</span>
           <span className={styles.badge}>✦ Armor sets &amp; crystals</span>
           <span className={styles.badge}>✦ Souls economy</span>
           <span className={styles.badge}>✦ Paper 1.8, 1.17.1-26.1.2</span>
@@ -65,9 +65,10 @@ function WhatIs() {
           <p>
             StarEnchants adds custom enchantments and armor sets to modern
             Minecraft. Enchants,
-            set bonuses, Heroic upgrades, and socketable crystals all feed{' '}
+            set bonuses, Heroic upgrades, socketable crystals, masks, pets, and
+            weapon reforges all feed{' '}
             <strong>one effect engine</strong>, so every feature shares the same
-            triggers, selectors, conditions, and 40+ live variables.
+            triggers, selectors, conditions, and 49 live variables.
           </p>
           <p>
             Everything is plain YAML — define an enchant in one file, edit it,

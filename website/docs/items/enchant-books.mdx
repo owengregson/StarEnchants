@@ -17,23 +17,34 @@ level, and success chance filled in.
 ```yaml
 type: enchant-book
 material: ENCHANTED_BOOK
-name: "{ENCHANT} &7Book"
+# Bold, tier-coloured "<Name> <Level>". (Colour first, then &l, so the bold actually sticks.)
+name: "{TIER_COLOR}&l{ENCHANT} {LEVEL}"
 lore:
-  - "&7Drag onto a held/worn item to apply &fLevel {LEVEL}&7."
-# Extra line(s) shown only when the book carries an explicit success chance.
-success-lore:
-  - "&7Success chance: &f{SUCCESS}%"
+  - "&a{SUCCESS}% Success Rate"
+  - "&c{FAILURE}% Failure Rate"
+  - ""
+  - "{TIER_COLOR}{DESCRIPTION}"
+  - ""
+  - "&7{KINDS} Enchantment"
+  - "&7Drag n' Drop on an item to apply."
+# The success/failure rate lives in the main lore above, so success-lore is empty by default. Lines here
+# are appended only to a book minted with an explicit success chance (the unopened/randomized book).
+success-lore: []
 # When a sub-100% book FAILS its apply roll, destroy the gear — unless a White Scroll guards it.
 destroy-on-fail: true
 ```
 
-Placeholders, filled in when a concrete book is minted:
+Placeholders, filled in when a concrete book is minted — usable in both `name` and `lore`:
 
 | Token | Renders |
 | --- | --- |
 | `{ENCHANT}` | the enchant's display name |
-| `{LEVEL}` | the level the book grants |
-| `{SUCCESS}` | the apply success chance (only in `success-lore`, when the book has an explicit chance) |
+| `{LEVEL}` | the granted level (Roman or Arabic per `lore.roman` in `config.yml`) |
+| `{TIER_COLOR}` | the enchant's rarity-tier colour code, from `tiers.yml` |
+| `{SUCCESS}` | the apply success chance (a guaranteed book shows `100`) |
+| `{FAILURE}` | `100 - {SUCCESS}` |
+| `{KINDS}` | the applies-to kinds, grammatically joined (e.g. `Sword & Axe`) |
+| `{DESCRIPTION}` | the enchant's description, word-wrapped to `lore.item-wrap` — one lore line per wrapped line |
 
 :::warning `destroy-on-fail`
 A book below 100% success can **fail** its apply roll. When it does, `destroy-on-fail: true` shatters
@@ -58,21 +69,43 @@ min-success: 25                # the revealed book's success rolls uniformly in 
 max-success: 100
 ```
 
-`{TIER}` renders the scoped [tier](../concepts/rarity-tiers.mdx); the revealed book carries the rolled
-enchant/level/percent.
+The mystery book's own name/lore take three tokens, substituted at mint:
+
+| Token | Renders |
+| --- | --- |
+| `{TIER}` | the raw [tier](../concepts/rarity-tiers.mdx) key, lowercase (e.g. `legendary`) |
+| `{TIER_NAME}` | the tier key with its first letter capitalized (e.g. `Legendary`) |
+| `{TIER_COLOR}` | the tier's colour code from `tiers.yml` (e.g. `&6`) |
+
+The revealed book carries the rolled enchant/level/percent, which name it in the reveal message
+(`lang.yml`) rather than here.
+
+## The global success ceiling
+
+`books.max-success` in [config.yml](../configuring/index.mdx) (default `100`) is the maximum success
+rate a book may reach through **randomness or economy items** — the unopened book's roll, a
+[Randomizer Scroll](./scrolls.mdx#randomizer-scroll) reroll, the [Black Scroll](./scrolls.mdx#black-scroll)'s
+conversion roll, and [Success Dust](./success-dust.mdx) (a dust that would push a book past the ceiling
+snaps to it). It does **not** touch admin mints — a guaranteed `/se book` or an explicit
+`/se give book <player> <enchant> <level> <success>` overrides it.
 
 ## Minting & giving
 
 ```text
-/se book <enchant> [level] [success]      # mint a book to yourself
+/se book <enchant> [level]                # mint a guaranteed (100%) book to yourself
 /se give book <player> <enchant> [level] [success]
 /se give book <player> random <tier>      # a concrete random book from that tier
 /se unopened <tier>                       # mint a tier mystery book to yourself
 /se give unopened <player> <tier>
 ```
 
+The self-mint takes **no** success argument — it always mints a guaranteed book. Only the `give` form
+accepts an explicit success percent.
+
 :::tip Combine, dust, and reroll
 A book's success chance can be raised with [Success Dust](./success-dust.mdx) and rerolled with a
-[Randomizer Scroll](./scrolls.mdx#randomizer-scroll). Two books of the same enchant can be combined to
-climb levels (subject to [slots](../concepts/slots.mdx)).
+[Randomizer Scroll](./scrolls.mdx#randomizer-scroll). Two books fuse into one of the *next* level at the
+Alchemist bench when they are the **same enchant**, at the **same level**, and that level is **below the
+enchant's max** — [slots](../concepts/slots.mdx) don't gate the combine. The upgrade inherits the better
+of the two inputs' success, clamped to `books.max-success`.
 :::

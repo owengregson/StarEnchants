@@ -12,27 +12,49 @@ levels and is applied from a book, a crystal is a single flat power — *Ember C
 enemy you strike* — that you drag straight onto an item.
 
 A crystal is essentially a one-shot enchant frozen at a single level: it has a trigger, an
-applies-to, a chance, and an effects list, plus its own item likeness (material, name, lore) so the
-physical crystal explains itself.
+applies-to, a chance, and an effects list.
+
+## A crystal has no likeness of its own
+
+Every minted crystal — single or merged — wears the **one global crystal likeness** in
+`items/crystal.yml`. A crystal *definition* declares no material, name, or lore; it only describes
+what the crystal is and does. Its root keys are `display`, `description`, `tier`, `applies-to`,
+`stackable`, and `abilities` — plus, for a single-bonus crystal, the shorthand `trigger`, `group`,
+`chance`, `cooldown`, `soul-cost`, `condition`, and `effects` written straight at the top level.
+
+`abilities:` is a list, so one crystal can hold several independent bonuses across different
+triggers. The shared likeness renders each crystal's own name and description into that one item
+template, so the physical crystal still explains itself.
 
 ## Sockets, merging, and stacking
 
-- **Sockets.** Each item has a number of crystal sockets, set by `crystals.slots` in `config.yml`
+- **Sockets.** Each item has a number of crystal entries, set by `crystals.slots` in `config.yml`
   (default **1**). Crystal sockets are a *separate ledger* from enchant slots.
-- **Merging.** Drag one crystal onto another to **merge** them into a single multi-crystal — two
-  effects occupying one socket. A merged crystal's lore is each component's own lore, concatenated.
-- **A hard ceiling.** `crystals.max-stack` (default **16**) is an absolute cap on how many crystals
-  one item may ever hold, distinct from the visible socket count.
+- **Merging.** Drag one crystal onto another to **merge** them into a single multi-crystal — several
+  effects occupying one entry. A merged crystal renders as a "Multi-Crystal", reading each
+  component's name and description.
+- **A merge ceiling.** `crystals.max-merge` (default **2**) is how many crystals may merge into one
+  multi-crystal, and so into one gear entry. At the default, a crystal may hold at most two combined
+  effects.
+- **Stackable or not.** A crystal declares `stackable` (default **true**). A **non-stackable**
+  crystal applies its bonus **once**, no matter how many copies the player is wearing or how many
+  have been merged together — useful for a bonus that should never double up.
 
 ## Applying and removing
 
-Players apply a crystal by dragging it onto gear; the apply rolls a `success-chance`, and a failed
-apply may consume the crystal (`consume-on-fail`). A **crystal extractor** pops the last crystal
-back off a socketed item. See [Crystals (item)](../items/crystals.mdx) for the economy details.
+Players apply a crystal by dragging it onto gear. **Applying always succeeds** — there is no success
+roll and nothing is ever consumed on failure.
+
+Removal is the **Item Extractor**. Dragged onto gear it pops off a **weapon reforge** first if the
+gear carries one; otherwise it pops the **whole last crystal entry intact**. A merged multi-crystal
+comes back as a single multi-crystal — splitting it is a second gesture, applying the extractor to
+the popped crystal itself. See [Crystals (item)](../items/crystals.mdx) for the economy details.
 
 ## Related concepts
 
 - **[Enchants](./enchants.mdx)** — leveled powers from books.
 - **[Slots](./slots.mdx)** — the separate enchant-slot ledger.
+- **[Weapon reforges](../items/reforges.mdx)** — the weapon-socket sibling, popped by the same
+  Item Extractor.
 
 To build one, see **[Defining a crystal](../configuring/index.mdx)**.
