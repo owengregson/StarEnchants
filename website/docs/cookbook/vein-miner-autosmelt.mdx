@@ -55,6 +55,14 @@ levels:
 the break is gated to places the player could build — see [integrations](../integrations/index.mdx).
 :::
 
+:::warning Player-placed blocks award nothing
+`mining.placed-block-guard: true` in `config.yml` (the default) suppresses the **whole** `MINE`
+dispatch on a block a player placed since the last server start, so a place/break loop can't farm
+mining rewards — no XP, no money, no auto-smelt, no teleported drops. Placement memory is
+boot-lifetime only: a restart forgets prior placements. Set it to `false` to reward every break, the
+old behaviour.
+:::
+
 ## Variations
 
 - **Tunnel ahead** instead of following a vein, with `@Tunnel{depth=N}`, or carve a face with

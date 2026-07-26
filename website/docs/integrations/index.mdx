@@ -27,8 +27,12 @@ integrations:
 ```
 
 `named.<id>: false` disables one integration; an unlisted id is enabled. Valid ids: `worldguard`,
-`towny`, `lands`, `superiorskyblock`, `factions`, `vault`, `placeholderapi`, `mental`, `nocheatplus`,
-`grim`, `vulcan`, `matrix`, `spartan`, `mcmmo`, `mythicmobs`, `itemsadder`, `oraxen`.
+`towny`, `lands`, `superiorskyblock`, `factions`, `vault`, `placeholderapi`, `mental`,
+`mental-combo-sync`, `nocheatplus`, `grim`, `vulcan`, `matrix`, `spartan`, `mcmmo`, `mythicmobs`,
+`itemsadder`, `oraxen`.
+
+`mental-combo-sync` is the finer-grained of the two Mental ids: turning it off keeps the knockback
+coordination but stops combo-DoT parking. `mental: false` disables **both** Mental bridges at once.
 
 :::warning Integration discovery is boot-time
 The `integrations` block is read **once at server start**. Toggling an integration takes effect on the
@@ -74,7 +78,7 @@ used when Vault is absent.
 
 | Plugin | Role |
 | --- | --- |
-| **Mental** | coordinates engine-applied knockback (`KNOCKBACK_CONTROL`) with the Mental knockback plugin |
+| **Mental** | two bridges — engine-applied knockback (`KNOCKBACK_CONTROL`) is coordinated with the Mental knockback plugin, and StarEnchants damage-over-time is **combo-synced**: while Mental holds an active combo on the victim, DoT ticks bank instead of landing on their own clock and are paid out with the combo's own hits, with any remainder paid when the combo ends |
 | **GrimAC** · **NoCheatPlus** | engine-applied motion is reconciled with the anticheat |
 | **mcMMO** | party friendly-fire awareness |
 

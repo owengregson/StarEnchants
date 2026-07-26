@@ -22,9 +22,20 @@ failed enchant apply spares the item instead of shattering it.
 type: white-scroll
 material: PAPER
 name: "&fWhite Scroll"
+# {KINDS} expands to the grammatically-joined applies-to label.
 lore:
   - "&7Protects an item — a failed"
   - "&7enchant will spare it once."
+  - ""
+  - "&eApplies to: &r&f&n{KINDS}"
+# Item-group kinds this scroll may protect: e.g. ARMOR, WEAPON, TOOL, ALL (any item).
+applies-to: [ARMOR, WEAPON, TOOL]
+# Each minted scroll rolls an apply-success % in [min-success, max-success]. On a failed roll the scroll
+# is consumed WITHOUT protecting (it never destroys the gear). 100/100 = always succeeds (the default).
+min-success: 100
+max-success: 100
+# Stamped onto guarded gear, rendered from state, removed when the guard is spent.
+protected-line: "&f&lPROTECTED"
 ```
 
 :::note Only matters with `destroy-on-fail`
@@ -36,65 +47,104 @@ If `destroy-on-fail` is `false`, it has nothing to guard against.
 
 `items/holy-white-scroll.yml` · `type: holy-white-scroll`
 
-Carry it (inventory or off-hand) and, on death, with a save-chance roll it **keeps your items and
-levels** — consumed on the saved death. It respects an existing `keepInventory` gamerule (then it is
-neither needed nor spent).
+Drag it onto **one piece of gear** to stamp a one-shot keep-on-death marker on *that item*. When you
+die, the marked item is kept — with its enchants and their levels intact on it — while the rest of your
+inventory drops as normal, and the marker is consumed. Marked items aren't exclusive: a holy white
+scroll may sit alongside a white scroll and any trak gems.
 
 ```yaml
 type: holy-white-scroll
 material: TOTEM_OF_UNDYING
 name: "&fHoly White Scroll"
+# {KINDS} expands to the grammatically-joined applies-to label.
 lore:
-  - "&7Keep your items if you die"
-  - "&7while carrying this (one use)."
-save-chance: 100               # 0–100; 100 = always saves while carried
+  - "&7Drag onto an item to keep"
+  - "&7it when you die (one use)."
+  - ""
+  - "&eApplies to: &r&f&n{KINDS}"
+# Item-group kinds this scroll may protect: ALL (any item) by default; e.g. ARMOR, WEAPON, TOOL.
+applies-to: [ALL]
+# Each apply rolls a success in [min-success, max-success]. On a failed roll the scroll is spent without
+# protecting (it never destroys gear). 100/100 = always succeeds (the default).
+min-success: 100
+max-success: 100
+# Stamped onto the holy-protected item while the keep marker is present; removed when it is consumed.
+protected-line: "&e&l*&f&lHOLY&e&l* &f&lPROTECTED"
 ```
 
-:::tip White vs. Holy White
-The **White Scroll** protects one item from *enchant destruction*. The **Holy White Scroll** keeps
-*all* your items on *death*. They are different items for different problems.
+:::note The totem look is cosmetic
+`TOTEM_OF_UNDYING` is **display only** — the vanilla totem pop is suppressed, so the scroll keeps one
+marked item through death rather than preventing the death. The shipped cosmic pack overrides the
+material to `MAP`. On 1.8.9 there is no totem item or pop to suppress.
+:::
+
+:::tip Three different "keeps"
+The **White Scroll** protects one item from *enchant destruction*. The **Holy White Scroll** keeps *one
+marked item* on *death*. Keeping your **whole inventory** is the separate `KEEP_ON_DEATH` enchant — not
+this scroll.
 :::
 
 ## Black Scroll
 
 `items/black-scroll.yml` · `type: black-scroll`
 
-Drag onto enchanted gear to **extract one random enchant into a book**, rolling `success-chance`. On
-failure the scroll is spent and nothing is extracted.
+Drag onto enchanted gear to **extract one random enchant into a book**. The extraction *always*
+succeeds — what varies is the drawn book's **conversion rate**, rolled in `[min-convert, max-convert]`
+when the scroll is minted, clamped to the global
+[`books.max-success`](./enchant-books.mdx#the-global-success-ceiling) ceiling, and stamped on the
+scroll.
 
 ```yaml
 type: black-scroll
 material: INK_SAC
 name: "&8Black Scroll"
+# {KINDS} expands to the grammatically-joined applies-to label.
 lore:
   - "&7Drag onto enchanted gear to"
   - "&7extract one enchant into a book."
-success-chance: 80             # 0–100; on a miss the scroll is consumed, nothing extracted
+  - ""
+  - "&eApplies to: &r&f&n{KINDS}"
+# Item-group kinds this scroll may extract from: e.g. ARMOR, WEAPON, TOOL, ALL (any item).
+applies-to: [ARMOR, WEAPON, TOOL]
+# The drawn book's success rate rolls in [min-convert, max-convert] (each 0–100) at mint, then clamps
+# to config.yml books.max-success. {SUCCESS} = that rate, {FAILURE} = its complement.
+min-convert: 50
+max-convert: 100
 ```
+
+`/se give blackscroll <player> <percent>` mints one at a **fixed** conversion rate instead of a rolled
+one.
 
 ## Transmog Scroll
 
 `items/transmog-scroll.yml` · `type: transmog-scroll`
 
-Drag onto enchanted gear to **reorder its enchant lore** (cosmetic only — combat is order-independent)
-and append a suffix to the item name.
+Drag onto enchanted gear to **sort its enchant lore by rarity** — highest tier first (cosmetic only;
+combat is order-independent) — and stamp the item's **enchant count** into its name. Real Minecraft
+enchants are rendered above the lore by the client, so they sit above the custom block.
 
 ```yaml
 type: transmog-scroll
-material: PURPLE_DYE
-name: "&5Transmog Scroll"
+material: PAPER
+name: "&c&lTransmog Scroll"
+# Authored lore lines auto-wrap at config lore.item-wrap.
 lore:
-  - "&7Drag onto enchanted gear to"
-  - "&7reorder its enchant display."
-name-suffix: " &8(Transmogged)"   # appended to the name (only if it already has a custom name)
+  - "&eOrganizes enchants by &f&nrarity&r&e on your item and adds the &denchant &bcount &eto the name."
+  - "&7Drag n' Drop on an item to apply."
+# Appended to the gear's display name when transmogged; {COUNT} = the item's total enchant count.
+name-suffix: "&r &d[&b&l&n{COUNT}&r&d]"
 ```
+
+It is **re-applicable**: a second apply re-sorts the lore and *replaces* the count suffix rather than
+stacking a second one, so the count never duplicates. For a hand-picked order instead of the rarity
+sort, use the Godly Transmog tool below.
 
 ## Godly Transmog
 
 `items/godly-transmog.yml` · `type: godly-transmog`
 
 A **reusable tool** (not a one-shot scroll): drag onto enchanted gear to open a GUI where you arrange
-the enchant display order *by hand*. Where the Transmog Scroll shuffles randomly, this lets you pick.
+the enchant display order *by hand*. Where the Transmog Scroll sorts by rarity, this lets you pick.
 
 ```yaml
 type: godly-transmog
@@ -128,7 +178,7 @@ max-percent: 100
 ```text
 /se whitescroll        /se give whitescroll <player>
 /se holy               /se give holy <player>
-/se blackscroll        /se give blackscroll <player>
+/se blackscroll        /se give blackscroll <player> [percent]
 /se transmog           /se give transmog <player>
 /se godlytransmog      /se give godlytransmog <player>
 /se randomizer         /se give randomizer <player>

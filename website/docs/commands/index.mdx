@@ -3,16 +3,17 @@ id: index
 slug: /commands
 title: Commands & permissions
 sidebar_position: 0
-description: The full /se command surface and the permission node that guards it.
+description: The full /se command surface, the player-facing menu commands, and the permission nodes that guard them.
 ---
 
 import CommandsTable from '@site/src/components/surface/CommandsTable';
 
 # Commands & permissions
 
-Everything lives under one root command — **`/se`** (alias **`/star`**). Tab-completion guides every
+Operator work lives under one root command — **`/se`** (alias **`/star`**). Tab-completion guides every
 argument, so you can explore the surface in-game by pressing Tab after `/se`, or run **`/se help`** for the
-same list in chat.
+same list in chat. Players never touch `/se`: they get their own short commands, one per bench or browser —
+see [Player commands](#player-commands).
 
 ## Every command
 
@@ -22,16 +23,44 @@ it is always complete and never drifts from the in-game `/se help`:
 
 <CommandsTable/>
 
+## Player commands
+
+Nine short commands open one bench or browser directly, so a player never needs the admin surface. Each is
+gated by **`starenchants.use`** (default: **true**):
+
+| Command | Opens |
+| --- | --- |
+| `/enchants`, `/enchanter` | the **Enchanter** bench — buy a mystery book of a tier for XP levels; the white and black scroll tiles live here too |
+| `/alchemist` | combine two identical books into one of the next level |
+| `/tinkerer` | trade books back for XP |
+| `/sets` | the armour-set browser |
+| `/crystals` | the crystal browser |
+| `/catalogue` | the **Enchant Codex** — the read-only enchant catalogue |
+| `/pets` | the pet browser |
+| `/masks` | the mask browser |
+
+The browsers are read-only for players; an operator opening the same browser can mint from it.
+
+Two more commands are player-facing:
+
+- **`/cast`** — the [`COMMAND` trigger](/docs/reference/triggers) command (name set by
+  `command-trigger.name` in `config.yml`), registered at boot so every player can invoke their own
+  COMMAND-trigger enchants.
+- **`/splitsouls <amount>`** — splits souls off your active soul gem into a new gem. Player-only, and it
+  requires no permission.
+
+A weapon reforge needs no command at all: hold the reforged weapon and **shift + right-click** to fire its
+signature ability.
+
 ## Permissions
 
-:::warning One node gates everything
-`/se` is gated by **`starenchants.admin`** (default: **op**). Individual in-game GUIs can declare
-their own permission node, but the command surface as a whole is admin-only.
+:::warning Two nodes, two surfaces
+`/se` is gated by **`starenchants.admin`** (default: **op**) — the whole admin surface, nothing else.
+The player menu commands above are *not* under `/se`; they carry **`starenchants.use`**
+(default: **true**). Individual in-game GUIs can declare their own permission node on top.
 :::
 
-The player-facing `/cast` command (the [`COMMAND` trigger](/docs/reference/triggers), name set by
-`command-trigger.name` in `config.yml`) is *not* gated by `starenchants.admin` — it is meant for every
-player to invoke their own COMMAND-trigger enchants.
+`/cast` and `/splitsouls` are gated by neither node — they are meant for every player.
 
 ## Reloading
 
@@ -47,11 +76,23 @@ swapping. Warnings never block the swap, so a reload that loaded but degraded st
 levels, slot accounting, applied crystals, set membership, heroic stats, and which versioned `se:*` PDC keys
 it carries. Useful when an item misbehaves and you want to see exactly what it stores.
 
+## When something does not fire
+
+`/se why <player> [key]` replays that player's recent activation attempts and names the gate that stopped
+each one, so "my enchant does nothing" becomes a specific answer — wrong trigger, cooldown, suppression,
+missing slot. `/se damagedebug` toggles a per-hit readout of how a hit's damage was folded together, which
+is the honest way to calibrate numbers against real combat. `/se modules` prints the module fold — which
+feature modules loaded and what each one registered.
+
 ## Menus
 
-`/se menu [name]` opens an in-game GUI. Available menus include `enchanter`, `alchemist`, `tinkerer`,
-`transmog`, `apply`, and the browsers `enchants`, `sets`, `crystals`, and `reference` (the live DSL
-reference). Layouts are operator-tweakable under `menus/` (see [configuring](../configuring/index.mdx)).
+`/se menu [name]` opens an in-game GUI — with no name it opens the operator console. Available menus include
+`enchanter`, `alchemist`, `tinkerer`, `transmog`, `apply`, and the browsers `enchants`, `sets`, `crystals`,
+`masks`, `pets`, `reforges`, and `reference` (the live DSL reference). The player hub survives at
+`/se menu hub`, with tiles for the Pets, Masks, and Weapon Reforges browsers among the rest. Layouts are
+operator-tweakable under `menus/` — now including `masks.yml`, `pets.yml`, and `reforges.yml` (see
+[configuring](../configuring/index.mdx)). Operators can mint straight from a browser, or skip the GUI
+entirely: `/se reforge <key>` mints a weapon reforge to yourself.
 
 ## Config packs
 

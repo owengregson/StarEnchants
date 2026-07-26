@@ -20,10 +20,11 @@ const FeatureList: FeatureItem[] = [
     to: '/docs/reference/effects',
     description: (
       <>
-        Enchantments, armor-set bonuses, and crystals all feed <em>one</em>{' '}
-        engine — <strong>51 effects</strong>, <strong>21 triggers</strong>,{' '}
-        <strong>17 selectors</strong>, and a conditions DSL over{' '}
-        <strong>40 live variables</strong>.
+        Enchantments, armor-set bonuses, crystals, masks, pets, and weapon
+        reforges all feed <em>one</em>{' '}
+        engine — <strong>88 effects</strong>, <strong>25 triggers</strong>,{' '}
+        <strong>18 selectors</strong>, and a conditions DSL over{' '}
+        <strong>49 live variables</strong>.
       </>
     ),
   },

@@ -22,15 +22,25 @@ different triggers and effects.
 When a triggering event happens (you swing a sword, you take a hit, you break a block), StarEnchants
 runs the enchant through a short sequence of gates:
 
-1. **Trigger match** — does this event match the enchant's `trigger`, and is the enchant on the
+1. **Disabled worlds** — is the enchant switched off in the world the event happened in?
+2. **Protection** — do the region/build rules here allow it to fire at all?
+3. **Trigger match** — does this event match the enchant's `trigger`, and is the enchant on the
    right kind of item (`applies-to`)?
-2. **Condition** — an optional boolean test (e.g. *only when the victim is below 6 health*). If it
+4. **Level** — is the enchant at a level that can fire?
+5. **Suppression** — has something silenced this enchant, its group, its type, or one of its effect
+   kinds? (See [Groups](./groups.mdx).)
+6. **Cooldown** — if the enchant just fired, it may be on cooldown and skip this one. The cooldown
+   is *reserved* here, and released again if any gate below fails — so a sub-100% enchant on a
+   cooldown still gets to roll on every swing.
+7. **Condition** — an optional boolean test (e.g. *only when the victim is below 6 health*). If it
    fails, the enchant does nothing.
-3. **Chance** — a percentage roll. A 25% enchant fires roughly one swing in four.
-4. **Cooldown** — if the enchant just fired, it may be on cooldown and skip this one.
-5. **Souls** — if the enchant costs souls, the player must have them banked in an active soul gem.
-6. **Effects** — the list of actions finally runs: deal damage, heal, ignite, apply a potion, play
-   a particle, send a message, and so on.
+8. **Chance** — a percentage roll. A 25% enchant fires roughly one swing in four.
+9. **Souls** — if the enchant costs souls, the player must be in soul mode with enough banked.
+10. **Effects** — the list of actions finally runs: deal damage, heal, ignite, apply a potion, play
+    a particle, send a message, and so on.
+
+The order matters: cooldown is checked *before* condition and chance, but because a failed condition
+or chance roll releases the reservation, only a real activation actually spends it.
 
 Each of those gates is optional except the trigger and the effects. A simple enchant is just a
 trigger, a chance, and one effect.
@@ -51,9 +61,12 @@ them through the item economy — most often by applying an **enchant book** (se
 ## Related concepts
 
 - **[Rarity tiers](./rarity-tiers.mdx)** — the color/glint/sort metadata an enchant carries.
-- **[Groups](./groups.mdx)** — shared cooldown and suppression buckets.
+- **[Groups](./groups.mdx)** — the suppression buckets an enchant belongs to.
 - **[Crystals](./crystals.mdx)** and **[armor sets](./armor-sets.mdx)** — other sources that feed
   the same engine.
+- **[Masks](../items/masks.mdx)**, **[pets](../items/pets.mdx)**, **[weapon
+  reforges](../items/reforges.mdx)** and **[use-items](../items/use-items.mdx)** — further sources
+  that feed this exact same pipeline, gate for gate.
 
 Ready to write one? See **[Configuring an enchant](../configuring/index.mdx)** for the full,
 annotated schema, or open the [Enchant Creator](/creator) to build one visually.

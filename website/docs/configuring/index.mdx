@@ -24,7 +24,11 @@ content/       the content library
   ├─ tiers.yml      rarity tiers (color · weight · glint)
   ├─ enchants/      one file per enchant
   ├─ crystals/      one file per socketable crystal
-  └─ sets/          one file per armor set
+  ├─ sets/          one file per armor set
+  ├─ masks/         one file per wearable mask (helmet-slot cosmetic with a bonus)
+  ├─ pets/          one file per levelling companion head
+  ├─ use-items/     one file per right-click use-item
+  └─ reforges/      one file per weapon reforge (shipped in the cosmic pack)
 items/         one file per physical item — books · scrolls · dust · soul gem · orb · nametag · …
 menus/         in-game GUI layout overrides
 packs/         saved config-pack snapshots (/se pack)
@@ -43,6 +47,10 @@ The rest of this section:
 - [An annotated enchant](#an-annotated-enchant) — every field of a real enchant, explained.
 - [Defining a set](#defining-a-set) — pieces, completion, the matched weapon.
 - [Defining a crystal](#defining-a-crystal) — a levelless socket bonus.
+- [Defining a use-item](#defining-a-use-item) — a right-click item that *is* the ability.
+- [Defining a mask](#defining-a-mask) — a worn head with a bonus.
+- [Defining a pet](#defining-a-pet) — a levelling companion with level brackets.
+- [Defining a reforge](#defining-a-reforge) — a weapon's shift-right-click active.
 - [Customizing items](#customizing-items) — the physical item files.
 - [Reloading](#reloading) — `/se reload [--dry-run]`.
 
@@ -54,16 +62,49 @@ For the exhaustive catalog of effect/trigger/selector/condition tokens, see the
 `config.yml` holds the settings that aren't a single item's look and aren't player-facing text: the
 master feature switches, combat caps, and tuning for souls/crystals/heroic/slots/lore/integrations.
 Most values are re-read live on the next use, so a `/se reload` re-tunes them without a restart (the
-exceptions — integration discovery, the auto-reload interval, the command trigger, and the
-slots/souls/scrolls *listeners* — are armed once at boot and noted below).
+exceptions — integration discovery, the auto-reload interval, the command trigger, the two `engine`
+sweep intervals, and the slots/souls/scrolls *listeners* — are armed once at boot and noted below).
 
 <ConfigBlock/>
 
 :::warning Boot-time vs. live
-`integrations`, `reload.auto-seconds`, `command-trigger`, and the `slots`/`souls`/`scrolls` feature
-switches are armed **once at server start**. Changing those takes effect on the next restart, not on
-`/se reload`. Everything else re-reads live.
+`integrations`, `reload.auto-seconds`, `command-trigger`, `engine.offline-state-sweep-ticks`,
+`engine.temp-block-sweep-ticks`, and the `slots`/`souls`/`scrolls` feature switches are armed **once at
+server start**. Changing those takes effect on the next restart, not on `/se reload`. Everything else
+re-reads live.
 :::
+
+### Sections worth a closer look
+
+Most of the file is self-explanatory from its comments. These few are worth calling out:
+
+- **`stations`** — vanilla-station guards on plugin **set gear**. Set pieces and set weapons carry
+  their whole plugin identity in item NBT, which vanilla stations copy wholesale, so an unguarded
+  station would bolt off-design stats onto gear the pack balanced as diamond. `anvil-guard` denies
+  anvil combine/repair (a bare **rename** always stays allowed — it adds no stats), `grindstone-guard`
+  denies disenchant/merge, and `smithing-guard` denies the netherite upgrade. Set any to `false` to
+  restore that one station's vanilla behaviour. Grindstone and smithing exist only on modern servers;
+  on 1.8.9 only the anvil guard is meaningful.
+- **`mining.placed-block-guard`** — suppresses the **whole** `MINE` dispatch on a block a player placed
+  since the last server start, so a place/break loop can't farm mining rewards. Placement memory is
+  boot-lifetime only; a restart forgets prior placements. `false` rewards every break.
+- **`message-on-activate`** — a global chat line when an enchant fires, off by default. The two sides
+  toggle separately: `by-enabled` messages **you** (naming the victim), `on-enabled` messages the
+  **other party** (naming the attacker). Templates take `{ENCHANT}`, `{TIER_COLOR}`, `{VICTIM}`, and
+  `{ATTACKER}`; `uppercase` renders the enchant name in caps. A non-combat activation, having no other
+  party, sends nothing. A pack that opts in usually drops its per-enchant self-announce `MESSAGE`
+  effects to avoid doubling up.
+- **`apply-cues`** — the universal sound and particles played when an enchant **book** is applied to
+  gear: the `success` cue on a successful apply, the `fail` cue on any failure (whether the gear
+  shattered, a white scroll saved it, or it survived unharmed). Blank the sound or empty the particle
+  list for silence.
+- **`books.max-success`** — the ceiling (%) a book's success rate may reach through **randomised**
+  minting (unopened books, the randomizer scroll), the black scroll's conversion roll, or Magic Dust.
+  Dust that would push a book past it snaps to it instead. `100` is effectively no cap. Admin
+  overrides — `/se book`, the admin browser, an explicit `/se give book <success>` — ignore it.
+- **`crystals.max-merge`** — how many crystals may merge into one multi-crystal, and therefore into one
+  gear entry. The default `2` means a crystal holds at most two combined effects. This is separate
+  from `crystals.slots`, which is how many crystal entries an item has in the first place.
 
 ## An annotated enchant
 
@@ -108,6 +149,8 @@ levels:
 | `applies-to` | item kinds that can carry it (`SWORD`, `AXE`, `HELMET`, `PICKAXE`, `BOW`, `WEAPON`, …) |
 | `group` | shared cooldown / [suppression](./index.mdx) bucket |
 | `repeat` | period in ticks for a `REPEATING` enchant (e.g. `100` = pulse every 5s) |
+| `disabled-worlds` | a list of world names the enchant never fires in |
+| `suppress-immune` | `true` = this enchant can never be silenced (`DISABLE_ENCHANT`/`GROUP`/`TYPE`/`KIND` no-op against it), so a permanent buff survives while the wearer's other enchants are suppressed. Default `false` |
 | `requires` / `blacklist` / `removes-required` | apply-relationship rules between enchants |
 
 ### Per-level keys
@@ -154,9 +197,12 @@ condition: "%victim.health% < 6 && %onground%"
 condition: "%victim.helditem% contains \"SWORD\""
 ```
 
-A condition may also end in a **flow clause** — `: %stop%`, `: %force%`, `: %allow%`, or
-`: +15 %chance%` (nudge the activation roll). Without a clause it simply gates whether the enchant
-fires. See the full [conditions reference](/docs/reference/conditions).
+A condition may also end in a **flow clause** — `<test> : <outcome>` — whose outcome applies when the
+test is true. There are five: `: %continue%` (proceed to the chance roll as normal — the bare-gate
+pass), `: %stop%` (block this activation), `: %force%` (activate, skipping the chance roll),
+`: %allow%` (activate regardless of the roll), and `: +15 %chance%` (nudge the roll by signed
+percentage points). Without a clause it simply gates whether the enchant fires. See the full
+[conditions reference](/docs/reference/conditions).
 
 ### A richer level
 
@@ -193,15 +239,18 @@ See [Rarity tiers](../concepts/rarity-tiers.mdx) for the concept.
 
 ## Defining a set
 
-A set lives in `content/sets/`. It declares its pieces, a `complete` threshold, the bonus that fires
-once the full set is worn, and an optional matched weapon. From `content/sets/inferno.yml`:
+A set lives in `content/sets/`. `armor:` and `weapon:` describe the **look** — the pieces, their lore,
+the optional matched weapon — and a separate top-level `bonuses:` **list** describes the **behaviour**.
+Each entry names the side it belongs to with `on: armor` or `on: weapon`, then reads exactly like an
+enchant level: a trigger plus optional `chance` / `cooldown` / `condition` and its `effects`. You may
+declare as many entries per side as you like. From `content/sets/inferno.yml`:
 
 ```yaml
 display: "&cInferno"
 description: "Burn attackers and shrug off fire when the full set is worn."
-complete: 4                   # pieces needed for the bonus to activate
+complete: 4
 armor:
-  lore:                       # extra lore stamped on each piece
+  lore:
     - "&cInferno Set &7(4 pieces)"
     - "&7Wear the full set to burn attackers."
   pieces:
@@ -209,24 +258,32 @@ armor:
     chestplate: { material: DIAMOND_CHESTPLATE, name: "&cInferno Chestplate" }
     leggings:   { material: DIAMOND_LEGGINGS,   name: "&cInferno Leggings" }
     boots:      { material: DIAMOND_BOOTS,      name: "&cInferno Boots" }
-  trigger: DEFENSE            # the set bonus is a trigger + effects block, like an enchant
-  chance: 45
-  cooldown: 100
-  effects:
-    - { IGNITE: { duration: 80, who: "@Attacker" } }
-    - { POTION: { effect: FIRE_RESISTANCE, level: 1, duration: 100, who: "@Self" } }
-    - { PARTICLE: { particle: FLAME, count: 12 } }
-weapon:                       # optional — fires only while the full set is worn
+weapon:
   material: DIAMOND_SWORD
   name: "&cInferno Blade"
   lore:
     - "&cInferno Set Weapon"
     - "&7Wield with the full set to set foes alight."
-  trigger: ATTACK
-  chance: 60
-  effects:
-    - { IGNITE: { duration: 60, who: "@Victim" } }
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
+bonuses:
+  - on: armor
+    trigger: DEFENSE
+    chance: 45
+    cooldown: 100
+    effects:
+      - { IGNITE: { duration: 80, who: "@Attacker" } }
+      - { POTION: { effect: FIRE_RESISTANCE, level: 1, duration: 100, who: "@Self" } }
+      - { PARTICLE: { particle: FLAME, count: 12 } }
+  - on: weapon
+    trigger: ATTACK
+    chance: 60
+    effects:
+      - { IGNITE: { duration: 60, who: "@Victim" } }
 ```
+
+`complete` is how many armor pieces must be worn before *any* bonus is live. An `on: armor` entry
+fires once that threshold is met; an `on: weapon` entry additionally requires the matched weapon to be
+held, so a set can hand out a defensive aura and an offensive proc from the same file.
 
 :::note Sets have no `tier`
 Unlike enchants and crystals, an armor set carries no rarity tier. See
@@ -235,30 +292,164 @@ Unlike enchants and crystals, an armor set carries no rarity tier. See
 
 ## Defining a crystal
 
-A crystal lives in `content/crystals/`. It is a levelless trigger/effects block plus its own item
-likeness (material/name/lore) so the minted crystal explains itself. From
-`content/crystals/ember-crystal.yml`:
+A crystal lives in `content/crystals/`. It is a **levelless** bonus block. Unlike a set, it carries no
+item likeness of its own — every crystal is minted from the one global likeness in `items/crystal.yml`,
+so the def only declares its styled name, its description lines, and what it does. `display` is the
+crystal's own name (no "Crystal" suffix — the likeness supplies that), and `description` is a **list**
+of lore lines. From `content/crystals/ember-crystal.yml`:
 
 ```yaml
+display: "&6Ember"
+description:
+  - "&6&lEMBER CRYSTAL BONUS"
+  - "&6* 60% chance on hit to set your foe alight for 3 seconds."
 tier: uncommon
-display: "&6Ember Crystal"
-description: "Ignite the enemy you strike."
-material: BLAZE_POWDER         # the minted crystal item's look
-name: "&6Ember Crystal"
-lore:
-  - "&7Socket into a sword or axe."
-  - "&660%&7 chance on hit to set your"
-  - "&7foe alight for &63 seconds&7."
-trigger: ATTACK
 applies-to: [SWORD, AXE]
-chance: 60                     # no levels — one flat chance + effects
+trigger: ATTACK
+chance: 60
 effects:
   - { IGNITE: { duration: 60 } }
   - { PARTICLE: { particle: FLAME, count: 8 } }
 ```
 
-Two crystals can be **merged** into one paired socket. How many sockets an item has is set by
-`crystals.slots` in `config.yml`. See [Crystals](../concepts/crystals.mdx).
+That is the **single-ability shorthand** — one `trigger` + `effects` pair at the root. A crystal that
+needs more than one ability writes an `abilities:` list instead, each entry its own trigger + effects.
+Two more root keys are crystal-specific: `stackable` decides whether worn or merged copies of the same
+crystal each count (a non-stackable crystal is deduplicated per wearer). From the cosmic pack's
+`content/crystals/bolt.yml`:
+
+```yaml
+display: "{#5eb3f6}&lBolt"
+description:
+  - "{#5eb3f6}&lBOLT CRYSTAL BONUS"
+  - "{#5eb3f6}* Outgoing lightning strikes deal 10% more damage to all enemies"
+  - "{#5eb3f6}* Bolt Crystal is stackable"
+tier: rare
+applies-to: [ARMOR]
+stackable: true
+abilities:
+  - { trigger: PASSIVE, effects: [ { LIGHTNING_MOD: { amount: 10 } } ] }
+```
+
+Crystals can be **merged** into one gear entry — how many is capped by `crystals.max-merge`, and how
+many sockets an item has by `crystals.slots`, both in `config.yml`. A merged crystal renders as a
+"Multi Crystal". See [Crystals](../concepts/crystals.mdx).
+
+## Defining a use-item
+
+A use-item lives in `content/use-items/<key>.yml`, and the filename stem is the key the minted item
+stores. Its trigger is **implicit**: everything in the file fires on `USE` (a right-click), so you do
+not write a `trigger:` — one that is declared anyway is warned about and forced to `USE`.
+
+The shipped `content/use-items/rage-crystal.yml` doubles as the annotated template for the family:
+
+```yaml
+name: "&c&lRage Crystal&r &7(Right Click)&r"   # display name (colours inline); used verbatim + as {NAME} in messages
+material: RED_DYE                               # resolved cross-version at mint (degrades to REDSTONE on the 1.8 lane)
+consumable: true        # true = one item is consumed on a successful use; false = a reusable tool
+shiny: false            # true = the minted item carries an enchant glint
+lore:
+  - "&eConsume to gain a temporary strength buff, at the cost of movement speed."
+  - ""
+  - "&eCooldown: &f&n{TIME_FORMATTED}&r"       # {TIME_FORMATTED} in LORE renders the a0 cooldown below, h/m/s
+  - "&7Right Click while holding this item to apply."
+permission: ""          # optional Bukkit permission checked at use time; empty = everyone
+cooldown: 1200          # ticks (standard ability cooldown, gate 6) — 60s; also what {TIME_FORMATTED} shows
+chance: 100             # activation chance percent (gate 8)
+condition: ""           # optional condition DSL, same grammar as enchants; failing it renders {CONDITION} in the fail message
+effects:                # Strength II + Slowness I on self for 12s (240 ticks)
+  - { POTION: { effect: "INCREASE_DAMAGE", level: 2, duration: 240, who: "@Self" } }
+  - { POTION: { effect: "SLOW", level: 1, duration: 240, who: "@Self" } }
+commands: []            # strings (run as console) or { as: player|console, run: "..." }; {PLAYER}/{UUID}/{WORLD} substituted
+```
+
+That is the single-ability shorthand; a use-item that needs more than one ability writes an
+`abilities:` list instead, each entry taking `chance` / `cooldown` / `condition` / `effects`. A
+`commands:` entry is either a bare string (run as console) or a `{ as: player|console, run: "..." }`
+map, with `{PLAYER}`, `{UUID}`, and `{WORLD}` substituted for the user. `features.use-items` in
+`config.yml` is the live master switch — turn it off and a held use-item goes inert.
+
+For the minted item, the universal `use-item.*` lang keys, and the walkthrough, see
+[Use-items](../items/use-items.mdx).
+
+## Defining a mask
+
+A mask lives in `content/masks/<key>.yml`. It declares a `display` name, a `color`, the `head` texture
+(a base64 skin value), a `description` list, and its `abilities`. The mask **item's** likeness comes
+from the global `items/mask.yml`, so the def carries no material of its own. From
+`content/masks/blaze.yml`:
+
+```yaml
+display: "Blaze"
+color: "&6"
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjc4ZWYyZTRjZjJjNDFhMmQxNGJmZGU5Y2FmZjEwMjE5ZjViMWJmNWIzNWE0OWViNTFjNjQ2Nzg4MmNiNWYwIn19fQ=="
+description:
+  - "&6* Immune to fire and lava damage"
+abilities:
+  - { trigger: FIRE, effects: [ { CANCEL: {} } ] }
+```
+
+Unlike a use-item, every mask ability **must** declare its own `trigger:`. `features.masks` is the
+live master switch. See [Masks](../items/masks.mdx).
+
+## Defining a pet
+
+A pet lives in `content/pets/<key>.yml`. Alongside `display`, `color`, `type` (`ACTIVE` or `PASSIVE`),
+the `head` texture and the description lines, its abilities live under a **sparse** `levels:` map. Each
+key is a level **floor**, and the highest floor at or below the head's stored level is the live
+bracket — with floors `1`, `25`, `50`, and `100`, a level-30 pet runs the `25` bracket. A bracket sets
+`cooldown` and `duration` (the armed window, in ticks; `0` = no window) and lists its `abilities`.
+
+`content/pets/shield.yml` is the commented exemplar for the family:
+
+```yaml
+display: "Shield"
+color: "&7"
+type: ACTIVE
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTdhODgwMTEzN2JkMjc0YjFhNWU4YzZkYjRkYWJmMjcwN2EwYjlmMzUxYjdmYTFjYmU4Y2U3NDM2MjFjNTE0NiJ9fX0="
+description:
+  - "&7* Temporarily reduces all incoming damage"
+levels:
+  1:
+    cooldown: 1800
+    duration: 60
+    abilities:
+      - { effects: [ { SOUND: { sound: "BLOCK_ANVIL_PLACE", volume: 0.6, pitch: 1.6 } } ] }
+      - { trigger: DEFENSE, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } } ] }
+```
+
+On an `ACTIVE` pet an ability with no `trigger:` is the implicit right-click use; any other trigger is
+an **armed** ability, live only for `duration` ticks after a successful click. The pet head's likeness
+is `items/pet.yml`, the levelling and economy knobs are the `pets:` block in `config.yml`, and
+`features.pets` is the live master switch. See [Pets](../items/pets.mdx).
+
+## Defining a reforge
+
+A reforge lives in `content/reforges/<key>.yml` and drag-applies onto a weapon, where its signature
+ability fires on **shift + right-click**. It declares a `display`, a `color` (legacy `&` codes or a
+`{#RRGGBB}` hex token), an `icon` material for menus, a `description` list, and its `abilities`. From
+the cosmic pack's `content/reforges/blink.yml`:
+
+```yaml
+display: "Quantum Blink"
+color: "{#62baa2}"
+icon: ENDER_PEARL
+type: ACTIVE
+description:
+  - "{#62baa2}* Instantly teleport up to five blocks in the direction you are facing, but does not pass through walls"
+abilities:
+  - cooldown: 600
+    effects:
+      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 1.6 } }
+      - { SOUND: { sound: "BLOCK_AMETHYST_BLOCK_CHIME", volume: 0.5, pitch: 1.2 } }
+      - { BLINK: { distance: 5, particle: REDSTONE, r: 98, g: 186, b: 162, size: 1.0, count: 10 } }
+```
+
+What counts as a weapon is `reforges.weapon-groups` in `config.yml`, which defaults to
+`[SWORD, AXE]` and takes item-group tokens (`SWORD`, `AXE`, `TRIDENT`, `MACE`, or the `WEAPON`
+composite); tokens whose materials don't exist on the running server version are simply skipped.
+`features.reforges` is the live master switch. The default content tree ships no reforges — the
+shipped examples all live in the cosmic pack. See [Reforges](../items/reforges.mdx).
 
 ## Customizing items
 
