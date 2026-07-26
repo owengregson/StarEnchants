@@ -1,0 +1,105 @@
+---
+id: right-click-use-item
+title: Right-click use-item
+sidebar_position: 7
+description: A consumable that buffs you on right-click, on its own cooldown.
+---
+
+# Right-click use-item
+
+Not every ability has to live on gear. A **use-item** *is* the ability — you hold it, right-click, and
+it fires. This recipe builds a consumable rage crystal: right-click to trade movement speed for a
+burst of strength, then wait out a minute-long cooldown. It shows the **implicit `USE` trigger** and
+the use-item family's own fields.
+
+```yaml
+# content/use-items/rage-crystal.yml
+name: "&c&lRage Crystal&r &7(Right Click)&r"
+material: RED_DYE
+consumable: true
+shiny: false
+lore:
+  - "&eConsume to gain a temporary strength buff, at the cost of movement speed."
+  - ""
+  - "&eCooldown: &f&n{TIME_FORMATTED}&r"
+  - "&7Right Click while holding this item to apply."
+permission: ""
+cooldown: 1200
+chance: 100
+condition: ""
+effects:
+  - { POTION: { effect: "INCREASE_DAMAGE", level: 2, duration: 240, who: "@Self" } }
+  - { POTION: { effect: "SLOW", level: 1, duration: 240, who: "@Self" } }
+commands: []
+```
+
+## How it works
+
+- **No `trigger:` line.** A use-item's trigger is **implicit** — everything in the file fires on `USE`,
+  the right-click. Declaring a `trigger:` anyway isn't an error, but it is warned about and forced back
+  to `USE`, so leave it out.
+- **The filename is the key.** `content/use-items/rage-crystal.yml` mints an item that stores
+  `rage-crystal`. Renaming the file changes the identity.
+- **`name`** is the display name, colours inline. It is used verbatim on the item and as `{NAME}` in
+  the feedback messages.
+- **`material: RED_DYE`** is resolved cross-version at mint, so it degrades cleanly on the 1.8 lane
+  (to `REDSTONE`).
+- **`consumable: true`** removes one item on a *successful* use — a failed use (on cooldown, condition
+  unmet) costs nothing. Set it to `false` for a reusable tool that only ever spends its cooldown.
+- **`lore`** renders as written, and **`{TIME_FORMATTED}`** inside it prints the cooldown below in
+  h/m/s — so the lore stays honest when you retune `cooldown` without a second edit.
+- **`cooldown: 1200`** ticks is 60 seconds. It is the ordinary ability cooldown (gate 6), which is why
+  the same value drives `{TIME_FORMATTED}`.
+- **`chance: 100`** always fires, and an empty **`condition: ""`** gates nothing. Both are real gates
+  though — a use-item runs the same sequence as an enchant (suppression → cooldown → condition →
+  chance → souls), so it interacts with every other feature for free.
+- **The two `POTION` effects** land Strength II and Slowness I on the user for 240 ticks (12 seconds).
+  `INCREASE_DAMAGE` and `SLOW` are the legacy names for those two; the resolver's alias chain accepts
+  them and the modern `STRENGTH` / `SLOWNESS` interchangeably.
+- **`commands: []`** is empty here. An entry is either a bare string (run as console) or a
+  `{ as: player|console, run: "..." }` map, with `{PLAYER}`, `{UUID}`, and `{WORLD}` substituted.
+
+## Feedback is universal
+
+You don't author success, cooldown, or failure messages per use-item — three `use-item.*` keys in
+`lang.yml` cover the whole family:
+
+| Key | When |
+| --- | --- |
+| `use-item.success` | a successful use (empty by default, i.e. silent — the effects speak for themselves) |
+| `use-item.cooldown` | the item is still cooling down; renders `{TIME_FORMATTED}` |
+| `use-item.fail` | the use was refused (a `condition` or `permission` blocked it) |
+
+All three take `{NAME}`, and the fail line can also render `{CONDITION}`.
+
+## Test it
+
+```text
+/se reload
+/se give useitem <player> rage-crystal
+```
+
+Then right-click while holding it. You should get Strength II and Slowness I for 12 seconds, one
+crystal consumed, and the cooldown line if you click again inside the minute.
+
+## Variations
+
+- **A reusable tool** — drop `consumable: true` to `false` so the item survives and only the cooldown
+  limits it.
+- **Eat it instead of clicking it** — add `is-food: true` for a real eating animation on 1.20.5+ (it
+  degrades to a one-click use below that). It composes with `consumable`: `is-food` decides *how* you
+  trigger, `consumable` decides *whether* an item is removed.
+- **Gate it** — a `condition:` uses the same grammar as an enchant's, e.g.
+  `condition: "%actor.health% < 10"` for an emergency-only item.
+- **Run a command** — hand out a kit or a warp alongside the potions:
+
+  ```yaml
+  commands:
+    - { as: console, run: "give {PLAYER} golden_apple 1" }
+  ```
+
+- **More than one ability** — swap the single `trigger`/`chance`/`cooldown`/`condition`/`effects`
+  shorthand for an `abilities:` list, each entry carrying its own gates.
+
+See [Use-items](../items/use-items.mdx) for the minted item and
+[Configuring content](../configuring/index.mdx#defining-a-use-item) for the full field list.

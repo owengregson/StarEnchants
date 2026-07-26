@@ -30,6 +30,10 @@ data and render back into lore automatically.
 | [Slot orbs](./slot-orbs.mdx) | slot expander | add enchant slots |
 | [Nametags](./nametags.mdx) | item nametag | rename gear |
 | [Crystals](./crystals.mdx) | crystal, extractor | socket a levelless bonus |
+| [Masks](./masks.mdx) | mask | wear a re-skinning ability head on your helmet |
+| [Pets](./pets.mdx) | pet, pet food | a levelling companion head in your hotbar |
+| [Weapon reforges](./reforges.mdx) | weapon reforge | socket one signature active ability into a weapon |
+| [Use-items](./use-items.mdx) | use-item | a right-click consumable or tool |
 | Heroic upgrade | heroic | a one-shot power-up (see below) |
 
 ### Every item file
@@ -46,9 +50,12 @@ Two command families produce items:
 - **`/se <item>`** mints one **to yourself** — `/se book <enchant> [level]`, `/se gem [souls]`,
   `/se orb`, `/se heroic`, `/se dust [percent]`, `/se nametag`, `/se whitescroll`, `/se holy`,
   `/se blackscroll`, `/se randomizer`, `/se transmog`, `/se godlytransmog`, `/se crystal <key>`,
-  `/se unopened <tier>`.
+  `/se reforge <key>`, `/se unopened <tier>`.
 - **`/se give <type> <player> …`** gives one **to someone else** — books, scrolls, dust, gems, orbs,
-  crystals, extractors, sets, heroics, and unopened books.
+  crystals, extractors, sets, heroics, and unopened books, plus the content-carrying families:
+  `/se give mask <player> <key>`, `/se give pet <player> <key> [level]`,
+  `/se give petfood <player> [amount]`, `/se give reforge <player> <key>`, and
+  `/se give useitem <player> <key> [amount]`.
 
 See the [commands](../commands/index.mdx) page for the exact argument shapes.
 

@@ -1,0 +1,201 @@
+---
+id: pets
+title: Pets
+sidebar_position: 9
+description: Levelling companion heads that ride in your hotbar — passive auras and right-click actives.
+---
+
+# Pets
+
+A **pet** is a textured player head carrying a **level** (1–100 by default) and a set of abilities that
+grow with it. Pets come in two types:
+
+- **PASSIVE** — the abilities are always on while the head sits anywhere in your **hotbar**.
+- **ACTIVE** — **right-click** while holding the head to fire the pet's ability, on its own cooldown.
+  Many actives open a timed *armed window* during which the pet's other abilities are live; when it
+  closes, the universal `** PET ABILITY: ENDED **` line fires. Dying or logging out ends a window early.
+
+:::warning A stacked head is inert
+A pet head with an amount greater than one earns no experience and grants no abilities. Keep pets as
+single items.
+:::
+
+Pet heads cannot be placed as blocks or worn in the helmet slot — a pet works from your hotbar or not
+at all.
+
+## Levels and brackets
+
+A pet's `levels:` map is **sparse**: each key is a level *floor*, and the highest floor at or below the
+head's stored level is the live bracket. It supplies that pet's cooldown, armed-window duration, and
+ability strength, so a level-up is a step change rather than a smooth curve.
+
+```yaml
+display: "Shield"
+color: "{#bebebe}"
+type: ACTIVE               # ACTIVE = right-click | PASSIVE = always-on while in the hotbar
+head: "eyJ0ZXh0dXJlcyI6…"  # the player-head texture, base64
+descriptor: "&eA stalwart guardian forged for those who refuse to fall."
+description:
+  - "{#bebebe}* Temporarily reduces all incoming damage"
+levels:
+  1:                       # live at levels 1–24
+    cooldown: 1800
+    duration: 60
+    abilities:
+      - { trigger: DEFENSE, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } } ] }
+  25:  { cooldown: 1800, duration: 100, abilities: [ … ] }
+  50:  { cooldown: 1800, duration: 60,  abilities: [ … ] }
+  100: { cooldown: 1800, duration: 100, abilities: [ … ] }
+```
+
+On an ACTIVE pet, an ability with no `trigger:` is the implicit right-click. Any *other* trigger makes
+it an **armed** ability, live only for `duration` ticks after a successful activation.
+
+`content/pets/shield.yml` in the shipped pack is the commented authoring template for the family.
+
+## Earning levels
+
+Every knob is universal and lives in the `pets:` block of [config.yml](../configuring/index.mdx),
+read live on `/se reload`:
+
+```yaml
+pets:
+  max-level: 100
+  exp-per-level: 100
+  exp-per-mob-kill: 5
+  exp-per-xp-point: 1.0
+  passive-levels-per-hour: 0.5          # every pet in the main inventory, per hour of ONLINE time
+  passive-hotbar-levels-per-hour: 1.0   # a PASSIVE-type pet held in the hotbar earns this instead
+```
+
+- **100 exp is one level**, capped at `max-level`; accrual parks there rather than overflowing.
+- **+5 exp per mob kill**, and **+1 exp per vanilla XP point** you pick up.
+- A successful ACTIVE right-click earns a random **12–20 exp** on top.
+- Idle accrual runs on online time — **0.5 levels an hour** for a pet anywhere in your inventory,
+  **1.0** for a PASSIVE pet held in the hotbar.
+- Fractional progress is carried exactly on the item, so moving a pet between slots never loses any.
+
+The pet's name carries a live `[Lvl. N]` suffix and its lore shows a ten-slot experience bar, both
+re-rendered as the level and the bar tenths change.
+
+## The shared pet item — `items/pet.yml`
+
+There is no per-pet item file. ACTIVE and PASSIVE pets each own a whole lore template rather than
+splicing conditionals into one:
+
+```yaml
+type: pet
+name: "{COLOR}&l{NAME} Pet &7[Lvl. &f&n{LEVEL}&r&7]&r"
+lore-active:
+  - "{DESCRIPTOR}"
+  - ""
+  - "{COLOR}&lACTIVE PET ABILITY"
+  - "{DESCRIPTION}"
+  - ""
+  - "&eLevel: &r&f&n{LEVEL}&r&7 / {MAX_LEVEL}"
+  - "&eExperience: &r&f[{EXP_BAR}&f]"
+  - ""
+  - "&eCooldown: &r&f&n{TIME_FORMATTED}"
+  - "&7Right Click while holding to apply."
+lore-passive:
+  - "{DESCRIPTOR}"
+  - ""
+  - "{COLOR}&lPASSIVE PET ABILITY"
+  - "{DESCRIPTION}"
+  - ""
+  - "&eLevel: &r&f&n{LEVEL}&r&7 / {MAX_LEVEL}"
+  - "&eExperience: &r&f[{EXP_BAR}&f]"
+  - ""
+  - "&7Hold in hotbar to apply."
+```
+
+| Token | Renders |
+| --- | --- |
+| `{COLOR}` | the pet's colour codes |
+| `{NAME}` | the pet's display name |
+| `{DESCRIPTOR}` | the pet's flavour line(s) — dropped when un-authored |
+| `{DESCRIPTION}` | the pet's ability description, one lore line per authored line |
+| `{LEVEL}` / `{MAX_LEVEL}` | the stored level against the universal cap |
+| `{EXP}` / `{EXP_NEXT}` | raw experience toward the next level |
+| `{EXP_BAR}` | the ten-slot progress meter, one slot per 10% |
+| `{TIME_FORMATTED}` | the live bracket's right-click cooldown, humanised |
+
+## Pet Food — `items/pet-food.yml`
+
+Drag a **Pet Food** onto a pet head to raise its level. The granted amount is baked onto each minted
+food, so an already-minted food keeps its printed value across config re-tunes. A pet already at
+`max-level` rejects the drop before the food is consumed.
+
+```yaml
+type: pet-food
+material: GOLDEN_CARROT
+shiny: true
+name: "&e&lPet Food [&r&a&n+{AMOUNT}&r&e&l]"
+lore:
+  - "&eBoosts the level of your pet by {AMOUNT} levels, increasing the strength of their abilities."
+  - "&7Drag n' Drop on an item to apply."
+levels: 10                    # levels granted per food
+sound: "entity.player.levelup"
+particles:
+  - HAPPY_VILLAGER
+```
+
+## Feedback and gates
+
+Activation, expiry, cooldown, and failure all send a universal chat line, configured once in the
+`pets:` block and shared by every pet — `message-on-activate`, `message-on-end`, `message-on-cooldown`,
+`message-on-fail`. An empty template is silent.
+
+Two rules keep actives from being spammed:
+
+- After any **successful** pet activation, a shared **two-second gate** blocks every other pet active.
+  The Mole's recall is exempt so you can always come home.
+- Cage-style pets pre-check the volume they are about to fill and refuse outright — without burning the
+  cooldown — when there is no room.
+
+The family is gated by `features.pets` in [config.yml](../configuring/index.mdx), read live on
+`/se reload`; set it to `false` and pet heads become inert.
+
+## The shipped pets
+
+| Pet | Type | What it does |
+| --- | --- | --- |
+| Anubis | ACTIVE | temporary chance to strip Holy White Scrolls from enemy gear |
+| Bat | ACTIVE | a bat swarm clouds your last attacker's vision |
+| Cage | ACTIVE | temporarily cages you and your enemy in iron bars |
+| Cat | ACTIVE | temporary Regeneration |
+| Chicken | PASSIVE | permanent Speed |
+| Cow | ACTIVE | cleanses your active enchant debuffs |
+| Creeper | ACTIVE | summons a charged creeper — no terrain grief |
+| Eagle | ACTIVE | more damage while below your opponent |
+| Enderman | ACTIVE | much more damage to mobs |
+| Fish | PASSIVE | passive income |
+| Grim | ACTIVE | trades your overhealth for double damage |
+| Golem | ACTIVE | temporary absorption hearts |
+| Kraken | PASSIVE | drowning immunity and faster swimming |
+| Lion | ACTIVE | launches enemies away from you |
+| Mole | ACTIVE | sneak-dig a temporary home, re-activate within 50 blocks to return |
+| Nightmare | ACTIVE | a rideable skeleton horse at double speed |
+| Owl | ACTIVE | reveals hidden players and locks out their Invisibility |
+| Sheep | PASSIVE | fall damage −25/50/75%, immune at level 100 |
+| Shield | ACTIVE | temporarily reduces all incoming damage |
+| Silverfish | PASSIVE | permanent Haste |
+| Spider | ACTIVE | cobweb-traps you and your enemy |
+
+:::note Two pets with prerequisites
+The Fish's income needs an economy plugin and is capped per deposit by `pets.max-percent-money-cap`; it
+is a no-op on 1.8.9. The Kraken's swim-speed half only applies on 1.21+. The Mole's return trip is
+countered by Teleblock.
+:::
+
+## Minting & giving
+
+```text
+/se give pet <player> <key> [level]   # give a pet head, optionally at a starting level
+/se give petfood <player> [amount]
+/se menu                              # the operator mint console
+/se menu pets                         # the Pets browser — operators drill into a level picker to mint
+/pets                                 # the same browser for players (browse only)
+```
+
+Layout for the browser lives in `menus/pets.yml`.

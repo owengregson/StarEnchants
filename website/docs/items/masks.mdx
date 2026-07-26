@@ -1,0 +1,156 @@
+---
+id: masks
+title: Masks
+sidebar_position: 8
+description: Textured heads that re-skin a worn helmet and grant it passive abilities.
+---
+
+# Masks
+
+A **mask** is a textured player head that drag-applies onto a **helmet** — one mask per helmet. While
+that helmet is worn, the mask grants its passive abilities *and* overrides the helmet's worn appearance
+with the mask's own head, for the wearer and for every observer. The repaint is client-only: the real
+helmet item is never modified, so the mask always comes back off intact.
+
+## Applying and removing
+
+- **Apply.** Drag a mask head onto a helmet. Helmets only — no other slot accepts one, and a helmet
+  that already carries a mask will not take a second.
+- **On the helmet.** A masked helmet gains one lore line, `Mask Equipped (<Name>)`, rendered below its
+  crystal lines.
+- **Remove.** Right-click the masked helmet with an **empty cursor**. The mask pops back off as a whole
+  item, dropped at your feet if your inventory is full.
+- **A broken helmet.** A helmet that hits zero durability pops its mask off intact rather than taking it
+  down too. (Modern servers — the 1.8.9 lane is a known follow-up.)
+- **Workstations.** Grindstones and anvils refuse masked gear rather than destroying the component.
+
+:::note The raw head is not a helmet
+A mask head cannot be worn in the helmet slot and cannot be placed as a block — the server guards both,
+and shift-clicking one sends it to your hotbar instead of your head. A mask does nothing until it is
+applied to a helmet you are actually wearing.
+:::
+
+## The shared mask item — `items/mask.yml`
+
+There is no per-mask item file. Every mask is minted from this one likeness with that mask's display,
+colour, description, and head texture (from `content/masks/<key>.yml`) filled in:
+
+```yaml
+type: mask
+name: "{COLOR}&l{NAME} Mask"
+lore:
+  - "&eOverrides the visual appearance of a helmet and imbues it with magic mask abilities."
+  - ""
+  - "{COLOR}&l{NAME_UPPER} MASK BONUS"
+  - "{DESCRIPTION}"
+  - ""
+  - "&eApplies to: &f&n{APPLIES}&r"
+  - "&7Drag n' Drop on an item to apply."
+  - "&7Right Click while on an item to remove."
+# The one line shown on a masked HELMET, rendered below the crystal line(s).
+lore-while-on-item: "&6&lMask Equipped ({NAME}&r&6&l)"
+sounds:
+  enabled: true
+  apply: "block.amethyst_block.chime"
+  remove: "block.amethyst_cluster.break"
+```
+
+| Token | Renders |
+| --- | --- |
+| `{COLOR}` | the mask's colour codes — carries its own `&` |
+| `{NAME}` | the mask's display name |
+| `{NAME_UPPER}` | that name upper-cased |
+| `{DESCRIPTION}` | the mask's description block, one lore line per authored line |
+| `{APPLIES}` | the item kinds a mask applies to — always the helmet group |
+
+## What the repaint shows
+
+The head everyone sees mirrors the real helmet's name, lore, enchant glint, and heroic block, and — on
+1.20.5+ — its live durability, so a mask never hides what the helmet underneath actually is. In
+**creative mode** the wearer sees their true helmet while observers still see the mask.
+
+:::warning Version caveats
+The repaint works on **1.18.2+** and on **1.8.9**. On Paper **1.17.1** exactly the visual override is
+inert — the mask's abilities still work, only the appearance is missing. A player who newly comes into
+view may see the true helmet for about two seconds before the sweep re-asserts the mask.
+:::
+
+## Defining a mask — `content/masks/<key>.yml`
+
+Each file is one mask; the filename stem is its key. It declares the mask's identity, its head texture,
+the description block the likeness renders, and its abilities:
+
+```yaml
+display: "Knight"
+color: "{#34c69e}"
+head: "eyJ0ZXh0dXJlcyI6…"      # the player-head texture, base64
+description:
+  - "{#34c69e}* Take 5% less damage from all enemies"
+abilities:
+  - { trigger: DEFENSE, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 5 } } ] }
+```
+
+Abilities compile through the same pipeline as [enchants](../concepts/enchants.mdx), so a mask can do
+anything an enchant can. A handful of effect modes exist largely to serve this family:
+
+| Ability | In plain terms |
+| --- | --- |
+| `WARD` type `mob-target` | mobs will not target you unless you attack first |
+| `WARD` type `invsee` | another player cannot open your inventory with `/invsee` |
+| `WARD` type `near` | you are left out of the `/near` listing |
+| `WARD` type `splash-heal` | splash healing potions heal you a configured percent more |
+| `IMMUNE` type `fishhook` | a fishing-rod hook can neither damage nor knock you |
+| `SUPPRESS` scope `KIND` | switches off enemy abilities by effect kind — the Chef mask kills every hunger-restoring enchant |
+| `IGNORE_HEROIC` | your hits skip the victim's heroic armour reduction |
+
+:::note `/near` immunity is an owned listing
+No plugin can filter another plugin's proximity scan, so the `near` ward works by **intercepting** the
+command. While `masks.near-commands` lists a name, StarEnchants answers that command with its own
+proximity listing and omits warded players. Set `near-commands: []` to disable the interception and
+restore the other plugin's own `/near` — the Hacker mask then stops hiding anyone.
+:::
+
+```yaml
+masks:
+  near-commands: ["near"]   # command names intercepted (no leading slash); [] disables the interception
+  near-radius: 200          # radius in blocks the owned /near listing scans
+```
+
+The whole family is gated by `features.masks` in [config.yml](../configuring/index.mdx), read live on
+`/se reload`; set it to `false` and masks become inert heads.
+
+## The shipped masks
+
+| Mask | What it does |
+| --- | --- |
+| Agent | permanent Invisibility |
+| Angel | permanent Regeneration |
+| Blaze | immune to fire and lava damage |
+| Chef | disables enemy hunger-restoring enchants |
+| Fisherman | fishing rods no longer knock you back |
+| Ghost | immune to `/invsee` |
+| Hacker | immune to `/near` |
+| Knight | take 5% less damage |
+| Medic | 50% more healing from splash potions |
+| Midas | negates enemy heroic armor bonuses |
+| Monopoly | deal 5% more damage |
+| Santa | +2 hearts |
+| Shaman | mobs do not target you unless attacked |
+| Wither | nearby enemies cannot enderpearl |
+
+The Santa mask rides a reconciled max-health modifier, so its two hearts stack with other health
+sources rather than replacing them. The Wither mask's teleblock aura reaches hostile mobs too, not just
+players.
+
+## Minting & giving
+
+Masks have no crafting or drop route — they are minted.
+
+```text
+/se give mask <player> <key>     # give one mask (key from content/masks/)
+/se menu                         # the operator mint console
+/se menu masks                   # the Masks browser — operators click a head to mint it
+/masks                           # the same browser for players (browse only)
+```
+
+Layout for the browser lives in `menus/masks.yml`.
