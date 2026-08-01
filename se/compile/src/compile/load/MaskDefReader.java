@@ -27,7 +27,7 @@ import schema.grammar.EffectLine;
 final class MaskDefReader {
 
     private static final Set<String> ROOT_KEYS = Set.of(
-            "display", "color", "head", "material", "description", "abilities",
+            "display", "color", "head", "material", "description", "summary", "abilities",
             // single-ability shorthand (a mask with exactly one ability authors these at the top level):
             "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "condition", "effects");
     private static final Set<String> ABILITY_KEYS = Set.of(
@@ -58,6 +58,7 @@ final class MaskDefReader {
         String head = orEmpty(ContentParse.blankToNull(root.string("head")));
         String material = orDefault(ContentParse.blankToNull(root.string("material")), "PLAYER_HEAD");
         List<String> description = root.stringList("description");
+        String summary = orEmpty(ContentParse.blankToNull(root.string("summary")));
 
         // Behaviours: the unified abilities list (or the top-level shorthand for a single-ability mask). The
         // first ability keys to baseKey; further ones to baseKey/a1, /a2, … — dense, no gaps — resolved by the
@@ -85,7 +86,7 @@ final class MaskDefReader {
             abilities.add(ability(baseKey, root, fileSource, nextDefId, diags));
         }
 
-        MaskDef def = new MaskDef(baseKey, display, color, description, head, material, fileSource);
+        MaskDef def = new MaskDef(baseKey, display, color, description, summary, head, material, fileSource);
         return new Parsed(def, abilities);
     }
 

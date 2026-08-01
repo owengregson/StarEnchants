@@ -1,0 +1,13 @@
+# Cosmic codex source: 11-masks.md
+display: Ghost Mask
+color: '&3'
+head: eyJ0aW1lc3RhbXAiOjE1NDAzNTY0MjgwMjAsInByb2ZpbGVJZCI6ImEzOWVmNTdhMzg3YzRjZDE5NzQwNTliNzMyZWJjN2E1IiwicHJvZmlsZU5hbWUiOiJNZXJjaGFudCIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8xMDVjNDg3NjllY2MzMjg4YWJkYjcyMThlYmZmMzEyZGNhMmEyOGJjZmNkMjlkMGFjMjk5YWNjMjMyM2VhNzhjIn19fQ==
+material: PLAYER_HEAD
+summary: ''
+description:
+- "&7The deviant mask of the spectre,"
+- "&7a metaphysical monstrosity."
+- "&6&l * &6Ghost Mastery Kit"
+abilities:
+- trigger: PASSIVE
+  effects: []

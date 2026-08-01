@@ -1,0 +1,13 @@
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/AntiGravity.java
+display: Anti Gravity
+description: Grants Jump Boost IV-VI while equipped.
+trigger: PASSIVE
+applies-to: [BOOTS]
+group: elite
+tier: elite
+stacking: EACH
+suppress-immune: true
+levels:
+  1: { effects: [{ POTION: { effect: JUMP, level: 4, duration: 2147483647, who: "@Self" } }] }
+  2: { effects: [{ POTION: { effect: JUMP, level: 5, duration: 2147483647, who: "@Self" } }] }
+  3: { effects: [{ POTION: { effect: JUMP, level: 6, duration: 2147483647, who: "@Self" } }] }

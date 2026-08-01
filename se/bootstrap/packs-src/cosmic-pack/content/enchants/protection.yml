@@ -1,0 +1,53 @@
+# Cosmic codex source: 02-enchants-armor-m-z.md — armor/Protection.java
+display: Protection
+description: Automatically heals and buffs all nearby faction allies.
+trigger:
+- REPEATING
+applies-to:
+- ARMOR
+group: legendary
+tier: legendary
+stacking: HIGHEST
+levels:
+  1:
+    abilities:
+      - trigger: REPEATING
+        repeat: 200
+        effects:
+          - { MODIFY_HEALTH: { amount: 1, mode: give, require-headroom: true, strict-headroom: true, success-particle: REDSTONE, particle-count: 20, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: '@Aoe{r=2,filter=ALLIES}' } }
+          - { POTION: { effect: REGENERATION, level: 1, duration: 20, chance: 15, particle: SPELL, particle-count: 10, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: '@Aoe{r=2,filter=ALLIES}' } }
+  2:
+    abilities:
+      - trigger: REPEATING
+        repeat: 100
+        effects:
+          - { MODIFY_HEALTH: { amount: 1, mode: give, require-headroom: true, strict-headroom: true, success-particle: REDSTONE, particle-count: 20, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: '@Aoe{r=4,filter=ALLIES}' } }
+          - { POTION: { effect: REGENERATION, level: 1, duration: 40, chance: 15, particle: SPELL, particle-count: 10, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: '@Aoe{r=4,filter=ALLIES}' } }
+          - { POTION: { effect: ABSORPTION, level: 4, duration: 80, chance: 10, particle: SPELL, particle-count: 20, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: '@Aoe{r=4,filter=ALLIES}' } }
+  3:
+    abilities:
+      - trigger: REPEATING
+        repeat: 66
+        effects:
+          - { MODIFY_HEALTH: { amount: 1, mode: give, require-headroom: true, strict-headroom: true, success-particle: REDSTONE, particle-count: 20, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: '@Aoe{r=6,filter=ALLIES}' } }
+          - { POTION: { effect: REGENERATION, level: 2, duration: 60, chance: 15, particle: SPELL, particle-count: 10, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: '@Aoe{r=6,filter=ALLIES}' } }
+          - { POTION: { effect: ABSORPTION, level: 5, duration: 120, chance: 10, particle: SPELL, particle-count: 20, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: '@Aoe{r=6,filter=ALLIES}' } }
+          - { POTION: { effect: HEALTH_BOOST, level: 5, duration: 120, chance: 8.5, particle: SPELL, particle-count: 30, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: '@Aoe{r=6,filter=ALLIES}' } }
+  4:
+    abilities:
+      - trigger: REPEATING
+        repeat: 50
+        effects:
+          - { MODIFY_HEALTH: { amount: 1, mode: give, require-headroom: true, strict-headroom: true, success-particle: REDSTONE, particle-count: 20, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: '@Aoe{r=8,filter=ALLIES}' } }
+          - { POTION: { effect: REGENERATION, level: 2, duration: 80, chance: 15, particle: SPELL, particle-count: 10, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: '@Aoe{r=8,filter=ALLIES}' } }
+          - { POTION: { effect: ABSORPTION, level: 6, duration: 160, chance: 10, particle: SPELL, particle-count: 20, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: '@Aoe{r=8,filter=ALLIES}' } }
+          - { POTION: { effect: HEALTH_BOOST, level: 6, duration: 160, chance: 8.5, particle: SPELL, particle-count: 30, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: '@Aoe{r=8,filter=ALLIES}' } }
+  5:
+    abilities:
+      - trigger: REPEATING
+        repeat: 40
+        effects:
+          - { MODIFY_HEALTH: { amount: 2, mode: give, require-headroom: true, strict-headroom: true, success-particle: REDSTONE, particle-count: 20, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: '@Aoe{r=10,filter=ALLIES}' } }
+          - { POTION: { effect: REGENERATION, level: 2, duration: 100, chance: 15, particle: SPELL, particle-count: 10, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: '@Aoe{r=10,filter=ALLIES}' } }
+          - { POTION: { effect: ABSORPTION, level: 7, duration: 200, chance: 10, particle: SPELL, particle-count: 20, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: '@Aoe{r=10,filter=ALLIES}' } }
+          - { POTION: { effect: HEALTH_BOOST, level: 7, duration: 200, chance: 8.5, particle: SPELL, particle-count: 30, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: '@Aoe{r=10,filter=ALLIES}' } }

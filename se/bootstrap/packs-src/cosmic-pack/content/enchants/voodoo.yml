@@ -1,52 +1,15 @@
-# Imported from EliteEnchantments (id: voodoo). Review before shipping.
-display: "Voodoo"
-description:
-  - "&eWhen hit, saps a percentage of"
-  - "&ethe attacker's damage."
+# Cosmic codex source: 02-enchants-armor-m-z.md — armor/Voodoo.java
+display: Voodoo
+description: Gives a chance to deal weakness.
 trigger: DEFENSE
 applies-to: [ARMOR]
-group: "rare"
-tier: rare
+group: elite
+tier: elite
+stacking: HIGHEST
 levels:
-  1:
-    chance: 8
-    cooldown: 160
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_CELEBRATE", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 14, who: "@Attacker" } }
-      - { WEAKEN: { percent: 6, duration: 60, who: "@Attacker" } }
-  2:
-    chance: 10
-    cooldown: 160
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_CELEBRATE", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 14, who: "@Attacker" } }
-      - { WEAKEN: { percent: 8, duration: 60, who: "@Attacker" } }
-  3:
-    chance: 11
-    cooldown: 160
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_CELEBRATE", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 14, who: "@Attacker" } }
-      - { WEAKEN: { percent: 9, duration: 60, who: "@Attacker" } }
-  4:
-    chance: 12
-    cooldown: 160
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_CELEBRATE", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 14, who: "@Attacker" } }
-      - { WEAKEN: { percent: 10, duration: 60, who: "@Attacker" } }
-  5:
-    chance: 14
-    cooldown: 160
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_CELEBRATE", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 14, who: "@Attacker" } }
-      - { WEAKEN: { percent: 11, duration: 60, who: "@Attacker" } }
-  6:
-    chance: 15
-    cooldown: 160
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_CELEBRATE", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 14, who: "@Attacker" } }
-      - { WEAKEN: { percent: 12, duration: 60, who: "@Attacker" } }
+  1: { chance: 4, condition: &melee '%damagecause% == "ENTITY_ATTACK"', effects: [{ POTION: { effect: WEAKNESS, level: 1, duration: 45, who: '@Attacker' } }, { PARTICLE: { particle: SPELL, count: 15, spread: 0, speed: 0.04, anchor: eye, y-offset: 0.5, who: '@Attacker' } }] }
+  2: { chance: 8, condition: *melee, effects: [{ POTION: { effect: WEAKNESS, level: 1, duration: 85, who: '@Attacker' } }, { PARTICLE: { particle: SPELL, count: 15, spread: 0, speed: 0.04, anchor: eye, y-offset: 0.5, who: '@Attacker' } }] }
+  3: { chance: 12.000000000000002, condition: *melee, effects: [{ POTION: { effect: WEAKNESS, level: 1, duration: 105, who: '@Attacker' } }, { PARTICLE: { particle: SPELL, count: 15, spread: 0, speed: 0.04, anchor: eye, y-offset: 0.5, who: '@Attacker' } }] }
+  4: { chance: 16, condition: *melee, effects: [{ POTION: { effect: WEAKNESS, level: 2, duration: 145, who: '@Attacker' } }, { PARTICLE: { particle: SPELL, count: 15, spread: 0, speed: 0.04, anchor: eye, y-offset: 0.5, who: '@Attacker' } }] }
+  5: { chance: 20, condition: *melee, effects: [{ POTION: { effect: WEAKNESS, level: 2, duration: 165, who: '@Attacker' } }, { PARTICLE: { particle: SPELL, count: 15, spread: 0, speed: 0.04, anchor: eye, y-offset: 0.5, who: '@Attacker' } }] }
+  6: { chance: 24.000000000000004, condition: *melee, effects: [{ POTION: { effect: WEAKNESS, level: 2, duration: 205, who: '@Attacker' } }, { PARTICLE: { particle: SPELL, count: 15, spread: 0, speed: 0.04, anchor: eye, y-offset: 0.5, who: '@Attacker' } }] }

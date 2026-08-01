@@ -109,7 +109,8 @@ public final class CombatFlagsSuite implements Harness.Scenario {
                                     new KnockbackControlStore(), keepStore, new engine.stores.TeleblockStore(),
                                     new engine.stores.ImmuneStore(), new engine.stores.CooldownStore(),
                                     new engine.stores.ComboStore(), new engine.stores.WhyStore(),
-                                    new engine.stores.RecentAttackersStore(), new engine.stores.ReflectMarksStore(),
+                                    new engine.stores.RecentAttackersStore(), new engine.stores.RecentAttackersStore(),
+                                    new engine.stores.ReflectMarksStore(),
                                     new engine.stores.OutgoingDebuffStore(), new engine.stores.DamageCapStore(),
                                     new engine.stores.RageStackStore(), new engine.stores.WardStore(),
                                     new engine.stores.HitTempoStore(), new engine.stores.BatteryStore(),
@@ -128,7 +129,8 @@ public final class CombatFlagsSuite implements Harness.Scenario {
                     Location guardAt = at.clone();
                     ModernDispatchSink guardSink = new ModernDispatchSink(handles, engine.sink.SinkEnv.of(
                             EconomyService.NONE, SoulDebit.NONE, engine.stores.EngineStores.fresh(), () -> 0L));
-                    guardSink.guard(attacker, guardAt, golemId, 1, 200, "&bGuard", null); // null owner: no GUARDIAN_HURT binding in this check
+                    guardSink.guard(attacker, guardAt, golemId, 1, 200, "&bGuard", null,
+                            0.0, 0.0, 0, 0.0, 20, 0, -1, 1.0f, 1.0f); // null owner: no GUARDIAN_HURT binding in this check
                     guardSink.flush();
                     Scheduling.onRegionLater(guardAt, 2L, () -> {
                         h.guard("combatflags.guardSpawnsTargetingAttacker", () -> {

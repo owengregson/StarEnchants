@@ -1,0 +1,38 @@
+# Imported from EliteEnchantments (id: molten). Review before shipping.
+display: "Molten"
+description:
+  - "&eWhen hit, sets the attacker on"
+  - "&efire."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "common"
+tier: common
+levels:
+  1:
+    chance: 10
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "LAVA", count: 10, who: "@Attacker" } }
+      - { IGNITE: { duration: 20, who: "@Attacker" } }  # from FLAME:1:TARGET — legacy seconds → ticks (x20)
+  2:
+    chance: 14
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "LAVA", count: 10, who: "@Attacker" } }
+      - { IGNITE: { duration: 40, who: "@Attacker" } }  # from FLAME:2:TARGET — legacy seconds → ticks (x20)
+  3:
+    chance: 18
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "LAVA", count: 10, who: "@Attacker" } }
+      - { IGNITE: { duration: 80, who: "@Attacker" } }  # from FLAME:4:TARGET — legacy seconds → ticks (x20)
+  4:
+    chance: 22
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "LAVA", count: 10, who: "@Attacker" } }
+      - { IGNITE: { duration: 120, who: "@Attacker" } }  # from FLAME:6:TARGET — legacy seconds → ticks (x20)

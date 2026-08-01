@@ -19,6 +19,7 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.function.Supplier;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import platform.item.ItemGroups;
 import platform.text.Tokens;
@@ -138,9 +139,14 @@ public final class ScrollService {
 
     /** Dispatch a scroll-on-target gesture by the cursor scroll's kind. */
     public GestureOutcome interact(ItemStack cursor, ItemStack target) {
+        return interact(null, cursor, target);
+    }
+
+    /** Player-aware physical gesture form, enabling one-shot Cosmic pet modifiers. */
+    public GestureOutcome interact(Player player, ItemStack cursor, ItemStack target) {
         String kind = scrolls.kind(cursor);
         if (BLACK.equals(kind)) {
-            return applyBlack(cursor, target);
+            return applyBlack(player, cursor, target);
         }
         if (RANDOMIZER.equals(kind)) {
             return applyRandomizer(cursor, target);
@@ -171,8 +177,7 @@ public final class ScrollService {
             return GestureOutcome.noop(messages.format("scroll.transmog.no-enchants"));
         }
         Map<String, Integer> reordered = sortedByTierWeight(current.enchants());
-        CombatState next = new CombatState(reordered, current.crystals(), current.setKey(),
-                current.setWeaponKey(), current.omni(), current.heroic(), current.added(), current.maskKey(), current.reforgeKey());
+        CombatState next = current.withEnchants(reordered);
         combat.write(gear, next);
         lore.apply(gear, next); // re-renders the sorted enchant lore AND (re)stamps the §I enchant-count suffix
         consume(cursor);
@@ -213,8 +218,7 @@ public final class ScrollService {
         }
         CombatState current = combat.read(gear);
         return reorderedEnchants(current.enchants(), orderedKeys).map(reordered -> {
-            CombatState next = new CombatState(reordered, current.crystals(), current.setKey(),
-                    current.setWeaponKey(), current.omni(), current.heroic(), current.added(), current.maskKey(), current.reforgeKey());
+            CombatState next = current.withEnchants(reordered);
             combat.write(gear, next);
             lore.apply(gear, next);
             return true;
@@ -243,7 +247,7 @@ public final class ScrollService {
      * (§I); the drawn book carries the scroll's stamped conversion success rate (a legacy scroll with no stamp
      * falls back to the global ceiling). Both the scroll's stamp and the apply re-cap to the live ceiling.
      */
-    private GestureOutcome applyBlack(ItemStack cursor, ItemStack gear) {
+    private GestureOutcome applyBlack(Player player, ItemStack cursor, ItemStack gear) {
         if (gear == null || gear.getType() == Material.AIR) {
             return GestureOutcome.noop(messages.format("scroll.black.apply-target"));
         }
@@ -261,12 +265,13 @@ public final class ScrollService {
         List<String> keys = new ArrayList<>(current.enchants().keySet());
         String key = keys.get(random.nextInt(keys.size()));
         int level = current.enchants().get(key);
-        int convert = carriers.capBookSuccess(scrolls.convertOf(cursor, carriers.capBookSuccess(100)));
+        int petBonus = player == null ? 0
+                : feature.pet.CosmicPetCharges.consumeBlackscroll(player.getUniqueId());
+        int convert = carriers.capBookSuccess(scrolls.convertOf(cursor, carriers.capBookSuccess(100)) + petBonus);
         consume(cursor);
         Map<String, Integer> remaining = new LinkedHashMap<>(current.enchants());
         remaining.remove(key);
-        CombatState next = new CombatState(remaining, current.crystals(), current.setKey(),
-                current.setWeaponKey(), current.omni(), current.heroic(), current.added(), current.maskKey(), current.reforgeKey());
+        CombatState next = current.withEnchants(remaining);
         combat.write(gear, next);
         lore.apply(gear, next);
         ItemStack book = carriers.mintBook(key, level, convert); // extracted enchant → a book at the conversion rate

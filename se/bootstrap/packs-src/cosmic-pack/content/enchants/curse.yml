@@ -1,0 +1,14 @@
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/Curse.java
+display: Curse
+description: On melee damage, can grant Strength II and Resistance II while also applying Slowness II.
+trigger: DEFENSE
+applies-to: [CHESTPLATE]
+group: unique
+tier: unique
+stacking: HIGHEST
+levels:
+  1: { chance: 3, condition: "%damagecause% == \"ENTITY_ATTACK\"", effects: [{ POTION: { effect: INCREASE_DAMAGE, level: 2, duration: 30 } }, { POTION: { effect: DAMAGE_RESISTANCE, level: 2, duration: 30 } }, { POTION: { effect: SLOW, level: 2, duration: 20 } }] }
+  2: { chance: 6, condition: "%damagecause% == \"ENTITY_ATTACK\"", effects: [{ POTION: { effect: INCREASE_DAMAGE, level: 2, duration: 60 } }, { POTION: { effect: DAMAGE_RESISTANCE, level: 2, duration: 60 } }, { POTION: { effect: SLOW, level: 2, duration: 40 } }] }
+  3: { chance: 9, condition: "%damagecause% == \"ENTITY_ATTACK\"", effects: [{ POTION: { effect: INCREASE_DAMAGE, level: 2, duration: 90 } }, { POTION: { effect: DAMAGE_RESISTANCE, level: 2, duration: 90 } }, { POTION: { effect: SLOW, level: 2, duration: 60 } }] }
+  4: { chance: 12, condition: "%damagecause% == \"ENTITY_ATTACK\"", effects: [{ POTION: { effect: INCREASE_DAMAGE, level: 2, duration: 120 } }, { POTION: { effect: DAMAGE_RESISTANCE, level: 2, duration: 120 } }, { POTION: { effect: SLOW, level: 2, duration: 80 } }] }
+  5: { chance: 15, condition: "%damagecause% == \"ENTITY_ATTACK\"", effects: [{ POTION: { effect: INCREASE_DAMAGE, level: 2, duration: 150 } }, { POTION: { effect: DAMAGE_RESISTANCE, level: 2, duration: 150 } }, { POTION: { effect: SLOW, level: 2, duration: 100 } }] }

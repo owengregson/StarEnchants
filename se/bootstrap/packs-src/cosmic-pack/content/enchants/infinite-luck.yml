@@ -1,0 +1,23 @@
+# Cosmic codex source: 06-enchants-tools-heroic.md — heroic/HeroicLuck.java
+display: Infinite Luck
+description: Negates incoming Armor Set bonuses depending on enchantment level.
+trigger:
+- DEFENSE
+- PASSIVE
+applies-to:
+- ARMOR
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    effects: []
+  2:
+    effects: []
+  3:
+    effects: []
+  4:
+    effects: []
+  5:
+    effects: []

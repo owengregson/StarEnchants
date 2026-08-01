@@ -1,53 +1,45 @@
-# Imported from EliteEnchantments (id: ethereal-dodge). Review before shipping.
-display: "Ethereal Dodge"
-description:
-  - "&eNegates attacks and grants a burst of"
-  - "&eSpeed."
-  - "&c&l(!)&r &7Requires &eDodge"
-trigger: [DEFENSE]
+# Cosmic codex source: 06-enchants-tools-heroic.md — heroic/HeroicDodge.java
+display: Ethereal Dodge
+description: Increased proc rate over normal Dodge, with a small independent chance to gain level-scaled Speed after a successful dodge. All fall damage is disabled.
+trigger: DEFENSE
 applies-to: [BOOTS]
-group: "mythic"
-tier: mythic
-requires: ["enchants/dodge"]
-removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: HIGHEST
 levels:
   1:
-    chance: 2
-    cooldown: 160
-    effects:
-      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CLOUD", count: 10 } }
-      - { CANCEL: {} }
-      - { POTION: { effect: "SPEED", level: 2, duration: 60, who: "@Self" } }
+    abilities:
+      - trigger: DEFENSE
+        chance: 5
+        condition: &standing '(%damagecause% == "ENTITY_ATTACK" || %damagecause% == "PROJECTILE") && !%sneaking%'
+        effects: &l1 [{ CANCEL: {} }, { MESSAGE: { text: '&e*DODGE*' } }, { PARTICLE: { particle: CLOUD, count: 10, speed: 0.2, spread: 0, anchor: feet, y-offset: 1, who: '@Self' } }, { SOUND: { sound: ENTITY_BAT_TAKEOFF, volume: 1, pitch: 0.75 } }, { POTION: { effect: SPEED, level: 3, duration: 60, chance: 5, who: '@Self' } }]
+      - { trigger: DEFENSE, chance: 25, condition: &sneaking '(%damagecause% == "ENTITY_ATTACK" || %damagecause% == "PROJECTILE") && %sneaking%', effects: *l1 }
+      - { trigger: DEFENSE, condition: &fall '%damagecause% == "FALL"', effects: [{ CANCEL: {} }] }
+      - { trigger: DEFENSE, condition: &longfall '%damagecause% == "FALL" && %actor.falldistance% > 5', effects: [{ MESSAGE: { text: '&e*FALL DODGED*' } }] }
   2:
-    chance: 3
-    cooldown: 160
-    effects:
-      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CLOUD", count: 10 } }
-      - { CANCEL: {} }
-      - { POTION: { effect: "SPEED", level: 2, duration: 60, who: "@Self" } }
+    abilities:
+      - { trigger: DEFENSE, chance: 10, condition: *standing, effects: &l2 [{ CANCEL: {} }, { MESSAGE: { text: '&e*DODGE*' } }, { PARTICLE: { particle: CLOUD, count: 10, speed: 0.2, spread: 0, anchor: feet, y-offset: 1, who: '@Self' } }, { SOUND: { sound: ENTITY_BAT_TAKEOFF, volume: 1, pitch: 0.75 } }, { POTION: { effect: SPEED, level: 4, duration: 60, chance: 7, who: '@Self' } }] }
+      - { trigger: DEFENSE, chance: 30, condition: *sneaking, effects: *l2 }
+      - { trigger: DEFENSE, condition: *fall, effects: [{ CANCEL: {} }] }
+      - { trigger: DEFENSE, condition: *longfall, effects: [{ MESSAGE: { text: '&e*FALL DODGED*' } }] }
   3:
-    chance: 4
-    cooldown: 160
-    effects:
-      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CLOUD", count: 10 } }
-      - { CANCEL: {} }
-      - { POTION: { effect: "SPEED", level: 2, duration: 60, who: "@Self" } }
+    abilities:
+      - { trigger: DEFENSE, chance: 15.000000000000002, condition: *standing, effects: &l3 [{ CANCEL: {} }, { MESSAGE: { text: '&e*DODGE*' } }, { PARTICLE: { particle: CLOUD, count: 10, speed: 0.2, spread: 0, anchor: feet, y-offset: 1, who: '@Self' } }, { SOUND: { sound: ENTITY_BAT_TAKEOFF, volume: 1, pitch: 0.75 } }, { POTION: { effect: SPEED, level: 4, duration: 60, chance: 9, who: '@Self' } }] }
+      - { trigger: DEFENSE, chance: 35, condition: *sneaking, effects: *l3 }
+      - { trigger: DEFENSE, condition: *fall, effects: [{ CANCEL: {} }] }
+      - { trigger: DEFENSE, condition: *longfall, effects: [{ MESSAGE: { text: '&e*FALL DODGED*' } }] }
   4:
-    chance: 5
-    cooldown: 160
-    effects:
-      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CLOUD", count: 10 } }
-      - { CANCEL: {} }
-      - { POTION: { effect: "SPEED", level: 2, duration: 60, who: "@Self" } }
+    abilities:
+      - { trigger: DEFENSE, chance: 20, condition: *standing, effects: &l4 [{ CANCEL: {} }, { MESSAGE: { text: '&e*DODGE*' } }, { PARTICLE: { particle: CLOUD, count: 10, speed: 0.2, spread: 0, anchor: feet, y-offset: 1, who: '@Self' } }, { SOUND: { sound: ENTITY_BAT_TAKEOFF, volume: 1, pitch: 0.75 } }, { POTION: { effect: SPEED, level: 5, duration: 60, chance: 11, who: '@Self' } }] }
+      - { trigger: DEFENSE, chance: 40, condition: *sneaking, effects: *l4 }
+      - { trigger: DEFENSE, condition: *fall, effects: [{ CANCEL: {} }] }
+      - { trigger: DEFENSE, condition: *longfall, effects: [{ MESSAGE: { text: '&e*FALL DODGED*' } }] }
   5:
-    chance: 6
-    cooldown: 160
-    effects:
-      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CLOUD", count: 10 } }
-      - { CANCEL: {} }
-      - { POTION: { effect: "SPEED", level: 2, duration: 60, who: "@Self" } }
+    abilities:
+      - { trigger: DEFENSE, chance: 25, condition: *standing, effects: &l5 [{ CANCEL: {} }, { MESSAGE: { text: '&e*DODGE*' } }, { PARTICLE: { particle: CLOUD, count: 10, speed: 0.2, spread: 0, anchor: feet, y-offset: 1, who: '@Self' } }, { SOUND: { sound: ENTITY_BAT_TAKEOFF, volume: 1, pitch: 0.75 } }, { POTION: { effect: SPEED, level: 5, duration: 60, chance: 13, who: '@Self' } }] }
+      - { trigger: DEFENSE, chance: 45, condition: *sneaking, effects: *l5 }
+      - { trigger: DEFENSE, condition: *fall, effects: [{ CANCEL: {} }] }
+      - { trigger: DEFENSE, condition: *longfall, effects: [{ MESSAGE: { text: '&e*FALL DODGED*' } }] }
+requires: [enchants/dodge]
+removes-required: true

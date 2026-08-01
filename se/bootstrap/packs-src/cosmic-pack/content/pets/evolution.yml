@@ -1,0 +1,92 @@
+# Cosmic codex source: 12-pets.md
+display: Evolution
+color: '&e'
+type: ACTIVE
+head: eyJ0aW1lc3RhbXAiOjE1NjAyMTE1NDU5NDUsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9lMDcxMThiNGU5ZDFiMTkyN2QwOTE4ZWM1Y2E5ZDBjNWNjYTNmZjMxZmI4OWNhNmQ1NDJiMTY3YzE5MTIxZjI0In19fQ==
+material: PLAYER_HEAD
+descriptor:
+- '&7A Cosmic inventory pet.'
+description:
+- '&7Evolves one eligible Heroic item; external Evolution Kits integration required.'
+max-level: 10
+experience-to-level:
+  2: 1000
+  3: 1000
+  4: 1000
+  5: 1000
+  6: 1000
+  7: 1000
+  8: 1000
+  9: 1000
+  10: 1000
+levels:
+  1:
+    cooldown: 3456000
+    experience-on-use: 0
+    description:
+    - '&7Evolves one eligible Heroic item; external Evolution Kits integration required.'
+    condition: 1 == 0
+    effects: []
+  2:
+    cooldown: 3456000
+    experience-on-use: 0
+    description:
+    - '&7Evolves one eligible Heroic item; external Evolution Kits integration required.'
+    condition: 1 == 0
+    effects: []
+  3:
+    cooldown: 3456000
+    experience-on-use: 0
+    description:
+    - '&7Evolves one eligible Heroic item; external Evolution Kits integration required.'
+    condition: 1 == 0
+    effects: []
+  4:
+    cooldown: 3456000
+    experience-on-use: 0
+    description:
+    - '&7Evolves one eligible Heroic item; external Evolution Kits integration required.'
+    condition: 1 == 0
+    effects: []
+  5:
+    cooldown: 3456000
+    experience-on-use: 0
+    description:
+    - '&7Evolves one eligible Heroic item; external Evolution Kits integration required.'
+    condition: 1 == 0
+    effects: []
+  6:
+    cooldown: 3456000
+    experience-on-use: 0
+    description:
+    - '&7Evolves one eligible Heroic item; external Evolution Kits integration required.'
+    condition: 1 == 0
+    effects: []
+  7:
+    cooldown: 3456000
+    experience-on-use: 0
+    description:
+    - '&7Evolves one eligible Heroic item; external Evolution Kits integration required.'
+    condition: 1 == 0
+    effects: []
+  8:
+    cooldown: 3456000
+    experience-on-use: 0
+    description:
+    - '&7Evolves one eligible Heroic item; external Evolution Kits integration required.'
+    condition: 1 == 0
+    effects: []
+  9:
+    cooldown: 3456000
+    experience-on-use: 0
+    description:
+    - '&7Evolves one eligible Heroic item; external Evolution Kits integration required.'
+    condition: 1 == 0
+    effects: []
+  10:
+    cooldown: 3456000
+    experience-on-use: 0
+    description:
+    - '&7Evolves one eligible Heroic item; external Evolution Kits integration required.'
+    condition: 1 == 0
+    effects: []

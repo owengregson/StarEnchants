@@ -1,0 +1,29 @@
+# Cosmic codex source: 06-enchants-tools-heroic.md — tools/Experience.java
+display: Experience
+description: Gives more exp when mining blocks.
+trigger: MINE
+applies-to: [PICKAXE, HOE, SHOVEL, AXE, FISHING_ROD]
+group: simple
+tier: simple
+stacking: HIGHEST
+levels:
+  1:
+    effects:
+    - EXP_MULTIPLY:
+        factor: 1.25
+  2:
+    effects:
+    - EXP_MULTIPLY:
+        factor: 1.5
+  3:
+    effects:
+    - EXP_MULTIPLY:
+        factor: 1.75
+  4:
+    effects:
+    - EXP_MULTIPLY:
+        factor: 2.0
+  5:
+    effects:
+    - EXP_MULTIPLY:
+        factor: 2.25

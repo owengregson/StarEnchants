@@ -1,0 +1,15 @@
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/Immortal.java
+# Exact all-damage runtime is implemented by CosmicImmortalListener.
+display: Immortal
+description: Spend souls on every damage event to repair all armor and wear the attacker's matching slot.
+trigger: [DEFENSE]
+applies-to: [ARMOR]
+group: soul
+tier: soul
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1: { effects: [] }
+  2: { effects: [] }
+  3: { effects: [] }
+  4: { effects: [] }

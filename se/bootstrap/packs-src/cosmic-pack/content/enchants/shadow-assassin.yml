@@ -1,34 +1,47 @@
-# Imported from EliteEnchantments (id: shadow-assassin). Review before shipping.
-display: "Shadow Assassin"
-description:
-  - "&eMythic upgrade for Assassin."
-  - "&eDeals even more damage the"
-  - "&ecloser you are to the target."
-  - "&c&l(!)&r &7Requires &eAssassin"
+# Cosmic codex source: 06-enchants-tools-heroic.md — heroic/HeroicAssassin.java
+display: Shadow Assassin
+description: Heroic Enchantment. The closer you are to your enemy, the more damage you deal. Requires Assassin V enchant on item to apply. Cannot be black-scrolled.
 trigger: ATTACK
 applies-to: [SWORD]
-group: "mythic"
-tier: mythic
-requires: ["enchants/assassin"]
-removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: HIGHEST
 levels:
   1:
-    effects:
-      - { PARTICLE: { particle: "SQUID_INK", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "1.05 - %distance% * 0.10" } }  # distance-faded raw bonus — the always-on sword workhorse (ADR-0050 R3 flat economy)
+    abilities:
+      - { trigger: ATTACK, condition: '%distance% < 0.625', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.075 } }] }
+      - { trigger: ATTACK, condition: '%distance% >= 0.625 && %distance% < 1.25', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.06 } }] }
+      - { trigger: ATTACK, condition: '%distance% >= 1.25 && %distance% < 1.875', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.045 } }] }
+      - { trigger: ATTACK, condition: '%distance% >= 1.875 && %distance% < 2.5', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.03 } }] }
+      - { trigger: ATTACK, condition: '%distance% >= 2.5 && %distance% < 3.75', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.015 } }] }
   2:
-    effects:
-      - { PARTICLE: { particle: "SQUID_INK", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "1.15 - %distance% * 0.10" } }  # distance-faded raw bonus — the always-on sword workhorse (ADR-0050 R3 flat economy)
+    abilities:
+      - { trigger: ATTACK, condition: '%distance% < 0.625', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.15 } }] }
+      - { trigger: ATTACK, condition: '%distance% >= 0.625 && %distance% < 1.25', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.12 } }] }
+      - { trigger: ATTACK, condition: '%distance% >= 1.25 && %distance% < 1.875', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.09 } }] }
+      - { trigger: ATTACK, condition: '%distance% >= 1.875 && %distance% < 2.5', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.06 } }] }
+      - { trigger: ATTACK, condition: '%distance% >= 2.5 && %distance% < 3.75', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.03 } }] }
   3:
-    effects:
-      - { PARTICLE: { particle: "SQUID_INK", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "1.25 - %distance% * 0.10" } }  # distance-faded raw bonus — the always-on sword workhorse (ADR-0050 R3 flat economy)
+    abilities:
+      - { trigger: ATTACK, condition: '%distance% < 0.625', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.225 } }] }
+      - { trigger: ATTACK, condition: '%distance% >= 0.625 && %distance% < 1.25', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.18 } }] }
+      - { trigger: ATTACK, condition: '%distance% >= 1.25 && %distance% < 1.875', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.135 } }] }
+      - { trigger: ATTACK, condition: '%distance% >= 1.875 && %distance% < 2.5', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.09 } }] }
+      - { trigger: ATTACK, condition: '%distance% >= 2.5 && %distance% < 3.75', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.045 } }] }
   4:
-    effects:
-      - { PARTICLE: { particle: "SQUID_INK", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "1.35 - %distance% * 0.10" } }  # distance-faded raw bonus — the always-on sword workhorse (ADR-0050 R3 flat economy)
+    abilities:
+      - { trigger: ATTACK, condition: '%distance% < 0.625', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.3 } }] }
+      - { trigger: ATTACK, condition: '%distance% >= 0.625 && %distance% < 1.25', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.24 } }] }
+      - { trigger: ATTACK, condition: '%distance% >= 1.25 && %distance% < 1.875', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.18 } }] }
+      - { trigger: ATTACK, condition: '%distance% >= 1.875 && %distance% < 2.5', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.12 } }] }
+      - { trigger: ATTACK, condition: '%distance% >= 2.5 && %distance% < 3.75', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.06 } }] }
   5:
-    effects:
-      - { PARTICLE: { particle: "SQUID_INK", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "1.45 - %distance% * 0.10" } }  # distance-faded raw bonus — the always-on sword workhorse (ADR-0050 R3 flat economy)
+    abilities:
+      - { trigger: ATTACK, condition: '%distance% < 0.625', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.375 } }] }
+      - { trigger: ATTACK, condition: '%distance% >= 0.625 && %distance% < 1.25', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.3 } }] }
+      - { trigger: ATTACK, condition: '%distance% >= 1.25 && %distance% < 1.875', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.225 } }] }
+      - { trigger: ATTACK, condition: '%distance% >= 1.875 && %distance% < 2.5', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.15 } }] }
+      - { trigger: ATTACK, condition: '%distance% >= 2.5 && %distance% < 3.75', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.075 } }] }
+requires: [enchants/assassin]
+removes-required: true

@@ -1,0 +1,45 @@
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/ArrowDeflect.java
+display: Arrow Deflect
+description: After one arrow damages you, every further arrow inside the level-scaled window is deflected; Lethal Sniper can bypass.
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
+levels:
+  1:
+    abilities:
+      - { trigger: DEFENSE, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% == 0", effects: &deflect [{ CANCEL: {} }, { REMOVE_PROJECTILE: {} }, { PARTICLE: { particle: SPELL, count: 20, speed: 0.6, spread: 0, anchor: feet, y-offset: 1, who: "@Self" } }, { SOUND: { sound: ENTITY_ITEM_BREAK, volume: 0.7, pitch: 0.2, audience: target, who: "@Self" } }] }
+      - { trigger: DEFENSE, chance: 90, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% == 1", effects: *deflect }
+      - { trigger: DEFENSE, chance: 80, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% == 2", effects: *deflect }
+      - { trigger: DEFENSE, chance: 70, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% == 3", effects: *deflect }
+      - { trigger: DEFENSE, chance: 60, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% == 4", effects: *deflect }
+      - { trigger: DEFENSE, chance: 50, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% >= 5", effects: *deflect }
+      - { trigger: DEFENSE, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% == 0", effects: [{ SET_VAR: { name: arrow-deflect-window, value: 1, ttl: 10 } }] }
+  2:
+    abilities:
+      - { trigger: DEFENSE, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% == 0", effects: *deflect }
+      - { trigger: DEFENSE, chance: 90, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% == 1", effects: *deflect }
+      - { trigger: DEFENSE, chance: 80, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% == 2", effects: *deflect }
+      - { trigger: DEFENSE, chance: 70, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% == 3", effects: *deflect }
+      - { trigger: DEFENSE, chance: 60, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% == 4", effects: *deflect }
+      - { trigger: DEFENSE, chance: 50, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% >= 5", effects: *deflect }
+      - { trigger: DEFENSE, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% == 0", effects: [{ SET_VAR: { name: arrow-deflect-window, value: 1, ttl: 20 } }] }
+  3:
+    abilities:
+      - { trigger: DEFENSE, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% == 0", effects: *deflect }
+      - { trigger: DEFENSE, chance: 90, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% == 1", effects: *deflect }
+      - { trigger: DEFENSE, chance: 80, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% == 2", effects: *deflect }
+      - { trigger: DEFENSE, chance: 70, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% == 3", effects: *deflect }
+      - { trigger: DEFENSE, chance: 60, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% == 4", effects: *deflect }
+      - { trigger: DEFENSE, chance: 50, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% >= 5", effects: *deflect }
+      - { trigger: DEFENSE, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% == 0", effects: [{ SET_VAR: { name: arrow-deflect-window, value: 1, ttl: 30 } }] }
+  4:
+    abilities:
+      - { trigger: DEFENSE, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% == 0", effects: *deflect }
+      - { trigger: DEFENSE, chance: 90, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% == 1", effects: *deflect }
+      - { trigger: DEFENSE, chance: 80, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% == 2", effects: *deflect }
+      - { trigger: DEFENSE, chance: 70, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% == 3", effects: *deflect }
+      - { trigger: DEFENSE, chance: 60, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% == 4", effects: *deflect }
+      - { trigger: DEFENSE, chance: 50, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% > 0 && %projectilemark% >= 5", effects: *deflect }
+      - { trigger: DEFENSE, condition: "%damagecause% == \"PROJECTILE\" && %arrow-deflect-window% == 0", effects: [{ SET_VAR: { name: arrow-deflect-window, value: 1, ttl: 40 } }] }

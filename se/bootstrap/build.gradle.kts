@@ -43,6 +43,14 @@ sourceSets["main"].java.srcDir(if (legacyTarget) "overlay/legacy" else "overlay/
 // zip via packs/index.txt; /se pack apply swaps it over the live config. Add a pack by registering a
 // Zip task here and listing its archive in resources/packs/index.txt. Reproducible (sorted entries,
 // zeroed timestamps) so a given source tree yields a byte-identical archive.
+val packSignaturePack = tasks.register<Zip>("packSignaturePack") {
+    from(layout.projectDirectory.dir("packs-src/signature-pack"))
+    archiveFileName.set("signature-pack.zip")
+    destinationDirectory.set(layout.buildDirectory.dir("generated-packs"))
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
+}
+
 val packCosmicPack = tasks.register<Zip>("packCosmicPack") {
     from(layout.projectDirectory.dir("packs-src/cosmic-pack"))
     archiveFileName.set("cosmic-pack.zip")
@@ -99,6 +107,7 @@ tasks.register<Test>("regenDocs") {
     filter {
         includeTestsMatching("*SurfaceCatalogDriftTest")
         includeTestsMatching("*ContentIndexDriftTest")
+        includeTestsMatching("*SignaturePackFingerprintDriftTest")
         includeTestsMatching("*CosmicPackFingerprintDriftTest")
     }
     systemProperty("se.doc.regen", "true")
@@ -113,8 +122,10 @@ tasks.register<Test>("regenDocs") {
 tasks.named<Test>("test") {
     inputs.files(rootProject.file("website/src/data/surface.json"))
         .withPropertyName("surfaceGolden").optional()
-    // The cosmic-pack manifest golden (ADR-0046): read via a repo-root walk, so declare it content-hashed or a
-    // hand-edited stamp is hidden FROM-CACHE by CosmicPackFingerprintDriftTest — the same §M drift hole.
+    // The signature-pack manifest golden (ADR-0046): read via a repo-root walk, so declare it content-hashed or a
+    // hand-edited stamp is hidden FROM-CACHE by SignaturePackFingerprintDriftTest — the same §M drift hole.
+    inputs.files(layout.projectDirectory.file("packs-src/signature-pack/pack.yml"))
+        .withPropertyName("signaturePackManifest").optional()
     inputs.files(layout.projectDirectory.file("packs-src/cosmic-pack/pack.yml"))
         .withPropertyName("cosmicPackManifest").optional()
 }
@@ -126,6 +137,9 @@ tasks.named<ProcessResources>("processResources") {
     inputs.property("version", pluginVersion)
     filesMatching("plugin.yml") {
         expand("version" to pluginVersion)
+    }
+    from(packSignaturePack) {
+        into("packs")
     }
     from(packCosmicPack) {
         into("packs")

@@ -1,0 +1,21 @@
+# Cosmic codex: 12-pets.md — InventoryWaterPet.java
+display: Water Elemental
+color: '&e'
+type: ACTIVE
+head: eyJ0aW1lc3RhbXAiOjE1NTk2Nzk5NDQ5NzQsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS83YjBhZjJhOWNkOWExYTk2MTU3M2ZhZWE2NGFmYzhlYjZiN2U3NTdkZjMwZDdmNWY3ZWUyZGJmYzFmYmUzNGRiIn19fQ==
+material: PLAYER_HEAD
+descriptor: ['&7A Cosmic inventory pet.']
+description: ['&7Fills plain empty buckets in your inventory with water.']
+max-level: 10
+experience-to-level: { 2: 1000, 3: 1500, 4: 2000, 5: 2500, 6: 3000, 7: 3500, 8: 4000, 9: 4500, 10: 5000 }
+levels:
+  1: { cooldown: 6000, experience-on-use: 0, description: ['&7Fills up to 32x empty buckets with water.'], effects: [{ SOUND: { sound: SPLASH, volume: 1.1, pitch: 1.0 } }] }
+  2: { cooldown: 6000, experience-on-use: 0, description: ['&7Fills up to 64x empty buckets with water.'], effects: [{ SOUND: { sound: SPLASH, volume: 1.1, pitch: 1.0 } }] }
+  3: { cooldown: 6000, experience-on-use: 0, description: ['&7Fills up to 96x empty buckets with water.'], effects: [{ SOUND: { sound: SPLASH, volume: 1.1, pitch: 1.0 } }] }
+  4: { cooldown: 6000, experience-on-use: 0, description: ['&7Fills up to 128x empty buckets with water.'], effects: [{ SOUND: { sound: SPLASH, volume: 1.1, pitch: 1.0 } }] }
+  5: { cooldown: 6000, experience-on-use: 0, description: ['&7Fills up to 160x empty buckets with water.'], effects: [{ SOUND: { sound: SPLASH, volume: 1.1, pitch: 1.0 } }] }
+  6: { cooldown: 6000, experience-on-use: 0, description: ['&7Fills up to 192x empty buckets with water.'], effects: [{ SOUND: { sound: SPLASH, volume: 1.1, pitch: 1.0 } }] }
+  7: { cooldown: 6000, experience-on-use: 0, description: ['&7Fills up to 224x empty buckets with water.'], effects: [{ SOUND: { sound: SPLASH, volume: 1.1, pitch: 1.0 } }] }
+  8: { cooldown: 6000, experience-on-use: 0, description: ['&7Fills up to 256x empty buckets with water.'], effects: [{ SOUND: { sound: SPLASH, volume: 1.1, pitch: 1.0 } }] }
+  9: { cooldown: 6000, experience-on-use: 0, description: ['&7Fills up to 288x empty buckets with water.'], effects: [{ SOUND: { sound: SPLASH, volume: 1.1, pitch: 1.0 } }] }
+  10: { cooldown: 6000, experience-on-use: 0, description: ['&7Fills all empty buckets with water.'], effects: [{ SOUND: { sound: SPLASH, volume: 1.1, pitch: 1.0 } }] }

@@ -1,0 +1,6 @@
+# Alchemist exchange GUI — two matching enchant books in the top slots forge one of the next level; the
+# centre cell previews the exact result before the exchange is confirmed. A bench fills its whole backdrop,
+# so frame is omitted. See menus/apply.yml for the full field list.
+
+title: "&a&l❖ Alchemist ❖"
+filler: "LIME_STAINED_GLASS_PANE"

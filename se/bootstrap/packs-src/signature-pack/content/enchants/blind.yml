@@ -1,0 +1,31 @@
+# Imported from EliteEnchantments (id: blind). Review before shipping.
+display: "Blind"
+description:
+  - "&eOn hit, applies Blindness to the"
+  - "&etarget."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "uncommon"
+tier: uncommon
+levels:
+  1:
+    chance: 12
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 0.9, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SQUID_INK", count: 12 } }
+      - { POTION: { effect: "BLINDNESS", level: 1, duration: 40, who: "@Victim" } }
+  2:
+    chance: 16
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 0.9, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SQUID_INK", count: 12 } }
+      - { POTION: { effect: "BLINDNESS", level: 1, duration: 40, who: "@Victim" } }
+  3:
+    chance: 20
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 0.9, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SQUID_INK", count: 12 } }
+      - { POTION: { effect: "BLINDNESS", level: 1, duration: 40, who: "@Victim" } }

@@ -1,31 +1,34 @@
-# Imported from EliteEnchantments (id: confusion). Review before shipping.
-display: "Confusion"
-description:
-  - "&eOn hit, applies Nausea to the"
-  - "&etarget."
+# Cosmic codex source: 04-enchants-axes.md — axes/Confusion.java
+display: Confusion
+description: A chance to deal nausea to your victim.
 trigger: ATTACK
-applies-to: [AXE]
-group: "common"
-tier: common
+applies-to:
+- AXE
+group: simple
+tier: simple
+stacking: HIGHEST
 levels:
   1:
-    chance: 6
-    cooldown: 100
+    chance: 7.5
     effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.6, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { POTION: { effect: "CONFUSION", level: 1, duration: 60, who: "@Victim" } }  # from POTION:CONFUSION:1:TARGET:3 — EE seconds → ticks (x20)
+    - POTION:
+        effect: CONFUSION
+        level: 2
+        duration: 120
+        who: '@Victim'
   2:
-    chance: 9
-    cooldown: 100
+    chance: 15
     effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.6, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { POTION: { effect: "CONFUSION", level: 2, duration: 60, who: "@Victim" } }  # from POTION:CONFUSION:2:TARGET:3 — EE seconds → ticks (x20)
+    - POTION:
+        effect: CONFUSION
+        level: 3
+        duration: 160
+        who: '@Victim'
   3:
-    chance: 12
-    cooldown: 100
+    chance: 22.5
     effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 0.6, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { POTION: { effect: "CONFUSION", level: 2, duration: 60, who: "@Victim" } }  # from POTION:CONFUSION:2:TARGET:3 — EE seconds → ticks (x20)
+    - POTION:
+        effect: CONFUSION
+        level: 4
+        duration: 200
+        who: '@Victim'

@@ -1,0 +1,23 @@
+# Cosmic codex source: 02-enchants-armor-m-z.md — armor/Paradox.java
+display: Paradox
+description: Passive Soul Enchantment. Heals all nearby allies in a massive area around you for a portion of all damage dealt
+  to you. Costs 5 souls per use.
+trigger:
+- DEFENSE
+applies-to:
+- ARMOR
+group: soul
+tier: soul
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    effects: []
+  2:
+    effects: []
+  3:
+    effects: []
+  4:
+    effects: []
+  5:
+    effects: []

@@ -1,29 +1,12 @@
-# Imported from EliteEnchantments (id: deathbringer). Review before shipping.
-display: "Deathbringer"
-description:
-  - "&eOn hit, deals a guaranteed"
-  - "&ecritical strike for greatly"
-  - "&eincreased damage."
-trigger: ATTACK
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/Deathbringer.java
+display: Deathbringer
+description: Chance for the wearer's outgoing damage to be doubled.
+trigger: [ATTACK, BOW, TRIDENT]
 applies-to: [ARMOR]
-group: "legendary"
+group: legendary
 tier: legendary
+stacking: HIGHEST
 levels:
-  1:
-    cooldown: 200
-    effects:
-      - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.8, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SOUL", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.67 } }  # guaranteed crunch in raw hp on a 10s enchant cooldown (ADR-0050 R3 flat economy)
-  2:
-    cooldown: 200
-    effects:
-      - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.8, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SOUL", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.83 } }  # guaranteed crunch in raw hp on a 10s enchant cooldown (ADR-0050 R3 flat economy)
-  3:
-    cooldown: 200
-    effects:
-      - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.8, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SOUL", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 1.0 } }  # guaranteed crunch in raw hp on a 10s enchant cooldown (ADR-0050 R3 flat economy)
+  1: { chance: 10, effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 2.0 } }] }
+  2: { chance: 20, effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 2.0 } }] }
+  3: { chance: 30, effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 2.0 } }] }

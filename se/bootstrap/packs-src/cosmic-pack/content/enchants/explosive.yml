@@ -1,0 +1,36 @@
+# Cosmic codex source: 05-enchants-bows.md — bow/Explosive.java
+display: Explosive
+description: Explosive arrows.
+trigger:
+- BOW
+applies-to:
+- BOW
+group: unique
+tier: unique
+stacking: HIGHEST
+levels:
+  1:
+    condition: &player '%victim.isplayer% >= 1'
+    effects:
+      - { POTION: { effect: WITHER, level: 2, duration: 20, who: '@Victim' } }
+      - { PARTICLE: { particle: EXPLOSION_LARGE, count: 1, spread: 0, speed: 0.25, anchor: eye, who: '@Victim' } }
+  2:
+    condition: *player
+    effects:
+      - { POTION: { effect: WITHER, level: 2, duration: 40, who: '@Victim' } }
+      - { PARTICLE: { particle: EXPLOSION_LARGE, count: 1, spread: 0, speed: 0.25, anchor: eye, who: '@Victim' } }
+  3:
+    condition: *player
+    effects:
+      - { POTION: { effect: WITHER, level: 2, duration: 60, who: '@Victim' } }
+      - { PARTICLE: { particle: EXPLOSION_LARGE, count: 1, spread: 0, speed: 0.25, anchor: eye, who: '@Victim' } }
+  4:
+    condition: *player
+    effects:
+      - { POTION: { effect: WITHER, level: 2, duration: 80, who: '@Victim' } }
+      - { PARTICLE: { particle: EXPLOSION_LARGE, count: 1, spread: 0, speed: 0.25, anchor: eye, who: '@Victim' } }
+  5:
+    condition: *player
+    effects:
+      - { POTION: { effect: WITHER, level: 2, duration: 100, who: '@Victim' } }
+      - { PARTICLE: { particle: EXPLOSION_LARGE, count: 1, spread: 0, speed: 0.25, anchor: eye, who: '@Victim' } }

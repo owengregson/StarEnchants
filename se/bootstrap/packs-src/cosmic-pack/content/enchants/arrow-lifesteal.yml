@@ -1,0 +1,16 @@
+# Cosmic codex source: 05-enchants-bows.md — bow/ArrowLifesteal.java
+display: Arrow Lifesteal
+description: A chance to steal health from opponent while fighting.
+trigger:
+- BOW
+applies-to:
+- BOW
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
+levels:
+  1: { chance: 10, effects: [{ MODIFY_HEALTH: { amount: 1, mode: give, base-round: floor } }] }
+  2: { chance: 20, effects: [{ MODIFY_HEALTH: { amount: 2, mode: give, base-round: floor } }] }
+  3: { chance: 30, effects: [{ MODIFY_HEALTH: { amount: 3, mode: give, base-round: floor } }] }
+  4: { chance: 30, effects: [{ MODIFY_HEALTH: { amount: 4, mode: give, base-round: floor } }] }
+  5: { chance: 30, effects: [{ MODIFY_HEALTH: { amount: 5, mode: give, base-round: floor } }] }

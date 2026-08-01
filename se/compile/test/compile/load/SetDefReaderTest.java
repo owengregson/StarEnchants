@@ -304,6 +304,103 @@ class SetDefReaderTest {
     }
 
     @Test
+    void parsesExactPerMemberCosmicItemConfiguration() {
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            complete: 1
+            armor:
+              pieces:
+                helmet:
+                  material: LEATHER_HELMET
+                  name: "&3Ghostly Hood"
+                  lore: ["&7A haunted hood.", "", "&7+2 Armor Value"]
+                  color: "#808080"
+                  enchants: { PROTECTION_ENVIRONMENTAL: 4 }
+                  enchant-rolls:
+                    - { enchant: enchants/armored, chance: 60, mode: ability-near-max }
+                    - { enchant: enchants/gears, mode: range, min-level: 2, max-level: 3 }
+                  enchant-pools:
+                    - count: 2
+                      mode: plain-near-max
+                      enchants: [enchants/horrify, enchants/feign-death, enchants/poltergeist]
+                  enchant-choices:
+                    - options:
+                        - weight: 5
+                          enchant-rolls:
+                            - { enchant: enchants/enchant-reflect, mode: max }
+                        - { weight: 95, enchant-rolls: [] }
+                  heroic:
+                    incoming: 0.08
+                    durability: 0.25
+                    flat-reduction: 0.5
+            bonuses:
+              - on: armor
+                trigger: PASSIVE
+                effects: []
+            """;
+
+        SetDefReader.Parsed parsed = SetDefReader.read("sets/ghost", root(yaml, diags), counter(), diags);
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        SetDef.Member helmet = parsed.def().armorMembers().get(0);
+        assertEquals(List.of("&7A haunted hood.", "", "&7+2 Armor Value"), helmet.lore());
+        assertEquals(0x808080, helmet.leatherColor());
+        assertEquals(Map.of("PROTECTION_ENVIRONMENTAL", 4), helmet.enchants());
+
+        assertEquals(2, helmet.enchantRolls().size());
+        SetDef.EnchantRoll chance = helmet.enchantRolls().get(0);
+        assertEquals("enchants/armored", chance.enchant());
+        assertEquals(60.0, chance.chance());
+        assertEquals(SetDef.RollMode.ABILITY_NEAR_MAX, chance.mode());
+        SetDef.EnchantRoll range = helmet.enchantRolls().get(1);
+        assertEquals(SetDef.RollMode.RANGE, range.mode());
+        assertEquals(2, range.level());
+        assertEquals(3, range.maxLevel());
+
+        SetDef.EnchantPool pool = helmet.enchantPools().get(0);
+        assertEquals(2, pool.count());
+        assertEquals(SetDef.RollMode.PLAIN_NEAR_MAX, pool.mode());
+        assertEquals(List.of("enchants/horrify", "enchants/feign-death", "enchants/poltergeist"),
+                pool.enchants());
+
+        SetDef.EnchantChoice choice = helmet.enchantChoices().get(0);
+        assertEquals(2, choice.options().size());
+        assertEquals(5.0, choice.options().get(0).weight());
+        assertEquals("enchants/enchant-reflect", choice.options().get(0).rolls().get(0).enchant());
+        assertTrue(choice.options().get(1).rolls().isEmpty(), "the weighted no-op branch must survive parsing");
+
+        assertEquals(0.08, helmet.heroic().percentReduction());
+        assertEquals(0.25, helmet.heroic().durability());
+        assertEquals(0.5, helmet.heroic().flatReduction());
+    }
+
+    @Test
+    void invalidPerMemberColorAndRollValuesAreBlockingDiagnostics() {
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            complete: 1
+            armor:
+              pieces:
+                helmet:
+                  material: LEATHER_HELMET
+                  color: "#GGGGGG"
+                  enchant-rolls:
+                    - { enchant: enchants/armored, chance: 101, mode: almost-max }
+                  enchant-pools:
+                    - { count: 2, enchants: [enchants/only-one] }
+            bonuses:
+              - on: armor
+                trigger: PASSIVE
+                effects: []
+            """;
+
+        SetDefReader.read("sets/bad-member", root(yaml, diags), counter(), diags);
+
+        assertCode(diags, DiagCode.E_LOAD_SET_MEMBER);
+        assertTrue(diags.hasErrors());
+    }
+
+    @Test
     void nonMappingFileIsAnErrorAndYieldsNoBonus() {
         Diagnostics diags = new Diagnostics();
         SetDefReader.Parsed parsed = SetDefReader.read("sets/x", root("- a\n- b\n", diags), counter(), diags);

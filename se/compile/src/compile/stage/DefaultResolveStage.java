@@ -39,20 +39,28 @@ public final class DefaultResolveStage implements ResolveStage {
 
     @Override
     public LoweredAbility resolve(LoweredAbility ability, Diagnostics diags) {
-        List<CompiledEffect> out = new ArrayList<>(ability.effects().size());
-        for (CompiledEffect effect : ability.effects()) {
-            CompiledEffect resolved = resolveEffect(effect, ability, diags);
-            if (resolved != null) {
-                out.add(resolved); // null ⇒ an unknown handle dropped this one effect
-            }
-        }
+        List<CompiledEffect> out = resolveEffects(ability.effects(), ability, diags);
+        List<CompiledEffect> noSoulEffects = resolveEffects(ability.noSoulEffects(), ability, diags);
         return new LoweredAbility(
                 ability.sourceKind(), ability.stableKey(), ability.defId(), ability.level(),
                 ability.baseChance(), ability.cooldownTicks(), ability.soulCost(),
                 ability.triggers(), ability.worldBlacklist(), ability.condition(),
                 out, ability.suppressKey(), ability.cdScopeEnchant(), ability.cdScopeGroup(),
-                ability.cdScopeType(), ability.repeatTicks(), ability.affinity(), ability.source(),
-                ability.setPieces(), ability.suppressImmune());
+                ability.cdScopeType(), ability.repeatTicks(), ability.repeatInitialDelayTicks(),
+                ability.affinity(), ability.source(),
+                ability.setPieces(), ability.suppressImmune(), noSoulEffects);
+    }
+
+    private List<CompiledEffect> resolveEffects(List<CompiledEffect> effects, LoweredAbility owner,
+                                                Diagnostics diags) {
+        List<CompiledEffect> out = new ArrayList<>(effects.size());
+        for (CompiledEffect effect : effects) {
+            CompiledEffect resolved = resolveEffect(effect, owner, diags);
+            if (resolved != null) {
+                out.add(resolved);
+            }
+        }
+        return out;
     }
 
     /** @return the effect with handle args resolved, or {@code null} if a handle was unknown. */

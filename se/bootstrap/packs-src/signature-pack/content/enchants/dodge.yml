@@ -1,0 +1,50 @@
+# Imported from EliteEnchantments (id: dodge). Review before shipping.
+display: "Dodge"
+description:
+  - "&eA chance to fully negate an attack."
+  - "&eSneaking doubles it."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "epic"
+tier: epic
+levels:
+  1:
+    chance: 1
+    cooldown: 100
+    condition: "%sneaking% : +1 %chance%"
+    effects:
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CLOUD", count: 8 } }
+      - { CANCEL: {} }
+  2:
+    chance: 1.5
+    cooldown: 100
+    condition: "%sneaking% : +1.5 %chance%"
+    effects:
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CLOUD", count: 8 } }
+      - { CANCEL: {} }
+  3:
+    chance: 2
+    cooldown: 100
+    condition: "%sneaking% : +2 %chance%"
+    effects:
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CLOUD", count: 8 } }
+      - { CANCEL: {} }
+  4:
+    chance: 2.5
+    cooldown: 100
+    condition: "%sneaking% : +2.5 %chance%"
+    effects:
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CLOUD", count: 8 } }
+      - { CANCEL: {} }
+  5:
+    chance: 3
+    cooldown: 100
+    condition: "%sneaking% : +3 %chance%"
+    effects:
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CLOUD", count: 8 } }
+      - { CANCEL: {} }

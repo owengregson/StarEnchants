@@ -137,6 +137,8 @@ public final class DefaultEraseStage implements EraseStage {
             int cdScopeType = la.cdScopeType() == null ? -1 : cooldownScopes.intern(la.cdScopeType());
 
             CompiledEffect[] effects = eraseSuppressArgs(la.effects(), cooldownScopes, la.source(), diags);
+            CompiledEffect[] noSoulEffects = eraseSuppressArgs(
+                    la.noSoulEffects(), cooldownScopes, la.source(), diags);
             Ability ability = new Ability(
                     id,
                     la.defId(),
@@ -150,6 +152,7 @@ public final class DefaultEraseStage implements EraseStage {
                     la.condition(),
                     effects,
                     la.repeatTicks(),
+                    la.repeatInitialDelayTicks(),
                     la.affinity(),
                     cdScopeEnchant,
                     cdScopeGroup,
@@ -157,7 +160,8 @@ public final class DefaultEraseStage implements EraseStage {
                     suppressKey,
                     la.setPieces(),
                     la.suppressImmune(),
-                    FactMasks.of(la.condition(), effects)); // ADR-0039: only these slots get populated per hit
+                    FactMasks.of(la.condition(), effects, noSoulEffects),
+                    noSoulEffects); // ADR-0039: populate facts read by either execution branch
 
             abilities.add(ability);
             keysByDenseId.add(la.stableKey());
@@ -184,6 +188,10 @@ public final class DefaultEraseStage implements EraseStage {
         List<CompiledEffect> out = new ArrayList<>(effects.size());
         for (CompiledEffect effect : effects) {
             Args args = effect.args();
+            if ("SOUL_TRAP".equals(effect.head()) && args.has("key")) {
+                out.add(effect.withArgs(args.with("key", cooldownScopes.intern(args.str("key")))));
+                continue;
+            }
             if (!"SUPPRESS".equals(effect.head()) || !args.has("scope") || !args.has("key")) {
                 out.add(effect);
                 continue;

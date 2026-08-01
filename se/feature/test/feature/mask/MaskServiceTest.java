@@ -109,6 +109,20 @@ class MaskServiceTest {
             trigger: ATTACK
             effects: [{ HEAL: { amount: 1 } }]
             """, StandardCharsets.UTF_8);
+        Files.writeString(root.resolve("masks/santa.yml"), """
+            display: "Santa"
+            color: "&b"
+            summary: "+2 Max Hearts"
+            trigger: PASSIVE
+            effects: [{ HEAL: { amount: 2 } }]
+            """, StandardCharsets.UTF_8);
+        Files.writeString(root.resolve("masks/multi-mask.yml"), """
+            display: "Multi-Mask"
+            color: "&f"
+            head: "bXVsdGk="
+            trigger: PASSIVE
+            effects: [{ HEAL: { amount: 0 } }]
+            """, StandardCharsets.UTF_8);
         Library lib = LibraryLoader.load(root,
                 Compiler.of(MapSpecRegistry.of(ParamSpec.of("HEAL").param("amount", D.DOUBLE.min(0)).build())), 1);
         holder = new ContentHolder(lib);
@@ -202,6 +216,25 @@ class MaskServiceTest {
     @Test
     void mintOfAnUnknownKeyIsNull() {
         assertNull(service(new FixedHeads(null)).mint("masks/ghost"));
+    }
+
+    @Test
+    void multiMaskRoundTripsItsDistinctComponentsThroughHelmetState() {
+        ItemStack head = stackWithMeta(mock(ItemMeta.class));
+        MaskService service = service(new FixedHeads(head));
+        ItemStack multi = service.mintMulti(List.of(MASK, "masks/santa", MASK));
+        String compound = MaskCodec.multiKey(List.of(MASK, "masks/santa"));
+
+        assertEquals(compound, maskCodec.keyOf(multi), "the loose item stores ordered deduplicated children");
+        ItemStack helmet = gear(Material.DIAMOND_HELMET, 1);
+        GestureOutcome applied = service.apply(multi, helmet);
+        assertTrue(applied.commit());
+        assertEquals(compound, combatCodec.read(helmet).maskKey(), "the complete compound identity is applied");
+
+        GestureOutcome removed = service.remove(helmet);
+        assertTrue(removed.commit());
+        assertEquals(compound, maskCodec.keyOf(removed.produced()), "detach reconstructs the same Multi-Mask");
+        assertNull(combatCodec.read(helmet).maskKey());
     }
 
     @Test

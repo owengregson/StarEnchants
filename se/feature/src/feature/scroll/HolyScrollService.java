@@ -2,6 +2,7 @@ package feature.scroll;
 
 import compile.load.ScrollsConfig;
 import feature.apply.Rolls;
+import engine.effect.kind.ActiveMasks;
 import feature.apply.GestureOutcome;
 import feature.compat.Mats;
 import item.codec.AppliedSlot;
@@ -15,6 +16,7 @@ import java.util.Random;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import platform.item.ItemGroups;
 import platform.text.Tokens;
@@ -102,13 +104,24 @@ public final class HolyScrollService {
      * and return them so the caller can stash them for re-grant on respawn. Mutates {@code drops}.
      */
     public List<ItemStack> keepFromDrops(List<ItemStack> drops) {
+        return keepFromDrops(null, drops);
+    }
+
+    /**
+     * Player-aware death path. Monopoly Mask's advertised 33% Holy White Scroll negation preserves the
+     * one-shot marker on each saved item whose independent roll lands; the item is still removed from drops.
+     */
+    public List<ItemStack> keepFromDrops(Player owner, List<ItemStack> drops) {
+        boolean monopoly = owner != null && ActiveMasks.has(owner, "masks/monopoly-mask");
         List<ItemStack> kept = new ArrayList<>();
         Iterator<ItemStack> it = drops.iterator();
         while (it.hasNext()) {
             ItemStack drop = it.next();
             if (drop != null && slot.holds(drop, AppliedSlot.HOLY)) {
-                slot.release(drop, AppliedSlot.HOLY); // the marker is consumed on this death
-                reRender.accept(drop); // drop the now-stale HOLY PROTECTED line before the item is re-granted
+                if (!monopoly || random.nextDouble() > 0.33) {
+                    slot.release(drop, AppliedSlot.HOLY); // ordinary one-shot consumption
+                    reRender.accept(drop);
+                }
                 kept.add(drop);
                 it.remove();
             }

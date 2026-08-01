@@ -66,6 +66,7 @@ class FactPopulatorTest {
         lenient().when(p.getFoodLevel()).thenReturn(8);
         lenient().when(p.getLevel()).thenReturn(30);
         lenient().when(p.getTotalExperience()).thenReturn(1234);
+        lenient().when(p.getWalkSpeed()).thenReturn(0.2f);
         lenient().when(p.isSneaking()).thenReturn(true);
         lenient().when(p.isBlocking()).thenReturn(false);
         lenient().when(p.isFlying()).thenReturn(true);
@@ -77,6 +78,7 @@ class FactPopulatorTest {
         lenient().when(p.getType()).thenReturn(EntityType.PLAYER);
         World world = mock(World.class);
         lenient().when(world.getName()).thenReturn("world_nether");
+        lenient().when(world.getEnvironment()).thenReturn(World.Environment.NETHER);
         lenient().when(p.getWorld()).thenReturn(world);
         lenient().when(p.getGameMode()).thenReturn(GameMode.SURVIVAL);
         PlayerInventory inv = mock(PlayerInventory.class);
@@ -115,6 +117,7 @@ class FactPopulatorTest {
         assertEquals(8.0, f.number(num("actor", "food")));
         assertEquals(30.0, f.number(num("actor", "level")));
         assertEquals(1234.0, f.number(num("actor", "totalexp")));
+        assertEquals(0.2, f.number(num("actor", "walkspeed")), 0.000001);
         assertTrue(f.flag(flag("sneaking")));
         assertFalse(f.flag(flag("blocking")));
         assertTrue(f.flag(flag("flying")));
@@ -125,6 +128,7 @@ class FactPopulatorTest {
         assertTrue(f.flag(flag("onground")));
         assertEquals(75.0, f.number(num("actor", "healthpercent"))); // 15 / 20 * 100
         assertEquals("world_nether", f.string(str("actor", "world")));
+        assertEquals("NETHER", f.string(str("actor", "environment")));
         assertEquals("SURVIVAL", f.string(str("actor", "gamemode")));
         assertEquals("DIAMOND_SWORD", f.string(str("actor", "helditem")));
         assertEquals("PLAYER", f.string(str("actor", "type")));
@@ -152,6 +156,7 @@ class FactPopulatorTest {
         assertEquals(20.0, f.number(num("victim", "maxhealth")));
         assertEquals(35.0, f.number(num("victim", "healthpercent"))); // 7 / 20 * 100
         assertEquals(8.0, f.number(num("victim", "food")));           // actor()'s food level
+        assertEquals(0.2, f.number(num("victim", "walkspeed")), 0.000001);
         assertEquals("PLAYER", f.string(str("victim", "type")));
         assertEquals("SHIELD", f.string(str("victim", "helditem")));
         assertTrue(f.flag(flag("victim.sneaking")));
@@ -171,6 +176,7 @@ class FactPopulatorTest {
         FactBuffer f = populator.populate(new ActivationContext(mock(Player.class), cow, null, null));
 
         assertEquals(10.0, f.number(num("victim", "health")));
+        assertEquals(0.0, f.number(num("victim", "walkspeed")));
         assertEquals("COW", f.string(str("victim", "type")));
         assertFalse(f.flag(flag("victim.sneaking"))); // not a player → false, no crash
         assertFalse(f.flag(flag("victim.blocking")));

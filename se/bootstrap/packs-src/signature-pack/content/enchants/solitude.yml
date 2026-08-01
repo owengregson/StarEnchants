@@ -1,0 +1,67 @@
+# Imported from EliteEnchantments (id: solitude). Review before shipping.
+display: "Solitude"
+description:
+  - "&eYour hits silence the enemy, cutting"
+  - "&eoff their enchantments more often and"
+  - "&efor longer. A weaker Silence."
+trigger: ATTACK
+applies-to: [WEAPON]
+group: "epic"
+tier: epic
+levels:
+  1:
+    chance: 10
+    cooldown: 200
+    effects:
+      - { SOUND: { sound: "BLOCK_BEACON_ACTIVATE", volume: 0.8, pitch: 1.0 } }
+      - { PARTICLE: { particle: "END_ROD", count: 8 } }
+      - { SUPPRESS: { scope: "GROUP", key: "common", duration: 60, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 60, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "rare", duration: 60, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "epic", duration: 60, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "legendary", duration: 60, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 60, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 60, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "godly", duration: 60, who: "@Victim" } }
+  2:
+    chance: 14
+    cooldown: 200
+    effects:
+      - { SOUND: { sound: "BLOCK_BEACON_ACTIVATE", volume: 0.8, pitch: 1.0 } }
+      - { PARTICLE: { particle: "END_ROD", count: 8 } }
+      - { SUPPRESS: { scope: "GROUP", key: "common", duration: 80, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 80, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "rare", duration: 80, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "epic", duration: 80, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "legendary", duration: 80, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 80, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 80, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "godly", duration: 80, who: "@Victim" } }
+  3:
+    chance: 18
+    cooldown: 200
+    effects:
+      - { SOUND: { sound: "BLOCK_BEACON_ACTIVATE", volume: 0.8, pitch: 1.0 } }
+      - { PARTICLE: { particle: "END_ROD", count: 8 } }
+      - { SUPPRESS: { scope: "GROUP", key: "common", duration: 100, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 100, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "rare", duration: 100, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "epic", duration: 100, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "legendary", duration: 100, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 100, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 100, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "godly", duration: 100, who: "@Victim" } }
+  4:
+    chance: 22
+    cooldown: 200
+    effects:
+      - { SOUND: { sound: "BLOCK_BEACON_ACTIVATE", volume: 0.8, pitch: 1.0 } }
+      - { PARTICLE: { particle: "END_ROD", count: 8 } }
+      - { SUPPRESS: { scope: "GROUP", key: "common", duration: 120, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "uncommon", duration: 120, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "rare", duration: 120, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "epic", duration: 120, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "legendary", duration: 120, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 120, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "mythic", duration: 120, who: "@Victim" } }
+      - { SUPPRESS: { scope: "GROUP", key: "godly", duration: 120, who: "@Victim" } }

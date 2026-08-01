@@ -1,0 +1,16 @@
+# Cosmic codex source: 02-enchants-armor-m-z.md — armor/Shockwave.java
+display: Shockwave
+description: The chance to push back your attacker.
+trigger:
+- DEFENSE
+applies-to:
+- CHESTPLATE
+group: elite
+tier: elite
+stacking: HIGHEST
+levels:
+  1: { chance: 2, condition: &eligible '%damagecause% == "ENTITY_ATTACK" && %actor.world% != "world_koth"', effects: [{ VELOCITY: { mode: away, from: actor, strength: 1.7, who: '@Aoe{r=1,filter=NONALLIES}' } }, { PARTICLE: { particle: ENCHANTMENT_TABLE, count: 100, spread: 2, speed: 0.73, who: '@Aoe{r=1,filter=NONALLIES}' } }, { SOUND: { sound: FIREWORK_LAUNCH, volume: 1, pitch: 0.1, who: '@Self' } }, { PARTICLE: { particle: ENCHANTMENT_TABLE, count: 100, spread: 3, speed: 0.73, anchor: eye, who: '@Self' } }] }
+  2: { chance: 4, condition: *eligible, effects: [{ VELOCITY: { mode: away, from: actor, strength: 1.7, who: '@Aoe{r=2,filter=NONALLIES}' } }, { PARTICLE: { particle: ENCHANTMENT_TABLE, count: 100, spread: 2, speed: 0.73, who: '@Aoe{r=2,filter=NONALLIES}' } }, { SOUND: { sound: FIREWORK_LAUNCH, volume: 1, pitch: 0.1, who: '@Self' } }, { PARTICLE: { particle: ENCHANTMENT_TABLE, count: 100, spread: 3, speed: 0.73, anchor: eye, who: '@Self' } }] }
+  3: { chance: 6, condition: *eligible, effects: [{ VELOCITY: { mode: away, from: actor, strength: 1.7, who: '@Aoe{r=3,filter=NONALLIES}' } }, { PARTICLE: { particle: ENCHANTMENT_TABLE, count: 100, spread: 2, speed: 0.73, who: '@Aoe{r=3,filter=NONALLIES}' } }, { SOUND: { sound: FIREWORK_LAUNCH, volume: 1, pitch: 0.1, who: '@Self' } }, { PARTICLE: { particle: ENCHANTMENT_TABLE, count: 100, spread: 3, speed: 0.73, anchor: eye, who: '@Self' } }] }
+  4: { chance: 8, condition: *eligible, effects: [{ VELOCITY: { mode: away, from: actor, strength: 1.7, who: '@Aoe{r=4,filter=NONALLIES}' } }, { PARTICLE: { particle: ENCHANTMENT_TABLE, count: 100, spread: 2, speed: 0.73, who: '@Aoe{r=4,filter=NONALLIES}' } }, { SOUND: { sound: FIREWORK_LAUNCH, volume: 1, pitch: 0.1, who: '@Self' } }, { PARTICLE: { particle: ENCHANTMENT_TABLE, count: 100, spread: 3, speed: 0.73, anchor: eye, who: '@Self' } }] }
+  5: { chance: 10, condition: *eligible, effects: [{ VELOCITY: { mode: away, from: actor, strength: 1.7, who: '@Aoe{r=5,filter=NONALLIES}' } }, { PARTICLE: { particle: ENCHANTMENT_TABLE, count: 100, spread: 2, speed: 0.73, who: '@Aoe{r=5,filter=NONALLIES}' } }, { SOUND: { sound: FIREWORK_LAUNCH, volume: 1, pitch: 0.1, who: '@Self' } }, { PARTICLE: { particle: ENCHANTMENT_TABLE, count: 100, spread: 3, speed: 0.73, anchor: eye, who: '@Self' } }] }

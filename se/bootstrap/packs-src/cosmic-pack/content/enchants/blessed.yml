@@ -1,0 +1,34 @@
+# Cosmic codex source: 04-enchants-axes.md — axes/Blessed.java
+display: Blessed
+description: A chance of removing debuffs.
+trigger: [ATTACK]
+applies-to: [AXE]
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
+levels:
+  1:
+    chance: 3
+    condition: '%victim.type% == "PLAYER"'
+    effects: &bless
+      - BLESS:
+          blocked-by: deep-wounds
+          blocked-message: '&4** DEEP WOUNDS &7(NO BLESS)&4 **'
+          success-message: '&e&l** BLESSED **'
+          sound: SPLASH
+          volume: 1.2
+          pitch: 2.0
+          message-throttle-set: sets/koth
+          message-throttle: 160
+          effect-1: BLINDNESS
+          effect-2: CONFUSION
+          effect-3: HARM
+          effect-4: HUNGER
+          effect-5: POISON
+          effect-6: SLOW
+          effect-7: SLOW_DIGGING
+          effect-8: WEAKNESS
+          effect-9: WITHER
+  2: { chance: 6, condition: '%victim.type% == "PLAYER"', effects: *bless }
+  3: { chance: 9, condition: '%victim.type% == "PLAYER"', effects: *bless }
+  4: { chance: 12, condition: '%victim.type% == "PLAYER"', effects: *bless }

@@ -1,0 +1,15 @@
+# Cosmic codex source: 11-masks.md
+display: Scarecrow Mask
+color: '&e'
+head: eyJ0aW1lc3RhbXAiOjE1NDA4NTQwNTU0NzAsInByb2ZpbGVJZCI6ImEzOWVmNTdhMzg3YzRjZDE5NzQwNTliNzMyZWJjN2E1IiwicHJvZmlsZU5hbWUiOiJNZXJjaGFudCIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9mMWVlYzg3NTdiYTgyZmY5MTY3OTNmZmUzNWRlMjI1NDhjMWZhZjViYmUwNWNjMzg4YjMyYTA5NDgxNGY1OTgzIn19fQ==
+material: PLAYER_HEAD
+summary: Infinite Food
+description:
+- "&cInfinite Food"
+- "&7An empty husk of a"
+- "&7once tortured soul left to rot."
+- "&6&l * &6November 2018 CC"
+abilities:
+- trigger: PASSIVE
+  # Native: cancels FoodLevelChangeEvent losses only; gains still pass through.
+  effects: []

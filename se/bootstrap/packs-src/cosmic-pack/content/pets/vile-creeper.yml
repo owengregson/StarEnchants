@@ -1,0 +1,52 @@
+# Cosmic codex source: 12-pets.md
+display: Vile Creeper
+color: '&e'
+type: ACTIVE
+head: eyJ0aW1lc3RhbXAiOjE1NjMyNzczNjY1MDYsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS80YjA2OWNlY2Y0MjNjMzFiNDQ0ZTE4MGVlNGU3ODcyZDBhMmNkZjM0YjQ4YzNkMzI3MGJlZmY1MmM3MjRhOWIzIn19fQ==
+material: PLAYER_HEAD
+descriptor:
+- '&7A Cosmic inventory pet.'
+description:
+- '&7Creates a Vile Creeper; external custom creeper integration required.'
+max-level: 5
+experience-to-level:
+  2: 5000
+  3: 7500
+  4: 10000
+  5: 12500
+levels:
+  1:
+    cooldown: 9600
+    experience-on-use: 0
+    description:
+    - '&7Creates a Vile Creeper; external custom creeper integration required.'
+    condition: 1 == 0
+    effects: []
+  2:
+    cooldown: 8400
+    experience-on-use: 0
+    description:
+    - '&7Creates a Vile Creeper; external custom creeper integration required.'
+    condition: 1 == 0
+    effects: []
+  3:
+    cooldown: 7200
+    experience-on-use: 0
+    description:
+    - '&7Creates a Vile Creeper; external custom creeper integration required.'
+    condition: 1 == 0
+    effects: []
+  4:
+    cooldown: 6000
+    experience-on-use: 0
+    description:
+    - '&7Creates a Vile Creeper; external custom creeper integration required.'
+    condition: 1 == 0
+    effects: []
+  5:
+    cooldown: 4800
+    experience-on-use: 0
+    description:
+    - '&7Creates a Vile Creeper; external custom creeper integration required.'
+    condition: 1 == 0
+    effects: []

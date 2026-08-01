@@ -1,0 +1,10 @@
+# Godly Transmog (docs/v3-directives.md §I/§K) — a REUSABLE tool (not a one-shot scroll): drag it onto
+# enchanted gear to OPEN the deterministic enchant-reorder GUI bound to that piece, where you arrange the
+# enchant display order by hand. One physical item per file; reload with /se reload.
+type: godly-transmog
+
+material: WRITABLE_BOOK
+name: "{#c1522f}&lGodly Transmog Scroll"
+lore:
+  - "&eAllows you to customize the order of enchantments on your equipment."
+  - "&7Drag n' Drop on an item to apply."

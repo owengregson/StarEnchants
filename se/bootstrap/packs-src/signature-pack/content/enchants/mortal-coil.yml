@@ -1,0 +1,50 @@
+# Imported from EliteEnchantments (id: mortal-coil). Review before shipping.
+display: "Mortal Coil"
+description:
+  - "&eStrips the target's Overload bonus"
+  - "&ehearts for a few seconds."
+trigger: ATTACK
+applies-to: [ARMOR]
+group: "godly"
+tier: godly
+levels:
+  1:
+    chance: 2.67
+    cooldown: 1200
+    condition: "%victim.health% > 12 && %victim.healthpercent% <= 40"  # guard: set-to-12 must never heal a victim already below 12; finisher gate — only fires on a target already under 40% health
+    effects:
+      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.7, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
+      - { MODIFY_HEALTH: { amount: 12, mode: "set", who: "@Victim" } }  # from REDUCE_HEARTS:12:5 — EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)
+  2:
+    chance: 4
+    cooldown: 1200
+    condition: "%victim.health% > 12 && %victim.healthpercent% <= 40"  # guard: set-to-12 must never heal a victim already below 12; finisher gate — only fires on a target already under 40% health
+    effects:
+      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.7, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
+      - { MODIFY_HEALTH: { amount: 12, mode: "set", who: "@Victim" } }  # from REDUCE_HEARTS:12:5 — EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)
+  3:
+    chance: 5.33
+    cooldown: 1200
+    condition: "%victim.health% > 12 && %victim.healthpercent% <= 40"  # guard: set-to-12 must never heal a victim already below 12; finisher gate — only fires on a target already under 40% health
+    effects:
+      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.7, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
+      - { MODIFY_HEALTH: { amount: 12, mode: "set", who: "@Victim" } }  # from REDUCE_HEARTS:12:5 — EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)
+  4:
+    chance: 6.67
+    cooldown: 1200
+    condition: "%victim.health% > 12 && %victim.healthpercent% <= 40"  # guard: set-to-12 must never heal a victim already below 12; finisher gate — only fires on a target already under 40% health
+    effects:
+      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.7, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
+      - { MODIFY_HEALTH: { amount: 12, mode: "set", who: "@Victim" } }  # from REDUCE_HEARTS:12:5 — EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)
+  5:
+    chance: 8
+    cooldown: 1200
+    condition: "%victim.health% > 12 && %victim.healthpercent% <= 40"  # guard: set-to-12 must never heal a victim already below 12; finisher gate — only fires on a target already under 40% health
+    effects:
+      - { SOUND: { sound: "ENTITY_WITHER_AMBIENT", volume: 0.7, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
+      - { MODIFY_HEALTH: { amount: 12, mode: "set", who: "@Victim" } }  # from REDUCE_HEARTS:12:5 — EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)

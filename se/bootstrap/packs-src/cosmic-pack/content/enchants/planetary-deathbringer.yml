@@ -1,31 +1,15 @@
-# Imported from EliteEnchantments (id: planetary-deathbringer). Review before shipping.
-display: "Planetary Deathbringer"
-description:
-  - "&eA guaranteed critical strike that"
-  - "&edeals even more devastating damage."
-  - "&c&l(!)&r &7Requires &6Deathbringer"
-trigger: ATTACK
+# Cosmic codex source: 06-enchants-tools-heroic.md — heroic/HeroicDeathbringer.java
+display: Planetary Deathbringer
+description: Heroic Enchantment. An increased chance to deal 2.5x damage. Requires Deathbringer III enchant on item to apply. Cannot be black-scrolled.
+trigger: [ATTACK, BOW, TRIDENT]
 applies-to: [ARMOR]
-group: "mythic"
-tier: mythic
-requires: ["enchants/deathbringer"]
-removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: HIGHEST
 levels:
-  1:
-    cooldown: 160
-    effects:
-      - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.9, pitch: 0.8 } }
-      - { PARTICLE: { particle: "SOUL", count: 16 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.86 } }  # guaranteed crunch in raw hp on an 8s enchant cooldown (ADR-0050 R3 flat economy)
-  2:
-    cooldown: 160
-    effects:
-      - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.9, pitch: 0.8 } }
-      - { PARTICLE: { particle: "SOUL", count: 16 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 1.03 } }  # guaranteed crunch in raw hp on an 8s enchant cooldown (ADR-0050 R3 flat economy)
-  3:
-    cooldown: 160
-    effects:
-      - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.9, pitch: 0.8 } }
-      - { PARTICLE: { particle: "SOUL", count: 16 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 1.2 } }  # guaranteed crunch in raw hp on an 8s enchant cooldown (ADR-0050 R3 flat economy)
+  1: { chance: 15, effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 2.0 } }] }
+  2: { chance: 30.000000000000004, effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 2.0 } }] }
+  3: { chance: 45.00000000000001, effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 2.0 } }] }
+requires: [enchants/deathbringer]
+removes-required: true

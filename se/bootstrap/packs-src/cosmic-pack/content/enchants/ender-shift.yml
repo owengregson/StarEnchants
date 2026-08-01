@@ -1,37 +1,68 @@
-# Imported from EliteEnchantments (id: ender-shift). Review before shipping.
-display: "Ender Shift"
-description:
-  - "&eAt low health, when hit, grants"
-  - "&eyou Speed and Absorption."
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/EnderShift.java
+display: Ender Shift
+description: Cancels an otherwise lethal hit, grants escape buffs, and prevents attacking during the escape window.
 trigger: DEFENSE
-applies-to: [BOOTS]
-group: "rare"
-tier: rare
+applies-to: [HELMET, BOOTS]
+group: unique
+tier: unique
+stacking: HIGHEST
 levels:
   1:
-    chance: 20
-    cooldown: 300
-    condition: "%actor.healthpercent% <= 15"
-    effects:
-      - { PARTICLE: { particle: "PORTAL", count: 16 } }
-      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1, pitch: 0.7 } }
-      - { POTION: { effect: "SPEED", level: 1, duration: 80, who: "@Self" } }  # from POTION:SPEED:1:PLAYER:4 — EE seconds → ticks (x20)
-      - { POTION: { effect: "ABSORPTION", level: 2, duration: 40, who: "@Self" } }
+    abilities:
+      - trigger: DEFENSE
+        cooldown: 600
+        condition: "%actor.health% - %finaldamage% <= 0"
+        effects: &shift1
+          - { CANCEL: {} }
+          - { SET_VAR: { name: ender-shifted, value: 1, ttl: 170 } }
+          - { POTION: { effect: NIGHT_VISION, level: 1, duration: 160 } }
+          - { POTION: { effect: SPEED, level: 4, duration: 160, force: true } }
+          - { POTION: { effect: JUMP, level: 1, duration: 160, force: true } }
+          - { POTION: { effect: ABSORPTION, level: 4, duration: 160 } }
+          - { MESSAGE: { text: "" } }
+          - { MESSAGE: { text: "&d&l(!) &dYou were about to die, so you have entered the Ender dimension, escape to safety!" } }
+          - { MESSAGE: { text: "" } }
+          - { SOUND: { sound: ENTITY_ENDER_DRAGON_GROWL, volume: 1, pitch: 0.54 } }
+          - { PARTICLE: { particle: SPELL_WITCH, count: 100, speed: 1.25, spread: 2, anchor: feet, who: "@Self" } }
+          - { PARTICLE: { particle: SPELL_WITCH, count: 100, speed: 1.25, spread: 2, anchor: feet, who: "@Self", wait: 170 } }
+      - trigger: [ATTACK, BOW, BOW_FIRE, TRIDENT]
+        condition: "%ender-shifted% > 0"
+        effects: &shiftlock [{ CANCEL: {} }, { SOUND: { sound: ENTITY_ENDERMAN_TELEPORT, volume: 1, pitch: 0.54 } }]
   2:
-    chance: 30
-    cooldown: 300
-    condition: "%actor.healthpercent% <= 15"
-    effects:
-      - { PARTICLE: { particle: "PORTAL", count: 16 } }
-      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1, pitch: 0.7 } }
-      - { POTION: { effect: "SPEED", level: 1, duration: 80, who: "@Self" } }  # from POTION:SPEED:1:PLAYER:4 — EE seconds → ticks (x20)
-      - { POTION: { effect: "ABSORPTION", level: 2, duration: 40, who: "@Self" } }
+    abilities:
+      - trigger: DEFENSE
+        cooldown: 600
+        condition: "%actor.health% - %finaldamage% <= 0"
+        effects:
+          - { CANCEL: {} }
+          - { SET_VAR: { name: ender-shifted, value: 1, ttl: 190 } }
+          - { POTION: { effect: NIGHT_VISION, level: 1, duration: 180 } }
+          - { POTION: { effect: SPEED, level: 5, duration: 180, force: true } }
+          - { POTION: { effect: JUMP, level: 2, duration: 180, force: true } }
+          - { POTION: { effect: ABSORPTION, level: 5, duration: 180 } }
+          - { MESSAGE: { text: "" } }
+          - { MESSAGE: { text: "&d&l(!) &dYou were about to die, so you have entered the Ender dimension, escape to safety!" } }
+          - { MESSAGE: { text: "" } }
+          - { SOUND: { sound: ENTITY_ENDER_DRAGON_GROWL, volume: 1, pitch: 0.54 } }
+          - { PARTICLE: { particle: SPELL_WITCH, count: 100, speed: 1.25, spread: 2, anchor: feet, who: "@Self" } }
+          - { PARTICLE: { particle: SPELL_WITCH, count: 100, speed: 1.25, spread: 2, anchor: feet, who: "@Self", wait: 190 } }
+      - { trigger: [ATTACK, BOW, BOW_FIRE, TRIDENT], condition: "%ender-shifted% > 0", effects: *shiftlock }
   3:
-    chance: 40
-    cooldown: 300
-    condition: "%actor.healthpercent% <= 15"
-    effects:
-      - { PARTICLE: { particle: "PORTAL", count: 16 } }
-      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1, pitch: 0.7 } }
-      - { POTION: { effect: "SPEED", level: 1, duration: 80, who: "@Self" } }  # from POTION:SPEED:1:PLAYER:4 — EE seconds → ticks (x20)
-      - { POTION: { effect: "ABSORPTION", level: 2, duration: 40, who: "@Self" } }
+    abilities:
+      - trigger: DEFENSE
+        cooldown: 600
+        condition: "%actor.health% - %finaldamage% <= 0"
+        effects:
+          - { CANCEL: {} }
+          - { SET_VAR: { name: ender-shifted, value: 1, ttl: 210 } }
+          - { POTION: { effect: NIGHT_VISION, level: 1, duration: 200 } }
+          - { POTION: { effect: SPEED, level: 6, duration: 200, force: true } }
+          - { POTION: { effect: JUMP, level: 3, duration: 200, force: true } }
+          - { POTION: { effect: ABSORPTION, level: 6, duration: 200 } }
+          - { MESSAGE: { text: "" } }
+          - { MESSAGE: { text: "&d&l(!) &dYou were about to die, so you have entered the Ender dimension, escape to safety!" } }
+          - { MESSAGE: { text: "" } }
+          - { SOUND: { sound: ENTITY_ENDER_DRAGON_GROWL, volume: 1, pitch: 0.54 } }
+          - { PARTICLE: { particle: SPELL_WITCH, count: 100, speed: 1.25, spread: 2, anchor: feet, who: "@Self" } }
+          - { PARTICLE: { particle: SPELL_WITCH, count: 100, speed: 1.25, spread: 2, anchor: feet, who: "@Self", wait: 210 } }
+      - { trigger: [ATTACK, BOW, BOW_FIRE, TRIDENT], condition: "%ender-shifted% > 0", effects: *shiftlock }

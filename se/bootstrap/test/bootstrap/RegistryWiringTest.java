@@ -66,32 +66,53 @@ class RegistryWiringTest {
     /** The golden global listener registration sequence, all toggles on (§2 with EngineStoreListener after Immune,
      *  heroic-durability right after Heroic). Fold Events + the materialized guard/sweep, in registry order. */
     private static final List<String> GOLDEN_LISTENERS = List.of(
-            "CombatListener", "RageStacksListener", "ComboDotSyncListener", "EquipListener", "ArmourFeeder", "HandChangeFeeder",
+            "CombatListener", "RageStacksListener", "ComboDotSyncListener",
+            "EquipListener", "RepairGuardService", "ArmourFeeder", "HandChangeFeeder",
             "SoulListener", "SoulInteractListener", "SoulInventoryListener",
             "TriggerListeners", "PlacedBlockTracker", "ItemDamageSource", "FallingBlockListener",
-            "GuardianHurtListener", "SummonTargetGuardListener", // ADR-0071 amendments: never target your summoner
+            "GuardianHurtListener", "GuardianProtectionListener", "CosmicArmorSummonListener",
+            "SpawnerOriginListener", "BleedCleanupListener", "NutritionListener", "CosmicImmortalListener",
+            "CosmicDiminishListener", "ExpDropMarkListener", "HeadDropMarkListener", "VirusDamageListener",
+            "SilenceDamageListener", "CosmicHexUnfocusListener", "CosmicSelfDestructListener",
+            "PhoenixListener", "PlagueCarrierListener", "HorrifyListener", "FeignDeathListener",
+            "RocketEscapeListener", "NatureWrathListener", "ParadoxListener", "SoulSiphonListener",
+            "MarkOfTheBeastListener", "TombstoneListener", "DemonicGatewayListener",
+            "DetonateListener", "MotherYijkiListener", "DimensionalTravelerListener",
+            "CosmicSetCombatListener", "CosmicSetUtilityListener", "CosmicMasteryListener",
+            "RotAndDecayListener", "CosmicWeaponListener", "CosmicProjectileListener",
+            "SummonTargetGuardListener",
             "TempEquipListener", "TimedRevertListener", "TempBlockGuardListener",
             "HellfireFloorListener", "KeepOnDeathListener",
             "TeleblockListener", "ImmuneListener", "PotionLockGuard", "FreezeDamageGuard",
-            "EngineStoreListener", "VanillaGuardListener", "HeadEquipGuard", "DispenseArmorGuard", "StationGuard",
-            "CarrierListener", "CrystalListener",
+            "EngineStoreListener", "VanillaGuardListener", "HeadEquipGuard", "DispenseArmorGuard",
+            "StationGuard", "CarrierListener", "CrystalListener",
             "HeroicListener", "HeroicDurabilitySave",
             "SlotListener", "UnopenedBookListener", "UseItemListener", "UseItemConsumeListener",
-            "PetUseListener", "PetLevelListener", "PetFoodListener", "PetHotbarListener", "PetSummonListener",
-            "IllusionCanonGuard", "MaskBreakSource", "MaskListener", "MaskRemoveListener", "MaskIllusionListener", "MobTargetGuard", "InvseeGuard",
-            "NearGuard", "SplashHealGuard",
-            "ReforgeListener", "ReforgeUseListener", "ReforgeStrikeListener", "ReforgeTempoGuardListener", // ADR-0070/0071
-            "ScrollListener", "HolyScrollListener", "NametagListener", "TrakListener", "ShotWeapons",
-            "MenuListener", "GodlyTransmogListener");
+            "PetUseListener", "PetLevelListener", "PetFoodListener", "PetHotbarListener",
+            "PetSummonListener", "CosmicXpBoosterListener",
+            "IllusionCanonGuard", "MaskBreakSource", "MaskListener", "MaskRemoveListener",
+            "MaskIllusionListener", "CosmicMaskMechanicsListener",
+            "MobTargetGuard", "InvseeGuard", "NearGuard", "SplashHealGuard",
+            "ReforgeListener", "ReforgeUseListener", "ReforgeStrikeListener",
+            "ReforgeTempoGuardListener",
+            "ScrollListener", "HolyScrollListener", "NametagListener", "TrakListener",
+            "ShotWeapons", "MenuListener", "GodlyTransmogListener");
 
     private static final List<String> GOLDEN_STOPS = List.of(
-            "REPEATING tasks", "HELD/PASSIVE buffs", "maintained passives",   // equip
-            "soul aura task",                                                 // souls
-            "frozen windows",                                                 // controls (ADR-0065)
-            "falling-block casts", "guardian casts", "combat tags", "damage marks", "owner zones", "temp equips", // stores
-            "pet summon registry", "bat swarms", "bat cloud targets", "pet armed windows", "pet shared-use gate", "pet home windows", "pet home visuals", // pets (0052/0059/0060/0061/0068/0070)
-            "mask illusions", "mask provocations",                            // masks (ADR-0053)
-            "gravity wells", "castling channels", "javelin flights", "control locks", // reforges (ADR-0070/0071 Plan B)
+            "REPEATING tasks", "HELD/PASSIVE buffs", "maintained passives",
+            "soul aura task", "soul held-enchant drain task",
+            "dimensional traveler blocks", "cosmic mastery state", "rot and decay state",
+            "nature wrath state", "horrify state", "mark of the beast state", "demonic gateway state",
+            "cosmic weapon state", "cosmic armor summons", "cosmic immortal state", "cosmic diminish state",
+            "feign death state", "hex and unfocus state", "self destruct state", "head drop marks", "phoenix windows",
+            "frozen windows",
+            "falling-block casts", "guardian casts", "combat tags", "damage marks", "owner zones",
+            "temp equips",
+            "pet summon registry", "bat swarms", "bat cloud targets", "pet armed windows",
+            "pet shared-use gate", "pet home windows", "pet home visuals", "cosmic pet charges",
+            "world destroyer pet", "smite pet",
+            "mask illusions", "mask provocations",
+            "gravity wells", "castling channels", "javelin flights", "control locks",
             "bStats");                                                        // coreStops
 
     private static final List<String> GOLDEN_MENUS = List.of("hub", "console", "mint", "apply", "enchants", "sets",
@@ -130,6 +151,8 @@ class RegistryWiringTest {
         when(bindings.headAttributes()).thenReturn(item.head.HeadAttributes.NONE); // 1.8.1 worn-slot dressing
         when(bindings.itemBytes()).thenReturn(item.head.ItemBytes.NONE); // ADR-0064 illusion payload codec
         when(bindings.actorProbe()).thenReturn(mock(engine.run.ActorProbe.class)); // 1.8.1 cage pre-check isAir
+        when(bindings.equipSource()).thenReturn(mock(item.worn.EquipSource.class));
+        when(bindings.sinkFactory()).thenReturn(mock(engine.sink.SinkFactory.class));
         when(bindings.armourChangeFeeder(any())).thenReturn(new ArmourFeeder());
         when(bindings.handChangeFeeder(any())).thenReturn(new HandChangeFeeder());
         when(bindings.potionLockGuard()).thenReturn(new PotionLockGuard());
@@ -201,6 +224,7 @@ class RegistryWiringTest {
         when(core.stores()).thenReturn(EngineStores.fresh());
         when(core.sinkEnv()).thenReturn(engine.sink.SinkEnv.of(platform.economy.EconomyService.NONE,
                 engine.sink.SoulDebit.NONE, EngineStores.fresh(), new AtomicLong()::get));
+        when(core.protection()).thenReturn(new platform.protect.ProtectionService(List.of()));
         when(core.executor()).thenReturn(mock(engine.run.AbilityExecutor.class));
         when(core.dispatch()).thenReturn(mock(feature.combat.CombatDispatch.class));
         when(core.triggerDispatch()).thenReturn(mock(feature.trigger.TriggerDispatch.class));
@@ -250,7 +274,10 @@ class RegistryWiringTest {
         List<String> soulsOff = listenerOrder(Set.of("features.souls"));
         assertTrue(GOLDEN_LISTENERS.containsAll(soulsOff));
         assertEquals(GOLDEN_LISTENERS.size() - 3, soulsOff.size());
-        assertTrue(soulsOff.stream().noneMatch(n -> n.startsWith("Soul")));
+        assertTrue(soulsOff.stream().noneMatch(n ->
+                n.equals("SoulListener") || n.equals("SoulInteractListener") || n.equals("SoulInventoryListener")));
+        assertTrue(soulsOff.contains("SoulSiphonListener"),
+                "the Cosmic enchant listener belongs to triggers, not the souls UI/item module");
         // scrolls off drops the scroll block (Scroll/Holy/Nametag) AND the traks listener (same boot key) AND the
         // godly-transmog gesture is not added — but that is a construction-time condition (menus module), so it is
         // asserted here only for the three scroll listeners + trak the fold gates.

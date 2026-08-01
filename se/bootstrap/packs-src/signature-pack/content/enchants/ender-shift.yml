@@ -1,0 +1,37 @@
+# Imported from EliteEnchantments (id: ender-shift). Review before shipping.
+display: "Ender Shift"
+description:
+  - "&eAt low health, when hit, grants"
+  - "&eyou Speed and Absorption."
+trigger: DEFENSE
+applies-to: [BOOTS]
+group: "rare"
+tier: rare
+levels:
+  1:
+    chance: 20
+    cooldown: 300
+    condition: "%actor.healthpercent% <= 15"
+    effects:
+      - { PARTICLE: { particle: "PORTAL", count: 16 } }
+      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1, pitch: 0.7 } }
+      - { POTION: { effect: "SPEED", level: 1, duration: 80, who: "@Self" } }  # from POTION:SPEED:1:PLAYER:4 — EE seconds → ticks (x20)
+      - { POTION: { effect: "ABSORPTION", level: 2, duration: 40, who: "@Self" } }
+  2:
+    chance: 30
+    cooldown: 300
+    condition: "%actor.healthpercent% <= 15"
+    effects:
+      - { PARTICLE: { particle: "PORTAL", count: 16 } }
+      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1, pitch: 0.7 } }
+      - { POTION: { effect: "SPEED", level: 1, duration: 80, who: "@Self" } }  # from POTION:SPEED:1:PLAYER:4 — EE seconds → ticks (x20)
+      - { POTION: { effect: "ABSORPTION", level: 2, duration: 40, who: "@Self" } }
+  3:
+    chance: 40
+    cooldown: 300
+    condition: "%actor.healthpercent% <= 15"
+    effects:
+      - { PARTICLE: { particle: "PORTAL", count: 16 } }
+      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1, pitch: 0.7 } }
+      - { POTION: { effect: "SPEED", level: 1, duration: 80, who: "@Self" } }  # from POTION:SPEED:1:PLAYER:4 — EE seconds → ticks (x20)
+      - { POTION: { effect: "ABSORPTION", level: 2, duration: 40, who: "@Self" } }

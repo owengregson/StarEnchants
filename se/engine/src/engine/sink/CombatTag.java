@@ -14,15 +14,23 @@ public final class CombatTag {
     private CombatTag() {
     }
 
-    /** A player counts as in-combat for this long (ms) after their last hit. */
-    private static final long WINDOW_MS = 15_000L;
+    /** The ordinary combat window in milliseconds. */
+    public static final long WINDOW_MS = 15_000L;
 
-    private static final Map<UUID, Long> LAST_HIT = new ConcurrentHashMap<>();
+    private static final Map<UUID, Long> EXPIRES_AT = new ConcurrentHashMap<>();
 
-    /** Tag {@code player} as having just fought (wall clock). */
+    /** Reset {@code player}'s combat tag to the ordinary 15-second window. */
     public static void tag(UUID player) {
+        tagFor(player, WINDOW_MS);
+    }
+
+    /**
+     * Reset {@code player}'s combat tag to exactly {@code durationMs} from now. This is a reset rather than a
+     * max/extension operation: mechanics such as Cosmic's Joker Mask deliberately shorten the wearer's fresh tag.
+     */
+    public static void tagFor(UUID player, long durationMs) {
         if (player != null) {
-            LAST_HIT.put(player, System.currentTimeMillis());
+            EXPIRES_AT.put(player, System.currentTimeMillis() + Math.max(0L, durationMs));
         }
     }
 
@@ -31,12 +39,12 @@ public final class CombatTag {
         if (player == null) {
             return false;
         }
-        Long last = LAST_HIT.get(player);
-        if (last == null) {
+        Long expiresAt = EXPIRES_AT.get(player);
+        if (expiresAt == null) {
             return false;
         }
-        if (System.currentTimeMillis() - last >= WINDOW_MS) {
-            LAST_HIT.remove(player, last);
+        if (System.currentTimeMillis() >= expiresAt) {
+            EXPIRES_AT.remove(player, expiresAt);
             return false;
         }
         return true;
@@ -44,11 +52,11 @@ public final class CombatTag {
 
     /** Forget one player's tag (quit). */
     public static void clear(UUID player) {
-        LAST_HIT.remove(player);
+        EXPIRES_AT.remove(player);
     }
 
     /** Forget all tags (disable). */
     public static void clearAll() {
-        LAST_HIT.clear();
+        EXPIRES_AT.clear();
     }
 }

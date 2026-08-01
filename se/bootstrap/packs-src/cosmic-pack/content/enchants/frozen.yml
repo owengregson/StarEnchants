@@ -1,31 +1,21 @@
-# Imported from EliteEnchantments (id: frozen). Review before shipping.
-display: "Frozen"
-description:
-  - "&eWhen hit, applies Slowness to"
-  - "&ethe attacker."
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/Frozen.java
+display: Frozen
+description: Melee attackers can receive level-scaled Slowness for a uniformly selected source-exact duration.
 trigger: DEFENSE
 applies-to: [ARMOR]
-group: "common"
-tier: common
+group: elite
+tier: elite
+stacking: HIGHEST
 levels:
   1:
-    chance: 10
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 0.9, pitch: 1.4 } }
-      - { PARTICLE: { particle: "SNOWFLAKE", count: 14, who: "@Attacker" } }
-      - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Attacker" } }
+    chance: 4
+    condition: "%damagecause% == \"ENTITY_ATTACK\""
+    effects: [{ POTION: { effect: SLOW, level: 1, duration: 0, duration-min: 20, duration-max: 20, duration-step: 20, who: "@Attacker" } }, { BLOCK_BREAK_EFFECT: { block: DIAMOND_BLOCK } }]
   2:
-    chance: 15
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 0.9, pitch: 1.4 } }
-      - { PARTICLE: { particle: "SNOWFLAKE", count: 14, who: "@Attacker" } }
-      - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Attacker" } }
+    chance: 8
+    condition: "%damagecause% == \"ENTITY_ATTACK\""
+    effects: [{ POTION: { effect: SLOW, level: 1, duration: 0, duration-min: 40, duration-max: 60, duration-step: 20, who: "@Attacker" } }, { BLOCK_BREAK_EFFECT: { block: DIAMOND_BLOCK } }]
   3:
-    chance: 20
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 0.9, pitch: 1.4 } }
-      - { PARTICLE: { particle: "SNOWFLAKE", count: 14, who: "@Attacker" } }
-      - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Attacker" } }
+    chance: 12
+    condition: "%damagecause% == \"ENTITY_ATTACK\""
+    effects: [{ POTION: { effect: SLOW, level: 2, duration: 0, duration-min: 60, duration-max: 100, duration-step: 20, who: "@Attacker" } }, { BLOCK_BREAK_EFFECT: { block: DIAMOND_BLOCK } }]

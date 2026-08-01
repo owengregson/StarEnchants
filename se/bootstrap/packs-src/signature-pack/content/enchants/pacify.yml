@@ -1,0 +1,38 @@
+# Imported from EliteEnchantments (id: pacify). Review before shipping.
+display: "Pacify"
+description:
+  - "&eYour arrows pacify the target,"
+  - "&edisabling their Rage."
+trigger: BOW
+applies-to: [BOW]
+group: "rare"
+tier: rare
+levels:
+  1:
+    chance: 20
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.8, pitch: 1.2 } }
+      - { PARTICLE: { particle: "SPELL", count: 10 } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 80, who: "@Victim" } }
+  2:
+    chance: 26
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.8, pitch: 1.2 } }
+      - { PARTICLE: { particle: "SPELL", count: 10 } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 80, who: "@Victim" } }
+  3:
+    chance: 32
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.8, pitch: 1.2 } }
+      - { PARTICLE: { particle: "SPELL", count: 10 } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 80, who: "@Victim" } }
+  4:
+    chance: 38
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.8, pitch: 1.2 } }
+      - { PARTICLE: { particle: "SPELL", count: 10 } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 80, who: "@Victim" } }

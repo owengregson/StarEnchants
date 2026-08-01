@@ -20,7 +20,8 @@ import org.bukkit.inventory.ItemStack;
  * <p>Format: {@code v1 US <label> US <payload> US <label> US <payload> …} where {@code US} is the
  * unit separator and each list payload joins entries with the record separator {@code RS}. Labels:
  * {@code e} = enchants ({@code key:level} per entry), {@code c} = crystals ({@code key}),
- * {@code s} = armour-set key, {@code w} = weapon-set key (this item is that set's weapon, §6.6),
+ * {@code s} = armour-set key, {@code p} = armour-set member token,
+ * {@code w} = weapon-set key (this item is that set's weapon, §6.6),
  * {@code o} = omni flag ({@code 1}), {@code h} = heroic flat stats ({@code damage:reduction:durability}),
  * {@code a} = purchased slot count (§H), {@code m} = applied mask key (helmet-only, ADR-0053),
  * {@code r} = applied weapon-reforge key (ADR-0070). Unknown labels are ignored so a newer field never breaks
@@ -89,6 +90,9 @@ public final class CombatCodec {
         if (state.setKey() != null) {
             sb.append(US).append('s').append(US).append(state.setKey());
         }
+        if (state.setMemberKey() != null) {
+            sb.append(US).append('p').append(US).append(state.setMemberKey());
+        }
         if (state.setWeaponKey() != null) {
             sb.append(US).append('w').append(US).append(state.setWeaponKey());
         }
@@ -132,6 +136,7 @@ public final class CombatCodec {
         Map<String, Integer> enchants = new LinkedHashMap<>();
         java.util.List<String> crystals = new java.util.ArrayList<>();
         String setKey = null;
+        String setMemberKey = null;
         String setWeaponKey = null;
         boolean omni = false;
         HeroicStat heroic = HeroicStat.NONE;
@@ -148,6 +153,8 @@ public final class CombatCodec {
                 parseCrystals(payload, crystals);
             } else if ("s".equals(label)) {
                 setKey = payload.isEmpty() ? null : payload;
+            } else if ("p".equals(label)) {
+                setMemberKey = payload.isEmpty() ? null : payload;
             } else if ("w".equals(label)) {
                 setWeaponKey = payload.isEmpty() ? null : payload;
             } else if ("o".equals(label)) {
@@ -163,7 +170,8 @@ public final class CombatCodec {
             }
             // any other label is a newer field this reader does not know — ignore it
         }
-        return new CombatState(enchants, crystals, setKey, setWeaponKey, omni, heroic, added, maskKey, reforgeKey);
+        return new CombatState(enchants, crystals, setKey, setMemberKey, setWeaponKey, omni, heroic, added,
+                maskKey, reforgeKey);
     }
 
     /** Malformed/negative → {@code 0}, never throws. */

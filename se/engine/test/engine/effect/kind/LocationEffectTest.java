@@ -53,12 +53,15 @@ class LocationEffectTest {
                 atLocation("DROP_ITEM → dropItem(material, count)", new DropItemEffect(),
                         c -> c.with("material", 11).with("count", 3), (s, loc) -> verify(s).dropItem(loc, 11, 3)),
                 atLocation("SOUND → sound(id, volume, pitch)", new SoundEffect(),
-                        c -> c.with("sound", 3).with("volume", 1.0).with("pitch", 1.0),
+                        c -> c.with("sound", 3).with("volume", 1.0).with("pitch", 1.0)
+                                .with("dedupe", true).with("audience", "world"),
                         (s, loc) -> verify(s).sound(loc, 3, 1.0f, 1.0f)),
                 atLocation("PARTICLE → particle(id, count, block=-1, spread on X/Z, spread-y on Y) at the activation location (no who)",
                         new ParticleEffect(),
-                        c -> c.with("particle", 9).with("count", 20).with("spread", 1.5).with("spread-y", 2.0),
-                        (s, loc) -> verify(s).particle(loc, 9, 20, -1, 1.5, 2.0, 1.5)));
+                        c -> c.with("particle", 9).with("count", 20).with("spread", 1.5).with("spread-y", 2.0)
+                                .with("random-spread", false).with("speed", 0.0)
+                                .with("anchor", "body").with("y-offset", 0.0),
+                        (s, loc) -> verify(s).particle(loc, 9, 20, -1, 1.5, 2.0, 1.5, 0.0)));
     }
 
     @TestFactory
@@ -121,6 +124,24 @@ class LocationEffectTest {
     @TestFactory
     List<DynamicTest> perTargetWorldIntents() {
         return List.of(
+                dynamicTest("BLOCK_BREAK_EFFECT once-at-actor → one actor-origin cue when selector matched", () -> {
+                    Location eye = new Location(null, 1.0, 2.0, 3.0);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().actorOriginEye(eye)
+                            .with("block", 80).with("anchor", "eye").with("y-offset", 0.5)
+                            .with("once-at-actor", true).targets("who", mock(Player.class), mock(Player.class));
+                    Sink sink = mock(Sink.class);
+                    new BlockBreakEffect().run(ctx, sink);
+                    verify(sink).blockBreakEffect(eye, 80);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("BLOCK_BREAK_EFFECT once-at-actor → no cue when selector is empty", () -> {
+                    FakeEffectCtx ctx = FakeEffectCtx.create().actorOriginEye(new Location(null, 1.0, 2.0, 3.0))
+                            .with("block", 80).with("anchor", "eye").with("y-offset", 0.5)
+                            .with("once-at-actor", true);
+                    Sink sink = mock(Sink.class);
+                    new BlockBreakEffect().run(ctx, sink);
+                    verifyNoInteractions(sink);
+                }),
                 dynamicTest("EXPLODE → explode(power, breakBlocks) at the target's location", () -> {
                     LivingEntity target = mock(LivingEntity.class);
                     Location loc = mock(Location.class);
@@ -146,10 +167,16 @@ class LocationEffectTest {
                     LivingEntity attacker = mock(LivingEntity.class);
                     FakeEffectCtx ctx = FakeEffectCtx.create().location(at)
                             .with("type", 42).with("count", 2).with("ttl", 200).with("name", "&bGuardian")
+                            .with("health", 0.0).with("spawn-y-offset", 0.0).with("chunk-cap", 0)
+                            .with("retarget-radius", 0.0).with("retarget-period", 20)
+                            .with("fire-resistance", false).with("regeneration", false)
+                            .with("strength", false).with("speed", false).with("resistance", false)
+                            .with("sound-volume", 1.0).with("sound-pitch", 1.0)
                             .targets("who", attacker);
                     Sink sink = mock(Sink.class);
                     new GuardEffect().run(ctx, sink);
-                    verify(sink).guard(attacker, at, 42, 2, 200, "&bGuardian", null);
+                    verify(sink).guard(attacker, at, 42, 2, 200, "&bGuardian", null,
+                            0.0, 0.0, 0, 0.0, 20, 0, -1, 1.0f, 1.0f);
                     verifyNoMoreInteractions(sink);
                 }),
                 dynamicTest("GUARD → owner is the activation actor (ADR-0049 Blood Link binding)", () -> {
@@ -160,10 +187,16 @@ class LocationEffectTest {
                     when(owner.getUniqueId()).thenReturn(ownerId);
                     FakeEffectCtx ctx = FakeEffectCtx.create().location(at).actor(owner)
                             .with("type", 42).with("count", 1).with("ttl", 200).with("name", "&bGuardian")
+                            .with("health", 0.0).with("spawn-y-offset", 0.0).with("chunk-cap", 0)
+                            .with("retarget-radius", 0.0).with("retarget-period", 20)
+                            .with("fire-resistance", false).with("regeneration", false)
+                            .with("strength", false).with("speed", false).with("resistance", false)
+                            .with("sound-volume", 1.0).with("sound-pitch", 1.0)
                             .targets("who", attacker);
                     Sink sink = mock(Sink.class);
                     new GuardEffect().run(ctx, sink);
-                    verify(sink).guard(attacker, at, 42, 1, 200, "&bGuardian", ownerId);
+                    verify(sink).guard(attacker, at, 42, 1, 200, "&bGuardian", ownerId,
+                            0.0, 0.0, 0, 0.0, 20, 0, -1, 1.0f, 1.0f);
                     verifyNoMoreInteractions(sink);
                 }),
                 dynamicTest("PROJECTILE → launchProjectile(actor, type, count, speed, yield, incendiary)", () -> {
@@ -235,7 +268,9 @@ class LocationEffectTest {
                     Location fallback = mock(Location.class);
                     FakeEffectCtx ctx = FakeEffectCtx.create()
                             .with("type", 7).with("count", 1).with("ttl", 0).with("health", 0.0)
-                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").with("invincible", false).with("speed", 0.0).actor(self).targets("who", self).location(fallback);
+                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").with("invincible", false).with("speed", 0.0)
+                            .with("spawn-y-offset", 0.0).with("custom-name", "").with("plague-level", 0)
+                            .actor(self).targets("who", self).location(fallback);
                     Sink sink = mock(Sink.class);
                     new SpawnEntityEffect().run(ctx, sink); // actor target skipped (no origin) → any=false → fallback
                     verify(sink).spawnEntity(fallback, 7, 1, 0, 0.0, null);
@@ -247,12 +282,14 @@ class LocationEffectTest {
                     when(who.getLocation()).thenReturn(loc);
                     FakeEffectCtx ctx = FakeEffectCtx.create()
                             .with("type", 5).with("count", 1).with("ttl", 0).with("health", 0.0)
-                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").with("invincible", false).with("speed", 2.0).targets("who", who);
+                            .with("owner", "none").with("powered", false).with("ai", true).with("targeting", true).with("saddled", false).with("mount", "none").with("detonate", "NONE").with("invincible", false).with("speed", 2.0)
+                            .with("spawn-y-offset", 0.0).with("custom-name", "").with("plague-level", 0)
+                            .targets("who", who);
                     Sink sink = mock(Sink.class);
                     new SpawnEntityEffect().run(ctx, sink);
                     // a set speed routes off the byte-stable plain path to the summon path, carrying the multiplier
                     verify(sink).spawnSummon(loc, 5, 1, 0, 0.0, null, null,
-                            new SummonFlags(false, false, false, false, false, false, false, 2.0));
+                            new SummonFlags(false, false, false, false, false, false, false, 2.0, "", 0));
                     verifyNoMoreInteractions(sink);
                 }));
     }

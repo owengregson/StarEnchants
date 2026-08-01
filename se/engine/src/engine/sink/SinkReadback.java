@@ -33,11 +33,31 @@ public interface SinkReadback extends Sink {
     /** Whether an effect asked the triggering block-break to auto-smelt (SMELT). */
     boolean smeltRequested();
 
+    /** Requested product count (default one) for the triggering block-break. */
+    default int smeltAmount() {
+        return 1;
+    }
+
+    /** Whether the request accepts only legacy iron/gold ore rather than the general furnace profile. */
+    default boolean smeltIronGoldOnly() {
+        return false;
+    }
+
     /** Whether an effect asked the broken block's drops to go to the breaker's inventory (TELEPORT_DROPS). */
     boolean teleportDropsRequested();
 
     /** Whether an effect asked the fired projectile to home onto a target (AUTO_LOCK). */
     boolean seekRequested();
+
+    /** Integer mark requested for the triggering BOW_FIRE projectile; zero means none. */
+    default int projectileMark() {
+        return 0;
+    }
+
+    /** Whether the defense walk requested deletion of the raw impact projectile. */
+    default boolean removeProjectileRequested() {
+        return false;
+    }
 
     /** Whether an effect requested an extra attacker-side echo pass (ECHO_STRIKE). Read by the combat dispatcher. */
     boolean echoRequested();

@@ -1,27 +1,12 @@
-# Imported from EliteEnchantments (id: auto-smelt). Review before shipping.
-display: "Auto Smelt"
-description:
-  - "&eSmelts ores into ingots as they"
-  - "&eare mined."
+# Cosmic codex: 06-enchants-tools-heroic.md — tools/AutoSmelt.java
+display: Auto Smelt
+description: Ores are automatically smelted when mined.
 trigger: MINE
 applies-to: [PICKAXE]
-group: "common"
-tier: common
+group: simple
+tier: simple
+stacking: HIGHEST
 levels:
-  1:
-    chance: 34
-    effects:
-      - { SOUND: { sound: "BLOCK_FIRE_EXTINGUISH", volume: 0.8, pitch: 1.2 } }
-      - { PARTICLE: { particle: "FLAME", count: 8 } }
-      - { SMELT: {} }  # from SMELT — EE SMELT → SMELT (auto-smelt on MINE)
-  2:
-    chance: 75
-    effects:
-      - { SOUND: { sound: "BLOCK_FIRE_EXTINGUISH", volume: 0.8, pitch: 1.2 } }
-      - { PARTICLE: { particle: "FLAME", count: 8 } }
-      - { SMELT: {} }  # from SMELT — EE SMELT → SMELT (auto-smelt on MINE)
-  3:
-    effects:
-      - { SOUND: { sound: "BLOCK_FIRE_EXTINGUISH", volume: 0.8, pitch: 1.2 } }
-      - { PARTICLE: { particle: "FLAME", count: 8 } }
-      - { SMELT: {} }  # from SMELT — EE SMELT → SMELT (auto-smelt on MINE)
+  1: { chance: 34, effects: [{ SMELT: { amount: 1, profile: IRON_GOLD_ORE, unless-held: enchants/detonate, unless-held2: enchants/atomic-detonate } }] }
+  2: { chance: 68, effects: [{ SMELT: { amount: 2, profile: IRON_GOLD_ORE, unless-held: enchants/detonate, unless-held2: enchants/atomic-detonate } }] }
+  3: { chance: 102, effects: [{ SMELT: { amount: 3, profile: IRON_GOLD_ORE, unless-held: enchants/detonate, unless-held2: enchants/atomic-detonate } }] }

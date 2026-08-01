@@ -20,6 +20,7 @@ public final class ModernArmourChangeListener implements Listener {
 
     @EventHandler
     public void onArmorChange(PlayerArmorChangeEvent event) {
+        equip.unequip(event.getPlayer(), event.getOldItem());
         equip.refresh(event.getPlayer());
     }
 }

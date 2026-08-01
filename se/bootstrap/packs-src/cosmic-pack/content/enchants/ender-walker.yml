@@ -1,55 +1,41 @@
-# Imported from EliteEnchantments (id: ender-walker). Review before shipping.
-display: "Ender Walker"
-description:
-  - "&eGrants immunity to negative"
-  - "&epotion effects. Higher levels"
-  - "&ealso heal you when you take"
-  - "&edamage."
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/EnderWalker.java
+display: Ender Walker
+description: Converts Wither and Poison damage into a chance to heal, while causing self-Blindness unless Clarity is equipped.
 trigger: DEFENSE
 applies-to: [BOOTS]
-group: "epic"
-tier: epic
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
 levels:
   1:
-    chance: 25
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_AMBIENT", volume: 0.5, pitch: 1.0 } }
-      - { PARTICLE: { particle: "PORTAL", count: 10 } }
-      - { IMMUNE: { type: "potion", duration: 60, who: "@Self" } }  # from IMMUNE:POTION — EE IMMUNE → IMMUNE (self)
+    abilities: &ew1
+      - trigger: DEFENSE
+        condition: "%damagecause% == \"WITHER\" || %damagecause% == \"POISON\""
+        effects: &ewbase [{ CANCEL: {} }, { PARTICLE: { particle: PORTAL, count: 70, speed: 0.8, spread: 0, anchor: feet, y-offset: 1, who: "@Self" } }]
+      - trigger: DEFENSE
+        chance: 15
+        condition: "%damagecause% == \"WITHER\" || %damagecause% == \"POISON\""
+        effects: [{ MODIFY_HEALTH: { amount: "%damage%", mode: give } }, { PARTICLE: { particle: SPELL_WITCH, count: 40, speed: 0.8, spread: 0, anchor: feet, y-offset: 1, who: "@Self" } }]
+      - trigger: DEFENSE
+        condition: "(%damagecause% == \"WITHER\" || %damagecause% == \"POISON\") && %clarity-equipped% == 0"
+        effects: [{ POTION: { effect: BLINDNESS, level: 1, duration: 200, wait: 2 } }]
   2:
-    chance: 35
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_AMBIENT", volume: 0.5, pitch: 1.0 } }
-      - { PARTICLE: { particle: "PORTAL", count: 10 } }
-      - { IMMUNE: { type: "potion", duration: 60, who: "@Self" } }  # from IMMUNE:POTION — EE IMMUNE → IMMUNE (self)
+    abilities:
+      - { trigger: DEFENSE, condition: "%damagecause% == \"WITHER\" || %damagecause% == \"POISON\"", effects: *ewbase }
+      - { trigger: DEFENSE, chance: 30, condition: "%damagecause% == \"WITHER\" || %damagecause% == \"POISON\"", effects: [{ MODIFY_HEALTH: { amount: "%damage%", mode: give } }, { PARTICLE: { particle: SPELL_WITCH, count: 40, speed: 0.8, spread: 0, anchor: feet, y-offset: 1, who: "@Self" } }] }
+      - { trigger: DEFENSE, condition: "(%damagecause% == \"WITHER\" || %damagecause% == \"POISON\") && %clarity-equipped% == 0", effects: [{ POTION: { effect: BLINDNESS, level: 1, duration: 200, wait: 2 } }] }
   3:
-    # The heal only fires on a real hit (>= 1.5 dmg) and at most once per 5s, so a poke/0-dmg snowball spam
-    # can't heal-lock the wearer. The level-wide gate also gates the IMMUNE refresh (one ability per level).
-    chance: 40
-    condition: "%damage% >= 1.5"
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_AMBIENT", volume: 0.5, pitch: 1.0 } }
-      - { PARTICLE: { particle: "PORTAL", count: 10 } }
-      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }
-      - { IMMUNE: { type: "potion", duration: 80, who: "@Self" } }
+    abilities:
+      - { trigger: DEFENSE, condition: "%damagecause% == \"WITHER\" || %damagecause% == \"POISON\"", effects: *ewbase }
+      - { trigger: DEFENSE, chance: 45, condition: "%damagecause% == \"WITHER\" || %damagecause% == \"POISON\"", effects: [{ MODIFY_HEALTH: { amount: "%damage%", mode: give } }, { PARTICLE: { particle: SPELL_WITCH, count: 40, speed: 0.8, spread: 0, anchor: feet, y-offset: 1, who: "@Self" } }] }
+      - { trigger: DEFENSE, condition: "(%damagecause% == \"WITHER\" || %damagecause% == \"POISON\") && %clarity-equipped% == 0", effects: [{ POTION: { effect: BLINDNESS, level: 1, duration: 200, wait: 2 } }] }
   4:
-    chance: 45
-    condition: "%damage% >= 2.5"
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_AMBIENT", volume: 0.5, pitch: 1.0 } }
-      - { PARTICLE: { particle: "PORTAL", count: 10 } }
-      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }
-      - { IMMUNE: { type: "potion", duration: 80, who: "@Self" } }
+    abilities:
+      - { trigger: DEFENSE, condition: "%damagecause% == \"WITHER\" || %damagecause% == \"POISON\"", effects: *ewbase }
+      - { trigger: DEFENSE, chance: 60, condition: "%damagecause% == \"WITHER\" || %damagecause% == \"POISON\"", effects: [{ MODIFY_HEALTH: { amount: "%damage%", mode: give } }, { PARTICLE: { particle: SPELL_WITCH, count: 40, speed: 0.8, spread: 0, anchor: feet, y-offset: 1, who: "@Self" } }] }
+      - { trigger: DEFENSE, condition: "(%damagecause% == \"WITHER\" || %damagecause% == \"POISON\") && %clarity-equipped% == 0", effects: [{ POTION: { effect: BLINDNESS, level: 1, duration: 200, wait: 2 } }] }
   5:
-    chance: 50
-    condition: "%damage% >= 3"
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_AMBIENT", volume: 0.5, pitch: 1.0 } }
-      - { PARTICLE: { particle: "PORTAL", count: 10 } }
-      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }
-      - { IMMUNE: { type: "potion", duration: 100, who: "@Self" } }
+    abilities:
+      - { trigger: DEFENSE, condition: "%damagecause% == \"WITHER\" || %damagecause% == \"POISON\"", effects: *ewbase }
+      - { trigger: DEFENSE, chance: 75, condition: "%damagecause% == \"WITHER\" || %damagecause% == \"POISON\"", effects: [{ MODIFY_HEALTH: { amount: "%damage%", mode: give } }, { PARTICLE: { particle: SPELL_WITCH, count: 40, speed: 0.8, spread: 0, anchor: feet, y-offset: 1, who: "@Self" } }] }
+      - { trigger: DEFENSE, condition: "(%damagecause% == \"WITHER\" || %damagecause% == \"POISON\") && %clarity-equipped% == 0", effects: [{ POTION: { effect: BLINDNESS, level: 1, duration: 200, wait: 2 } }] }

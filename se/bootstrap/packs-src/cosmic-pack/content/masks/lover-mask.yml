@@ -1,0 +1,14 @@
+# Cosmic codex source: 11-masks.md
+display: Lover Mask
+color: '&c'
+head: eyJ0aW1lc3RhbXAiOjE1NTAwNzc1MTY3MzMsInByb2ZpbGVJZCI6ImQ4ZmQzYjUxYzZiNzRlNmY4NmExY2FlM2ZiNjI3NzYwIiwicHJvZmlsZU5hbWUiOiJNeXN0ZXJ5TWVyY2hhbnQiLCJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNmFlZjY4MjJkZWVlY2ViYzg4Y2NlYTdmMTBlNGYzYWU0ZjRlNDczYzBkODA1OTdiMTQ4NDVlNWYxZTQ1ZDg4NSIsIm1ldGFkYXRhIjp7Im1vZGVsIjoic2xpbSJ9fX19
+material: PLAYER_HEAD
+summary: Immune to Mortal Coil
+description:
+- "&cImmune to Mortal Coil"
+- "&7Make love, not Minecraft..."
+- "&7or maybe its the other way around?"
+- "&6&l * &6Valentine's Day 2019"
+abilities:
+- trigger: PASSIVE
+  effects: []

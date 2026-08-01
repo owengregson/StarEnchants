@@ -1,0 +1,15 @@
+# Cosmic codex: 12-pets.md — InventoryWorldDestroyerPet.java
+display: World Destroyer
+color: '&e'
+type: ACTIVE
+head: eyJ0aW1lc3RhbXAiOjE1NjYyNDY4MTk4MDIsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS80MjQ4NjAwM2U4NTQ1OThiODAxZjA3ZDc2NjI2MDBjZmJkNmY0MGVmZTcyYjI2MmI1Mjc5NGNjYWRhNTlhMWE2In19fQ==
+material: PLAYER_HEAD
+descriptor: ['&7A Cosmic inventory pet.']
+description: ['&7Summons Yijki''s Dimensional Cage on every enemy within 30 blocks.']
+max-level: 4
+experience-to-level: { 2: 2000, 3: 2500, 4: 3000 }
+levels:
+  1: { cooldown: 12000, experience-on-use: 5, description: &desc ['&7Dimensional Cage: 3s cage, exact debuffs and 11 damage pulses.'], effects: &use [{ MESSAGE: { text: '&a&lPET: ** DIMENSIONAL CAGE **' } }] }
+  2: { cooldown: 12000, experience-on-use: 5, description: *desc, effects: *use }
+  3: { cooldown: 12000, experience-on-use: 5, description: *desc, effects: *use }
+  4: { cooldown: 12000, experience-on-use: 5, description: *desc, effects: *use }

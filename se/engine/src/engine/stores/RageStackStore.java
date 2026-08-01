@@ -18,27 +18,47 @@ public final class RageStackStore implements PlayerScoped {
     public record Stacks(int stacks, long lastTick) {
     }
 
-    private final Map<UUID, Stacks> byPlayer = new ConcurrentHashMap<>();
+    private final Map<UUID, Stacks> pvpByPlayer = new ConcurrentHashMap<>();
+    private final Map<UUID, Stacks> pveByPlayer = new ConcurrentHashMap<>();
 
-    /** Set {@code player}'s stacks as of {@code nowTicks} (clamped at 0). */
+    /** Compatibility accessor for the PvP bucket. */
     public void set(UUID player, int stacks, long nowTicks) {
-        byPlayer.put(player, new Stacks(Math.max(0, stacks), nowTicks));
+        set(player, true, stacks, nowTicks);
     }
 
-    /** The current stacks for {@code player}, or {@code 0} if none. */
+    /** Set one of Cosmic Rage's independent PvP/PvE buckets. */
+    public void set(UUID player, boolean pvp, int stacks, long nowTicks) {
+        map(pvp).put(player, new Stacks(Math.max(0, stacks), nowTicks));
+    }
+
+    /** Compatibility accessor for the PvP bucket. */
     public int current(UUID player) {
-        Stacks s = byPlayer.get(player);
+        return current(player, true);
+    }
+
+    /** Current stacks in the requested PvP/PvE bucket. */
+    public int current(UUID player, boolean pvp) {
+        Stacks s = map(pvp).get(player);
         return s == null ? 0 : s.stacks();
     }
 
-    /** The tick {@code player}'s stacks were last {@link #set}, or {@link Long#MIN_VALUE} if none (never a live tick). */
+    /** Compatibility accessor for the PvP bucket. */
     public long lastTick(UUID player) {
-        Stacks s = byPlayer.get(player);
+        return lastTick(player, true);
+    }
+
+    public long lastTick(UUID player, boolean pvp) {
+        Stacks s = map(pvp).get(player);
         return s == null ? Long.MIN_VALUE : s.lastTick();
+    }
+
+    private Map<UUID, Stacks> map(boolean pvp) {
+        return pvp ? pvpByPlayer : pveByPlayer;
     }
 
     @Override
     public void clear(UUID player) {
-        byPlayer.remove(player);
+        pvpByPlayer.remove(player);
+        pveByPlayer.remove(player);
     }
 }

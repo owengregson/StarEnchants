@@ -26,6 +26,14 @@ public interface Sink {
     /** Add a damage-reduction percentage to the additive defense bucket. */
     void addDamageReduction(double percent);
 
+    /** Multiply the triggering hit's outgoing base damage directly. */
+    default void multiplyOutgoingDamage(double factor) {
+    }
+
+    /** Multiply the triggering hit's incoming damage directly. */
+    default void multiplyIncomingDamage(double factor) {
+    }
+
     /** Add a flat damage bonus to the attack side (§6.1), applied after the outgoing multiplier so percent buffs don't inflate it. */
     void addFlatDamage(double amount);
 
@@ -79,6 +87,40 @@ public interface Sink {
     void heal(LivingEntity target, double amount);
 
     /**
+     * Set health to {@code floor(current health) + amount}, clamped to max. This preserves legacy mechanics
+     * that deliberately truncated fractional health before adding their heal amount.
+     */
+    default void healFromFloor(LivingEntity target, double amount) {
+        heal(target, amount);
+    }
+
+    /**
+     * Heal and emit a private player cue only when health actually rises. The built-in sink performs the
+     * comparison and write atomically on the target thread.
+     */
+    default void healWithPrivateSound(LivingEntity target, double amount, boolean floorBase,
+                                      int soundId, float volume, float pitch) {
+        if (floorBase) {
+            healFromFloor(target, amount);
+        } else {
+            heal(target, amount);
+        }
+        if (target instanceof Player player) {
+            privateSound(player, soundId, volume, pitch);
+        }
+    }
+
+    /**
+     * Heal only when the target is alive and has the requested headroom; when {@code strict} is true,
+     * current + amount must be strictly below max. Emit the particle only after the health write succeeds.
+     */
+    default void healIfHeadroom(LivingEntity target, double amount, boolean strict,
+                                int particleId, int particleCount, double particleSpread,
+                                double particleSpeed, int particleAnchor, double particleYOffset) {
+        heal(target, amount);
+    }
+
+    /**
      * Set the target's current health to {@code health} (clamped to [0, max]) — MODIFY_HEALTH's {@code set}
      * mode. Dropped on a target that died before it landed (ADR-0051), like {@link #heal}.
      */
@@ -90,6 +132,14 @@ public interface Sink {
 
     /** Restore the target's air/oxygen to full. */
     void fillAir(LivingEntity target);
+
+    /**
+     * Add air ticks up to the target's maximum. A negative amount means full refill. The default preserves
+     * compatibility with third-party sinks; the built-in sink overrides it for exact incremental restoration.
+     */
+    default void fillAir(LivingEntity target, int amount) {
+        fillAir(target);
+    }
 
     /** Restore food points to a player (clamped to the vanilla maximum). */
     void feed(Player target, int foodPoints);
@@ -123,6 +173,11 @@ public interface Sink {
     /** Grant a player temporary flight for {@code durationTicks} ({@code < 0} = until cleared). */
     void setFlight(Player target, int durationTicks);
 
+    /** Force temporary flight at an explicit speed, then restore speed 0.1 and revoke survival flight. */
+    default void guidedFlight(Player target, int durationTicks, double speed) {
+        setFlight(target, durationTicks);
+    }
+
     /**
      * Allow or revoke a player's flight ability (FLY_MODE — supreme's out-of-combat fly), survival/adventure
      * only. {@code allow} grants the ABILITY to fly (not forced airborne, unlike {@link #setFlight}); not
@@ -130,8 +185,42 @@ public interface Sink {
      */
     void flyMode(Player target, boolean allow);
 
-    /** Set a player's walk speed for {@code durationTicks}, then restore the vanilla default (MOVEMENT_SPEED). */
+    /** Set a player's walk speed for {@code durationTicks}, then restore the vanilla default (0.2). */
     void movementSpeed(Player target, double speed, int durationTicks);
+
+    /** Rotate a player to face directly away from {@code source}; built-in sinks route the read/write to the target thread. */
+    default void faceAway(Player target, Location source) {
+    }
+
+    /**
+     * Whether Infinite Luck blocks the current incoming set ability. A heroic armor piece contributes 12.5%
+     * to the counter-roll that lets the set effect through; the built-in sink caches one decision per event.
+     */
+    default boolean infiniteLuckBlocks(Player victim, int requiredLevel, int enchantLevel, int heroicPieces) {
+        if (victim == null || enchantLevel < requiredLevel) {
+            return false;
+        }
+        double counterChance = Math.min(1.0, Math.max(0, heroicPieces) * 0.125);
+        return java.util.concurrent.ThreadLocalRandom.current().nextDouble() >= counterChance;
+    }
+
+    /** Atomically gate, charge, and apply Cosmic Hero Killer's heroic-armor damage multiplier. */
+    default void heroKiller(Player actor, Player victim, int level, int heroicArmorPieces,
+                            int cost, int costPeriodTicks, int antiSwapTicks) {
+    }
+
+    /** Gate and charge Cosmic Sabotage, then stamp its level on the victim for the requested window. */
+    default void sabotage(Player actor, Player victim, int level, int durationTicks,
+                          int cost, int costPeriodTicks, int antiSwapTicks) {
+    }
+
+    /** Broadcast the vanilla death entity effect for a Feign Death visual. */
+    default void fakeDeath(Player target) {
+    }
+
+    /** Hide or show {@code target} from every online viewer, routing each visibility mutation safely. */
+    default void hiddenFromOnline(Player target, boolean hidden) {
+    }
 
     /** Make the target invulnerable for {@code durationTicks}, then restore (INVINCIBLE). */
     void invincible(LivingEntity target, int durationTicks);
@@ -173,12 +262,96 @@ public interface Sink {
     /** Damage the durability of the target's worn armor. */
     void damageArmor(LivingEntity target, int amount);
 
+    /** Damage every worn armor piece by a percentage of that piece type's maximum durability. */
+    default void damageArmorPercent(LivingEntity target, double percent) {
+        // Optional SPI primitive; the built-in dispatch sink implements the item-aware operation.
+    }
+
+    /** Damage one Bukkit armor-contents slot (0 boots, 1 legs, 2 chest, 3 helmet). */
+    void damageArmorSlot(LivingEntity target, int slot, int amount);
+
+    /** Play the vanilla red hurt/status animation without dealing another damage event. */
+    default void hurtAnimation(LivingEntity target) {
+    }
+
+    /** Apply a whole-enchantment silence window to the target. */
+    default void suppressAll(Player target, int durationTicks, int byDefId) {
+    }
+
+    /** Apply Cosmic's noDefenseProcs window: only DEFENSE-direction abilities are disabled. */
+    default void suppressDefense(Player target, int durationTicks, int byDefId) {
+    }
+
+    /** Apply Cosmic Silence and its exact private sound, eye particles, message, and expiry burst. */
+    default void cosmicSilence(Player target, int durationTicks, int byDefId, int soundId,
+                               int enchantmentParticleId, int portalParticleId) {
+        suppressDefense(target, durationTicks, byDefId);
+    }
+
+    void bleedStack(Player attacker, LivingEntity victim, double speedStep, int halfFloor,
+                    double bloodLustFloor, double bloodLustScale, int primaryBlock, int secondaryBlock,
+                    int slowPotionId, int bloodLustParticleId, int bloodLustSoundId);
+
+    void clearBleed(LivingEntity target);
+
     /** Restore durability to the player's worn armor; {@code amount < 0} fully repairs it. */
     void repairArmor(Player target, int amount);
 
+    /** Restore durability to only the single worn armor piece with the greatest current damage. */
+    default void repairMostDamagedArmor(Player target, int amount) {
+        repairArmor(target, amount);
+    }
+
     void potion(LivingEntity target, int potionEffectId, int amplifier, int durationTicks);
 
+    /**
+     * Apply a potion only when the target does not already carry that effect type. Third-party sinks retain
+     * the old apply behavior; the built-in dispatch sink performs the exact atomic presence check.
+     */
+    default void potionIfAbsent(LivingEntity target, int potionEffectId, int amplifier, int durationTicks) {
+        potion(target, potionEffectId, amplifier, durationTicks);
+    }
+
+    /** Apply through Bukkit's force replacement path. */
+    default void potionForce(LivingEntity target, int potionEffectId, int amplifier, int durationTicks) {
+        potion(target, potionEffectId, amplifier, durationTicks);
+    }
+
+    /**
+     * Apply a potion only when one shared roll remains inside this target's resistance-adjusted proc window.
+     */
+    default void resistedPotion(LivingEntity target, double sharedRoll, double baseChance,
+                                String resistanceEnchant, double resistPerLevel,
+                                int potionEffectId, int amplifier, int durationTicks,
+                                String blockedMessage, boolean currentBlockCue, double cueYOffset) {
+        potion(target, potionEffectId, amplifier, durationTicks);
+    }
+
+    /**
+     * Alternate-aware resisted potion: implementations may use the higher level of the two enchant keys.
+     */
+    default void resistedPotion(LivingEntity target, double sharedRoll, double baseChance,
+                                String resistanceEnchant, String alternateResistanceEnchant,
+                                double resistPerLevel, int potionEffectId, int amplifier, int durationTicks,
+                                String blockedMessage, boolean currentBlockCue, double cueYOffset) {
+        resistedPotion(target, sharedRoll, baseChance, resistanceEnchant, resistPerLevel,
+                potionEffectId, amplifier, durationTicks, blockedMessage, currentBlockCue, cueYOffset);
+    }
+
     void removePotion(LivingEntity target, int potionEffectId);
+
+    /**
+     * Start a non-overlapping regeneration window: heal immediately and every {@code periodTicks} through the
+     * inclusive {@code durationTicks} boundary, emitting the supplied particle only when health actually rises.
+     */
+    default void regeneration(Player target, int durationTicks, int periodTicks, double amount,
+                              int particleId, int particleCount, double particleSpeed,
+                              int particleAnchor, double particleYOffset) {
+    }
+
+    /** Remove the potion only when its active Bukkit amplifier is at most {@code maxAmplifier}. */
+    default void removePotionUpTo(LivingEntity target, int potionEffectId, int maxAmplifier) {
+    }
 
     /**
      * Strip an interned potion effect from {@code target} now and <em>continuously deny</em> it for
@@ -218,11 +391,47 @@ public interface Sink {
      */
     void cureByCategory(LivingEntity target, int category);
 
+    /** Remove the first active potion whose interned type is present in {@code allowedEffectIds}. */
+    void cureOneOf(LivingEntity target, int[] allowedEffectIds);
+
+    /**
+     * Remove one authored potion and, only when one was removed, show a throttled private message. This is the
+     * low-level form used by KOTH's once-per-second Auto Bless: it deliberately does not reset Bleed or play the
+     * active Blessed enchant's sound.
+     */
+    default void cureOneOf(LivingEntity target, int[] allowedEffectIds, String successMessage,
+                           int messageThrottleTicks) {
+        cureOneOf(target, allowedEffectIds);
+    }
+
+    /** Atomic guarded Bleed reset and one-of potion cleanse ({@code BLESS}). */
+    void bless(Player target, String blockedBy, String blockedMessage, String successMessage,
+               int soundId, float volume, float pitch, int[] allowedEffectIds,
+               boolean throttleMessage, int messageThrottleTicks);
+
+    /** Cosmic Soul Trap's atomic gated transaction. */
+    void soulTrap(Player actor, Player target, UUID activeGem, int groupId, int durationTicks,
+                  int retrapGraceTicks, int stealSouls, double fallbackDamage, int actorCost,
+                  int costPeriodTicks, int antiSwapTicks, String message, int soundId,
+                  float soundVolume, float soundPitch, int particle1Id, int particle1Count,
+                  double particle1Speed, int particle2Id, int particle2Count, double particle2Speed,
+                  int byDefId);
+
     /** Drop the target's held (main-hand) item into the world, clearing the slot. */
     void disarm(LivingEntity target);
 
     /** Drop one random worn armour piece from the target into the world, clearing its slot (REMOVE_ARMOR). */
     void removeArmor(LivingEntity target);
+
+    /**
+     * Move one random worn armor piece into the victim's inventory (or drop it when full), then emit feedback
+     * only when a piece was actually removed.
+     */
+    default void unequipArmor(Player target, Player attacker, int soundId, float soundVolume, float soundPitch,
+                              int blockMaterialId, int blockHeight, String victimMessage,
+                              String victimDescription, String attackerMessage, int blankLines) {
+        removeArmor(target);
+    }
 
     /**
      * Temporarily replace {@code target}'s armour piece at {@code slotIndex} ({@code getArmorContents} index:
@@ -241,6 +450,11 @@ public interface Sink {
      */
     void lightningAndDamage(LivingEntity target, double amount, LivingEntity attacker);
 
+    /** Strike a real vanilla bolt when {@code real}, otherwise a cosmetic bolt, then add authored damage. */
+    default void lightning(LivingEntity target, boolean real, double amount, LivingEntity attacker) {
+        lightningAndDamage(target, amount, attacker);
+    }
+
     /** {@link #lightningAndDamage(LivingEntity, double, LivingEntity)} with no attacker — the add-on SPI form. */
     default void lightningAndDamage(LivingEntity target, double amount) {
         lightningAndDamage(target, amount, null);
@@ -248,6 +462,11 @@ public interface Sink {
 
     /** Add to the target's velocity. */
     void launch(Entity target, double x, double y, double z);
+
+    /** Replace the target's velocity with the exact authored vector. */
+    default void setVelocity(Entity target, double x, double y, double z) {
+        launch(target, x, y, z);
+    }
 
     void teleport(Entity target, Location to);
 
@@ -259,6 +478,14 @@ public interface Sink {
      * solidity check) lives in the overlays. A cross-region / unloaded read fails closed → the fallback.
      */
     void teleportSafe(Entity target, Location preferred, Location fallback, Location sightFrom);
+
+    /** Safe teleport with departure sound/particle and arrival particle emitted only when a destination succeeds. */
+    default void teleportSafeWithCues(LivingEntity target, Location preferred, Location fallback, Location sightFrom,
+                                      int soundId, float volume, float pitch,
+                                      int departureParticleId, int arrivalParticleId,
+                                      int particleCount, double particleSpeed, double particleSpread) {
+        teleportSafe(target, preferred, fallback, sightFrom);
+    }
 
     // ── World / block intents ──
 
@@ -316,7 +543,9 @@ public interface Sink {
      * guard is bound to it in {@code GuardianCasts}, so a hit on the guard fires the owner's {@code GUARDIAN_HURT}
      * abilities (ADR-0049 Blood Link).
      */
-    void guard(LivingEntity target, Location at, int entityTypeId, int count, int ttlTicks, String name, UUID owner);
+    void guard(LivingEntity target, Location at, int entityTypeId, int count, int ttlTicks, String name, UUID owner,
+               double health, double spawnYOffset, int chunkCap, double retargetRadius, int retargetPeriod,
+               int potionFlags, int soundId, float soundVolume, float soundPitch);
 
     /** Spawn an explosion at a location, optionally breaking blocks. */
     void explode(Location at, double power, boolean breakBlocks);
@@ -337,6 +566,11 @@ public interface Sink {
 
     /** Break the block at {@code at}; {@code drops} controls whether it yields its drops (BREAK_BLOCK). */
     void breakBlock(Location at, boolean drops);
+
+    /** Break a block naturally using the activating player's current held tool when drops are enabled. */
+    default void breakBlockWithTool(Location at, boolean drops, Player toolOwner) {
+        breakBlock(at, drops);
+    }
 
     /**
      * Lay a temporary platform of a material in the block layer beneath {@code center}, out to
@@ -393,7 +627,42 @@ public interface Sink {
     /** Drop {@code count} of a material as an item entity at {@code at} (DROP_ITEM). */
     void dropItem(Location at, int materialId, int count);
 
+    /** Drop {@code target}'s own skinned player head at their feet, with Cosmic kill metadata when available. */
+    void dropHead(Player target, Player killer);
+
     void sound(Location at, int soundId, float volume, float pitch);
+
+    /** Play a sound at the target's current location on its owning region. */
+    default void sound(LivingEntity target, int soundId, float volume, float pitch) {
+    }
+
+    /** Play a sound only to this player, at their current location. */
+    default void privateSound(Player target, int soundId, float volume, float pitch) {
+    }
+
+    /** Play a private sound to one player while preserving an independently authored audible location. */
+    default void privateSoundAt(Player target, Location at, int soundId, float volume, float pitch) {
+        privateSound(target, soundId, volume, pitch);
+    }
+
+    /** Play Bukkit's block-break world effect (effect 2001 / STEP_SOUND) with the authored block material. */
+    default void blockBreakEffect(Location at, int blockMaterialId) {
+    }
+
+    /** Entity-anchored block-break world effect, resolved on the entity's owning region. */
+    default void blockBreakEffect(LivingEntity target, int blockMaterialId) {
+        blockBreakEffect(target, blockMaterialId, "feet", 0.0);
+    }
+
+    /** Entity-anchored block-break effect with an exact current-pose anchor and vertical offset. */
+    default void blockBreakEffect(LivingEntity target, int blockMaterialId, String anchor, double yOffset) {
+    }
+
+    /**
+     * Show a client-only block at the target anchor to nearby player viewers and restore the real material
+     * after the duration.
+     */
+    void fakeBlock(LivingEntity target, int blockMaterialId, int durationTicks, double radius, String anchor);
 
     void particle(Location at, int particleId, int count);
 
@@ -509,10 +778,37 @@ public interface Sink {
      */
     void removeSoulsFrom(Player target, int amount);
 
+    /** Read the actor's authoritative current soul-mode total after any gate-10 spend. */
+    default int soulTotal(Player player) {
+        return 0;
+    }
+
+    /** Whether a timed effect currently waives this player's soul costs. */
+    default boolean soulCostFree(Player player) {
+        return false;
+    }
+
     // ── Variable intents (per-player named vars, read back in later conditions as %name%) ──
 
+    /** Whether a non-expired per-player variable currently exists. */
+    default boolean hasVar(LivingEntity target, String name) {
+        return false;
+    }
+
     /** Set {@code target}'s named variable to {@code value}; {@code ttlTicks <= 0} = no expiry (SET_VAR). */
-    void setVar(Player target, String name, String value, int ttlTicks);
+    void setVar(LivingEntity target, String name, String value, int ttlTicks);
+
+    /** Attach an integer mark to the triggering BOW_FIRE projectile after the ability walk. */
+    default void markProjectile(int value, int ttlTicks) {
+    }
+
+    /** Request removal of the raw projectile that caused the current impact. */
+    default void removeTriggeringProjectile() {
+    }
+
+    /** Remove one named variable from {@code target}. */
+    default void clearVar(LivingEntity target, String name) {
+    }
 
     /** Numerically invert {@code target}'s named variable (0↔1), preserving its remaining TTL (INVERT_VAR). */
     void invertVar(Player target, String name);
@@ -523,6 +819,18 @@ public interface Sink {
      * later hits. A per-(victim, marker) flag write, inline like {@link #setVar} (no entity hop).
      */
     void mark(LivingEntity victim, UUID marker, double percent, int durationTicks);
+
+    /** Mark a living entity's eventual death XP on one named multiplicative channel. */
+    default void markExpDrop(LivingEntity target, String channel, double multiplier) {
+    }
+
+    /** Mark a player to drop one head for this enchant channel on their next death. */
+    default void markHeadDrop(Player target, String channel) {
+    }
+
+    /** Mark a target so later Poison/Wither damage is multiplied for a timed window. */
+    default void markVirus(LivingEntity target, double multiplier, int durationTicks) {
+    }
 
     /**
      * Register a wearer-owned area zone — a cylinder of {@code radius} blocks centred on {@code center} (the
@@ -674,6 +982,11 @@ public interface Sink {
      */
     void smelt();
 
+    /** Extended SMELT request: output count and recipe profile (true = Cosmic iron/gold ore only). */
+    default void smelt(int amount, boolean ironGoldOnly) {
+        smelt();
+    }
+
     /**
      * Ask the triggering block-break (MINE) to send the block's drops straight to the breaker's inventory
      * (TELEPORT_DROPS): an inline read-back applied by the MINE dispatcher. Inert outside a block-break.
@@ -782,4 +1095,25 @@ public interface Sink {
      */
     void tempBox(Location center, int materialId, int width, int height, int depth, int durationTicks,
                  int replaceMode, UUID confined);
+
+    /** As the block/spread overload, with the particle packet/API speed-extra value preserved exactly. */
+    default void particle(Location at, int particleId, int count, int blockMaterialId,
+                          double offsetX, double offsetY, double offsetZ, double speed) {
+        particle(at, particleId, count, blockMaterialId, offsetX, offsetY, offsetZ);
+    }
+
+    /** Entity-anchored particle burst with an explicit packet/API speed-extra value. */
+    default void particle(LivingEntity target, int particleId, int count, int blockMaterialId,
+                          double offsetX, double offsetY, double offsetZ, double speed) {
+        particle(target, particleId, count, blockMaterialId, offsetX, offsetY, offsetZ);
+    }
+
+    /**
+     * Entity-anchored particle burst at 0=body, 1=feet, or 2=eye, followed by {@code yOffset}.
+     */
+    default void particle(LivingEntity target, int particleId, int count, int blockMaterialId,
+                          double offsetX, double offsetY, double offsetZ, double speed,
+                          int anchor, double yOffset) {
+        particle(target, particleId, count, blockMaterialId, offsetX, offsetY, offsetZ, speed);
+    }
 }

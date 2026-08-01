@@ -1,6 +1,7 @@
 package bootstrap.wire;
 
 import feature.menu.Mintable;
+import feature.soul.SoulDrainDriver;
 import feature.soul.SoulInteractListener;
 import feature.soul.SoulInventoryListener;
 import feature.soul.SoulListener;
@@ -18,6 +19,7 @@ final class SoulsModule {
 
     private final BootCore core;
     private final SoulParticleDriver soulParticles;
+    private final SoulDrainDriver soulDrain;
     final List<Mintable> mints;
 
     SoulsModule(BootCore core) {
@@ -31,6 +33,13 @@ final class SoulsModule {
         // §D soul-mode tick: auto-disable soul mode when the active gem is gone/drained, then spawn the aura.
         this.soulParticles = new SoulParticleDriver(core.soulService(), core.soulModes(),
                 () -> core.items().config().soulGemOrDefault(), core.particleFx());
+        this.soulDrain = new SoulDrainDriver(core.soulService(), core.soulModes(),
+                () -> core.items().config().soulGemOrDefault(),
+                player -> {
+                    org.bukkit.inventory.ItemStack held = core.hands().mainHand(player);
+                    return held == null ? java.util.Map.of() : core.itemViews().of(held).combat().enchants();
+                },
+                core.stores().vars(), core.tick()::get, core.sounds(), core.particleFx());
     }
 
     /** The engine-spine soul service — exposed so a later module (scrolls) can route gem re-renders through it (§4). */
@@ -54,7 +63,9 @@ final class SoulsModule {
                 .mints(mints)
                 .pluginItem(souls::isGem)
                 .boot(soulParticles::start)
+                .boot(soulDrain::start)
                 .stop("soul aura task", soulParticles::stop)
+                .stop("soul held-enchant drain task", soulDrain::stop)
                 .lang("soul", "command.give.gem")
                 .build();
     }

@@ -1,5 +1,6 @@
 package feature.apply;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -9,6 +10,7 @@ import compile.load.ContentHolder;
 import compile.load.EnchantDef;
 import compile.load.Library;
 import compile.load.LibraryLoader;
+import compile.load.SetDef;
 import item.codec.CombatCodec;
 import item.render.LoreRenderer;
 import item.render.LoreStyle;
@@ -16,6 +18,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayDeque;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import org.bukkit.Material;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -35,6 +41,10 @@ class ItemEnchanterTest {
     }
 
     private static ItemEnchanter over(Library lib) {
+        return over(lib, new Random());
+    }
+
+    private static ItemEnchanter over(Library lib, Random random) {
         ContentHolder holder = new ContentHolder(lib);
         // checkEnchant/checkCrystal never read on-item state, so the injected store is an inert modern placeholder.
         CombatCodec codec = new CombatCodec("combat", new item.codec.PdcItemStateStore());
@@ -45,7 +55,7 @@ class ItemEnchanterTest {
                 () -> ItemEnchanter.DEFAULT_BASE_SLOTS, () -> ItemEnchanter.DEFAULT_CRYSTAL_SLOTS,
                 () -> ItemEnchanter.DEFAULT_MAX_MERGE,
                 () -> compile.load.MasterConfig.ReforgesSection.defaults().weaponGroups(),
-                platform.lang.Messages.defaults(), item.mint.VanillaEnchants.NONE);
+                platform.lang.Messages.defaults(), item.mint.VanillaEnchants.NONE, random);
     }
 
     private static void write(Path root, String relative, String yaml) throws IOException {
@@ -103,6 +113,124 @@ class ItemEnchanterTest {
         item.codec.CombatState full = new item.codec.CombatState(nine, java.util.List.of());
         assertFalse(e.checkSlots(full, "enchants/new").ok(), "no free slot at base capacity");
         assertTrue(e.checkSlots(full.withAdded(1), "enchants/new").ok(), "a purchased slot makes room");
+    }
+
+    @Test
+    void resolvesExactCosmicNearMaxRangeAndUpgradeReplacement(@TempDir Path root) throws IOException {
+        writeEnchant(root, "base", 5, "");
+        writeEnchant(root, "plain", 5, "");
+        writeEnchant(root, "ability", 5, "");
+        writeEnchant(root, "ranged", 5, "");
+        writeEnchant(root, "upgrade", 3,
+                "requires: [enchants/base]\nremoves-required: true\n");
+
+        ItemEnchanter e = over(LibraryLoader.load(root, compiler(), 1),
+                new ScriptedRandom(
+                        new double[] {0, 0, 0, 0},
+                        new int[] {0, 3, 2}));
+        SetDef.Member member = new SetDef.Member("helmet", "DIAMOND_HELMET", "Test", List.of(), null,
+                Map.of("enchants/ranged", 1),
+                List.of(
+                        new SetDef.EnchantRoll("enchants/plain", 100, SetDef.RollMode.PLAIN_NEAR_MAX, 1, 1),
+                        new SetDef.EnchantRoll("enchants/ability", 100, SetDef.RollMode.ABILITY_NEAR_MAX, 1, 1),
+                        new SetDef.EnchantRoll("enchants/ranged", 100, SetDef.RollMode.RANGE, 2, 4),
+                        new SetDef.EnchantRoll("enchants/upgrade", 100, SetDef.RollMode.MAX, 1, 1)),
+                List.of(), List.of(), SetDef.Heroic.NONE);
+
+        Map<String, Integer> resolved = e.resolvedSetEnchants(Map.of("enchants/base", 4), member);
+
+        assertEquals(3, resolved.get("enchants/plain"),
+                "plain near-max is max-2 + nextInt(3)");
+        assertEquals(2, resolved.get("enchants/ability"),
+                "ability near-max for max>=4 is max-nextInt(4)");
+        assertEquals(4, resolved.get("enchants/ranged"),
+                "the later ranged roll overwrites the member's fixed level");
+        assertEquals(3, resolved.get("enchants/upgrade"));
+        assertFalse(resolved.containsKey("enchants/base"),
+                "a heroic upgrade replaces its required base instead of double-firing");
+    }
+
+    @Test
+    void resolvesCosmicPoolsWithoutReplacementAndWeightedNoOpBranches(@TempDir Path root) throws IOException {
+        writeEnchant(root, "pool-a", 4, "");
+        writeEnchant(root, "pool-b", 3, "");
+        writeEnchant(root, "pool-c", 2, "");
+        writeEnchant(root, "chosen", 1, "");
+
+        SetDef.EnchantPool pool = new SetDef.EnchantPool(
+                List.of("enchants/pool-a", "enchants/pool-b", "enchants/pool-c"),
+                2, SetDef.RollMode.ABILITY_NEAR_MAX);
+        SetDef.EnchantChoice choice = new SetDef.EnchantChoice(List.of(
+                new SetDef.EnchantBranch(5, List.of(
+                        new SetDef.EnchantRoll("enchants/chosen", 100, SetDef.RollMode.FIXED, 1, 1))),
+                new SetDef.EnchantBranch(95, List.of())));
+
+        SetDef.Member selectedMember = new SetDef.Member("helmet", "DIAMOND_HELMET", "Test", List.of(), null,
+                Map.of(), List.of(), List.of(pool), List.of(choice), SetDef.Heroic.NONE);
+        ItemEnchanter selected = over(LibraryLoader.load(root, compiler(), 1),
+                new ScriptedRandom(
+                        new double[] {0.01, 0},
+                        new int[] {2, 1, 0, 2}));
+        Map<String, Integer> first = selected.resolvedSetEnchants(Map.of(), selectedMember);
+        assertEquals(Map.of(
+                "enchants/pool-c", 1,
+                "enchants/pool-a", 2,
+                "enchants/chosen", 1), first,
+                "pool selection is uniform without replacement, then the 5% branch runs");
+
+        SetDef.Member noOpMember = new SetDef.Member("helmet", "DIAMOND_HELMET", "Test", List.of(), null,
+                Map.of(), List.of(), List.of(),
+                List.of(choice), SetDef.Heroic.NONE);
+        ItemEnchanter noOp = over(LibraryLoader.load(root, compiler(), 1),
+                new ScriptedRandom(new double[] {0.50}, new int[] {}));
+        assertTrue(noOp.resolvedSetEnchants(Map.of(), noOpMember).isEmpty(),
+                "the weighted 95% empty branch must remain a true no-op");
+    }
+
+    private static void writeEnchant(Path root, String id, int maxLevel, String extra) throws IOException {
+        StringBuilder levels = new StringBuilder();
+        for (int level = 1; level <= maxLevel; level++) {
+            levels.append("  ").append(level).append(": { chance: 100, effects: [\"HEAL:1\"] }\n");
+        }
+        write(root, "enchants/" + id + ".yml", """
+            display: Test
+            applies-to: [ARMOR]
+            trigger: PASSIVE
+            %slevels:
+            %s""".formatted(extra, levels));
+    }
+
+    private static final class ScriptedRandom extends Random {
+        private static final long serialVersionUID = 1L;
+        private final ArrayDeque<Double> doubles = new ArrayDeque<>();
+        private final ArrayDeque<Integer> ints = new ArrayDeque<>();
+
+        private ScriptedRandom(double[] doubles, int[] ints) {
+            for (double value : doubles) {
+                this.doubles.add(value);
+            }
+            for (int value : ints) {
+                this.ints.add(value);
+            }
+        }
+
+        @Override public double nextDouble() {
+            if (doubles.isEmpty()) {
+                throw new AssertionError("unexpected nextDouble call");
+            }
+            return doubles.removeFirst();
+        }
+
+        @Override public int nextInt(int bound) {
+            if (ints.isEmpty()) {
+                throw new AssertionError("unexpected nextInt(" + bound + ") call");
+            }
+            int value = ints.removeFirst();
+            if (value < 0 || value >= bound) {
+                throw new AssertionError("scripted nextInt value " + value + " outside bound " + bound);
+            }
+            return value;
+        }
     }
 
     @Test

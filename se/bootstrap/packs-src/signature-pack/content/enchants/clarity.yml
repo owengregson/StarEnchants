@@ -1,0 +1,22 @@
+# Imported from EliteEnchantments (id: clarity). Review before shipping.
+display: "Clarity"
+description:
+  - "&eYou cannot be blinded."
+trigger: REPEATING
+applies-to: [ARMOR]
+group: "rare"
+tier: rare
+repeat: 40
+levels:
+  1:
+    chance: 100
+    effects:
+      - { POTION_LOCK: { effect: "BLINDNESS", ticks: 60 } }
+  2:
+    chance: 100
+    effects:
+      - { POTION_LOCK: { effect: "BLINDNESS", ticks: 60 } }
+  3:
+    chance: 100
+    effects:
+      - { POTION_LOCK: { effect: "BLINDNESS", ticks: 60 } }

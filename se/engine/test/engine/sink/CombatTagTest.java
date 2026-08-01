@@ -25,6 +25,18 @@ class CombatTagTest {
     }
 
     @Test
+    void zeroDurationExpiresImmediately() {
+        CombatTag.tagFor(p, 0L);
+        assertFalse(CombatTag.inCombat(p));
+    }
+
+    @Test
+    void explicitPositiveDurationTagsPlayer() {
+        CombatTag.tagFor(p, 60_000L);
+        assertTrue(CombatTag.inCombat(p));
+    }
+
+    @Test
     void clearEndsCombat() {
         CombatTag.tag(p);
         CombatTag.clear(p);

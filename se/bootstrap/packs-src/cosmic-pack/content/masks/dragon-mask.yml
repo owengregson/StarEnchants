@@ -1,0 +1,16 @@
+# Cosmic codex source: 11-masks.md
+display: Dragon Mask
+color: '&4'
+head: eyJ0aW1lc3RhbXAiOjE1NDQ3MjUxMDk0ODUsInByb2ZpbGVJZCI6ImEzOWVmNTdhMzg3YzRjZDE5NzQwNTliNzMyZWJjN2E1IiwicHJvZmlsZU5hbWUiOiJNZXJjaGFudCIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS80ZGYxOGZhOWRmZWE1NjNiYWM3NjVhMTdlNjU0Nzc3MjhkNTM2ZjhlOWVlODZlMTU5YzNjNjM4NTI2YTMyNDFjIn19fQ==
+material: PLAYER_HEAD
+summary: +5% DMG
+description:
+- "&c+5% DMG"
+- "&cImmune to Fire and Lava damage"
+- "&7The decapitated skull of a slain"
+- "&7Timeless Dragon from the Ender Dimension."
+- "&6&l * &6Timeless Dragon Update"
+abilities:
+- trigger: FIRE
+  effects:
+  - CANCEL: {}

@@ -15,13 +15,16 @@ import java.util.List;
  * @param stableKey       reorder-proof identity stored in PDC (§4.2, §5.3); unique per snapshot
  * @param defId           stable authoring id for the {@link compile.model.SourceMap}
  * @param level           enchant level; {@code 0} for non-enchant sources
- * @param baseChance      activation chance in {@code [0,100)}
+ * @param baseChance      finite non-negative activation threshold; values at or above {@code 100} are guaranteed
  * @param cooldownTicks   cooldown to arm on activation; {@code 0} = none
  * @param soulCost        souls consumed on activation; {@code 0} = none
  * @param conditionExpr   raw condition expression, or {@code null}/blank for "always true"
  * @param effects         lexed effect lines in authored order ({@code WAIT:n} lines control timing)
+ * @param noSoulEffects   effect lines executed only when the soul-cost gate cannot pay
  * @param suppressKey     the key by which a {@code DISABLE_*} cancels this ability (§6.2), or {@code null}
  * @param repeatTicks     period for a repeating-trigger ability; {@code 0} = none
+ * @param repeatInitialDelayTicks first-run delay for a repeating-trigger ability; defaults to
+ *                                {@code repeatTicks} when omitted by the author
  * @param setPieces       for a {@link SourceKind#SET} bonus, the worn-piece count that completes the
  *                        set; {@code 0} for every non-set source
  */
@@ -42,23 +45,48 @@ public record AbilityDef(
         String cdScopeGroup,
         String cdScopeType,
         int repeatTicks,
+        int repeatInitialDelayTicks,
         Source source,
         int setPieces,
-        boolean suppressImmune) {
+        boolean suppressImmune,
+        List<EffectLine> noSoulEffects) {
 
     public AbilityDef {
         triggers = List.copyOf(triggers);
         worldBlacklist = List.copyOf(worldBlacklist);
         effects = List.copyOf(effects);
+        noSoulEffects = List.copyOf(noSoulEffects);
     }
 
-    /** Back-compat construction defaulting {@code suppressImmune=false} — only enchants author it today. */
+    /** Back-compat construction defaulting both the first-run delay to {@code repeatTicks} and suppression immunity. */
     public AbilityDef(SourceKind sourceKind, String stableKey, int defId, int level, double baseChance,
                       int cooldownTicks, int soulCost, List<String> triggers, List<String> worldBlacklist,
                       String conditionExpr, List<EffectLine> effects, String suppressKey, String cdScopeEnchant,
                       String cdScopeGroup, String cdScopeType, int repeatTicks, Source source, int setPieces) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 conditionExpr, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks,
-                source, setPieces, false);
+                repeatTicks, source, setPieces, false, List.of());
+    }
+
+    /** Back-compat construction defaulting the first-run delay to {@code repeatTicks}. */
+    public AbilityDef(SourceKind sourceKind, String stableKey, int defId, int level, double baseChance,
+                      int cooldownTicks, int soulCost, List<String> triggers, List<String> worldBlacklist,
+                      String conditionExpr, List<EffectLine> effects, String suppressKey, String cdScopeEnchant,
+                      String cdScopeGroup, String cdScopeType, int repeatTicks, Source source, int setPieces,
+                      boolean suppressImmune) {
+        this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
+                conditionExpr, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks,
+                repeatTicks, source, setPieces, suppressImmune, List.of());
+    }
+
+    /** Back-compat full construction with no soul-failure effects. */
+    public AbilityDef(SourceKind sourceKind, String stableKey, int defId, int level, double baseChance,
+                      int cooldownTicks, int soulCost, List<String> triggers, List<String> worldBlacklist,
+                      String conditionExpr, List<EffectLine> effects, String suppressKey, String cdScopeEnchant,
+                      String cdScopeGroup, String cdScopeType, int repeatTicks, int repeatInitialDelayTicks,
+                      Source source, int setPieces, boolean suppressImmune) {
+        this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
+                conditionExpr, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks,
+                repeatInitialDelayTicks, source, setPieces, suppressImmune, List.of());
     }
 }

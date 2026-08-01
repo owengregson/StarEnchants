@@ -1,0 +1,19 @@
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/Lucky.java
+display: Lucky
+description: A low level-scaled chance to cancel an otherwise lethal hit.
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
+levels:
+  1: { chance: 0.5, condition: "%actor.health% - %finaldamage% <= 0", effects: [{ CANCEL: {} }, { PARTICLE: { particle: CLOUD, count: 30, speed: 0.3, spread: 0, anchor: feet, who: "@Self" } }] }
+  2: { chance: 0.75, condition: "%actor.health% - %finaldamage% <= 0", effects: [{ CANCEL: {} }, { PARTICLE: { particle: CLOUD, count: 30, speed: 0.3, spread: 0, anchor: feet, who: "@Self" } }] }
+  3: { chance: 1.0, condition: "%actor.health% - %finaldamage% <= 0", effects: [{ CANCEL: {} }, { PARTICLE: { particle: CLOUD, count: 30, speed: 0.3, spread: 0, anchor: feet, who: "@Self" } }] }
+  4: { chance: 1.25, condition: "%actor.health% - %finaldamage% <= 0", effects: [{ CANCEL: {} }, { PARTICLE: { particle: CLOUD, count: 30, speed: 0.3, spread: 0, anchor: feet, who: "@Self" } }] }
+  5: { chance: 1.5, condition: "%actor.health% - %finaldamage% <= 0", effects: [{ CANCEL: {} }, { PARTICLE: { particle: CLOUD, count: 30, speed: 0.3, spread: 0, anchor: feet, who: "@Self" } }] }
+  6: { chance: 1.75, condition: "%actor.health% - %finaldamage% <= 0", effects: [{ CANCEL: {} }, { PARTICLE: { particle: CLOUD, count: 30, speed: 0.3, spread: 0, anchor: feet, who: "@Self" } }] }
+  7: { chance: 2.0, condition: "%actor.health% - %finaldamage% <= 0", effects: [{ CANCEL: {} }, { PARTICLE: { particle: CLOUD, count: 30, speed: 0.3, spread: 0, anchor: feet, who: "@Self" } }] }
+  8: { chance: 2.25, condition: "%actor.health% - %finaldamage% <= 0", effects: [{ CANCEL: {} }, { PARTICLE: { particle: CLOUD, count: 30, speed: 0.3, spread: 0, anchor: feet, who: "@Self" } }] }
+  9: { chance: 2.5, condition: "%actor.health% - %finaldamage% <= 0", effects: [{ CANCEL: {} }, { PARTICLE: { particle: CLOUD, count: 30, speed: 0.3, spread: 0, anchor: feet, who: "@Self" } }] }
+  10: { chance: 2.75, condition: "%actor.health% - %finaldamage% <= 0", effects: [{ CANCEL: {} }, { PARTICLE: { particle: CLOUD, count: 30, speed: 0.3, spread: 0, anchor: feet, who: "@Self" } }] }

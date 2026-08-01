@@ -2,6 +2,52 @@
 "version": 1,
 "effects": [
   {
+    "head": "ARMOR_BATTERY",
+    "doc": "Repair all of the actor's armor, then damage the opponent armor slot matching the actor's first worn source enchant.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ ARMOR_BATTERY: { source-enchant: <string>, repair: <int[0..]=2>, retaliation: <int[0..]=1> } }",
+    "example": "{ ARMOR_BATTERY: { source-enchant: enchants/immortal, repair: 2, retaliation: 1 } }",
+    "params": [
+      {
+        "name": "source-enchant",
+        "kind": "STRING",
+        "label": "string",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "repair",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "2",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "retaliation",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
+    },
+  {
     "head": "BATTERY",
     "doc": "Arm a damage battery on the wearer: the next `hits` landed hits they take each bank `bank-percent`% of the final damage; their next landed hit on an enemy unloads the entire bank as bonus damage on that hit, then the core resets — a hit with nothing banked still spends the core. No time limit; the ability cooldown paces re-arms. Cleared on death.",
     "affinity": "CONTEXT_LOCAL",
@@ -30,6 +76,432 @@
         "max": 10,
         "enum": [],
         "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "BLEED_STACK",
+    "doc": "Increment the shared 20-stack Bleed state and apply stack movement, block cues, and nearby allied Blood Lust healing.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ BLEED_STACK: { speed-step: <double[0..]>, half-floor: <int[0..]=0>, blood-lust-floor: <double[0..]>, blood-lust-scale: <double[0..]>, primary-block: <material>, secondary-block: <material>, slow: <potion_effect>, blood-lust-particle: <particle>, blood-lust-sound: <sound> } }",
+    "example": "{ BLEED_STACK: { speed-step: 0.005, blood-lust-floor: 2, blood-lust-scale: 0.05, primary-block: REDSTONE_BLOCK, slow: SLOW, blood-lust-sound: EAT } }",
+    "params": [
+      {
+        "name": "speed-step",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "half-floor",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "blood-lust-floor",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "blood-lust-scale",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "primary-block",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": ""
+        },
+      {
+        "name": "secondary-block",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": ""
+        },
+      {
+        "name": "slow",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "blood-lust-particle",
+        "kind": "HANDLE",
+        "label": "particle",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "PARTICLE",
+        "doc": ""
+        },
+      {
+        "name": "blood-lust-sound",
+        "kind": "HANDLE",
+        "label": "sound",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "SOUND",
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
+    "head": "BLESS",
+    "doc": "If blocked-by is active, show blocked-message and stop. Otherwise clear Cosmic Bleed, play the private sound, remove the first active authored potion, and show the success message. Optionally throttle only that message while one armor set is active.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ BLESS: { blocked-by: <string=>, blocked-message: <string=>, success-message: <string=>, sound: <sound>, volume: <double[0..]=1>, pitch: <double[0..]=1>, message-throttle-set: <string=>, message-throttle: <ticks[0..]=0>, effect-1: <potion_effect>, effect-2: <potion_effect>, effect-3: <potion_effect>, effect-4: <potion_effect>, effect-5: <potion_effect>, effect-6: <potion_effect>, effect-7: <potion_effect>, effect-8: <potion_effect>, effect-9: <potion_effect>, effect-10: <potion_effect>, effect-11: <potion_effect>, effect-12: <potion_effect>, effect-13: <potion_effect>, effect-14: <potion_effect>, effect-15: <potion_effect>, effect-16: <potion_effect> } }",
+    "example": "{ BLESS: { blocked-by: deep-wounds, sound: SPLASH, effect-1: POISON } }",
+    "params": [
+      {
+        "name": "blocked-by",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "blocked-message",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "success-message",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "sound",
+        "kind": "HANDLE",
+        "label": "sound",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "SOUND",
+        "doc": ""
+        },
+      {
+        "name": "volume",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "pitch",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "message-throttle-set",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "message-throttle",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "effect-1",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-2",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-3",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-4",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-5",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-6",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-7",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-8",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-9",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-10",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-11",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-12",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-13",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-14",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-15",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-16",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
         "doc": ""
         }
       ],
@@ -207,10 +679,77 @@
     "targets": []
     },
   {
+    "head": "BLOCK_BREAK_EFFECT",
+    "doc": "Play the combined block-break particles and sound used by Bukkit STEP_SOUND/effect 2001. once-at-actor emits one cue at the captured actor origin only when 'who' matched.",
+    "affinity": "REGION",
+    "usage": "{ BLOCK_BREAK_EFFECT: { block: <material>, anchor: <enum{body|feet|eye}=feet>, y-offset: <double=0.0>, once-at-actor: <bool=false> } }",
+    "example": "{ BLOCK_BREAK_EFFECT: { block: DIAMOND_BLOCK, who: \"@Self\" } }",
+    "params": [
+      {
+        "name": "block",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": ""
+        },
+      {
+        "name": "anchor",
+        "kind": "ENUM",
+        "label": "enum{body|feet|eye}",
+        "required": false,
+        "default": "feet",
+        "min": null,
+        "max": null,
+        "enum": [
+          "body",
+          "feet",
+          "eye"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "y-offset",
+        "kind": "DOUBLE",
+        "label": "double",
+        "required": false,
+        "default": "0.0",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "once-at-actor",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "HERE"
+        }
+      ]
+    },
+  {
     "head": "BREAK_BLOCK",
     "doc": "Break the target block(s) (default @Here; drops=false clears). @Vein/@Tunnel/@Trench for shapes.",
     "affinity": "REGION",
-    "usage": "{ BREAK_BLOCK: { drops: <bool=true> } }",
+    "usage": "{ BREAK_BLOCK: { drops: <bool=true>, use-held-tool: <bool=false> } }",
     "example": "{ BREAK_BLOCK: { drops: true } }",
     "params": [
       {
@@ -219,6 +758,18 @@
         "label": "bool",
         "required": false,
         "default": "true",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "use-held-tool",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
         "min": null,
         "max": null,
         "enum": [],
@@ -354,6 +905,20 @@
     "targets": []
     },
   {
+    "head": "CLEAR_BLEED",
+    "doc": "Clear Cosmic Bleed stacks, restoring player walk speed or removing mob Slowness.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ CLEAR_BLEED: {} }",
+    "example": "{ CLEAR_BLEED: { who: \"@Self\" } }",
+    "params": [],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
     "head": "CONVERT_SUMMON",
     "doc": "Convert EVERY mob within `radius` blocks of the wearer to the wearer's side, permanently: each rebinds its ownership (a hit on it now fires the wearer's GUARDIAN_HURT) and tamed mobs re-tame; an enemy summon turns on its former owner, a wild mob on the wearer's nearest enemy player, and bat swarm clouds permanently swarm their former owner. Only players, armour stands and the wearer are exempt.",
     "affinity": "CONTEXT_LOCAL",
@@ -393,6 +958,120 @@
       ]
     },
   {
+    "head": "COSMIC_SILENCE",
+    "doc": "Roll Cosmic Silence at 2% per Silence+held-Solitude level, honor Dragon Slayer's 75% block, then suppress only defense procs for one second per combined level with exact feedback.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ COSMIC_SILENCE: { level: <int[1..4]>, solitude: <string=enchants/solitude>, sound: <sound>, enchantment-particle: <particle>, portal-particle: <particle> } }",
+    "example": "{ COSMIC_SILENCE: { level: 4, sound: WITHER_HURT, enchantment-particle: ENCHANTMENT_TABLE, portal-particle: PORTAL, who: '@Victim' } }",
+    "params": [
+      {
+        "name": "level",
+        "kind": "INT",
+        "label": "int[1..4]",
+        "required": true,
+        "default": null,
+        "min": 1,
+        "max": 4,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "solitude",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "enchants/solitude",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "sound",
+        "kind": "HANDLE",
+        "label": "sound",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "SOUND",
+        "doc": ""
+        },
+      {
+        "name": "enchantment-particle",
+        "kind": "HANDLE",
+        "label": "particle",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "PARTICLE",
+        "doc": ""
+        },
+      {
+        "name": "portal-particle",
+        "kind": "HANDLE",
+        "label": "particle",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "PARTICLE",
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
+    "head": "COUNT_TARGETS",
+    "doc": "Count resolved targets and store the integer on the actor as %name% (ttl ticks, 0 = forever).",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ COUNT_TARGETS: { name: <string>, ttl: <ticks[0..]=0> } }",
+    "example": "{ COUNT_TARGETS: { name: nearby-allies, ttl: 121, who: \"@Aoe{r=7,filter=ALLIES}\" } }",
+    "params": [
+      {
+        "name": "name",
+        "kind": "STRING",
+        "label": "string",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "ttl",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "AOE"
+        }
+      ]
+    },
+  {
     "head": "CURE",
     "doc": "Clear active potion effects of one category from the target(s): ALL (default), HARMFUL, BENEFICIAL, or NEUTRAL. category HARMFUL strips only debuffs (positive effects untouched).",
     "affinity": "TARGET_ENTITY",
@@ -425,10 +1104,253 @@
       ]
     },
   {
+    "head": "CURE_ONE_OF",
+    "doc": "Remove exactly one active potion effect, choosing the first effect encountered by the server whose type appears in effect-1 through effect-16. Unlisted effects remain. Optionally throttle the success message only while one authored armor set is active.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ CURE_ONE_OF: { effect-1: <potion_effect>, success-message: <string=>, message-throttle-set: <string=>, message-throttle: <ticks[0..]=0>, effect-2: <potion_effect>, effect-3: <potion_effect>, effect-4: <potion_effect>, effect-5: <potion_effect>, effect-6: <potion_effect>, effect-7: <potion_effect>, effect-8: <potion_effect>, effect-9: <potion_effect>, effect-10: <potion_effect>, effect-11: <potion_effect>, effect-12: <potion_effect>, effect-13: <potion_effect>, effect-14: <potion_effect>, effect-15: <potion_effect>, effect-16: <potion_effect> } }",
+    "example": "{ CURE_ONE_OF: { effect-1: POISON, effect-2: WITHER, who: \"@Self\" } }",
+    "params": [
+      {
+        "name": "effect-1",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "success-message",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "message-throttle-set",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "message-throttle",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "effect-2",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-3",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-4",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-5",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-6",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-7",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-8",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-9",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-10",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-11",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-12",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-13",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-14",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-15",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "effect-16",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
     "head": "DAMAGE",
     "doc": "Deal extra damage to the target: a flat amount and/or percent-of-max of the target's own maximum health (they sum when both are given).",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ DAMAGE: { amount: <double[0..]=0>, percent-of-max: <double[0..100]=0> } }",
+    "usage": "{ DAMAGE: { amount: <double[0..]=0>, percent-of-max: <double[0..100]=0>, attributed: <bool=true> } }",
     "example": "{ DAMAGE: { amount: 6, percent-of-max: 10 } }",
     "params": [
       {
@@ -454,6 +1376,18 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "attributed",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "true",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "false uses a generic damage event with no attacker attribution"
         }
       ],
     "targets": [
@@ -516,10 +1450,10 @@
     },
   {
     "head": "DAMAGE_MOD",
-    "doc": "Contribute to the damage fold: side attack/defense, mode add (percent) or flat (raw amount). A NEGATIVE amount is a self-nerf — attack:add:-50 halves your own outgoing damage. Replaces ADD_DAMAGE/REDUCE_DAMAGE/FLAT_DAMAGE/FLAT_REDUCE.",
+    "doc": "Contribute to the damage fold: side attack/defense; mode add uses a percentage, flat a raw amount, and multiply an exact direct factor. A NEGATIVE add amount is a self-nerf. cap clamps a positive evaluated amount when greater than zero (0 = uncapped).",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ DAMAGE_MOD: { side: <enum{attack|defense}>, mode: <enum{add|flat}=add>, amount: <double> } }",
-    "example": "{ DAMAGE_MOD: { side: attack, mode: add, amount: 25 } }",
+    "usage": "{ DAMAGE_MOD: { side: <enum{attack|defense}>, mode: <enum{add|flat|multiply}=add>, amount: <double>, cap: <double[0..]=0> } }",
+    "example": "{ DAMAGE_MOD: { side: attack, mode: add, amount: 25, cap: 75 } }",
     "params": [
       {
         "name": "side",
@@ -539,14 +1473,15 @@
       {
         "name": "mode",
         "kind": "ENUM",
-        "label": "enum{add|flat}",
+        "label": "enum{add|flat|multiply}",
         "required": false,
         "default": "add",
         "min": null,
         "max": null,
         "enum": [
           "add",
-          "flat"
+          "flat",
+          "multiply"
           ],
         "handle": null,
         "doc": ""
@@ -558,6 +1493,18 @@
         "required": true,
         "default": null,
         "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "cap",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
         "max": null,
         "enum": [],
         "handle": null,
@@ -723,6 +1670,211 @@
       ]
     },
   {
+    "head": "DISTANCE_DAMAGE",
+    "doc": "Multiply outgoing damage by one factor built from cumulative strict distance thresholds.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ DISTANCE_DAMAGE: { distance: <double[0..]>, near-1: <double[0..]=0.25>, near-2: <double[0..]=0.5>, near-3: <double[0..]=0.75>, near-4: <double[0..]=1.0>, near-5: <double[0..]=1.5>, near-per-level: <double[0..]=0.01>, far-1: <double[0..]=2.0>, far-2: <double[0..]=2.5>, far-3: <double[0..]=3.0>, far-penalty-1: <double[0..]=0.01>, far-penalty-2: <double[0..]=0.0125>, far-penalty-3: <double[0..]=0.025> } }",
+    "example": "{ DISTANCE_DAMAGE: { distance: '%distance%' } }",
+    "params": [
+      {
+        "name": "distance",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "near-1",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0.25",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "near-2",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0.5",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "near-3",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0.75",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "near-4",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1.0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "near-5",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1.5",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "near-per-level",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0.01",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "far-1",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "2.0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "far-2",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "2.5",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "far-3",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "3.0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "far-penalty-1",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0.01",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "far-penalty-2",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0.0125",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "far-penalty-3",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0.025",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
+    },
+  {
+    "head": "DROP_HEAD",
+    "doc": "Drop each selected player's skinned head, or mark one per channel for their next death when defer is true.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ DROP_HEAD: { defer: <bool=false>, channel: <string=default> } }",
+    "example": "{ DROP_HEAD: { defer: true, channel: headless, who: \"@Victim\" } }",
+    "params": [
+      {
+        "name": "defer",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "channel",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "default",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
     "head": "DROP_ITEM",
     "doc": "Drop a material as an item at the activation location. No-op if there is no location.",
     "affinity": "REGION",
@@ -760,7 +1912,7 @@
     "head": "DURABILITY",
     "doc": "Modify durability of the player's held item and/or worn armor: restore (amount<0 = full) or damage. Replaces ADD_DURABILITY/ADD_DURABILITY_ITEM/REPAIR/DAMAGE_ARMOR.",
     "affinity": "TARGET_ENTITY",
-    "usage": "{ DURABILITY: { amount: <int=-1>, target: <enum{item|armor|all}=item>, mode: <enum{restore|damage}=restore> } }",
+    "usage": "{ DURABILITY: { amount: <int=-1>, percent: <double[0..100]>, target: <enum{item|armor|all}=item>, mode: <enum{restore|damage}=restore>, selection: <enum{all|most-damaged|random}=all>, slot: <enum{boots|leggings|chestplate|helmet}> } }",
     "example": "{ DURABILITY: { amount: -1, target: item } }",
     "params": [
       {
@@ -774,6 +1926,18 @@
         "enum": [],
         "handle": null,
         "doc": "durability points; negative fully restores (restore mode)"
+        },
+      {
+        "name": "percent",
+        "kind": "DOUBLE",
+        "label": "double[0..100]",
+        "required": false,
+        "default": null,
+        "min": 0,
+        "max": 100,
+        "enum": [],
+        "handle": null,
+        "doc": "damage mode only: percent of each armor piece type's maximum durability"
         },
       {
         "name": "target",
@@ -805,6 +1969,39 @@
           ],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "selection",
+        "kind": "ENUM",
+        "label": "enum{all|most-damaged|random}",
+        "required": false,
+        "default": "all",
+        "min": null,
+        "max": null,
+        "enum": [
+          "all",
+          "most-damaged",
+          "random"
+          ],
+        "handle": null,
+        "doc": "armor selection: most-damaged for restore, random for one uniformly-selected damage slot"
+        },
+      {
+        "name": "slot",
+        "kind": "ENUM",
+        "label": "enum{boots|leggings|chestplate|helmet}",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [
+          "boots",
+          "leggings",
+          "chestplate",
+          "helmet"
+          ],
+        "handle": null,
+        "doc": "damage exactly one armor slot instead of all armor"
         }
       ],
     "targets": [
@@ -919,8 +2116,47 @@
       ]
     },
   {
+    "head": "EXP_DROP_MARK",
+    "doc": "Mark each target with a named death-XP multiplier. Re-marking replaces that channel; distinct channels multiply.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ EXP_DROP_MARK: { channel: <string>, multiplier: <double[0..]> } }",
+    "example": "{ EXP_DROP_MARK: { channel: inquisitive, multiplier: 1.5, who: \"@Victim\" } }",
+    "params": [
+      {
+        "name": "channel",
+        "kind": "STRING",
+        "label": "string",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "multiplier",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
     "head": "EXP_MULTIPLY",
-    "doc": "Multiply the XP gained (EXP_GAIN trigger) by a factor.",
+    "doc": "Multiply XP on the triggering EXP_GAIN or MINE event by a factor.",
     "affinity": "CONTEXT_LOCAL",
     "usage": "{ EXP_MULTIPLY: { factor: <double[0..]=2.0> } }",
     "example": "{ EXP_MULTIPLY: { factor: 2 } }",
@@ -951,6 +2187,73 @@
       {
         "name": "who",
         "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "FAKE_BLOCK",
+    "doc": "Show a client-only block at each target to players within the radius, then restore the real block.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ FAKE_BLOCK: { block: <material>, duration: <ticks[0..]>, radius: <double[0..]=32>, anchor: <enum{body|feet|eye}=body> } }",
+    "example": "{ FAKE_BLOCK: { block: WATER, duration: 45, radius: 32, anchor: eye, who: '@Victim' } }",
+    "params": [
+      {
+        "name": "block",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": ""
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "radius",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "32",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "anchor",
+        "kind": "ENUM",
+        "label": "enum{body|feet|eye}",
+        "required": false,
+        "default": "body",
+        "min": null,
+        "max": null,
+        "enum": [
+          "body",
+          "feet",
+          "eye"
+          ],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
         }
       ]
     },
@@ -1031,11 +2334,24 @@
     },
   {
     "head": "FILL_OXYGEN",
-    "doc": "Refill the target's air supply.",
+    "doc": "Add air ticks up to the target's maximum; omit amount for a full refill.",
     "affinity": "TARGET_ENTITY",
-    "usage": "{ FILL_OXYGEN: {} }",
-    "example": "{ FILL_OXYGEN: {} }",
-    "params": [],
+    "usage": "{ FILL_OXYGEN: { amount: <int=-1> } }",
+    "example": "{ FILL_OXYGEN: { amount: 20 } }",
+    "params": [
+      {
+        "name": "amount",
+        "kind": "INT",
+        "label": "int",
+        "required": false,
+        "default": "-1",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "air ticks to add; negative refills completely"
+        }
+      ],
     "targets": [
       {
         "name": "who",
@@ -1580,7 +2896,7 @@
     "head": "GUARD",
     "doc": "Summon count guardian mobs of type at the activation location, each targeting the attacker, auto-removed after ttl ticks (default 200; 0 = permanent); optional custom name. A targeted SPAWN_ENTITY for retaliation — author on DEFENSE.",
     "affinity": "REGION",
-    "usage": "{ GUARD: { type: <entity_type>, count: <int[1..]=1>, ttl: <ticks[0..]=200>, name: <string=> } }",
+    "usage": "{ GUARD: { type: <entity_type>, count: <int[1..]=1>, ttl: <ticks[0..]=200>, name: <string=>, health: <double[0..]=0>, spawn-y-offset: <double[-16..16]=0>, chunk-cap: <int[0..]=0>, retarget-radius: <double[0..]=0>, retarget-period: <ticks[1..]=20>, fire-resistance: <bool=false>, regeneration: <bool=false>, strength: <bool=false>, speed: <bool=false>, resistance: <bool=false>, sound: <sound>, sound-volume: <double[0..]=1>, sound-pitch: <double[0..]=1> } }",
     "example": "{ GUARD: { type: IRON_GOLEM, count: 1, ttl: 200, name: \"&bGuardian\" } }",
     "params": [
       {
@@ -1630,6 +2946,162 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "health",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "0 keeps the entity default"
+        },
+      {
+        "name": "spawn-y-offset",
+        "kind": "DOUBLE",
+        "label": "double[-16..16]",
+        "required": false,
+        "default": "0",
+        "min": -16,
+        "max": 16,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "chunk-cap",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "0 disables the cap"
+        },
+      {
+        "name": "retarget-radius",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "0 disables periodic retargeting"
+        },
+      {
+        "name": "retarget-period",
+        "kind": "TICKS",
+        "label": "ticks[1..]",
+        "required": false,
+        "default": "20",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "fire-resistance",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "regeneration",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "strength",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "speed",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "resistance",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "sound",
+        "kind": "HANDLE",
+        "label": "sound",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "SOUND",
+        "doc": ""
+        },
+      {
+        "name": "sound-volume",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "sound-pitch",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
         }
       ],
     "targets": [
@@ -1663,6 +3135,69 @@
       {
         "name": "who",
         "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "HERO_KILLER",
+    "doc": "Require active soul mode, positive carried souls, a settled held slot, no Soul Trap, and a victim wearing heroic armor; charge four souls at most once per second and multiply the hit by 1 + 0.10 * level.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ HERO_KILLER: { level: <int[1..3]>, cost: <int[0..]=4>, cost-period: <ticks[0..]=20>, anti-swap: <ticks[0..]=5> } }",
+    "example": "{ HERO_KILLER: { level: 3 } }",
+    "params": [
+      {
+        "name": "level",
+        "kind": "INT",
+        "label": "int[1..3]",
+        "required": true,
+        "default": null,
+        "min": 1,
+        "max": 3,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "cost",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "4",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "cost-period",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "20",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "anti-swap",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "5",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
         }
       ]
     },
@@ -1729,6 +3264,20 @@
       {
         "name": "who",
         "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "HURT_ANIMATION",
+    "doc": "Play the target's vanilla red hurt animation without causing another damage event.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ HURT_ANIMATION: {} }",
+    "example": "{ HURT_ANIMATION: { who: '@Victim' } }",
+    "params": [],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
         }
       ]
     },
@@ -1820,6 +3369,33 @@
       {
         "name": "who",
         "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "INFINITE_LUCK_GATE",
+    "doc": "Halt the current armor-set ability when the victim has Infinite Luck at the required level. Each equipped heroic armor piece independently contributes 12.5% to the source-code counter-roll that lets the set bonus through.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ INFINITE_LUCK_GATE: { required-level: <int[1..5]> } }",
+    "example": "{ INFINITE_LUCK_GATE: { required-level: 3, who: '@Victim' } }",
+    "params": [
+      {
+        "name": "required-level",
+        "kind": "INT",
+        "label": "int[1..5]",
+        "required": true,
+        "default": null,
+        "min": 1,
+        "max": 5,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
         }
       ]
     },
@@ -2166,7 +3742,7 @@
     "head": "LIGHTNING",
     "doc": "Strike the target(s) with lightning, optionally dealing extra damage (0 = cosmetic).",
     "affinity": "TARGET_ENTITY",
-    "usage": "{ LIGHTNING: { damage: <double[0..]=0> } }",
+    "usage": "{ LIGHTNING: { damage: <double[0..]=0>, real: <bool=false> } }",
     "example": "{ LIGHTNING: { damage: 6 } }",
     "params": [
       {
@@ -2176,6 +3752,18 @@
         "required": false,
         "default": "0",
         "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "real",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
         "max": null,
         "enum": [],
         "handle": null,
@@ -2356,7 +3944,7 @@
     "head": "MESSAGE",
     "doc": "Send feedback on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade timings). Default recipient self; `who` can name any party (e.g. @Victim). The `{ATTACKER}`/`{VICTIM}` tokens expand to the activating player and the other combat party. Replaces ACTIONBAR/TITLE.",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ MESSAGE: { text: <string>, channel: <enum{chat|actionbar|title}=chat>, subtitle: <string=>, fadeIn: <ticks[0..]=10>, stay: <ticks[0..]=70>, fadeOut: <ticks[0..]=20> } }",
+    "usage": "{ MESSAGE: { text: <string>, channel: <enum{chat|actionbar|title}=chat>, subtitle: <string=>, number: <double>, decimals: <int[0..12]=2>, grouping: <bool=false>, fadeIn: <ticks[0..]=10>, stay: <ticks[0..]=70>, fadeOut: <ticks[0..]=20> } }",
     "example": "{ MESSAGE: { text: \"&aCritical hit!\" } }",
     "params": [
       {
@@ -2398,6 +3986,42 @@
         "enum": [],
         "handle": null,
         "doc": "title channel only"
+        },
+      {
+        "name": "number",
+        "kind": "DOUBLE",
+        "label": "double",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "optional expression exposed as {NUMBER}"
+        },
+      {
+        "name": "decimals",
+        "kind": "INT",
+        "label": "int[0..12]",
+        "required": false,
+        "default": "2",
+        "min": 0,
+        "max": 12,
+        "enum": [],
+        "handle": null,
+        "doc": "maximum decimal places for {NUMBER}"
+        },
+      {
+        "name": "grouping",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "group thousands in {NUMBER} with commas"
         },
       {
         "name": "fadeIn",
@@ -2532,7 +4156,7 @@
     "head": "MODIFY_HEALTH",
     "doc": "Modify a target's health: give heals them, take deals direct health damage, transfer (lifesteal) damages the target and heals the activator by the same amount, set forces their health to the amount. Replaces HEAL.",
     "affinity": "TARGET_ENTITY",
-    "usage": "{ MODIFY_HEALTH: { amount: <double[0..]>, mode: <enum{give|take|transfer|set}=give> } }",
+    "usage": "{ MODIFY_HEALTH: { amount: <double[0..]>, cap: <double[0..]=0>, mode: <enum{give|take|transfer|set}=give>, base-round: <enum{none|floor}=none>, success-sound: <sound>, sound-volume: <double[0..]=1>, sound-pitch: <double[0..]=1>, require-headroom: <bool=false>, strict-headroom: <bool=false>, success-particle: <particle>, particle-count: <int[0..]=1>, particle-spread: <double[0..]=0>, particle-speed: <double[0..]=0>, particle-anchor: <enum{body|feet|eye}=body>, particle-y-offset: <double[-16..16]=0> } }",
     "example": "{ MODIFY_HEALTH: { amount: 4, mode: give, who: \"@Self\" } }",
     "params": [
       {
@@ -2548,6 +4172,18 @@
         "doc": ""
         },
       {
+        "name": "cap",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "optional maximum resolved amount; 0 = uncapped"
+        },
+      {
         "name": "mode",
         "kind": "ENUM",
         "label": "enum{give|take|transfer|set}",
@@ -2561,6 +4197,157 @@
           "transfer",
           "set"
           ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "base-round",
+        "kind": "ENUM",
+        "label": "enum{none|floor}",
+        "required": false,
+        "default": "none",
+        "min": null,
+        "max": null,
+        "enum": [
+          "none",
+          "floor"
+          ],
+        "handle": null,
+        "doc": "for give mode, floor uses floor(current health) + amount before clamping"
+        },
+      {
+        "name": "success-sound",
+        "kind": "HANDLE",
+        "label": "sound",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "SOUND",
+        "doc": "private player cue emitted only when give mode actually raises health"
+        },
+      {
+        "name": "sound-volume",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "sound-pitch",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "require-headroom",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "heal only when current + amount does not exceed max"
+        },
+      {
+        "name": "strict-headroom",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "with require-headroom, require current + amount to be strictly below max"
+        },
+      {
+        "name": "success-particle",
+        "kind": "HANDLE",
+        "label": "particle",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "PARTICLE",
+        "doc": ""
+        },
+      {
+        "name": "particle-count",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "particle-spread",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "particle-speed",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "particle-anchor",
+        "kind": "ENUM",
+        "label": "enum{body|feet|eye}",
+        "required": false,
+        "default": "body",
+        "min": null,
+        "max": null,
+        "enum": [
+          "body",
+          "feet",
+          "eye"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "particle-y-offset",
+        "kind": "DOUBLE",
+        "label": "double[-16..16]",
+        "required": false,
+        "default": "0",
+        "min": -16,
+        "max": 16,
+        "enum": [],
         "handle": null,
         "doc": ""
         }
@@ -2660,7 +4447,7 @@
     "head": "PARTICLE",
     "doc": "Spawn particles at the activation location, or at each entity in `who` when given (centered on the body, not the feet). `block` carries a block material as crack/dust data. `spread` is the horizontal Gaussian offset (set 0 for a point burst); `spread-y` the vertical offset, where the -1 default means \"use `spread`\". No-op if there is no location.",
     "affinity": "REGION",
-    "usage": "{ PARTICLE: { particle: <particle>, count: <int[0..]=1>, block: <material>, spread: <double[0..4]=0.4>, spread-y: <double[-1..4]=-1> } }",
+    "usage": "{ PARTICLE: { particle: <particle>, count: <int[0..]=1>, block: <material>, spread: <double[0..4]=0.4>, spread-y: <double[-1..4]=-1>, random-spread: <bool=false>, speed: <double[0..]=0>, anchor: <enum{body|feet|eye}=body>, y-offset: <double[-16..16]=0> } }",
     "example": "{ PARTICLE: { particle: BLOCK_CRACK, count: 20, block: REDSTONE_BLOCK, who: \"@Victim\" } }",
     "params": [
       {
@@ -2722,6 +4509,58 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "random-spread",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "choose each authored axis spread independently in [0, spread)"
+        },
+      {
+        "name": "speed",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "particle packet/API speed-extra value"
+        },
+      {
+        "name": "anchor",
+        "kind": "ENUM",
+        "label": "enum{body|feet|eye}",
+        "required": false,
+        "default": "body",
+        "min": null,
+        "max": null,
+        "enum": [
+          "body",
+          "feet",
+          "eye"
+          ],
+        "handle": null,
+        "doc": "entity target anchor; ignored for @Here"
+        },
+      {
+        "name": "y-offset",
+        "kind": "DOUBLE",
+        "label": "double[-16..16]",
+        "required": false,
+        "default": "0",
+        "min": -16,
+        "max": 16,
+        "enum": [],
+        "handle": null,
+        "doc": "vertical position offset after selecting the anchor"
         }
       ],
     "targets": [
@@ -2945,7 +4784,7 @@
     "head": "POTION",
     "doc": "Apply a potion effect to the target(s) at the given LEVEL (1-based: level 1 = the I tier), for a duration in ticks. The effect name is resolved to a handle at compile time. On a HELD/PASSIVE source it is removed again when the item is unequipped (§B lifecycle).",
     "affinity": "TARGET_ENTITY",
-    "usage": "{ POTION: { effect: <potion_effect>, level: <int[1..]>, duration: <ticks[0..]> } }",
+    "usage": "{ POTION: { effect: <potion_effect>, level: <int[1..]>, duration: <ticks[0..]>, duration-min: <ticks[0..]>, duration-max: <ticks[0..]>, duration-step: <int[1..]=1>, duration-random-base: <double[0..]>, duration-random-range: <double[0..]>, duration-random-scale: <int[1..]=1>, unless-present: <bool=false>, force: <bool=false>, chance: <double[0..100]=100>, particle: <particle>, particle-count: <int[0..]=1>, particle-speed: <double[0..]=0>, particle-anchor: <enum{body|feet|eye}=body>, particle-y-offset: <double[-16..16]=0> } }",
     "example": "{ POTION: { effect: STRENGTH, level: 1, duration: 100 } }",
     "params": [
       {
@@ -2980,6 +4819,178 @@
         "default": null,
         "min": 0,
         "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration-min",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration-max",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration-step",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": false,
+        "default": "1",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration-random-base",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "when paired with duration-random-range, floor(random*range+base)*scale"
+        },
+      {
+        "name": "duration-random-range",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration-random-scale",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": false,
+        "default": "1",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "unless-present",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "skip the target when it already has this potion type"
+        },
+      {
+        "name": "force",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "replace the active potion using Bukkit's force-add path"
+        },
+      {
+        "name": "chance",
+        "kind": "DOUBLE",
+        "label": "double[0..100]",
+        "required": false,
+        "default": "100",
+        "min": 0,
+        "max": 100,
+        "enum": [],
+        "handle": null,
+        "doc": "independent roll per resolved target"
+        },
+      {
+        "name": "particle",
+        "kind": "HANDLE",
+        "label": "particle",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "PARTICLE",
+        "doc": "particle emitted at a target only when its roll succeeds"
+        },
+      {
+        "name": "particle-count",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "particle-speed",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "particle-anchor",
+        "kind": "ENUM",
+        "label": "enum{body|feet|eye}",
+        "required": false,
+        "default": "body",
+        "min": null,
+        "max": null,
+        "enum": [
+          "body",
+          "feet",
+          "eye"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "particle-y-offset",
+        "kind": "DOUBLE",
+        "label": "double[-16..16]",
+        "required": false,
+        "default": "0",
+        "min": -16,
+        "max": 16,
         "enum": [],
         "handle": null,
         "doc": ""
@@ -3102,6 +5113,28 @@
     "targets": []
     },
   {
+    "head": "PROJECTILE_MARK",
+    "doc": "Attach an integer mark to the projectile fired by the current BOW_FIRE activation.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ PROJECTILE_MARK: { value: <int[1..]> } }",
+    "example": "{ PROJECTILE_MARK: { value: 3 } }",
+    "params": [
+      {
+        "name": "value",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": true,
+        "default": null,
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
+    },
+  {
     "head": "REFLECT",
     "doc": "Mark the target so a percent of their own outgoing damage is reflected back onto them for a duration in ticks (Hex). Player targets only; default target the combat victim.",
     "affinity": "CONTEXT_LOCAL",
@@ -3141,12 +5174,263 @@
       ]
     },
   {
+    "head": "REGENERATION",
+    "doc": "Start one non-overlapping regeneration window per player; heal at t=0 and every period through the inclusive uniformly-selected duration boundary. Particle feedback occurs only on a heal.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ REGENERATION: { amount: <double[0..]>, period: <ticks[1..]>, duration-min: <ticks[0..]>, duration-max: <ticks[0..]>, particle: <particle>, count: <int[0..]=1>, speed: <double[0..]=0>, anchor: <enum{body|feet|eye}=body>, y-offset: <double[-16..16]=0> } }",
+    "example": "{ REGENERATION: { amount: 1, period: 60, duration-min: 110, duration-max: 125, particle: SPELL, count: 15, speed: 0.04, anchor: eye, y-offset: 0.5 } }",
+    "params": [
+      {
+        "name": "amount",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "period",
+        "kind": "TICKS",
+        "label": "ticks[1..]",
+        "required": true,
+        "default": null,
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration-min",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration-max",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "particle",
+        "kind": "HANDLE",
+        "label": "particle",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "PARTICLE",
+        "doc": ""
+        },
+      {
+        "name": "count",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "speed",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "anchor",
+        "kind": "ENUM",
+        "label": "enum{body|feet|eye}",
+        "required": false,
+        "default": "body",
+        "min": null,
+        "max": null,
+        "enum": [
+          "body",
+          "feet",
+          "eye"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "y-offset",
+        "kind": "DOUBLE",
+        "label": "double[-16..16]",
+        "required": false,
+        "default": "0",
+        "min": -16,
+        "max": 16,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
     "head": "REMOVE_ARMOR",
     "doc": "Strip one random worn armour piece from the target(s) and drop it.",
     "affinity": "TARGET_ENTITY",
-    "usage": "{ REMOVE_ARMOR: {} }",
+    "usage": "{ REMOVE_ARMOR: { destination: <enum{drop|inventory}=drop>, victim-message: <string=>, victim-description: <string=>, attacker-message: <string=>, blank-lines: <int[0..]=0>, sound: <sound>, sound-volume: <double[0..]=1>, sound-pitch: <double[0..]=1>, block: <material>, block-height: <int[0..]=1> } }",
     "example": "{ REMOVE_ARMOR: {} }",
-    "params": [],
+    "params": [
+      {
+        "name": "destination",
+        "kind": "ENUM",
+        "label": "enum{drop|inventory}",
+        "required": false,
+        "default": "drop",
+        "min": null,
+        "max": null,
+        "enum": [
+          "drop",
+          "inventory"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "victim-message",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "victim-description",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "attacker-message",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "blank-lines",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "sound",
+        "kind": "HANDLE",
+        "label": "sound",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "SOUND",
+        "doc": ""
+        },
+      {
+        "name": "sound-volume",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "sound-pitch",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "block",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": ""
+        },
+      {
+        "name": "block-height",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
     "targets": [
       {
         "name": "who",
@@ -3221,6 +5505,54 @@
       ]
     },
   {
+    "head": "REMOVE_POTION_UP_TO",
+    "doc": "Remove the selected potion only when its current 1-based strength is at or below max-level.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ REMOVE_POTION_UP_TO: { effect: <potion_effect>, max-level: <int[1..]> } }",
+    "example": "{ REMOVE_POTION_UP_TO: { effect: BLINDNESS, max-level: 2, who: \"@Self\" } }",
+    "params": [
+      {
+        "name": "effect",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "max-level",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": true,
+        "default": null,
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "REMOVE_PROJECTILE",
+    "doc": "Request deletion of the raw projectile that caused the current damage event.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ REMOVE_PROJECTILE: {} }",
+    "example": "{ REMOVE_PROJECTILE: {} }",
+    "params": [],
+    "targets": []
+    },
+  {
     "head": "REMOVE_SOULS",
     "doc": "Debit souls from a soul gem: @Self (default) charges the activator's active gem, @Victim drains the target's own gem. A no-op when that player is not in soul mode.",
     "affinity": "CONTEXT_LOCAL",
@@ -3246,6 +5578,393 @@
         "selector": "SELF"
         }
       ]
+    },
+  {
+    "head": "REQUIRE_SOUL_TOTAL",
+    "doc": "Continue only when the actor's authoritative current soul total modulo divisor equals remainder; require-paid also rejects a live soul-cost waiver.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ REQUIRE_SOUL_TOTAL: { divisor: <int[1..]=20>, remainder: <int[0..]=0>, require-paid: <bool=false> } }",
+    "example": "{ REQUIRE_SOUL_TOTAL: { divisor: 20, remainder: 0, require-paid: true } }",
+    "params": [
+      {
+        "name": "divisor",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": false,
+        "default": "20",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "remainder",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "require-paid",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
+    },
+  {
+    "head": "REQUIRE_VALUE",
+    "doc": "Continue the current ability only when value is between min and max, inclusive.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ REQUIRE_VALUE: { value: <double>, min: <double=-1.7976931348623157E308>, max: <double=1.7976931348623157E308> } }",
+    "example": "{ REQUIRE_VALUE: { value: '%victim.isplayer%', min: 1 } }",
+    "params": [
+      {
+        "name": "value",
+        "kind": "DOUBLE",
+        "label": "double",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "min",
+        "kind": "DOUBLE",
+        "label": "double",
+        "required": false,
+        "default": "-1.7976931348623157E308",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "max",
+        "kind": "DOUBLE",
+        "label": "double",
+        "required": false,
+        "default": "1.7976931348623157E308",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
+    },
+  {
+    "head": "REQUIRE_VAR",
+    "doc": "Continue only when the named per-player variable has the authored presence state.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ REQUIRE_VAR: { name: <string>, present: <bool=true> } }",
+    "example": "{ REQUIRE_VAR: { name: feedback-throttle, present: false } }",
+    "params": [
+      {
+        "name": "name",
+        "kind": "STRING",
+        "label": "string",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "present",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "true",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "RESISTED_POTION",
+    "doc": "Use one shared base-chance roll for all targets, subtracting each target's worn resistance enchant level independently before applying the potion.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ RESISTED_POTION: { chance: <double[0..100]>, resistance-enchant: <string>, resistance-enchant-alt: <string=>, resist-per-level: <double[0..]>, effect: <potion_effect>, level: <int[1..]>, duration: <ticks[0..]>, blocked-message: <string=>, cue-block: <enum{none|current-or-stone}=none>, cue-y-offset: <double=0> } }",
+    "example": "{ RESISTED_POTION: { chance: 12, resistance-enchant: enchants/metaphysical, resist-per-level: 4, effect: SLOW, level: 2, duration: 60, who: '@Aoe{r=2,filter=NONALLIES}' } }",
+    "params": [
+      {
+        "name": "chance",
+        "kind": "DOUBLE",
+        "label": "double[0..100]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": 100,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "resistance-enchant",
+        "kind": "STRING",
+        "label": "string",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "resistance-enchant-alt",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "resist-per-level",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "effect",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "level",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": true,
+        "default": null,
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "blocked-message",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "cue-block",
+        "kind": "ENUM",
+        "label": "enum{none|current-or-stone}",
+        "required": false,
+        "default": "none",
+        "min": null,
+        "max": null,
+        "enum": [
+          "none",
+          "current-or-stone"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "cue-y-offset",
+        "kind": "DOUBLE",
+        "label": "double",
+        "required": false,
+        "default": "0",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "AOE"
+        }
+      ]
+    },
+  {
+    "head": "RESISTED_ROLL",
+    "doc": "Gate the remaining effects with one base-chance roll and the same roll against chance minus resistance-level*resist-per-level. Values are percentages.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ RESISTED_ROLL: { chance: <double[0..100]>, resistance-level: <double[0..]=0>, resist-per-level: <double[0..]=0>, min-chance: <double[0..100]=0>, blocked-message: <string=>, immune: <double[0..]=0>, immune-message: <string=>, immune-chance: <double[0..100]=0>, immune-chance-message: <string=> } }",
+    "example": "{ RESISTED_ROLL: { chance: 12, resistance-level: '%victim.metaphysical%', resist-per-level: 2.5, blocked-message: '&8&l** METAPHYSICAL blocked! **' } }",
+    "params": [
+      {
+        "name": "chance",
+        "kind": "DOUBLE",
+        "label": "double[0..100]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": 100,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "resistance-level",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "resist-per-level",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "min-chance",
+        "kind": "DOUBLE",
+        "label": "double[0..100]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": 100,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "blocked-message",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "immune",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "immune-message",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "immune-chance",
+        "kind": "DOUBLE",
+        "label": "double[0..100]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": 100,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "immune-chance-message",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
     },
   {
     "head": "RUN_COMMAND",
@@ -3283,6 +6002,81 @@
         }
       ],
     "targets": []
+    },
+  {
+    "head": "SABOTAGE",
+    "doc": "Require settled held weapon, active positive soul mode, and no Soul Trap; charge eight souls at most once per second and mark the victim for Rocket Escape's 10% per level failure roll.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ SABOTAGE: { level: <int[1..5]>, duration: <ticks[0..]=20>, cost: <int[0..]=8>, cost-period: <ticks[0..]=20>, anti-swap: <ticks[0..]=5> } }",
+    "example": "{ SABOTAGE: { level: 5 } }",
+    "params": [
+      {
+        "name": "level",
+        "kind": "INT",
+        "label": "int[1..5]",
+        "required": true,
+        "default": null,
+        "min": 1,
+        "max": 5,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "20",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "cost",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "8",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "cost-period",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "20",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "anti-swap",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "5",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
     },
   {
     "head": "SEEK",
@@ -3324,7 +6118,7 @@
     "head": "SET_VAR",
     "doc": "Set a per-player variable readable in later conditions as %name% (ttl ticks, 0 = forever).",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ SET_VAR: { name: <string>, value: <string=>, ttl: <ticks[0..]=0> } }",
+    "usage": "{ SET_VAR: { name: <string>, value: <string=>, ttl: <ticks[0..]=0>, clear-on-stop: <bool=false> } }",
     "example": "{ SET_VAR: { name: rage, value: 1, ttl: 200, who: \"@Self\" } }",
     "params": [
       {
@@ -3362,6 +6156,18 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "clear-on-stop",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
         }
       ],
     "targets": [
@@ -3373,18 +6179,301 @@
     },
   {
     "head": "SMELT",
-    "doc": "Auto-smelt the block broken by this MINE activation (ore→ingot, sand→glass, …).",
+    "doc": "Auto-smelt the block broken by this MINE activation, with an output amount, recipe profile, and up to two held-enchant exclusions.",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ SMELT: {} }",
+    "usage": "{ SMELT: { amount: <int[1..]=1>, profile: <enum{RECIPES|IRON_GOLD_ORE}=RECIPES>, unless-held: <string=>, unless-held2: <string=> } }",
     "example": "{ SMELT: {} }",
-    "params": [],
+    "params": [
+      {
+        "name": "amount",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": false,
+        "default": "1",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "profile",
+        "kind": "ENUM",
+        "label": "enum{RECIPES|IRON_GOLD_ORE}",
+        "required": false,
+        "default": "RECIPES",
+        "min": null,
+        "max": null,
+        "enum": [
+          "RECIPES",
+          "IRON_GOLD_ORE"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "unless-held",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "unless-held2",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
     "targets": []
+    },
+  {
+    "head": "SOUL_TRAP",
+    "doc": "Require active attacker soul mode and a settled held slot, enforce trap/grace windows, rate-limit the attacker cost, steal victim souls or deal fallback damage, suppress the authored soul group, disable victim soul mode, and emit exact private feedback.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ SOUL_TRAP: { key: <string>, duration: <ticks[0..]>, retrap-grace: <ticks[0..]=100>, steal: <int[1..]>, fallback-damage: <double[0..]>, cost: <int[0..]=5>, cost-period: <ticks[0..]=20>, anti-swap: <ticks[0..]=5>, message: <string>, sound: <sound>, sound-volume: <double[0..]=1>, sound-pitch: <double[0..]=1>, particle-1: <particle>, particle-1-count: <int[0..]>, particle-1-speed: <double[0..]>, particle-2: <particle>, particle-2-count: <int[0..]>, particle-2-speed: <double[0..]> } }",
+    "example": "{ SOUL_TRAP: { key: soul, duration: 80, steal: 10, fallback-damage: 2, message: \"&9&l** SOUL TRAP &7[4s]&9&l**\", sound: ENDERMAN_SCREAM, particle-1: SPELL_WITCH, particle-1-count: 60, particle-1-speed: 0.7, particle-2: SPELL, particle-2-count: 25, particle-2-speed: 0.4 } }",
+    "params": [
+      {
+        "name": "key",
+        "kind": "STRING",
+        "label": "string",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "soul group key; compile-lowered into the shared suppression namespace"
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "retrap-grace",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "100",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "steal",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": true,
+        "default": null,
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "fallback-damage",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "cost",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "5",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "cost-period",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "20",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "anti-swap",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "5",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "message",
+        "kind": "STRING",
+        "label": "string",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "sound",
+        "kind": "HANDLE",
+        "label": "sound",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "SOUND",
+        "doc": ""
+        },
+      {
+        "name": "sound-volume",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "sound-pitch",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "particle-1",
+        "kind": "HANDLE",
+        "label": "particle",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "PARTICLE",
+        "doc": ""
+        },
+      {
+        "name": "particle-1-count",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "particle-1-speed",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "particle-2",
+        "kind": "HANDLE",
+        "label": "particle",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "PARTICLE",
+        "doc": ""
+        },
+      {
+        "name": "particle-2-count",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "particle-2-speed",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
     },
   {
     "head": "SOUND",
     "doc": "Play a sound at the activation location. No-op if the activation has no location.",
     "affinity": "REGION",
-    "usage": "{ SOUND: { sound: <sound>, volume: <double[0..]=1>, pitch: <double[0..]=1> } }",
+    "usage": "{ SOUND: { sound: <sound>, volume: <double[0..]=1>, pitch: <double[0..]=1>, dedupe: <bool=true>, audience: <enum{world|target}=world>, players-only: <bool=false>, at: <enum{target|activation}=target> } }",
     "example": "{ SOUND: { sound: ENTITY_GENERIC_EXPLODE, volume: 1, pitch: 1 } }",
     "params": [
       {
@@ -3422,15 +6511,74 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "dedupe",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "true",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "collapse the same sound id to one play per event sink"
+        },
+      {
+        "name": "audience",
+        "kind": "ENUM",
+        "label": "enum{world|target}",
+        "required": false,
+        "default": "world",
+        "min": null,
+        "max": null,
+        "enum": [
+          "world",
+          "target"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "players-only",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "skip resolved non-player living targets"
+        },
+      {
+        "name": "at",
+        "kind": "ENUM",
+        "label": "enum{target|activation}",
+        "required": false,
+        "default": "target",
+        "min": null,
+        "max": null,
+        "enum": [
+          "target",
+          "activation"
+          ],
+        "handle": null,
+        "doc": "where the sound is located when who resolves entities"
         }
       ],
-    "targets": []
+    "targets": [
+      {
+        "name": "who",
+        "selector": "HERE"
+        }
+      ]
     },
   {
     "head": "SPAWN_ENTITY",
     "doc": "Spawn count entities of type at the target's (or activation) location; ttl ticks until removal (0 = permanent), optional starting health, and owner=activator to tame an owned summon to the activator. ADR-0052 summon flags: powered charges a creeper; ai=false disables mob AI; targeting=false stops the summon acquiring targets; saddled + mount=activator make a horse-type rideable and seat the activator; detonate=PLAYER_HIT makes a creeper explode ONLY when a player hits it (it never self-detonates); invincible=true zeroes all damage to the summon (it cannot die but still takes hits and knockback); speed is a multiplier on the spawned entity's vanilla movement-speed base (0 = untouched). Replaces SPAWN/TNT.",
     "affinity": "REGION",
-    "usage": "{ SPAWN_ENTITY: { type: <entity_type>, count: <int[1..]=1>, ttl: <ticks[0..]=0>, health: <double[0..]=0>, owner: <enum{none|activator}=none>, powered: <bool=false>, ai: <bool=true>, targeting: <bool=true>, saddled: <bool=false>, mount: <enum{none|activator}=none>, detonate: <enum{NONE|PLAYER_HIT}=NONE>, invincible: <bool=false>, speed: <double[0..]=0> } }",
+    "usage": "{ SPAWN_ENTITY: { type: <entity_type>, count: <int[1..]=1>, ttl: <ticks[0..]=0>, health: <double[0..]=0>, owner: <enum{none|activator}=none>, powered: <bool=false>, ai: <bool=true>, targeting: <bool=true>, saddled: <bool=false>, mount: <enum{none|activator}=none>, detonate: <enum{NONE|PLAYER_HIT}=NONE>, invincible: <bool=false>, speed: <double[0..]=0>, spawn-y-offset: <double[-16..16]=0>, custom-name: <string=>, plague-level: <int[0..]=0> } }",
     "example": "{ SPAWN_ENTITY: { type: WOLF, count: 1, ttl: 0, health: 0, owner: activator } }",
     "params": [
       {
@@ -3590,6 +6738,42 @@
         "name": "speed",
         "kind": "DOUBLE",
         "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "spawn-y-offset",
+        "kind": "DOUBLE",
+        "label": "double[-16..16]",
+        "required": false,
+        "default": "0",
+        "min": -16,
+        "max": 16,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "custom-name",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "plague-level",
+        "kind": "INT",
+        "label": "int[0..]",
         "required": false,
         "default": "0",
         "min": 0,
@@ -3938,7 +7122,7 @@
     "head": "TELEBLOCK",
     "doc": "Block the target player(s) from teleporting (ender pearl / chorus fruit) for duration ticks.",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ TELEBLOCK: { duration: <ticks[0..]=400> } }",
+    "usage": "{ TELEBLOCK: { duration: <ticks[0..]=400>, mode: <enum{BLOCK|CLEAR}=BLOCK> } }",
     "example": "{ TELEBLOCK: { duration: 400 } }",
     "params": [
       {
@@ -3950,6 +7134,21 @@
         "min": 0,
         "max": null,
         "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "mode",
+        "kind": "ENUM",
+        "label": "enum{BLOCK|CLEAR}",
+        "required": false,
+        "default": "BLOCK",
+        "min": null,
+        "max": null,
+        "enum": [
+          "BLOCK",
+          "CLEAR"
+          ],
         "handle": null,
         "doc": ""
         }
@@ -3995,7 +7194,7 @@
     "head": "TELEPORT_BEHIND",
     "doc": "Teleport the mover(s) `distance` blocks behind the reference (of: VICTIM — the attacker on a DEFENSE trigger — or ACTOR), facing as it faces. Unsafe (blocked / wall between) → onFail ONTOP lands on the reference, NONE cancels.",
     "affinity": "TARGET_ENTITY",
-    "usage": "{ TELEPORT_BEHIND: { of: <enum{VICTIM|ACTOR}=VICTIM>, distance: <double[0..]=1>, onFail: <enum{ONTOP|NONE}=ONTOP> } }",
+    "usage": "{ TELEPORT_BEHIND: { of: <enum{VICTIM|ACTOR}=VICTIM>, distance: <double[0..]=1>, onFail: <enum{ONTOP|NONE}=ONTOP>, sound: <sound>, sound-volume: <double[0..]=1>, sound-pitch: <double[0..]=1>, departure-particle: <particle>, arrival-particle: <particle>, particle-count: <int[0..]=20>, particle-speed: <double[0..]=0.5>, particle-spread: <double[0..]=1> } }",
     "example": "{ TELEPORT_BEHIND: { of: VICTIM, distance: 1, onFail: ONTOP, who: \"@Self\" } }",
     "params": [
       {
@@ -4037,6 +7236,102 @@
           "ONTOP",
           "NONE"
           ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "sound",
+        "kind": "HANDLE",
+        "label": "sound",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "SOUND",
+        "doc": ""
+        },
+      {
+        "name": "sound-volume",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "sound-pitch",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "departure-particle",
+        "kind": "HANDLE",
+        "label": "particle",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "PARTICLE",
+        "doc": ""
+        },
+      {
+        "name": "arrival-particle",
+        "kind": "HANDLE",
+        "label": "particle",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "PARTICLE",
+        "doc": ""
+        },
+      {
+        "name": "particle-count",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "20",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "particle-speed",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0.5",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "particle-spread",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
         "handle": null,
         "doc": ""
         }
@@ -4264,19 +7559,20 @@
     "head": "VELOCITY",
     "doc": "Apply velocity to the target(s): mode=add uses x/y/z; mode=away knocks them back from the activator with strength. Replaces THROW/LAUNCH/KNOCKBACK.",
     "affinity": "TARGET_ENTITY",
-    "usage": "{ VELOCITY: { mode: <enum{add|away}=add>, x: <double=0>, y: <double=0>, z: <double=0>, strength: <double[0..]=0> } }",
+    "usage": "{ VELOCITY: { mode: <enum{add|set|away}=add>, x: <double=0>, y: <double=0>, z: <double=0>, strength: <double[0..]=0>, from: <enum{actor|victim}=actor> } }",
     "example": "{ VELOCITY: { mode: add, x: 0, y: 1.2, z: 0 } }",
     "params": [
       {
         "name": "mode",
         "kind": "ENUM",
-        "label": "enum{add|away}",
+        "label": "enum{add|set|away}",
         "required": false,
         "default": "add",
         "min": null,
         "max": null,
         "enum": [
           "add",
+          "set",
           "away"
           ],
         "handle": null,
@@ -4324,6 +7620,60 @@
         "label": "double[0..]",
         "required": false,
         "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "from",
+        "kind": "ENUM",
+        "label": "enum{actor|victim}",
+        "required": false,
+        "default": "actor",
+        "min": null,
+        "max": null,
+        "enum": [
+          "actor",
+          "victim"
+          ],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
+    "head": "VIRUS_MARK",
+    "doc": "Multiply subsequent Poison and Wither damage to each target for the given duration.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ VIRUS_MARK: { multiplier: <double[0..]>, duration: <ticks[0..]> } }",
+    "example": "{ VIRUS_MARK: { multiplier: 3, duration: 60, who: \"@Victim\" } }",
+    "params": [
+      {
+        "name": "multiplier",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": true,
+        "default": null,
         "min": 0,
         "max": null,
         "enum": [],
@@ -4591,7 +7941,7 @@
   {
     "head": "AOE",
     "doc": "Living entities within r blocks of the target, except the activator; optionally filtered, capped, and with the combat victim excluded.",
-    "usage": "{ AOE: { r: <double[0..]=4>, filter: <enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}=ALL>, limit: <int[0..]=0>, exclude: <enum{none|victim}=none> } }",
+    "usage": "{ AOE: { r: <double[0..]=4>, filter: <enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|NONALLIES|ENEMY_PLAYERS|ALLIES}=ALL>, limit: <int[0..]=0>, exclude: <enum{none|victim}=none> } }",
     "example": "@Aoe{r=6, filter=MONSTERS, exclude=victim}",
     "params": [
       {
@@ -4609,7 +7959,7 @@
       {
         "name": "filter",
         "kind": "ENUM",
-        "label": "enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}",
+        "label": "enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|NONALLIES|ENEMY_PLAYERS|ALLIES}",
         "required": false,
         "default": "ALL",
         "min": null,
@@ -4620,6 +7970,8 @@
           "MONSTERS",
           "MOBS",
           "ENEMIES",
+          "NONALLIES",
+          "ENEMY_PLAYERS",
           "ALLIES"
           ],
         "handle": null,
@@ -5084,6 +8436,20 @@
     "usesHeld": false,
     "scansEquipment": true,
     "needsTarget": false
+    },
+  {
+    "name": "ALLY_DEATH",
+    "direction": "NEUTRAL",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": false
+    },
+  {
+    "name": "BLOCK_DAMAGE",
+    "direction": "NEUTRAL",
+    "usesHeld": true,
+    "scansEquipment": false,
+    "needsTarget": false
     }
   ],
 "conditions": {
@@ -5156,6 +8522,14 @@
     "type": "NUM"
     },
   {
+    "name": "actor.environment",
+    "type": "STR"
+    },
+  {
+    "name": "actor.falldistance",
+    "type": "NUM"
+    },
+  {
     "name": "actor.food",
     "type": "NUM"
     },
@@ -5180,6 +8554,10 @@
     "type": "STR"
     },
   {
+    "name": "actor.heldsettled5",
+    "type": "BOOL"
+    },
+  {
     "name": "actor.level",
     "type": "NUM"
     },
@@ -5196,8 +8574,20 @@
     "type": "STR"
     },
   {
+    "name": "actor.walkspeed",
+    "type": "NUM"
+    },
+  {
     "name": "actor.world",
     "type": "STR"
+    },
+  {
+    "name": "aegisattackerindex",
+    "type": "NUM"
+    },
+  {
+    "name": "antigankattackers",
+    "type": "NUM"
     },
   {
     "name": "attackerindex",
@@ -5225,6 +8615,10 @@
     },
   {
     "name": "distance",
+    "type": "NUM"
+    },
+  {
+    "name": "finaldamage",
     "type": "NUM"
     },
   {
@@ -5256,6 +8650,14 @@
     "type": "BOOL"
     },
   {
+    "name": "projectileheight",
+    "type": "NUM"
+    },
+  {
+    "name": "projectilemark",
+    "type": "NUM"
+    },
+  {
     "name": "ragestacks",
     "type": "NUM"
     },
@@ -5276,8 +8678,24 @@
     "type": "BOOL"
     },
   {
+    "name": "victim.bleedstacks",
+    "type": "NUM"
+    },
+  {
     "name": "victim.blocking",
     "type": "BOOL"
+    },
+  {
+    "name": "victim.boss",
+    "type": "BOOL"
+    },
+  {
+    "name": "victim.devouraffected",
+    "type": "BOOL"
+    },
+  {
+    "name": "victim.dragonslayer",
+    "type": "NUM"
     },
   {
     "name": "victim.flying",
@@ -5286,6 +8704,10 @@
   {
     "name": "victim.food",
     "type": "NUM"
+    },
+  {
+    "name": "victim.frommobspawner",
+    "type": "BOOL"
     },
   {
     "name": "victim.gliding",
@@ -5304,16 +8726,48 @@
     "type": "STR"
     },
   {
+    "name": "victim.induel",
+    "type": "BOOL"
+    },
+  {
     "name": "victim.inzone",
     "type": "BOOL"
+    },
+  {
+    "name": "victim.isplayer",
+    "type": "NUM"
     },
   {
     "name": "victim.maxhealth",
     "type": "NUM"
     },
   {
+    "name": "victim.metaphysical",
+    "type": "NUM"
+    },
+  {
     "name": "victim.mobtype",
     "type": "STR"
+    },
+  {
+    "name": "victim.necromancermask",
+    "type": "BOOL"
+    },
+  {
+    "name": "victim.poltergeist",
+    "type": "NUM"
+    },
+  {
+    "name": "victim.polymorphicmetaphysical",
+    "type": "NUM"
+    },
+  {
+    "name": "victim.rageaffected",
+    "type": "BOOL"
+    },
+  {
+    "name": "victim.slowed",
+    "type": "BOOL"
     },
   {
     "name": "victim.sneaking",
@@ -5324,12 +8778,20 @@
     "type": "BOOL"
     },
   {
+    "name": "victim.sticky",
+    "type": "NUM"
+    },
+  {
     "name": "victim.swimming",
     "type": "BOOL"
     },
   {
     "name": "victim.type",
     "type": "STR"
+    },
+  {
+    "name": "victim.walkspeed",
+    "type": "NUM"
     },
   {
     "name": "world.raining",

@@ -1,0 +1,51 @@
+# Imported from EliteEnchantments (id: berserk). Review before shipping.
+display: "Berserk"
+description:
+  - "&eOn hit, grants you Strength but"
+  - "&ealso Mining Fatigue for a few"
+  - "&eseconds."
+trigger: ATTACK
+applies-to: [AXE]
+group: "rare"
+tier: rare
+levels:
+  1:
+    chance: 12
+    cooldown: 200
+    effects:
+      - { SOUND: { sound: "ENTITY_WOLF_GROWL", volume: 0.7, pitch: 1.0 } }
+      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # was POTION:INCREASE_DAMAGE — vanilla Strength is banned from content (era potion math re-amplifies it); R4 proc → +8% on the additive attack fold
+      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER:3 — EE seconds → ticks (x20)
+  2:
+    chance: 16
+    cooldown: 200
+    effects:
+      - { SOUND: { sound: "ENTITY_WOLF_GROWL", volume: 0.7, pitch: 1.0 } }
+      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # was POTION:INCREASE_DAMAGE — vanilla Strength is banned from content (era potion math re-amplifies it); R4 proc → +10% on the additive attack fold
+      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER:3 — EE seconds → ticks (x20)
+  3:
+    chance: 20
+    cooldown: 200
+    effects:
+      - { SOUND: { sound: "ENTITY_WOLF_GROWL", volume: 0.7, pitch: 1.0 } }
+      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # was POTION:INCREASE_DAMAGE — vanilla Strength is banned from content (era potion math re-amplifies it); R4 proc → +12% on the additive attack fold
+      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER:3 — EE seconds → ticks (x20)
+  4:
+    chance: 24
+    cooldown: 200
+    effects:
+      - { SOUND: { sound: "ENTITY_WOLF_GROWL", volume: 0.7, pitch: 1.0 } }
+      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 13 } }  # was POTION:INCREASE_DAMAGE — vanilla Strength is banned from content (era potion math re-amplifies it); R4 proc → +13% on the additive attack fold
+      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER:3 — EE seconds → ticks (x20)
+  5:
+    chance: 28
+    cooldown: 200
+    effects:
+      - { SOUND: { sound: "ENTITY_WOLF_GROWL", volume: 0.7, pitch: 1.0 } }
+      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }  # was POTION:INCREASE_DAMAGE — vanilla Strength is banned from content (era potion math re-amplifies it); R4 proc → +15% on the additive attack fold
+      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER:3 — EE seconds → ticks (x20)

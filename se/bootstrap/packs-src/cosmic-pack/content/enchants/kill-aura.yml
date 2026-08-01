@@ -1,0 +1,21 @@
+# Cosmic codex source: 03-enchants-swords.md — swords/KillAura.java
+display: Kill Aura
+description: Chance to kill multiple monsters in a stack each death event.
+trigger:
+- ATTACK
+applies-to:
+- SWORD
+group: legendary
+tier: legendary
+stacking: HIGHEST
+levels:
+  1:
+    effects: []
+  2:
+    effects: []
+  3:
+    effects: []
+  4:
+    effects: []
+  5:
+    effects: []

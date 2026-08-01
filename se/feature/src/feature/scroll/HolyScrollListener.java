@@ -69,7 +69,7 @@ public final class HolyScrollListener extends ApplyGestureListener {
         }
         // Pull holy items out of the drops here (they must not spawn), but hold the stash until the keep decision
         // is final at MONITOR — see onDeathCommit.
-        List<ItemStack> saved = service.keepFromDrops(event.getDrops());
+        List<ItemStack> saved = service.keepFromDrops(event.getEntity(), event.getDrops());
         if (!saved.isEmpty()) {
             pending.put(event.getEntity().getUniqueId(), saved);
         }

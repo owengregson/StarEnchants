@@ -1,0 +1,17 @@
+# Cosmic codex source: 06-enchants-tools-heroic.md — heroic/HeroicTeleportation.java
+display: Bidirectional Teleportation
+description: Chance to repel an enemy towards you, or trap them for 1-2s.
+trigger:
+- BOW
+applies-to:
+- BOW
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1: { effects: [] }
+  2: { effects: [] }
+  3: { effects: [] }
+  4: { effects: [] }
+  5: { effects: [] }

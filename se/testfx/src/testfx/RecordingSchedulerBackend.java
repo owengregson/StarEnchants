@@ -18,13 +18,15 @@ public final class RecordingSchedulerBackend implements SchedulerBackend {
     public record Delayed(long delayTicks, Runnable task) {
     }
 
-    /** A recorded repeating task: its period + body + own cancellation flag. */
+    /** A recorded repeating task: its first delay + period + body + own cancellation flag. */
     public static final class Repeat implements TaskHandle {
+        public final long initialDelayTicks;
         public final long periodTicks;
         public final Runnable task;
         private boolean cancelled;
 
-        Repeat(long periodTicks, Runnable task) {
+        Repeat(long initialDelayTicks, long periodTicks, Runnable task) {
+            this.initialDelayTicks = initialDelayTicks;
             this.periodTicks = periodTicks;
             this.task = task;
         }
@@ -80,21 +82,21 @@ public final class RecordingSchedulerBackend implements SchedulerBackend {
 
     @Override
     public TaskHandle repeatingEntity(Entity entity, long initialDelayTicks, long periodTicks, Runnable task) {
-        Repeat r = new Repeat(periodTicks, task);
+        Repeat r = new Repeat(initialDelayTicks, periodTicks, task);
         repeating.add(r);
         return r;
     }
 
     @Override
     public TaskHandle repeatingRegion(Location location, long initialDelayTicks, long periodTicks, Runnable task) {
-        Repeat r = new Repeat(periodTicks, task);
+        Repeat r = new Repeat(initialDelayTicks, periodTicks, task);
         repeating.add(r);
         return r;
     }
 
     @Override
     public TaskHandle repeatingGlobal(long initialDelayTicks, long periodTicks, Runnable task) {
-        Repeat r = new Repeat(periodTicks, task);
+        Repeat r = new Repeat(initialDelayTicks, periodTicks, task);
         repeating.add(r);
         return r;
     }

@@ -1,52 +1,16 @@
-# Imported from EliteEnchantments (id: execute). Review before shipping.
-display: "Execute"
-description:
-  - "&eOn hit against a low-health"
-  - "&etarget, deals bonus damage."
+# Cosmic codex source: 03-enchants-swords.md — swords/Execute.java
+display: Execute
+description: Against an enemy player already at 8 HP or less and not affected by Rage, has a 4% chance per level to triple the current hit.
 trigger: ATTACK
 applies-to: [SWORD]
-group: "epic"
-tier: epic
+group: elite
+tier: elite
+stacking: HIGHEST
 levels:
-  1:
-    condition: "%victim.healthpercent% <= 25"
-    effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_CRIT", volume: 1.0, pitch: 0.7 } }
-      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.4 } }  # finisher lands as raw post-armor damage (ADR-0050 R3 flat economy)
-  2:
-    condition: "%victim.healthpercent% <= 25"
-    effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_CRIT", volume: 1.0, pitch: 0.7 } }
-      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.5 } }  # finisher lands as raw post-armor damage (ADR-0050 R3 flat economy)
-  3:
-    condition: "%victim.healthpercent% <= 25"
-    effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_CRIT", volume: 1.0, pitch: 0.7 } }
-      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.6 } }  # finisher lands as raw post-armor damage (ADR-0050 R3 flat economy)
-  4:
-    condition: "%victim.healthpercent% <= 25"
-    effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_CRIT", volume: 1.0, pitch: 0.7 } }
-      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.7 } }  # finisher lands as raw post-armor damage (ADR-0050 R3 flat economy)
-  5:
-    condition: "%victim.healthpercent% <= 25"
-    effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_CRIT", volume: 1.0, pitch: 0.7 } }
-      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.8 } }  # finisher lands as raw post-armor damage (ADR-0050 R3 flat economy)
-  6:
-    condition: "%victim.healthpercent% <= 25"
-    effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_CRIT", volume: 1.0, pitch: 0.7 } }
-      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.9 } }  # finisher lands as raw post-armor damage (ADR-0050 R3 flat economy)
-  7:
-    condition: "%victim.healthpercent% <= 25"
-    effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_CRIT", volume: 1.0, pitch: 0.7 } }
-      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 12 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 1.0 } }  # finisher lands as raw post-armor damage (ADR-0050 R3 flat economy)
+  1: { chance: 4, condition: &eligible '%victim.isplayer% >= 1 && %victim.health% <= 8 && %victim.rageaffected% == false', effects: &execute [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 3 } }, { BLOCK_BREAK_EFFECT: { block: REDSTONE_WIRE, anchor: feet, who: '@Victim' } }] }
+  2: { chance: 8, condition: *eligible, effects: *execute }
+  3: { chance: 12, condition: *eligible, effects: *execute }
+  4: { chance: 16, condition: *eligible, effects: *execute }
+  5: { chance: 20, condition: *eligible, effects: *execute }
+  6: { chance: 24, condition: *eligible, effects: *execute }
+  7: { chance: 28.000000000000004, condition: *eligible, effects: *execute }

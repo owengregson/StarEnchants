@@ -1,0 +1,40 @@
+# Imported from Cosmic Enchants (id: rage). Review before shipping.
+display: "Rage"
+description:
+  - "&eEach consecutive hit in a combo"
+  - "&eadds stacking bonus damage."
+trigger: ATTACK
+applies-to: [WEAPON]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    effects:
+      - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 1.5" } }  # combo percent seasoning; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.06" } }  # the combo reward in raw hp — flat lands post-multiplier (ADR-0050 R3 flat economy)
+  2:
+    effects:
+      - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 2" } }  # combo percent seasoning; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.08" } }  # the combo reward in raw hp — flat lands post-multiplier (ADR-0050 R3 flat economy)
+  3:
+    effects:
+      - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 2" } }  # combo percent seasoning; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.10" } }  # the combo reward in raw hp — flat lands post-multiplier (ADR-0050 R3 flat economy)
+  4:
+    effects:
+      - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 2.5" } }  # combo percent seasoning; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.12" } }  # the combo reward in raw hp — flat lands post-multiplier (ADR-0050 R3 flat economy)
+  5:
+    effects:
+      - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 3" } }  # combo percent seasoning; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.14" } }  # the combo reward in raw hp — flat lands post-multiplier (ADR-0050 R3 flat economy)
+  6:
+    effects:
+      - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "%ragestacks% * 3" } }  # combo percent seasoning; %ragestacks% = min(streak, level); the rage-stacks service owns the audio/feedback
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "%ragestacks% * 0.16" } }  # the combo reward in raw hp — flat lands post-multiplier (ADR-0050 R3 flat economy)

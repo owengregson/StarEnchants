@@ -1,79 +1,19 @@
-# Imported from EliteEnchantments (id: permafrost). Review before shipping.
-display: "Permafrost"
-description:
-  - "&eFreezes the ground under attackers;"
-  - "&ewhile you stand on the frost you take"
-  - "&eless damage."
-trigger: DEFENSE
-applies-to: [BOOTS]
-group: "godly"
-tier: godly
-# Standing on ice/snow forces the proc (guaranteed reduction on the frost); off it, the normal chance roll applies.
-condition: "(%actor.groundblock% contains \"ICE\" || %actor.groundblock% contains \"SNOW\") : %force%"
+# Cosmic codex source: 07-enchants-mastery-soul.md — mastery/MasteryPermafrost.java
+# Exact intended runtime is implemented by CosmicMasteryListener.
+display: Permafrost
+description: A chance to transform nearby blocks into snow and ice when damaged, reducing your incoming damage while standing on these blocks and causing fatigue in the attacker.
+trigger:
+- DEFENSE
+applies-to:
+- ARMOR
+group: mastery
+tier: mastery
+disabled-environments: [THE_END]
+stacking: HIGHEST
 levels:
-  1:
-    chance: 4
-    cooldown: 1200
-    effects:
-      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 0.9, pitch: 1.5 } }
-      - { PARTICLE: { particle: "SNOWFLAKE", count: 16, who: "@Attacker" } }
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "ICE", material2: "BLUE_ICE", material3: "PACKED_ICE", material4: "SNOW_BLOCK", radius: 3, dy: -1, ticks: 100, airOnly: false, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor (solid ground only) + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { POTION: { effect: "SLOWNESS", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { POTION: { effect: "MINING_FATIGUE", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { POTION: { effect: "NAUSEA", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }
-  2:
-    chance: 6
-    cooldown: 1200
-    effects:
-      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 0.9, pitch: 1.5 } }
-      - { PARTICLE: { particle: "SNOWFLAKE", count: 16, who: "@Attacker" } }
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "ICE", material2: "BLUE_ICE", material3: "PACKED_ICE", material4: "SNOW_BLOCK", radius: 3, dy: -1, ticks: 100, airOnly: false, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor (solid ground only) + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { POTION: { effect: "SLOWNESS", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { POTION: { effect: "MINING_FATIGUE", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { POTION: { effect: "NAUSEA", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }
-  3:
-    chance: 8
-    cooldown: 1200
-    effects:
-      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 0.9, pitch: 1.5 } }
-      - { PARTICLE: { particle: "SNOWFLAKE", count: 16, who: "@Attacker" } }
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "ICE", material2: "BLUE_ICE", material3: "PACKED_ICE", material4: "SNOW_BLOCK", radius: 3, dy: -1, ticks: 100, airOnly: false, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor (solid ground only) + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { POTION: { effect: "SLOWNESS", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { POTION: { effect: "MINING_FATIGUE", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { POTION: { effect: "NAUSEA", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }
-  4:
-    chance: 10
-    cooldown: 1200
-    effects:
-      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 0.9, pitch: 1.5 } }
-      - { PARTICLE: { particle: "SNOWFLAKE", count: 16, who: "@Attacker" } }
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "ICE", material2: "BLUE_ICE", material3: "PACKED_ICE", material4: "SNOW_BLOCK", radius: 3, dy: -1, ticks: 100, airOnly: false, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor (solid ground only) + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { POTION: { effect: "SLOWNESS", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { POTION: { effect: "MINING_FATIGUE", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { POTION: { effect: "NAUSEA", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }
-  5:
-    chance: 12
-    cooldown: 1200
-    effects:
-      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 0.9, pitch: 1.5 } }
-      - { PARTICLE: { particle: "SNOWFLAKE", count: 16, who: "@Attacker" } }
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "ICE", material2: "BLUE_ICE", material3: "PACKED_ICE", material4: "SNOW_BLOCK", radius: 3, dy: -1, ticks: 100, airOnly: false, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor (solid ground only) + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { POTION: { effect: "SLOWNESS", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { POTION: { effect: "MINING_FATIGUE", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { POTION: { effect: "NAUSEA", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }
-  6:
-    chance: 14
-    cooldown: 1200
-    effects:
-      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 0.9, pitch: 1.5 } }
-      - { PARTICLE: { particle: "SNOWFLAKE", count: 16, who: "@Attacker" } }
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "ICE", material2: "BLUE_ICE", material3: "PACKED_ICE", material4: "SNOW_BLOCK", radius: 3, dy: -1, ticks: 100, airOnly: false, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor (solid ground only) + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { POTION: { effect: "SLOWNESS", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { POTION: { effect: "MINING_FATIGUE", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { POTION: { effect: "NAUSEA", level: 4, duration: 60, who: "@Attacker" } }  # from FROST — EE FROST → mixed-palette frost floor + SLOWNESS/MINING_FATIGUE/NAUSEA IV on the foe
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }
+  1: { effects: [] }
+  2: { effects: [] }
+  3: { effects: [] }
+  4: { effects: [] }
+  5: { effects: [] }
+  6: { effects: [] }

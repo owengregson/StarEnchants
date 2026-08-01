@@ -1,34 +1,12 @@
-# Imported from EliteEnchantments (id: self-destruct). Review before shipping.
-display: "Self Destruct"
-description:
-  - "&eAt low health, when hit, spawns"
-  - "&eprimed TNT at your position."
+# Cosmic codex source: 02-enchants-armor-m-z.md — armor/SelfDestruct.java + SelfDestructListener.java
+display: Self Destruct
+description: When close to death buffed TnT spawns around you.
 trigger: DEFENSE
 applies-to: [ARMOR]
-group: "uncommon"
-tier: uncommon
+group: unique
+tier: unique
+stacking: HIGHEST
 levels:
-  1:
-    chance: 13
-    cooldown: 400
-    condition: "%actor.healthpercent% <= 20"
-    effects:
-      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "EXPLOSION_HUGE", count: 1 } }
-      - { SPAWN_ENTITY: { type: "PRIMED_TNT", count: 1 } }  # from TNT:1:PLAYER — EE TNT → SPAWN_ENTITY (primed tnt at the activator)
-  2:
-    chance: 17
-    cooldown: 400
-    condition: "%actor.healthpercent% <= 20"
-    effects:
-      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "EXPLOSION_HUGE", count: 1 } }
-      - { SPAWN_ENTITY: { type: "PRIMED_TNT", count: 2 } }  # from TNT:2:PLAYER — EE TNT → SPAWN_ENTITY (primed tnt at the activator)
-  3:
-    chance: 22
-    cooldown: 400
-    condition: "%actor.healthpercent% <= 20"
-    effects:
-      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "EXPLOSION_HUGE", count: 1 } }
-      - { SPAWN_ENTITY: { type: "PRIMED_TNT", count: 3 } }  # from TNT:3:PLAYER — EE TNT → SPAWN_ENTITY (primed tnt at the activator)
+  1: { effects: [] } # Native: lethal hit; 2 TNT; 100t fuse; 10s cooldown.
+  2: { effects: [] } # Native: lethal hit; 5 TNT; 80t fuse; 10s cooldown.
+  3: { effects: [] } # Native: lethal hit; 7 TNT; 60t fuse; 10s cooldown.

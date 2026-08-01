@@ -1,31 +1,35 @@
-# Imported from EliteEnchantments (id: trap). Review before shipping.
-display: "Trap"
-description:
-  - "&eOn hit, applies strong Slowness"
-  - "&eto the target."
-trigger: ATTACK
-applies-to: [SWORD]
-group: "rare"
-tier: rare
+# Cosmic codex source: 03-enchants-swords.md — swords/Trap.java
+display: Trap
+description: A chance to give a buffed slowness effect.
+trigger:
+- ATTACK
+applies-to:
+- SWORD
+group: elite
+tier: elite
+stacking: HIGHEST
 levels:
   1:
-    chance: 10
-    cooldown: 120
+    condition: &eligible '%victim.type% == "PLAYER" && %victim.walkspeed% >= 0.2'
     effects:
-      - { SOUND: { sound: "BLOCK_TRIPWIRE_CLICK_ON", volume: 1.0, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { POTION: { effect: "SLOW", level: 2, duration: 60, who: "@Victim" } }
+      - { RESISTED_ROLL: { chance: 4, resistance-level: '%victim.metaphysical%', resist-per-level: 2.5, blocked-message: '&8&l** METAPHYSICAL (&8Trap blocked!&l) **', immune: '%victim.dragonslayer%', immune-message: '&8&l* DRAGON SLAYER [&7Trap blocked!&8&l] *' } }
+      - { MOVEMENT_SPEED: { speed: 0, ticks: 35, who: '@Victim' } }
+      - { MESSAGE: { text: '&c&l(!) &cYou have been trapped by {ATTACKER}!', who: '@Victim' } }
+      - { BLOCK_BREAK_EFFECT: { block: SNOW_BLOCK, anchor: feet, who: '@Victim' } }
+      - { MESSAGE: { text: '&a&l(!) &aYou are no longer trapped!', wait: 35, who: '@Victim' } }
   2:
-    chance: 14
-    cooldown: 120
+    condition: *eligible
     effects:
-      - { SOUND: { sound: "BLOCK_TRIPWIRE_CLICK_ON", volume: 1.0, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { POTION: { effect: "SLOW", level: 2, duration: 60, who: "@Victim" } }
+      - { RESISTED_ROLL: { chance: 8, resistance-level: '%victim.metaphysical%', resist-per-level: 2.5, blocked-message: '&8&l** METAPHYSICAL (&8Trap blocked!&l) **', immune: '%victim.dragonslayer%', immune-message: '&8&l* DRAGON SLAYER [&7Trap blocked!&8&l] *' } }
+      - { MOVEMENT_SPEED: { speed: 0, ticks: 35, who: '@Victim' } }
+      - { MESSAGE: { text: '&c&l(!) &cYou have been trapped by {ATTACKER}!', who: '@Victim' } }
+      - { BLOCK_BREAK_EFFECT: { block: SNOW_BLOCK, anchor: feet, who: '@Victim' } }
+      - { MESSAGE: { text: '&a&l(!) &aYou are no longer trapped!', wait: 35, who: '@Victim' } }
   3:
-    chance: 18
-    cooldown: 120
+    condition: *eligible
     effects:
-      - { SOUND: { sound: "BLOCK_TRIPWIRE_CLICK_ON", volume: 1.0, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { POTION: { effect: "SLOW", level: 2, duration: 60, who: "@Victim" } }
+      - { RESISTED_ROLL: { chance: 12, resistance-level: '%victim.metaphysical%', resist-per-level: 2.5, blocked-message: '&8&l** METAPHYSICAL (&8Trap blocked!&l) **', immune: '%victim.dragonslayer%', immune-message: '&8&l* DRAGON SLAYER [&7Trap blocked!&8&l] *' } }
+      - { MOVEMENT_SPEED: { speed: 0, ticks: 35, who: '@Victim' } }
+      - { MESSAGE: { text: '&c&l(!) &cYou have been trapped by {ATTACKER}!', who: '@Victim' } }
+      - { BLOCK_BREAK_EFFECT: { block: SNOW_BLOCK, anchor: feet, who: '@Victim' } }
+      - { MESSAGE: { text: '&a&l(!) &aYou are no longer trapped!', wait: 35, who: '@Victim' } }

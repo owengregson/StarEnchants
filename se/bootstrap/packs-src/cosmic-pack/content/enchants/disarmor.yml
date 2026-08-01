@@ -1,75 +1,34 @@
-# Imported from EliteEnchantments (id: disarmor). Review before shipping.
-display: "Disarmor"
-description:
-  - "&eOn hit against a low-health"
-  - "&etarget, removes a piece of their"
-  - "&earmor."
-trigger: ATTACK
-applies-to: [SWORD]
-group: "legendary"
+# Cosmic codex source: 03-enchants-swords.md — swords/Disarmor.java
+display: Disarmor
+description: A slight chance of removing one piece of armor from your enemy when they are at low health.
+trigger:
+- ATTACK
+applies-to:
+- SWORD
+group: legendary
 tier: legendary
+stacking: HIGHEST
 levels:
   1:
-    chance: 4
-    cooldown: 200
-    condition: "%victim.healthpercent% <= 25"
+    condition: &eligible '%victim.type% == "PLAYER" && %victim.health% <= 10'
     effects:
-      - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { REMOVE_ARMOR: { who: "@Victim" } }  # from REMOVE_ARMOR — EE REMOVE_ARMOR → REMOVE_ARMOR (the foe)
-  2:
-    chance: 6
-    cooldown: 200
-    condition: "%victim.healthpercent% <= 25"
-    effects:
-      - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { REMOVE_ARMOR: { who: "@Victim" } }  # from REMOVE_ARMOR — EE REMOVE_ARMOR → REMOVE_ARMOR (the foe)
-  3:
-    chance: 8
-    cooldown: 200
-    condition: "%victim.healthpercent% <= 25"
-    effects:
-      - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { REMOVE_ARMOR: { who: "@Victim" } }  # from REMOVE_ARMOR — EE REMOVE_ARMOR → REMOVE_ARMOR (the foe)
-  4:
-    chance: 10
-    cooldown: 200
-    condition: "%victim.healthpercent% <= 25"
-    effects:
-      - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { REMOVE_ARMOR: { who: "@Victim" } }  # from REMOVE_ARMOR — EE REMOVE_ARMOR → REMOVE_ARMOR (the foe)
-  5:
-    chance: 12
-    cooldown: 200
-    condition: "%victim.healthpercent% <= 25"
-    effects:
-      - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { REMOVE_ARMOR: { who: "@Victim" } }  # from REMOVE_ARMOR — EE REMOVE_ARMOR → REMOVE_ARMOR (the foe)
-  6:
-    chance: 14
-    cooldown: 200
-    condition: "%victim.healthpercent% <= 25"
-    effects:
-      - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { REMOVE_ARMOR: { who: "@Victim" } }  # from REMOVE_ARMOR — EE REMOVE_ARMOR → REMOVE_ARMOR (the foe)
-  7:
-    chance: 16
-    cooldown: 200
-    condition: "%victim.healthpercent% <= 25"
-    effects:
-      - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { REMOVE_ARMOR: { who: "@Victim" } }  # from REMOVE_ARMOR — EE REMOVE_ARMOR → REMOVE_ARMOR (the foe)
-  8:
-    chance: 18
-    cooldown: 200
-    condition: "%victim.healthpercent% <= 25"
-    effects:
-      - { SOUND: { sound: "ITEM_SHIELD_BREAK", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { REMOVE_ARMOR: { who: "@Victim" } }  # from REMOVE_ARMOR — EE REMOVE_ARMOR → REMOVE_ARMOR (the foe)
+      - { RESISTED_ROLL: { chance: 0.25, resistance-level: '%victim.sticky%', resist-per-level: 0.25 } }
+      - &unequip
+        REMOVE_ARMOR:
+          destination: inventory
+          victim-message: '&6&l* DISARMORED *&7 (by: {ATTACKER})'
+          victim-description: "&7A random piece of your armor has been unequipped. Re-equip it quickly before you get KO'd!"
+          attacker-message: '&a&l* DISARMED {VICTIM} *'
+          blank-lines: 3
+          sound: ANVIL_BREAK
+          sound-volume: 1
+          sound-pitch: 0.6
+          block: DIAMOND_ORE
+          block-height: 3
+  2: { condition: *eligible, effects: [{ RESISTED_ROLL: { chance: 0.5, resistance-level: '%victim.sticky%', resist-per-level: 0.25 } }, *unequip] }
+  3: { condition: *eligible, effects: [{ RESISTED_ROLL: { chance: 0.75, resistance-level: '%victim.sticky%', resist-per-level: 0.25 } }, *unequip] }
+  4: { condition: *eligible, effects: [{ RESISTED_ROLL: { chance: 1.0, resistance-level: '%victim.sticky%', resist-per-level: 0.25 } }, *unequip] }
+  5: { condition: *eligible, effects: [{ RESISTED_ROLL: { chance: 1.25, resistance-level: '%victim.sticky%', resist-per-level: 0.25 } }, *unequip] }
+  6: { condition: *eligible, effects: [{ RESISTED_ROLL: { chance: 1.5, resistance-level: '%victim.sticky%', resist-per-level: 0.25 } }, *unequip] }
+  7: { condition: *eligible, effects: [{ RESISTED_ROLL: { chance: 1.75, resistance-level: '%victim.sticky%', resist-per-level: 0.25 } }, *unequip] }
+  8: { condition: *eligible, effects: [{ RESISTED_ROLL: { chance: 2.0, resistance-level: '%victim.sticky%', resist-per-level: 0.25 } }, *unequip] }

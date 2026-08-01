@@ -1,0 +1,122 @@
+# Cosmic codex source: 12-pets.md
+display: Anti Teleblock
+color: '&e'
+type: ACTIVE
+head: eyJ0aW1lc3RhbXAiOjE1NjAyMTE0NDQ0NTksInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8xYjA5YTM3NTI1MTBlOTE0YjBiZGM5MDk2YjM5MmJiMzU5ZjdhOGU4YTk1NjZhMDJlN2Y2NmZhZmY4ZDZmODllIn19fQ==
+material: PLAYER_HEAD
+descriptor:
+- '&7A Cosmic inventory pet.'
+description:
+- '&7Immediately removes your active StarEnchants Teleblock.'
+max-level: 10
+experience-to-level:
+  2: 1000
+  3: 1000
+  4: 1000
+  5: 1000
+  6: 1000
+  7: 1000
+  8: 1000
+  9: 1000
+  10: 1000
+levels:
+  1:
+    cooldown: 2400
+    experience-on-use: 10
+    description:
+    - '&7Removes your active Teleblock.'
+    effects:
+    - TELEBLOCK:
+        mode: CLEAR
+        duration: 0
+        who: '@Self'
+  2:
+    cooldown: 2280
+    experience-on-use: 10
+    description:
+    - '&7Removes your active Teleblock.'
+    effects:
+    - TELEBLOCK:
+        mode: CLEAR
+        duration: 0
+        who: '@Self'
+  3:
+    cooldown: 2160
+    experience-on-use: 10
+    description:
+    - '&7Removes your active Teleblock.'
+    effects:
+    - TELEBLOCK:
+        mode: CLEAR
+        duration: 0
+        who: '@Self'
+  4:
+    cooldown: 2040
+    experience-on-use: 10
+    description:
+    - '&7Removes your active Teleblock.'
+    effects:
+    - TELEBLOCK:
+        mode: CLEAR
+        duration: 0
+        who: '@Self'
+  5:
+    cooldown: 1920
+    experience-on-use: 10
+    description:
+    - '&7Removes your active Teleblock.'
+    effects:
+    - TELEBLOCK:
+        mode: CLEAR
+        duration: 0
+        who: '@Self'
+  6:
+    cooldown: 1800
+    experience-on-use: 10
+    description:
+    - '&7Removes your active Teleblock.'
+    effects:
+    - TELEBLOCK:
+        mode: CLEAR
+        duration: 0
+        who: '@Self'
+  7:
+    cooldown: 1680
+    experience-on-use: 10
+    description:
+    - '&7Removes your active Teleblock.'
+    effects:
+    - TELEBLOCK:
+        mode: CLEAR
+        duration: 0
+        who: '@Self'
+  8:
+    cooldown: 1560
+    experience-on-use: 10
+    description:
+    - '&7Removes your active Teleblock.'
+    effects:
+    - TELEBLOCK:
+        mode: CLEAR
+        duration: 0
+        who: '@Self'
+  9:
+    cooldown: 1440
+    experience-on-use: 10
+    description:
+    - '&7Removes your active Teleblock.'
+    effects:
+    - TELEBLOCK:
+        mode: CLEAR
+        duration: 0
+        who: '@Self'
+  10:
+    cooldown: 1320
+    experience-on-use: 10
+    description:
+    - '&7Removes your active Teleblock.'
+    effects:
+    - TELEBLOCK:
+        mode: CLEAR
+        duration: 0
+        who: '@Self'

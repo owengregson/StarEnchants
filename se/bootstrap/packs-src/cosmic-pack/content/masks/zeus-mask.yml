@@ -1,0 +1,14 @@
+# Cosmic codex source: 11-masks.md
+display: Zeus Mask
+color: '&b'
+head: eyJ0aW1lc3RhbXAiOjE1NTQ4ODk2MzY1MzgsInByb2ZpbGVJZCI6ImEzOWVmNTdhMzg3YzRjZDE5NzQwNTliNzMyZWJjN2E1IiwicHJvZmlsZU5hbWUiOiJNZXJjaGFudCIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS80OGNjNDE2NGM4NTNjODliYmU3NjU2YjgyOGMzOWYxMDMwNGMzMGQ5MmVmMjEzYmNjZmVmMDlhNDEzMWQ5ZTQ4In19fQ==
+material: PLAYER_HEAD
+summary: Immune to Natures Wrath
+description:
+- "&cImmune to Natures Wrath"
+- "&7Channel the powers of the"
+- "&7King of the Greek Gods"
+- "&6&l * &6April Showers Lootbox Release"
+abilities:
+- trigger: PASSIVE
+  effects: []

@@ -1,38 +1,13 @@
-# Imported from EliteEnchantments (id: pacify). Review before shipping.
-display: "Pacify"
-description:
-  - "&eYour arrows pacify the target,"
-  - "&edisabling their Rage."
+# Cosmic codex: 05-enchants-bows.md — bow/Pacify.java
+display: Pacify
+description: A chance to prevent the target from building Rage stacks for 0.75-3 seconds.
 trigger: BOW
 applies-to: [BOW]
-group: "rare"
-tier: rare
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
 levels:
-  1:
-    chance: 20
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.8, pitch: 1.2 } }
-      - { PARTICLE: { particle: "SPELL", count: 10 } }
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 80, who: "@Victim" } }
-  2:
-    chance: 26
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.8, pitch: 1.2 } }
-      - { PARTICLE: { particle: "SPELL", count: 10 } }
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 80, who: "@Victim" } }
-  3:
-    chance: 32
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.8, pitch: 1.2 } }
-      - { PARTICLE: { particle: "SPELL", count: 10 } }
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 80, who: "@Victim" } }
-  4:
-    chance: 38
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.8, pitch: 1.2 } }
-      - { PARTICLE: { particle: "SPELL", count: 10 } }
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 80, who: "@Victim" } }
+  1: { chance: 62.5, condition: &player '%victim.isplayer% == 1', effects: [{ SUPPRESS: { scope: ENCHANT, key: enchants/rage, duration: 15, who: '@Victim' } }] }
+  2: { chance: 75, condition: *player, effects: [{ SUPPRESS: { scope: ENCHANT, key: enchants/rage, duration: 30, who: '@Victim' } }] }
+  3: { chance: 87.5, condition: *player, effects: [{ SUPPRESS: { scope: ENCHANT, key: enchants/rage, duration: 45, who: '@Victim' } }] }
+  4: { chance: 100, condition: *player, effects: [{ SUPPRESS: { scope: ENCHANT, key: enchants/rage, duration: 60, who: '@Victim' } }] }

@@ -1,0 +1,44 @@
+# Imported from EliteEnchantments (id: sabotage). Review before shipping.
+display: "Sabotage"
+description:
+  - "&eOn hit, disables the target's"
+  - "&eRocket Escape."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "soul"
+tier: soul
+# Soul COST, not a REMOVE_SOULS effect: gate 10 makes the enchant fire only in soul mode AND only when the
+# cross-gem pool can pay the full 4 — an unaffordable activation aborts (was: it fired free and drained what it
+# could). The "☄ 4" in the description above is this cost.
+soul-cost: 4
+levels:
+  1:
+    cooldown: 200
+    effects:
+      - { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SMOKE_NORMAL", count: 10 } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rocket-escape", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:rocket-escape:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+  2:
+    cooldown: 200
+    effects:
+      - { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SMOKE_NORMAL", count: 10 } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rocket-escape", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:rocket-escape:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+  3:
+    cooldown: 200
+    effects:
+      - { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SMOKE_NORMAL", count: 10 } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rocket-escape", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:rocket-escape:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+  4:
+    cooldown: 200
+    effects:
+      - { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SMOKE_NORMAL", count: 10 } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rocket-escape", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:rocket-escape:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)
+  5:
+    cooldown: 200
+    effects:
+      - { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SMOKE_NORMAL", count: 10 } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rocket-escape", duration: 60, who: "@Victim" } }  # from DISABLE_ENCHANTMENT:rocket-escape:3 — EE disable-enchant → SUPPRESS:ENCHANT (seconds → ticks)

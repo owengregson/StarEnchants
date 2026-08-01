@@ -10,13 +10,16 @@ package compile.model;
  * @param sourceKind     which source this was erased from (a tag, §4.1)
  * @param triggerMask    bitset of interned trigger ids: fires on trigger {@code t} iff {@code (triggerMask & (1<<t)) != 0}
  * @param level          enchant level; {@code 0} for non-enchant sources
- * @param baseChance     activation chance, normalized to {@code [0,100)} (fixes the {@code nextDouble(100)+1} quirk)
+ * @param baseChance     finite non-negative activation threshold; values at or above {@code 100} are guaranteed
  * @param cooldownTicks  cooldown to arm on activation; {@code 0} = none
  * @param soulCost       souls consumed at gate 10; {@code 0} = none
  * @param worldBlacklist interned world-id bitset; an ability is blocked in world {@code w} iff {@code (worldBlacklist & (1L<<w)) != 0}; {@code 0L} = allowed everywhere
  * @param condition      pre-built condition AST; {@code null} = always true
  * @param effects        the flyweight effects to run, in authored order
+ * @param noSoulEffects  the flyweight effects to run only when gate 10 cannot pay
  * @param repeatTicks    period for a repeating-trigger ability; {@code 0} = none
+ * @param repeatInitialDelayTicks first-run delay for a repeating-trigger ability; defaults to
+ *                                {@code repeatTicks} for legacy callers
  * @param affinity       dispatch affinity folded MAX over {@link #effects} (§3.6)
  * @param cdScopeEnchant interned cooldown-scope id (enchant scope), or {@code -1}
  * @param cdScopeGroup   interned cooldown-scope id (group scope), or {@code -1}
@@ -39,6 +42,7 @@ public record Ability(
         CompiledCondition condition,
         CompiledEffect[] effects,
         int repeatTicks,
+        int repeatInitialDelayTicks,
         Affinity affinity,
         int cdScopeEnchant,
         int cdScopeGroup,
@@ -46,16 +50,39 @@ public record Ability(
         int suppressKey,
         int setPieces,
         boolean suppressImmune,
-        FactMask factMask) {
+        FactMask factMask,
+        CompiledEffect[] noSoulEffects) {
 
-    /** No derived fact mask — populate everything (the safe default for hand-built test abilities). */
+    /** No derived fact mask — populate everything, with first-run delay defaulting to the repeat period. */
     public Ability(int id, int defId, SourceKind sourceKind, int triggerMask, int level, double baseChance,
                    int cooldownTicks, int soulCost, long worldBlacklist, CompiledCondition condition,
                    CompiledEffect[] effects, int repeatTicks, Affinity affinity, int cdScopeEnchant,
                    int cdScopeGroup, int cdScopeType, int suppressKey, int setPieces) {
         this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
-                condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
-                suppressKey, setPieces, false, FactMask.ALL);
+                condition, effects, repeatTicks, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
+                suppressKey, setPieces, false, FactMask.ALL, new CompiledEffect[0]);
+    }
+
+    /** Back-compat full construction defaulting the first-run delay and omitting soul-failure effects. */
+    public Ability(int id, int defId, SourceKind sourceKind, int triggerMask, int level, double baseChance,
+                   int cooldownTicks, int soulCost, long worldBlacklist, CompiledCondition condition,
+                   CompiledEffect[] effects, int repeatTicks, Affinity affinity, int cdScopeEnchant,
+                   int cdScopeGroup, int cdScopeType, int suppressKey, int setPieces, boolean suppressImmune,
+                   FactMask factMask) {
+        this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
+                condition, effects, repeatTicks, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
+                suppressKey, setPieces, suppressImmune, factMask, new CompiledEffect[0]);
+    }
+
+    /** Back-compat full construction with no soul-failure effects. */
+    public Ability(int id, int defId, SourceKind sourceKind, int triggerMask, int level, double baseChance,
+                   int cooldownTicks, int soulCost, long worldBlacklist, CompiledCondition condition,
+                   CompiledEffect[] effects, int repeatTicks, int repeatInitialDelayTicks, Affinity affinity,
+                   int cdScopeEnchant, int cdScopeGroup, int cdScopeType, int suppressKey, int setPieces,
+                   boolean suppressImmune, FactMask factMask) {
+        this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
+                condition, effects, repeatTicks, repeatInitialDelayTicks, affinity, cdScopeEnchant, cdScopeGroup,
+                cdScopeType, suppressKey, setPieces, suppressImmune, factMask, new CompiledEffect[0]);
     }
 
     public boolean firesOn(int triggerId) {

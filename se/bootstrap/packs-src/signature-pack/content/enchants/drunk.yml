@@ -1,0 +1,30 @@
+# Imported from EliteEnchantments (id: drunk). Review before shipping.
+display: "Drunk"
+description:
+  - "&eSlows your movement and mining"
+  - "&ebut grants Strength."
+trigger: [PASSIVE, ATTACK]
+applies-to: [HELMET]
+group: "rare"
+tier: rare
+levels:
+  1:
+    effects:
+      - { POTION: { effect: "SLOW", level: 1, duration: 200, who: "@Self" } }  # from POTION:SLOW:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 200, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # was POTION:INCREASE_DAMAGE — vanilla Strength is banned from content (era potion math re-amplifies it); R4 → +8% on the additive attack fold
+  2:
+    effects:
+      - { POTION: { effect: "SLOW", level: 1, duration: 200, who: "@Self" } }  # from POTION:SLOW:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 200, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # was POTION:INCREASE_DAMAGE — vanilla Strength is banned from content (era potion math re-amplifies it); R4 → +10% on the additive attack fold
+  3:
+    effects:
+      - { POTION: { effect: "SLOW", level: 2, duration: 200, who: "@Self" } }  # from POTION:SLOW:2:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+      - { POTION: { effect: "SLOW_DIGGING", level: 2, duration: 200, who: "@Self" } }  # from POTION:SLOW_DIGGING:2:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # was POTION:INCREASE_DAMAGE — vanilla Strength is banned from content (era potion math re-amplifies it); R4 → +12% on the additive attack fold
+  4:
+    effects:
+      - { POTION: { effect: "SLOW", level: 2, duration: 200, who: "@Self" } }  # from POTION:SLOW:2:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+      - { POTION: { effect: "SLOW_DIGGING", level: 2, duration: 200, who: "@Self" } }  # from POTION:SLOW_DIGGING:2:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # was POTION:INCREASE_DAMAGE — vanilla Strength is banned from content (era potion math re-amplifies it); R4 → +12% on the additive attack fold

@@ -1,0 +1,31 @@
+# Cosmic codex source: 05-enchants-bows.md — bow/Farcast.java
+display: Farcast
+description: Chance to knockback melee attackers by a couple of blocks when they hit you. The lower your health, the higher
+  the chance to proc.
+trigger: [DEFENSE]
+applies-to:
+- BOW
+group: elite
+tier: elite
+stacking: HIGHEST
+levels:
+  1:
+    abilities:
+      - { trigger: DEFENSE, condition: &normal '%damagecause% == "ENTITY_ATTACK" && %victim.type% != "ENDER_DRAGON" && %actor.health% / %actor.maxhealth% >= 0.25', effects: [{ RESISTED_ROLL: { chance: '10 + 2.5 / (%actor.health% / %actor.maxhealth%)', resistance-level: 0, resist-per-level: 0 } }, { PARTICLE: { particle: EXPLOSION_LARGE, count: 3, speed: 1, anchor: feet, y-offset: 1, who: '@Attacker' } }, { VELOCITY: { mode: away, from: actor, strength: 2.3, who: '@Attacker' } }] }
+      - { trigger: DEFENSE, condition: &low '%damagecause% == "ENTITY_ATTACK" && %victim.type% != "ENDER_DRAGON" && %actor.health% / %actor.maxhealth% < 0.25', effects: [{ RESISTED_ROLL: { chance: 20, resistance-level: 0, resist-per-level: 0 } }, { PARTICLE: { particle: EXPLOSION_LARGE, count: 3, speed: 1, anchor: feet, y-offset: 1, who: '@Attacker' } }, { VELOCITY: { mode: away, from: actor, strength: 2.3, who: '@Attacker' } }] }
+  2:
+    abilities:
+      - { trigger: DEFENSE, condition: *normal, effects: [{ RESISTED_ROLL: { chance: '10 + 5 / (%actor.health% / %actor.maxhealth%)', resistance-level: 0, resist-per-level: 0 } }, { PARTICLE: { particle: EXPLOSION_LARGE, count: 3, speed: 1, anchor: feet, y-offset: 1, who: '@Attacker' } }, { VELOCITY: { mode: away, from: actor, strength: 2.3, who: '@Attacker' } }] }
+      - { trigger: DEFENSE, condition: *low, effects: [{ RESISTED_ROLL: { chance: 30, resistance-level: 0, resist-per-level: 0 } }, { PARTICLE: { particle: EXPLOSION_LARGE, count: 3, speed: 1, anchor: feet, y-offset: 1, who: '@Attacker' } }, { VELOCITY: { mode: away, from: actor, strength: 2.3, who: '@Attacker' } }] }
+  3:
+    abilities:
+      - { trigger: DEFENSE, condition: *normal, effects: [{ RESISTED_ROLL: { chance: '10 + 7.5 / (%actor.health% / %actor.maxhealth%)', resistance-level: 0, resist-per-level: 0 } }, { PARTICLE: { particle: EXPLOSION_LARGE, count: 3, speed: 1, anchor: feet, y-offset: 1, who: '@Attacker' } }, { VELOCITY: { mode: away, from: actor, strength: 2.3, who: '@Attacker' } }] }
+      - { trigger: DEFENSE, condition: *low, effects: [{ RESISTED_ROLL: { chance: 40, resistance-level: 0, resist-per-level: 0 } }, { PARTICLE: { particle: EXPLOSION_LARGE, count: 3, speed: 1, anchor: feet, y-offset: 1, who: '@Attacker' } }, { VELOCITY: { mode: away, from: actor, strength: 2.3, who: '@Attacker' } }] }
+  4:
+    abilities:
+      - { trigger: DEFENSE, condition: *normal, effects: [{ RESISTED_ROLL: { chance: '10 + 10 / (%actor.health% / %actor.maxhealth%)', resistance-level: 0, resist-per-level: 0 } }, { PARTICLE: { particle: EXPLOSION_LARGE, count: 3, speed: 1, anchor: feet, y-offset: 1, who: '@Attacker' } }, { VELOCITY: { mode: away, from: actor, strength: 2.3, who: '@Attacker' } }] }
+      - { trigger: DEFENSE, condition: *low, effects: [{ RESISTED_ROLL: { chance: 50, resistance-level: 0, resist-per-level: 0 } }, { PARTICLE: { particle: EXPLOSION_LARGE, count: 3, speed: 1, anchor: feet, y-offset: 1, who: '@Attacker' } }, { VELOCITY: { mode: away, from: actor, strength: 2.3, who: '@Attacker' } }] }
+  5:
+    abilities:
+      - { trigger: DEFENSE, condition: *normal, effects: [{ RESISTED_ROLL: { chance: '10 + 12.5 / (%actor.health% / %actor.maxhealth%)', resistance-level: 0, resist-per-level: 0 } }, { PARTICLE: { particle: EXPLOSION_LARGE, count: 3, speed: 1, anchor: feet, y-offset: 1, who: '@Attacker' } }, { VELOCITY: { mode: away, from: actor, strength: 2.3, who: '@Attacker' } }] }
+      - { trigger: DEFENSE, condition: *low, effects: [{ RESISTED_ROLL: { chance: 60, resistance-level: 0, resist-per-level: 0 } }, { PARTICLE: { particle: EXPLOSION_LARGE, count: 3, speed: 1, anchor: feet, y-offset: 1, who: '@Attacker' } }, { VELOCITY: { mode: away, from: actor, strength: 2.3, who: '@Attacker' } }] }

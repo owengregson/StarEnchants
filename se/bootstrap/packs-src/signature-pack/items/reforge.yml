@@ -1,0 +1,40 @@
+# The physical weapon-reforge item — the ONE global "Weapon Reforge" likeness (ADR-0070). Drag it onto a
+# WEAPON (the config.yml reforges.weapon-groups set; swords + axes by default) to apply it — ALWAYS succeeds,
+# no roll, but a weapon holds exactly ONE reforge (its single reforge socket). While that weapon is HELD,
+# SHIFT + RIGHT-CLICK fires the reforge's signature ability (on its own cooldown). Remove it with the
+# Item Extractor (items/crystal.yml `extractor:`) — the reforge pops back off intact as this item.
+# Everything below is configurable; reload with /se reload. Placeholders (usable in name + every lore line):
+#   {COLOR}          = the reforge's colour codes (content/reforges/<key>.yml `color`) — carries its own &
+#   {NAME}           = the reforge's display name (bare, no colour codes)
+#   {NAME_UPPER}     = the display name upper-cased — the SET-BONUS/pets header convention
+#   {TYPE}           = ACTIVE or PASSIVE (content/reforges/<key>.yml `type`, the pets convention)
+#   {DESCRIPTION}    = the reforge's description block, one lore line per authored line (line-expanding)
+#   {APPLIES}        = the item kinds a reforge applies to (config.yml reforges.weapon-groups)
+#   {TIME_FORMATTED} = the signature ability's cooldown, humanised (e.g. "1m 30s")
+# The ITEM MATERIAL is per-reforge (content/reforges/<key>.yml `icon:` — cosmetic catalogue identity), so
+# unlike the crystal likeness there is no material here.
+type: reforge
+
+# The minted reforge item's display name — a VERBATIM copy of the on-weapon line below (gold bracket frame,
+# the inner name in the reforge's own colour), so the item and the reforged weapon read identically.
+name: "&6&lWeapon Reforge ({COLOR}&l{NAME}&r&6&l)"
+lore:
+  - "&eImbues a single weapon with a magic reforge ability. Shift + Right Click while holding to activate."
+  - ""
+  - "{COLOR}&l{TYPE} REFORGE ABILITY"
+  - "{DESCRIPTION}"
+  - ""
+  - "&eCooldown: &r&f&n{TIME_FORMATTED}"
+  - "&eApplies to: &r&f&n{APPLIES}"
+  - "&7Drag n' Drop on an item to apply."
+# The single line shown on a reforged WEAPON, rendered directly BELOW the enchantment orb slots line (its own
+# LoreComposer section). {NAME} expands to the reforge's colour-styled BOLD display (the mask rule).
+lore-while-on-item: "&6&lWeapon Reforge ({NAME}&r&6&l)"
+# Apply / extract gesture sounds — anvil cues: a reforge is smithing identity, distinct from the amethyst
+# crystal/mask family. They play across the modern range; the 1.8 lane predates these Sound names and simply
+# stays silent (the crystal/mask cue precedent). apply plays on a successful drag-onto-weapon; remove plays
+# when the Item Extractor pops the reforge back off.
+sounds:
+  enabled: true
+  apply: "block.anvil.use"
+  remove: "block.anvil.land"

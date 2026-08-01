@@ -25,7 +25,16 @@ public record SoulGemConfig(
         List<ColorTier> colorTiers,
         String emptyColor,
         Sounds sounds,
-        Particles particles) {
+        Particles particles,
+        Drain drain) {
+
+    /** Backward-compatible constructor for packs/tests authored before held-enchant Soul Mode drain. */
+    public SoulGemConfig(String material, String name, List<String> lore, int soulsPerKill,
+                         Map<String, Integer> soulsPerMob, List<ColorTier> colorTiers, String emptyColor,
+                         Sounds sounds, Particles particles) {
+        this(material, name, lore, soulsPerKill, soulsPerMob, colorTiers, emptyColor, sounds, particles,
+                Drain.none());
+    }
 
     /** A {@code &}-code/hex {@code color} that applies at {@code min} souls or above (and below the next-higher tier). */
     public record ColorTier(int min, String color) {
@@ -72,6 +81,44 @@ public record SoulGemConfig(
         }
     }
 
+    /**
+     * Optional periodic Soul Mode drain keyed by held enchant id. Costs add when several configured enchants
+     * share a weapon; the level is deliberately ignored, matching Cosmic's lore-presence check.
+     */
+    public record Drain(int periodTicks, int reserve, Map<String, Integer> heldEnchantCosts,
+                        SoundCue sound, ParticleSpec particle, ParticleSpec idleParticle,
+                        String milestoneMessage) {
+        public Drain {
+            periodTicks = Math.max(1, periodTicks);
+            reserve = Math.max(0, reserve);
+            heldEnchantCosts = lowerKeyed(heldEnchantCosts);
+            particle = particle == null ? ParticleSpec.none() : particle;
+            idleParticle = idleParticle == null ? ParticleSpec.none() : idleParticle;
+            milestoneMessage = milestoneMessage == null ? "" : milestoneMessage;
+        }
+
+        public static Drain none() {
+            return new Drain(5, 0, Map.of(), null, ParticleSpec.none(), ParticleSpec.none(), "");
+        }
+
+        public int costFor(Map<String, Integer> heldEnchants) {
+            if (heldEnchants == null || heldEnchants.isEmpty() || heldEnchantCosts.isEmpty()) {
+                return 0;
+            }
+            long total = 0;
+            for (Map.Entry<String, Integer> cost : heldEnchantCosts.entrySet()) {
+                if (heldEnchants.getOrDefault(cost.getKey(), 0) > 0) {
+                    total += cost.getValue();
+                }
+            }
+            return (int) Math.min(Integer.MAX_VALUE, total);
+        }
+
+        public boolean enabled() {
+            return !heldEnchantCosts.isEmpty();
+        }
+    }
+
     public SoulGemConfig {
         Objects.requireNonNull(material, "material");
         Objects.requireNonNull(name, "name");
@@ -82,6 +129,7 @@ public record SoulGemConfig(
         Objects.requireNonNull(emptyColor, "emptyColor");
         Objects.requireNonNull(sounds, "sounds");
         Objects.requireNonNull(particles, "particles");
+        drain = drain == null ? Drain.none() : drain;
     }
 
     public int soulsFor(String entityName) {
@@ -125,6 +173,19 @@ public record SoulGemConfig(
         raw.forEach((k, v) -> {
             if (k != null && v != null) {
                 out.put(k.toUpperCase(Locale.ROOT), Math.max(0, v));
+            }
+        });
+        return Map.copyOf(out);
+    }
+
+    private static Map<String, Integer> lowerKeyed(Map<String, Integer> raw) {
+        if (raw == null || raw.isEmpty()) {
+            return Map.of();
+        }
+        java.util.LinkedHashMap<String, Integer> out = new java.util.LinkedHashMap<>(raw.size());
+        raw.forEach((k, v) -> {
+            if (k != null && v != null && v > 0) {
+                out.put(k.toLowerCase(Locale.ROOT), v);
             }
         });
         return Map.copyOf(out);

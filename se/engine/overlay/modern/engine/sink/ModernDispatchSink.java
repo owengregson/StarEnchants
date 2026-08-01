@@ -490,7 +490,8 @@ public final class ModernDispatchSink extends DispatchSinkBase {
         }
         ItemStack[] armor = equipment.getArmorContents();
         boolean changed = false;
-        for (ItemStack piece : armor) {
+        for (int slot = 0; slot < armor.length; slot++) {
+            ItemStack piece = armor[slot];
             if (piece == null) {
                 continue;
             }
@@ -501,7 +502,15 @@ public final class ModernDispatchSink extends DispatchSinkBase {
                 if (repair) {
                     next = amount < 0 ? 0 : Math.max(0, current - amount);
                 } else {
-                    next = Math.min(piece.getType().getMaxDurability(), current + amount);
+                    next = current + amount;
+                    if (next > piece.getType().getMaxDurability()) {
+                        armor[slot] = null;
+                        if (entity instanceof Player player) {
+                            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 3.0f, 0.8f);
+                        }
+                        changed = true;
+                        continue;
+                    }
                 }
                 damageable.setDamage(next);
                 piece.setItemMeta(meta);
@@ -511,6 +520,64 @@ public final class ModernDispatchSink extends DispatchSinkBase {
         if (changed) {
             equipment.setArmorContents(armor);
         }
+    }
+
+    @Override
+    protected void adjustArmorSlotDurability(LivingEntity entity, int slot, int amount) {
+        EntityEquipment equipment = entity.getEquipment();
+        if (equipment == null || slot < 0 || slot >= 4 || amount <= 0) {
+            return;
+        }
+        ItemStack[] armor = equipment.getArmorContents();
+        if (slot >= armor.length || armor[slot] == null) {
+            return;
+        }
+        ItemStack piece = armor[slot];
+        ItemMeta meta = piece.getItemMeta();
+        if (meta instanceof Damageable damageable) {
+            int next = damageable.getDamage() + amount;
+            if (next > piece.getType().getMaxDurability()) {
+                armor[slot] = null;
+                if (entity instanceof Player player) {
+                    player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 3.0f, 0.8f);
+                }
+            } else {
+                damageable.setDamage(next);
+                piece.setItemMeta(meta);
+            }
+            equipment.setArmorContents(armor);
+        }
+    }
+
+    @Override
+    protected void repairMostDamagedArmorPiece(LivingEntity entity, int amount) {
+        EntityEquipment equipment = entity.getEquipment();
+        if (equipment == null) {
+            return;
+        }
+        ItemStack[] armor = equipment.getArmorContents();
+        ItemStack selected = null;
+        Damageable selectedDamageable = null;
+        ItemMeta selectedMeta = null;
+        int greatestDamage = 0;
+        for (ItemStack piece : armor) {
+            if (piece == null) {
+                continue;
+            }
+            ItemMeta meta = piece.getItemMeta();
+            if (meta instanceof Damageable damageable && damageable.getDamage() > greatestDamage) {
+                selected = piece;
+                selectedMeta = meta;
+                selectedDamageable = damageable;
+                greatestDamage = damageable.getDamage();
+            }
+        }
+        if (selected == null) {
+            return;
+        }
+        selectedDamageable.setDamage(amount < 0 ? 0 : Math.max(0, greatestDamage - amount));
+        selected.setItemMeta(selectedMeta);
+        equipment.setArmorContents(armor);
     }
 
     // ── World / spawn leaves ───────────────────────────────────────────────────────────────────
@@ -544,16 +611,48 @@ public final class ModernDispatchSink extends DispatchSinkBase {
     @Override
     public void particle(Location at, int particleId, int count, int blockMaterialId,
                          double offsetX, double offsetY, double offsetZ) {
+        particle(at, particleId, count, blockMaterialId, offsetX, offsetY, offsetZ, 0.0);
+    }
+
+    @Override
+    public void particle(Location at, int particleId, int count, int blockMaterialId,
+                         double offsetX, double offsetY, double offsetZ, double speed) {
         Location pos = at.clone(); // own the point: a WAIT tier can defer this to a later tick
-        regionOp(pos, () -> spawnParticleAt(pos, particleId, count, blockMaterialId, offsetX, offsetY, offsetZ));
+        regionOp(pos, () -> spawnParticleAt(pos, particleId, count, blockMaterialId,
+                offsetX, offsetY, offsetZ, speed));
     }
 
     @Override
     public void particle(LivingEntity target, int particleId, int count, int blockMaterialId,
                          double offsetX, double offsetY, double offsetZ) {
-        // Entity-anchored (the PARTICLE who-slot): read the target's mid-body AT DISPATCH on its own region thread.
-        entityOp(target, () -> spawnParticleAt(midBody(target), particleId, count, blockMaterialId,
-                offsetX, offsetY, offsetZ));
+        particle(target, particleId, count, blockMaterialId, offsetX, offsetY, offsetZ, 0.0);
+    }
+
+    @Override
+    public void particle(LivingEntity target, int particleId, int count, int blockMaterialId,
+                         double offsetX, double offsetY, double offsetZ, double speed) {
+        particle(target, particleId, count, blockMaterialId, offsetX, offsetY, offsetZ, speed, 0, 0.0);
+    }
+
+    @Override
+    public void particle(LivingEntity target, int particleId, int count, int blockMaterialId,
+                         double offsetX, double offsetY, double offsetZ, double speed,
+                         int anchor, double yOffset) {
+        entityOp(target, () -> particleDirect(target, particleId, count, blockMaterialId,
+                offsetX, offsetY, offsetZ, speed, anchor, yOffset));
+    }
+
+    @Override
+    protected void particleDirect(LivingEntity target, int particleId, int count, int blockMaterialId,
+                                  double offsetX, double offsetY, double offsetZ, double speed,
+                                  int anchor, double yOffset) {
+        Location at = switch (anchor) {
+            case 1 -> target.getLocation();
+            case 2 -> target.getEyeLocation();
+            default -> midBody(target);
+        };
+        spawnParticleAt(at.add(0.0, yOffset, 0.0), particleId, count, blockMaterialId,
+                offsetX, offsetY, offsetZ, speed);
     }
 
     /** The burst anchor for an entity: its feet + half its height, so a burst frames the body rather than the ground. */
@@ -564,7 +663,7 @@ public final class ModernDispatchSink extends DispatchSinkBase {
     /** Spawn a resolved particle at {@code at} with the given per-axis spread, carrying BLOCK_CRACK/BLOCK_DUST block
      *  data when a material is given (zero offsets reproduce the old point burst exactly). */
     private void spawnParticleAt(Location at, int particleId, int count, int blockMaterialId,
-                                double offsetX, double offsetY, double offsetZ) {
+                                double offsetX, double offsetY, double offsetZ, double speed) {
         Particle resolved = handles.particle(particleId);
         World world = at.getWorld();
         if (resolved == null || world == null) {
@@ -574,26 +673,27 @@ public final class ModernDispatchSink extends DispatchSinkBase {
             Material block = material(blockMaterialId);
             if (block != null && block.isBlock()) {
                 try {
-                    world.spawnParticle(resolved, at, count, offsetX, offsetY, offsetZ, block.createBlockData());
+                    world.spawnParticle(resolved, at, count, offsetX, offsetY, offsetZ, speed,
+                            block.createBlockData());
                     return;
                 } catch (IllegalArgumentException notBlockData) {
                     // the resolved particle takes no block data — fall through to a plain burst
                 }
             }
         }
-        spawnPlain(world, resolved, at, count, offsetX, offsetY, offsetZ);
+        spawnPlain(world, resolved, at, count, offsetX, offsetY, offsetZ, speed);
     }
 
     /** The "plain burst" a content particle NAME means, whatever data this version's registry demands for it
      *  (DUST wants DustOptions everywhere; ENTITY_EFFECT wants Color since 1.20.5; EFFECT wants Spell since the
      *  1.21.9 line). An undefaultable requirement skips the burst — never an exception into the flush. */
     private static void spawnPlain(World world, Particle resolved, Location at, int count,
-                                   double offsetX, double offsetY, double offsetZ) {
+                                   double offsetX, double offsetY, double offsetZ, double speed) {
         Object data = ParticleDefaults.dataFor(resolved);
         if (data != null) {
-            world.spawnParticle(resolved, at, count, offsetX, offsetY, offsetZ, data);
+            world.spawnParticle(resolved, at, count, offsetX, offsetY, offsetZ, speed, data);
         } else if (resolved.getDataType() == Void.class) {
-            world.spawnParticle(resolved, at, count, offsetX, offsetY, offsetZ);
+            world.spawnParticle(resolved, at, count, offsetX, offsetY, offsetZ, speed);
         }
     }
 
@@ -616,7 +716,7 @@ public final class ModernDispatchSink extends DispatchSinkBase {
             world.spawnParticle(resolved, at, n, 0.0, 0.0, 0.0, 0.0, new Particle.DustOptions(color, scale));
         } catch (IllegalArgumentException notDust) {
             // the resolved particle takes no dust colour — a plain burst, with ITS required data defaulted
-            spawnPlain(world, resolved, at, n, 0.0, 0.0, 0.0);
+            spawnPlain(world, resolved, at, n, 0.0, 0.0, 0.0, 0.0);
         }
     }
 

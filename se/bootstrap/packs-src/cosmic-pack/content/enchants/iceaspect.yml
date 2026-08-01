@@ -1,0 +1,29 @@
+# Cosmic codex source: 03-enchants-swords.md — swords/IceAspect.java
+display: IceAspect
+description: A chance of causing the slowness effect on your enemy.
+trigger:
+- ATTACK
+applies-to:
+- SWORD
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
+levels:
+  1:
+    condition: &eligible '%victim.type% == "PLAYER" && %victim.slowed% == false'
+    effects:
+      - { RESISTED_ROLL: { chance: 7.5, resistance-level: 0, resist-per-level: 0, immune: '%victim.dragonslayer%', immune-message: '&8&l* DRAGON SLAYER [&7Ice Aspect blocked!&8&l] *', immune-chance: '%victim.polymorphicmetaphysical% * 20', immune-chance-message: '&d&l** POLYMORPHIC METAPHYSICAL (&7Ice Aspect blocked!&d&l) **' } }
+      - { BLOCK_BREAK_EFFECT: { block: DIAMOND_BLOCK, anchor: feet, who: '@Victim' } }
+      - { POTION: { effect: SLOW, level: 6, duration: 40, who: '@Victim' } }
+  2:
+    condition: *eligible
+    effects:
+      - { RESISTED_ROLL: { chance: 15, resistance-level: 0, resist-per-level: 0, immune: '%victim.dragonslayer%', immune-message: '&8&l* DRAGON SLAYER [&7Ice Aspect blocked!&8&l] *', immune-chance: '%victim.polymorphicmetaphysical% * 20', immune-chance-message: '&d&l** POLYMORPHIC METAPHYSICAL (&7Ice Aspect blocked!&d&l) **' } }
+      - { BLOCK_BREAK_EFFECT: { block: DIAMOND_BLOCK, anchor: feet, who: '@Victim' } }
+      - { POTION: { effect: SLOW, level: 6, duration: 80, who: '@Victim' } }
+  3:
+    condition: *eligible
+    effects:
+      - { RESISTED_ROLL: { chance: 22.5, resistance-level: 0, resist-per-level: 0, immune: '%victim.dragonslayer%', immune-message: '&8&l* DRAGON SLAYER [&7Ice Aspect blocked!&8&l] *', immune-chance: '%victim.polymorphicmetaphysical% * 20', immune-chance-message: '&d&l** POLYMORPHIC METAPHYSICAL (&7Ice Aspect blocked!&d&l) **' } }
+      - { BLOCK_BREAK_EFFECT: { block: DIAMOND_BLOCK, anchor: feet, who: '@Victim' } }
+      - { POTION: { effect: SLOW, level: 6, duration: 120, who: '@Victim' } }

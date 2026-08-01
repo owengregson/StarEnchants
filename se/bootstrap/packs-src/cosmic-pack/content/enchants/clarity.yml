@@ -1,22 +1,30 @@
-# Imported from EliteEnchantments (id: clarity). Review before shipping.
-display: "Clarity"
-description:
-  - "&eYou cannot be blinded."
-trigger: REPEATING
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/Clarity.java
+display: Clarity
+description: Cleanses Blindness at or below the level-specific strength and prevents Ender Walker self-blindness.
+trigger: PASSIVE
 applies-to: [ARMOR]
-group: "rare"
-tier: rare
-repeat: 40
+group: legendary
+tier: legendary
+stacking: HIGHEST
 levels:
   1:
-    chance: 100
-    effects:
-      - { POTION_LOCK: { effect: "BLINDNESS", ticks: 60 } }
+    abilities:
+      - trigger: PASSIVE
+        effects: [{ SET_VAR: { name: clarity-equipped, value: 1, clear-on-stop: true, who: "@Self" } }]
+      - trigger: REPEATING
+        repeat: 3
+        effects: [{ REMOVE_POTION_UP_TO: { effect: BLINDNESS, max-level: 1, who: "@Self" } }]
   2:
-    chance: 100
-    effects:
-      - { POTION_LOCK: { effect: "BLINDNESS", ticks: 60 } }
+    abilities:
+      - trigger: PASSIVE
+        effects: [{ SET_VAR: { name: clarity-equipped, value: 2, clear-on-stop: true, who: "@Self" } }]
+      - trigger: REPEATING
+        repeat: 3
+        effects: [{ REMOVE_POTION_UP_TO: { effect: BLINDNESS, max-level: 2, who: "@Self" } }]
   3:
-    chance: 100
-    effects:
-      - { POTION_LOCK: { effect: "BLINDNESS", ticks: 60 } }
+    abilities:
+      - trigger: PASSIVE
+        effects: [{ SET_VAR: { name: clarity-equipped, value: 3, clear-on-stop: true, who: "@Self" } }]
+      - trigger: REPEATING
+        repeat: 3
+        effects: [{ REMOVE_POTION_UP_TO: { effect: BLINDNESS, max-level: 4, who: "@Self" } }]

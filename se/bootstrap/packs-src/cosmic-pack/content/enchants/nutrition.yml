@@ -1,0 +1,18 @@
+# Cosmic codex source: 02-enchants-armor-m-z.md — armor/Nutrition.java
+display: Nutrition
+description: 1.2-2x normal hunger replenishment, allows you to eat more golden apples before contracting Golden Apple Sickness.
+trigger:
+- DEFENSE
+- PASSIVE
+applies-to:
+- LEGGINGS
+group: unique
+tier: unique
+stacking: HIGHEST
+levels:
+  1:
+    effects: []
+  2:
+    effects: []
+  3:
+    effects: []

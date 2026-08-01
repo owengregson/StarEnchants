@@ -1,0 +1,27 @@
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/AvengingAngel.java
+display: Avenging Angel
+description: Heal to full and gain Absorption VI when an ally dies inside the level-scaled radius.
+trigger: [ALLY_DEATH]
+applies-to: [ARMOR]
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
+levels:
+  1:
+    abilities:
+      - trigger: ALLY_DEATH
+        cooldown: 200
+        condition: '%distance% <= 62 && %actor.health% < %actor.maxhealth%'
+        effects: &l1
+          - MESSAGE: { text: '&e&l* AVENGING ANGEL [&7+{NUMBER} HP ({VICTIM})&e&l] *', number: '%actor.maxhealth% - %actor.health%', decimals: 2, grouping: true }
+          - MODIFY_HEALTH: { amount: '%actor.maxhealth% - %actor.health%', mode: give }
+          - POTION: { effect: ABSORPTION, level: 6, duration: 140 }
+  2:
+    abilities:
+      - { trigger: ALLY_DEATH, cooldown: 200, condition: '%distance% <= 74 && %actor.health% < %actor.maxhealth%', effects: [{ MESSAGE: { text: '&e&l* AVENGING ANGEL [&7+{NUMBER} HP ({VICTIM})&e&l] *', number: '%actor.maxhealth% - %actor.health%', decimals: 2, grouping: true } }, { MODIFY_HEALTH: { amount: '%actor.maxhealth% - %actor.health%', mode: give } }, { POTION: { effect: ABSORPTION, level: 6, duration: 160 } }] }
+  3:
+    abilities:
+      - { trigger: ALLY_DEATH, cooldown: 200, condition: '%distance% <= 86 && %actor.health% < %actor.maxhealth%', effects: [{ MESSAGE: { text: '&e&l* AVENGING ANGEL [&7+{NUMBER} HP ({VICTIM})&e&l] *', number: '%actor.maxhealth% - %actor.health%', decimals: 2, grouping: true } }, { MODIFY_HEALTH: { amount: '%actor.maxhealth% - %actor.health%', mode: give } }, { POTION: { effect: ABSORPTION, level: 6, duration: 180 } }] }
+  4:
+    abilities:
+      - { trigger: ALLY_DEATH, cooldown: 200, condition: '%distance% <= 98 && %actor.health% < %actor.maxhealth%', effects: [{ MESSAGE: { text: '&e&l* AVENGING ANGEL [&7+{NUMBER} HP ({VICTIM})&e&l] *', number: '%actor.maxhealth% - %actor.health%', decimals: 2, grouping: true } }, { MODIFY_HEALTH: { amount: '%actor.maxhealth% - %actor.health%', mode: give } }, { POTION: { effect: ABSORPTION, level: 6, duration: 200 } }] }

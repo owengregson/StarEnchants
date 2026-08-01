@@ -18,16 +18,20 @@ package engine.sink;
  * @param speedMultiplier     scale the summon's vanilla movement-speed attribute BASE by this factor (0 =
  *                            untouched); modern writes the GENERIC_MOVEMENT_SPEED base, 1.8 the NMS
  *                            {@code GenericAttributes.MOVEMENT_SPEED} instance
+ * @param customName          optional visible custom name, with ampersand color codes
+ * @param plagueLevel         positive values mark a naturally exploding Plague Carrier creeper and carry
+ *                            the enchant level into its cancelled explosion payload
  */
 public record SummonFlags(boolean powered, boolean noAi, boolean noTarget, boolean saddled,
                           boolean mountActivator, boolean detonateOnPlayerHit, boolean invincible,
-                          double speedMultiplier) {
+                          double speedMultiplier, String customName, int plagueLevel) {
 
-    public static final SummonFlags NONE = new SummonFlags(false, false, false, false, false, false, false, 0.0);
+    public static final SummonFlags NONE = new SummonFlags(false, false, false, false, false, false, false,
+            0.0, "", 0);
 
-    /** Whether any flag needs the {@link PetSummons} registry + the summon-guard listener. */
+    /** Whether any flag needs the {@link PetSummons} registry + a summon listener. */
     public boolean tracked() {
-        return noTarget || detonateOnPlayerHit || invincible;
+        return noTarget || detonateOnPlayerHit || invincible || plagueLevel > 0;
     }
 
     /** Whether this is a plain spawn (every flag default) — routed to the legacy-stable spawn path. */

@@ -1,0 +1,13 @@
+# Cosmic codex source: 11-masks.md
+display: Pumpkin Monster
+color: '&6'
+head: eyJ0aW1lc3RhbXAiOjE1NDA1MTIzNjcyMDksInByb2ZpbGVJZCI6IjZjYTU0MGI0MmU4MjRlMjM4ZDc5NzkxMmQ2Y2U4NTgzIiwicHJvZmlsZU5hbWUiOiJIYWxsb3dlZW4iLCJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNGYwZDY0NTdhMmIwMTViYTVkYWZiZTFiYWYyNmU2YWQ2YzM1MGVjMTUwODRmY2E2YTg2ZjUwYmU3NTNiNjY3NyJ9fX0=
+material: PLAYER_HEAD
+summary: ''
+description:
+- "&7The severed head of a fabled Halloween"
+- "&7nightmare known as the Pumpkin Monster"
+- "&6&l * &6Halloween Quests"
+abilities:
+- trigger: PASSIVE
+  effects: []

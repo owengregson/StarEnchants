@@ -1,0 +1,45 @@
+# Imported from EliteEnchantments (id: hellfire). Review before shipping.
+display: "Hellfire"
+description:
+  - "&eYour arrows fly as explosive"
+  - "&efireballs."
+trigger: BOW_FIRE
+applies-to: [BOW]
+group: "uncommon"
+tier: uncommon
+levels:
+  1:
+    chance: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_BLAZE_SHOOT", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "FLAME", count: 16 } }
+      - { CANCEL: {} }
+      - { PROJECTILE: { type: "FIREBALL", count: 1, speed: 1.5, yield: 0, incendiary: false } }
+  2:
+    chance: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_BLAZE_SHOOT", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "FLAME", count: 16 } }
+      - { CANCEL: {} }
+      - { PROJECTILE: { type: "FIREBALL", count: 1, speed: 1.75, yield: 0, incendiary: false } }
+  3:
+    chance: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_BLAZE_SHOOT", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "FLAME", count: 16 } }
+      - { CANCEL: {} }
+      - { PROJECTILE: { type: "FIREBALL", count: 1, speed: 2.0, yield: 0, incendiary: false } }
+  4:
+    chance: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_BLAZE_SHOOT", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "FLAME", count: 16 } }
+      - { CANCEL: {} }
+      - { PROJECTILE: { type: "FIREBALL", count: 1, speed: 2.25, yield: 0, incendiary: false } }
+  5:
+    chance: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_BLAZE_SHOOT", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "FLAME", count: 16 } }
+      - { CANCEL: {} }
+      - { PROJECTILE: { type: "FIREBALL", count: 1, speed: 2.5, yield: 0, incendiary: false } }

@@ -1,0 +1,19 @@
+# Imported from EliteEnchantments (id: gears). Review before shipping.
+display: "Gears"
+description:
+  - "&eGrants permanent Speed."
+trigger: PASSIVE
+applies-to: [BOOTS]
+group: "legendary"
+tier: legendary
+suppress-immune: true  # permanent worn buff — unsilenceable (Silence/Solitude/Perfect-Solitude can't disable THIS enchant; other enchants still get silenced)
+levels:
+  1:
+    effects:
+      - { POTION: { effect: "SPEED", level: 1, duration: 200, who: "@Self" } }  # from POTION:SPEED:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+  2:
+    effects:
+      - { POTION: { effect: "SPEED", level: 2, duration: 200, who: "@Self" } }  # from POTION:SPEED:2:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+  3:
+    effects:
+      - { POTION: { effect: "SPEED", level: 3, duration: 200, who: "@Self" } }  # from POTION:SPEED:3:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs

@@ -1,0 +1,252 @@
+# Cosmic codex source: 12-pets.md
+display: Tesla
+color: '&e'
+type: ACTIVE
+head: eyJ0aW1lc3RhbXAiOjE1NjA5NzQzNTY4NzgsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS85YmY3MjI1YzI2ODA0NWIyZTFjMTM0ODgzNDk1Y2UzYWY2MmFhOTc4ZGVmNzFkNTMwMWQ5YTg4MzFjM2M0ZDlhIn19fQ==
+material: PLAYER_HEAD
+descriptor:
+- '&7A Cosmic inventory pet.'
+description:
+- '&7Temporarily removes every StarEnchants soul cost.'
+max-level: 10
+experience-to-level:
+  2: 3000
+  3: 4500
+  4: 6000
+  5: 7500
+  6: 9000
+  7: 10500
+  8: 12000
+  9: 13500
+  10: 15000
+levels:
+  1:
+    cooldown: 6000
+    experience-on-use: 4
+    description:
+    - '&7Removes all StarEnchants soul costs for 5s.'
+    effects:
+    - SET_VAR:
+        name: soul-free
+        value: '1'
+        ttl: 100
+        who: '@Self'
+    - SOUND:
+        sound: ENTITY_EXPERIENCE_ORB_PICKUP
+        volume: 1.0
+        pitch: 3.0
+    - SOUND:
+        sound: BLOCK_NOTE_BLOCK_PLING
+        volume: 1.0
+        pitch: 1.0
+    - SOUND:
+        sound: ENTITY_VILLAGER_YES
+        volume: 3.0
+        pitch: 1.1
+  2:
+    cooldown: 6000
+    experience-on-use: 4
+    description:
+    - '&7Removes all StarEnchants soul costs for 7s.'
+    effects:
+    - SET_VAR:
+        name: soul-free
+        value: '1'
+        ttl: 140
+        who: '@Self'
+    - SOUND:
+        sound: ENTITY_EXPERIENCE_ORB_PICKUP
+        volume: 1.0
+        pitch: 3.0
+    - SOUND:
+        sound: BLOCK_NOTE_BLOCK_PLING
+        volume: 1.0
+        pitch: 1.0
+    - SOUND:
+        sound: ENTITY_VILLAGER_YES
+        volume: 3.0
+        pitch: 1.1
+  3:
+    cooldown: 6000
+    experience-on-use: 4
+    description:
+    - '&7Removes all StarEnchants soul costs for 10s.'
+    effects:
+    - SET_VAR:
+        name: soul-free
+        value: '1'
+        ttl: 200
+        who: '@Self'
+    - SOUND:
+        sound: ENTITY_EXPERIENCE_ORB_PICKUP
+        volume: 1.0
+        pitch: 3.0
+    - SOUND:
+        sound: BLOCK_NOTE_BLOCK_PLING
+        volume: 1.0
+        pitch: 1.0
+    - SOUND:
+        sound: ENTITY_VILLAGER_YES
+        volume: 3.0
+        pitch: 1.1
+  4:
+    cooldown: 6000
+    experience-on-use: 4
+    description:
+    - '&7Removes all StarEnchants soul costs for 12s.'
+    effects:
+    - SET_VAR:
+        name: soul-free
+        value: '1'
+        ttl: 240
+        who: '@Self'
+    - SOUND:
+        sound: ENTITY_EXPERIENCE_ORB_PICKUP
+        volume: 1.0
+        pitch: 3.0
+    - SOUND:
+        sound: BLOCK_NOTE_BLOCK_PLING
+        volume: 1.0
+        pitch: 1.0
+    - SOUND:
+        sound: ENTITY_VILLAGER_YES
+        volume: 3.0
+        pitch: 1.1
+  5:
+    cooldown: 6000
+    experience-on-use: 4
+    description:
+    - '&7Removes all StarEnchants soul costs for 15s.'
+    effects:
+    - SET_VAR:
+        name: soul-free
+        value: '1'
+        ttl: 300
+        who: '@Self'
+    - SOUND:
+        sound: ENTITY_EXPERIENCE_ORB_PICKUP
+        volume: 1.0
+        pitch: 3.0
+    - SOUND:
+        sound: BLOCK_NOTE_BLOCK_PLING
+        volume: 1.0
+        pitch: 1.0
+    - SOUND:
+        sound: ENTITY_VILLAGER_YES
+        volume: 3.0
+        pitch: 1.1
+  6:
+    cooldown: 6000
+    experience-on-use: 4
+    description:
+    - '&7Removes all StarEnchants soul costs for 17s.'
+    effects:
+    - SET_VAR:
+        name: soul-free
+        value: '1'
+        ttl: 340
+        who: '@Self'
+    - SOUND:
+        sound: ENTITY_EXPERIENCE_ORB_PICKUP
+        volume: 1.0
+        pitch: 3.0
+    - SOUND:
+        sound: BLOCK_NOTE_BLOCK_PLING
+        volume: 1.0
+        pitch: 1.0
+    - SOUND:
+        sound: ENTITY_VILLAGER_YES
+        volume: 3.0
+        pitch: 1.1
+  7:
+    cooldown: 6000
+    experience-on-use: 4
+    description:
+    - '&7Removes all StarEnchants soul costs for 20s.'
+    effects:
+    - SET_VAR:
+        name: soul-free
+        value: '1'
+        ttl: 400
+        who: '@Self'
+    - SOUND:
+        sound: ENTITY_EXPERIENCE_ORB_PICKUP
+        volume: 1.0
+        pitch: 3.0
+    - SOUND:
+        sound: BLOCK_NOTE_BLOCK_PLING
+        volume: 1.0
+        pitch: 1.0
+    - SOUND:
+        sound: ENTITY_VILLAGER_YES
+        volume: 3.0
+        pitch: 1.1
+  8:
+    cooldown: 6000
+    experience-on-use: 4
+    description:
+    - '&7Removes all StarEnchants soul costs for 22s.'
+    effects:
+    - SET_VAR:
+        name: soul-free
+        value: '1'
+        ttl: 440
+        who: '@Self'
+    - SOUND:
+        sound: ENTITY_EXPERIENCE_ORB_PICKUP
+        volume: 1.0
+        pitch: 3.0
+    - SOUND:
+        sound: BLOCK_NOTE_BLOCK_PLING
+        volume: 1.0
+        pitch: 1.0
+    - SOUND:
+        sound: ENTITY_VILLAGER_YES
+        volume: 3.0
+        pitch: 1.1
+  9:
+    cooldown: 6000
+    experience-on-use: 4
+    description:
+    - '&7Removes all StarEnchants soul costs for 25s.'
+    effects:
+    - SET_VAR:
+        name: soul-free
+        value: '1'
+        ttl: 500
+        who: '@Self'
+    - SOUND:
+        sound: ENTITY_EXPERIENCE_ORB_PICKUP
+        volume: 1.0
+        pitch: 3.0
+    - SOUND:
+        sound: BLOCK_NOTE_BLOCK_PLING
+        volume: 1.0
+        pitch: 1.0
+    - SOUND:
+        sound: ENTITY_VILLAGER_YES
+        volume: 3.0
+        pitch: 1.1
+  10:
+    cooldown: 6000
+    experience-on-use: 4
+    description:
+    - '&7Removes all StarEnchants soul costs for 27s.'
+    effects:
+    - SET_VAR:
+        name: soul-free
+        value: '1'
+        ttl: 540
+        who: '@Self'
+    - SOUND:
+        sound: ENTITY_EXPERIENCE_ORB_PICKUP
+        volume: 1.0
+        pitch: 3.0
+    - SOUND:
+        sound: BLOCK_NOTE_BLOCK_PLING
+        volume: 1.0
+        pitch: 1.0
+    - SOUND:
+        sound: ENTITY_VILLAGER_YES
+        volume: 3.0
+        pitch: 1.1

@@ -1,8 +1,47 @@
 starenchants authoring surface v1
 [effects]
+effect ARMOR_BATTERY
+  param source-enchant STRING required min=- max=- enum=- handle=- default=-
+  param repair INT optional min=0 max=- enum=- handle=- default=2
+  param retaliation INT optional min=0 max=- enum=- handle=- default=1
 effect BATTERY
   param bank-percent DOUBLE optional min=0 max=100 enum=- handle=- default=20
   param hits INT optional min=1 max=10 enum=- handle=- default=3
+effect BLEED_STACK
+  param speed-step DOUBLE required min=0 max=- enum=- handle=- default=-
+  param half-floor INT optional min=0 max=- enum=- handle=- default=0
+  param blood-lust-floor DOUBLE required min=0 max=- enum=- handle=- default=-
+  param blood-lust-scale DOUBLE required min=0 max=- enum=- handle=- default=-
+  param primary-block HANDLE required min=- max=- enum=- handle=MATERIAL default=-
+  param secondary-block HANDLE optional min=- max=- enum=- handle=MATERIAL default=-
+  param slow HANDLE required min=- max=- enum=- handle=POTION_EFFECT default=-
+  param blood-lust-particle HANDLE required min=- max=- enum=- handle=PARTICLE default=-
+  param blood-lust-sound HANDLE required min=- max=- enum=- handle=SOUND default=-
+effect BLESS
+  param blocked-by STRING optional min=- max=- enum=- handle=- default=
+  param blocked-message STRING optional min=- max=- enum=- handle=- default=
+  param success-message STRING optional min=- max=- enum=- handle=- default=
+  param sound HANDLE required min=- max=- enum=- handle=SOUND default=-
+  param volume DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param pitch DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param message-throttle-set STRING optional min=- max=- enum=- handle=- default=
+  param message-throttle TICKS optional min=0 max=- enum=- handle=- default=0
+  param effect-1 HANDLE required min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-2 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-3 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-4 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-5 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-6 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-7 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-8 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-9 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-10 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-11 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-12 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-13 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-14 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-15 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-16 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
 effect BLINK
   param distance DOUBLE optional min=1 max=16 enum=- handle=- default=4
   param particle HANDLE optional min=- max=- enum=- handle=PARTICLE default=REDSTONE
@@ -17,8 +56,14 @@ effect BLINK
   param arrival-accent HANDLE optional min=- max=- enum=- handle=SOUND default=BLOCK_AMETHYST_BLOCK_CHIME
   param accent-volume DOUBLE optional min=0 max=- enum=- handle=- default=0.4
   param accent-pitch DOUBLE optional min=0 max=- enum=- handle=- default=1.6
+effect BLOCK_BREAK_EFFECT
+  param block HANDLE required min=- max=- enum=- handle=MATERIAL default=-
+  param anchor ENUM optional min=- max=- enum=body,eye,feet handle=- default=feet
+  param y-offset DOUBLE optional min=- max=- enum=- handle=- default=0.0
+  param once-at-actor BOOL optional min=- max=- enum=- handle=- default=false
 effect BREAK_BLOCK
   param drops BOOL optional min=- max=- enum=- handle=- default=true
+  param use-held-tool BOOL optional min=- max=- enum=- handle=- default=false
 effect CAGE
   param floor HANDLE required min=- max=- enum=- handle=MATERIAL default=-
   param walls HANDLE required min=- max=- enum=- handle=MATERIAL default=-
@@ -29,22 +74,54 @@ effect CAGE
   param rise INT optional min=0 max=8 enum=- handle=- default=2
   param ticks TICKS optional min=0 max=- enum=- handle=- default=150
 effect CANCEL
+effect CLEAR_BLEED
 effect CONVERT_SUMMON
   param radius DOUBLE optional min=1 max=32 enum=- handle=- default=12
   param whiff-sound HANDLE optional min=- max=- enum=- handle=SOUND default=BLOCK_ANVIL_LAND
+effect COSMIC_SILENCE
+  param level INT required min=1 max=4 enum=- handle=- default=-
+  param solitude STRING optional min=- max=- enum=- handle=- default=enchants/solitude
+  param sound HANDLE required min=- max=- enum=- handle=SOUND default=-
+  param enchantment-particle HANDLE required min=- max=- enum=- handle=PARTICLE default=-
+  param portal-particle HANDLE required min=- max=- enum=- handle=PARTICLE default=-
+effect COUNT_TARGETS
+  param name STRING required min=- max=- enum=- handle=- default=-
+  param ttl TICKS optional min=0 max=- enum=- handle=- default=0
 effect CURE
   param category ENUM optional min=- max=- enum=ALL,BENEFICIAL,HARMFUL,NEUTRAL handle=- default=ALL
+effect CURE_ONE_OF
+  param effect-1 HANDLE required min=- max=- enum=- handle=POTION_EFFECT default=-
+  param success-message STRING optional min=- max=- enum=- handle=- default=
+  param message-throttle-set STRING optional min=- max=- enum=- handle=- default=
+  param message-throttle TICKS optional min=0 max=- enum=- handle=- default=0
+  param effect-2 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-3 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-4 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-5 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-6 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-7 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-8 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-9 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-10 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-11 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-12 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-13 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-14 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-15 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
+  param effect-16 HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=-
 effect DAMAGE
   param amount DOUBLE optional min=0 max=- enum=- handle=- default=0
   param percent-of-max DOUBLE optional min=0 max=100 enum=- handle=- default=0
+  param attributed BOOL optional min=- max=- enum=- handle=- default=true
 effect DAMAGE_CAP
   param factor DOUBLE optional min=0 max=- enum=- handle=- default=0.5
   param reflect BOOL optional min=- max=- enum=- handle=- default=false
   param duration TICKS optional min=0 max=- enum=- handle=- default=100
 effect DAMAGE_MOD
   param side ENUM required min=- max=- enum=attack,defense handle=- default=-
-  param mode ENUM optional min=- max=- enum=add,flat handle=- default=add
+  param mode ENUM optional min=- max=- enum=add,flat,multiply handle=- default=add
   param amount DOUBLE required min=- max=- enum=- handle=- default=-
+  param cap DOUBLE optional min=0 max=- enum=- handle=- default=0
 effect DAMAGE_SCALE
   param side ENUM optional min=- max=- enum=attack,defense handle=- default=attack
   param mode ENUM optional min=- max=- enum=add,flat handle=- default=add
@@ -57,13 +134,33 @@ effect DISARM
 effect DISARM_SHUFFLE
   param duration TICKS optional min=0 max=- enum=- handle=- default=80
   param damage-malus DOUBLE optional min=0 max=100 enum=- handle=- default=20
+effect DISTANCE_DAMAGE
+  param distance DOUBLE required min=0 max=- enum=- handle=- default=-
+  param near-1 DOUBLE optional min=0 max=- enum=- handle=- default=0.25
+  param near-2 DOUBLE optional min=0 max=- enum=- handle=- default=0.5
+  param near-3 DOUBLE optional min=0 max=- enum=- handle=- default=0.75
+  param near-4 DOUBLE optional min=0 max=- enum=- handle=- default=1.0
+  param near-5 DOUBLE optional min=0 max=- enum=- handle=- default=1.5
+  param near-per-level DOUBLE optional min=0 max=- enum=- handle=- default=0.01
+  param far-1 DOUBLE optional min=0 max=- enum=- handle=- default=2.0
+  param far-2 DOUBLE optional min=0 max=- enum=- handle=- default=2.5
+  param far-3 DOUBLE optional min=0 max=- enum=- handle=- default=3.0
+  param far-penalty-1 DOUBLE optional min=0 max=- enum=- handle=- default=0.01
+  param far-penalty-2 DOUBLE optional min=0 max=- enum=- handle=- default=0.0125
+  param far-penalty-3 DOUBLE optional min=0 max=- enum=- handle=- default=0.025
+effect DROP_HEAD
+  param defer BOOL optional min=- max=- enum=- handle=- default=false
+  param channel STRING optional min=- max=- enum=- handle=- default=default
 effect DROP_ITEM
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
   param count INT optional min=1 max=- enum=- handle=- default=1
 effect DURABILITY
   param amount INT optional min=- max=- enum=- handle=- default=-1
+  param percent DOUBLE optional min=0 max=100 enum=- handle=- default=-
   param target ENUM optional min=- max=- enum=all,armor,item handle=- default=item
   param mode ENUM optional min=- max=- enum=damage,restore handle=- default=restore
+  param selection ENUM optional min=- max=- enum=all,most-damaged,random handle=- default=all
+  param slot ENUM optional min=- max=- enum=boots,chestplate,helmet,leggings handle=- default=-
 effect ECHO_STRIKE
 effect EQUIP_SWAP
   param slot ENUM optional min=- max=- enum=boots,chestplate,helmet,leggings handle=- default=helmet
@@ -72,9 +169,17 @@ effect EQUIP_SWAP
 effect EXPLODE
   param power DOUBLE required min=0 max=- enum=- handle=- default=-
   param breakBlocks BOOL optional min=- max=- enum=- handle=- default=false
+effect EXP_DROP_MARK
+  param channel STRING required min=- max=- enum=- handle=- default=-
+  param multiplier DOUBLE required min=0 max=- enum=- handle=- default=-
 effect EXP_MULTIPLY
   param factor DOUBLE optional min=0 max=- enum=- handle=- default=2.0
 effect EXTINGUISH
+effect FAKE_BLOCK
+  param block HANDLE required min=- max=- enum=- handle=MATERIAL default=-
+  param duration TICKS required min=0 max=- enum=- handle=- default=-
+  param radius DOUBLE optional min=0 max=- enum=- handle=- default=32
+  param anchor ENUM optional min=- max=- enum=body,eye,feet handle=- default=body
 effect FALLING_BLOCK
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
   param radius INT optional min=0 max=4 enum=- handle=- default=1
@@ -82,6 +187,7 @@ effect FALLING_BLOCK
   param ttl TICKS optional min=0 max=- enum=- handle=- default=40
   param carry DOUBLE optional min=- max=- enum=- handle=- default=0
 effect FILL_OXYGEN
+  param amount INT optional min=- max=- enum=- handle=- default=-1
 effect FIREWORK
   param power INT optional min=0 max=3 enum=- handle=- default=1
 effect FLY
@@ -131,13 +237,32 @@ effect GUARD
   param count INT optional min=1 max=- enum=- handle=- default=1
   param ttl TICKS optional min=0 max=- enum=- handle=- default=200
   param name STRING optional min=- max=- enum=- handle=- default=
+  param health DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param spawn-y-offset DOUBLE optional min=-16 max=16 enum=- handle=- default=0
+  param chunk-cap INT optional min=0 max=- enum=- handle=- default=0
+  param retarget-radius DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param retarget-period TICKS optional min=1 max=- enum=- handle=- default=20
+  param fire-resistance BOOL optional min=- max=- enum=- handle=- default=false
+  param regeneration BOOL optional min=- max=- enum=- handle=- default=false
+  param strength BOOL optional min=- max=- enum=- handle=- default=false
+  param speed BOOL optional min=- max=- enum=- handle=- default=false
+  param resistance BOOL optional min=- max=- enum=- handle=- default=false
+  param sound HANDLE optional min=- max=- enum=- handle=SOUND default=-
+  param sound-volume DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param sound-pitch DOUBLE optional min=0 max=- enum=- handle=- default=1
 effect HEALTH
   param amount DOUBLE required min=0 max=- enum=- handle=- default=-
+effect HERO_KILLER
+  param level INT required min=1 max=3 enum=- handle=- default=-
+  param cost INT optional min=0 max=- enum=- handle=- default=4
+  param cost-period TICKS optional min=0 max=- enum=- handle=- default=20
+  param anti-swap TICKS optional min=0 max=- enum=- handle=- default=5
 effect HIT_TEMPO
   param duration TICKS optional min=0 max=- enum=- handle=- default=100
   param model ENUM optional min=- max=- enum=MENTAL,VANILLA handle=- default=VANILLA
   param damage-percent DOUBLE optional min=0 max=100 enum=- handle=- default=33.3
   param attack-speed DOUBLE optional min=0 max=- enum=- handle=- default=1.0
+effect HURT_ANIMATION
 effect IGNITE
   param duration TICKS required min=0 max=- enum=- handle=- default=-
 effect IGNORE_ARMOR
@@ -145,6 +270,8 @@ effect IGNORE_HEROIC
 effect IMMUNE
   param type ENUM required min=- max=- enum=all,axe,fishhook,potion,projectile,sword handle=- default=-
   param duration TICKS optional min=0 max=- enum=- handle=- default=100
+effect INFINITE_LUCK_GATE
+  param required-level INT required min=1 max=5 enum=- handle=- default=-
 effect INVERT_VAR
   param name STRING required min=- max=- enum=- handle=- default=-
 effect INVINCIBLE
@@ -174,6 +301,7 @@ effect KNOCKBACK_CONTROL
   param duration TICKS optional min=0 max=- enum=- handle=- default=2
 effect LIGHTNING
   param damage DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param real BOOL optional min=- max=- enum=- handle=- default=false
 effect LIGHTNING_MOD
   param amount DOUBLE required min=-100 max=- enum=- handle=- default=-
 effect MARK
@@ -191,6 +319,9 @@ effect MESSAGE
   param text STRING required min=- max=- enum=- handle=- default=-
   param channel ENUM optional min=- max=- enum=actionbar,chat,title handle=- default=chat
   param subtitle STRING optional min=- max=- enum=- handle=- default=
+  param number DOUBLE optional min=- max=- enum=- handle=- default=-
+  param decimals INT optional min=0 max=12 enum=- handle=- default=2
+  param grouping BOOL optional min=- max=- enum=- handle=- default=false
   param fadeIn TICKS optional min=0 max=- enum=- handle=- default=10
   param stay TICKS optional min=0 max=- enum=- handle=- default=70
   param fadeOut TICKS optional min=0 max=- enum=- handle=- default=20
@@ -202,7 +333,20 @@ effect MODIFY_FOOD
   param mode ENUM optional min=- max=- enum=give,take handle=- default=give
 effect MODIFY_HEALTH
   param amount DOUBLE required min=0 max=- enum=- handle=- default=-
+  param cap DOUBLE optional min=0 max=- enum=- handle=- default=0
   param mode ENUM optional min=- max=- enum=give,set,take,transfer handle=- default=give
+  param base-round ENUM optional min=- max=- enum=floor,none handle=- default=none
+  param success-sound HANDLE optional min=- max=- enum=- handle=SOUND default=-
+  param sound-volume DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param sound-pitch DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param require-headroom BOOL optional min=- max=- enum=- handle=- default=false
+  param strict-headroom BOOL optional min=- max=- enum=- handle=- default=false
+  param success-particle HANDLE optional min=- max=- enum=- handle=PARTICLE default=-
+  param particle-count INT optional min=0 max=- enum=- handle=- default=1
+  param particle-spread DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param particle-speed DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param particle-anchor ENUM optional min=- max=- enum=body,eye,feet handle=- default=body
+  param particle-y-offset DOUBLE optional min=-16 max=16 enum=- handle=- default=0
 effect MODIFY_MONEY
   param amount DOUBLE required min=0 max=- enum=- handle=- default=-
   param mode ENUM optional min=- max=- enum=give,interest_percent,steal_percent,take,transfer handle=- default=give
@@ -215,6 +359,10 @@ effect PARTICLE
   param block HANDLE optional min=- max=- enum=- handle=MATERIAL default=-
   param spread DOUBLE optional min=0 max=4 enum=- handle=- default=0.4
   param spread-y DOUBLE optional min=-1 max=4 enum=- handle=- default=-1
+  param random-spread BOOL optional min=- max=- enum=- handle=- default=false
+  param speed DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param anchor ENUM optional min=- max=- enum=body,eye,feet handle=- default=body
+  param y-offset DOUBLE optional min=-16 max=16 enum=- handle=- default=0
 effect PARTICLE_LINE
   param particle HANDLE required min=- max=- enum=- handle=PARTICLE default=-
   param r INT optional min=0 max=255 enum=- handle=- default=255
@@ -236,6 +384,20 @@ effect POTION
   param effect HANDLE required min=- max=- enum=- handle=POTION_EFFECT default=-
   param level INT required min=1 max=- enum=- handle=- default=-
   param duration TICKS required min=0 max=- enum=- handle=- default=-
+  param duration-min TICKS optional min=0 max=- enum=- handle=- default=-
+  param duration-max TICKS optional min=0 max=- enum=- handle=- default=-
+  param duration-step INT optional min=1 max=- enum=- handle=- default=1
+  param duration-random-base DOUBLE optional min=0 max=- enum=- handle=- default=-
+  param duration-random-range DOUBLE optional min=0 max=- enum=- handle=- default=-
+  param duration-random-scale INT optional min=1 max=- enum=- handle=- default=1
+  param unless-present BOOL optional min=- max=- enum=- handle=- default=false
+  param force BOOL optional min=- max=- enum=- handle=- default=false
+  param chance DOUBLE optional min=0 max=100 enum=- handle=- default=100
+  param particle HANDLE optional min=- max=- enum=- handle=PARTICLE default=-
+  param particle-count INT optional min=0 max=- enum=- handle=- default=1
+  param particle-speed DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param particle-anchor ENUM optional min=- max=- enum=body,eye,feet handle=- default=body
+  param particle-y-offset DOUBLE optional min=-16 max=16 enum=- handle=- default=0
 effect POTION_LOCK
   param effect HANDLE required min=- max=- enum=- handle=POTION_EFFECT default=-
   param ticks TICKS optional min=0 max=- enum=- handle=- default=100
@@ -245,20 +407,84 @@ effect PROJECTILE
   param speed DOUBLE optional min=0 max=- enum=- handle=- default=1.5
   param yield DOUBLE optional min=- max=- enum=- handle=- default=-1
   param incendiary BOOL optional min=- max=- enum=- handle=- default=false
+effect PROJECTILE_MARK
+  param value INT required min=1 max=- enum=- handle=- default=-
 effect REFLECT
   param percent DOUBLE required min=0 max=- enum=- handle=- default=-
   param duration TICKS optional min=0 max=- enum=- handle=- default=80
+effect REGENERATION
+  param amount DOUBLE required min=0 max=- enum=- handle=- default=-
+  param period TICKS required min=1 max=- enum=- handle=- default=-
+  param duration-min TICKS required min=0 max=- enum=- handle=- default=-
+  param duration-max TICKS required min=0 max=- enum=- handle=- default=-
+  param particle HANDLE required min=- max=- enum=- handle=PARTICLE default=-
+  param count INT optional min=0 max=- enum=- handle=- default=1
+  param speed DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param anchor ENUM optional min=- max=- enum=body,eye,feet handle=- default=body
+  param y-offset DOUBLE optional min=-16 max=16 enum=- handle=- default=0
 effect REMOVE_ARMOR
+  param destination ENUM optional min=- max=- enum=drop,inventory handle=- default=drop
+  param victim-message STRING optional min=- max=- enum=- handle=- default=
+  param victim-description STRING optional min=- max=- enum=- handle=- default=
+  param attacker-message STRING optional min=- max=- enum=- handle=- default=
+  param blank-lines INT optional min=0 max=- enum=- handle=- default=0
+  param sound HANDLE optional min=- max=- enum=- handle=SOUND default=-
+  param sound-volume DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param sound-pitch DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param block HANDLE optional min=- max=- enum=- handle=MATERIAL default=-
+  param block-height INT optional min=0 max=- enum=- handle=- default=1
 effect REMOVE_ITEM
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
   param count INT optional min=1 max=- enum=- handle=- default=1
 effect REMOVE_POTION
   param effect HANDLE required min=- max=- enum=- handle=POTION_EFFECT default=-
+effect REMOVE_POTION_UP_TO
+  param effect HANDLE required min=- max=- enum=- handle=POTION_EFFECT default=-
+  param max-level INT required min=1 max=- enum=- handle=- default=-
+effect REMOVE_PROJECTILE
 effect REMOVE_SOULS
   param amount INT required min=1 max=- enum=- handle=- default=-
+effect REQUIRE_SOUL_TOTAL
+  param divisor INT optional min=1 max=- enum=- handle=- default=20
+  param remainder INT optional min=0 max=- enum=- handle=- default=0
+  param require-paid BOOL optional min=- max=- enum=- handle=- default=false
+effect REQUIRE_VALUE
+  param value DOUBLE required min=- max=- enum=- handle=- default=-
+  param min DOUBLE optional min=- max=- enum=- handle=- default=-1.7976931348623157E308
+  param max DOUBLE optional min=- max=- enum=- handle=- default=1.7976931348623157E308
+effect REQUIRE_VAR
+  param name STRING required min=- max=- enum=- handle=- default=-
+  param present BOOL optional min=- max=- enum=- handle=- default=true
+effect RESISTED_POTION
+  param chance DOUBLE required min=0 max=100 enum=- handle=- default=-
+  param resistance-enchant STRING required min=- max=- enum=- handle=- default=-
+  param resistance-enchant-alt STRING optional min=- max=- enum=- handle=- default=
+  param resist-per-level DOUBLE required min=0 max=- enum=- handle=- default=-
+  param effect HANDLE required min=- max=- enum=- handle=POTION_EFFECT default=-
+  param level INT required min=1 max=- enum=- handle=- default=-
+  param duration TICKS required min=0 max=- enum=- handle=- default=-
+  param blocked-message STRING optional min=- max=- enum=- handle=- default=
+  param cue-block ENUM optional min=- max=- enum=current-or-stone,none handle=- default=none
+  param cue-y-offset DOUBLE optional min=- max=- enum=- handle=- default=0
+effect RESISTED_ROLL
+  param chance DOUBLE required min=0 max=100 enum=- handle=- default=-
+  param resistance-level DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param resist-per-level DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param min-chance DOUBLE optional min=0 max=100 enum=- handle=- default=0
+  param blocked-message STRING optional min=- max=- enum=- handle=- default=
+  param immune DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param immune-message STRING optional min=- max=- enum=- handle=- default=
+  param immune-chance DOUBLE optional min=0 max=100 enum=- handle=- default=0
+  param immune-chance-message STRING optional min=- max=- enum=- handle=- default=
 effect RUN_COMMAND
   param command STRING required min=- max=- enum=- handle=- default=-
   param as ENUM optional min=- max=- enum=console,player handle=- default=console
+effect SABOTAGE
+  param level INT required min=1 max=5 enum=- handle=- default=-
+  param duration TICKS optional min=0 max=- enum=- handle=- default=20
+  param cost INT optional min=0 max=- enum=- handle=- default=8
+  param cost-period TICKS optional min=0 max=- enum=- handle=- default=20
+  param anti-swap TICKS optional min=0 max=- enum=- handle=- default=5
 effect SEEK
 effect SET_BLOCK
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
@@ -266,11 +492,39 @@ effect SET_VAR
   param name STRING required min=- max=- enum=- handle=- default=-
   param value STRING optional min=- max=- enum=- handle=- default=
   param ttl TICKS optional min=0 max=- enum=- handle=- default=0
+  param clear-on-stop BOOL optional min=- max=- enum=- handle=- default=false
 effect SMELT
+  param amount INT optional min=1 max=- enum=- handle=- default=1
+  param profile ENUM optional min=- max=- enum=IRON_GOLD_ORE,RECIPES handle=- default=RECIPES
+  param unless-held STRING optional min=- max=- enum=- handle=- default=
+  param unless-held2 STRING optional min=- max=- enum=- handle=- default=
+effect SOUL_TRAP
+  param key STRING required min=- max=- enum=- handle=- default=-
+  param duration TICKS required min=0 max=- enum=- handle=- default=-
+  param retrap-grace TICKS optional min=0 max=- enum=- handle=- default=100
+  param steal INT required min=1 max=- enum=- handle=- default=-
+  param fallback-damage DOUBLE required min=0 max=- enum=- handle=- default=-
+  param cost INT optional min=0 max=- enum=- handle=- default=5
+  param cost-period TICKS optional min=0 max=- enum=- handle=- default=20
+  param anti-swap TICKS optional min=0 max=- enum=- handle=- default=5
+  param message STRING required min=- max=- enum=- handle=- default=-
+  param sound HANDLE required min=- max=- enum=- handle=SOUND default=-
+  param sound-volume DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param sound-pitch DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param particle-1 HANDLE required min=- max=- enum=- handle=PARTICLE default=-
+  param particle-1-count INT required min=0 max=- enum=- handle=- default=-
+  param particle-1-speed DOUBLE required min=0 max=- enum=- handle=- default=-
+  param particle-2 HANDLE required min=- max=- enum=- handle=PARTICLE default=-
+  param particle-2-count INT required min=0 max=- enum=- handle=- default=-
+  param particle-2-speed DOUBLE required min=0 max=- enum=- handle=- default=-
 effect SOUND
   param sound HANDLE required min=- max=- enum=- handle=SOUND default=-
   param volume DOUBLE optional min=0 max=- enum=- handle=- default=1
   param pitch DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param dedupe BOOL optional min=- max=- enum=- handle=- default=true
+  param audience ENUM optional min=- max=- enum=target,world handle=- default=world
+  param players-only BOOL optional min=- max=- enum=- handle=- default=false
+  param at ENUM optional min=- max=- enum=activation,target handle=- default=target
 effect SPAWN_ENTITY
   param type HANDLE required min=- max=- enum=- handle=ENTITY_TYPE default=-
   param count INT optional min=1 max=- enum=- handle=- default=1
@@ -285,6 +539,9 @@ effect SPAWN_ENTITY
   param detonate ENUM optional min=- max=- enum=NONE,PLAYER_HIT handle=- default=NONE
   param invincible BOOL optional min=- max=- enum=- handle=- default=false
   param speed DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param spawn-y-offset DOUBLE optional min=-16 max=16 enum=- handle=- default=0
+  param custom-name STRING optional min=- max=- enum=- handle=- default=
+  param plague-level INT optional min=0 max=- enum=- handle=- default=0
 effect SPAWN_SWARM
   param type HANDLE required min=- max=- enum=- handle=ENTITY_TYPE default=-
   param count INT optional min=1 max=- enum=- handle=- default=1
@@ -313,12 +570,21 @@ effect SWAP_POSITION
   param range-slack DOUBLE optional min=0 max=- enum=- handle=- default=2
 effect TELEBLOCK
   param duration TICKS optional min=0 max=- enum=- handle=- default=400
+  param mode ENUM optional min=- max=- enum=BLOCK,CLEAR handle=- default=BLOCK
 effect TELEPORT
   param to ENUM optional min=- max=- enum=ACTOR,VICTIM handle=- default=VICTIM
 effect TELEPORT_BEHIND
   param of ENUM optional min=- max=- enum=ACTOR,VICTIM handle=- default=VICTIM
   param distance DOUBLE optional min=0 max=- enum=- handle=- default=1
   param onFail ENUM optional min=- max=- enum=NONE,ONTOP handle=- default=ONTOP
+  param sound HANDLE optional min=- max=- enum=- handle=SOUND default=-
+  param sound-volume DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param sound-pitch DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param departure-particle HANDLE optional min=- max=- enum=- handle=PARTICLE default=-
+  param arrival-particle HANDLE optional min=- max=- enum=- handle=PARTICLE default=-
+  param particle-count INT optional min=0 max=- enum=- handle=- default=20
+  param particle-speed DOUBLE optional min=0 max=- enum=- handle=- default=0.5
+  param particle-spread DOUBLE optional min=0 max=- enum=- handle=- default=1
 effect TELEPORT_DROPS
 effect TEMP_BLOCK
   param shape ENUM optional min=- max=- enum=BOX,COLUMN,FOOTPRINT,POINT handle=- default=POINT
@@ -337,11 +603,15 @@ effect TEMP_BLOCK
 effect TRAP_BREAK
   param whiff-sound HANDLE optional min=- max=- enum=- handle=SOUND default=BLOCK_ANVIL_LAND
 effect VELOCITY
-  param mode ENUM optional min=- max=- enum=add,away handle=- default=add
+  param mode ENUM optional min=- max=- enum=add,away,set handle=- default=add
   param x DOUBLE optional min=- max=- enum=- handle=- default=0
   param y DOUBLE optional min=- max=- enum=- handle=- default=0
   param z DOUBLE optional min=- max=- enum=- handle=- default=0
   param strength DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param from ENUM optional min=- max=- enum=actor,victim handle=- default=actor
+effect VIRUS_MARK
+  param multiplier DOUBLE required min=0 max=- enum=- handle=- default=-
+  param duration TICKS required min=0 max=- enum=- handle=- default=-
 effect WALKER
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
   param ticks TICKS optional min=0 max=- enum=- handle=- default=60
@@ -365,7 +635,7 @@ selector ALLPLAYERS
   param r DOUBLE optional min=0 max=- enum=- handle=- default=32
 selector AOE
   param r DOUBLE optional min=0 max=- enum=- handle=- default=4
-  param filter ENUM optional min=- max=- enum=ALL,ALLIES,ENEMIES,MOBS,MONSTERS,PLAYERS handle=- default=ALL
+  param filter ENUM optional min=- max=- enum=ALL,ALLIES,ENEMIES,ENEMY_PLAYERS,MOBS,MONSTERS,NONALLIES,PLAYERS handle=- default=ALL
   param limit INT optional min=0 max=- enum=- handle=- default=0
   param exclude ENUM optional min=- max=- enum=none,victim handle=- default=none
 selector ATTACKER
@@ -395,7 +665,9 @@ selector VEIN
   param limit INT optional min=1 max=- enum=- handle=- default=64
 selector VICTIM
 [triggers]
+trigger ALLY_DEATH
 trigger ATTACK
+trigger BLOCK_DAMAGE
 trigger BOW
 trigger BOW_FIRE
 trigger BREAK
@@ -437,17 +709,23 @@ flowmod chance
 [vars]
 var actor.behindvictim BOOL
 var actor.belowvictim NUM
+var actor.environment STR
+var actor.falldistance NUM
 var actor.food NUM
 var actor.gamemode STR
 var actor.groundblock STR
 var actor.health NUM
 var actor.healthpercent NUM
 var actor.helditem STR
+var actor.heldsettled5 BOOL
 var actor.level NUM
 var actor.maxhealth NUM
 var actor.totalexp NUM
 var actor.type STR
+var actor.walkspeed NUM
 var actor.world STR
+var aegisattackerindex NUM
+var antigankattackers NUM
 var attackerindex NUM
 var block.type STR
 var blocking BOOL
@@ -455,6 +733,7 @@ var combo NUM
 var damage NUM
 var damagecause STR
 var distance NUM
+var finaldamage NUM
 var flying BOOL
 var gliding BOOL
 var isblock BOOL
@@ -462,25 +741,42 @@ var itemdamage.armor BOOL
 var nearbyenemies NUM
 var onfire BOOL
 var onground BOOL
+var projectileheight NUM
+var projectilemark NUM
 var ragestacks NUM
 var recentattackers NUM
 var sneaking BOOL
 var sprinting BOOL
 var swimming BOOL
+var victim.bleedstacks NUM
 var victim.blocking BOOL
+var victim.boss BOOL
+var victim.devouraffected BOOL
+var victim.dragonslayer NUM
 var victim.flying BOOL
 var victim.food NUM
+var victim.frommobspawner BOOL
 var victim.gliding BOOL
 var victim.health NUM
 var victim.healthpercent NUM
 var victim.helditem STR
+var victim.induel BOOL
 var victim.inzone BOOL
+var victim.isplayer NUM
 var victim.maxhealth NUM
+var victim.metaphysical NUM
 var victim.mobtype STR
+var victim.necromancermask BOOL
+var victim.poltergeist NUM
+var victim.polymorphicmetaphysical NUM
+var victim.rageaffected BOOL
+var victim.slowed BOOL
 var victim.sneaking BOOL
 var victim.sprinting BOOL
+var victim.sticky NUM
 var victim.swimming BOOL
 var victim.type STR
+var victim.walkspeed NUM
 var world.raining BOOL
 var world.thundering BOOL
 var world.time NUM

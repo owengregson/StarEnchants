@@ -31,7 +31,8 @@ public final class MineDrops {
     }
 
     /** Apply the requested MINE drop transforms to {@code event}. A no-op when neither flag is set. */
-    public static void apply(BlockBreakEvent event, boolean smelt, boolean teleportDrops, Hands hands,
+    public static void apply(BlockBreakEvent event, boolean smelt, int smeltAmount, boolean ironGoldOnly,
+                             boolean teleportDrops, Hands hands,
                              DropControl dropControl) {
         if (!smelt && !teleportDrops) {
             return;
@@ -42,7 +43,7 @@ public final class MineDrops {
         if (world == null) {
             return;
         }
-        Collection<ItemStack> drops = effectiveDrops(block, player, smelt, hands);
+        Collection<ItemStack> drops = effectiveDrops(block, player, smelt, smeltAmount, ironGoldOnly, hands);
         dropControl.suppressVanillaDrops(event); // suppress the vanilla drop; we place the effective drops below
         if (teleportDrops) {
             for (ItemStack drop : drops) {
@@ -58,11 +59,14 @@ public final class MineDrops {
     }
 
     /** The drops to place: the smelted product when SMELT applies and the block has one, else the natural drops. */
-    private static Collection<ItemStack> effectiveDrops(Block block, Player player, boolean smelt, Hands hands) {
+    private static Collection<ItemStack> effectiveDrops(Block block, Player player, boolean smelt,
+                                                        int smeltAmount, boolean ironGoldOnly, Hands hands) {
         if (smelt) {
-            Material smelted = SMELT.get(block.getType());
+            String blockName = block.getType().name();
+            Material smelted = ironGoldOnly && !blockName.equals("IRON_ORE") && !blockName.equals("GOLD_ORE")
+                    ? null : SMELT.get(block.getType());
             if (smelted != null) {
-                return List.of(new ItemStack(smelted));
+                return List.of(new ItemStack(smelted, Math.max(1, smeltAmount)));
             }
         }
         return new ArrayList<>(block.getDrops(hands.mainHand(player)));

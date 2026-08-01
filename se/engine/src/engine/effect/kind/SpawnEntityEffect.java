@@ -34,6 +34,9 @@ public final class SpawnEntityEffect implements EffectKind {
             .param("detonate", D.enumOf("NONE", "PLAYER_HIT").def("NONE"))
             .param("invincible", D.BOOL.def(false))
             .param("speed", D.DOUBLE.min(0).def(0))
+            .param("spawn-y-offset", D.DOUBLE.min(-16).max(16).def(0))
+            .param("custom-name", D.STRING.def(""))
+            .param("plague-level", D.INT.min(0).def(0))
             .target("who", T.SELF)
             .affinity(Affinity.REGION)
             .actorOrigin()
@@ -71,7 +74,10 @@ public final class SpawnEntityEffect implements EffectKind {
                 "activator".equalsIgnoreCase(ctx.str("mount")),
                 "PLAYER_HIT".equalsIgnoreCase(ctx.str("detonate")),
                 ctx.bool("invincible"),
-                ctx.dbl("speed"));
+                ctx.dbl("speed"),
+                ctx.args().has("custom-name") ? ctx.str("custom-name") : "",
+                ctx.args().has("plague-level") ? ctx.integer("plague-level") : 0);
+        double spawnYOffset = ctx.args().has("spawn-y-offset") ? ctx.dbl("spawn-y-offset") : 0.0;
         Location origin = ctx.actorOrigin(); // hoisted: fresh instance per call (ADR-0043)
         boolean any = false;
         for (LivingEntity who : ctx.targets("who")) {
@@ -89,12 +95,17 @@ public final class SpawnEntityEffect implements EffectKind {
             if (base == null) {
                 continue;
             }
-            spawn(sink, base, type, count, ttl, health, owner, actor, flags);
+            spawn(sink, offset(base, spawnYOffset), type, count, ttl, health, owner, actor, flags);
             any = true;
         }
         if (!any && ctx.location() != null) {
-            spawn(sink, ctx.location(), type, count, ttl, health, owner, actor, flags);
+            spawn(sink, offset(ctx.location(), spawnYOffset),
+                    type, count, ttl, health, owner, actor, flags);
         }
+    }
+
+    private static Location offset(Location base, double y) {
+        return y == 0.0 ? base : base.clone().add(0.0, y, 0.0);
     }
 
     /** Default flags keep the plain spawn intent (byte-stable pre-ADR-0052); any flag routes to the summon. */

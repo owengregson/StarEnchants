@@ -1,0 +1,16 @@
+# Cosmic codex source: 04-enchants-axes.md — axes/HeroKiller.java
+# Source code intentionally uses +10% per level, despite the advertised +5%.
+display: Hero Killer
+description: Deal (level x 5%) more damage to players wearing Heroic Armor.
+trigger:
+- ATTACK
+applies-to:
+- AXE
+group: soul
+tier: soul
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1: { effects: [{ HERO_KILLER: { level: 1 } }] }
+  2: { effects: [{ HERO_KILLER: { level: 2 } }] }
+  3: { effects: [{ HERO_KILLER: { level: 3 } }] }

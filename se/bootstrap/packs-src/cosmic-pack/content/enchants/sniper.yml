@@ -1,45 +1,24 @@
-# Imported from EliteEnchantments (id: sniper). Review before shipping.
-display: "Sniper"
-description:
-  - "&eArrows deal heavy bonus damage"
-  - "&eon a headshot."
-trigger: BOW
+# Cosmic codex: 05-enchants-bows.md — bow/Sniper.java
+display: Sniper
+description: Source-accurate projectile headshots; Rage-affected targets are immune.
+trigger: [BOW]
 applies-to: [BOW]
-group: "legendary"
+group: legendary
 tier: legendary
+stacking: HIGHEST
 levels:
   1:
-    chance: 15
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 1.0, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE: { amount: 2, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
+    abilities:
+      - { trigger: BOW, chance: 42.5, condition: '%projectileheight% > 1.9 && %victim.rageaffected% == false', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.42 } }, { BLOCK_BREAK_EFFECT: { block: REDSTONE_BLOCK, anchor: eye, who: '@Victim' } }, { MESSAGE: { text: '&c&l*** HEADSHOT [+1.42x DMG] ***', who: '@Victim' } }, { SOUND: { sound: HURT_FLESH, volume: 2.0, pitch: 0.3, audience: target, who: '@Victim' } }] }
   2:
-    chance: 18
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 1.0, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE: { amount: 2.5, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
+    abilities:
+      - { trigger: BOW, chance: 50, condition: '%projectileheight% > 1.9 && %victim.rageaffected% == false', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.8399999999999999 } }, { BLOCK_BREAK_EFFECT: { block: REDSTONE_BLOCK, anchor: eye, who: '@Victim' } }, { MESSAGE: { text: '&c&l*** HEADSHOT [+1.8399999999999999x DMG] ***', who: '@Victim' } }, { SOUND: { sound: HURT_FLESH, volume: 2.0, pitch: 0.3, audience: target, who: '@Victim' } }] }
   3:
-    chance: 21
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 1.0, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE: { amount: 3, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
+    abilities:
+      - { trigger: BOW, chance: 57.5, condition: '%projectileheight% > 1.9 && %victim.rageaffected% == false', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 2.26 } }, { BLOCK_BREAK_EFFECT: { block: REDSTONE_BLOCK, anchor: eye, who: '@Victim' } }, { MESSAGE: { text: '&c&l*** HEADSHOT [+2.26x DMG] ***', who: '@Victim' } }, { SOUND: { sound: HURT_FLESH, volume: 2.0, pitch: 0.3, audience: target, who: '@Victim' } }] }
   4:
-    chance: 24
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 1.0, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE: { amount: 3.5, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
+    abilities:
+      - { trigger: BOW, chance: 64.99999999999999, condition: '%projectileheight% > 1.9 && %victim.rageaffected% == false', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 2.6799999999999997 } }, { BLOCK_BREAK_EFFECT: { block: REDSTONE_BLOCK, anchor: eye, who: '@Victim' } }, { BLOCK_BREAK_EFFECT: { block: REDSTONE_BLOCK, anchor: eye, who: '@Victim' } }, { MESSAGE: { text: '&c&l*** HEADSHOT [+2.6799999999999997x DMG] ***', who: '@Victim' } }, { SOUND: { sound: HURT_FLESH, volume: 2.0, pitch: 0.3, audience: target, who: '@Victim' } }] }
   5:
-    chance: 27
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 1.0, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE: { amount: 4, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
+    abilities:
+      - { trigger: BOW, chance: 72.5, condition: '%projectileheight% > 1.9 && %victim.rageaffected% == false', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 3.1 } }, { BLOCK_BREAK_EFFECT: { block: REDSTONE_BLOCK, anchor: eye, who: '@Victim' } }, { BLOCK_BREAK_EFFECT: { block: REDSTONE_BLOCK, anchor: eye, who: '@Victim' } }, { MESSAGE: { text: '&c&l*** HEADSHOT [+3.1x DMG] ***', who: '@Victim' } }, { SOUND: { sound: HURT_FLESH, volume: 2.0, pitch: 0.3, audience: target, who: '@Victim' } }] }

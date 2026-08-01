@@ -1,0 +1,34 @@
+# Imported from EliteEnchantments (id: death-god). Review before shipping.
+display: "Death God"
+description:
+  - "&eWhen hit at low health, restores"
+  - "&ea burst of health."
+trigger: DEFENSE
+applies-to: [HELMET]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    chance: 15
+    cooldown: 200
+    condition: "%actor.healthpercent% <= 25"
+    effects:
+      - { SOUND: { sound: "ENTITY_WITHER_SPAWN", volume: 0.6, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SOUL", count: 16 } }
+      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:3:5 — EE HEAL:ADD → MODIFY_HEALTH (give, self)
+  2:
+    chance: 25
+    cooldown: 200
+    condition: "%actor.healthpercent% <= 25"
+    effects:
+      - { SOUND: { sound: "ENTITY_WITHER_SPAWN", volume: 0.6, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SOUL", count: 16 } }
+      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:3:5 — EE HEAL:ADD → MODIFY_HEALTH (give, self)
+  3:
+    chance: 35
+    cooldown: 200
+    condition: "%actor.healthpercent% <= 25"
+    effects:
+      - { SOUND: { sound: "ENTITY_WITHER_SPAWN", volume: 0.6, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SOUL", count: 16 } }
+      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:3:5 — EE HEAL:ADD → MODIFY_HEALTH (give, self)

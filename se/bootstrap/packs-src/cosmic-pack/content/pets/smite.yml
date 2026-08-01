@@ -1,0 +1,47 @@
+# Cosmic codex source: 12-pets.md
+display: Smite
+color: '&e'
+type: ACTIVE
+head: eyJ0aW1lc3RhbXAiOjE1NjMyNzc0OTc4MTUsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9lMDU3OGFkN2FiYjE1ZDBlNmIyNTQ1MzE3YTQ3ZWUwNWZmMWM0MTM4NzJkMGJhNTEzOWEyMDhhNzA2MTM3ZjBlIn19fQ==
+material: PLAYER_HEAD
+descriptor:
+- '&7A Cosmic inventory pet.'
+description:
+- '&7Calls real lightning on the aimed entity and freezes players.'
+max-level: 5
+experience-to-level:
+  2: 2000
+  3: 3000
+  4: 4000
+  5: 5000
+levels:
+  1:
+    cooldown: 2400
+    experience-on-use: 1
+    description:
+    - '&7Real lightning; freezes the aimed target for 1.25s.'
+    effects: []
+  2:
+    cooldown: 2400
+    experience-on-use: 1
+    description:
+    - '&7Real lightning; freezes the aimed target for 1.5s.'
+    effects: []
+  3:
+    cooldown: 2400
+    experience-on-use: 1
+    description:
+    - '&7Real lightning; freezes the aimed target for 1.75s.'
+    effects: []
+  4:
+    cooldown: 2400
+    experience-on-use: 1
+    description:
+    - '&7Real lightning; freezes the aimed target for 2.0s.'
+    effects: []
+  5:
+    cooldown: 2400
+    experience-on-use: 1
+    description:
+    - '&7Real lightning; freezes the aimed target for 2.25s.'
+    effects: []

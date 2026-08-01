@@ -1,0 +1,35 @@
+# Enchant Book (docs/v3-directives.md §I) — the GENERAL likeness of EVERY enchant book. There is no
+# per-enchant book file: a specific book (from /se give book, the unopened/randomized book, combine, or a
+# drop) is minted from this one likeness with the enchant/level/success filled in. Reload with /se reload.
+# Placeholders (usable in name + lore):
+#   {ENCHANT}     = the enchant's display name
+#   {LEVEL}       = the granted level (Roman or Arabic per config.yml lore.roman)
+#   {TIER_COLOR}  = the enchant's rarity-tier colour code (from tiers.yml)
+#   {SUCCESS}     = the apply success chance (a guaranteed book shows 100)
+#   {FAILURE}     = 100 - {SUCCESS}
+#   {KINDS}       = the applies-to kinds, grammatically joined (e.g. "Sword & Axe", "Boots, Leggings, & Helmet")
+#   {DESCRIPTION} = the enchant's description, word-wrapped to the universal config.yml lore.item-wrap width
+#                   (colour codes don't count); a {DESCRIPTION} line expands to one lore line per wrapped line.
+type: enchant-book
+
+material: ENCHANTED_BOOK
+# Bold + underlined, tier-coloured "<Name> <Level>". (Colour first, then &l&n, so the formats stick.)
+# This same name styling is reused for the enchant icons in the in-game menus (apply/browse/admin).
+name: "{TIER_COLOR}&l&n{ENCHANT} {LEVEL}"
+lore:
+  - "&a{SUCCESS}% Success Rate"
+  - "&c{FAILURE}% Failure Rate"
+  - ""
+  - "&e{DESCRIPTION}"
+  - ""
+  - "&eApplies to: &r&f&n{KINDS}"
+  - "&7Drag n' Drop on an item to apply."
+# {DESCRIPTION} word-wraps at the single universal width, config.yml lore.item-wrap — the same one the scrolls,
+# orb, dust, soul gem, traks, and set lore all use. There is no per-book width any more.
+# The success/failure rate now lives in the main lore above, so success-lore is empty by default. Lines here
+# are appended only to a book minted with an explicit success chance (the unopened/randomized book).
+success-lore: []
+# When a sub-100% book FAILS its apply roll, destroy the gear — unless a White Scroll (items/white-scroll.yml)
+# guards it. Books that always succeed (success 100, e.g. /se book) never fail, so this only bites the
+# unopened/randomized books. Set false to make a failed apply harmless (the White Scroll then has no effect).
+destroy-on-fail: true

@@ -1,0 +1,92 @@
+# Cosmic codex source: 12-pets.md
+display: Stronghold Sell
+color: '&e'
+type: ACTIVE
+head: eyJ0aW1lc3RhbXAiOjE1NjI2Mjc1MDU4MjUsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS84MDExOGJhZjhhZTFiYWM2Mjc1ZDdiNzE5YzdjZDg5YzU4ZDcwMmI0ZmEyOWQ2ZjhiY2NkYmYwYzRkM2ZiNWY2In19fQ==
+material: PLAYER_HEAD
+descriptor:
+- '&7A Cosmic inventory pet.'
+description:
+- '&7Sells Stronghold inventory; external Strongholds integration required.'
+max-level: 10
+experience-to-level:
+  2: 500
+  3: 500
+  4: 500
+  5: 500
+  6: 500
+  7: 500
+  8: 500
+  9: 500
+  10: 500
+levels:
+  1:
+    cooldown: 36000
+    experience-on-use: 0
+    description:
+    - '&7Sells Stronghold inventory; external Strongholds integration required.'
+    condition: 1 == 0
+    effects: []
+  2:
+    cooldown: 36000
+    experience-on-use: 0
+    description:
+    - '&7Sells Stronghold inventory; external Strongholds integration required.'
+    condition: 1 == 0
+    effects: []
+  3:
+    cooldown: 36000
+    experience-on-use: 0
+    description:
+    - '&7Sells Stronghold inventory; external Strongholds integration required.'
+    condition: 1 == 0
+    effects: []
+  4:
+    cooldown: 36000
+    experience-on-use: 0
+    description:
+    - '&7Sells Stronghold inventory; external Strongholds integration required.'
+    condition: 1 == 0
+    effects: []
+  5:
+    cooldown: 36000
+    experience-on-use: 0
+    description:
+    - '&7Sells Stronghold inventory; external Strongholds integration required.'
+    condition: 1 == 0
+    effects: []
+  6:
+    cooldown: 36000
+    experience-on-use: 0
+    description:
+    - '&7Sells Stronghold inventory; external Strongholds integration required.'
+    condition: 1 == 0
+    effects: []
+  7:
+    cooldown: 36000
+    experience-on-use: 0
+    description:
+    - '&7Sells Stronghold inventory; external Strongholds integration required.'
+    condition: 1 == 0
+    effects: []
+  8:
+    cooldown: 36000
+    experience-on-use: 0
+    description:
+    - '&7Sells Stronghold inventory; external Strongholds integration required.'
+    condition: 1 == 0
+    effects: []
+  9:
+    cooldown: 36000
+    experience-on-use: 0
+    description:
+    - '&7Sells Stronghold inventory; external Strongholds integration required.'
+    condition: 1 == 0
+    effects: []
+  10:
+    cooldown: 36000
+    experience-on-use: 0
+    description:
+    - '&7Sells Stronghold inventory; external Strongholds integration required.'
+    condition: 1 == 0
+    effects: []

@@ -1,0 +1,24 @@
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/Angelic.java + RegenerationTask.java
+display: Angelic
+description: Each equipped piece independently rolls a non-overlapping regeneration window with source-exact cadence.
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: ultimate
+tier: ultimate
+stacking: EACH
+levels:
+  1:
+    chance: 3
+    effects: [{ REGENERATION: { amount: 1, period: 100, duration-min: 102, duration-max: 102, particle: SPELL, count: 15, speed: 0.04, anchor: eye, y-offset: 0.5 } }]
+  2:
+    chance: 6
+    effects: [{ REGENERATION: { amount: 1, period: 90, duration-min: 92, duration-max: 92, particle: SPELL, count: 15, speed: 0.04, anchor: eye, y-offset: 0.5 } }]
+  3:
+    chance: 9
+    effects: [{ REGENERATION: { amount: 1, period: 80, duration-min: 82, duration-max: 85, particle: SPELL, count: 15, speed: 0.04, anchor: eye, y-offset: 0.5 } }]
+  4:
+    chance: 12
+    effects: [{ REGENERATION: { amount: 1, period: 70, duration-min: 90, duration-max: 105, particle: SPELL, count: 15, speed: 0.04, anchor: eye, y-offset: 0.5 } }]
+  5:
+    chance: 15
+    effects: [{ REGENERATION: { amount: 1, period: 60, duration-min: 110, duration-max: 125, particle: SPELL, count: 15, speed: 0.04, anchor: eye, y-offset: 0.5 } }]

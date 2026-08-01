@@ -104,10 +104,18 @@ public final class AbilityExecutor {
             }
             Ability ability = abilities[id];
             try {
-                if (pipeline.evaluate(ability, activation).activated()) {
-                    boolean faulted = runEffects(ability, context, sink, activation.activeGem(), activation.facts(), quarantine);
+                GateOutcome outcome = pipeline.evaluate(ability, activation);
+                if (outcome.activated()) {
+                    boolean faulted = runEffects(ability, ability.effects(), context, sink,
+                            activation.activeGem(), activation.facts(), quarantine);
                     activated++;
                     notifyActivation(ability, context, stableKeys);
+                    if (faulted) {
+                        quarantine.recordFailure(id, ability.defId());
+                    }
+                } else if (outcome == GateOutcome.NO_SOULS && ability.noSoulEffects().length > 0) {
+                    boolean faulted = runEffects(ability, ability.noSoulEffects(), context, sink,
+                            activation.activeGem(), activation.facts(), quarantine);
                     if (faulted) {
                         quarantine.recordFailure(id, ability.defId());
                     }
@@ -150,12 +158,21 @@ public final class AbilityExecutor {
                 GateOutcome outcome = pipeline.evaluate(ability, activation, true);
                 switch (outcome) {
                     case ACTIVATED -> {
-                        boolean faulted = runEffects(ability, context, sink, activation.activeGem(),
-                                activation.facts(), quarantine);
+                        boolean faulted = runEffects(ability, ability.effects(), context, sink,
+                                activation.activeGem(), activation.facts(), quarantine);
                         activated = true;
                         notifyActivation(ability, context, stableKeys);
                         if (faulted) {
                             quarantine.recordFailure(id, ability.defId());
+                        }
+                    }
+                    case NO_SOULS -> {
+                        if (ability.noSoulEffects().length > 0) {
+                            boolean faulted = runEffects(ability, ability.noSoulEffects(), context, sink,
+                                    activation.activeGem(), activation.facts(), quarantine);
+                            if (faulted) {
+                                quarantine.recordFailure(id, ability.defId());
+                            }
                         }
                     }
                     case ON_COOLDOWN -> {
@@ -250,12 +267,13 @@ public final class AbilityExecutor {
 
     // Returns true if any effect KIND threw (a genuine fault the quarantine counts). An unregistered head is
     // warn-and-skip, NOT a fault — the ability still activates and its sibling effects run (§9).
-    private boolean runEffects(Ability ability, ActivationContext context, SinkReadback sink, UUID activeGem,
+    private boolean runEffects(Ability ability, CompiledEffect[] effects, ActivationContext context,
+                               SinkReadback sink, UUID activeGem,
                                engine.condition.FactBuffer facts, AbilityQuarantine quarantine) {
         LinkedContent linked = this.linked; // read the volatile once per activation (atomic effect+selector pair)
         boolean faulted = false;
         ActorOrigin origin = null;
-        for (CompiledEffect effect : ability.effects()) {
+        for (CompiledEffect effect : effects) {
             try {
                 EffectKind kind = linked.effectFor(effect); // ADR-0039: dense-id dispatch, head-fallback only for -1
                 if (kind == null) {
@@ -280,6 +298,8 @@ public final class AbilityExecutor {
                 // Targets are resolved now on the firing thread; inline feedback (fold/cancel) stays instant.
                 sink.delay(effect.cumulativeWaitTicks());
                 kind.run(ctx, sink);
+            } catch (engine.effect.EffectHalt halted) {
+                break;
             } catch (Throwable failed) {
                 faulted = true;
                 LOG.log(Level.WARNING, "effect " + effect.head() + " of " + quarantine.describe(ability.defId())

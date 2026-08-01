@@ -23,6 +23,8 @@ import java.util.Map;
  * @param crystals applied crystal stable keys, in order; never {@code null}
  * @param setKey   the armour-set this piece belongs to as an ARMOUR member (stable key), or {@code null}.
  *                 An armour member counts toward set completion (§6.6).
+ * @param setMemberKey the authored armour member token (helmet/chestplate/leggings/boots), or {@code null};
+ *                 used only to restore that piece's exact lore when the item is recomposed.
  * @param setWeaponKey the armour-set this item is the WEAPON of (stable key), or {@code null}. A weapon
  *                 does NOT count toward completion — instead, while the set is complete AND this weapon is
  *                 held, the set's additional weapon bonus ({@code <setKey>/weapon}) fires
@@ -40,11 +42,11 @@ import java.util.Map;
  *                 set/heroic/crystal accounting.
  */
 public record CombatState(Map<String, Integer> enchants, List<String> crystals, String setKey,
-                          String setWeaponKey, boolean omni, HeroicStat heroic, int added, String maskKey,
-                          String reforgeKey) {
+                          String setMemberKey, String setWeaponKey, boolean omni, HeroicStat heroic, int added,
+                          String maskKey, String reforgeKey) {
 
     public static final CombatState EMPTY =
-            new CombatState(Map.of(), List.of(), null, null, false, HeroicStat.NONE, 0, null, null);
+            new CombatState(Map.of(), List.of(), null, null, null, false, HeroicStat.NONE, 0, null, null);
 
     public CombatState {
         // Order-preserving copy keeps the encoded blob (and thus the content-hash cache key) deterministic;
@@ -52,6 +54,7 @@ public record CombatState(Map<String, Integer> enchants, List<String> crystals, 
         enchants = Collections.unmodifiableMap(new LinkedHashMap<>(enchants));
         crystals = List.copyOf(crystals);
         setKey = (setKey == null || setKey.isBlank()) ? null : setKey;
+        setMemberKey = (setMemberKey == null || setMemberKey.isBlank()) ? null : setMemberKey;
         setWeaponKey = (setWeaponKey == null || setWeaponKey.isBlank()) ? null : setWeaponKey;
         heroic = heroic == null ? HeroicStat.NONE : heroic;
         added = Math.max(0, added);
@@ -59,62 +62,77 @@ public record CombatState(Map<String, Integer> enchants, List<String> crystals, 
         reforgeKey = (reforgeKey == null || reforgeKey.isBlank()) ? null : reforgeKey; // mirrors maskKey (ADR-0070)
     }
 
+    /** Backward-compatible canonical shape from before per-member set lore was persisted. */
+    public CombatState(Map<String, Integer> enchants, List<String> crystals, String setKey,
+                       String setWeaponKey, boolean omni, HeroicStat heroic, int added, String maskKey,
+                       String reforgeKey) {
+        this(enchants, crystals, setKey, null, setWeaponKey, omni, heroic, added, maskKey, reforgeKey);
+    }
+
     public CombatState(Map<String, Integer> enchants, List<String> crystals) {
-        this(enchants, crystals, null, null, false, HeroicStat.NONE, 0, null, null);
+        this(enchants, crystals, null, null, null, false, HeroicStat.NONE, 0, null, null);
     }
 
     public CombatState(Map<String, Integer> enchants, List<String> crystals, String setKey, boolean omni) {
-        this(enchants, crystals, setKey, null, omni, HeroicStat.NONE, 0, null, null);
+        this(enchants, crystals, setKey, null, null, omni, HeroicStat.NONE, 0, null, null);
     }
 
     public CombatState(Map<String, Integer> enchants, List<String> crystals, String setKey, boolean omni,
                        HeroicStat heroic) {
-        this(enchants, crystals, setKey, null, omni, heroic, 0, null, null);
+        this(enchants, crystals, setKey, null, null, omni, heroic, 0, null, null);
     }
 
     public CombatState(Map<String, Integer> enchants, List<String> crystals, String setKey, boolean omni,
                        HeroicStat heroic, int added) {
-        this(enchants, crystals, setKey, null, omni, heroic, added, null, null);
+        this(enchants, crystals, setKey, null, null, omni, heroic, added, null, null);
     }
 
     /** A set's WEAPON member: holding it while the set is complete fires the set's weapon bonus (§6.6). */
     public static CombatState weaponMember(String weaponSetKey) {
-        return new CombatState(Map.of(), List.of(), null, weaponSetKey, false, HeroicStat.NONE, 0, null, null);
+        return new CombatState(Map.of(), List.of(), null, null, weaponSetKey, false,
+                HeroicStat.NONE, 0, null, null);
     }
 
     public CombatState withAdded(int added) {
-        return new CombatState(enchants, crystals, setKey, setWeaponKey, omni, heroic, added, maskKey, reforgeKey);
+        return new CombatState(enchants, crystals, setKey, setMemberKey, setWeaponKey, omni, heroic, added,
+                maskKey, reforgeKey);
     }
 
     /** Copy with new enchants, preserving every other field — the safe mutator (the multi-arg ctors silently
      *  null {@code setWeaponKey} and {@code maskKey}, which once stripped a set weapon's membership when it was
      *  enchanted; the same trap now applies to a helmet's mask, ADR-0053, and a weapon's reforge, ADR-0070). */
     public CombatState withEnchants(Map<String, Integer> enchants) {
-        return new CombatState(enchants, crystals, setKey, setWeaponKey, omni, heroic, added, maskKey, reforgeKey);
+        return new CombatState(enchants, crystals, setKey, setMemberKey, setWeaponKey, omni, heroic, added,
+                maskKey, reforgeKey);
     }
 
-    /** Copy with new crystals, preserving every other field (incl. {@code setWeaponKey}, {@code maskKey}, {@code reforgeKey}). */
+    /** Copy with new crystals, preserving every other field (incl. set membership and sockets). */
     public CombatState withCrystals(List<String> crystals) {
-        return new CombatState(enchants, crystals, setKey, setWeaponKey, omni, heroic, added, maskKey, reforgeKey);
+        return new CombatState(enchants, crystals, setKey, setMemberKey, setWeaponKey, omni, heroic, added,
+                maskKey, reforgeKey);
     }
 
-    /** Copy with new heroic stats, preserving every other field (incl. {@code setWeaponKey}, {@code maskKey}, {@code reforgeKey}). */
+    /** Copy with new heroic stats, preserving every other field (incl. set membership and sockets). */
     public CombatState withHeroic(HeroicStat heroic) {
-        return new CombatState(enchants, crystals, setKey, setWeaponKey, omni, heroic, added, maskKey, reforgeKey);
+        return new CombatState(enchants, crystals, setKey, setMemberKey, setWeaponKey, omni, heroic, added,
+                maskKey, reforgeKey);
     }
 
     /** Copy with a new applied mask (or {@code null} to pop it off), preserving every other field (ADR-0053). */
     public CombatState withMask(String maskKey) {
-        return new CombatState(enchants, crystals, setKey, setWeaponKey, omni, heroic, added, maskKey, reforgeKey);
+        return new CombatState(enchants, crystals, setKey, setMemberKey, setWeaponKey, omni, heroic, added,
+                maskKey, reforgeKey);
     }
 
     /** Copy with a new applied reforge (or {@code null} to pop it off), preserving every other field (ADR-0070). */
     public CombatState withReforge(String reforgeKey) {
-        return new CombatState(enchants, crystals, setKey, setWeaponKey, omni, heroic, added, maskKey, reforgeKey);
+        return new CombatState(enchants, crystals, setKey, setMemberKey, setWeaponKey, omni, heroic, added,
+                maskKey, reforgeKey);
     }
 
     public boolean isEmpty() {
-        return enchants.isEmpty() && crystals.isEmpty() && setKey == null && setWeaponKey == null
-                && !omni && heroic.isZero() && added == 0 && maskKey == null && reforgeKey == null;
+        return enchants.isEmpty() && crystals.isEmpty() && setKey == null && setMemberKey == null
+                && setWeaponKey == null && !omni && heroic.isZero() && added == 0
+                && maskKey == null && reforgeKey == null;
     }
 }

@@ -582,8 +582,24 @@ final class Mints {
                         sender.sendMessage(io.messages().format("command.error.no-such-mask", "KEY", key));
                         return;
                     }
+                    List<String> components = new java.util.ArrayList<>();
+                    if (item.codec.MaskCodec.MULTI_MASK_KEY.equals(key)) {
+                        if (args.length < 5) {
+                            sender.sendMessage(io.messages().format("command.mask.multi-usage"));
+                            return;
+                        }
+                        for (int i = 4; i < args.length; i++) {
+                            String component = Give.normalize(args[i], "masks/");
+                            if (item.codec.MaskCodec.MULTI_MASK_KEY.equals(component)
+                                    || content.library().maskDefOf(component) == null) {
+                                sender.sendMessage(io.messages().format("command.error.no-such-mask", "KEY", component));
+                                return;
+                            }
+                            components.add(component);
+                        }
+                    }
                     Scheduling.onEntity(target, () -> {
-                        ItemStack item = masks.mint(key);
+                        ItemStack item = components.isEmpty() ? masks.mint(key) : masks.mintMulti(components);
                         if (item != null) {
                             Inventories.giveOrDrop(target, item);
                         }
@@ -598,6 +614,9 @@ final class Mints {
                     List<MintCatalog.Entry> out = new java.util.ArrayList<>();
                     for (compile.load.MaskDef def : library.masks()) {
                         String defKey = def.key();
+                        if (item.codec.MaskCodec.MULTI_MASK_KEY.equals(defKey)) {
+                            continue; // the template needs component arguments; it is not a standalone mask
+                        }
                         // MaskDef keys carry the masks/ source prefix; tiles read like the pets' bare stems.
                         String stem = defKey.substring(defKey.indexOf('/') + 1);
                         out.add(new MintCatalog.Entry(stem + " mask", () -> masks.mint(defKey)));

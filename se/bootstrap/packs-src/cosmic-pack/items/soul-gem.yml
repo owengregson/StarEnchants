@@ -36,6 +36,21 @@ soul-colors:
 # The colour shown below every tier (an empty gem).
 empty-soul-color: "&7"
 
+# Cosmic SoulModeTask: this is a held-enchant upkeep loop, separate from each enchant's on-proc soul charge.
+# It runs four times per second, ignores enchant levels, and adds every matching cost on the held weapon.
+soul-mode-drain:
+  period-ticks: 5
+  reserve: 4
+  held-enchant-costs:
+    divine-immolation: 5
+    soul-trap: 2
+    hero-killer: 1
+    sabotage: 2
+  sound: { sound: EAT, volume: 0.4, pitch: 0.2 }
+  particle: { particle: SPELL, count: 65, speed: 0.5, y-offset: 1.0 }
+  idle-particle: { particle: ENCHANTMENT_TABLE, count: 80, speed: 1.5, y-offset: 1.0 }
+  milestone-message: "&e&l** SOULS: &n{SOULS}&e&l **"
+
 # Sounds — our unified bracket form { sound: NAME, volume: V, pitch: P } (volume/pitch optional, default 1.0).
 # Each action takes a LIST so it can play several at once; an empty/omitted list is silent.
 sounds:
@@ -57,7 +72,6 @@ sounds:
 particles:
   enable:  { particle: REDSTONE, count: 20, color: { r: 91,  g: 245, b: 83 }, spread: 1.25, y-offset: 1.0 }
   disable: { particle: REDSTONE, count: 20, color: { r: 250, g: 55,  b: 74 }, spread: 1.25, y-offset: 1.0 }
-  idle:    { particle: ENCHANTMENT_TABLE, count: 8,  spread: 0.75, y-offset: 1.0 }
   use:     { particle: SPELL_WITCH,       count: 15, spread: 0.75, y-offset: 1.0 }
 
 # Messages (soul mode on/off, soul-use, /splitsouls) live in lang.yml.

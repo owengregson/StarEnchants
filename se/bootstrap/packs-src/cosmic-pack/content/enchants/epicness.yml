@@ -1,0 +1,46 @@
+# Cosmic codex source: 03-enchants-swords.md — swords/Epicness.java
+display: Epicness
+description: Gives particles and sound effects
+trigger: ATTACK
+applies-to:
+- SWORD
+group: simple
+tier: simple
+stacking: HIGHEST
+levels:
+  1:
+    chance: 50
+    effects:
+    - SOUND:
+        sound: ENTITY_CHICKEN_HURT
+        volume: 1
+        pitch: 0.85
+    - PARTICLE:
+        particle: CLOUD
+        count: 20
+        spread: 0.25
+        who: '@Victim'
+  2:
+    chance: 50
+    effects:
+    - SOUND:
+        sound: ENTITY_MAGMA_CUBE_SQUISH_SMALL
+        volume: 1.2
+        pitch: 0.8
+    - PARTICLE:
+        particle: SLIME
+        count: 20
+        spread: 1
+        who: '@Victim'
+  3:
+    chance: 50
+    effects:
+    - SOUND:
+        sound: ENTITY_GHAST_SCREAM
+        volume: 1
+        pitch: 1.25
+    - PARTICLE:
+        particle: SPELL_WITCH
+        count: 15
+        spread: 0.95
+        who: '@Victim'

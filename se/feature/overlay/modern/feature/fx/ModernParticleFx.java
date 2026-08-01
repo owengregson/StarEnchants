@@ -60,9 +60,9 @@ public final class ModernParticleFx implements ParticleFx {
         if (particle.getDataType() == Particle.DustOptions.class) {
             Particle.DustOptions dust = new Particle.DustOptions(
                     Color.fromRGB(spec.colorR(), spec.colorG(), spec.colorB()), 1.0f);
-            player.getWorld().spawnParticle(particle, at, spec.amount(), s, s, s, 0.0, dust);
+            player.getWorld().spawnParticle(particle, at, spec.amount(), s, s, s, spec.speed(), dust);
         } else {
-            spawnPlain(player, at, particle, spec.amount(), s, 0.0);
+            spawnPlain(player, at, particle, spec.amount(), s, spec.speed());
         }
     }
 

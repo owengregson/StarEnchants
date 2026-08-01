@@ -83,6 +83,7 @@ public final class FactPopulator {
     private final List<VictimStr> victimStr = new ArrayList<>();
     // Context facts come from the event payload, not an actor/victim entity (slot −1 if absent).
     private final int damageSlot;
+    private final int finalDamageSlot;
     private final int blockTypeSlot;
     private final int isBlockSlot;
     private final int worldRainingSlot;
@@ -98,8 +99,16 @@ public final class FactPopulator {
     private final int damageCauseSlot;       // DamageCause name of the triggering event (from the context)
     private final int itemDamageArmorSlot;   // ITEM_DAMAGE: worn-armor vs held (from the context)
     private final int actorBehindVictimSlot; // actor behind the victim's facing (derived, Folia-guarded)
-    private final int actorBelowVictimSlot;  // actor's feet below the victim's (derived, Folia-guarded, ADR-0052)
+    private final int actorBelowVictimSlot;
+    private final int projectileMarkSlot;
+    private final int projectileHeightSlot;
+    private final int victimRageAffectedSlot;
+    private final int victimDevourAffectedSlot;
+    private final int victimBleedStacksSlot;
     private final int rageStacksSlot;        // %ragestacks% (actor-scoped store read, mask-gated)
+    private final int actorHeldSettledSlot;
+    private final int antiGankAttackersSlot;
+    private final int aegisAttackerIndexSlot;
 
     /** Search radius for {@code %nearbyenemies%}, in blocks. */
     private static final double NEARBY_RADIUS = 8.0;
@@ -134,6 +143,8 @@ public final class FactPopulator {
         addActorNum(vocabulary, "actor.food", actor -> actor.getFoodLevel());
         addActorNum(vocabulary, "actor.level", actor -> actor.getLevel());
         addActorNum(vocabulary, "actor.totalexp", actor -> actor.getTotalExperience());
+        addActorNum(vocabulary, "actor.walkspeed", Player::getWalkSpeed);
+        addActorNum(vocabulary, "actor.falldistance", Player::getFallDistance);
         addActorFlag(vocabulary, "sneaking", Player::isSneaking);
         addActorFlag(vocabulary, "blocking", Player::isBlocking);
         addActorFlag(vocabulary, "flying", Player::isFlying);
@@ -144,6 +155,7 @@ public final class FactPopulator {
         addActorFlag(vocabulary, "onfire", actor -> actor.getFireTicks() > 0);
         addActorFlag(vocabulary, "onground", FactPopulator::onGround);
         addActorStr(vocabulary, "actor.world", actor -> actor.getWorld().getName());
+        addActorStr(vocabulary, "actor.environment", actor -> actor.getWorld().getEnvironment().name());
         addActorStr(vocabulary, "actor.gamemode", actor -> actor.getGameMode().name());
         addActorStr(vocabulary, "actor.helditem", probe::mainHandTypeName);
         addActorStr(vocabulary, "actor.type", actor -> actor.getType().name());
@@ -166,8 +178,35 @@ public final class FactPopulator {
         addVictimStr(vocabulary, "victim.helditem", probe::mainHandTypeName);
         // §N MythicMob internal name via the soft hook; empty when not a MythicMob / integration absent.
         addVictimStr(vocabulary, "victim.mobtype", v -> entityTypeResolver.apply(v));
+        addVictimFlag(vocabulary, "victim.necromancermask",
+                v -> v instanceof Player p
+                        && engine.effect.kind.ActiveMasks.has(p, "masks/necromancer-mask"));
+        addVictimNum(vocabulary, "victim.metaphysical",
+                v -> v instanceof Player p
+                        ? Math.max(engine.effect.kind.EnchantLevels.worn(p, "enchants/metaphysical"),
+                                engine.effect.kind.EnchantLevels.worn(p, "enchants/polymorphic-metaphysical")) : 0);
+        addVictimNum(vocabulary, "victim.polymorphicmetaphysical",
+                v -> v instanceof Player p
+                        ? engine.effect.kind.EnchantLevels.worn(p, "enchants/polymorphic-metaphysical") : 0);
+        addVictimNum(vocabulary, "victim.dragonslayer",
+                v -> v instanceof Player p
+                        && engine.effect.kind.ActiveSets.has(p, "sets/dragon-slayer") ? 1 : 0);
+        addVictimNum(vocabulary, "victim.sticky",
+                v -> v instanceof Player p
+                        ? engine.effect.kind.EnchantLevels.worn(p, "enchants/sticky") : 0);
+        addVictimNum(vocabulary, "victim.poltergeist",
+                v -> v instanceof Player p
+                        ? engine.effect.kind.EnchantLevels.worn(p, "enchants/poltergeist") : 0);
+        addVictimFlag(vocabulary, "victim.slowed",
+                v -> v.hasPotionEffect(org.bukkit.potion.PotionEffectType.SLOW));
+        addVictimNum(vocabulary, "victim.isplayer", v -> v instanceof Player ? 1 : 0);
+        addVictimNum(vocabulary, "victim.walkspeed", v -> v instanceof Player p ? p.getWalkSpeed() : 0);
+        addVictimFlag(vocabulary, "victim.boss", v -> v.hasMetadata("boss"));
+        addVictimFlag(vocabulary, "victim.frommobspawner", v -> v.hasMetadata("fromMobSpawner"));
+        addVictimFlag(vocabulary, "victim.induel", v -> v.hasMetadata("in_duel"));
 
         this.damageSlot = slot(vocabulary, "damage", VarKind.NUM);
+        this.finalDamageSlot = slot(vocabulary, "finaldamage", VarKind.NUM);
         this.blockTypeSlot = slot(vocabulary, "block.type", VarKind.STR);
         this.isBlockSlot = slot(vocabulary, "isblock", VarKind.BOOL);
         this.worldRainingSlot = slot(vocabulary, "world.raining", VarKind.BOOL);
@@ -183,7 +222,15 @@ public final class FactPopulator {
         this.itemDamageArmorSlot = slot(vocabulary, "itemdamage.armor", VarKind.BOOL);
         this.actorBehindVictimSlot = slot(vocabulary, "actor.behindvictim", VarKind.BOOL);
         this.actorBelowVictimSlot = slot(vocabulary, "actor.belowvictim", VarKind.NUM);
+        this.projectileMarkSlot = slot(vocabulary, "projectilemark", VarKind.NUM);
+        this.projectileHeightSlot = slot(vocabulary, "projectileheight", VarKind.NUM);
+        this.victimRageAffectedSlot = slot(vocabulary, "victim.rageaffected", VarKind.BOOL);
+        this.victimDevourAffectedSlot = slot(vocabulary, "victim.devouraffected", VarKind.BOOL);
+        this.victimBleedStacksSlot = slot(vocabulary, "victim.bleedstacks", VarKind.NUM);
         this.rageStacksSlot = slot(vocabulary, "ragestacks", VarKind.NUM);
+        this.actorHeldSettledSlot = slot(vocabulary, "actor.heldsettled5", VarKind.BOOL);
+        this.antiGankAttackersSlot = slot(vocabulary, "antigankattackers", VarKind.NUM);
+        this.aegisAttackerIndexSlot = slot(vocabulary, "aegisattackerindex", VarKind.NUM);
     }
 
     /** A populator over the built-in vocabulary — the production default, paired with the compiler's resolver. */
@@ -225,6 +272,22 @@ public final class FactPopulator {
         if (context != null) {
             populateActor(facts, context.actor(), mask);
             populateVictim(facts, context.victim(), mask);
+            if (context.victim() != null && victimRageAffectedSlot >= 0
+                    && mask.readsFlag(victimRageAffectedSlot)) {
+                UUID victimId = context.victim().getUniqueId();
+                facts.setFlag(victimRageAffectedSlot,
+                        victimId != null && vars.get(victimId, "rage-affected", nowTicks) != null);
+            }
+            if (context.victim() != null && victimDevourAffectedSlot >= 0
+                    && mask.readsFlag(victimDevourAffectedSlot)) {
+                UUID victimId = context.victim().getUniqueId();
+                facts.setFlag(victimDevourAffectedSlot,
+                        victimId != null && vars.get(victimId, "devour-affected", nowTicks) != null);
+            }
+            if (victimBleedStacksSlot >= 0 && mask.readsNum(victimBleedStacksSlot)) {
+                facts.setNumber(victimBleedStacksSlot,
+                        context.victim() == null ? 0 : engine.sink.BleedStacks.current(context.victim().getUniqueId()));
+            }
             populateContext(facts, context, mask);
             populateDerived(facts, context, mask);
             Player actor = context.actor();
@@ -232,7 +295,12 @@ public final class FactPopulator {
                 UUID id = actor.getUniqueId();
                 // %ragestacks%: an actor-scoped store read, mask-gated (no entity access, so no Folia guard needed).
                 if (id != null && rageStacksSlot >= 0 && mask.readsNum(rageStacksSlot)) {
-                    facts.setNumber(rageStacksSlot, rageStacks.current(id));
+                    facts.setNumber(rageStacksSlot,
+                            rageStacks.current(id, context.victim() instanceof Player));
+                }
+                if (id != null && actorHeldSettledSlot >= 0 && mask.readsFlag(actorHeldSettledSlot)) {
+                    facts.setFlag(actorHeldSettledSlot,
+                            engine.sink.HeldChanges.settled(id, nowTicks, 5));
                 }
                 facts.papiResolver(token -> {
                     String value = vars.get(id, token, nowTicks);
@@ -302,6 +370,9 @@ public final class FactPopulator {
         if (damageSlot >= 0 && mask.readsNum(damageSlot)) {
             facts.setNumber(damageSlot, context.damage());
         }
+        if (finalDamageSlot >= 0 && mask.readsNum(finalDamageSlot)) {
+            facts.setNumber(finalDamageSlot, context.finalDamage());
+        }
         if (comboSlot >= 0 && mask.readsNum(comboSlot)) {
             facts.setNumber(comboSlot, context.combo());
         }
@@ -312,6 +383,12 @@ public final class FactPopulator {
         }
         if (attackerIndexSlot >= 0 && mask.readsNum(attackerIndexSlot)) {
             facts.setNumber(attackerIndexSlot, context.attackerIndex());
+        }
+        if (antiGankAttackersSlot >= 0 && mask.readsNum(antiGankAttackersSlot)) {
+            facts.setNumber(antiGankAttackersSlot, context.antiGankAttackers());
+        }
+        if (aegisAttackerIndexSlot >= 0 && mask.readsNum(aegisAttackerIndexSlot)) {
+            facts.setNumber(aegisAttackerIndexSlot, context.aegisAttackerIndex());
         }
         if (damageCauseSlot >= 0 && mask.readsStr(damageCauseSlot)) {
             facts.setString(damageCauseSlot, context.damageCauseName());
@@ -359,6 +436,12 @@ public final class FactPopulator {
                 Regions.swallowed("FactPopulator.populateContext.world", unreadable);
             }
         }
+        if (projectileMarkSlot >= 0 && mask.readsNum(projectileMarkSlot)) {
+            facts.setNumber(projectileMarkSlot, context.projectileMark());
+        }
+        if (projectileHeightSlot >= 0 && mask.readsNum(projectileHeightSlot)) {
+            facts.setNumber(projectileHeightSlot, context.projectileHeight());
+        }
     }
 
     // Derived combat geometry (distance, nearbyenemies, victim.inzone); Folia-wrapped like the entity facts
@@ -379,9 +462,14 @@ public final class FactPopulator {
         }
         try {
             if (wantsDistance) {
-                LivingEntity victim = context.victim();
-                if (victim != null && victim.getWorld() == actor.getWorld()) {
-                    facts.setNumber(distanceSlot, actor.getLocation().distance(victim.getLocation()));
+                org.bukkit.Location eventLocation = context.location();
+                if (eventLocation != null && eventLocation.getWorld() == actor.getWorld()) {
+                    facts.setNumber(distanceSlot, actor.getLocation().distance(eventLocation));
+                } else {
+                    LivingEntity victim = context.victim();
+                    if (victim != null && victim.getWorld() == actor.getWorld()) {
+                        facts.setNumber(distanceSlot, actor.getLocation().distance(victim.getLocation()));
+                    }
                 }
             }
             if (wantsInZone) {

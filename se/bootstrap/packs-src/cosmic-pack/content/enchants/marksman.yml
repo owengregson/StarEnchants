@@ -1,0 +1,13 @@
+# Cosmic codex source: 02-enchants-armor-m-z.md — armor/Marksman.java
+display: Marksman
+description: Increases damage dealt with bows, this enchantment is stackable.
+trigger: [BOW]
+applies-to: [ARMOR]
+group: ultimate
+tier: ultimate
+stacking: EACH
+levels:
+  1: { effects: [{ DAMAGE_MOD: { side: attack, mode: add, amount: 1.5625 } }] }
+  2: { effects: [{ DAMAGE_MOD: { side: attack, mode: add, amount: 3.125 } }] }
+  3: { effects: [{ DAMAGE_MOD: { side: attack, mode: add, amount: 4.6875 } }] }
+  4: { effects: [{ DAMAGE_MOD: { side: attack, mode: add, amount: 6.25 } }] }

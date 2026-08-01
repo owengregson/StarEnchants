@@ -1,0 +1,25 @@
+# Cosmic codex source: 02-enchants-armor-m-z.md — armor/Poisoned.java
+display: Poisoned
+description: Chance to give poison to your attacker.
+trigger: [DEFENSE]
+applies-to: [ARMOR]
+group: elite
+tier: elite
+stacking: HIGHEST
+levels:
+  1:
+    chance: 10
+    condition: '%damagecause% == "ENTITY_ATTACK"'
+    effects: [{ POTION: { effect: POISON, level: 1, duration: 0, duration-random-base: 0.5, duration-random-range: 1, duration-random-scale: 20, who: '@Attacker' } }]
+  2:
+    chance: 20
+    condition: '%damagecause% == "ENTITY_ATTACK"'
+    effects: [{ POTION: { effect: POISON, level: 1, duration: 0, duration-random-base: 1, duration-random-range: 2, duration-random-scale: 20, who: '@Attacker' } }]
+  3:
+    chance: 30
+    condition: '%damagecause% == "ENTITY_ATTACK"'
+    effects: [{ POTION: { effect: POISON, level: 2, duration: 0, duration-random-base: 1.5, duration-random-range: 3, duration-random-scale: 20, who: '@Attacker' } }]
+  4:
+    chance: 30
+    condition: '%damagecause% == "ENTITY_ATTACK"'
+    effects: [{ POTION: { effect: POISON, level: 2, duration: 0, duration-random-base: 2, duration-random-range: 4, duration-random-scale: 20, who: '@Attacker' } }]

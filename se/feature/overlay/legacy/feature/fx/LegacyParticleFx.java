@@ -60,7 +60,7 @@ public final class LegacyParticleFx implements ParticleFx {
         float s = (float) spec.spread();
         PacketPlayOutWorldParticles packet = new PacketPlayOutWorldParticles(
                 particle, true, (float) at.getX(), (float) (at.getY() + spec.yOffset()), (float) at.getZ(),
-                s, s, s, 0.0f, Math.max(1, spec.amount()));
+                s, s, s, (float) spec.speed(), Math.max(1, spec.amount()));
         ((CraftPlayer) player).getHandle().playerConnection.sendPacket(packet);
     }
 }

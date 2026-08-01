@@ -1,0 +1,13 @@
+# Cosmic codex source: 02-enchants-armor-m-z.md — armor/Resilience.java
+display: Resilience
+description: Increases HP of your NPC if you get combat logged by 15% per level. Also has a chance to negate 50% of damage from incoming attacks that would normally kill you.
+trigger: [DEFENSE]
+applies-to: [HELMET]
+group: elite
+tier: elite
+stacking: HIGHEST
+levels:
+  1: { chance: 5, condition: '%actor.health% - %finaldamage% <= 0 && %finaldamage% >= 9', effects: &save [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.5 } }, { MESSAGE: { text: '&2&l** RESILIENCE (&250% DMG TAKEN&l) **' } }] }
+  2: { chance: 10, condition: '%actor.health% - %finaldamage% <= 0 && %finaldamage% >= 8', effects: *save }
+  3: { chance: 15, condition: '%actor.health% - %finaldamage% <= 0 && %finaldamage% >= 7', effects: *save }
+  4: { chance: 20, condition: '%actor.health% - %finaldamage% <= 0 && %finaldamage% >= 6', effects: *save }

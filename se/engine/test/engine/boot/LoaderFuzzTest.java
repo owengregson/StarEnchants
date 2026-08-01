@@ -83,7 +83,7 @@ class LoaderFuzzTest {
             Library lib = assertDoesNotThrow(() -> LibraryLoader.load(content, COMPILER, 0), name);
             CompilerFuzzTest.assertClosedCodes(lib.diagnostics());
             for (Ability a : lib.snapshot().abilities()) {
-                assertTrue(a.baseChance() >= 0.0 && a.baseChance() <= 100.0); // loader clamp holds everywhere
+                assertTrue(Double.isFinite(a.baseChance()) && a.baseChance() >= 0.0);
             }
             DiagCode pin = PINS.get(name);
             if (pin != null) {

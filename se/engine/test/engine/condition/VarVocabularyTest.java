@@ -38,14 +38,13 @@ class VarVocabularyTest {
     @Test
     void builtinsHaveTheExpectedShape() {
         VarVocabulary v = BuiltinVars.vocabulary();
-        // Slot counts are load-bearing: the FactBuffer is sized to them. Breakdown justifying 19/20/10 lives in
-        // v3.1 §A (numeric/flag base + exotic-effect port), v3.7 §N (victim.mobtype string), the Cosmic Pack
-        // sets (victim.inzone flag — devil's hellfire zone), ADR-0035 (actor.groundblock string — Frost "on ice"),
-        // ADR-0049 (recentattackers/attackerindex numbers, behindvictim/itemdamage.armor flags, damagecause string),
-        // §3 (ragestacks number — the rage-stack fact), and ADR-0052 (actor.belowvictim number — the Eagle posture).
-        assertEquals(19, v.numberSlots());
-        assertEquals(20, v.flagSlots());
-        assertEquals(10, v.stringSlots());
+        // Slot counts are load-bearing: the FactBuffer is sized to them. The original 19/20/10 surface grew
+        // append-only for Cosmic projectile marks, shared Bleed state, mask/set/enchant lookups, movement and
+        // swap gates, boss/spawner/duel facts, and the dedicated Anti Gank/Aegis windows. Existing slot order
+        // remains unchanged; these exact totals pin every appended runtime-populated fact.
+        assertEquals(34, v.numberSlots());
+        assertEquals(28, v.flagSlots());
+        assertEquals(11, v.stringSlots());
         assertEquals(VarKind.NUM, v.lookup("victim", "health").orElseThrow().kind());
         assertEquals(VarKind.NUM, v.lookup("actor", "maxhealth").orElseThrow().kind());
         assertEquals(VarKind.NUM, v.lookup("world", "time").orElseThrow().kind());

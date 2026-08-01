@@ -1,0 +1,60 @@
+# Supreme — royal diamond set: 10% damage reduction + 15% extra outgoing damage.
+display: "{#3fbbd5}&lLegacy"
+description: "{#3fbbd5}Step into the realm of royalty with the Legacy set, garments woven with threads of unmatched grandeur."
+complete: 4
+# Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
+announce: true
+equip-message: "\n{#3fbbd5}&l** Legacy SET EQUIPPED {#3fbbd5}&l**\n"
+remove-message: "\n&7&l** Legacy SET REMOVED **\n"
+armor:
+  enchants:
+    PROTECTION: 4
+    UNBREAKING: 3
+  lore:
+    - "{#3fbbd5}Step into the realm of royalty with the Legacy set, garments woven with threads of unmatched grandeur."
+    - ""
+    - "{#3fbbd5}&lLEGACY SET BONUS"
+    - "{#3fbbd5}* Deal 15% more damage to all enemies."
+    - "{#3fbbd5}* Gifted Child Passive Ability"
+    - ""
+    - "{#3fbbd5}&lGIFTED CHILD"
+    - "{#3fbbd5}* Gain the ability to fly while not in combat"
+    - "&7&o(Requires all four Legacy set items.)"
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "{#3fbbd5}&lClassic Cap&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "{#3fbbd5}&lGlorious Garment&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "{#3fbbd5}&lLuxurious Legs&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "{#3fbbd5}&lSupreme Slides&r" }
+weapon:
+  enchants:
+    SHARPNESS: 5
+    UNBREAKING: 3
+  material: DIAMOND_SWORD
+  name: "{#3fbbd5}&lSizable Scepter&r"
+  lore:
+    - "{#3fbbd5}Command authority with the Sizable Scepter, a symbol of power and nobility that radiates with royal energy."
+    - ""
+    - "{#3fbbd5}&lLEGACY WEAPON BONUS"
+    - "{#3fbbd5}* Deal 10% more damage to all enemies"
+    - "&7&o(Requires all four Legacy set items.)"
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
+bonuses:
+  - on: armor
+    trigger: DEFENSE
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 10 } }
+  # Gifted Child — flight while the full set is worn AND not in combat. REPEATING re-checks the combat tag each
+  # second; PASSIVE's teardown clears flight on unequip. Entering combat grounds you; leaving restores it.
+  - on: armor
+    trigger: [REPEATING, PASSIVE]
+    repeat: 20
+    chance: 100
+    effects:
+      - { FLY_MODE: { who: "@Self" } }
+      - { PARTICLE: { particle: END_ROD, count: 4 } }
+  - on: weapon
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 25 } }

@@ -37,7 +37,9 @@ public final class Abilities {
         private long worldBlacklist = 0L;
         private CompiledCondition condition = null;
         private CompiledEffect[] effects = new CompiledEffect[0];
+        private CompiledEffect[] noSoulEffects = new CompiledEffect[0];
         private int repeatTicks = 0;
+        private int repeatInitialDelayTicks = -1;
         private Affinity affinity = Affinity.CONTEXT_LOCAL;
         private int cdScopeEnchant = -1;
         private int cdScopeGroup = -1;
@@ -108,8 +110,18 @@ public final class Abilities {
             return this;
         }
 
+        public Builder noSoulEffects(CompiledEffect... noSoulEffects) {
+            this.noSoulEffects = noSoulEffects;
+            return this;
+        }
+
         public Builder repeatTicks(int repeatTicks) {
             this.repeatTicks = repeatTicks;
+            return this;
+        }
+
+        public Builder repeatInitialDelayTicks(int repeatInitialDelayTicks) {
+            this.repeatInitialDelayTicks = repeatInitialDelayTicks;
             return this;
         }
 
@@ -146,9 +158,10 @@ public final class Abilities {
         }
 
         public Ability build() {
+            int initialDelay = repeatInitialDelayTicks >= 0 ? repeatInitialDelayTicks : repeatTicks;
             return new Ability(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost,
-                    worldBlacklist, condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup,
-                    cdScopeType, suppressKey, setPieces, suppressImmune, factMask);
+                    worldBlacklist, condition, effects, repeatTicks, initialDelay, affinity, cdScopeEnchant,
+                    cdScopeGroup, cdScopeType, suppressKey, setPieces, suppressImmune, factMask, noSoulEffects);
         }
     }
 }

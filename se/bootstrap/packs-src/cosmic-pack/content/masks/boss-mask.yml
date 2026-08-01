@@ -1,0 +1,15 @@
+# Cosmic codex source: 11-masks.md
+display: Boss Mask
+color: '&c'
+head: eyJ0aW1lc3RhbXAiOjE1NjI2MjcyNjA5OTMsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9kOGU2ZWMzMTY3MmZmNTljNWYzMzJiOGY3OTIxMDM0NWJhNTZiMDdkOTRkNmJjOGY1ODljYmUzYWZjM2U3OTY5In19fQ==
+material: PLAYER_HEAD
+summary: -25% incoming Boss DMG, +10% outgoing Boss DMG
+description:
+- "&c-25% incoming DMG, +10% outgoing DMG to Bosses"
+- "&7A seasoned monster hunter, you pride"
+- "&7yourself on your boss slaying record."
+- "&6&l * &6Sugar Daddy Lootbox Release"
+abilities:
+- trigger: PASSIVE
+  # Native: x1.10 outgoing to boss metadata, x0.75 incoming from boss metadata.
+  effects: []

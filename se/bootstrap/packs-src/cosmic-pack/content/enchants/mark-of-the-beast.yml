@@ -1,0 +1,24 @@
+# Cosmic codex source: 07-enchants-mastery-soul.md — mastery/MasteryMarkOfTheBeast.java
+display: Mark of the Beast
+description: Once an enemy is afflicted with the mark, all incoming damage is increased by 2x for up to 5 seconds.
+trigger:
+- DEFENSE
+applies-to:
+- ARMOR
+group: mastery
+tier: mastery
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    effects: []
+  2:
+    effects: []
+  3:
+    effects: []
+  4:
+    effects: []
+  5:
+    effects: []
+  6:
+    effects: []

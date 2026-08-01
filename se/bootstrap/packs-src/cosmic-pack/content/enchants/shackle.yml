@@ -1,26 +1,12 @@
-# Imported from EliteEnchantments (id: shackle). Review before shipping.
-display: "Shackle"
-description:
-  - "&eOn hit, stops mobs from spawners"
-  - "&efrom taking knockback."
-trigger: ATTACK
-applies-to: [WEAPON]
-group: "common"
-tier: common
+# Cosmic codex source: 03-enchants-swords.md — weapons/Shackle.java
+display: Shackle
+description: One tick after a hit, zeroes knockback on eligible mobs spawned from a mob spawner; Blaze requires II and Magma Cube requires III.
+trigger: [ATTACK, BOW]
+applies-to: [SWORD, AXE, BOW]
+group: elite
+tier: elite
+stacking: HIGHEST
 levels:
-  1:
-    chance: 25
-    effects:
-      - { SOUND: { sound: "BLOCK_CHAIN_BREAK", volume: 0.9, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { KNOCKBACK_CONTROL: { multiplier: 0, duration: 2, who: "@Victim" } }  # from SHACKLE — EE SHACKLE → KNOCKBACK_CONTROL:0 (cancel the foe's knockback)
-  2:
-    chance: 50
-    effects:
-      - { SOUND: { sound: "BLOCK_CHAIN_BREAK", volume: 0.9, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { KNOCKBACK_CONTROL: { multiplier: 0, duration: 2, who: "@Victim" } }  # from SHACKLE — EE SHACKLE → KNOCKBACK_CONTROL:0 (cancel the foe's knockback)
-  3:
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { KNOCKBACK_CONTROL: { multiplier: 0, duration: 2, who: "@Victim" } }  # from SHACKLE — EE SHACKLE → KNOCKBACK_CONTROL:0 (cancel the foe's knockback)
+  1: { condition: '%victim.frommobspawner% && %victim.type% != "BLAZE" && %victim.type% != "MAGMA_CUBE"', effects: &stop [{ WAIT: 1 }, { VELOCITY: { mode: set, x: 0, y: 0, z: 0, who: '@Victim' } }] }
+  2: { condition: '%victim.frommobspawner% && %victim.type% != "MAGMA_CUBE"', effects: *stop }
+  3: { condition: '%victim.frommobspawner%', effects: *stop }

@@ -1,0 +1,55 @@
+# Imported from EliteEnchantments (id: destruction). Review before shipping.
+display: "Destruction"
+description:
+  - "&eWhen struck, lashes every nearby enemy"
+  - "&eand saps the damage they deal."
+trigger: DEFENSE
+applies-to: [HELMET]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    chance: 10
+    cooldown: 160
+    effects:
+      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+      - { DAMAGE: { amount: 1, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { WEAKEN: { percent: 4, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
+  2:
+    chance: 12.5
+    cooldown: 160
+    effects:
+      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+      - { DAMAGE: { amount: 1, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { WEAKEN: { percent: 5.33, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
+  3:
+    chance: 15
+    cooldown: 160
+    effects:
+      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+      - { DAMAGE: { amount: 1, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { WEAKEN: { percent: 6.67, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
+  4:
+    chance: 17.5
+    cooldown: 160
+    effects:
+      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+      - { DAMAGE: { amount: 1, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { WEAKEN: { percent: 8, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
+  5:
+    chance: 20
+    cooldown: 160
+    effects:
+      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+      - { DAMAGE: { amount: 1, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { WEAKEN: { percent: 10, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }

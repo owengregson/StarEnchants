@@ -1,0 +1,41 @@
+# Pet (ADR-0052) — the GENERAL likeness of EVERY pet head. There is no per-pet item file: a specific pet
+# (from /se give pet, the pets menu, or the mint console) is minted from this one likeness with the pet's
+# colour/name/descriptor/description filled in, onto its content-configured player-head texture. Reload with
+# /se reload.
+# Placeholders (usable in name + both lore templates):
+#   {COLOR}          = the pet's colour codes (content/pets/<key>.yml `color`); `&{COLOR}` is accepted too
+#   {NAME}           = the pet's display name
+#   {DESCRIPTOR}     = the pet's flavour line(s), one lore line per authored line (dropped when un-authored)
+#   {DESCRIPTION}    = the pet's ability description, one lore line per authored line
+#   {TIME_FORMATTED} = the LIVE bracket's right-click cooldown (h/m/s) — meaningful on the active template
+#   {LEVEL} / {MAX_LEVEL} / {EXP} / {EXP_NEXT} = the stored level + exp against the universal knobs
+#   {EXP_BAR}        = the ten-slot progress meter toward the next level (&a■ filled / &7_ empty, one slot
+#                      per 10%); full at the level cap. The template wraps it in &f[ ... &f].
+# The head re-renders when the LEVEL or a bar tenth changes (ADR-0059), so a raw {EXP} line may lag a few
+# points between renders; {LEVEL} in the name below is what keeps the level suffix live on every level-up.
+type: pet
+
+name: "{COLOR}&l{NAME} Pet &7[Lvl. &f&n{LEVEL}&r&7]&r"
+# ACTIVE pets carry the cooldown block + the right-click hint; PASSIVE pets the hotbar hint — each type owns
+# a whole template rather than splicing conditionals into one.
+lore-active:
+  - "{DESCRIPTOR}"
+  - ""
+  - "{COLOR}&lACTIVE PET ABILITY"
+  - "{DESCRIPTION}"
+  - ""
+  - "&eLevel: &r&f&n{LEVEL}&r&7 / {MAX_LEVEL}"
+  - "&eExperience: &r&f[{EXP_BAR}&f]"
+  - ""
+  - "&eCooldown: &r&f&n{TIME_FORMATTED}"
+  - "&7Right Click while holding to apply."
+lore-passive:
+  - "{DESCRIPTOR}"
+  - ""
+  - "{COLOR}&lPASSIVE PET ABILITY"
+  - "{DESCRIPTION}"
+  - ""
+  - "&eLevel: &r&f&n{LEVEL}&r&7 / {MAX_LEVEL}"
+  - "&eExperience: &r&f[{EXP_BAR}&f]"
+  - ""
+  - "&7Hold in hotbar to apply."

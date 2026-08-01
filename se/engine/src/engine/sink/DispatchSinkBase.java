@@ -18,18 +18,25 @@ import engine.stores.TeleblockStore;
 import engine.stores.VarStore;
 import engine.stores.WardStore;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.function.LongSupplier;
 import java.util.function.ToDoubleFunction;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Color;
+import org.bukkit.EntityEffect;
 import org.bukkit.FireworkEffect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -52,6 +59,7 @@ import org.bukkit.entity.Tameable;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
@@ -154,6 +162,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final TrailWalker trails;
     /** The ONE per-boot timed-revert registry (via {@link SinkEnv}), so the quit drain can restore a logout-stranded buff. */
     private final TimedRevert timedReverts;
+    /** Per-boot non-overlapping regeneration windows (Cosmic Angelic). */
+    private final RegenerationWindows regenerationWindows;
     /** The ONE per-boot combo-DoT park ledger (via {@link SinkEnv}); banks a mid-combo hurt instead of applying it (ADR-0069). */
     private final DotParkLedger dotPark;
     /** LIVE ceiling on one {@code interest_percent} deposit ({@code <= 0} = uncapped) — ADR-0052 Fish. */
@@ -180,12 +190,17 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private boolean cancelled;
     private boolean armorIgnored;
     private boolean smeltRequested;
+    private int smeltAmount = 1;
+    private boolean smeltIronGoldOnly;
     private boolean teleportDropsRequested;
     private boolean seekRequested;
+    private int projectileMark;
+    private boolean removeProjectileRequested;
     private boolean echoRequested; // ADR-0049 ECHO_STRIKE: one extra attacker-side pass over this hit
     private double expMultiplier = 1.0;
     private boolean flushed;
     private int delayTicks;
+    private final Map<String, Boolean> infiniteLuckDecisions = new HashMap<>();
 
     /** Exempt {@code target} from anti-cheat movement checks if it is a player (runs on the target thread). */
     private void exemptMovement(Entity target) {
@@ -215,6 +230,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.tempBlocks = env.tempBlocks();
         this.trails = env.trails();
         this.timedReverts = env.timedReverts();
+        this.regenerationWindows = env.regenerationWindows();
         this.dotPark = env.dotPark();
         this.moneyInterestCap = env.moneyInterestCap();
         this.gearProtection = env.gearProtection();
@@ -258,6 +274,16 @@ public abstract class DispatchSinkBase implements SinkReadback {
         return smeltRequested;
     }
 
+    @Override
+    public int smeltAmount() {
+        return smeltAmount;
+    }
+
+    @Override
+    public boolean smeltIronGoldOnly() {
+        return smeltIronGoldOnly;
+    }
+
     /** Whether an effect asked the broken block's drops to go to the breaker's inventory (TELEPORT_DROPS). */
     @Override
     public boolean teleportDropsRequested() {
@@ -268,6 +294,16 @@ public abstract class DispatchSinkBase implements SinkReadback {
     @Override
     public boolean seekRequested() {
         return seekRequested;
+    }
+
+    @Override
+    public int projectileMark() {
+        return projectileMark;
+    }
+
+    @Override
+    public boolean removeProjectileRequested() {
+        return removeProjectileRequested;
     }
 
     /** Whether an effect requested an extra attacker-side echo pass (ECHO_STRIKE). Read by the combat dispatcher. */
@@ -415,6 +451,16 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
+    public void multiplyOutgoingDamage(double factor) {
+        fold.multiplyOutgoing(factor);
+    }
+
+    @Override
+    public void multiplyIncomingDamage(double factor) {
+        fold.multiplyIncoming(factor);
+    }
+
+    @Override
     public void addFlatDamage(double amount) {
         fold.addFlatDamage(amount);
     }
@@ -513,6 +559,49 @@ public abstract class DispatchSinkBase implements SinkReadback {
     @Override
     public void heal(LivingEntity target, double amount) {
         healthWrite(target, () -> target.setHealth(Math.min(target.getHealth() + amount, maxHealth(target))));
+    }
+
+    @Override
+    public void healFromFloor(LivingEntity target, double amount) {
+        healthWrite(target, () ->
+                target.setHealth(Math.min(Math.floor(target.getHealth()) + amount, maxHealth(target))));
+    }
+
+    @Override
+    public void healWithPrivateSound(LivingEntity target, double amount, boolean floorBase,
+                                     int soundId, float volume, float pitch) {
+        healthWrite(target, () -> {
+            double before = target.getHealth();
+            double base = floorBase ? Math.floor(before) : before;
+            double after = Math.min(base + amount, maxHealth(target));
+            target.setHealth(after);
+            if (after > before && target instanceof Player player) {
+                org.bukkit.Sound resolved = sound(soundId);
+                if (resolved != null) {
+                    player.playSound(player.getLocation(), resolved, volume, pitch);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void healIfHeadroom(LivingEntity target, double amount, boolean strict,
+                               int particleId, int particleCount, double particleSpread,
+                               double particleSpeed, int particleAnchor, double particleYOffset) {
+        healthWrite(target, () -> {
+            double before = target.getHealth();
+            double max = maxHealth(target);
+            boolean enough = strict ? before + amount < max : before + amount <= max;
+            if (target.isDead() || before <= 0.0 || !enough) {
+                return;
+            }
+            target.setHealth(before + amount);
+            if (particleId >= 0) {
+                particleDirect(target, particleId, particleCount, -1,
+                        particleSpread, particleSpread, particleSpread, particleSpeed,
+                        particleAnchor, particleYOffset);
+            }
+        });
     }
 
     @Override
@@ -616,7 +705,14 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void fillAir(LivingEntity target) {
-        entityOp(target, () -> target.setRemainingAir(target.getMaximumAir()));
+        fillAir(target, -1);
+    }
+
+    @Override
+    public void fillAir(LivingEntity target, int amount) {
+        entityOp(target, () -> target.setRemainingAir(amount < 0
+                ? target.getMaximumAir()
+                : Math.min(target.getMaximumAir(), target.getRemainingAir() + amount)));
     }
 
     @Override
@@ -723,6 +819,21 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
+    public void guidedFlight(Player target, int durationTicks, double speed) {
+        entityOp(target, () -> {
+            target.setAllowFlight(true);
+            target.setFlying(true);
+            target.setFlySpeed((float) Math.max(0.0, Math.min(1.0, speed)));
+            if (durationTicks >= 0) {
+                revertLater(target, durationTicks, () -> {
+                    target.setFlySpeed(0.1f);
+                    clearTemporaryFlight(target);
+                });
+            }
+        });
+    }
+
+    @Override
     public void flyMode(Player target, boolean allow) {
         entityOp(target, () -> {
             if (allow) {
@@ -750,6 +861,98 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
+    public void faceAway(Player target, Location source) {
+        if (target == null || source == null) {
+            return;
+        }
+        Location origin = source.clone();
+        entityOp(target, () -> {
+            Location eye = target.getEyeLocation();
+            Vector direction = eye.toVector().subtract(origin.toVector());
+            if (direction.lengthSquared() > 0.0) {
+                direction.normalize();
+            }
+            Location facing = target.getLocation();
+            facing.setDirection(direction);
+            target.teleport(facing);
+        });
+    }
+
+    @Override
+    public boolean infiniteLuckBlocks(Player victim, int requiredLevel, int enchantLevel, int heroicPieces) {
+        if (victim == null || enchantLevel < requiredLevel) {
+            return false;
+        }
+        String key = victim.getUniqueId() + ":" + requiredLevel;
+        return infiniteLuckDecisions.computeIfAbsent(key, ignored -> {
+            double counterChance = Math.min(1.0, Math.max(0, heroicPieces) * 0.125);
+            return ThreadLocalRandom.current().nextDouble() >= counterChance;
+        });
+    }
+
+    @Override
+    public void heroKiller(Player actor, Player victim, int level, int heroicArmorPieces,
+                           int cost, int costPeriodTicks, int antiSwapTicks) {
+        if (actor == null || victim == null || level <= 0 || heroicArmorPieces <= 0) {
+            return;
+        }
+        long now = nowTicks.getAsLong();
+        UUID actorId = actor.getUniqueId();
+        if (!HeldChanges.settled(actorId, now, antiSwapTicks)
+                || vars.get(actorId, "soul-trapped", now) != null
+                || !souls.active(actor) || souls.total(actor) <= 0) {
+            return;
+        }
+        if (cost > 0 && vars.get(actorId, "last-soul-remove", now) == null) {
+            vars.set(actorId, "last-soul-remove", "1", now, costPeriodTicks);
+            entityOp(actor, () -> souls.drainUpTo(actor, cost));
+        }
+        multiplyOutgoingDamage(1.0 + 0.10 * level);
+    }
+
+    @Override
+    public void sabotage(Player actor, Player victim, int level, int durationTicks,
+                         int cost, int costPeriodTicks, int antiSwapTicks) {
+        if (actor == null || victim == null || level <= 0) {
+            return;
+        }
+        long now = nowTicks.getAsLong();
+        UUID actorId = actor.getUniqueId();
+        if (!HeldChanges.settled(actorId, now, antiSwapTicks)
+                || vars.get(actorId, "soul-trapped", now) != null
+                || !souls.active(actor) || souls.total(actor) <= 0) {
+            return;
+        }
+        if (cost > 0 && vars.get(actorId, "last-soul-remove", now) == null) {
+            vars.set(actorId, "last-soul-remove", "1", now, costPeriodTicks);
+            entityOp(actor, () -> souls.drainUpTo(actor, cost));
+        }
+        vars.set(victim.getUniqueId(), "sabotage-level", Integer.toString(level), now, durationTicks);
+    }
+
+    @Override
+    public void fakeDeath(Player target) {
+        entityOp(target, () -> target.playEffect(EntityEffect.DEATH));
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void hiddenFromOnline(Player target, boolean hidden) {
+        if (target == null) {
+            return;
+        }
+        for (Player viewer : Bukkit.getOnlinePlayers()) {
+            entityOp(viewer, () -> {
+                if (hidden) {
+                    viewer.hidePlayer(target);
+                } else if (!target.hasMetadata("spectator")) {
+                    viewer.showPlayer(target);
+                }
+            });
+        }
+    }
+
+    @Override
     public void invincible(LivingEntity target, int durationTicks) {
         entityOp(target, () -> {
             applyInvulnerable(target, true);
@@ -766,8 +969,163 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
+    public void damageArmorPercent(LivingEntity target, double percent) {
+        entityOp(target, () -> {
+            EntityEquipment equipment = target.getEquipment();
+            if (equipment == null || percent <= 0.0) {
+                return;
+            }
+            ItemStack[] armor = equipment.getArmorContents();
+            for (int slot = 0; slot < armor.length; slot++) {
+                ItemStack item = armor[slot];
+                if (item == null || item.getType() == Material.AIR || item.getType().getMaxDurability() <= 0) {
+                    continue;
+                }
+                int amount = (int) (item.getType().getMaxDurability() * percent / 100.0);
+                adjustArmorSlotDurability(target, slot, amount);
+            }
+        });
+    }
+
+    @Override
+    public void damageArmorSlot(LivingEntity target, int slot, int amount) {
+        entityOp(target, () -> adjustArmorSlotDurability(target, slot, amount));
+    }
+
+    @Override
+    public void hurtAnimation(LivingEntity target) {
+        entityOp(target, () -> target.playEffect(EntityEffect.HURT));
+    }
+
+    @Override
+    public void suppressAll(Player target, int durationTicks, int byDefId) {
+        suppression.suppressAll(target.getUniqueId(), nowTicks.getAsLong(), durationTicks, byDefId);
+    }
+
+    @Override
+    public void suppressDefense(Player target, int durationTicks, int byDefId) {
+        suppression.suppressDefense(target.getUniqueId(), nowTicks.getAsLong(), durationTicks, byDefId);
+    }
+
+    @Override
+    public void cosmicSilence(Player target, int durationTicks, int byDefId, int soundId,
+                              int enchantmentParticleId, int portalParticleId) {
+        if (durationTicks <= 0) {
+            return;
+        }
+        suppression.suppressDefense(target.getUniqueId(), nowTicks.getAsLong(), durationTicks, byDefId);
+        entityOp(target, () -> {
+            Sound cue = sound(soundId);
+            if (cue != null) {
+                target.playSound(target.getLocation(), cue, 1.0F, 0.25F);
+            }
+            target.sendMessage(Colors.translate("&5&l* SILENCED &7[" + (durationTicks / 20L)
+                    + "s] &5&l*"));
+            particleDirect(target, enchantmentParticleId, 80, -1,
+                    0.4, 0.4, 0.4, 0.0, 2, 0.0);
+            particleDirect(target, portalParticleId, 60, -1,
+                    0.4, 0.4, 0.4, 0.0, 2, 0.0);
+            Scheduling.onEntityLater(target, durationTicks, () -> {
+                // An overlapping proc extends the canonical window; only the callback that observes the
+                // actual expiry emits the release burst.
+                if (suppression.defenseSuppressed(target.getUniqueId(), nowTicks.getAsLong())) {
+                    return;
+                }
+                particleDirect(target, enchantmentParticleId, 80, -1,
+                        0.4, 0.4, 0.4, 0.0, 2, 0.0);
+                particleDirect(target, portalParticleId, 60, -1,
+                        0.4, 0.4, 0.4, 0.0, 2, 0.0);
+            });
+        });
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void bleedStack(Player attacker, LivingEntity victim, double speedStep, int halfFloor,
+                           double bloodLustFloor, double bloodLustScale, int primaryBlock, int secondaryBlock,
+                           int slowPotionId, int bloodLustParticleId, int bloodLustSoundId) {
+        entityOp(victim, () -> {
+            if (BleedStacks.current(victim.getUniqueId()) >= 20) {
+                return;
+            }
+            int stacks = BleedStacks.increment(victim.getUniqueId());
+            int half = Math.max(halfFloor, stacks / 2);
+            if (victim instanceof Player player) {
+                player.setWalkSpeed((float) Math.max(-1.0, Math.min(1.0, 0.2 - speedStep * half)));
+                for (Entity nearby : player.getNearbyEntities(7.0, 7.0, 7.0)) {
+                    if (!(nearby instanceof Player ally)
+                            || (attacker != null && attacker.getUniqueId().equals(ally.getUniqueId()))
+                            || !engine.selector.kind.Allies.allied(player, ally)) {
+                        continue;
+                    }
+                    int bloodLust = engine.effect.kind.EnchantLevels.worn(ally, "enchants/blood-lust");
+                    if (bloodLust <= 0 || ThreadLocalRandom.current().nextDouble() >= 0.2 + bloodLust * 0.05) {
+                        continue;
+                    }
+                    double heal = Math.max(bloodLustFloor, half * bloodLustScale * bloodLust);
+                    Scheduling.onEntity(ally, () -> {
+                        if (!ally.isDead() && ally.getHealth() > 0.0) {
+                            ally.setHealth(Math.min(maxHealth(ally), ally.getHealth() + heal));
+                        }
+                        particleDirect(ally, bloodLustParticleId, 10, -1, 0.0, 0.0, 0.0, 0.075,
+                                1, 0.0);
+                        org.bukkit.Sound cue = sound(bloodLustSoundId);
+                        if (cue != null) {
+                            ally.playSound(ally.getLocation(), cue, 0.4f, 0.6f);
+                        }
+                    });
+                }
+            } else {
+                PotionEffectType slow = potionEffect(slowPotionId);
+                if (slow != null) {
+                    victim.addPotionEffect(new PotionEffect(slow, half * 20, Math.max(1, half / 3)));
+                }
+            }
+            Location cueAt = victim.getLocation().add(0.0, 1.0, 0.0).getBlock().getLocation();
+            org.bukkit.Material primary = material(primaryBlock);
+            org.bukkit.Material secondary = secondaryBlock < 0 ? null : material(secondaryBlock);
+            int repeats = Math.max(1, half / 2);
+            for (int i = 0; i < repeats; i++) {
+                if (primary != null) {
+                    victim.getWorld().playEffect(cueAt, org.bukkit.Effect.STEP_SOUND, primary);
+                }
+                if (secondary != null) {
+                    victim.getWorld().playEffect(cueAt, org.bukkit.Effect.STEP_SOUND, secondary);
+                }
+            }
+            if (secondary != null && victim instanceof Player player && half >= 5 && half % 5 == 0) {
+                double percent = half * 0.0075 / 0.2f * 100.0;
+                java.text.DecimalFormat format = new java.text.DecimalFormat("#.##");
+                player.sendMessage(Colors.translate("&c** DEEP BLEED [&4-" + format.format(percent)
+                        + "&c% Speed] **"));
+            }
+        });
+    }
+
+    @Override
+    public void clearBleed(LivingEntity target) {
+        entityOp(target, () -> {
+            BleedStacks.clear(target.getUniqueId());
+            if (target instanceof Player player) {
+                player.setWalkSpeed(0.2f);
+            } else {
+                PotionEffectType slow = PotionEffectType.getByName("SLOW");
+                if (slow != null) {
+                    target.removePotionEffect(slow);
+                }
+            }
+        });
+    }
+
+    @Override
     public void repairArmor(Player target, int amount) {
         entityOp(target, () -> adjustArmorDurability(target, amount, true));
+    }
+
+    @Override
+    public void repairMostDamagedArmor(Player target, int amount) {
+        entityOp(target, () -> repairMostDamagedArmorPiece(target, amount));
     }
 
     @Override
@@ -775,7 +1133,75 @@ public abstract class DispatchSinkBase implements SinkReadback {
         entityOp(target, () -> {
             PotionEffectType type = potionEffect(potionEffectId);
             if (type != null) {
+                int adjusted = PotionReductions.adjust(target.getUniqueId(), type.getName(), amplifier);
+                if (adjusted >= 0) {
+                    target.addPotionEffect(new PotionEffect(type, durationTicks, adjusted));
+                } else {
+                    target.removePotionEffect(type);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void potionIfAbsent(LivingEntity target, int potionEffectId, int amplifier, int durationTicks) {
+        entityOp(target, () -> {
+            PotionEffectType type = potionEffect(potionEffectId);
+            if (type != null && !target.hasPotionEffect(type)) {
+                int adjusted = PotionReductions.adjust(target.getUniqueId(), type.getName(), amplifier);
+                if (adjusted >= 0) {
+                    target.addPotionEffect(new PotionEffect(type, durationTicks, adjusted));
+                }
+            }
+        });
+    }
+
+    @Override
+    public void potionForce(LivingEntity target, int potionEffectId, int amplifier, int durationTicks) {
+        entityOp(target, () -> {
+            PotionEffectType type = potionEffect(potionEffectId);
+            if (type != null) {
+                int adjusted = PotionReductions.adjust(target.getUniqueId(), type.getName(), amplifier);
+                if (adjusted >= 0) {
+                    target.addPotionEffect(new PotionEffect(type, durationTicks, adjusted), true);
+                } else {
+                    target.removePotionEffect(type);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void resistedPotion(LivingEntity target, double sharedRoll, double baseChance,
+                               String resistanceEnchant, String alternateResistanceEnchant,
+                               double resistPerLevel, int potionEffectId, int amplifier, int durationTicks,
+                               String blockedMessage, boolean currentBlockCue, double cueYOffset) {
+        entityOp(target, () -> {
+            int resistance = 0;
+            if (target instanceof Player player) {
+                resistance = engine.effect.kind.EnchantLevels.worn(player, resistanceEnchant);
+                if (alternateResistanceEnchant != null && !alternateResistanceEnchant.isEmpty()) {
+                    resistance = Math.max(resistance,
+                            engine.effect.kind.EnchantLevels.worn(player, alternateResistanceEnchant));
+                }
+            }
+            if (sharedRoll > baseChance - resistance * resistPerLevel) {
+                if (target instanceof Player player && blockedMessage != null && !blockedMessage.isEmpty()) {
+                    player.sendMessage(Colors.translate(blockedMessage));
+                }
+                return;
+            }
+            PotionEffectType type = potionEffect(potionEffectId);
+            if (type != null) {
                 target.addPotionEffect(new PotionEffect(type, durationTicks, amplifier));
+            }
+            if (currentBlockCue) {
+                Location at = target.getLocation().add(0.0, cueYOffset, 0.0);
+                Material block = at.getBlock().getType();
+                if (isAir(block)) {
+                    block = Material.STONE;
+                }
+                target.getWorld().playEffect(at.getBlock().getLocation(), org.bukkit.Effect.STEP_SOUND, block);
             }
         });
     }
@@ -787,6 +1213,162 @@ public abstract class DispatchSinkBase implements SinkReadback {
             if (type != null) {
                 target.removePotionEffect(type);
             }
+        });
+    }
+
+    @Override
+    public void removePotionUpTo(LivingEntity target, int potionEffectId, int maxAmplifier) {
+        entityOp(target, () -> {
+            PotionEffectType type = potionEffect(potionEffectId);
+            if (type == null) {
+                return;
+            }
+            for (PotionEffect active : target.getActivePotionEffects()) {
+                if (active.getType().equals(type) && active.getAmplifier() <= maxAmplifier) {
+                    target.removePotionEffect(type);
+                    return;
+                }
+            }
+        });
+    }
+
+    @Override
+    public void bless(Player target, String blockedBy, String blockedMessage, String successMessage,
+                      int soundId, float volume, float pitch, int[] allowedEffectIds,
+                      boolean throttleMessage, int messageThrottleTicks) {
+        if (target == null) {
+            return;
+        }
+        UUID id = target.getUniqueId();
+        long now = nowTicks.getAsLong();
+        if (blockedBy != null && !blockedBy.isBlank() && vars.get(id, blockedBy, now) != null) {
+            if (blockedMessage != null && !blockedMessage.isBlank()) {
+                message(target, blockedMessage);
+            }
+            return;
+        }
+        entityOp(target, () -> {
+            BleedStacks.clear(id);
+            target.setWalkSpeed(0.2F);
+
+            Sound cue = sound(soundId);
+            if (cue != null) {
+                target.playSound(target.getLocation(), cue, volume, pitch);
+            }
+
+            PotionEffectType removed = null;
+            for (PotionEffect active : List.copyOf(target.getActivePotionEffects())) {
+                for (int allowed : allowedEffectIds) {
+                    PotionEffectType type = potionEffect(allowed);
+                    if (type != null && type.equals(active.getType())) {
+                        target.removePotionEffect(active.getType());
+                        removed = active.getType();
+                        break;
+                    }
+                }
+                if (removed != null) {
+                    break;
+                }
+            }
+            if (removed == null || successMessage == null || successMessage.isBlank()) {
+                return;
+            }
+            if (!throttleMessage || messageThrottleTicks <= 0
+                    || vars.get(id, "bless-message-throttle", now) == null) {
+                target.sendMessage(platform.text.Colors.translate(successMessage));
+                if (throttleMessage && messageThrottleTicks > 0) {
+                    vars.set(id, "bless-message-throttle", "1", now, messageThrottleTicks);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void regeneration(Player target, int durationTicks, int periodTicks, double amount,
+                             int particleId, int particleCount, double particleSpeed,
+                             int particleAnchor, double particleYOffset) {
+        if (target == null || durationTicks < 0 || periodTicks <= 0 || amount <= 0) {
+            return;
+        }
+        entityOp(target, () -> {
+            UUID player = target.getUniqueId();
+            RegenerationWindows.Window window = regenerationWindows.arm(player);
+            if (window == null) {
+                return;
+            }
+            Runnable healTick = () -> {
+                if (!target.isValid() || target.isDead() || target.getHealth() <= 0.0) {
+                    return;
+                }
+                double before = target.getHealth();
+                double after = Math.min(maxHealth(target), before + amount);
+                if (after != before) {
+                    target.setHealth(after);
+                    particleDirect(target, particleId, particleCount, -1,
+                            0.0, 0.0, 0.0, particleSpeed, particleAnchor, particleYOffset);
+                }
+            };
+            healTick.run();
+            TaskHandle repeating = Scheduling.repeatingEntity(target, periodTicks, periodTicks, healTick);
+            regenerationWindows.attach(window, repeating);
+            long[] token = {-1L};
+            Runnable teardown = () -> regenerationWindows.finish(player, window);
+            token[0] = timedReverts.begin(player, teardown);
+            Scheduling.onEntityLater(target, durationTicks, () -> timedReverts.runOnce(player, token[0]));
+        });
+    }
+
+    @Override
+    public void soulTrap(Player actor, Player target, UUID activeGem, int groupId, int durationTicks,
+                         int retrapGraceTicks, int stealSouls, double fallbackDamage, int actorCost,
+                         int costPeriodTicks, int antiSwapTicks, String message, int soundId,
+                         float soundVolume, float soundPitch, int particle1Id, int particle1Count,
+                         double particle1Speed, int particle2Id, int particle2Count, double particle2Speed,
+                         int byDefId) {
+        if (actor == null || target == null || groupId < 0) {
+            return;
+        }
+        long now = nowTicks.getAsLong();
+        UUID actorId = actor.getUniqueId();
+        UUID targetId = target.getUniqueId();
+        if (!HeldChanges.settled(actorId, now, antiSwapTicks)
+                || vars.get(actorId, "soul-trapped", now) != null
+                || !souls.active(actor)
+                || souls.total(actor) <= 0
+                || vars.get(targetId, "soul-trap-grace", now) != null) {
+            return;
+        }
+
+        if (actorCost > 0 && vars.get(actorId, "last-soul-remove", now) == null) {
+            vars.set(actorId, "last-soul-remove", "1", now, costPeriodTicks);
+            entityOp(actor, () -> souls.debit(actor, activeGem, actorCost));
+        }
+
+        vars.set(targetId, "soul-trapped", "1", now, durationTicks);
+        vars.set(targetId, "soul-trap-grace", "1", now, durationTicks + retrapGraceTicks);
+        suppress(target, ScopeKinds.GROUP, groupId, durationTicks, byDefId);
+
+        entityOp(target, () -> {
+            int stolen = souls.drainUpTo(target, stealSouls);
+            if (stolen > 0) {
+                Bukkit.getLogger().info("removing " + stolen + " souls from " + target.getName()
+                        + " form " + actor.getName() + "'s Soul Trap!");
+            } else if (fallbackDamage > 0.0) {
+                target.damage(fallbackDamage);
+            }
+
+            souls.disable(target);
+            if (message != null && !message.isBlank()) {
+                target.sendMessage(platform.text.Colors.translate(message));
+            }
+            Sound cue = sound(soundId);
+            if (cue != null) {
+                target.playSound(target.getLocation(), cue, soundVolume, soundPitch);
+            }
+            particleDirect(target, particle1Id, particle1Count, -1,
+                    0.0, 0.0, 0.0, particle1Speed, 1, 1.0);
+            particleDirect(target, particle2Id, particle2Count, -1,
+                    0.0, 0.0, 0.0, particle2Speed, 1, 1.0);
         });
     }
 
@@ -833,6 +1415,10 @@ public abstract class DispatchSinkBase implements SinkReadback {
     public void freeze(LivingEntity target, int durationTicks, double dotPerTick, int dotPeriodTicks,
                        double slowPercent, boolean neutralizeFrostSlow, LivingEntity attacker) {
         if (target == null || durationTicks <= 0) {
+            return;
+        }
+        if (target instanceof Player player
+                && engine.effect.kind.ActiveSets.has(player, "sets/dragon-slayer")) {
             return;
         }
         int period = Math.max(1, dotPeriodTicks);
@@ -936,11 +1522,68 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
+    public void cureOneOf(LivingEntity target, int[] allowedEffectIds) {
+        cureOneOf(target, allowedEffectIds, "", 0);
+    }
+
+    @Override
+    public void cureOneOf(LivingEntity target, int[] allowedEffectIds, String successMessage,
+                          int messageThrottleTicks) {
+        if (target == null || allowedEffectIds == null || allowedEffectIds.length == 0) {
+            return;
+        }
+        UUID id = target.getUniqueId();
+        long now = nowTicks.getAsLong();
+        entityOp(target, () -> {
+            for (PotionEffect active : List.copyOf(target.getActivePotionEffects())) {
+                for (int allowed : allowedEffectIds) {
+                    PotionEffectType type = potionEffect(allowed);
+                    if (type != null && type.equals(active.getType())) {
+                        target.removePotionEffect(active.getType());
+                        if (successMessage != null && !successMessage.isBlank()
+                                && (messageThrottleTicks <= 0
+                                || vars.get(id, "cure-one-message-throttle", now) == null)) {
+                            if (target instanceof Player player) {
+                                player.sendMessage(platform.text.Colors.translate(successMessage));
+                            }
+                            if (messageThrottleTicks > 0) {
+                                vars.set(id, "cure-one-message-throttle", "1", now, messageThrottleTicks);
+                            }
+                        }
+                        return;
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
     public void mark(LivingEntity victim, UUID marker, double percent, int durationTicks) {
         if (victim != null && marker != null) {
             // Per-(victim, marker) flag in the static registry, consulted by the fold on the marker's later
             // hits. UUIDs captured here → Folia-safe inline write (no cross-region entity read, no scheduler hop).
             DamageMarks.mark(victim.getUniqueId(), marker, percent / 100.0, durationTicks * 50L); // ticks → ms
+        }
+    }
+
+    @Override
+    public void markExpDrop(LivingEntity target, String channel, double multiplier) {
+        if (target != null) {
+            ExpDropMarks.mark(target.getUniqueId(), channel, multiplier);
+        }
+    }
+
+    @Override
+    public void markHeadDrop(Player target, String channel) {
+        if (target != null) {
+            HeadDropMarks.mark(target.getUniqueId(), channel);
+        }
+    }
+
+    @Override
+    public void markVirus(LivingEntity target, double multiplier, int durationTicks) {
+        if (target != null) {
+            VirusMarks.mark(target.getUniqueId(), multiplier, durationTicks * 50L);
         }
     }
 
@@ -1341,17 +1984,18 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void lightningAndDamage(LivingEntity target, double amount, LivingEntity attacker) {
-        // Worn LIGHTNING_MOD channel (ADR-0063): resolve the wearer's boost NOW on the firing thread and
-        // capture the scaled primitive into the intent (§3.6 immutable-carrier rule). Clamped at 0 so a
-        // full-negation debuff yields a cosmetic bolt, never inverted damage; a cosmetic bolt stays 0.
+        lightning(target, amount > 0, amount, attacker);
+    }
+
+    @Override
+    public void lightning(LivingEntity target, boolean real, double amount, LivingEntity attacker) {
         double payload = amount > 0 && attacker != null
                 ? amount * Math.max(0.0, 1.0 + lightningBoost.applyAsDouble(attacker.getUniqueId()))
                 : amount;
         entityOp(target, () -> {
             World world = target.getWorld();
             if (world != null) {
-                // damage <= 0 is a cosmetic bolt only — no vanilla ~5 dmg / fire (yijki Divine Shield, any flair).
-                if (payload > 0) {
+                if (real) {
                     world.strikeLightning(target.getLocation());
                 } else {
                     world.strikeLightningEffect(target.getLocation());
@@ -1370,6 +2014,14 @@ public abstract class DispatchSinkBase implements SinkReadback {
         entityOp(target, () -> {
             exemptMovement(target); // §N: let a bundled anti-cheat ignore this engine-applied velocity
             target.setVelocity(target.getVelocity().add(new Vector(x, y, z)));
+        });
+    }
+
+    @Override
+    public void setVelocity(Entity target, double x, double y, double z) {
+        entityOp(target, () -> {
+            exemptMovement(target);
+            target.setVelocity(new Vector(x, y, z));
         });
     }
 
@@ -1395,6 +2047,37 @@ public abstract class DispatchSinkBase implements SinkReadback {
             Location dest = pref != null && isSafeDestination(pref, sight) ? pref : fb;
             if (dest != null) {
                 teleportTo(target, dest);
+            }
+        });
+    }
+
+    @Override
+    public void teleportSafeWithCues(LivingEntity target, Location preferred, Location fallback, Location sightFrom,
+                                     int soundId, float volume, float pitch,
+                                     int departureParticleId, int arrivalParticleId,
+                                     int particleCount, double particleSpeed, double particleSpread) {
+        Location pref = preferred == null ? null : preferred.clone();
+        Location fb = fallback == null ? null : fallback.clone();
+        Location sight = sightFrom == null ? null : sightFrom.clone();
+        entityOp(target, () -> {
+            Location dest = pref != null && isSafeDestination(pref, sight) ? pref : fb;
+            if (dest == null) {
+                return;
+            }
+            exemptMovement(target);
+            Location departure = target.getLocation();
+            org.bukkit.Sound cue = sound(soundId);
+            if (cue != null) {
+                target.getWorld().playSound(departure, cue, volume, pitch);
+            }
+            if (departureParticleId >= 0) {
+                particleDirect(target, departureParticleId, particleCount, -1,
+                        particleSpread, particleSpread, particleSpread, particleSpeed, 1, 1.0);
+            }
+            teleportTo(target, dest);
+            if (arrivalParticleId >= 0) {
+                particleDirect(target, arrivalParticleId, particleCount, -1,
+                        particleSpread, particleSpread, particleSpread, particleSpeed, 1, 0.0);
             }
         });
     }
@@ -1465,6 +2148,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 }
                 if (flags.speedMultiplier() > 0 && spawned instanceof LivingEntity living) {
                     applySpawnSpeed(living, flags.speedMultiplier());
+                }
+                if (flags.customName() != null && !flags.customName().isEmpty()) {
+                    applyGuardName(spawned, flags.customName());
+                }
+                if (flags.plagueLevel() > 0 && spawned instanceof LivingEntity living) {
+                    living.setCanPickupItems(false);
                 }
                 if (ownerId != null) {
                     GuardianCasts.bind(spawned.getUniqueId(), ownerId);
@@ -1612,8 +2301,10 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void guard(LivingEntity target, Location at, int entityTypeId, int count, int ttlTicks, String name, UUID owner) {
-        Location origin = at.clone(); // own the spawn point: a WAIT tier can defer this to a later tick
+    public void guard(LivingEntity target, Location at, int entityTypeId, int count, int ttlTicks, String name,
+                      UUID owner, double health, double spawnYOffset, int chunkCap, double retargetRadius,
+                      int retargetPeriod, int potionFlags, int soundId, float soundVolume, float soundPitch) {
+        Location origin = at.clone().add(0.0, spawnYOffset, 0.0);
         regionOp(origin, () -> {
             EntityType type = entityType(entityTypeId);
             World world = origin.getWorld();
@@ -1621,16 +2312,80 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 return;
             }
             for (int i = 0; i < count; i++) {
+                if (chunkCap > 0 && origin.getChunk().getEntities().length >= chunkCap) {
+                    continue;
+                }
                 Entity spawned = world.spawnEntity(origin, type);
                 if (target != null) {
-                    setGuardTarget(spawned, target); // path to + attack the attacker (era-specific targeting API)
+                    setGuardTarget(spawned, target);
                 }
                 applyGuardName(spawned, name);
+                if (spawned instanceof LivingEntity living) {
+                    if (health > 0.0) {
+                        setMaxHealthBase(living, health);
+                        living.setHealth(Math.min(health, maxHealthBase(living)));
+                    }
+                    applyGuardianPotions(living, potionFlags);
+                }
+                if (spawned instanceof org.bukkit.entity.IronGolem golem) {
+                    golem.setPlayerCreated(false);
+                }
+                if (soundId >= 0) {
+                    org.bukkit.Sound resolved = sound(soundId);
+                    if (resolved != null) {
+                        world.playSound(spawned.getLocation(), resolved, soundVolume, soundPitch);
+                    }
+                }
                 if (owner != null) {
-                    GuardianCasts.bind(spawned.getUniqueId(), owner); // ADR-0049: a hit on the guard fires the owner's GUARDIAN_HURT
+                    GuardianCasts.bind(spawned.getUniqueId(), owner, GuardianCasts.Kind.GUARDIAN);
+                }
+                if (retargetRadius > 0.0 && spawned instanceof LivingEntity living) {
+                    armGuardianRetarget(living, owner, retargetRadius, retargetPeriod);
                 }
                 bindTtlForget(spawned, ttlTicks);
             }
+        });
+    }
+
+    @SuppressWarnings("deprecation")
+    private static void applyGuardianPotions(LivingEntity guardian, int flags) {
+        String[] names = {"FIRE_RESISTANCE", "REGENERATION", "INCREASE_DAMAGE", "SPEED", "DAMAGE_RESISTANCE"};
+        for (int i = 0; i < names.length; i++) {
+            if ((flags & (1 << i)) == 0) {
+                continue;
+            }
+            org.bukkit.potion.PotionEffectType type = org.bukkit.potion.PotionEffectType.getByName(names[i]);
+            if (type != null) {
+                guardian.addPotionEffect(new org.bukkit.potion.PotionEffect(type, Integer.MAX_VALUE, 0));
+            }
+        }
+    }
+
+    private void armGuardianRetarget(LivingEntity guardian, UUID ownerId, double radius, int period) {
+        TaskHandle[] task = new TaskHandle[1];
+        task[0] = Scheduling.repeatingEntity(guardian, period, period, () -> {
+            if (!guardian.isValid() || guardian.isDead()) {
+                if (task[0] != null) {
+                    task[0].cancel();
+                }
+                return;
+            }
+            Player ownerPlayer = ownerId == null ? null : org.bukkit.Bukkit.getPlayer(ownerId);
+            Player closest = null;
+            double best = Double.MAX_VALUE;
+            for (Entity nearby : guardian.getNearbyEntities(radius, radius, radius)) {
+                if (!(nearby instanceof Player player) || player.isDead()
+                        || (ownerId != null && ownerId.equals(player.getUniqueId()))
+                        || (ownerPlayer != null && engine.selector.kind.Allies.allied(ownerPlayer, player))) {
+                    continue;
+                }
+                double distance = guardian.getLocation().distanceSquared(player.getLocation());
+                if (distance < best) {
+                    best = distance;
+                    closest = player;
+                }
+            }
+            setGuardTarget(guardian, closest);
         });
     }
 
@@ -1740,6 +2495,24 @@ public abstract class DispatchSinkBase implements SinkReadback {
             }
             if (drops) {
                 block.breakNaturally(); // yields the block's natural drops at its location
+            } else {
+                block.setType(Material.AIR);
+            }
+        });
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void breakBlockWithTool(Location at, boolean drops, Player toolOwner) {
+        ItemStack tool = toolOwner == null ? null : toolOwner.getItemInHand();
+        ItemStack snapshot = tool == null ? null : tool.clone();
+        regionOp(at, () -> {
+            Block block = at.getBlock();
+            if (isAir(block.getType())) {
+                return;
+            }
+            if (drops) {
+                block.breakNaturally(snapshot);
             } else {
                 block.setType(Material.AIR);
             }
@@ -2085,12 +2858,137 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
+    @SuppressWarnings("deprecation") // SkullMeta#setOwner and getItemInHand are shared with the 1.8 floor.
+    public void dropHead(Player target, Player killer) {
+        entityOp(target, () -> {
+            Material head = Material.matchMaterial("PLAYER_HEAD");
+            boolean legacy = head == null;
+            if (legacy) {
+                head = Material.matchMaterial("SKULL_ITEM");
+            }
+            if (head == null) {
+                return;
+            }
+            ItemStack stack = new ItemStack(head, 1);
+            if (legacy) {
+                stack.setDurability((short) 3); // legacy player-skull data value
+            }
+            if (stack.getItemMeta() instanceof SkullMeta meta) {
+                meta.setOwner(target.getName());
+                meta.setDisplayName(ChatColor.WHITE + "Skull of " + target.getName());
+                if (killer != null) {
+                    String date = new SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH).format(new Date());
+                    Location at = killer.getLocation();
+                    ItemStack held = killer.getItemInHand();
+                    String weapon = held == null || held.getType().name().equals("AIR")
+                            ? "Fists"
+                            : held.hasItemMeta() && held.getItemMeta().hasDisplayName()
+                                    ? held.getItemMeta().getDisplayName()
+                                    : titleMaterial(held.getType());
+                    meta.setLore(List.of(
+                            ChatColor.GRAY + "Defeated by " + ChatColor.WHITE + killer.getName() + ChatColor.GRAY + " on ",
+                            ChatColor.WHITE + date + ChatColor.GRAY + " at ",
+                            ChatColor.WHITE + "" + at.getBlockX() + ", " + at.getBlockY() + ", " + at.getBlockZ()
+                                    + ChatColor.GRAY + " with a(n) ",
+                            ChatColor.WHITE + weapon + "!"));
+                }
+                stack.setItemMeta(meta);
+            }
+            target.getWorld().dropItemNaturally(target.getLocation(), stack);
+        });
+    }
+
+    private static String titleMaterial(Material material) {
+        StringBuilder result = new StringBuilder();
+        for (String word : material.name().toLowerCase(Locale.ROOT).split("_")) {
+            if (result.length() > 0) {
+                result.append(' ');
+            }
+            result.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+        }
+        return result.toString();
+    }
+
+    @Override
     public void sound(Location at, int soundId, float volume, float pitch) {
-        regionOp(at, () -> {
-            Sound resolved = sound(soundId);
-            World world = at.getWorld();
-            if (resolved != null && world != null) {
-                world.playSound(at, resolved, volume, pitch);
+        Location pos = at.clone();
+        regionOp(pos, () -> {
+            org.bukkit.Sound resolved = sound(soundId);
+            if (resolved != null && pos.getWorld() != null) {
+                pos.getWorld().playSound(pos, resolved, volume, pitch);
+            }
+        });
+    }
+
+    @Override
+    public void sound(LivingEntity target, int soundId, float volume, float pitch) {
+        entityOp(target, () -> {
+            org.bukkit.Sound resolved = sound(soundId);
+            if (resolved != null) {
+                target.getWorld().playSound(target.getLocation(), resolved, volume, pitch);
+            }
+        });
+    }
+
+    @Override
+    public void privateSound(Player target, int soundId, float volume, float pitch) {
+        entityOp(target, () -> {
+            org.bukkit.Sound cue = sound(soundId);
+            if (cue != null) {
+                target.playSound(target.getLocation(), cue, volume, pitch);
+            }
+        });
+    }
+
+    @Override
+    public void privateSoundAt(Player target, Location at, int soundId, float volume, float pitch) {
+        Location audible = at == null ? null : at.clone();
+        entityOp(target, () -> {
+            org.bukkit.Sound cue = sound(soundId);
+            if (cue != null) {
+                target.playSound(audible == null ? target.getLocation() : audible, cue, volume, pitch);
+            }
+        });
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void blockBreakEffect(Location at, int blockMaterialId) {
+        if (at == null) {
+            return;
+        }
+        Location pos = at.clone();
+        regionOp(pos, () -> {
+            org.bukkit.Material block = material(blockMaterialId);
+            if (block != null && pos.getWorld() != null) {
+                pos.getWorld().playEffect(pos, org.bukkit.Effect.STEP_SOUND, block);
+            }
+        });
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void blockBreakEffect(LivingEntity target, int blockMaterialId) {
+        blockBreakEffect(target, blockMaterialId, "feet", 0.0);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void blockBreakEffect(LivingEntity target, int blockMaterialId, String anchor, double yOffset) {
+        entityOp(target, () -> {
+            org.bukkit.Material block = material(blockMaterialId);
+            if (block != null) {
+                Location pos;
+                if ("eye".equalsIgnoreCase(anchor)) {
+                    pos = target.getEyeLocation();
+                } else {
+                    pos = target.getLocation();
+                    if ("body".equalsIgnoreCase(anchor)) {
+                        pos.add(0.0, entityHeight(target) * 0.5, 0.0);
+                    }
+                }
+                pos.add(0.0, yOffset, 0.0);
+                target.getWorld().playEffect(pos.getBlock().getLocation(), org.bukkit.Effect.STEP_SOUND, block);
             }
         });
     }
@@ -2264,6 +3162,16 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
+    public int soulTotal(Player player) {
+        return player == null ? 0 : souls.currentTotal(player);
+    }
+
+    @Override
+    public boolean soulCostFree(Player player) {
+        return player != null && souls.costFree(player);
+    }
+
+    @Override
     public void removeSoulsFrom(Player target, int amount) {
         if (target == null || amount <= 0) {
             return;
@@ -2276,13 +3184,38 @@ public abstract class DispatchSinkBase implements SinkReadback {
     // ── Variable intents ───────────────────────────────────────────────────────────────────────
 
     @Override
-    public void setVar(Player target, String name, String value, int ttlTicks) {
+    public boolean hasVar(LivingEntity target, String name) {
+        return target != null && name != null
+                && vars.get(target.getUniqueId(), name, nowTicks.getAsLong()) != null;
+    }
+
+    @Override
+    public void setVar(LivingEntity target, String name, String value, int ttlTicks) {
         if (target == null || name == null) {
             return;
         }
         // Per-player in-memory state, not a world mutation: the VarStore is a ConcurrentHashMap, so writing
         // it on the firing thread is Folia-safe (the UUID is captured here; no live cross-region entity read).
         vars.set(target.getUniqueId(), name, value, nowTicks.getAsLong(), ttlTicks);
+    }
+
+    @Override
+    public void markProjectile(int value, int ttlTicks) {
+        if (value > projectileMark) {
+            projectileMark = value;
+        }
+    }
+
+    @Override
+    public void removeTriggeringProjectile() {
+        removeProjectileRequested = true;
+    }
+
+    @Override
+    public void clearVar(LivingEntity target, String name) {
+        if (target != null && name != null) {
+            vars.remove(target.getUniqueId(), name);
+        }
     }
 
     @Override
@@ -2394,9 +3327,16 @@ public abstract class DispatchSinkBase implements SinkReadback {
         if (target == null) {
             return;
         }
+        if (durationTicks >= 0 && engine.effect.kind.ActiveSets.has(target, "sets/ranger")) {
+            return;
+        }
         // Per-player timed flag read later by the teleport/launch listener (a separate Bukkit event). Concurrent
         // store, UUID captured here → Folia-safe on the firing thread.
-        teleblock.block(target.getUniqueId(), nowTicks.getAsLong(), durationTicks);
+        if (durationTicks < 0) {
+            teleblock.clear(target.getUniqueId());
+        } else {
+            teleblock.block(target.getUniqueId(), nowTicks.getAsLong(), durationTicks);
+        }
     }
 
     @Override
@@ -2421,7 +3361,14 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void smelt() {
+        smelt(1, false);
+    }
+
+    @Override
+    public void smelt(int amount, boolean ironGoldOnly) {
         smeltRequested = true;
+        smeltAmount = Math.max(smeltAmount, Math.max(1, amount));
+        smeltIronGoldOnly |= ironGoldOnly;
     }
 
     @Override
@@ -2734,7 +3681,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
     protected abstract void applySpawnHealth(LivingEntity entity, double health);
 
     /**
-     * Set/clear the entity's invulnerability. Modern calls {@code setInvulnerable}; 1.8 (which lacks it)
+     * Set/clear the entity's invulnerability. Modern calls {@code setInvulnerable); 1.8 (which lacks it)
      * flips the NMS {@code Entity.invulnerable} field. Runs on the target's own thread.
      */
     protected abstract void applyInvulnerable(LivingEntity target, boolean invulnerable);
@@ -2780,11 +3727,22 @@ public abstract class DispatchSinkBase implements SinkReadback {
     /** Adjust every worn armour piece's durability — repair when {@code repair}, else damage it. */
     protected abstract void adjustArmorDurability(LivingEntity entity, int amount, boolean repair);
 
+    /** Spawn a particle directly while already on {@code target}'s owning thread. */
+    protected abstract void particleDirect(LivingEntity target, int particleId, int count, int blockMaterialId,
+                                           double offsetX, double offsetY, double offsetZ, double speed,
+                                           int anchor, double yOffset);
+
+    /** Repair only the worn armour piece with the greatest current damage. */
+    protected abstract void repairMostDamagedArmorPiece(LivingEntity entity, int amount);
+
     /**
-     * Make a freshly-summoned guard path to + attack {@code target}. Modern targets via {@code Mob#setTarget};
+     * Make a freshly-summoned guard path to + attack {@code target}. Modern targets via {@code Mob#setTarget);
      * 1.8 (no {@code Mob}) via {@code Creature#setTarget}. Only stores the reference — no cross-region read.
      */
     protected abstract void setGuardTarget(Entity spawned, LivingEntity target);
+
+    /** Version-specific one-slot durability write; slot uses Bukkit armorContents order. */
+    protected abstract void adjustArmorSlotDurability(LivingEntity entity, int slot, int amount);
 
     /**
      * Spawn one entity of an interned type at {@code at}, or {@code null} when the type does not resolve on
@@ -2839,5 +3797,126 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     /** Remove the Quickening attack-speed modifier (HIT_TEMPO/ADR-0071); base = recorded no-op (see above). */
     protected void clearTempoAttackSpeed(Player target) {
+    }
+
+    /** Modern Bukkit exposes entity height directly; 1.8 does not, so body cosmetics use eye height there. */
+    private static double entityHeight(LivingEntity target) {
+        try {
+            Object value = target.getClass().getMethod("getHeight").invoke(target);
+            if (value instanceof Number number) {
+                return number.doubleValue();
+            }
+        } catch (ReflectiveOperationException | RuntimeException unavailable) {
+            // Legacy API: eye height is the closest stable per-entity vertical extent.
+        }
+        return target.getEyeHeight();
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void fakeBlock(LivingEntity target, int blockMaterialId, int durationTicks, double radius, String anchor) {
+        entityOp(target, () -> {
+            Material shown = material(blockMaterialId);
+            if (shown == null) {
+                return;
+            }
+            Location position;
+            if ("eye".equalsIgnoreCase(anchor)) {
+                position = target.getEyeLocation();
+            } else {
+                position = target.getLocation();
+                if ("body".equalsIgnoreCase(anchor)) {
+                    position.add(0.0, entityHeight(target) * 0.5, 0.0);
+                }
+            }
+            position = position.getBlock().getLocation();
+            Material restore = position.getBlock().getType();
+            List<Player> viewers = new ArrayList<>();
+            double r = Math.max(0.0, radius);
+            for (Entity nearby : target.getNearbyEntities(r, r, r)) {
+                if (nearby instanceof Player player) {
+                    viewers.add(player);
+                }
+            }
+            if (target instanceof Player player && !viewers.contains(player)) {
+                viewers.add(player);
+            }
+            Location packetPosition = position.clone();
+            for (Player viewer : viewers) {
+                Scheduling.onEntity(viewer,
+                        () -> viewer.sendBlockChange(packetPosition, shown, (byte) 0));
+            }
+            Scheduling.onEntityLater(target, Math.max(0, durationTicks), () -> {
+                for (Player viewer : viewers) {
+                    Scheduling.onEntity(viewer,
+                            () -> viewer.sendBlockChange(packetPosition, restore, (byte) 0));
+                }
+            });
+        });
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void unequipArmor(Player target, Player attacker, int soundId, float soundVolume, float soundPitch,
+                             int blockMaterialId, int blockHeight, String victimMessage,
+                             String victimDescription, String attackerMessage, int blankLines) {
+        entityOp(target, () -> {
+            EntityEquipment equipment = target.getEquipment();
+            if (equipment == null) {
+                return;
+            }
+            ItemStack[] worn = equipment.getArmorContents();
+            int[] filled = new int[worn.length];
+            int n = 0;
+            for (int i = 0; i < worn.length; i++) {
+                if (worn[i] != null && !isAir(worn[i].getType())) {
+                    filled[n++] = i;
+                }
+            }
+            if (n == 0) {
+                return;
+            }
+            int slot = filled[ThreadLocalRandom.current().nextInt(n)];
+            ItemStack piece = worn[slot];
+            worn[slot] = null;
+            equipment.setArmorContents(worn);
+            if (target.getInventory().firstEmpty() >= 0) {
+                target.getInventory().addItem(piece);
+            } else {
+                Location drop = target.getTargetBlock((Set<Material>) null, 1).getLocation();
+                target.getWorld().dropItem(drop, piece);
+            }
+            org.bukkit.Sound cue = sound(soundId);
+            if (cue != null) {
+                target.getWorld().playSound(target.getLocation(), cue, soundVolume, soundPitch);
+            }
+            Material block = material(blockMaterialId);
+            if (block != null) {
+                Location base = target.getLocation().getBlock().getLocation();
+                for (int y = 0; y < blockHeight; y++) {
+                    target.getWorld().playEffect(base.clone().add(0.0, y, 0.0),
+                            org.bukkit.Effect.STEP_SOUND, block);
+                }
+            }
+            for (int i = 0; i < blankLines; i++) {
+                target.sendMessage("");
+            }
+            if (victimMessage != null && !victimMessage.isEmpty()) {
+                String attackerName = attacker == null ? "" : attacker.getName();
+                target.sendMessage(Colors.translate(victimMessage.replace("{ATTACKER}", attackerName)));
+            }
+            if (victimDescription != null && !victimDescription.isEmpty()) {
+                target.sendMessage(Colors.translate(victimDescription));
+            }
+            for (int i = 0; i < blankLines; i++) {
+                target.sendMessage("");
+            }
+            if (attacker != null && attackerMessage != null && !attackerMessage.isEmpty()) {
+                String victimName = target.getName();
+                Scheduling.onEntity(attacker,
+                        () -> attacker.sendMessage(Colors.translate(
+                                attackerMessage.replace("{VICTIM}", victimName))));
+            }
+        });
     }
 }

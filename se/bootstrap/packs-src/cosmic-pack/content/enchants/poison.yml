@@ -1,31 +1,18 @@
-# Imported from EliteEnchantments (id: poison). Review before shipping.
-display: "Poison"
-description:
-  - "&eOn hit, applies Poison to the"
-  - "&etarget."
-trigger: ATTACK
+# Cosmic codex source: 03-enchants-swords.md — swords/Poison.java
+display: Poison
+description: A chance of giving a random-duration, level-scaled Poison effect.
+trigger: [ATTACK]
 applies-to: [SWORD]
-group: "uncommon"
-tier: uncommon
+group: elite
+tier: elite
+stacking: HIGHEST
 levels:
   1:
-    chance: 12
-    cooldown: 120
-    effects:
-      - { SOUND: { sound: "ENTITY_SPIDER_AMBIENT", volume: 0.8, pitch: 0.9 } }
-      - { PARTICLE: { particle: "WARPED_SPORE", count: 12 } }
-      - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Victim" } }  # from POTION:POISON:1:TARGET:3 — EE seconds → ticks (x20)
+    chance: 10
+    effects: [{ POTION: { effect: POISON, level: 1, duration: 1, duration-random-base: 0, duration-random-range: 20, duration-random-scale: 1, who: '@Victim' } }]
   2:
-    chance: 16
-    cooldown: 120
-    effects:
-      - { SOUND: { sound: "ENTITY_SPIDER_AMBIENT", volume: 0.8, pitch: 0.9 } }
-      - { PARTICLE: { particle: "WARPED_SPORE", count: 12 } }
-      - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Victim" } }  # from POTION:POISON:1:TARGET:3 — EE seconds → ticks (x20)
-  3:
     chance: 20
-    cooldown: 120
-    effects:
-      - { SOUND: { sound: "ENTITY_SPIDER_AMBIENT", volume: 0.8, pitch: 0.9 } }
-      - { PARTICLE: { particle: "WARPED_SPORE", count: 12 } }
-      - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Victim" } }  # from POTION:POISON:1:TARGET:3 — EE seconds → ticks (x20)
+    effects: [{ POTION: { effect: POISON, level: 2, duration: 1, duration-random-base: 0, duration-random-range: 40, duration-random-scale: 1, who: '@Victim' } }]
+  3:
+    chance: 30.000000000000004
+    effects: [{ POTION: { effect: POISON, level: 3, duration: 1, duration-random-base: 0, duration-random-range: 60, duration-random-scale: 1, who: '@Victim' } }]

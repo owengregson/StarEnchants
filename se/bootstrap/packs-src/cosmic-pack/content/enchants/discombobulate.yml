@@ -1,0 +1,14 @@
+# Cosmic codex source: 07-enchants-mastery-soul.md — mastery/MasteryDiscombobulate.java
+display: Discombobulate
+description: Spoofs your distance and hides your name on all enemy and neutral /near lookups.
+trigger:
+- PASSIVE
+applies-to:
+- ARMOR
+group: mastery
+tier: mastery
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    effects: []

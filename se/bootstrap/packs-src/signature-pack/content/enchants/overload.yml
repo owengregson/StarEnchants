@@ -1,0 +1,20 @@
+# Imported from EliteEnchantments (id: overload). Review before shipping.
+display: "Overload"
+description:
+  - "&eIncreases your maximum health"
+  - "&ewhile worn."
+trigger: PASSIVE
+applies-to: [ARMOR]
+group: "legendary"
+tier: legendary
+suppress-immune: true  # permanent worn buff — unsilenceable (Silence/Solitude/Perfect-Solitude can't disable THIS enchant; other enchants still get silenced)
+levels:
+  1:
+    effects:
+      - { POTION: { effect: "HEALTH_BOOST", level: 1, duration: 200, who: "@Self" } }  # from POTION:HEALTH_BOOST:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+  2:
+    effects:
+      - { POTION: { effect: "HEALTH_BOOST", level: 2, duration: 200, who: "@Self" } }
+  3:
+    effects:
+      - { POTION: { effect: "HEALTH_BOOST", level: 3, duration: 200, who: "@Self" } }

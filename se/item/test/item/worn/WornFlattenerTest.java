@@ -60,6 +60,15 @@ class WornFlattenerTest {
     }
 
     @Test
+    void indexesHeldEnchantIdsWithoutRemovingOtherSources() {
+        Ability[] abilities = {ab(0, 1 << 0), ab(1, 1 << 0)};
+        WornState worn = WornFlattener.flatten(7, new int[]{0, 1}, new int[0], new int[]{1},
+                abilities, TRIGGERS, new BitSet(), new int[0], HeroicStat.NONE, ATTACK, DEFENSE);
+        assertArrayEquals(new int[]{0, 1}, worn.byTrigger(0));
+        assertArrayEquals(new int[]{1}, worn.heldEnchantByTrigger(0));
+    }
+
+    @Test
     void emptyWhenNothingActive() {
         WornState w = flatten(new int[0], new Ability[0]);
         assertEquals(0, w.combatAttack().length);

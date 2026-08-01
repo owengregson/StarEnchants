@@ -1,0 +1,38 @@
+# Imported from EliteEnchantments (id: demonforged). Review before shipping.
+display: "Demonforged"
+description:
+  - "&eOn hit, damages the durability"
+  - "&eof the target's armor."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "common"
+tier: common
+levels:
+  1:
+    chance: 1.5
+    cooldown: 140
+    effects:
+      - { SOUND: { sound: "ENTITY_BLAZE_SHOOT", volume: 0.9, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SOUL_FIRE_FLAME", count: 12 } }
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:1 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)
+  2:
+    chance: 2.75
+    cooldown: 140
+    effects:
+      - { SOUND: { sound: "ENTITY_BLAZE_SHOOT", volume: 0.9, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SOUL_FIRE_FLAME", count: 12 } }
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:1 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)
+  3:
+    chance: 4
+    cooldown: 140
+    effects:
+      - { SOUND: { sound: "ENTITY_BLAZE_SHOOT", volume: 0.9, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SOUL_FIRE_FLAME", count: 12 } }
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:1 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)
+  4:
+    chance: 6
+    cooldown: 140
+    effects:
+      - { SOUND: { sound: "ENTITY_BLAZE_SHOOT", volume: 0.9, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SOUL_FIRE_FLAME", count: 12 } }
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }  # from DAMAGE_ARMOR:1 — EE DAMAGE_ARMOR → DURABILITY (damage the foe's armour)

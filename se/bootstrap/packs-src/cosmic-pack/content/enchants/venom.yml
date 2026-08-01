@@ -1,0 +1,20 @@
+# Cosmic codex source: 05-enchants-bows.md — bow/Venom.java
+display: Venom
+description: 'A chance of dealing poison. '
+trigger:
+- BOW
+applies-to:
+- BOW
+group: elite
+tier: elite
+stacking: HIGHEST
+levels:
+  1:
+    effects:
+      - { POTION: { effect: POISON, level: 2, duration: 25, who: '@Victim' } }
+  2:
+    effects:
+      - { POTION: { effect: POISON, level: 2, duration: 50, who: '@Victim' } }
+  3:
+    effects:
+      - { POTION: { effect: POISON, level: 2, duration: 75, who: '@Victim' } }

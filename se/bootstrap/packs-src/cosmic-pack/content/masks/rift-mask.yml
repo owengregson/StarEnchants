@@ -1,0 +1,15 @@
+# Cosmic codex source: 11-masks.md
+display: Rift Mask
+color: '&5'
+head: eyJ0aW1lc3RhbXAiOjE1NDc1Mjg5MTc3MTcsInByb2ZpbGVJZCI6ImEzOWVmNTdhMzg3YzRjZDE5NzQwNTliNzMyZWJjN2E1IiwicHJvZmlsZU5hbWUiOiJNZXJjaGFudCIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8yMzg5NjgzYmQ4YTFhM2RlZGViMjIyNTEwMzEwMTQ5YzYxZjk0NmU1N2U4YTE5MzYwMTkxM2IwNzg2YjVjYzIifX19==
+material: PLAYER_HEAD
+summary: 50% Mastery Enchant Negation.
+description:
+- "&c50% Mastery Enchant Negation"
+- "&7A mysterious mask with a strange"
+- "&7aura of power found scattered among"
+- "&7a select few random lootboxes."
+- "&6&l * &6Snow Day Lootbox Release"
+abilities:
+- trigger: PASSIVE
+  effects: []

@@ -1,0 +1,122 @@
+# Cosmic codex source: 10-armor-sets.md
+display: '&f&lMother of Yijki'
+description: Mother of Yijki Cosmic armor set.
+complete: 4
+announce: true
+equip-message: '&c&lMOTHER OF YIJKI SET BONUS: &c-30% INCOMING DMG'
+remove-message: ''
+armor:
+  enchants: { DURABILITY: 3, PROTECTION_ENVIRONMENTAL: 4 }
+  lore:
+  - '&f&lYIJKI SET BONUS'
+  - '&f&l* &fEnemies deal 30% less damage to you.'
+  - '&f&l* &fRevenge of Yijki Passive Ability'
+  - '&7(&oRequires all 4 yijki items.&7)'
+  pieces:
+    helmet:
+      material: DIAMOND_HELMET
+      name: '&f&lMask of Yijki the Destroyer of Worlds'
+      lore: ['&f&oThe god-mask of Yijki, imbued with', '&f&othe power of absolute destruction.', '']
+      enchant-rolls:
+      - { enchant: enchants/planetary-deathbringer, mode: plain-near-max }
+      - { enchant: enchants/drunk, mode: plain-near-max }
+      - { enchant: enchants/enlighted, mode: plain-near-max }
+      - { enchant: enchants/armored, mode: plain-near-max }
+      - { enchant: enchants/tank, mode: plain-near-max }
+      - { enchant: enchants/angelic, mode: plain-near-max }
+      - { enchant: enchants/hardened, mode: plain-near-max }
+      - { enchant: enchants/valor, mode: plain-near-max }
+      - { enchant: enchants/dodge, mode: plain-near-max }
+      - { enchant: enchants/guardians, mode: plain-near-max }
+      - { enchant: enchants/sticky, mode: plain-near-max }
+      - { enchant: enchants/implants, mode: plain-near-max }
+      - { enchant: enchants/repair-guard, mode: plain-near-max }
+    chestplate:
+      material: DIAMOND_CHESTPLATE
+      name: '&f&lMantel of Yijki the Destroyer of Worlds'
+      lore: ['&f&oThe forebidden mantel of Yijki,', '&f&owoven from the dust of fallen stars.', '']
+      enchant-rolls:
+      - { enchant: enchants/godly-overload, mode: plain-near-max }
+      - { enchant: enchants/blood-lust, mode: plain-near-max }
+      - { enchant: enchants/enlighted, mode: plain-near-max }
+      - { enchant: enchants/deathbringer, mode: plain-near-max }
+      - { enchant: enchants/armored, mode: plain-near-max }
+      - { enchant: enchants/tank, mode: plain-near-max }
+      - { enchant: enchants/angelic, mode: plain-near-max }
+      - { enchant: enchants/arrow-deflect, mode: plain-near-max }
+      - { enchant: enchants/dodge, mode: plain-near-max }
+      - { enchant: enchants/valor, mode: plain-near-max }
+      - { enchant: enchants/hardened, mode: plain-near-max }
+      - { enchant: enchants/aegis, mode: plain-near-max }
+      - { enchant: enchants/spirit-link, mode: plain-near-max }
+      - { enchant: enchants/blood-link, mode: plain-near-max }
+      - { enchant: enchants/leadership, mode: plain-near-max }
+    leggings:
+      material: DIAMOND_LEGGINGS
+      name: '&f&lRobeset of Yijki the Destroyer of Worlds'
+      lore: ['&f&oThe fabled robes of Yijki,', '&f&ohalf angelic, half demonic.', '']
+      enchant-rolls:
+      - { enchant: enchants/enlighted, mode: plain-near-max }
+      - { enchant: enchants/clarity, mode: plain-near-max }
+      - { enchant: enchants/deathbringer, mode: plain-near-max }
+      - { enchant: enchants/nature-wrath, mode: plain-near-max }
+      - { enchant: enchants/lucky, mode: plain-near-max }
+      - { enchant: enchants/armored, mode: plain-near-max }
+      - { enchant: enchants/tank, mode: plain-near-max }
+      - { enchant: enchants/angelic, mode: plain-near-max }
+      - { enchant: enchants/obsidianshield, mode: plain-near-max }
+      - { enchant: enchants/cactus, mode: plain-near-max }
+      - { enchant: enchants/valor, mode: plain-near-max }
+      - { enchant: enchants/hardened, mode: plain-near-max }
+      - { enchant: enchants/metaphysical, mode: plain-near-max }
+      - { enchant: enchants/death-god, mode: plain-near-max }
+      - { enchant: enchants/dodge, mode: plain-near-max }
+    boots:
+      material: DIAMOND_BOOTS
+      name: '&f&lFootwraps of Yijki the Destroyer of Worlds'
+      lore: ['&f&oLight as a feather, heavy as', '&f&oa mountain - the footwraps of Yijki.', '']
+      enchant-rolls:
+      - { enchant: enchants/divine-enlighted, mode: plain-near-max }
+      - { enchant: enchants/gears, mode: plain-near-max }
+      - { enchant: enchants/deathbringer, mode: plain-near-max }
+      - { enchant: enchants/armored, mode: plain-near-max }
+      - { enchant: enchants/tank, mode: plain-near-max }
+      - { enchant: enchants/angelic, mode: plain-near-max }
+      - { enchant: enchants/ender-walker, mode: plain-near-max }
+      - { enchant: enchants/hardened, mode: plain-near-max }
+      - { enchant: enchants/rocket-escape, mode: plain-near-max }
+      - { enchant: enchants/springs, mode: plain-near-max }
+      - { enchant: enchants/valor, mode: plain-near-max }
+      - { enchant: enchants/dodge, mode: plain-near-max }
+      - { enchant: enchants/guardians, mode: plain-near-max }
+      - { enchant: enchants/sticky, mode: plain-near-max }
+      - { enchant: enchants/diminish, mode: plain-near-max }
+bonuses:
+- 'on': armor
+  trigger: DEFENSE
+  effects:
+  - DAMAGE_MOD:
+      side: defense
+      mode: add
+      amount: 30
+- 'on': weapon
+  trigger: ATTACK
+  effects:
+  - DAMAGE_MOD:
+      side: attack
+      mode: add
+      amount: 20
+weapon:
+  enchants: { DAMAGE_ALL: 5, DURABILITY: 3 }
+  material: DIAMOND_SWORD
+  name: "&f&lYijki's World Ender"
+  lore:
+  - '&7An absolutely massive, corrupted'
+  - '&7executioner blade imbued with'
+  - '&7highly destructive dark magic.'
+  - ''
+  - '&f&lYIJKI WEAPON BONUS'
+  - '&fDeal +20% damage to all enemies.'
+  - '&f125% Revenge of Yijki Ability'
+  - '&fImmune to Rot and Decay'
+  - '&7(&7&oRequires all 4 yijki items.&7)'

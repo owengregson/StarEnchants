@@ -1,0 +1,19 @@
+# Cosmic codex source: 02-enchants-armor-m-z.md — armor/RepairGuard.java
+display: Repair Guard
+description: Whenever you remove a low durability piece of armor to repair it, you will get up to 10 absorption hearts (depending
+  on level) while you are fixing it.
+trigger:
+- DEFENSE
+- PASSIVE
+applies-to:
+- ARMOR
+group: elite
+tier: elite
+stacking: HIGHEST
+levels:
+  1:
+    effects: []
+  2:
+    effects: []
+  3:
+    effects: []

@@ -1,0 +1,41 @@
+# Imported from EliteEnchantments (id: teleblock). Review before shipping.
+display: "Teleblock"
+description:
+  - "&eArrows block the target from"
+  - "&eusing ender pearls and remove"
+  - "&etheir pearls."
+trigger: BOW
+applies-to: [BOW]
+group: "soul"
+tier: soul
+levels:
+  1:
+    cooldown: 500
+    effects:
+      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 0.7 } }
+      - { PARTICLE: { particle: "PORTAL", count: 8 } }
+      - { TELEBLOCK: { duration: 400, who: "@Victim" } }  # from TELEBLOCK:20 — EE TELEBLOCK → TELEBLOCK (seconds → ticks)
+  2:
+    cooldown: 500
+    effects:
+      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 0.7 } }
+      - { PARTICLE: { particle: "PORTAL", count: 8 } }
+      - { TELEBLOCK: { duration: 400, who: "@Victim" } }  # from TELEBLOCK:20 — EE TELEBLOCK → TELEBLOCK (seconds → ticks)
+  3:
+    cooldown: 500
+    effects:
+      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 0.7 } }
+      - { PARTICLE: { particle: "PORTAL", count: 8 } }
+      - { TELEBLOCK: { duration: 400, who: "@Victim" } }  # from TELEBLOCK:20 — EE TELEBLOCK → TELEBLOCK (seconds → ticks)
+  4:
+    cooldown: 500
+    effects:
+      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 0.7 } }
+      - { PARTICLE: { particle: "PORTAL", count: 8 } }
+      - { TELEBLOCK: { duration: 400, who: "@Victim" } }  # from TELEBLOCK:20 — EE TELEBLOCK → TELEBLOCK (seconds → ticks)
+  5:
+    cooldown: 500
+    effects:
+      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 0.7 } }
+      - { PARTICLE: { particle: "PORTAL", count: 8 } }
+      - { TELEBLOCK: { duration: 400, who: "@Victim" } }  # from TELEBLOCK:20 — EE TELEBLOCK → TELEBLOCK (seconds → ticks)

@@ -1,0 +1,23 @@
+# Cosmic codex: 12-pets.md — InventoryAlchemistPet.java
+# This pet draws from the external CosmicEvolutionKits ALCHEMIST /vkit loot table, whose contents are absent
+# from the codex and are outside the SE-adjacent boundary. It is catalogued accurately but intentionally inert.
+display: Alchemist
+color: '&e'
+type: ACTIVE
+head: eyJ0aW1lc3RhbXAiOjE1NjE1OTM2NzA4NzAsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8zMjU1MzI3ZGQ4ZTkwYWZhZDY4MWExOTIzMTY2NWJlYTJiZDA2MDY1YTA5ZDc3YWMxNDA4ODM3ZjllMGIyNDIifX19
+material: PLAYER_HEAD
+descriptor: ['&7A Cosmic inventory pet.']
+description: ['&7Draws items from the external Alchemist /vkit loot table.']
+max-level: 10
+experience-to-level: { 2: 1500, 3: 1750, 4: 2000, 5: 2250, 6: 2500, 7: 2750, 8: 3000, 9: 3250, 10: 3500 }
+levels:
+  1: { cooldown: 864000, experience-on-use: 0, condition: '1 == 0', description: ['&7External Alchemist /vkit level 3; up to 3 items.'], effects: [] }
+  2: { cooldown: 864000, experience-on-use: 0, condition: '1 == 0', description: ['&7External Alchemist /vkit level 3; up to 3 items.'], effects: [] }
+  3: { cooldown: 864000, experience-on-use: 0, condition: '1 == 0', description: ['&7External Alchemist /vkit level 3; up to 3 items.'], effects: [] }
+  4: { cooldown: 864000, experience-on-use: 0, condition: '1 == 0', description: ['&7External Alchemist /vkit level 4; up to 3 items.'], effects: [] }
+  5: { cooldown: 864000, experience-on-use: 0, condition: '1 == 0', description: ['&7External Alchemist /vkit level 5; up to 4 items.'], effects: [] }
+  6: { cooldown: 864000, experience-on-use: 0, condition: '1 == 0', description: ['&7External Alchemist /vkit level 6; up to 4 items.'], effects: [] }
+  7: { cooldown: 864000, experience-on-use: 0, condition: '1 == 0', description: ['&7External Alchemist /vkit level 7; up to 4 items.'], effects: [] }
+  8: { cooldown: 864000, experience-on-use: 0, condition: '1 == 0', description: ['&7External Alchemist /vkit level 8; up to 4 items.'], effects: [] }
+  9: { cooldown: 864000, experience-on-use: 0, condition: '1 == 0', description: ['&7External Alchemist /vkit level 9; up to 4 items.'], effects: [] }
+  10: { cooldown: 864000, experience-on-use: 0, condition: '1 == 0', description: ['&7External Alchemist /vkit level 10; up to 5 intended items.'], effects: [] }

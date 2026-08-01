@@ -17,6 +17,7 @@ public final class BuiltinEffects {
                 .register(new DamageEffect())
                 .register(new DamageModEffect()) // §C canonical; replaces ADD_DAMAGE/REDUCE_DAMAGE/FLAT_DAMAGE/FLAT_REDUCE
                 .register(new DamageScaleEffect()) // count-scaled fold contribution (KOTH Victorious: +N% per nearby player)
+                .register(new DistanceDamageEffect())
                 // Entity intents.
                 .register(new HealthModEffect()) // §C canonical MODIFY_HEALTH (give/take/transfer); replaces HEAL
                 .register(new IgniteEffect())
@@ -27,11 +28,29 @@ public final class BuiltinEffects {
                 .register(new MessageEffect()) // §C canonical; channel chat/actionbar/title — replaces ACTIONBAR/TITLE
                 .register(new RunCommandEffect())
                 .register(new CancelEffect())
+                .register(new ResistedRollEffect())
+                .register(new RequireValueEffect())
+                .register(new RequireVarEffect())
+                .register(new RequireSoulTotalEffect())
+                .register(new InfiniteLuckGateEffect())
+                .register(new HeroKillerEffect())
+                .register(new SabotageEffect())
+                .register(new CosmicSilenceEffect())
                 // Handle-using kinds (resolved tokens, §9).
                 .register(new PotionEffect())
+                .register(new ResistedPotionEffect())
+                .register(new RegenerationEffect())
+                .register(new BleedStackEffect())
+                .register(new ClearBleedEffect())
                 .register(new RemovePotionEffect())
+                .register(new RemovePotionUpToEffect())
                 .register(new CureEffect())
+                .register(new CureOneOfEffect())
+                .register(new BlessEffect())
+                .register(new SoulTrapEffect())
                 .register(new SoundEffect())
+                .register(new BlockBreakEffect())
+                .register(new FakeBlockEffect())
                 .register(new ParticleEffect())
                 .register(new ParticleRingEffect()) // shaped coloured dust: ring (KOTH Victorious crown aura)
                 .register(new ParticleLineEffect()) // shaped coloured dust: line/tether to each target
@@ -40,7 +59,11 @@ public final class BuiltinEffects {
                 .register(new ExtinguishEffect())
                 .register(new FillOxygenEffect())
                 .register(new DurabilityEffect()) // §C canonical; replaces ADD_DURABILITY/ADD_DURABILITY_ITEM/REPAIR/DAMAGE_ARMOR
+                .register(new HurtAnimationEffect()) // visual status only (Tombstone anvil impact)
+                .register(new ArmorBatteryEffect()) // repair all + matching-slot retaliation (Cosmic Immortal)
                 .register(new ExpEffect()) // §C canonical MODIFY_EXP (give/take/transfer); replaces GIVE_EXP
+                .register(new ExpDropMarkEffect()) // mark a mob's eventual EntityDeathEvent XP multiplier
+                .register(new VirusMarkEffect()) // timed Poison/Wither damage multiplier
                 .register(new FoodEffect()) // §C canonical MODIFY_FOOD (give/take); replaces FEED
                 .register(new MoneyEffect()) // §C canonical MODIFY_MONEY (give/take/transfer); replaces GIVE_MONEY/TAKE_MONEY
                 .register(new RemoveSoulsEffect()) // §D actor-only soul debit; charges the activator's active gem
@@ -67,16 +90,20 @@ public final class BuiltinEffects {
                 .register(new WalkerEffect()) // §C new primitive: temporary revert-after-ticks platform
                 .register(new TempBlockEffect()) // temp block shapes (yeti ice, fantasy cobweb, devil netherrack)
                 .register(new DropItemEffect())
+                .register(new DropHeadEffect()) // Cosmic Headless/Decapitation: the victim's actual skinned head
                 .register(new GiveItemEffect())
                 .register(new RemoveItemEffect())
                 // §C spawn / visual primitives.
                 .register(new FireworkEffectKind())
                 .register(new ProjectileEffect())
+                .register(new ProjectileMarkEffect())
+                .register(new RemoveProjectileEffect())
                 // §C temporary player-state primitives.
                 .register(new MovementSpeedEffect())
                 .register(new InvincibleEffect())
                 // §A writable variables + § combat-flags.
                 .register(new SetVarEffect()) // §A SET_VAR: per-player named var, read back as %name%
+                .register(new CountTargetsEffect()) // selector count cached as an actor variable for later activations
                 .register(new MarkEffect()) // per-(victim, marker) damage mark (reaper Mark of the Reaper)
                 .register(new InvertVarEffect()) // §A INVERT_VAR: numeric flip of a per-player named var
                 .register(new IgnoreArmorEffect()) // § combat-flags IGNORE_ARMOR: hit bypasses armor/protection

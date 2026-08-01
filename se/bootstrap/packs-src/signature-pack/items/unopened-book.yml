@@ -1,0 +1,16 @@
+# Unopened / randomized book (docs/v3-directives.md §I). Tier-scoped: right-click to reveal a concrete
+# enchant book of a random enchant from its tier, with a random level and a random success chance in
+# [min-success, max-success]. Name/lore tokens (substituted at mint):
+#   {TIER}       — the raw tier key, lowercase (e.g. "legendary").
+#   {TIER_NAME}  — the tier key with its first letter capitalized (e.g. "Legendary").
+#   {TIER_COLOR} — the tier's colour code from tiers.yml (e.g. "&6").
+# {ENCHANT}/{LEVEL}/{PERCENT} name the rolled book in the reveal message (lang.yml), not here.
+type: unopened-book
+
+material: BOOK
+name: "{TIER_COLOR}&l{TIER_NAME} Enchantment Book &r&7(Right Click)&r"
+lore:
+  - "&eExamine to receive a random {TIER} enchantment book, with randomized success and failure chances."
+  - "&7Right Click while holding to apply."
+min-success: 25
+max-success: 100

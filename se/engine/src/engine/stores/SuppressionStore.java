@@ -39,6 +39,10 @@ public final class SuppressionStore implements RetainedStore {
     private static final int MAX_ARMED = 16;
 
     private final Map<UUID, Map<Long, Window>> expiryByPlayer = new ConcurrentHashMap<>();
+    /** Whole-enchantment suppression windows used by generic mechanics that intentionally disable every trigger. */
+    private final Map<UUID, Window> allExpiryByPlayer = new ConcurrentHashMap<>();
+    /** Cosmic noDefenseProcs windows: suppress DEFENSE-direction abilities only, leaving offense and passives live. */
+    private final Map<UUID, Window> defenseExpiryByPlayer = new ConcurrentHashMap<>();
     /**
      * Parallel armed one-shot suppressions ({@code SUPPRESS} mode {@code next-hit}, ADR-0049 Neutralize): a
      * packed scope key &rarr; remaining charges, consumed by {@link #consumeEventScoped} at the end of a hit —
@@ -77,6 +81,8 @@ public final class SuppressionStore implements RetainedStore {
         if (clamped >= 100) {
             expiryByPlayer.remove(player); // absolute immunity drops any DISABLE that landed before it armed
             kindExpiryByPlayer.remove(player); // KIND windows are DISABLE windows too (ADR-0053)
+            allExpiryByPlayer.remove(player);
+            defenseExpiryByPlayer.remove(player);
         }
     }
 
@@ -113,6 +119,36 @@ public final class SuppressionStore implements RetainedStore {
         expiryByPlayer.computeIfAbsent(player, k -> new ConcurrentHashMap<>())
                 .merge(id, new Window(expiry, byDefId), (a, b) -> a.expiry() >= b.expiry() ? a : b);
         onSuppress.onSuppress(player, durationTicks); // instant drop + scheduled restore of maintained buffs
+    }
+
+    /** Suppress every DEFENSE-direction ability owned by {@code player} for the requested window. */
+    public void suppressDefense(UUID player, long nowTicks, int durationTicks, int byDefId) {
+        if (durationTicks <= 0 || vetoedByImmunity(player)) {
+            return;
+        }
+        Window next = new Window(nowTicks + durationTicks, byDefId);
+        defenseExpiryByPlayer.merge(player, next, (a, b) -> a.expiry() >= b.expiry() ? a : b);
+        onSuppress.onSuppress(player, durationTicks);
+    }
+
+    /** Whether the player's Cosmic defense-proc silence is currently active. */
+    public boolean defenseSuppressed(UUID player, long nowTicks) {
+        return defenseWindow(player, nowTicks) != null;
+    }
+
+    /** Suppress every non-immune ability owned by {@code player} for the requested window. */
+    public void suppressAll(UUID player, long nowTicks, int durationTicks, int byDefId) {
+        if (durationTicks <= 0 || vetoedByImmunity(player)) {
+            return;
+        }
+        Window next = new Window(nowTicks + durationTicks, byDefId);
+        allExpiryByPlayer.merge(player, next, (a, b) -> a.expiry() >= b.expiry() ? a : b);
+        onSuppress.onSuppress(player, durationTicks);
+    }
+
+    /** Whether the player's whole-enchantment silence window is currently active. */
+    public boolean allSuppressed(UUID player, long nowTicks) {
+        return allWindow(player, nowTicks) != null;
     }
 
     /**
@@ -257,10 +293,17 @@ public final class SuppressionStore implements RetainedStore {
             return false; // per-enchant immunity (suppress-immune: true) — Silence & derivatives no-op against it,
                           // so a permanent buff survives while the wearer's OTHER enchants are still silenced.
         }
-        return scopeSuppressed(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, player, nowTicks)
+        return allWindow(player, nowTicks) != null
+                || scopeSuppressed(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, player, nowTicks)
                 || scopeSuppressed(ability.cdScopeGroup(), ScopeKinds.GROUP, player, nowTicks)
                 || scopeSuppressed(ability.cdScopeType(), ScopeKinds.TYPE, player, nowTicks)
                 || kindSuppressed(ability, player, nowTicks);
+    }
+
+    /** Gate helper that additionally applies Cosmic noDefenseProcs only on a DEFENSE-direction activation. */
+    public boolean suppressesAny(Ability ability, UUID player, long nowTicks, boolean defenseTrigger) {
+        return (!ability.suppressImmune() && defenseTrigger && defenseWindow(player, nowTicks) != null)
+                || suppressesAny(ability, player, nowTicks);
     }
 
     /**
@@ -333,6 +376,10 @@ public final class SuppressionStore implements RetainedStore {
      */
     public long blockedDetail(Ability ability, UUID player, long nowTicks) {
         int d;
+        Window all = allWindow(player, nowTicks);
+        if (all != null) {
+            return detail(all.byDefId(), ScopeKinds.TYPE, 0);
+        }
         if ((d = scopeByDefId(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, player, nowTicks)) != NONE) {
             return detail(d, ScopeKinds.ENCHANT, ability.cdScopeEnchant());
         }
@@ -364,6 +411,13 @@ public final class SuppressionStore implements RetainedStore {
         return 0;
     }
 
+    /** Detail helper mirroring the defense-aware gate overload. */
+    public long blockedDetail(Ability ability, UUID player, long nowTicks, boolean defenseTrigger) {
+        Window defense = !ability.suppressImmune() && defenseTrigger ? defenseWindow(player, nowTicks) : null;
+        return defense == null ? blockedDetail(ability, player, nowTicks)
+                : detail(defense.byDefId(), ScopeKinds.TYPE, 0);
+    }
+
     /** Sentinel "no blocking window/one-shot" (a real byDefId can be {@code -1}, so {@code NONE} must differ). */
     private static final int NONE = Integer.MIN_VALUE;
 
@@ -385,6 +439,27 @@ public final class SuppressionStore implements RetainedStore {
         return ((long) byDefId << 32) | ((long) (scopeKind & 0x3) << 28) | (scopeId & 0x0FFF_FFFFL);
     }
 
+    private Window allWindow(UUID player, long nowTicks) {
+        Window window = allExpiryByPlayer.get(player);
+        if (window != null && nowTicks >= window.expiry()) {
+            allExpiryByPlayer.remove(player, window);
+            return null;
+        }
+        return window;
+    }
+
+    private Window defenseWindow(UUID player, long nowTicks) {
+        Window w = defenseExpiryByPlayer.get(player);
+        if (w == null) {
+            return null;
+        }
+        if (nowTicks >= w.expiry()) {
+            defenseExpiryByPlayer.remove(player, w);
+            return null;
+        }
+        return w;
+    }
+
     public static int detailScopeKind(long d) {
         return (int) ((d >>> 28) & 0x3L);
     }
@@ -401,6 +476,8 @@ public final class SuppressionStore implements RetainedStore {
     /** Forget every suppression (timed, one-shot, KIND, and immunity) for one player (a full clear — NOT the quit sweep). */
     public void clear(UUID player) {
         expiryByPlayer.remove(player);
+        allExpiryByPlayer.remove(player);
+        defenseExpiryByPlayer.remove(player);
         armedByPlayer.remove(player);
         kindExpiryByPlayer.remove(player);
         kindArmedByPlayer.remove(player);
@@ -429,6 +506,9 @@ public final class SuppressionStore implements RetainedStore {
             ids.values().removeIf(w -> nowTicks >= w.expiry());
             return ids.isEmpty() ? null : ids;
         });
+        allExpiryByPlayer.computeIfPresent(player, (id, window) -> nowTicks >= window.expiry() ? null : window);
+        defenseExpiryByPlayer.computeIfPresent(player,
+                (id, window) -> nowTicks >= window.expiry() ? null : window);
     }
 
     /** Drop every player's elapsed suppression windows at {@code nowTicks} (the periodic offline-state sweep). */
@@ -440,11 +520,19 @@ public final class SuppressionStore implements RetainedStore {
         for (UUID player : kindExpiryByPlayer.keySet()) {
             evictElapsed(player, nowTicks);
         }
+        for (UUID player : allExpiryByPlayer.keySet()) {
+            evictElapsed(player, nowTicks);
+        }
+        for (UUID player : defenseExpiryByPlayer.keySet()) {
+            evictElapsed(player, nowTicks);
+        }
     }
 
     /** Forget every suppression (timed, one-shot, KIND, and all immunity) for every player (call on disable). */
     public void clearAll() {
         expiryByPlayer.clear();
+        allExpiryByPlayer.clear();
+        defenseExpiryByPlayer.clear();
         armedByPlayer.clear();
         kindExpiryByPlayer.clear();
         kindArmedByPlayer.clear();

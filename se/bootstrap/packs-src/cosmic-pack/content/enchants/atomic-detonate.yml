@@ -1,0 +1,19 @@
+# Cosmic codex source: 06-enchants-tools-heroic.md — heroic/HeroicDetonate.java
+display: Atomic Detonate
+description: Summons up to a 7x7x7 explosion around any blocks you break.
+trigger:
+- PASSIVE
+applies-to: [PICKAXE, HOE, SHOVEL, AXE, FISHING_ROD]
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    effects: []
+  2:
+    effects: []
+  3:
+    effects: []
+  4:
+    effects: []

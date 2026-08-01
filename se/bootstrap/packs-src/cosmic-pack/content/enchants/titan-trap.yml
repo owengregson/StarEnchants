@@ -1,0 +1,45 @@
+# Cosmic codex source: 06-enchants-tools-heroic.md — heroic/HeroicTrap.java
+display: Titan Trap
+description: A chance to give a longer lasting buffed slowness effect. More resilient against metaphysical.
+trigger:
+- ATTACK
+applies-to:
+- SWORD
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    condition: &eligible '%victim.type% == "PLAYER" && %victim.walkspeed% >= 0.2'
+    effects:
+      - { RESISTED_ROLL: { chance: 4, resistance-level: '%victim.metaphysical%', resist-per-level: 1.25, min-chance: 1, blocked-message: '&8&l** METAPHYSICAL (&8Trap blocked!&l) **' } }
+      - { MOVEMENT_SPEED: { speed: 0.001, ticks: 45, who: '@Victim' } }
+      - { POTION: { effect: JUMP, level: 129, duration: 45, force: true, who: '@Victim' } }
+      - { FAKE_BLOCK: { block: STATIONARY_WATER, duration: 45, radius: 32, anchor: eye, who: '@Victim' } }
+      - { SOUND: { sound: WATER, volume: 10, pitch: 1.1, audience: target, who: '@Victim' } }
+      - { MESSAGE: { text: '&c&l** TITAN TRAP [&72.25s&c&l] **', who: '@Victim' } }
+      - { BLOCK_BREAK_EFFECT: { block: SNOW_BLOCK, anchor: feet, who: '@Victim' } }
+      - { MESSAGE: { text: '&a&l** FREE [&7Titan Trap&a&l] **', wait: 45, who: '@Victim' } }
+  2:
+    condition: *eligible
+    effects:
+      - { RESISTED_ROLL: { chance: 8, resistance-level: '%victim.metaphysical%', resist-per-level: 1.25, min-chance: 1, blocked-message: '&8&l** METAPHYSICAL (&8Trap blocked!&l) **' } }
+      - { MOVEMENT_SPEED: { speed: 0.001, ticks: 55, who: '@Victim' } }
+      - { POTION: { effect: JUMP, level: 129, duration: 55, force: true, who: '@Victim' } }
+      - { FAKE_BLOCK: { block: STATIONARY_WATER, duration: 55, radius: 32, anchor: eye, who: '@Victim' } }
+      - { SOUND: { sound: WATER, volume: 10, pitch: 1.1, audience: target, who: '@Victim' } }
+      - { MESSAGE: { text: '&c&l** TITAN TRAP [&72.75s&c&l] **', who: '@Victim' } }
+      - { BLOCK_BREAK_EFFECT: { block: SNOW_BLOCK, anchor: feet, who: '@Victim' } }
+      - { MESSAGE: { text: '&a&l** FREE [&7Titan Trap&a&l] **', wait: 55, who: '@Victim' } }
+  3:
+    condition: *eligible
+    effects:
+      - { RESISTED_ROLL: { chance: 12, resistance-level: '%victim.metaphysical%', resist-per-level: 1.25, min-chance: 1, blocked-message: '&8&l** METAPHYSICAL (&8Trap blocked!&l) **' } }
+      - { MOVEMENT_SPEED: { speed: 0.001, ticks: 65, who: '@Victim' } }
+      - { POTION: { effect: JUMP, level: 129, duration: 65, force: true, who: '@Victim' } }
+      - { FAKE_BLOCK: { block: STATIONARY_WATER, duration: 65, radius: 32, anchor: eye, who: '@Victim' } }
+      - { SOUND: { sound: WATER, volume: 10, pitch: 1.1, audience: target, who: '@Victim' } }
+      - { MESSAGE: { text: '&c&l** TITAN TRAP [&73.25s&c&l] **', who: '@Victim' } }
+      - { BLOCK_BREAK_EFFECT: { block: SNOW_BLOCK, anchor: feet, who: '@Victim' } }
+      - { MESSAGE: { text: '&a&l** FREE [&7Titan Trap&a&l] **', wait: 65, who: '@Victim' } }

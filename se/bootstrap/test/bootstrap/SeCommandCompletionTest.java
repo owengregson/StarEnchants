@@ -13,7 +13,7 @@ class SeCommandCompletionTest {
     private static final List<String> CRYSTALS = List.of("crystals/jolt", "crystals/frost");
     private static final List<String> PLAYERS = List.of("Bob", "Alice");
     private static final List<String> SETS = List.of("sets/titan", "sets/yeti");
-    private static final List<String> PACKS = List.of("cosmic-pack", "vanilla-plus");
+    private static final List<String> PACKS = List.of("cosmic-pack", "signature-pack", "vanilla-plus");
     private static final java.util.Map<String, Integer> MAX_LEVELS = java.util.Map.of(
             "enchants/venom", 3, "enchants/vigor", 5, "enchants/blast", 1);
 
@@ -141,6 +141,7 @@ class SeCommandCompletionTest {
         assertEquals(List.of("apply"), completePack("pack", "ap"));
         assertEquals(PACKS, completePack("pack", "info", ""));                       // arg 2 = pack name
         assertEquals(List.of("cosmic-pack"), completePack("pack", "apply", "cos"));
+        assertEquals(List.of("signature-pack"), completePack("pack", "apply", "sig"));
         assertTrue(completePack("pack", "export", "").isEmpty());                    // export takes a NEW name
         assertTrue(completePack("pack", "list", "x").isEmpty());                     // list takes no further arg
         assertEquals(List.of("--force"), completePack("pack", "apply", "cosmic-pack", "")); // arg 3 = the flag

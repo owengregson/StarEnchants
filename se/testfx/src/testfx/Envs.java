@@ -56,6 +56,7 @@ public final class Envs {
         private ComboStore combo = new ComboStore();
         private WhyStore why = new WhyStore();
         private RecentAttackersStore recentAttackers = new RecentAttackersStore();
+        private RecentAttackersStore antiGankAttackers = new RecentAttackersStore();
         private ReflectMarksStore reflectMarks = new ReflectMarksStore();
         private OutgoingDebuffStore outgoingDebuff = new OutgoingDebuffStore();
         private DamageCapStore damageCap = new DamageCapStore();
@@ -129,6 +130,11 @@ public final class Envs {
             return this;
         }
 
+        public SinkEnvBuilder antiGankAttackers(RecentAttackersStore antiGankAttackers) {
+            this.antiGankAttackers = antiGankAttackers;
+            return this;
+        }
+
         public SinkEnvBuilder reflectMarks(ReflectMarksStore reflectMarks) {
             this.reflectMarks = reflectMarks;
             return this;
@@ -169,8 +175,8 @@ public final class Envs {
         public SinkEnv build() {
             EngineStores stores = storesOverride != null ? storesOverride
                     : new EngineStores(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns,
-                            combo, why, recentAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks, ward,
-                            new HitTempoStore(), new BatteryStore(), new DisarmWindowStore());
+                            combo, why, recentAttackers, antiGankAttackers, reflectMarks, outgoingDebuff, damageCap,
+                            rageStacks, ward, new HitTempoStore(), new BatteryStore(), new DisarmWindowStore());
             return SinkEnv.of(economy, souls, stores, nowTicks, player -> { }, () -> 0,
                     GearProtection.NONE, lightningBoost);
         }

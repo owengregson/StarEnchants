@@ -1,0 +1,16 @@
+# Cosmic codex source: 06-enchants-tools-heroic.md — heroic/HeroicRocketEscape.java
+# Exact lethal-hit, shared cooldown, Sabotage, launch, regeneration, cloud, no-fall, and flight behavior is native.
+display: Guided Rocket Escape
+description: Blast off into the air and breifly gain flight for (level x 1s).
+trigger:
+- DEFENSE
+applies-to:
+- BOOTS
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1: { effects: [] }
+  2: { effects: [] }
+  3: { effects: [] }

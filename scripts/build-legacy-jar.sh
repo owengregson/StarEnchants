@@ -68,20 +68,22 @@ fi
 
 echo "[legacy] 2/3  lower ${IN_JAR##*/} 61→${TARGET} + shade the JDG api/runtime ..."
 # JDG's `shade` bundles the stub api it finds in --api, but NOT its util/runtime helpers — so build a
-# self-contained api jar = the downgraded stub api PLUS JDG's util/* (the downgraded code calls util.Utils).
+# self-contained api jar = the downgraded stub api PLUS JDG's util/* and exc/* runtime support
+# (downgraded stubs throw MissingStubError/PartialStubError on unsupported branches).
 API_STUBS="$WORK/jdg-api-${TARGET}.jar"
-UTIL_RAW="$WORK/jdg-util-raw.jar"
-UTIL_LOW="$WORK/jdg-util-${TARGET}.jar"
+SUPPORT_RAW="$WORK/jdg-support-raw.jar"
+SUPPORT_LOW="$WORK/jdg-support-${TARGET}.jar"
 API_FULL="$WORK/jdg-api-full-${TARGET}.jar"
 IGNORE=(-i org.bukkit -i net.minecraft -i com.destroystokyo -i io.papermc)  # server-provided externals
 
 java -jar "$JDG" -c "$TARGET" debug downgradeApi "$API_STUBS"
-( cd "$WORK" && rm -rf jdgutil && mkdir jdgutil && cd jdgutil \
-    && unzip -oq "$JDG" 'xyz/wagyourtail/jvmdg/util/*' && jar cf "$UTIL_RAW" xyz )
-java -jar "$JDG" -c "$TARGET" downgrade --target "$UTIL_RAW" "$UTIL_LOW"
+( cd "$WORK" && rm -rf jdgsupport && mkdir jdgsupport && cd jdgsupport \
+    && unzip -oq "$JDG" 'xyz/wagyourtail/jvmdg/util/*' 'xyz/wagyourtail/jvmdg/exc/*' \
+    && jar cf "$SUPPORT_RAW" xyz )
+java -jar "$JDG" -c "$TARGET" downgrade --target "$SUPPORT_RAW" "$SUPPORT_LOW"
 cp "$API_STUBS" "$API_FULL"
 ( cd "$WORK" && rm -rf jdgmerge && mkdir jdgmerge && cd jdgmerge \
-    && unzip -oq "$UTIL_LOW" && jar uf "$API_FULL" xyz )
+    && unzip -oq "$SUPPORT_LOW" && jar uf "$API_FULL" xyz )
 
 java -jar "$JDG" -c "$TARGET" --api "$API_FULL" "${IGNORE[@]}" \
   downgrade --target "$IN_JAR" - \

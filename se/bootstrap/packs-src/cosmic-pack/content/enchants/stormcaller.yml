@@ -1,0 +1,13 @@
+# Cosmic codex source: 02-enchants-armor-m-z.md — armor/Stormcaller.java
+display: Stormcaller
+description: Strikes lightning on attacking players.
+trigger: [DEFENSE]
+applies-to: [ARMOR]
+group: elite
+tier: elite
+stacking: HIGHEST
+levels:
+  1: { chance: 4.5, effects: &storm [{ LIGHTNING: { real: true, damage: 0, who: '@Attacker' } }, { DAMAGE: { amount: 10, attributed: false, who: '@Attacker' } }, { VELOCITY: { mode: away, from: actor, strength: 1.5, who: '@Attacker' } }] }
+  2: { chance: 9, effects: *storm }
+  3: { chance: 13.5, effects: *storm }
+  4: { chance: 18, effects: *storm }

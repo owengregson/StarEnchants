@@ -1,0 +1,43 @@
+# Cosmic codex source: 02-enchants-armor-m-z.md — armor/Trickster.java
+display: Trickster
+description: When hit you have a chance to teleport directly behind your opponent and take them by surprise.
+trigger:
+- DEFENSE
+applies-to:
+- ARMOR
+group: elite
+tier: elite
+stacking: HIGHEST
+levels:
+  1:
+    effects: &l1
+      - { RESISTED_ROLL: { chance: 1.25, resistance-level: 0, resist-per-level: 0 } }
+      - { TELEPORT_BEHIND: { of: VICTIM, distance: 1, onFail: NONE, sound: PORTAL_TRIGGER, sound-volume: 0.8, sound-pitch: 1.4, departure-particle: CLOUD, arrival-particle: SPELL_WITCH, particle-count: 20, particle-speed: 0.5, particle-spread: 1 } }
+  2:
+    effects:
+      - { RESISTED_ROLL: { chance: 2.5, resistance-level: 0, resist-per-level: 0 } }
+      - { TELEPORT_BEHIND: { of: VICTIM, distance: 1, onFail: NONE, sound: PORTAL_TRIGGER, sound-volume: 0.8, sound-pitch: 1.4, departure-particle: CLOUD, arrival-particle: SPELL_WITCH, particle-count: 20, particle-speed: 0.5, particle-spread: 1 } }
+  3:
+    effects:
+      - { RESISTED_ROLL: { chance: 3.75, resistance-level: 0, resist-per-level: 0 } }
+      - { TELEPORT_BEHIND: { of: VICTIM, distance: 1, onFail: NONE, sound: PORTAL_TRIGGER, sound-volume: 0.8, sound-pitch: 1.4, departure-particle: CLOUD, arrival-particle: SPELL_WITCH, particle-count: 20, particle-speed: 0.5, particle-spread: 1 } }
+  4:
+    effects:
+      - { RESISTED_ROLL: { chance: 5, resistance-level: 0, resist-per-level: 0 } }
+      - { TELEPORT_BEHIND: { of: VICTIM, distance: 1, onFail: NONE, sound: PORTAL_TRIGGER, sound-volume: 0.8, sound-pitch: 1.4, departure-particle: CLOUD, arrival-particle: SPELL_WITCH, particle-count: 20, particle-speed: 0.5, particle-spread: 1 } }
+  5:
+    effects:
+      - { RESISTED_ROLL: { chance: 6.25, resistance-level: 0, resist-per-level: 0 } }
+      - { TELEPORT_BEHIND: { of: VICTIM, distance: 1, onFail: NONE, sound: PORTAL_TRIGGER, sound-volume: 0.8, sound-pitch: 1.4, departure-particle: CLOUD, arrival-particle: SPELL_WITCH, particle-count: 20, particle-speed: 0.5, particle-spread: 1 } }
+  6:
+    effects:
+      - { RESISTED_ROLL: { chance: 7.5, resistance-level: 0, resist-per-level: 0 } }
+      - { TELEPORT_BEHIND: { of: VICTIM, distance: 1, onFail: NONE, sound: PORTAL_TRIGGER, sound-volume: 0.8, sound-pitch: 1.4, departure-particle: CLOUD, arrival-particle: SPELL_WITCH, particle-count: 20, particle-speed: 0.5, particle-spread: 1 } }
+  7:
+    effects:
+      - { RESISTED_ROLL: { chance: 8.75, resistance-level: 0, resist-per-level: 0 } }
+      - { TELEPORT_BEHIND: { of: VICTIM, distance: 1, onFail: NONE, sound: PORTAL_TRIGGER, sound-volume: 0.8, sound-pitch: 1.4, departure-particle: CLOUD, arrival-particle: SPELL_WITCH, particle-count: 20, particle-speed: 0.5, particle-spread: 1 } }
+  8:
+    effects:
+      - { RESISTED_ROLL: { chance: 10, resistance-level: 0, resist-per-level: 0 } }
+      - { TELEPORT_BEHIND: { of: VICTIM, distance: 1, onFail: NONE, sound: PORTAL_TRIGGER, sound-volume: 0.8, sound-pitch: 1.4, departure-particle: CLOUD, arrival-particle: SPELL_WITCH, particle-count: 20, particle-speed: 0.5, particle-spread: 1 } }

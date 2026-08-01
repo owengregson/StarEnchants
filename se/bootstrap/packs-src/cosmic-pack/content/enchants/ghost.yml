@@ -1,0 +1,18 @@
+# Cosmic codex source: 01-enchants-armor-a-l.md — armor/Ghost.java
+display: Ghost
+description: Inivisble to /near lookups while in friendly territory depending on level of enchantment.
+trigger:
+- DEFENSE
+- PASSIVE
+applies-to:
+- ARMOR
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
+levels:
+  1:
+    effects: []
+  2:
+    effects: []
+  3:
+    effects: []

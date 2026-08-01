@@ -32,6 +32,16 @@ class PetLevelMathTest {
     }
 
     @Test
+    void expRollUsesEachPetsNonlinearThresholds() {
+        assertEquals(new PetService.LevelRoll(3, 500),
+                PetService.rollExp(1, 0, 5_500, 4, level -> switch (level) {
+                    case 1 -> 2_000;
+                    case 2 -> 3_000;
+                    default -> 4_000;
+                }));
+    }
+
+    @Test
     void useExpRollStaysInSpecBoundsAndHitsBothEndpoints() {
         Random random = new Random(42);
         Set<Integer> seen = new HashSet<>();
@@ -50,6 +60,35 @@ class PetLevelMathTest {
         for (int i = 0; i < 100; i++) {
             assertEquals(1, PetService.useExpRoll(random, 1)); // expPerLevel/8 == 0 → the min-1 floor
         }
+    }
+
+    @Test
+    void cosmicConditionalUseExperienceMatchesSourceTiers() {
+        assertEquals(1, PetService.cosmicUseExp("feign-death", false, true, 99));
+        assertEquals(5, PetService.cosmicUseExp("feign-death", true, false, 99));
+        assertEquals(50, PetService.cosmicUseExp("feign-death", true, true, 99));
+
+        assertEquals(5, PetService.cosmicUseExp("gaia", false, false, 99));
+        assertEquals(50, PetService.cosmicUseExp("gaia", false, true, 99));
+
+        assertEquals(4, PetService.cosmicUseExp("tesla", false, true, 99));
+        assertEquals(4, PetService.cosmicUseExp("tesla", true, false, 99));
+        assertEquals(10, PetService.cosmicUseExp("tesla", true, true, 99));
+
+        assertEquals(15, PetService.cosmicUseExp("xp-booster", true, true, 15),
+                "unrelated pets keep their configured per-use XP");
+    }
+
+    @Test
+    void cosmicFiftyPipeBarFillsProportionallyAndAtCap() {
+        String empty = PetService.expBar50(1, 0, 10, 1_000);
+        assertEquals("&a&c" + "|".repeat(50), empty);
+
+        String half = PetService.expBar50(1, 500, 10, 1_000);
+        assertEquals("&a" + "|".repeat(25) + "&c" + "|".repeat(25), half);
+
+        String capped = PetService.expBar50(10, 0, 10, 0);
+        assertEquals("&a" + "|".repeat(50) + "&c", capped);
     }
 
     @Test

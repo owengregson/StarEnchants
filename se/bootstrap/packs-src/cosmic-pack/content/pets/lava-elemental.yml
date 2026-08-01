@@ -1,0 +1,21 @@
+# Cosmic codex: 12-pets.md — InventoryLavaPet.java
+display: Lava Elemental
+color: '&e'
+type: ACTIVE
+head: eyJ0aW1lc3RhbXAiOjE1NTk2ODAxMjI4ODIsInByb2ZpbGVJZCI6ImZjMWJiM2RkMTA4ZTRlNDliMDBlYjEyMDFmYmJhYWNlIiwicHJvZmlsZU5hbWUiOiJMYXZhIiwidGV4dHVyZXMiOnsiU0tJTiI6eyJ1cmwiOiJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzM4NjgwNDE2ZjBiOTNkYjNlMDRlZDgzNzU2MWRhYzk2YTI0OGExZTM4YmQ4YjNlNmEzYzIwY2ZiYWI3MjUyODgifX19
+material: PLAYER_HEAD
+descriptor: ['&7A Cosmic inventory pet.']
+description: ['&7Fills plain empty buckets in your inventory with lava.']
+max-level: 10
+experience-to-level: { 2: 2000, 3: 3000, 4: 4000, 5: 5000, 6: 6000, 7: 7000, 8: 8000, 9: 9000, 10: 10000 }
+levels:
+  1: { cooldown: 6000, experience-on-use: 0, description: ['&7Fills up to 32x empty buckets with lava.'], effects: [{ SOUND: { sound: BLOCK_LAVA_POP, volume: 1.1, pitch: 1.0 } }] }
+  2: { cooldown: 6000, experience-on-use: 0, description: ['&7Fills up to 64x empty buckets with lava.'], effects: [{ SOUND: { sound: BLOCK_LAVA_POP, volume: 1.1, pitch: 1.0 } }] }
+  3: { cooldown: 6000, experience-on-use: 0, description: ['&7Fills up to 96x empty buckets with lava.'], effects: [{ SOUND: { sound: BLOCK_LAVA_POP, volume: 1.1, pitch: 1.0 } }] }
+  4: { cooldown: 6000, experience-on-use: 0, description: ['&7Fills up to 128x empty buckets with lava.'], effects: [{ SOUND: { sound: BLOCK_LAVA_POP, volume: 1.1, pitch: 1.0 } }] }
+  5: { cooldown: 6000, experience-on-use: 0, description: ['&7Fills up to 160x empty buckets with lava.'], effects: [{ SOUND: { sound: BLOCK_LAVA_POP, volume: 1.1, pitch: 1.0 } }] }
+  6: { cooldown: 6000, experience-on-use: 0, description: ['&7Fills up to 192x empty buckets with lava.'], effects: [{ SOUND: { sound: BLOCK_LAVA_POP, volume: 1.1, pitch: 1.0 } }] }
+  7: { cooldown: 6000, experience-on-use: 0, description: ['&7Fills up to 224x empty buckets with lava.'], effects: [{ SOUND: { sound: BLOCK_LAVA_POP, volume: 1.1, pitch: 1.0 } }] }
+  8: { cooldown: 6000, experience-on-use: 0, description: ['&7Fills up to 256x empty buckets with lava.'], effects: [{ SOUND: { sound: BLOCK_LAVA_POP, volume: 1.1, pitch: 1.0 } }] }
+  9: { cooldown: 6000, experience-on-use: 0, description: ['&7Fills up to 288x empty buckets with lava.'], effects: [{ SOUND: { sound: BLOCK_LAVA_POP, volume: 1.1, pitch: 1.0 } }] }
+  10: { cooldown: 6000, experience-on-use: 0, description: ['&7Fills all empty buckets with lava.'], effects: [{ SOUND: { sound: BLOCK_LAVA_POP, volume: 1.1, pitch: 1.0 } }] }

@@ -53,6 +53,11 @@ public final class BuiltinTriggers {
                 .register(Trigger.held("USE"))
                 // Fired by GuardianHurtListener when a summoned guardian takes damage; runs the OWNER's abilities (Blood Link). Appended last.
                 .register(Trigger.neutral("GUARDIAN_HURT"))
+                // Fired for each allied living player in the dead player's world; victim = the dead ally.
+                .register(Trigger.neutral("ALLY_DEATH"))
+                // Fired when a player starts/damages a block; held-item scoped for source-exact tool on-hit effects.
+                // Appended last so every existing persisted/runtime trigger id remains unchanged.
+                .register(Trigger.held("BLOCK_DAMAGE"))
                 .build();
     }
 }

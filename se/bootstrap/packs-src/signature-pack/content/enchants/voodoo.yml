@@ -1,0 +1,52 @@
+# Imported from EliteEnchantments (id: voodoo). Review before shipping.
+display: "Voodoo"
+description:
+  - "&eWhen hit, saps a percentage of"
+  - "&ethe attacker's damage."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "rare"
+tier: rare
+levels:
+  1:
+    chance: 8
+    cooldown: 160
+    effects:
+      - { SOUND: { sound: "ENTITY_WITCH_CELEBRATE", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 14, who: "@Attacker" } }
+      - { WEAKEN: { percent: 6, duration: 60, who: "@Attacker" } }
+  2:
+    chance: 10
+    cooldown: 160
+    effects:
+      - { SOUND: { sound: "ENTITY_WITCH_CELEBRATE", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 14, who: "@Attacker" } }
+      - { WEAKEN: { percent: 8, duration: 60, who: "@Attacker" } }
+  3:
+    chance: 11
+    cooldown: 160
+    effects:
+      - { SOUND: { sound: "ENTITY_WITCH_CELEBRATE", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 14, who: "@Attacker" } }
+      - { WEAKEN: { percent: 9, duration: 60, who: "@Attacker" } }
+  4:
+    chance: 12
+    cooldown: 160
+    effects:
+      - { SOUND: { sound: "ENTITY_WITCH_CELEBRATE", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 14, who: "@Attacker" } }
+      - { WEAKEN: { percent: 10, duration: 60, who: "@Attacker" } }
+  5:
+    chance: 14
+    cooldown: 160
+    effects:
+      - { SOUND: { sound: "ENTITY_WITCH_CELEBRATE", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 14, who: "@Attacker" } }
+      - { WEAKEN: { percent: 11, duration: 60, who: "@Attacker" } }
+  6:
+    chance: 15
+    cooldown: 160
+    effects:
+      - { SOUND: { sound: "ENTITY_WITCH_CELEBRATE", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 14, who: "@Attacker" } }
+      - { WEAKEN: { percent: 12, duration: 60, who: "@Attacker" } }

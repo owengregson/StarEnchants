@@ -28,6 +28,6 @@ public final class ScrollListener extends ApplyGestureListener {
 
     @Override
     protected GestureOutcome apply(Player player, ItemStack cursor, ItemStack target, int slot) {
-        return service.interact(cursor, target);
+        return service.interact(player, cursor, target);
     }
 }

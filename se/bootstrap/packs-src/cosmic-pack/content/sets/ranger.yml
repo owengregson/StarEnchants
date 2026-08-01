@@ -1,0 +1,137 @@
+# Cosmic codex source: 10-armor-sets.md
+display: '&a&lRanger'
+description: Ranger Cosmic armor set.
+complete: 4
+announce: true
+equip-message: '&c&lRANGER SET BONUS: &c-25% INCOMING BOW DMG, +30% RANGER BOW DMG, Immune to Teleblock, Gears IV'
+remove-message: ''
+armor:
+  enchants: { DURABILITY: 3, PROTECTION_ENVIRONMENTAL: 4 }
+  lore:
+  - '&a&lRANGER SET BONUS'
+  - '&a&l* &aEnemies bows deal 25% less damage to you.'
+  - '&a&l* &aRanger Bow grants 30% increased bow damage.'
+  - '&a&l* &aImmune to Teleblock'
+  - '&a&l* &aGears IV'
+  - '&7(&oRequires all 4 ranger items.&7)'
+  pieces:
+    helmet:
+      material: DIAMOND_HELMET
+      name: '&a&lRanger Hood'
+      lore: ['&a&oThe hood of a legendary', '&a&oRanger lost with time itself.', '']
+      enchant-rolls:
+      - { enchant: enchants/armored, mode: plain-near-max }
+      - { enchant: enchants/enlighted, mode: plain-near-max }
+      - { enchant: enchants/drunk, mode: plain-near-max }
+      - { enchant: enchants/deathbringer, mode: plain-near-max }
+      - { enchant: enchants/marksman, mode: plain-near-max }
+      - { enchant: enchants/implants, mode: plain-near-max }
+      - { enchant: enchants/angelic, mode: plain-near-max }
+      - { enchant: enchants/heavy, mode: plain-near-max }
+      - { enchant: enchants/dodge, mode: plain-near-max }
+      - { enchant: enchants/sticky, mode: plain-near-max }
+      - { enchant: enchants/tank, mode: plain-near-max }
+      - { enchant: enchants/hardened, mode: plain-near-max }
+    chestplate:
+      material: DIAMOND_CHESTPLATE
+      name: '&a&lRanger Cuirass'
+      lore: ['&a&oThe lost cuirass of the,', '&a&olast known legendary archer.', '']
+      enchant-rolls:
+      - { enchant: enchants/armored, mode: plain-near-max }
+      - { enchant: enchants/enlighted, mode: plain-near-max }
+      - { enchant: enchants/aegis, mode: plain-near-max }
+      - { enchant: enchants/blood-lust, mode: plain-near-max }
+      - { enchant: enchants/deathbringer, mode: plain-near-max }
+      - { enchant: enchants/overload, mode: plain-near-max }
+      - { enchant: enchants/marksman, mode: plain-near-max }
+      - { enchant: enchants/angelic, mode: plain-near-max }
+      - { enchant: enchants/heavy, mode: plain-near-max }
+      - { enchant: enchants/arrow-deflect, mode: plain-near-max }
+      - { enchant: enchants/tank, mode: plain-near-max }
+      - { enchant: enchants/hardened, mode: plain-near-max }
+    leggings:
+      material: DIAMOND_LEGGINGS
+      name: '&a&lRanger Greaves'
+      lore: ['&a&oThe fabled shin protectors,', '&a&oof an ancient agile Ranger.', '']
+      enchant-rolls:
+      - { enchant: enchants/armored, mode: plain-near-max }
+      - { enchant: enchants/enlighted, mode: plain-near-max }
+      - { enchant: enchants/clarity, mode: plain-near-max }
+      - { enchant: enchants/deathbringer, mode: plain-near-max }
+      - { enchant: enchants/marksman, mode: plain-near-max }
+      - { enchant: enchants/angelic, mode: plain-near-max }
+      - { enchant: enchants/heavy, mode: plain-near-max }
+      - { enchant: enchants/lucky, mode: plain-near-max }
+      - { enchant: enchants/obsidianshield, mode: plain-near-max }
+      - { enchant: enchants/tank, mode: plain-near-max }
+      - { enchant: enchants/hardened, mode: plain-near-max }
+      - { enchant: enchants/cactus, mode: plain-near-max }
+    boots:
+      material: DIAMOND_BOOTS
+      name: '&a&lRanger Slippers'
+      lore: ['&a&oLightweight footgear for', '&a&oa ancient nimble Ranger.', '']
+      enchant-rolls:
+      - { enchant: enchants/armored, mode: plain-near-max }
+      - { enchant: enchants/enlighted, mode: plain-near-max }
+      - { enchant: enchants/deathbringer, mode: plain-near-max }
+      - { enchant: enchants/gears, mode: plain-near-max }
+      - { enchant: enchants/marksman, mode: plain-near-max }
+      - { enchant: enchants/angelic, mode: plain-near-max }
+      - { enchant: enchants/heavy, mode: plain-near-max }
+      - { enchant: enchants/metaphysical, mode: plain-near-max }
+      - { enchant: enchants/tank, mode: plain-near-max }
+      - { enchant: enchants/hardened, mode: plain-near-max }
+      - { enchant: enchants/springs, mode: plain-near-max }
+      - { enchant: enchants/rocket-escape, mode: plain-near-max }
+bonuses:
+- 'on': armor
+  trigger: DEFENSE
+  condition: '%damagecause% == "PROJECTILE"'
+  effects:
+  - DAMAGE_MOD:
+      side: defense
+      mode: add
+      amount: 25
+- 'on': weapon
+  trigger: BOW
+  effects:
+  - INFINITE_LUCK_GATE:
+      required-level: 1
+  - DAMAGE_MOD:
+      side: attack
+      mode: add
+      amount: 30
+- 'on': armor
+  trigger: PASSIVE
+  effects:
+  - POTION:
+      effect: SPEED
+      level: 4
+      duration: 200
+      who: '@Self'
+weapon:
+  enchants: { ARROW_DAMAGE: 5, DURABILITY: 3, ARROW_FIRE: 2, ARROW_INFINITE: 1 }
+  material: BOW
+  name: '&a&lRanger Bow'
+  lore:
+  - '&aA finely crafted bow imbued'
+  - '&awith the energy of the Sun.'
+  - ''
+  - '&a&lRANGER WEAPON BONUS'
+  - '&a&l* &aRanger Bow grants 30% increased bow damage.'
+  - '&a&l* &aEnemies deal 25% less damage to you.'
+  - '&7&o(Requires all 4 ranger armor items.)'
+  enchant-rolls:
+  - { enchant: enchants/sniper, mode: max }
+  - { enchant: enchants/lethal-sniper, mode: range, min-level: 2, max-level: 5 }
+  - { enchant: enchants/silence, mode: plain-near-max }
+  - { enchant: enchants/rage, mode: plain-near-max }
+  - { enchant: enchants/eagle-eye, mode: plain-near-max }
+  - { enchant: enchants/arrow-lifesteal, mode: plain-near-max }
+  - { enchant: enchants/hellfire, mode: plain-near-max }
+  - { enchant: enchants/piercing, mode: plain-near-max }
+  - { enchant: enchants/blind, mode: plain-near-max }
+  - { enchant: enchants/venom, mode: plain-near-max }
+  - { enchant: enchants/snare, mode: plain-near-max }
+  - { enchant: enchants/virus, mode: plain-near-max }
+  - { enchant: enchants/healing, mode: plain-near-max }

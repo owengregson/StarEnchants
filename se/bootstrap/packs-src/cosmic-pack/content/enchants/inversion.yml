@@ -1,44 +1,14 @@
-# Imported from EliteEnchantments (id: inversion). Review before shipping.
-display: "Inversion"
-description:
-  - "&eNegates an incoming hit and"
-  - "&erestores health instead."
-# DEFENSE, not ATTACK: CANCEL negates the event the walk is running on — on the attack walk that
-# was the holder's OWN hit. Held-sword defense enchants are established (block).
-trigger: DEFENSE
+# Cosmic codex source: 03-enchants-swords.md — swords/Inversion.java
+# Exact intended runtime is implemented by CosmicWeaponListener.
+display: Inversion
+description: Damage dealt to you has a chance to be blocked and heal you for 1-3 HP instead.
+trigger: [DEFENSE]
 applies-to: [SWORD]
-group: "legendary"
+group: legendary
 tier: legendary
+stacking: HIGHEST
 levels:
-  1:
-    chance: 6
-    cooldown: 160
-    effects:
-      - { SOUND: { sound: "ENTITY_BAT_HURT", volume: 1.0, pitch: 1.1 } }
-      - { PARTICLE: { particle: "SPELL_INSTANT", count: 10, who: "@Self" } }
-      - { CANCEL: {} }  # from DAMAGE_CANCEL
-      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # from HEAL:ADD:1:2 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
-  2:
-    chance: 8
-    cooldown: 160
-    effects:
-      - { SOUND: { sound: "ENTITY_BAT_HURT", volume: 1.0, pitch: 1.1 } }
-      - { PARTICLE: { particle: "SPELL_INSTANT", count: 10, who: "@Self" } }
-      - { CANCEL: {} }  # from DAMAGE_CANCEL
-      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # from HEAL:ADD:1:2 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
-  3:
-    chance: 10
-    cooldown: 160
-    effects:
-      - { SOUND: { sound: "ENTITY_BAT_HURT", volume: 1.0, pitch: 1.1 } }
-      - { PARTICLE: { particle: "SPELL_INSTANT", count: 10, who: "@Self" } }
-      - { CANCEL: {} }  # from DAMAGE_CANCEL
-      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # from HEAL:ADD:1:2 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
-  4:
-    chance: 12
-    cooldown: 160
-    effects:
-      - { SOUND: { sound: "ENTITY_BAT_HURT", volume: 1.0, pitch: 1.1 } }
-      - { PARTICLE: { particle: "SPELL_INSTANT", count: 10, who: "@Self" } }
-      - { CANCEL: {} }  # from DAMAGE_CANCEL
-      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # from HEAL:ADD:1:2 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
+  1: { effects: [] }
+  2: { effects: [] }
+  3: { effects: [] }
+  4: { effects: [] }

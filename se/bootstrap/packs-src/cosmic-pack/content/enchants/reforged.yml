@@ -1,71 +1,19 @@
-# Imported from EliteEnchantments (id: reforged). Review before shipping.
-display: "Reforged"
-description:
-  - "&eYour tool sometimes refuses to"
-  - "&elose durability."
-trigger: ITEM_DAMAGE
-applies-to: [TOOL]
-group: "common"
-tier: common
-condition: "!%itemdamage.armor%"
+# Cosmic codex source: 04-enchants-axes.md — axes/Reforged.java
+display: Reforged
+description: On a weapon hit or block break, has an 8% chance per level to restore exactly one durability point to the held item.
+trigger: [ATTACK, MINE]
+applies-to: [SWORD, AXE, BOW, PICKAXE, HOE, SHOVEL]
+group: elite
+tier: elite
+stacking: HIGHEST
 levels:
-  1:
-    chance: 8
-    effects:
-      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { CANCEL: {} }
-  2:
-    chance: 16
-    effects:
-      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { CANCEL: {} }
-  3:
-    chance: 24
-    effects:
-      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { CANCEL: {} }
-  4:
-    chance: 32
-    effects:
-      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { CANCEL: {} }
-  5:
-    chance: 40
-    effects:
-      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { CANCEL: {} }
-  6:
-    chance: 48
-    effects:
-      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { CANCEL: {} }
-  7:
-    chance: 56
-    effects:
-      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { CANCEL: {} }
-  8:
-    chance: 74
-    effects:
-      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { CANCEL: {} }
-  9:
-    chance: 82
-    effects:
-      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { CANCEL: {} }
-  10:
-    chance: 100
-    effects:
-      - { SOUND: { sound: "BLOCK_ANVIL_USE", volume: 0.8, pitch: 0.9 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { CANCEL: {} }
+  1: { chance: 8, effects: &repair [{ DURABILITY: { amount: 1, target: item, mode: restore, who: '@Self' } }] }
+  2: { chance: 16, effects: *repair }
+  3: { chance: 24, effects: *repair }
+  4: { chance: 32, effects: *repair }
+  5: { chance: 40, effects: *repair }
+  6: { chance: 48, effects: *repair }
+  7: { chance: 56.00000000000001, effects: *repair }
+  8: { chance: 64, effects: *repair }
+  9: { chance: 72, effects: *repair }
+  10: { chance: 80, effects: *repair }

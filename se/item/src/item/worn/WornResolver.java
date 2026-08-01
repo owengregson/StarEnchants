@@ -5,6 +5,7 @@ import compile.model.Snapshot;
 import compile.model.StableKeyIndex;
 import item.codec.CombatState;
 import item.codec.HeroicStat;
+import item.codec.MaskCodec;
 import item.view.ItemView;
 import item.view.ItemViewCache;
 import java.util.ArrayList;
@@ -55,6 +56,9 @@ public final class WornResolver {
     // §ADR-0035 the base keys of crystals declared NON-stackable, read live so a reload re-tunes it. A crystal in
     // this set contributes its abilities at most once per wearer, even if it sits on several worn pieces.
     private final java.util.function.Supplier<java.util.Set<String>> nonStackableCrystals;
+    // Cosmic and other behavior-faithful packs can choose highest-level-once per enchant; legacy/default packs
+    // remain multiplicity-preserving because their catalog supplies an empty set.
+    private final java.util.function.Supplier<java.util.Set<String>> nonStackableEnchants;
     // ADR-0052: the hotbar-pet contribution, decided wholly by the pets feature (bracket + armed gate + toggle).
     private final PetSource petSource;
 
@@ -94,6 +98,17 @@ public final class WornResolver {
                         java.util.function.Supplier<Features> features,
                         java.util.function.Supplier<java.util.Set<String>> nonStackableCrystals,
                         PetSource petSource) {
+        this(equipSource, itemViews, triggerCount, attackTrigger, defenseTrigger, features, nonStackableCrystals,
+                petSource, java.util.Set::of);
+    }
+
+    /** Canonical form including pack-authored enchant stacking semantics. */
+    public WornResolver(EquipSource equipSource, ItemViewCache itemViews, int triggerCount,
+                        IntPredicate attackTrigger, IntPredicate defenseTrigger,
+                        java.util.function.Supplier<Features> features,
+                        java.util.function.Supplier<java.util.Set<String>> nonStackableCrystals,
+                        PetSource petSource,
+                        java.util.function.Supplier<java.util.Set<String>> nonStackableEnchants) {
         this.equipSource = java.util.Objects.requireNonNull(equipSource, "equipSource");
         this.itemViews = itemViews;
         this.triggerCount = triggerCount;
@@ -101,6 +116,7 @@ public final class WornResolver {
         this.defenseTrigger = defenseTrigger;
         this.features = java.util.Objects.requireNonNull(features, "features");
         this.nonStackableCrystals = java.util.Objects.requireNonNull(nonStackableCrystals, "nonStackableCrystals");
+        this.nonStackableEnchants = java.util.Objects.requireNonNull(nonStackableEnchants, "nonStackableEnchants");
         this.petSource = java.util.Objects.requireNonNull(petSource, "petSource");
     }
 
@@ -112,11 +128,15 @@ public final class WornResolver {
             return WornState.empty(snapshot.generation());
         }
         List<CombatState> combats = new ArrayList<>();
+        int mainhandFrom = -1;
         // Index into `combats` where off-hand-sourced states begin (G01): everything at/after it came from the
         // off-hand slot, which never swings, so its attacker-direction procs are dropped downstream. Stays at the
         // full size on 1.8 (no off-hand slot) → no off-hand region → today's behaviour bit-for-bit.
         int offhandFrom = -1;
         for (int slot = 0; slot < gear.length; slot++) { // 0-3 armour, 4 main hand, 5 off-hand (EquipSource contract)
+            if (slot == ARMOR_SLOTS && mainhandFrom < 0) {
+                mainhandFrom = combats.size();
+            }
             if (slot == ARMOR_SLOTS + 1 && offhandFrom < 0) {
                 offhandFrom = combats.size(); // the off-hand slot begins here, whether or not it holds anything
             }
@@ -132,9 +152,12 @@ public final class WornResolver {
         if (offhandFrom < 0) {
             offhandFrom = combats.size(); // no off-hand slot in the equipment array (1.8)
         }
+        if (mainhandFrom < 0) {
+            mainhandFrom = offhandFrom;
+        }
         // ADR-0052: the hotbar-pet keys, decided wholly by the pets feature (bracket + armed gate + toggle).
         List<String> petKeys = petSource.liveKeys(entity);
-        return resolveFrom(combats, offhandFrom, petKeys, snapshot.stableKeys(), snapshot.abilities(),
+        return resolveFrom(combats, mainhandFrom, offhandFrom, petKeys, snapshot.stableKeys(), snapshot.abilities(),
                 snapshot.generation());
     }
 
@@ -184,8 +207,15 @@ public final class WornResolver {
      */
     WornState resolveFrom(List<CombatState> combats, int offhandFrom, List<String> petKeys, StableKeyIndex keys,
                           Ability[] abilities, int generation) {
+        return resolveFrom(combats, combats.size(), offhandFrom, petKeys, keys, abilities, generation);
+    }
+
+    /** Exact equipment provenance: compressed-state indexes in [mainhandFrom, offhandFrom) came from main hand. */
+    WornState resolveFrom(List<CombatState> combats, int mainhandFrom, int offhandFrom, List<String> petKeys,
+                          StableKeyIndex keys, Ability[] abilities, int generation) {
         List<Integer> mergedIds = new ArrayList<>();   // armour + main-hand sourced ids
         List<Integer> offhandIds = new ArrayList<>();  // off-hand sourced ids (attack-direction dropped by flatten)
+        List<Integer> heldEnchantIds = new ArrayList<>(); // main-hand enchant ids only (Reflect's held-lore source)
         List<Integer> crystalIds = new ArrayList<>();
         List<Integer> wornSetIds = new ArrayList<>();
         List<String> heldWeaponSetKeys = new ArrayList<>(); // sets whose WEAPON this entity holds (§6.6)
@@ -194,18 +224,53 @@ public final class WornResolver {
         Features f = features.get(); // §L master toggles: a disabled feature's source is skipped
         java.util.Set<String> nonStackable = nonStackableCrystals.get(); // §ADR-0035 crystals that dedup per wearer
         java.util.Set<String> seenNonStackable = new java.util.HashSet<>(); // non-stackable keys already contributed
+        java.util.Set<String> highestOnlyEnchants = nonStackableEnchants.get();
+        java.util.Map<String, Integer> highestEnchantLevels = new java.util.HashMap<>();
+        if (f.enchants() && !highestOnlyEnchants.isEmpty()) {
+            for (CombatState combat : combats) {
+                for (Map.Entry<String, Integer> enchant : combat.enchants().entrySet()) {
+                    if (highestOnlyEnchants.contains(enchant.getKey())) {
+                        highestEnchantLevels.merge(enchant.getKey(), enchant.getValue(), Math::max);
+                    }
+                }
+            }
+        }
+        java.util.Set<String> seenHighestOnlyEnchants = new java.util.HashSet<>();
         for (int i = 0; i < combats.size(); i++) {
             CombatState combat = combats.get(i);
             boolean offhand = i >= offhandFrom; // off-hand pieces are processed last (armour, then main, then off)
+            boolean mainhand = i >= mainhandFrom && i < offhandFrom;
             List<Integer> firing = offhand ? offhandIds : mergedIds; // route the off-hand's firing ids apart
             if (f.heroic() && !offhand) {
                 heroic = heroic.plus(combat.heroic()); // heroic flat stats sum across WORN + main-hand pieces (§6)
             }
             if (f.enchants()) {
                 for (Map.Entry<String, Integer> enchant : combat.enchants().entrySet()) {
-                    int id = keys.idOf(enchant.getKey() + "/" + enchant.getValue());
+                    String baseKey = enchant.getKey();
+                    int level = enchant.getValue();
+                    if (highestOnlyEnchants.contains(baseKey)) {
+                        if (level < highestEnchantLevels.getOrDefault(baseKey, level)
+                                || !seenHighestOnlyEnchants.add(baseKey)) {
+                            continue;
+                        }
+                    }
+                    String levelKey = baseKey + "/" + level;
+                    int id = keys.idOf(levelKey);
                     if (id >= 0) {
                         firing.add(id);
+                        if (mainhand) {
+                            heldEnchantIds.add(id);
+                        }
+                        for (int n = 1; ; n++) {
+                            int extra = keys.idOf(levelKey + "/a" + n);
+                            if (extra < 0) {
+                                break;
+                            }
+                            firing.add(extra);
+                            if (mainhand) {
+                                heldEnchantIds.add(extra);
+                            }
+                        }
                     }
                 }
             }
@@ -244,13 +309,18 @@ public final class WornResolver {
             // ONLY — never crystalIds/set/heroic accounting (a mask is its own source kind). Helmets are armour,
             // never off-hand, so `!offhand` always holds here; the guard keeps that intent explicit.
             if (f.masks() && combat.maskKey() != null && !offhand) {
-                int id = keys.idOf(combat.maskKey());
-                if (id >= 0) {
+                // A compound Multi-Mask expands to its ordered, deduplicated child definitions. A regular
+                // mask is returned as a one-element component list by the codec helper.
+                for (String maskKey : MaskCodec.components(combat.maskKey())) {
+                    int id = keys.idOf(maskKey);
+                    if (id < 0) {
+                        continue;
+                    }
                     firing.add(id);
                     // A multi-ability mask keys its further bonuses <key>/a1, /a2, … (dense, no gaps), exactly
                     // like a crystal/set (ADR-0034/0035). Walk them so every bonus fires.
                     for (int n = 1; ; n++) {
-                        int extra = keys.idOf(combat.maskKey() + "/a" + n);
+                        int extra = keys.idOf(maskKey + "/a" + n);
                         if (extra < 0) {
                             break;
                         }
@@ -330,8 +400,9 @@ public final class WornResolver {
                 mergedIds.add(petAbilityId);
             }
         }
-        return WornFlattener.flatten(generation, toIntArray(mergedIds), toIntArray(offhandIds), abilities,
-                triggerCount, activeSets, toIntArray(crystalIds), heroic, attackTrigger, defenseTrigger);
+        return WornFlattener.flatten(generation, toIntArray(mergedIds), toIntArray(offhandIds),
+                toIntArray(heldEnchantIds), abilities, triggerCount, activeSets, toIntArray(crystalIds), heroic,
+                attackTrigger, defenseTrigger);
     }
 
     private static int[] toIntArray(List<Integer> values) {

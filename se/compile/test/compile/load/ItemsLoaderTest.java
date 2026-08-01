@@ -33,6 +33,16 @@ class ItemsLoaderTest {
                   - "&7Souls: {AMOUNT}"
                   - "&7Right-click to toggle."
                 souls-per-kill: 3
+                soul-mode-drain:
+                  period-ticks: 5
+                  reserve: 4
+                  held-enchant-costs:
+                    soul-trap: 2
+                    hero-killer: 1
+                  sound: { sound: EAT, volume: 0.4, pitch: 0.2 }
+                  particle: { particle: SPELL, count: 65, speed: 0.5, y-offset: 1.0 }
+                  idle-particle: { particle: ENCHANTMENT_TABLE, count: 80, speed: 1.5, y-offset: 1.0 }
+                  milestone-message: "&e&l** SOULS: &n{SOULS}&e&l **"
                 sounds:
                   toggle-on:
                     - { sound: BLOCK_BEACON_POWER_SELECT, volume: 0.4, pitch: 2 }
@@ -52,6 +62,15 @@ class ItemsLoaderTest {
         assertEquals("&5Soul Gem", gem.name());
         assertEquals(List.of("&7Souls: {AMOUNT}", "&7Right-click to toggle."), gem.lore());
         assertEquals(3, gem.soulsPerKill());
+        SoulGemConfig.Drain drain = gem.drain();
+        assertEquals(5, drain.periodTicks());
+        assertEquals(4, drain.reserve());
+        assertEquals(3, drain.costFor(java.util.Map.of("soul-trap", 3, "hero-killer", 1)));
+        assertEquals(2, drain.costFor(java.util.Map.of("soul-trap", 1)));
+        assertEquals("EAT", drain.sound().name());
+        assertEquals(0.5, drain.particle().speed());
+        assertEquals(1.5, drain.idleParticle().speed());
+        assertEquals("&e&l** SOULS: &n{SOULS}&e&l **", drain.milestoneMessage());
 
         // sounds round-trip the unified { sound, volume, pitch } bracket form, in order, as a list
         assertEquals(2, gem.sounds().toggleOn().size());

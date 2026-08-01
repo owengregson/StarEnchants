@@ -1,0 +1,12 @@
+# Cosmic codex source: 03-enchants-swords.md — swords/Headless.java
+display: Headless
+description: Victims have a chance of dropping their head on death.
+trigger: ATTACK
+applies-to: [SWORD]
+group: simple
+tier: simple
+stacking: HIGHEST
+levels:
+  1: { chance: 3, condition: &player '%victim.isplayer% == 1', effects: &mark [{ DROP_HEAD: { defer: true, channel: headless, who: '@Victim' } }] }
+  2: { chance: 6, condition: *player, effects: *mark }
+  3: { chance: 9, condition: *player, effects: *mark }

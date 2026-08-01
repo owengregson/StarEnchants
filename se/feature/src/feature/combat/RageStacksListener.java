@@ -37,8 +37,9 @@ public final class RageStacksListener implements Listener {
         boolean selfInflicted = event.getDamager() == victim;
         // The dispatch's §3.7 duplicate skip (a same-swing "damage the difference" re-hit) keeps rage
         // single-advance too; the break side stays unguarded — re-breaking a broken run is a no-op.
-        if (event.getDamager() instanceof Player attacker && !selfInflicted && !ReHitGuard.skipped(event)) {
-            service.onHit(attacker); // attack side: build/advance the attacker's run
+        if (event.getDamager() instanceof Player attacker && !selfInflicted && !ReHitGuard.skipped(event)
+                && !CosmicWeaponListener.doubleStrikeActive()) {
+            service.onHit(attacker, victim instanceof Player); // source keeps independent PvP/PvE counters
         }
         if (victim instanceof Player defender && !selfInflicted) {
             service.onHitTaken(defender); // defense side: taking a hit breaks the victim's own run

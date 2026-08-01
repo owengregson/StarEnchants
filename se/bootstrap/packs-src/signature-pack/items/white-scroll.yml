@@ -1,0 +1,27 @@
+# White Scroll — the Cosmic Pack likeness (docs/v3-directives.md §I). Drag onto gear to PROTECT it from
+# enchant destruction: it stamps a one-shot guard so the NEXT failed enchant apply spares the item instead of
+# shattering it. Applied items are not exclusive — a white scroll may sit alongside a holy white scroll and
+# any trak gems. Placeholders: {SUCCESS}/{FAILURE} = the rolled apply odds. Only the name/lore differ
+# from the default item; the mechanic is global. Lore auto-wraps.
+type: white-scroll
+
+material: PAPER
+name: "&f&lWhite Scroll"
+lore:
+  - "&a{SUCCESS}% Success Rate"
+  - "&c{FAILURE}% Failure Rate"
+  - ""
+  - "&eProtects an item from being destroyed due to a failed Enchantment Book. This scroll will be consumed and removed from the item when an enchant fails."
+  - ""
+  - "&eApplies to: &r&f&n{KINDS}"
+  - "&7Drag n' Drop on an item to apply."
+# Item-group kinds this scroll may protect: e.g. ARMOR, WEAPON, TOOL, ALL (any item). {KINDS} renders the label.
+applies-to: [ARMOR, WEAPON, TOOL]
+# Each minted scroll rolls an apply-success % in [min-success, max-success]; on a failed roll the scroll is
+# consumed WITHOUT protecting (it never destroys the gear). 100/100 = always succeeds.
+min-success: 100
+max-success: 100
+
+# The lore line stamped onto guarded gear — rendered from state while the guard is present (at the bottom of
+# the lore, above any trak lines) and removed when the guard is spent on a failed enchant apply.
+protected-line: "&f&lPROTECTED"

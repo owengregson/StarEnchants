@@ -1,0 +1,59 @@
+# Imported from EliteEnchantments (id: cleave). Review before shipping.
+display: "Cleave"
+description:
+  - "&eOn hit, strikes all enemies in"
+  - "&ean arc around the target."
+trigger: ATTACK
+applies-to: [AXE]
+group: "epic"
+tier: epic
+levels:
+  1:
+    chance: 20
+    cooldown: 60
+    effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SWEEP_ATTACK", count: 4 } }
+      - { DAMAGE: { amount: 1, who: "@Aoe" } }  # EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
+  2:
+    chance: 23
+    cooldown: 60
+    effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SWEEP_ATTACK", count: 4 } }
+      - { DAMAGE: { amount: 1, who: "@Aoe" } }  # EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
+  3:
+    chance: 26
+    cooldown: 60
+    effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SWEEP_ATTACK", count: 4 } }
+      - { DAMAGE: { amount: 1.5, who: "@Aoe" } }  # EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
+  4:
+    chance: 29
+    cooldown: 60
+    effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SWEEP_ATTACK", count: 4 } }
+      - { DAMAGE: { amount: 1.5, who: "@Aoe" } }  # EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
+  5:
+    chance: 32
+    cooldown: 60
+    effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SWEEP_ATTACK", count: 4 } }
+      - { DAMAGE: { amount: 2, who: "@Aoe" } }  # EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
+  6:
+    chance: 35
+    cooldown: 60
+    effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SWEEP_ATTACK", count: 4 } }
+      - { DAMAGE: { amount: 2, who: "@Aoe" } }  # EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
+  7:
+    chance: 38
+    cooldown: 60
+    effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "SWEEP_ATTACK", count: 4 } }
+      - { DAMAGE: { amount: 2.5, who: "@Aoe" } }  # EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)

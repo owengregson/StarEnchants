@@ -1,6 +1,6 @@
 package integrate.protect;
 
-import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.bukkit.BukkitWorld;
 import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
@@ -53,10 +53,12 @@ public final class WorldGuardProvider implements ProtectionProvider {
             }
             RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
             RegionQuery query = container.createQuery();
-            com.sk89q.worldedit.util.Location at = BukkitAdapter.adapt(where);
+            BukkitWorld world = new BukkitWorld(where.getWorld());
+            com.sk89q.worldedit.util.Location at = new com.sk89q.worldedit.util.Location(
+                    world, where.getX(), where.getY(), where.getZ());
             LocalPlayer local = wgPlugin.wrapPlayer(player);
             if (WorldGuard.getInstance().getPlatform().getSessionManager()
-                    .hasBypass(local, BukkitAdapter.adapt(where.getWorld()))) {
+                    .hasBypass(local, world)) {
                 return true; // a region-bypassing player (op / //bypass) is never gated
             }
             return buildAllowed(query, at, local);

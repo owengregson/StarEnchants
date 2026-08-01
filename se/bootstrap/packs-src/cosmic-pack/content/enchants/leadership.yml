@@ -1,0 +1,39 @@
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/Leadership.java, LeadershipTask.java, LeadershipListener.java
+display: Leadership
+description: Every 6 seconds caches nearby allies; direct melee damage gains 10% per cached ally (5% in KOTH/station worlds), capped at +75%.
+trigger: [ATTACK, REPEATING]
+applies-to: [ARMOR]
+group: legendary
+tier: legendary
+stacking: HIGHEST
+levels:
+  1:
+    abilities:
+      - { trigger: REPEATING, repeat: 120, initial-delay: 20, effects: [{ COUNT_TARGETS: { name: cosmic-leadership-allies, ttl: 0, who: &allies1 '@Aoe{r=5,filter=ALLIES}' } }] }
+      - { trigger: REPEATING, repeat: 120, initial-delay: 20, condition: &feedback '%actor.world% != "world_duels" && %actor.world% != "world_duels2" && %actor.world% != "cosmic-pvparenas"', effects: [{ BLOCK_BREAK_EFFECT: { block: SNOW_BLOCK, anchor: eye, y-offset: 0.5, once-at-actor: true, who: *allies1 } }] }
+      - { trigger: ATTACK, condition: &normal '%actor.world% != "world_koth" && !(%actor.world% matchesregex "^cosmic-station.*")', effects: [{ DAMAGE_MOD: { side: attack, mode: add, amount: '%cosmic-leadership-allies% * 10', cap: 75 } }] }
+      - { trigger: ATTACK, condition: &special '%actor.world% == "world_koth" || %actor.world% matchesregex "^cosmic-station.*"', effects: [{ DAMAGE_MOD: { side: attack, mode: add, amount: '%cosmic-leadership-allies% * 5', cap: 75 } }] }
+  2:
+    abilities:
+      - { trigger: REPEATING, repeat: 120, initial-delay: 20, effects: [{ COUNT_TARGETS: { name: cosmic-leadership-allies, ttl: 0, who: &allies2 '@Aoe{r=7,filter=ALLIES}' } }] }
+      - { trigger: REPEATING, repeat: 120, initial-delay: 20, condition: *feedback, effects: [{ BLOCK_BREAK_EFFECT: { block: SNOW_BLOCK, anchor: eye, y-offset: 0.5, once-at-actor: true, who: *allies2 } }] }
+      - { trigger: ATTACK, condition: *normal, effects: [{ DAMAGE_MOD: { side: attack, mode: add, amount: '%cosmic-leadership-allies% * 10', cap: 75 } }] }
+      - { trigger: ATTACK, condition: *special, effects: [{ DAMAGE_MOD: { side: attack, mode: add, amount: '%cosmic-leadership-allies% * 5', cap: 75 } }] }
+  3:
+    abilities:
+      - { trigger: REPEATING, repeat: 120, initial-delay: 20, effects: [{ COUNT_TARGETS: { name: cosmic-leadership-allies, ttl: 0, who: &allies3 '@Aoe{r=9,filter=ALLIES}' } }] }
+      - { trigger: REPEATING, repeat: 120, initial-delay: 20, condition: *feedback, effects: [{ BLOCK_BREAK_EFFECT: { block: SNOW_BLOCK, anchor: eye, y-offset: 0.5, once-at-actor: true, who: *allies3 } }] }
+      - { trigger: ATTACK, condition: *normal, effects: [{ DAMAGE_MOD: { side: attack, mode: add, amount: '%cosmic-leadership-allies% * 10', cap: 75 } }] }
+      - { trigger: ATTACK, condition: *special, effects: [{ DAMAGE_MOD: { side: attack, mode: add, amount: '%cosmic-leadership-allies% * 5', cap: 75 } }] }
+  4:
+    abilities:
+      - { trigger: REPEATING, repeat: 120, initial-delay: 20, effects: [{ COUNT_TARGETS: { name: cosmic-leadership-allies, ttl: 0, who: &allies4 '@Aoe{r=11,filter=ALLIES}' } }] }
+      - { trigger: REPEATING, repeat: 120, initial-delay: 20, condition: *feedback, effects: [{ BLOCK_BREAK_EFFECT: { block: SNOW_BLOCK, anchor: eye, y-offset: 0.5, once-at-actor: true, who: *allies4 } }] }
+      - { trigger: ATTACK, condition: *normal, effects: [{ DAMAGE_MOD: { side: attack, mode: add, amount: '%cosmic-leadership-allies% * 10', cap: 75 } }] }
+      - { trigger: ATTACK, condition: *special, effects: [{ DAMAGE_MOD: { side: attack, mode: add, amount: '%cosmic-leadership-allies% * 5', cap: 75 } }] }
+  5:
+    abilities:
+      - { trigger: REPEATING, repeat: 120, initial-delay: 20, effects: [{ COUNT_TARGETS: { name: cosmic-leadership-allies, ttl: 0, who: &allies5 '@Aoe{r=13,filter=ALLIES}' } }] }
+      - { trigger: REPEATING, repeat: 120, initial-delay: 20, condition: *feedback, effects: [{ BLOCK_BREAK_EFFECT: { block: SNOW_BLOCK, anchor: eye, y-offset: 0.5, once-at-actor: true, who: *allies5 } }] }
+      - { trigger: ATTACK, condition: *normal, effects: [{ DAMAGE_MOD: { side: attack, mode: add, amount: '%cosmic-leadership-allies% * 10', cap: 75 } }] }
+      - { trigger: ATTACK, condition: *special, effects: [{ DAMAGE_MOD: { side: attack, mode: add, amount: '%cosmic-leadership-allies% * 5', cap: 75 } }] }

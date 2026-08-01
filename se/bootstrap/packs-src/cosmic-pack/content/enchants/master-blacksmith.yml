@@ -1,0 +1,29 @@
+# Cosmic codex source: 06-enchants-tools-heroic.md — heroic/HeroicBlacksmith.java
+display: Master Blacksmith
+description: Heroic Enchantment. Chance to heal your most damaged piece of armor by 2-3 durability whenever you hit a player,
+  but when it procs your attack will only deal 75-100% of the normal damage. Requires Blacksmith V enchant on item to apply.
+  Cannot be black-scrolled.
+trigger:
+- ATTACK
+applies-to:
+- AXE
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    abilities:
+      - { trigger: ATTACK, chance: 12.5, effects: [{ DURABILITY: { amount: 2, target: armor, mode: restore, selection: most-damaged } }, { DAMAGE_MOD: { side: attack, mode: multiply, amount: 0.80 } }] }
+  2:
+    abilities:
+      - { trigger: ATTACK, chance: 25, effects: [{ DURABILITY: { amount: 2, target: armor, mode: restore, selection: most-damaged } }, { DAMAGE_MOD: { side: attack, mode: multiply, amount: 0.85 } }] }
+  3:
+    abilities:
+      - { trigger: ATTACK, chance: 37.5, effects: [{ DURABILITY: { amount: 2, target: armor, mode: restore, selection: most-damaged } }, { DURABILITY: { amount: 2, target: armor, mode: restore, selection: most-damaged } }, { DAMAGE_MOD: { side: attack, mode: multiply, amount: 0.90 } }] }
+  4:
+    abilities:
+      - { trigger: ATTACK, chance: 50, effects: [{ DURABILITY: { amount: 2, target: armor, mode: restore, selection: most-damaged } }, { DURABILITY: { amount: 2, target: armor, mode: restore, selection: most-damaged } }, { DAMAGE_MOD: { side: attack, mode: multiply, amount: 0.95 } }] }
+  5:
+    abilities:
+      - { trigger: ATTACK, chance: 62.5, effects: [{ DURABILITY: { amount: 3, target: armor, mode: restore, selection: most-damaged } }, { DURABILITY: { amount: 2, target: armor, mode: restore, selection: most-damaged } }, { DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.0 } }] }

@@ -1,0 +1,31 @@
+# Cosmic codex source: 03-enchants-swords.md — weapons/Training.java
+display: Training
+description: Increases mcMMO XP gained in all COMBAT skills while equipped.
+trigger:
+- ATTACK
+- DEFENSE
+applies-to: [SWORD, AXE, BOW]
+group: unique
+tier: unique
+stacking: HIGHEST
+levels:
+  1:
+    effects: []
+  2:
+    effects: []
+  3:
+    effects: []
+  4:
+    effects: []
+  5:
+    effects: []
+  6:
+    effects: []
+  7:
+    effects: []
+  8:
+    effects: []
+  9:
+    effects: []
+  10:
+    effects: []

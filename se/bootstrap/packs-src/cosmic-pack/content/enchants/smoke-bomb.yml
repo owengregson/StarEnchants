@@ -1,0 +1,35 @@
+# Cosmic codex source: 02-enchants-armor-m-z.md — armor/SmokeBomb.java
+display: Smoke Bomb
+description: When you are near death, you will spawn a smoke bomb to distract your enemies.
+trigger:
+- DEFENSE
+applies-to:
+- HELMET
+group: elite
+tier: elite
+stacking: HIGHEST
+levels:
+  1:
+    abilities:
+      - { trigger: DEFENSE, cooldown: 300, condition: &lethal '%actor.health% - %finaldamage% <= 0', effects: [{ PARTICLE: { particle: CLOUD, count: 75, spread: 0, speed: 1, anchor: feet, y-offset: 1, who: '@Self' } }, { SOUND: { sound: FIREWORK_TWINKLE2, volume: 2, pitch: 0.75, who: '@Self' } }, { MESSAGE: { text: '&c&l(!) &c{ATTACKER} has thrown a Smoke Bomb in an attempt to escape!', who: '@Aoe{r=2,filter=ENEMY_PLAYERS}' } }, { SOUND: { sound: FIREWORK_TWINKLE2, volume: 1.6, pitch: 0.75, dedupe: false, who: '@Aoe{r=2,filter=ENEMY_PLAYERS}' } }, { POTION: { effect: BLINDNESS, level: 2, duration: 60, who: '@Aoe{r=2,filter=ENEMY_PLAYERS}' } }, { POTION: { effect: SLOW_DIGGING, level: 2, duration: 60, who: '@Aoe{r=2,filter=ENEMY_PLAYERS}' } }, { CANCEL: {} }] }
+  2:
+    abilities:
+      - { trigger: DEFENSE, cooldown: 300, condition: *lethal, effects: [{ PARTICLE: { particle: CLOUD, count: 75, spread: 0, speed: 1, anchor: feet, y-offset: 1, who: '@Self' } }, { SOUND: { sound: FIREWORK_TWINKLE2, volume: 2, pitch: 0.75, who: '@Self' } }, { MESSAGE: { text: '&c&l(!) &c{ATTACKER} has thrown a Smoke Bomb in an attempt to escape!', who: '@Aoe{r=3,filter=ENEMY_PLAYERS}' } }, { SOUND: { sound: FIREWORK_TWINKLE2, volume: 1.6, pitch: 0.75, dedupe: false, who: '@Aoe{r=3,filter=ENEMY_PLAYERS}' } }, { POTION: { effect: BLINDNESS, level: 3, duration: 60, who: '@Aoe{r=3,filter=ENEMY_PLAYERS}' } }, { POTION: { effect: SLOW_DIGGING, level: 3, duration: 60, who: '@Aoe{r=3,filter=ENEMY_PLAYERS}' } }, { CANCEL: {} }] }
+  3:
+    abilities:
+      - { trigger: DEFENSE, cooldown: 300, condition: *lethal, effects: [{ PARTICLE: { particle: CLOUD, count: 75, spread: 0, speed: 1, anchor: feet, y-offset: 1, who: '@Self' } }, { SOUND: { sound: FIREWORK_TWINKLE2, volume: 2, pitch: 0.75, who: '@Self' } }, { MESSAGE: { text: '&c&l(!) &c{ATTACKER} has thrown a Smoke Bomb in an attempt to escape!', who: '@Aoe{r=5,filter=ENEMY_PLAYERS}' } }, { SOUND: { sound: FIREWORK_TWINKLE2, volume: 1.6, pitch: 0.75, dedupe: false, who: '@Aoe{r=5,filter=ENEMY_PLAYERS}' } }, { POTION: { effect: BLINDNESS, level: 4, duration: 60, who: '@Aoe{r=5,filter=ENEMY_PLAYERS}' } }, { POTION: { effect: SLOW_DIGGING, level: 4, duration: 60, who: '@Aoe{r=5,filter=ENEMY_PLAYERS}' } }, { CANCEL: {} }] }
+  4:
+    abilities:
+      - { trigger: DEFENSE, cooldown: 300, condition: *lethal, effects: [{ PARTICLE: { particle: CLOUD, count: 75, spread: 0, speed: 1, anchor: feet, y-offset: 1, who: '@Self' } }, { SOUND: { sound: FIREWORK_TWINKLE2, volume: 2, pitch: 0.75, who: '@Self' } }, { MESSAGE: { text: '&c&l(!) &c{ATTACKER} has thrown a Smoke Bomb in an attempt to escape!', who: '@Aoe{r=6,filter=ENEMY_PLAYERS}' } }, { SOUND: { sound: FIREWORK_TWINKLE2, volume: 1.6, pitch: 0.75, dedupe: false, who: '@Aoe{r=6,filter=ENEMY_PLAYERS}' } }, { POTION: { effect: BLINDNESS, level: 4, duration: 80, who: '@Aoe{r=6,filter=ENEMY_PLAYERS}' } }, { POTION: { effect: SLOW_DIGGING, level: 4, duration: 80, who: '@Aoe{r=6,filter=ENEMY_PLAYERS}' } }, { CANCEL: {} }] }
+  5:
+    abilities:
+      - { trigger: DEFENSE, cooldown: 300, condition: *lethal, effects: [{ PARTICLE: { particle: CLOUD, count: 75, spread: 0, speed: 1, anchor: feet, y-offset: 1, who: '@Self' } }, { SOUND: { sound: FIREWORK_TWINKLE2, volume: 2, pitch: 0.75, who: '@Self' } }, { MESSAGE: { text: '&c&l(!) &c{ATTACKER} has thrown a Smoke Bomb in an attempt to escape!', who: '@Aoe{r=8,filter=ENEMY_PLAYERS}' } }, { SOUND: { sound: FIREWORK_TWINKLE2, volume: 1.6, pitch: 0.75, dedupe: false, who: '@Aoe{r=8,filter=ENEMY_PLAYERS}' } }, { POTION: { effect: BLINDNESS, level: 4, duration: 100, who: '@Aoe{r=8,filter=ENEMY_PLAYERS}' } }, { POTION: { effect: SLOW_DIGGING, level: 4, duration: 100, who: '@Aoe{r=8,filter=ENEMY_PLAYERS}' } }, { CANCEL: {} }] }
+  6:
+    abilities:
+      - { trigger: DEFENSE, cooldown: 300, condition: *lethal, effects: [{ PARTICLE: { particle: CLOUD, count: 75, spread: 0, speed: 1, anchor: feet, y-offset: 1, who: '@Self' } }, { SOUND: { sound: FIREWORK_TWINKLE2, volume: 2, pitch: 0.75, who: '@Self' } }, { MESSAGE: { text: '&c&l(!) &c{ATTACKER} has thrown a Smoke Bomb in an attempt to escape!', who: '@Aoe{r=9,filter=ENEMY_PLAYERS}' } }, { SOUND: { sound: FIREWORK_TWINKLE2, volume: 1.6, pitch: 0.75, dedupe: false, who: '@Aoe{r=9,filter=ENEMY_PLAYERS}' } }, { POTION: { effect: BLINDNESS, level: 4, duration: 120, who: '@Aoe{r=9,filter=ENEMY_PLAYERS}' } }, { POTION: { effect: SLOW_DIGGING, level: 4, duration: 120, who: '@Aoe{r=9,filter=ENEMY_PLAYERS}' } }, { CANCEL: {} }] }
+  7:
+    abilities:
+      - { trigger: DEFENSE, cooldown: 300, condition: *lethal, effects: [{ PARTICLE: { particle: CLOUD, count: 75, spread: 0, speed: 1, anchor: feet, y-offset: 1, who: '@Self' } }, { SOUND: { sound: FIREWORK_TWINKLE2, volume: 2, pitch: 0.75, who: '@Self' } }, { MESSAGE: { text: '&c&l(!) &c{ATTACKER} has thrown a Smoke Bomb in an attempt to escape!', who: '@Aoe{r=11,filter=ENEMY_PLAYERS}' } }, { SOUND: { sound: FIREWORK_TWINKLE2, volume: 1.6, pitch: 0.75, dedupe: false, who: '@Aoe{r=11,filter=ENEMY_PLAYERS}' } }, { POTION: { effect: BLINDNESS, level: 4, duration: 140, who: '@Aoe{r=11,filter=ENEMY_PLAYERS}' } }, { POTION: { effect: SLOW_DIGGING, level: 4, duration: 140, who: '@Aoe{r=11,filter=ENEMY_PLAYERS}' } }, { CANCEL: {} }] }
+  8:
+    abilities:
+      - { trigger: DEFENSE, cooldown: 300, condition: *lethal, effects: [{ PARTICLE: { particle: CLOUD, count: 75, spread: 0, speed: 1, anchor: feet, y-offset: 1, who: '@Self' } }, { SOUND: { sound: FIREWORK_TWINKLE2, volume: 2, pitch: 0.75, who: '@Self' } }, { MESSAGE: { text: '&c&l(!) &c{ATTACKER} has thrown a Smoke Bomb in an attempt to escape!', who: '@Aoe{r=12,filter=ENEMY_PLAYERS}' } }, { SOUND: { sound: FIREWORK_TWINKLE2, volume: 1.6, pitch: 0.75, dedupe: false, who: '@Aoe{r=12,filter=ENEMY_PLAYERS}' } }, { POTION: { effect: BLINDNESS, level: 4, duration: 160, who: '@Aoe{r=12,filter=ENEMY_PLAYERS}' } }, { POTION: { effect: SLOW_DIGGING, level: 4, duration: 160, who: '@Aoe{r=12,filter=ENEMY_PLAYERS}' } }, { CANCEL: {} }] }

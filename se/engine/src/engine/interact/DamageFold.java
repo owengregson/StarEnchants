@@ -39,6 +39,8 @@ public final class DamageFold {
     private double flatReduction;
     private double outgoingPercent;
     private double reductionPercent;
+    private double outgoingMultiplier = 1.0;
+    private double incomingMultiplier = 1.0;
     // Victim heroic reduction rides its own pair of buckets (ADR-0053 IGNORE_HEROIC): the commit adds them
     // back into the shared reduction terms unless the per-hit ignore flag is set, so unflagged behavior is
     // identical to when heroic fed the plain buckets directly. Attacker-side heroic stays on the plain adders.
@@ -104,6 +106,16 @@ public final class DamageFold {
         reductionPercent += percent;
     }
 
+    /** Multiply base outgoing damage directly; factors compose multiplicatively and are clamped non-negative. */
+    public void multiplyOutgoing(double factor) {
+        outgoingMultiplier *= Math.max(0.0, factor);
+    }
+
+    /** Multiply incoming damage directly; factors compose multiplicatively and are clamped non-negative. */
+    public void multiplyIncoming(double factor) {
+        incomingMultiplier *= Math.max(0.0, factor);
+    }
+
     /** Contribute a flat damage bonus, applied after the outgoing multiplier (§6.1). */
     public void addFlatDamage(double amount) {
         flatDamage += amount;
@@ -151,8 +163,9 @@ public final class DamageFold {
         double flatRed = heroicIgnored ? flatReduction : heroicFlatReduction + flatReduction;
         double cappedOutgoing = Math.min(outgoingPercent, maxBonusOutgoing);
         double cappedReduction = Math.min(reduction, maxBonusReduction);
-        double outgoing = base * Math.max(0.0, 1.0 + cappedOutgoing * attackScale) + flatDamage * attackScale;
-        double mitigated = outgoing * Math.max(0.0, 1.0 - cappedReduction) - flatRed;
+        double outgoing = base * outgoingMultiplier
+                * Math.max(0.0, 1.0 + cappedOutgoing * attackScale) + flatDamage * attackScale;
+        double mitigated = outgoing * incomingMultiplier * Math.max(0.0, 1.0 - cappedReduction) - flatRed;
         // The rider bucket joins AFTER the inner clamp: flat reduction may zero the scaled economy but can
         // never reach into the riders (pre-1.8.2 they were separate events it could not absorb, ADR-0055).
         // The self-malus factor prices the WHOLE committed hit last (ADR-0071), after the riders join.
@@ -166,6 +179,8 @@ public final class DamageFold {
         flatReduction = 0.0;
         outgoingPercent = 0.0;
         reductionPercent = 0.0;
+        outgoingMultiplier = 1.0;
+        incomingMultiplier = 1.0;
         heroicReductionPercent = 0.0;
         heroicFlatReduction = 0.0;
         heroicIgnored = false;
@@ -181,6 +196,14 @@ public final class DamageFold {
 
     public double reductionPercent() {
         return reductionPercent;
+    }
+
+    public double outgoingMultiplier() {
+        return outgoingMultiplier;
+    }
+
+    public double incomingMultiplier() {
+        return incomingMultiplier;
     }
 
     public double flatDamage() {

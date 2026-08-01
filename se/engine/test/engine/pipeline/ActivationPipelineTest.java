@@ -11,6 +11,7 @@ import engine.interact.SoulSpender;
 import engine.interact.SuppressionSet;
 import engine.stores.CooldownStore;
 import engine.stores.SuppressionStore;
+import engine.stores.VarStore;
 import schema.diag.Source;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -328,5 +329,20 @@ class ActivationPipelineTest {
         // Even a directly armed GROUP key cannot block: gate 6 no longer consults the group scope at all.
         cooldowns.arm(ACTOR, CooldownStore.key(1, 2, 0), 100L, 40);
         assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(rage.build(), act().build()));
+    }
+
+    @Test
+    void teslaSoulFreeWindowWaivesSoulCostsUntilExpiry() {
+        Ab a = new Ab();
+        a.soulCost = 3;
+        VarStore vars = new VarStore();
+        vars.set(ACTOR, "soul-free", "1", 100L, 40);
+        ActivationPipeline tesla = new ActivationPipeline(cooldowns, spender, new SuppressionStore(), vars,
+                ActivationPipeline.Guard.ALLOW, ActivationPipeline.Guard.ALLOW, engine.stores.WhyRecorder.NONE);
+
+        assertEquals(GateOutcome.ACTIVATED, tesla.evaluate(a.build(), act().build()));
+        assertEquals(0, spender.balance);
+        assertEquals(GateOutcome.NO_SOULS,
+                tesla.evaluate(a.build(), Activation.builder(ACTOR, 3, 0, 140L).build()));
     }
 }

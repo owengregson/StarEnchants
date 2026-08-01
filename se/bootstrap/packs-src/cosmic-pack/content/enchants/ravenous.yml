@@ -1,0 +1,15 @@
+# Cosmic codex source: 04-enchants-axes.md — axes/Ravenous.java
+display: Ravenous
+description: A chance to regain hunger.
+trigger:
+- ATTACK
+applies-to:
+- AXE
+group: unique
+tier: unique
+stacking: HIGHEST
+levels:
+  1: { chance: 5, condition: &hungry '%actor.food% < 20', effects: [{ MODIFY_FOOD: { amount: 1, mode: give } }] }
+  2: { chance: 10, condition: *hungry, effects: [{ MODIFY_FOOD: { amount: 1, mode: give } }] }
+  3: { chance: 15, condition: *hungry, effects: [{ MODIFY_FOOD: { amount: 1, mode: give } }] }
+  4: { chance: 20, condition: *hungry, effects: [{ MODIFY_FOOD: { amount: 1, mode: give } }] }

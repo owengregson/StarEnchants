@@ -55,6 +55,7 @@ public final class TriggerDispatch {
     private final DropControl dropControl; // vanilla-drop suppression for SMELT/TELEPORT_DROPS (§4 era seam)
 
     public final int mine;
+    public final int defense;
     public final int kill;
     public final int fall;
     public final int fire;
@@ -75,6 +76,8 @@ public final class TriggerDispatch {
     public final int expGain; // fired by TriggerListeners.onExpChange; scales the PlayerExpChangeEvent's XP in place
     public final int use;     // §3.6 USE — fired only by the use-item right-click flow (UseItemService)
     public final int guardianHurt; // fired by GuardianHurtListener when a summoned guardian is hurt (victim = the guardian)
+    public final int allyDeath; // fired for nearby allied wearers when a player dies
+    public final int blockDamage; // fired when a held tool damages/starts breaking a block
 
     /**
      * Trigger dispatch over the shared per-boot {@link SinkEnv}. GIVE_MONEY/TAKE_MONEY on MINE/KILL/… and the
@@ -96,6 +99,7 @@ public final class TriggerDispatch {
         this.executor = Objects.requireNonNull(executor, "executor");
         this.attackTrigger = triggers.attackTriggers();
         this.mine = triggers.idOf("MINE").orElse(-1);
+        this.defense = triggers.idOf("DEFENSE").orElse(-1);
         this.kill = triggers.idOf("KILL").orElse(-1);
         this.fall = triggers.idOf("FALL").orElse(-1);
         this.fire = triggers.idOf("FIRE").orElse(-1);
@@ -116,6 +120,8 @@ public final class TriggerDispatch {
         this.expGain = triggers.idOf("EXP_GAIN").orElse(-1);
         this.use = triggers.idOf("USE").orElse(-1);
         this.guardianHurt = triggers.idOf("GUARDIAN_HURT").orElse(-1);
+        this.allyDeath = triggers.idOf("ALLY_DEATH").orElse(-1);
+        this.blockDamage = triggers.idOf("BLOCK_DAMAGE").orElse(-1);
     }
 
     /**
@@ -148,10 +154,15 @@ public final class TriggerDispatch {
         SinkReadback sink = newSink();
         runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), mine,
                 attackTrigger.test(mine), actor, context, sink, snapshot.stableKeys());
+        double expMultiplier = sink.expMultiplier();
+        if (expMultiplier != 1.0) {
+            event.setExpToDrop(Math.max(0, (int) (event.getExpToDrop() * expMultiplier)));
+        }
         if (sink.cancelled()) {
             event.setCancelled(true);
         } else {
-            MineDrops.apply(event, sink.smeltRequested(), sink.teleportDropsRequested(), hands, dropControl);
+            MineDrops.apply(event, sink.smeltRequested(), sink.smeltAmount(), sink.smeltIronGoldOnly(),
+                    sink.teleportDropsRequested(), hands, dropControl);
         }
         sink.flush();
     }
@@ -172,8 +183,14 @@ public final class TriggerDispatch {
                 attackTrigger.test(bowFire), shooter, context, sink, snapshot.stableKeys());
         if (sink.cancelled()) {
             event.setCancelled(true);
-        } else if (sink.seekRequested() && event.getProjectile() instanceof Projectile projectile) {
-            ProjectileHoming.start(shooter, projectile);
+        } else {
+            if (event.getProjectile() instanceof Projectile projectile && sink.projectileMark() > 0) {
+                env.projectileMarks().mark(projectile.getUniqueId(), sink.projectileMark(),
+                        env.nowTicks().getAsLong(), 1200);
+            }
+            if (sink.seekRequested() && event.getProjectile() instanceof Projectile projectile) {
+                ProjectileHoming.start(shooter, projectile);
+            }
         }
         sink.flush();
     }
@@ -191,6 +208,32 @@ public final class TriggerDispatch {
         SinkReadback sink = newSink();
         runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), triggerId,
                 attackTrigger.test(triggerId), actor, context, sink, snapshot.stableKeys(), applyHeroic);
+        event.setDamage(sink.fold().apply(event.getDamage()));
+        if (sink.cancelled()) {
+            event.setCancelled(true);
+        }
+        sink.flush();
+    }
+
+    /**
+     * Fire general DEFENSE exactly once for non-entity damage, then the optional cause-specific trigger
+     * (FALL/FIRE) into the same sink and commit one fold. This is the bug-free form of Cosmic's common
+     * defensive hook: every incoming cause participates, without its accidental duplicate melee dispatch.
+     */
+    public void fireEnvironmentalDamage(Player actor, int specificTriggerId, ActivationContext context,
+                                        org.bukkit.event.entity.EntityDamageEvent event, boolean applyHeroic) {
+        Snapshot snapshot = content.snapshot();
+        SinkReadback sink = newSink();
+        if (defense >= 0) {
+            runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), defense,
+                    false, actor, context, sink, snapshot.stableKeys(), applyHeroic);
+        } else if (applyHeroic) {
+            runner.contributeHeroicReduction(snapshot.generation(), actor, sink);
+        }
+        if (specificTriggerId >= 0 && specificTriggerId != defense) {
+            runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), specificTriggerId,
+                    false, actor, context, sink, snapshot.stableKeys(), false);
+        }
         event.setDamage(sink.fold().apply(event.getDamage()));
         if (sink.cancelled()) {
             event.setCancelled(true);
@@ -337,6 +380,25 @@ public final class TriggerDispatch {
         fire(owner, guardianHurt, context, null);
     }
 
+    /** Fire ALLY_DEATH for each living allied player in the dead player's world. Radius is authored per level. */
+    public void fireAllyDeath(Player dead) {
+        if (allyDeath < 0 || dead == null || dead.getWorld() == null) {
+            return;
+        }
+        Location at = dead.getLocation().clone();
+        for (Player candidate : dead.getWorld().getPlayers()) {
+            if (candidate.equals(dead)) {
+                continue;
+            }
+            platform.sched.Scheduling.onEntity(candidate, () -> {
+                if (!candidate.isDead() && candidate.getHealth() > 0.0
+                        && engine.selector.kind.Allies.allied(dead, candidate)) {
+                    fire(candidate, allyDeath, new ActivationContext(candidate, dead, null, at), null);
+                }
+            });
+        }
+    }
+
     /** Fire EXP_GAIN, then scale the gained XP by the accumulated EXP_MULTIPLY factor (recursion-safe: no new XP granted). */
     public void fireExp(Player actor, ActivationContext context, org.bukkit.event.player.PlayerExpChangeEvent event) {
         if (expGain < 0) {
@@ -347,8 +409,16 @@ public final class TriggerDispatch {
         runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), expGain,
                 attackTrigger.test(expGain), actor, context, sink, snapshot.stableKeys());
         double m = sink.expMultiplier();
+        String timedBoost = env.stores().vars().get(actor.getUniqueId(), "exp-boost", env.nowTicks().getAsLong());
+        if (timedBoost != null) {
+            try {
+                m *= Math.max(0.0, Double.parseDouble(timedBoost));
+            } catch (NumberFormatException ignored) {
+                // A malformed author variable is inert; authored pet values are compiler-controlled numerics.
+            }
+        }
         if (m != 1.0) {
-            event.setAmount(Math.max(0, (int) Math.round(event.getAmount() * m)));
+            event.setAmount(Math.max(0, (int) (event.getAmount() * m)));
         }
         sink.flush();
     }

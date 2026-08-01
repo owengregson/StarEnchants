@@ -7,6 +7,7 @@ import item.head.HeadAttributes;
 import item.head.IllusionMark;
 import item.head.TexturedHeads;
 import item.view.ItemViewCache;
+import item.codec.MaskCodec;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -175,7 +176,7 @@ public final class MaskIllusionService {
         if (maskKey == null) {
             return null;
         }
-        MaskDef def = library.get().maskDefOf(maskKey);
+        MaskDef def = library.get().maskDefOf(MaskCodec.definitionKey(maskKey));
         if (def == null || def.head() == null || def.head().isBlank()) {
             return null; // key stale after a reload, or an untextured mask — no illusion (ADR-0053 §4)
         }

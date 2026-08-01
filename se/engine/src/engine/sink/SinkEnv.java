@@ -35,6 +35,7 @@ import platform.economy.EconomyService;
 public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
                       Consumer<Player> movementExemption, TempBlockLedger<BlockState> tempBlocks,
                       TrailWalker trails, TimedRevert timedReverts, DotParkLedger dotPark,
+                      RegenerationWindows regenerationWindows, ProjectileMarks projectileMarks,
                       DoubleSupplier moneyInterestCap, GearProtection gearProtection,
                       ToDoubleFunction<UUID> lightningBoost, TrapStructures trapStructures) {
 
@@ -48,6 +49,8 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
         Objects.requireNonNull(trails, "trails");
         Objects.requireNonNull(timedReverts, "timedReverts");
         Objects.requireNonNull(dotPark, "dotPark");
+        Objects.requireNonNull(regenerationWindows, "regenerationWindows");
+        Objects.requireNonNull(projectileMarks, "projectileMarks");
         Objects.requireNonNull(moneyInterestCap, "moneyInterestCap");
         Objects.requireNonNull(gearProtection, "gearProtection");
         Objects.requireNonNull(lightningBoost, "lightningBoost");
@@ -85,7 +88,8 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
                              Consumer<Player> movementExemption, DoubleSupplier moneyInterestCap,
                              GearProtection gearProtection, ToDoubleFunction<UUID> lightningBoost) {
         return new SinkEnv(economy, souls, stores, nowTicks, movementExemption, BukkitBlockOps.ledger(),
-                new TrailWalker(), new TimedRevert(), new DotParkLedger(), moneyInterestCap, gearProtection,
+                new TrailWalker(), new TimedRevert(), new DotParkLedger(), new RegenerationWindows(),
+                new ProjectileMarks(), moneyInterestCap, gearProtection,
                 lightningBoost, new TrapStructures());
     }
 }

@@ -237,7 +237,8 @@ public final class Mappings {
                         : MigratedEffect.todo(token, "unexpected FLAME arg shape");
                 // POTION:TYPE:LEVEL:[target]:[durationSeconds] → POTION:type:level:<dur*20>:@target.
                 case "POTION" -> eePotion(token, parts, defenseDirection);
-                // HEAL:ADD:MIN[:MAX][:target] → MODIFY_HEALTH:<amount>:give:@Self (random range → max; self-heal).
+                // HEAL:ADD:MIN[:MAX][:target] → MODIFY_HEALTH:<amount>:0:give:@Self
+                // (random range → max; explicit 0 keeps the migrated heal uncapped).
                 case "HEAL" -> eeHeal(token, parts);
                 // REDUCTION:PCT → DAMAGE_MOD:defense:add:<0..100> (incoming-damage reduction percent).
                 case "REDUCTION" -> parts.length >= 2
@@ -385,7 +386,7 @@ public final class Mappings {
                         "EE DAMAGE_DISTANCE → distance-scaled DAMAGE_MOD (close ≈ +25%, far ≈ -10%)");
                 // REDUCE_HEARTS:HP:TIME → set the foe's health to HP (EE's regen-block is dead code, so omitted).
                 case "REDUCE_HEARTS" -> parts.length >= 2
-                        ? MigratedEffect.mapped(token, "MODIFY_HEALTH:" + intArg(parts[1]) + ":set:" + foe(defenseDirection),
+                        ? MigratedEffect.mapped(token, "MODIFY_HEALTH:" + intArg(parts[1]) + ":0:set:" + foe(defenseDirection),
                                 "EE REDUCE_HEARTS → MODIFY_HEALTH:set (EE's regen-block was dead code, omitted)")
                         : MigratedEffect.todo(token, "unexpected REDUCE_HEARTS arg shape");
                 // REMOVE_ARMOR → drop a random worn armour piece from the foe.
@@ -449,7 +450,7 @@ public final class Mappings {
                 + sel(targetTok, defenseDir), note);
     }
 
-    /** HEAL:ADD:MIN[:MAX][:target] → {@code MODIFY_HEALTH:<amount>:give:@Self} (amount = the last numeric arg). */
+    /** HEAL:ADD:MIN[:MAX][:target] → {@code MODIFY_HEALTH:<amount>:0:give:@Self} (amount = the last numeric arg). */
     private static MigratedEffect eeHeal(String token, String[] parts) {
         if (parts.length < 3 || !parts[1].trim().equalsIgnoreCase("ADD")) {
             return MigratedEffect.todo(token, "unexpected HEAL arg shape (only HEAL:ADD is mapped)");
@@ -464,7 +465,7 @@ public final class Mappings {
         }
         return amount == null
                 ? MigratedEffect.todo(token, "HEAL:ADD has no numeric amount")
-                : MigratedEffect.mapped(token, "MODIFY_HEALTH:" + amount + ":give:@Self",
+                : MigratedEffect.mapped(token, "MODIFY_HEALTH:" + amount + ":0:give:@Self",
                         "EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max");
     }
 
@@ -749,7 +750,7 @@ public final class Mappings {
                         ? MigratedEffect.mapped(token, "DAMAGE:" + intArg(parts[1]) + suffix, "")
                         : MigratedEffect.todo(token, "unexpected DAMAGE arg shape");
                 case "ADD_HEALTH", "HEAL" -> parts.length >= 2
-                        ? MigratedEffect.mapped(token, "MODIFY_HEALTH:" + intArg(parts[1]) + ":give" + suffix,
+                        ? MigratedEffect.mapped(token, "MODIFY_HEALTH:" + intArg(parts[1]) + ":0:give" + suffix,
                                 "AE add-health → MODIFY_HEALTH (give)")
                         : MigratedEffect.todo(token, "unexpected heal arg shape");
                 case "POTION" -> parts.length >= 4

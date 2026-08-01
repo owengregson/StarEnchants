@@ -8,6 +8,7 @@ import compile.model.Snapshot;
 import engine.interact.SlotLedger;
 import item.codec.CombatCodec;
 import item.codec.CombatState;
+import item.codec.MaskCodec;
 import item.mint.VanillaEnchants;
 import platform.lang.Messages;
 import item.render.LoreRenderer;
@@ -16,10 +17,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 
 /**
  * Applies enchants, crystals, and masks to an item (docs/architecture.md §4.2) — the one cold mutation path.
@@ -55,12 +60,21 @@ public final class ItemEnchanter {
     private final Supplier<List<String>> weaponGroups; // ADR-0070 reforges.weapon-groups — read live per apply
     private final Messages messages;
     private final VanillaEnchants vanilla;   // §6.6 cross-version set-piece base enchants (ADR-0047 instance wiring)
+    private final Random random;             // exact Cosmic set-piece enchant rolls; injected by tests
 
     /** Slot/merge caps and the reforge weapon-groups are read per apply so a reload re-tunes them live. */
     public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
                          platform.item.ItemGroups groups, IntSupplier baseSlots, IntSupplier crystalSlots,
                          IntSupplier maxMerge, Supplier<List<String>> weaponGroups, Messages messages,
                          VanillaEnchants vanilla) {
+        this(codec, lore, content, groups, baseSlots, crystalSlots, maxMerge, weaponGroups, messages, vanilla,
+                new Random());
+    }
+
+    public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
+                         platform.item.ItemGroups groups, IntSupplier baseSlots, IntSupplier crystalSlots,
+                         IntSupplier maxMerge, Supplier<List<String>> weaponGroups, Messages messages,
+                         VanillaEnchants vanilla, Random random) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.lore = Objects.requireNonNull(lore, "lore");
         this.content = Objects.requireNonNull(content, "content");
@@ -71,6 +85,7 @@ public final class ItemEnchanter {
         this.weaponGroups = Objects.requireNonNull(weaponGroups, "weaponGroups");
         this.messages = Objects.requireNonNull(messages, "messages");
         this.vanilla = Objects.requireNonNull(vanilla, "vanilla");
+        this.random = Objects.requireNonNull(random, "random");
     }
 
     /** Validate (without mutating) that enchant {@code baseKey} at {@code level} may sit on {@code material}. */
@@ -277,16 +292,18 @@ public final class ItemEnchanter {
         }
         String token = memberToken == null ? "" : memberToken.toLowerCase(java.util.Locale.ROOT);
         if (def.hasWeapon() && token.equals("weapon")) {
-            Material material = item.mint.ItemFactory.material(def.weapon().material(), Material.IRON_SWORD);
-            String name = def.weapon().name() != null ? def.weapon().name() : def.display();
+            compile.load.SetDef.Member member = def.weapon();
+            Material material = item.mint.ItemFactory.material(member.material(), Material.IRON_SWORD);
+            String name = member.name() != null ? member.name() : def.display();
             ItemStack stack = item.mint.ItemFactory.build(material, name, List.of());
-            // §6.6 configured weapon enchants: custom ones stamp into the combat state (so the engine runs
-            // them while held), vanilla names apply cross-version at mint.
-            CombatState next = new CombatState(customEnchants(def.weaponEnchants()), List.of(), null, setKey,
-                    false, item.codec.HeroicStat.NONE, 0, null, null); // weaponMember(setKey) + carried custom enchants
+            Map<String, Integer> configured = resolvedSetEnchants(def.weaponEnchants(), member);
+            applyLeatherColor(stack, member.leatherColor());
+            item.codec.HeroicStat heroic = heroic(member.heroic());
+            CombatState next = new CombatState(customEnchants(configured), List.of(), null, null, setKey,
+                    false, heroic, 0, null, null);
             codec.write(stack, next);
             lore.apply(stack, next);
-            vanilla.apply(stack, vanillaEnchants(def.weaponEnchants()));
+            vanilla.apply(stack, vanillaEnchants(configured));
             return java.util.Optional.of(stack);
         }
         for (compile.load.SetDef.Member member : def.armorMembers()) {
@@ -294,12 +311,13 @@ public final class ItemEnchanter {
                 Material material = item.mint.ItemFactory.material(member.material(), Material.LEATHER_HELMET);
                 String name = member.name() != null ? member.name() : def.display();
                 ItemStack stack = item.mint.ItemFactory.build(material, name, List.of());
-                // §6.6 configured armour enchants (applied to every piece): custom ones stamp into the combat
-                // state, vanilla names apply cross-version at mint.
-                CombatState next = new CombatState(customEnchants(def.armorEnchants()), List.of(), setKey, false);
+                Map<String, Integer> configured = resolvedSetEnchants(def.armorEnchants(), member);
+                applyLeatherColor(stack, member.leatherColor());
+                CombatState next = new CombatState(customEnchants(configured), List.of(), setKey, member.slot(),
+                        null, false, heroic(member.heroic()), 0, null, null);
                 codec.write(stack, next);
                 lore.apply(stack, next);
-                vanilla.apply(stack, vanillaEnchants(def.armorEnchants()));
+                vanilla.apply(stack, vanillaEnchants(configured));
                 return java.util.Optional.of(stack);
             }
         }
@@ -451,7 +469,7 @@ public final class ItemEnchanter {
         if (def == null) {
             return ApplyResult.fail(messages.format("mask.no-such", "KEY", maskKey));
         }
-        if (content.snapshot().byStableKey(maskKey) == null) {
+        if (!maskCompiled(maskKey)) {
             return ApplyResult.fail(messages.format("mask.no-compile", "KEY", maskKey));
         }
         if (!groups.matches(gear.getType(), HELMET_ONLY)) {
@@ -575,6 +593,144 @@ public final class ItemEnchanter {
     }
 
     private MaskDef mask(String key) {
-        return content.library().maskDefOf(key);
+        return content.library().maskDefOf(MaskCodec.definitionKey(key));
+    }
+
+    private boolean maskCompiled(String key) {
+        if (content.snapshot().byStableKey(MaskCodec.definitionKey(key)) == null) {
+            return false;
+        }
+        for (String component : MaskCodec.components(key)) {
+            if (content.library().maskDefOf(component) == null || content.snapshot().byStableKey(component) == null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    Map<String, Integer> resolvedSetEnchants(Map<String, Integer> shared,
+                                             compile.load.SetDef.Member member) {
+        Map<String, Integer> out = new LinkedHashMap<>(shared);
+        out.putAll(member.enchants());
+        for (compile.load.SetDef.EnchantRoll roll : member.enchantRolls()) {
+            if (random.nextDouble() <= roll.chance() * 0.01) {
+                applyRolledEnchant(out, roll.enchant(), roll.mode(), roll.level(), roll.maxLevel());
+            }
+        }
+        for (compile.load.SetDef.EnchantPool pool : member.enchantPools()) {
+            List<String> remaining = new ArrayList<>(pool.enchants());
+            for (int i = 0; i < pool.count() && !remaining.isEmpty(); i++) {
+                String selected = remaining.remove(random.nextInt(remaining.size()));
+                applyRolledEnchant(out, selected, pool.mode(), 1, 1);
+            }
+        }
+        for (compile.load.SetDef.EnchantChoice choice : member.enchantChoices()) {
+            double total = choice.options().stream().mapToDouble(compile.load.SetDef.EnchantBranch::weight).sum();
+            if (!(total > 0.0)) {
+                continue;
+            }
+            double selected = random.nextDouble() * total;
+            double cursor = 0.0;
+            for (compile.load.SetDef.EnchantBranch branch : choice.options()) {
+                cursor += branch.weight();
+                if (selected <= cursor) {
+                    for (compile.load.SetDef.EnchantRoll roll : branch.rolls()) {
+                        if (random.nextDouble() <= roll.chance() * 0.01) {
+                            applyRolledEnchant(out, roll.enchant(), roll.mode(), roll.level(), roll.maxLevel());
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        return out;
+    }
+
+    private void applyRolledEnchant(Map<String, Integer> out, String ref,
+                                    compile.load.SetDef.RollMode mode, int fixedLevel, int configuredMax) {
+        EnchantDef def = enchant(ref);
+        if (def == null) {
+            if (!ref.startsWith(CUSTOM_PREFIX)) {
+                int vanillaMax = vanilla.maxLevel(ref);
+                if (vanillaMax > 0) {
+                    int level = switch (mode) {
+                        case FIXED -> Math.min(vanillaMax, Math.max(1, fixedLevel));
+                        case MAX -> vanillaMax;
+                        case UNIFORM -> 1 + random.nextInt(vanillaMax);
+                        case RANGE -> {
+                            int min = Math.min(vanillaMax, Math.max(1, fixedLevel));
+                            int max = Math.min(vanillaMax, Math.max(min, configuredMax));
+                            yield min + random.nextInt(max - min + 1);
+                        }
+                        case PLAIN_NEAR_MAX, ABILITY_NEAR_MAX ->
+                                Math.min(vanillaMax, Math.max(1, vanillaMax - 2) + random.nextInt(3));
+                    };
+                    out.put(ref, level);
+                }
+            }
+            return; // library validation reports a bad custom ref; vanilla misses stay fail-soft
+        }
+        int level = switch (mode) {
+            case FIXED -> Math.min(def.maxLevel(), Math.max(1, fixedLevel));
+            case MAX -> def.maxLevel();
+            case UNIFORM -> 1 + random.nextInt(def.maxLevel());
+            case RANGE -> {
+                int min = Math.min(def.maxLevel(), Math.max(1, fixedLevel));
+                int max = Math.min(def.maxLevel(), Math.max(min, configuredMax));
+                yield min + random.nextInt(max - min + 1);
+            }
+            case PLAIN_NEAR_MAX -> plainNearMax(def);
+            case ABILITY_NEAR_MAX -> abilityNearMax(def);
+        };
+        if (def.removesRequired()) {
+            def.requires().forEach(out::remove); // heroic upgrades replace, rather than double-fire, their base version
+        }
+        out.put(ref, level); // duplicate rolls overwrite the earlier level, matching CustomEnchantment#addToItem
+    }
+
+    private int plainNearMax(EnchantDef def) {
+        int max = def.maxLevel();
+        if ("heroic".equalsIgnoreCase(def.tier())) {
+            return 1 + random.nextInt(max);
+        }
+        return Math.min(max, Math.max(1, max - 2) + random.nextInt(3));
+    }
+
+    private int abilityNearMax(EnchantDef def) {
+        int max = def.maxLevel();
+        int level;
+        if ("heroic".equalsIgnoreCase(def.tier())) {
+            level = 1 + random.nextInt(max);
+        } else if (max == 1) {
+            level = 1;
+        } else if (max == 2) {
+            level = max - random.nextInt(2);
+        } else if (max == 3) {
+            level = max - random.nextInt(3);
+        } else {
+            level = max - random.nextInt(4);
+        }
+        if (level == max && level > 1 && random.nextDouble() < 0.25) {
+            level--;
+        }
+        return level;
+    }
+
+    private static item.codec.HeroicStat heroic(compile.load.SetDef.Heroic heroic) {
+        return heroic == null || heroic.isZero() ? item.codec.HeroicStat.NONE
+                : new item.codec.HeroicStat(heroic.percentDamage(), heroic.percentReduction(),
+                        heroic.durability(), heroic.flatDamage(), heroic.flatReduction());
+    }
+
+    @SuppressWarnings("deprecation")
+    private static void applyLeatherColor(ItemStack stack, Integer rgb) {
+        if (rgb == null) {
+            return;
+        }
+        ItemMeta meta = stack.getItemMeta();
+        if (meta instanceof LeatherArmorMeta leather) {
+            leather.setColor(Color.fromRGB(rgb));
+            stack.setItemMeta(leather);
+        }
     }
 }

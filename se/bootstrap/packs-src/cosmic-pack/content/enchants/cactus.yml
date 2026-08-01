@@ -1,24 +1,15 @@
-# Imported from EliteEnchantments (id: cactus). Review before shipping.
-display: "Cactus"
-description:
-  - "&eWhen hit, lashes the attacker with"
-  - "&ea spray of thorns."
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/Cactus.java
+display: Cactus
+description: Damages a player who attacks the wearer without consuming armor durability.
 trigger: DEFENSE
 applies-to: [ARMOR]
-group: "common"
-tier: common
+group: elite
+tier: elite
+stacking: HIGHEST
 levels:
   1:
-    chance: 12
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_BEE_STING", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CRIT", count: 7, who: "@Attacker" } }
-      - { DAMAGE: { amount: 1.5, who: "@Attacker" } }
+    condition: "%victim.type% == \"PLAYER\""
+    effects: [{ DAMAGE: { amount: 0.5, attributed: false, who: "@Attacker" } }, { BLOCK_BREAK_EFFECT: { block: CACTUS } }]
   2:
-    chance: 18
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_BEE_STING", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CRIT", count: 7, who: "@Attacker" } }
-      - { DAMAGE: { amount: 2, who: "@Attacker" } }
+    condition: "%victim.type% == \"PLAYER\""
+    effects: [{ DAMAGE: { amount: 1.0, attributed: false, who: "@Attacker" } }, { BLOCK_BREAK_EFFECT: { block: CACTUS } }]

@@ -40,10 +40,35 @@ public final class WornFlattener {
     }
 
     /**
+     * Backward-compatible overload with no held-enchant provenance.
+     *
+     * @param gen               the snapshot generation
+     * @param mainIds           the merged active ability ids from armour + main-hand, in run order
+     * @param offhandIds        the active ability ids from the off-hand item, in run order
+     * @param abilities         the snapshot's ability array
+     * @param triggerCount      the number of interned triggers
+     * @param activeSets        the resolved active armor sets
+     * @param crystalAbilityIds the crystal ability ids
+     * @param heroic            the summed heroic stats
+     * @param attackTrigger     whether a trigger is attacker-side
+     * @param defenseTrigger    whether a trigger is defender-side
+     */
+    public static WornState flatten(int gen, int[] mainIds, int[] offhandIds, Ability[] abilities,
+                                    int triggerCount, BitSet activeSets, int[] crystalAbilityIds,
+                                    HeroicStat heroic, IntPredicate attackTrigger,
+                                    IntPredicate defenseTrigger) {
+        return flatten(gen, mainIds, offhandIds, NO_IDS, abilities, triggerCount, activeSets,
+                crystalAbilityIds, heroic, attackTrigger, defenseTrigger);
+    }
+
+    /**
+     * Full provenance shape.
+     *
      * @param gen              the snapshot generation
      * @param mainIds          the merged active ability ids from armour + main-hand, in run order
      * @param offhandIds       the active ability ids from the off-hand item, in run order — appended with
      *                         attacker-direction triggers excluded (an off-hand item never swings, G01)
+     * @param heldEnchantIds   the main-hand enchant ability ids used by held-lore mechanics
      * @param abilities        the snapshot's ability array (indexed by id, for trigger masks)
      * @param triggerCount     the number of interned triggers (sizes the per-trigger index)
      * @param activeSets       the resolved active armor sets (see {@link SetResolver})
@@ -52,14 +77,16 @@ public final class WornFlattener {
      * @param attackTrigger    whether an interned trigger id is an attacker-side combat trigger
      * @param defenseTrigger   whether an interned trigger id is a defender-side combat trigger
      */
-    public static WornState flatten(int gen, int[] mainIds, int[] offhandIds, Ability[] abilities,
-                                    int triggerCount, BitSet activeSets, int[] crystalAbilityIds,
-                                    HeroicStat heroic, IntPredicate attackTrigger,
+    public static WornState flatten(int gen, int[] mainIds, int[] offhandIds, int[] heldEnchantIds,
+                                    Ability[] abilities, int triggerCount, BitSet activeSets,
+                                    int[] crystalAbilityIds, HeroicStat heroic, IntPredicate attackTrigger,
                                     IntPredicate defenseTrigger) {
         List<List<Integer>> perTrigger = new ArrayList<>(triggerCount);
+        List<List<Integer>> heldPerTrigger = new ArrayList<>(triggerCount);
         FactMask[] triggerMask = new FactMask[triggerCount];
         for (int t = 0; t < triggerCount; t++) {
             perTrigger.add(new ArrayList<>());
+            heldPerTrigger.add(new ArrayList<>());
             triggerMask[t] = FactMask.NONE;
         }
         List<Integer> attack = new ArrayList<>();
@@ -111,12 +138,26 @@ public final class WornFlattener {
             }
         }
 
+        for (int id : heldEnchantIds) {
+            if (id < 0 || id >= abilities.length) {
+                continue;
+            }
+            Ability ability = abilities[id];
+            for (int t = 0; t < triggerCount; t++) {
+                if (ability.firesOn(t)) {
+                    heldPerTrigger.get(t).add(id);
+                }
+            }
+        }
+
         int[][] byTrigger = new int[triggerCount][];
+        int[][] heldByTrigger = new int[triggerCount][];
         for (int t = 0; t < triggerCount; t++) {
             byTrigger[t] = toIntArray(perTrigger.get(t));
+            heldByTrigger[t] = toIntArray(heldPerTrigger.get(t));
         }
         return new WornState(gen, activeSets, crystalAbilityIds.clone(), heroic,
-                byTrigger, toIntArray(attack), toIntArray(defense), triggerMask);
+                byTrigger, toIntArray(attack), toIntArray(defense), heldByTrigger, triggerMask);
     }
 
     private static int[] toIntArray(List<Integer> list) {

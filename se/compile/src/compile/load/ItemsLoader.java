@@ -286,6 +286,7 @@ public final class ItemsLoader {
     private static MaskItemConfig readMask(YamlNode root, Diagnostics diags) {
         MaskItemConfig d = MaskItemConfig.defaults();
         YamlNode sounds = root.child("sounds");
+        YamlNode multi = root.child("multi");
         return new MaskItemConfig(
                 orDefault(root.string("name"), d.name()),
                 root.has("lore") ? root.stringList("lore") : d.lore(),
@@ -293,7 +294,12 @@ public final class ItemsLoader {
                 root.has("sounds") && sounds.has("enabled")
                         ? !"false".equalsIgnoreCase(sounds.string("enabled")) : d.sounds(),
                 SoundCue.fromField(sounds, "apply", d.soundApply(), diags),
-                SoundCue.fromField(sounds, "remove", d.soundRemove(), diags));
+                SoundCue.fromField(sounds, "remove", d.soundRemove(), diags),
+                orDefault(multi.string("name"), d.multiName()),
+                multi.has("lore") ? multi.stringList("lore") : d.multiLore(),
+                orDefault(multi.string("component-name"), d.multiComponentName()),
+                orDefault(multi.string("component-ability"), d.multiComponentAbility()),
+                orDefault(multi.string("lore-while-on-item"), d.multiLoreWhileOnItem()));
     }
 
     /** items/reforge.yml — the universal weapon-reforge likeness (ADR-0070): name/lore templates + the on-weapon line + cues. */
@@ -533,7 +539,34 @@ public final class ItemsLoader {
                 readColorTiers(root, diags, d.colorTiers()),
                 orDefault(root.string("empty-soul-color"), d.emptyColor()),
                 readSoulSounds(root.child("sounds"), diags),
-                readSoulParticles(root.child("particles"), diags));
+                readSoulParticles(root.child("particles"), diags),
+                readSoulDrain(root.child("soul-mode-drain"), diags));
+    }
+
+    private static SoulGemConfig.Drain readSoulDrain(YamlNode drain, Diagnostics diags) {
+        SoulGemConfig.Drain d = SoulGemConfig.Drain.none();
+        if (drain == null || !drain.isMapping()) {
+            return d;
+        }
+        Map<String, Integer> costs = new LinkedHashMap<>();
+        for (YamlNode.Entry entry : drain.entries("held-enchant-costs")) {
+            Integer amount = ContentParse.parseInt(entry.value().scalar());
+            if (amount == null) {
+                diags.warning(DiagCode.W_ITEM_NUM,
+                        "soul-mode-drain held-enchant-costs[" + entry.key() + "] is not a number",
+                        entry.value().source());
+            } else if (amount > 0) {
+                costs.put(entry.key(), amount);
+            }
+        }
+        return new SoulGemConfig.Drain(
+                Math.max(1, parseInt(drain.string("period-ticks"), d.periodTicks(), drain, diags)),
+                Math.max(0, parseInt(drain.string("reserve"), d.reserve(), drain, diags)),
+                costs,
+                SoundCue.fromField(drain, "sound", d.sound(), diags),
+                ParticleSpec.from(drain.child("particle"), diags),
+                ParticleSpec.from(drain.child("idle-particle"), diags),
+                orDefault(drain.string("milestone-message"), d.milestoneMessage()));
     }
 
     /** Per-action sound cue lists in our {@code { sound: NAME, volume: V, pitch: P }} bracket form. */

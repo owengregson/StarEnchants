@@ -1,0 +1,28 @@
+# Cosmic codex source: 02-enchants-armor-m-z.md — armor/SpiritLink.java
+display: Spirit Link
+description: Heals nearby faction/allies when you are damaged.
+trigger: [DEFENSE]
+applies-to: [CHESTPLATE]
+group: elite
+tier: elite
+stacking: HIGHEST
+levels:
+  1:
+    chance: 10
+    effects:
+      - { MODIFY_HEALTH: { amount: '%damage% / 20', cap: 4, mode: give, who: '@Aoe{r=2,filter=ALLIES}' } }
+      - { PARTICLE: { particle: HEART, count: 1, spread: 0, spread-y: 1, speed: 0.05, anchor: eye, y-offset: 0.35, who: '@Aoe{r=2,filter=ALLIES}' } }
+      - &selfheart { PARTICLE: { particle: HEART, count: 3, spread: 0.5, spread-y: 0.5, speed: 0.05, anchor: feet, y-offset: 0.5, who: '@Self' } }
+      - &orbsound { SOUND: { sound: ORB_PICKUP, volume: 1.0, pitch: 0.35, who: '@Self' } }
+  2:
+    chance: 20
+    effects: [{ MODIFY_HEALTH: { amount: '%damage% / 16', cap: 4, mode: give, who: '@Aoe{r=4,filter=ALLIES}' } }, { PARTICLE: { particle: HEART, count: 1, spread: 0, spread-y: 1, speed: 0.05, anchor: eye, y-offset: 0.35, who: '@Aoe{r=4,filter=ALLIES}' } }, *selfheart, *orbsound]
+  3:
+    chance: 30
+    effects: [{ MODIFY_HEALTH: { amount: '%damage% / 12', cap: 4, mode: give, who: '@Aoe{r=6,filter=ALLIES}' } }, { PARTICLE: { particle: HEART, count: 1, spread: 0, spread-y: 1, speed: 0.05, anchor: eye, y-offset: 0.35, who: '@Aoe{r=6,filter=ALLIES}' } }, *selfheart, *orbsound]
+  4:
+    chance: 40
+    effects: [{ MODIFY_HEALTH: { amount: '%damage% / 8', cap: 4, mode: give, who: '@Aoe{r=8,filter=ALLIES}' } }, { PARTICLE: { particle: HEART, count: 1, spread: 0, spread-y: 1, speed: 0.05, anchor: eye, y-offset: 0.35, who: '@Aoe{r=8,filter=ALLIES}' } }, *selfheart, *orbsound]
+  5:
+    chance: 50
+    effects: [{ MODIFY_HEALTH: { amount: '%damage% / 4', cap: 4, mode: give, who: '@Aoe{r=10,filter=ALLIES}' } }, { PARTICLE: { particle: HEART, count: 1, spread: 0, spread-y: 1, speed: 0.05, anchor: eye, y-offset: 0.35, who: '@Aoe{r=10,filter=ALLIES}' } }, *selfheart, *orbsound]

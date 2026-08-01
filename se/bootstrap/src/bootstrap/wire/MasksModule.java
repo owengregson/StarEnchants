@@ -108,6 +108,8 @@ final class MasksModule {
                 .events(applyListener)
                 .events(removeListener)
                 .events(illusionListener)
+                .events(new feature.mask.CosmicMaskMechanicsListener(enabled, core.bindings().sinkFactory(),
+                        core.sinkEnv(), core.resolvers()))
                 .events(mobTargetGuard)
                 .events(invseeGuard)
                 .events(nearGuard)

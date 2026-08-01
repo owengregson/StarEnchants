@@ -1,0 +1,20 @@
+# Cosmic codex source: 04-enchants-axes.md — axes/Pummel.java
+display: Pummel
+description: Chance to slow nearby enemy players for a short period.
+trigger:
+- ATTACK
+applies-to:
+- AXE
+group: elite
+tier: elite
+stacking: HIGHEST
+levels:
+  1:
+    effects:
+      - { RESISTED_POTION: { chance: 6, resistance-enchant: enchants/metaphysical, resistance-enchant-alt: enchants/polymorphic-metaphysical, resist-per-level: 4, effect: SLOW, level: 1, duration: 20, blocked-message: '&8&l** METAPHYSICAL (&8Pummel blocked!&l) **', cue-block: current-or-stone, cue-y-offset: 0.5, who: '@Aoe{r=1,filter=NONALLIES,exclude=victim}' } }
+  2:
+    effects:
+      - { RESISTED_POTION: { chance: 12, resistance-enchant: enchants/metaphysical, resistance-enchant-alt: enchants/polymorphic-metaphysical, resist-per-level: 4, effect: SLOW, level: 2, duration: 60, blocked-message: '&8&l** METAPHYSICAL (&8Pummel blocked!&l) **', cue-block: current-or-stone, cue-y-offset: 0.5, who: '@Aoe{r=2,filter=NONALLIES,exclude=victim}' } }
+  3:
+    effects:
+      - { RESISTED_POTION: { chance: 18, resistance-enchant: enchants/metaphysical, resistance-enchant-alt: enchants/polymorphic-metaphysical, resist-per-level: 4, effect: SLOW, level: 3, duration: 80, blocked-message: '&8&l** METAPHYSICAL (&8Pummel blocked!&l) **', cue-block: current-or-stone, cue-y-offset: 0.5, who: '@Aoe{r=3,filter=NONALLIES,exclude=victim}' } }

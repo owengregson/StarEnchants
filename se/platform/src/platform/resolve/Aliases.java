@@ -62,6 +62,7 @@ public final class Aliases {
             // ADR-0052 pet structures — the 1.8-era spellings of the cage/web materials.
             Map.entry("IRON_FENCE", "IRON_BARS"),
             Map.entry("WEB", "COBWEB"),
+            Map.entry("STATIONARY_WATER", "WATER"),
             Map.entry("SMOOTH_BRICK", "STONE_BRICKS"));
 
     // 1.21.x dropped the GENERIC_ / HORSE_ / ZOMBIE_ prefixes on attribute keys.
@@ -85,10 +86,36 @@ public final class Aliases {
             Map.entry("EXPLODE", "ENTITY_GENERIC_EXPLODE"),
             Map.entry("LEVEL_UP", "ENTITY_PLAYER_LEVELUP"),
             Map.entry("ANVIL_LAND", "BLOCK_ANVIL_LAND"),
+            Map.entry("ANVIL_BREAK", "BLOCK_ANVIL_DESTROY"),
             Map.entry("ENDERDRAGON_GROWL", "ENTITY_ENDER_DRAGON_GROWL"),
             Map.entry("WITHER_SPAWN", "ENTITY_WITHER_SPAWN"),
+            Map.entry("WITHER_HURT", "ENTITY_WITHER_HURT"),
+            Map.entry("WITHER_DEATH", "ENTITY_WITHER_DEATH"),
+            Map.entry("WITHER_SHOOT", "ENTITY_WITHER_SHOOT"),
             Map.entry("DIG_GRASS", "BLOCK_GRASS_BREAK"),
-            Map.entry("ITEM_BREAK", "ENTITY_ITEM_BREAK"));
+            Map.entry("ITEM_BREAK", "ENTITY_ITEM_BREAK"),
+            Map.entry("FIREWORK_LAUNCH", "ENTITY_FIREWORK_ROCKET_LAUNCH"),
+            Map.entry("FIREWORK_TWINKLE2", "ENTITY_FIREWORK_ROCKET_TWINKLE_FAR"),
+            Map.entry("ZOMBIE_METAL", "ENTITY_ZOMBIE_ATTACK_IRON_DOOR"),
+            Map.entry("ZOMBIE_WOODBREAK", "ENTITY_ZOMBIE_BREAK_WOODEN_DOOR"),
+            Map.entry("ZOMBIE_WOOD", "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR"),
+            Map.entry("HURT_FLESH", "ENTITY_PLAYER_HURT"),
+            Map.entry("SPLASH", "ENTITY_PLAYER_SPLASH"),
+            Map.entry("WATER", "ENTITY_PLAYER_SPLASH"),
+            Map.entry("ENDERMAN_SCREAM", "ENTITY_ENDERMAN_SCREAM"),
+            Map.entry("ENDERMAN_TELEPORT", "ENTITY_ENDERMAN_TELEPORT"),
+            Map.entry("ORB_PICKUP", "ENTITY_EXPERIENCE_ORB_PICKUP"),
+            Map.entry("CAT_HISS", "ENTITY_CAT_HISS"),
+            Map.entry("COW_IDLE", "ENTITY_COW_AMBIENT"),
+            Map.entry("COW_HURT", "ENTITY_COW_HURT"),
+            Map.entry("CREEPER_HISS", "ENTITY_CREEPER_PRIMED"),
+            Map.entry("GHAST_SCREAM", "ENTITY_GHAST_SCREAM"),
+            Map.entry("GHAST_FIREBALL", "ENTITY_GHAST_SHOOT"),
+            Map.entry("PORTAL_TRIGGER", "BLOCK_PORTAL_TRIGGER"),
+            Map.entry("ARROW_HIT", "ENTITY_ARROW_HIT_PLAYER"),
+            Map.entry("DRINK", "ENTITY_GENERIC_DRINK"),
+            Map.entry("IRONGOLEM_DEATH", "ENTITY_IRON_GOLEM_DEATH"),
+            Map.entry("EAT", "ENTITY_GENERIC_EAT"));
 
     /**
      * The COMPLETE 1.20.5 particle rename wave (Spigot flattened the enum), floor name → modern name,

@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import platform.item.ItemGroups;
@@ -54,7 +55,7 @@ public final class CarrierService {
      * Canonical form (composition root): likeness suppliers re-read on use so a {@code /se reload} re-tunes
      * them; {@code roman} (the live {@code lore.roman} setting) chooses the book level numeral style;
      * {@code maxBookSuccess} (the live {@code books.max-success} setting) is the global success ceiling that
-     * binds randomised minting and dust (guaranteed/admin books are exempt — see {@link #capBookSuccess});
+     * binds randomised minting and dust (guaranteed/admin books are exempt — see {@link #capBookSuccess));
      * {@code slot} is the shared applied-utility marker set a white scroll occupies (§I); {@code reRender}
      * recomposes the gear's lore from state after a guard toggle (ADR-0040 — the composer re-renders the
      * PROTECTED line, and every other section, from marker state, so no writer stamps lore by hand).
@@ -157,6 +158,14 @@ public final class CarrierService {
      * unsupported kind) leaves both stacks untouched.
      */
     public GestureOutcome applyTo(ItemStack carrier, ItemStack target) {
+        return applyTo(null, carrier, target);
+    }
+
+    /**
+     * Player-aware form used by the physical gesture. A valid enchant-book attempt consumes the Cosmic
+     * Enchanter pet's one-shot additive success modifier; server-side/test callers may use the playerless form.
+     */
+    public GestureOutcome applyTo(Player player, ItemStack carrier, ItemStack target) {
         CarrierData data = codec.read(carrier);
         if (data == null) {
             return GestureOutcome.noop(messages.format("carrier.not-carrier"));
@@ -193,7 +202,9 @@ public final class CarrierService {
         }
 
         int base = baseSuccessOf(data); // an unopened-book output / randomizer reroll overrides the default 100
-        int successChance = effectiveSuccess(base, data.successBonus()); // dust-accumulated bonus (ADR-0019)
+        int petBonus = !crystal && player != null
+                ? feature.pet.CosmicPetCharges.consumeEnchanter(player.getUniqueId()) : 0;
+        int successChance = Math.min(100, effectiveSuccess(base, data.successBonus()) + petBonus);
         boolean destroyOnFail = bookConfig.get().destroyOnFail(); // §I enchant-book likeness, read live
         compile.load.MasterConfig.ApplyCuesSection cues = applyCues.get(); // universal apply feedback (config.yml apply-cues, live)
         consume(carrier); // a use is spent whether the roll succeeds or fails

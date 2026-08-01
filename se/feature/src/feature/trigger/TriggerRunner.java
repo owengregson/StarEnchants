@@ -102,6 +102,30 @@ public final class TriggerRunner {
     }
 
     /**
+     * Execute explicit abilities borrowed from another player's item, as required by Cosmic Enchant Reflect.
+     * Ownership was established by the caller before reflection; the reflecting actor supplies conditions,
+     * targets, cooldown/soul state, and feedback. Heroic equipment stats are intentionally not contributed a
+     * second time, and the full fact vocabulary is populated because these candidates are absent from this
+     * actor's worn per-trigger fact mask.
+     */
+    public void runBorrowedCandidates(Ability[] abilities, int generation, int worldId, int triggerId,
+                                      Player actor, ActivationContext context, SinkReadback sink,
+                                      StableKeyIndex stableKeys, int[] candidates) {
+        WornState wornState = worn.get(actor.getUniqueId());
+        if (wornState == null || wornState.gen() != generation || candidates.length == 0) {
+            return;
+        }
+        long now = nowTicks.getAsLong();
+        Activation.Builder builder = Activation.builder(actor.getUniqueId(), worldId, triggerId, now)
+                .chanceRoll(() -> ThreadLocalRandom.current().nextDouble() * 100.0)
+                .facts(factPopulator.populate(context, now, FactMask.ALL))
+                .location(context.location())
+                .targetBucket(context.victim() instanceof Player ? 1 : 0);
+        soulBinder.apply(actor).ifPresent(binding -> builder.soulMode(binding.marker()));
+        executor.run(abilities, candidates, builder.build(), context, sink, stableKeys);
+    }
+
+    /**
      * The COLD use-item entry point (§3.6): run a held use-item's EXPLICIT candidate abilities on {@code USE} and
      * report a compact {@link UseAttempt}. Unlike the trigger paths this does NOT read {@code byTrigger} or apply
      * the worn heroic fold — a use-item's abilities live on the held item, not worn gear — and it resolves the full

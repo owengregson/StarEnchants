@@ -50,6 +50,24 @@ public final class RecentAttackersStore implements PlayerScoped {
         }
     }
 
+    /** Distinct attackers whose last hit is inside an authored shorter window. */
+    public int distinctCount(UUID victim, long nowTicks, int windowTicks) {
+        Map<UUID, Long> attackers = byVictim.get(victim);
+        if (attackers == null) {
+            return 0;
+        }
+        synchronized (attackers) {
+            evict(attackers, nowTicks);
+            int count = 0;
+            for (long lastHit : attackers.values()) {
+                if (nowTicks - lastHit < windowTicks) {
+                    count++;
+                }
+            }
+            return count;
+        }
+    }
+
     /**
      * The 1-based first-seen order of {@code attacker} among {@code victim}'s live attackers ({@code 1} = the
      * first still-active attacker), or {@code 0} if it has no live hit in the window.
@@ -67,6 +85,31 @@ public final class RecentAttackersStore implements PlayerScoped {
             int index = 1;
             for (UUID id : attackers.keySet()) {
                 if (id.equals(attacker)) {
+                    return index;
+                }
+                index++;
+            }
+            return 0;
+        }
+    }
+
+    /** First-seen index among only attackers still inside an authored shorter window. */
+    public int indexOf(UUID victim, UUID attacker, long nowTicks, int windowTicks) {
+        if (attacker == null) {
+            return 0;
+        }
+        Map<UUID, Long> attackers = byVictim.get(victim);
+        if (attackers == null) {
+            return 0;
+        }
+        synchronized (attackers) {
+            evict(attackers, nowTicks);
+            int index = 1;
+            for (Map.Entry<UUID, Long> entry : attackers.entrySet()) {
+                if (nowTicks - entry.getValue() >= windowTicks) {
+                    continue;
+                }
+                if (entry.getKey().equals(attacker)) {
                     return index;
                 }
                 index++;

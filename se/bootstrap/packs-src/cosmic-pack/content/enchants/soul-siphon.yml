@@ -1,0 +1,21 @@
+# Cosmic codex source: 07-enchants-mastery-soul.md — mastery/MasterySoulSiphon.java
+display: Soul Siphon
+description: Outgoing damage has a chance to siphon HP and Souls. If the enemy does not have any souls then armor durability
+  is siphoned instead.
+trigger:
+- ATTACK
+applies-to:
+- ARMOR
+group: mastery
+tier: mastery
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    effects: []
+  2:
+    effects: []
+  3:
+    effects: []
+  4:
+    effects: []

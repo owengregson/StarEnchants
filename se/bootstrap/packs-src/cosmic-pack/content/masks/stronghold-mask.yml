@@ -1,0 +1,14 @@
+# Cosmic codex source: 11-masks.md
+display: Stronghold Mask
+color: '&3'
+head: eyJ0aW1lc3RhbXAiOjE1NjI2MjcxODEwMDksInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9jZjY2NTk2ZDdlOGIwMzFkN2Q2M2U3ZWQ0ZDJiMTdiNWNmMjQ4OTVhNGU4YTczN2ZkYzJiODMwZTJhMmE1OTY4In19fQ==
+material: PLAYER_HEAD
+summary: Capture, destroy /stronghold caps 2x faster
+description:
+- "&cCapture, destroy /stronghold caps 2x faster"
+- "&7Your very presence terrifies all,"
+- "&7who dare stand before you."
+- "&6&l * &6Sugar Daddy Lootbox Release"
+abilities:
+- trigger: PASSIVE
+  effects: []

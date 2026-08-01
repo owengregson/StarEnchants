@@ -1,10 +1,18 @@
-# Santa Mask (ADR-0053 §9) — a maintained HEALTH bonus on PASSIVE: +4 max health (2 hearts) rides the ONE
-# reconciled plugin-owned attribute modifier while the masked helmet is worn (1.8.0), so it stacks additively
-# with other HEALTH sources and never fights the Overload HEALTH_BOOST potion pool.
-display: "Santa"
-color: "{#ca605d}"
-head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTkyMWIzODkwNGY5OWQzODM2ZDNjMGY1NTljZDFiMDY2NWJiZWIyOGJiNmQ1NzA5YjgzYjEyZDcyYzUyY2Y4OSJ9fX0="
+# Cosmic codex source: 11-masks.md
+display: Santa
+color: '&b'
+head: eyJ0aW1lc3RhbXAiOjE1Mzk2ODUyNDc4MjgsInByb2ZpbGVJZCI6ImM3ZmRkYjlhYWRmZDRiZTNiMzI2ZDcwMGRmMjUyZTg4IiwicHJvZmlsZU5hbWUiOiJTYW50YSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8zZjg2NjgyMWJmYmY1MWMwNWZmNzk4YWYxMDk1NzVhZmZhMThjNzc5MTUxODEwYjUyZTk5YzU0N2MzMzc5ZWI3In19fQ==
+material: PLAYER_HEAD
+summary: +2 Max Hearts
 description:
-  - "{#ca605d}* Gain 2 additional hearts"
+- "&c+2 Max Hearts"
+- "&7An eerie mask imbued with"
+- "&7Christmas Joy that knows"
+- "&7who is naughty or nice."
+- "&6&l* &6Christmas 2018"
 abilities:
-  - { trigger: PASSIVE, effects: [ { HEALTH: { amount: 4 } } ] }
+- trigger: PASSIVE
+  effects:
+  - HEALTH:
+      amount: 4
+      who: '@Self'

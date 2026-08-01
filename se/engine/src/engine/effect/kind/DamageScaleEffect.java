@@ -49,7 +49,7 @@ public final class DamageScaleEffect implements EffectKind {
             return;
         }
         double total = ctx.dbl("per") * count;
-        double cap = ctx.dbl("cap");
+        double cap = ctx.args().has("cap") ? ctx.dbl("cap") : 0.0;
         if (cap > 0 && total > cap) {
             total = cap;
         }

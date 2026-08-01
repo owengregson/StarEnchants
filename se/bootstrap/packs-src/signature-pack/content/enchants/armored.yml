@@ -1,0 +1,30 @@
+# Imported from EliteEnchantments (id: armored). Review before shipping.
+display: "Armored"
+description:
+  - "&eReduces damage taken from"
+  - "&eenemies holding a sword."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "epic"
+tier: epic
+levels:
+  1:
+    condition: "%victim.helditem% contains \"SWORD\""
+    effects:
+      - { PARTICLE: { particle: "CRIT", count: 8 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 0.75 } }
+  2:
+    condition: "%victim.helditem% contains \"SWORD\""
+    effects:
+      - { PARTICLE: { particle: "CRIT", count: 8 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1.25 } }
+  3:
+    condition: "%victim.helditem% contains \"SWORD\""
+    effects:
+      - { PARTICLE: { particle: "CRIT", count: 8 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1.75 } }
+  4:
+    condition: "%victim.helditem% contains \"SWORD\""
+    effects:
+      - { PARTICLE: { particle: "CRIT", count: 8 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2.25 } }

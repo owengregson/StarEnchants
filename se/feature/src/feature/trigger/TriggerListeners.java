@@ -1,6 +1,7 @@
 package feature.trigger;
 
 import engine.run.ActivationContext;
+import feature.combat.CosmicProjectilePower;
 import feature.compat.Hands;
 import java.util.Objects;
 import org.bukkit.entity.Player;
@@ -8,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -48,6 +50,14 @@ public final class TriggerListeners implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBlockDamage(BlockDamageEvent event) {
+        Player player = event.getPlayer();
+        dispatch.fire(player, dispatch.blockDamage,
+                new ActivationContext(player, null, null, event.getBlock().getLocation(), 0.0, event.getBlock()),
+                event);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onMine(BlockBreakEvent event) {
         Player player = event.getPlayer();
         // §F33: a block the breaker placed pays no MINE reward. Runs BEFORE the tracker's MONITOR unmark, so the
@@ -72,6 +82,7 @@ public final class TriggerListeners implements Listener {
         }
         // DEATH fires for the dying player's own worn gear
         if (dead instanceof Player dying) {
+            dispatch.fireAllyDeath(dying);
             dispatch.fire(dying, dispatch.death,
                     new ActivationContext(dying, killer, killer, dying.getLocation()), null);
         }
@@ -80,6 +91,12 @@ public final class TriggerListeners implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBowFire(EntityShootBowEvent event) {
         if (event.getEntity() instanceof Player shooter) {
+            if (event.getProjectile() != null) {
+                CosmicProjectilePower.record(event.getProjectile().getUniqueId(), event.getForce());
+            }
+            if (event.getForce() < 0.75F) {
+                return;
+            }
             dispatch.fireBow(shooter, self(shooter), event);
         }
     }
@@ -112,13 +129,15 @@ public final class TriggerListeners implements Listener {
         dispatch.fire(event.getPlayer(), dispatch.breakItem, self(event.getPlayer()), null);
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onInteract(PlayerInteractEvent event) {
         if (!hands.isMainHand(event)) {
             return; // one fire per interaction — the off-hand pass is a duplicate of the same click
         }
         Player player = event.getPlayer();
-        ActivationContext context = new ActivationContext(player, null, null, player.getLocation());
+        org.bukkit.block.Block clicked = event.getClickedBlock();
+        org.bukkit.Location at = clicked == null ? player.getLocation() : clicked.getLocation();
+        ActivationContext context = new ActivationContext(player, null, null, at, 0.0, clicked);
         dispatch.fire(player, dispatch.interact, context, event);
         Action action = event.getAction();
         if (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) {
@@ -137,16 +156,17 @@ public final class TriggerListeners implements Listener {
             return;
         }
         // §F reduction-scope: heroic softens environmental damage only when scope == ALL (default ENTITY = PvP only)
+        // General DEFENSE runs once for every non-entity cause. FALL/FIRE are additional specialized channels,
+        // folded into the same event so heroic and damage modifiers are never committed twice.
         boolean heroic = heroicAllScope.getAsBoolean();
-        switch (event.getCause()) {
-            case FALL -> dispatch.fireDamage(player, dispatch.fall, self(player), event, heroic);
-            case FIRE, FIRE_TICK, LAVA -> dispatch.fireDamage(player, dispatch.fire, self(player), event, heroic);
-            default -> {
-                if (heroic) {
-                    dispatch.fireEnvironmentalHeroic(player, event); // other causes: heroic reduction only, under ALL
-                }
-            }
-        }
+        int specific = switch (event.getCause()) {
+            case FALL -> dispatch.fall;
+            case FIRE, FIRE_TICK, LAVA -> dispatch.fire;
+            default -> -1;
+        };
+        ActivationContext context = new ActivationContext(player, null, null, player.getLocation(),
+                event.getDamage(), event.getFinalDamage(), null, 0, event.getCause().name(), false, 0, 0);
+        dispatch.fireEnvironmentalDamage(player, specific, context, event, heroic);
     }
 
     private static ActivationContext self(Player player) {

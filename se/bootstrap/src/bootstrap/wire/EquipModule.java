@@ -2,6 +2,7 @@ package bootstrap.wire;
 
 import engine.stores.RepeatStore;
 import feature.combat.EquipListener;
+import feature.combat.RepairGuardService;
 import feature.trigger.LifecycleDriver;
 import feature.trigger.MaxHealthDriver;
 import feature.trigger.PassiveEffectDriver;
@@ -31,6 +32,7 @@ final class EquipModule {
     final MaxHealthDriver maxHealth;
     private final SetMessageDriver setMessages;
     private final EquipListener equipListener;
+    private final RepairGuardService repairGuard;
 
     EquipModule(BootCore core) {
         this.core = core;
@@ -63,7 +65,11 @@ final class EquipModule {
         // The shared worn-state refresher (join/held/respawn/quit + hand-mutation feeders); the era armour-/hand-change
         // feeders drive its refresh. The EquipSource + ItemViewCache back the F09 hand-signature reconcile.
         this.equipListener = new EquipListener(core.worn(), core.content(), passives, lifecycle, passiveEffects,
-                maxHealth, setMessages, core.bindings().equipSource(), core.itemViews());
+                maxHealth, setMessages, core.bindings().equipSource(), core.itemViews(), core.tick()::get);
+        this.repairGuard = new RepairGuardService(core.bindings().equipSource(), core.itemViews(),
+                core.bindings().sinkFactory(), core.sinkEnv(), core.resolvers(), core.tick()::get);
+        this.equipListener.onUnequip(repairGuard::onUnequip);
+        this.equipListener.onRefresh(repairGuard::refresh);
     }
 
     /** The one worn-state refresher, for features whose state feeds the resolve (ADR-0052 pets). */
@@ -79,6 +85,7 @@ final class EquipModule {
     FeatureModule module() {
         return FeatureModule.named("equip")
                 .events(equipListener)
+                .events(repairGuard)
                 .events(core.bindings().armourChangeFeeder(equipListener))
                 .events(core.bindings().handChangeFeeder(equipListener))
                 // §B instant DISABLE: drop a suppressed player's passive buffs at once, restore at window end.
@@ -105,6 +112,7 @@ final class EquipModule {
                             lifecycle.refresh(player, state);
                             passiveEffects.refresh(player);
                             maxHealth.refresh(player);
+                            repairGuard.refresh(player);
                         });
                     }
                 })

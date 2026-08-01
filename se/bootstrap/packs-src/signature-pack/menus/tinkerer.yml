@@ -1,0 +1,6 @@
+# Tinkerer trade GUI — enchant books staged on the left ("You") half mirror their XP refund on the right
+# ("Tinkerer") half; the red ACCEPT panes trade everything staged. The split title labels the two halves.
+# A bench fills its whole backdrop, so frame is omitted. See menus/apply.yml for the full field list.
+
+title: "&8You                 &6Tinkerer"
+filler: "ORANGE_STAINED_GLASS_PANE"

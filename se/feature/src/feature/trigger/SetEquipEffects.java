@@ -62,7 +62,8 @@ public final class SetEquipEffects implements SetMessageDriver.SetTransition {
         for (int i = 0; i < motes; i++) {
             int[] rgb = PASTELS[java.util.concurrent.ThreadLocalRandom.current().nextInt(PASTELS.length)];
             particles.spawn(player,
-                    new ParticleSpec(base.type(), rgb[0], rgb[1], rgb[2], 1, base.spread(), base.yOffset()));
+                    new ParticleSpec(base.type(), rgb[0], rgb[1], rgb[2], 1, base.spread(), base.yOffset(),
+                            base.speed()));
         }
     }
 
@@ -77,7 +78,7 @@ public final class SetEquipEffects implements SetMessageDriver.SetTransition {
             int[] rgb = ChatColorRgb.of(def.display());
             if (rgb != null) {
                 return new ParticleSpec(spec.type(), rgb[0], rgb[1], rgb[2], spec.amount(), spec.spread(),
-                        spec.yOffset());
+                        spec.yOffset(), spec.speed());
             }
         }
         return spec;

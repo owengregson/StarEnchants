@@ -1,54 +1,32 @@
-# Imported from EliteEnchantments (id: lethal-sniper). Review before shipping.
-display: "Lethal Sniper"
-description:
-  - "&eMythic upgrade for Sniper."
-  - "&eLands more reliable,"
-  - "&eharder-hitting headshots."
-  - "&c&l(!)&r &7Requires &6Sniper"
-trigger: BOW
+# Cosmic codex: 06-enchants-tools-heroic.md — heroic/HeroicSniper.java
+display: Lethal Sniper
+description: Heroic headshots and a level-scaled Arrow Deflect bypass carried by the fired projectile.
+trigger: [BOW, BOW_FIRE]
 applies-to: [BOW]
-group: "mythic"
-tier: mythic
-requires: ["enchants/sniper"]
-removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: HIGHEST
 levels:
   1:
-    chance: 20
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 1.0, pitch: 0.8 } }
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE: { amount: 3, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+    abilities:
+      - { trigger: BOW_FIRE, effects: [{ PROJECTILE_MARK: { value: 1 } }] }
+      - { trigger: BOW, chance: 70, condition: '%projectileheight% > 1.9 && %victim.rageaffected% == false', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 3.2 } }, { BLOCK_BREAK_EFFECT: { block: REDSTONE_BLOCK, anchor: eye, who: '@Victim' } }, { MESSAGE: { text: '&c&l*** HEADSHOT [+3.2x DMG] ***', who: '@Victim' } }, { SOUND: { sound: HURT_FLESH, volume: 2.0, pitch: 0.3, audience: target, who: '@Victim' } }] }
   2:
-    chance: 23
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 1.0, pitch: 0.8 } }
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE: { amount: 3.5, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+    abilities:
+      - { trigger: BOW_FIRE, effects: [{ PROJECTILE_MARK: { value: 2 } }] }
+      - { trigger: BOW, chance: 77.5, condition: '%projectileheight% > 1.9 && %victim.rageaffected% == false', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 3.4 } }, { BLOCK_BREAK_EFFECT: { block: REDSTONE_BLOCK, anchor: eye, who: '@Victim' } }, { MESSAGE: { text: '&c&l*** HEADSHOT [+3.4x DMG] ***', who: '@Victim' } }, { SOUND: { sound: HURT_FLESH, volume: 2.0, pitch: 0.3, audience: target, who: '@Victim' } }] }
   3:
-    chance: 26
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 1.0, pitch: 0.8 } }
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE: { amount: 4, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+    abilities:
+      - { trigger: BOW_FIRE, effects: [{ PROJECTILE_MARK: { value: 3 } }] }
+      - { trigger: BOW, chance: 85, condition: '%projectileheight% > 1.9 && %victim.rageaffected% == false', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 3.6 } }, { BLOCK_BREAK_EFFECT: { block: REDSTONE_BLOCK, anchor: eye, who: '@Victim' } }, { MESSAGE: { text: '&c&l*** HEADSHOT [+3.6x DMG] ***', who: '@Victim' } }, { SOUND: { sound: HURT_FLESH, volume: 2.0, pitch: 0.3, audience: target, who: '@Victim' } }] }
   4:
-    chance: 29
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 1.0, pitch: 0.8 } }
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE: { amount: 4.5, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+    abilities:
+      - { trigger: BOW_FIRE, effects: [{ PROJECTILE_MARK: { value: 4 } }] }
+      - { trigger: BOW, chance: 92.5, condition: '%projectileheight% > 1.9 && %victim.rageaffected% == false', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 3.8 } }, { BLOCK_BREAK_EFFECT: { block: REDSTONE_BLOCK, anchor: eye, who: '@Victim' } }, { BLOCK_BREAK_EFFECT: { block: REDSTONE_BLOCK, anchor: eye, who: '@Victim' } }, { MESSAGE: { text: '&c&l*** HEADSHOT [+3.8x DMG] ***', who: '@Victim' } }, { SOUND: { sound: HURT_FLESH, volume: 2.0, pitch: 0.3, audience: target, who: '@Victim' } }] }
   5:
-    chance: 32
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 1.0, pitch: 0.8 } }
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE: { amount: 5, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # from DAMAGE_INCREASE:5 — EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+    abilities:
+      - { trigger: BOW_FIRE, effects: [{ PROJECTILE_MARK: { value: 5 } }] }
+      - { trigger: BOW, condition: '%projectileheight% > 1.9 && %victim.rageaffected% == false', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 4.0 } }, { BLOCK_BREAK_EFFECT: { block: REDSTONE_BLOCK, anchor: eye, who: '@Victim' } }, { BLOCK_BREAK_EFFECT: { block: REDSTONE_BLOCK, anchor: eye, who: '@Victim' } }, { MESSAGE: { text: '&c&l*** HEADSHOT [+4.0x DMG] ***', who: '@Victim' } }, { SOUND: { sound: HURT_FLESH, volume: 2.0, pitch: 0.3, audience: target, who: '@Victim' } }] }
+requires: [enchants/sniper]
+removes-required: true

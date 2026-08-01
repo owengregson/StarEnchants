@@ -1,0 +1,13 @@
+# Cosmic codex source: 02-enchants-armor-m-z.md — armor/Ragdoll.java
+display: Ragdoll
+description: Whenever you take damage you are pushed far back.
+trigger: [DEFENSE]
+applies-to: [ARMOR]
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
+levels:
+  1: { chance: 12.5, condition: &allowed '%victim.type% != "IRON_GOLEM" && %actor.environment% != "THE_END" && %actor.world% != "world_koth"', effects: [{ VELOCITY: { mode: away, from: victim, strength: 2.0, who: '@Self' } }] }
+  2: { chance: 25, condition: *allowed, effects: [{ VELOCITY: { mode: away, from: victim, strength: 2.5, who: '@Self' } }] }
+  3: { chance: 37.5, condition: *allowed, effects: [{ VELOCITY: { mode: away, from: victim, strength: 3.0, who: '@Self' } }] }
+  4: { chance: 50, condition: *allowed, effects: [{ VELOCITY: { mode: away, from: victim, strength: 3.5, who: '@Self' } }] }

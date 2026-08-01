@@ -1,0 +1,14 @@
+# Cosmic codex source: 11-masks.md
+display: Pilgrim Mask
+color: '&e'
+head: eyJ0aW1lc3RhbXAiOjE1NDI3MDA5NzIxMzIsInByb2ZpbGVJZCI6ImEzOWVmNTdhMzg3YzRjZDE5NzQwNTliNzMyZWJjN2E1IiwicHJvZmlsZU5hbWUiOiJNZXJjaGFudCIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS82M2I2M2FjYTI1NWU1YWExYTU5MWI3Yjc1YjdiNWU0NzQzZDQxOTRlZmY1MmFmZTEzOTA3YWU5M2Y3OTMwYmJhIn19fQ==
+material: PLAYER_HEAD
+summary: +25% XP/Drops
+description:
+- "&c+25% XP/Drops"
+- "&7tHiS iS oUr lAnD nOw!"
+- "&6&l * &6Thanksgiving 2018"
+abilities:
+- trigger: PASSIVE
+  # Native: multiplies non-player mob-death dropped XP by 1.25, truncating to int.
+  effects: []

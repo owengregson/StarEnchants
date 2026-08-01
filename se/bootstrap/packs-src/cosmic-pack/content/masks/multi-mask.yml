@@ -1,0 +1,11 @@
+# Cosmic codex source: 11-masks.md
+display: Multi-Mask
+color: '&f'
+head: eyJ0aW1lc3RhbXAiOjE1NjIwODg5MjU2NDUsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS83M2UxYWQ0ZmY0ZDhlMjM5YmJlYTUyNGIyNGM0ZDRkNWQ4NjIzZTUyZDdkOGVlNzllNmE1ZjhjN2FkZWRiOWEzIn19fQ==
+material: PLAYER_HEAD
+summary: ''
+description:
+- ""
+abilities:
+- trigger: PASSIVE
+  effects: []

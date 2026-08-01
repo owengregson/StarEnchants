@@ -1,41 +1,15 @@
-# Imported from EliteEnchantments (id: teleblock). Review before shipping.
-display: "Teleblock"
-description:
-  - "&eArrows block the target from"
-  - "&eusing ender pearls and remove"
-  - "&etheir pearls."
-trigger: BOW
+# Cosmic codex source: 05-enchants-bows.md — bow/Teleblock.java + TeleblockListener.java
+display: Teleblock
+description: Active Soul Enchantment. Pays 6 souls per level when fired, then teleblocks a struck player for 5 + 3 seconds per level and removes up to 3 plain ender pearls per level.
+trigger: [BOW]
 applies-to: [BOW]
-group: "soul"
+group: soul
 tier: soul
+disabled-environments: [THE_END]
+stacking: HIGHEST
 levels:
-  1:
-    cooldown: 500
-    effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 0.7 } }
-      - { PARTICLE: { particle: "PORTAL", count: 8 } }
-      - { TELEBLOCK: { duration: 400, who: "@Victim" } }  # from TELEBLOCK:20 — EE TELEBLOCK → TELEBLOCK (seconds → ticks)
-  2:
-    cooldown: 500
-    effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 0.7 } }
-      - { PARTICLE: { particle: "PORTAL", count: 8 } }
-      - { TELEBLOCK: { duration: 400, who: "@Victim" } }  # from TELEBLOCK:20 — EE TELEBLOCK → TELEBLOCK (seconds → ticks)
-  3:
-    cooldown: 500
-    effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 0.7 } }
-      - { PARTICLE: { particle: "PORTAL", count: 8 } }
-      - { TELEBLOCK: { duration: 400, who: "@Victim" } }  # from TELEBLOCK:20 — EE TELEBLOCK → TELEBLOCK (seconds → ticks)
-  4:
-    cooldown: 500
-    effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 0.7 } }
-      - { PARTICLE: { particle: "PORTAL", count: 8 } }
-      - { TELEBLOCK: { duration: 400, who: "@Victim" } }  # from TELEBLOCK:20 — EE TELEBLOCK → TELEBLOCK (seconds → ticks)
-  5:
-    cooldown: 500
-    effects:
-      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.7, pitch: 0.7 } }
-      - { PARTICLE: { particle: "PORTAL", count: 8 } }
-      - { TELEBLOCK: { duration: 400, who: "@Victim" } }  # from TELEBLOCK:20 — EE TELEBLOCK → TELEBLOCK (seconds → ticks)
+  1: { effects: [] }
+  2: { effects: [] }
+  3: { effects: [] }
+  4: { effects: [] }
+  5: { effects: [] }

@@ -1,0 +1,30 @@
+# Imported from EliteEnchantments (id: assassin). Review before shipping.
+display: "Assassin"
+description:
+  - "&eOn hit, deals more damage the"
+  - "&ecloser you are to the target."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "epic"
+tier: epic
+levels:
+  1:
+    effects:
+      - { PARTICLE: { particle: "CRIT", count: 12 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "0.60 - %distance% * 0.06" } }  # distance-faded raw bonus — the always-on sword workhorse (ADR-0050 R3 flat economy)
+  2:
+    effects:
+      - { PARTICLE: { particle: "CRIT", count: 12 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "0.70 - %distance% * 0.06" } }  # distance-faded raw bonus — the always-on sword workhorse (ADR-0050 R3 flat economy)
+  3:
+    effects:
+      - { PARTICLE: { particle: "CRIT", count: 12 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "0.80 - %distance% * 0.06" } }  # distance-faded raw bonus — the always-on sword workhorse (ADR-0050 R3 flat economy)
+  4:
+    effects:
+      - { PARTICLE: { particle: "CRIT", count: 12 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "0.90 - %distance% * 0.06" } }  # distance-faded raw bonus — the always-on sword workhorse (ADR-0050 R3 flat economy)
+  5:
+    effects:
+      - { PARTICLE: { particle: "CRIT", count: 12 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "0.95 - %distance% * 0.06" } }  # distance-faded raw bonus — the always-on sword workhorse (ADR-0050 R3 flat economy)

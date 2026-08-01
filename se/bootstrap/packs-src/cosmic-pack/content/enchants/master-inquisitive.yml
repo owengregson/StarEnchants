@@ -1,0 +1,25 @@
+# Cosmic codex source: 06-enchants-tools-heroic.md — heroic/HeroicInquisitive.java
+display: Master Inquisitive
+description: Heroic Enchantment. Massively increases EXP drops from mobs. Requires Inquisitive IV enchant on item to apply.
+  Cannot be black-scrolled.
+trigger:
+- ATTACK
+applies-to:
+- SWORD
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    abilities:
+      - { trigger: ATTACK, chance: 15, condition: '%victim.isplayer% == 0', effects: [{ EXP_DROP_MARK: { channel: heroic-inquisitive, multiplier: 2.5 } }] }
+  2:
+    abilities:
+      - { trigger: ATTACK, chance: 30, condition: '%victim.isplayer% == 0', effects: [{ EXP_DROP_MARK: { channel: heroic-inquisitive, multiplier: 3 } }] }
+  3:
+    abilities:
+      - { trigger: ATTACK, chance: 45, condition: '%victim.isplayer% == 0', effects: [{ EXP_DROP_MARK: { channel: heroic-inquisitive, multiplier: 3.5 } }] }
+  4:
+    abilities:
+      - { trigger: ATTACK, chance: 60, condition: '%victim.isplayer% == 0', effects: [{ EXP_DROP_MARK: { channel: heroic-inquisitive, multiplier: 4 } }] }

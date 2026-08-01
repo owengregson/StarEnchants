@@ -1,0 +1,80 @@
+# Imported from EliteEnchantments (id: guardians). Review before shipping.
+display: "Guardians"
+description:
+  - "&eWhen hit, summons iron golems"
+  - "&ethat fight for you."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "uncommon"
+tier: uncommon
+levels:
+  1:
+    chance: 0.25
+    cooldown: 400
+    effects:
+      - { SOUND: { sound: "ENTITY_GUARDIAN_ATTACK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "NAUTILUS", count: 8 } }
+      - { GUARD: { type: "IRON_GOLEM", count: 1, ttl: 400 } }  # from SPAWN:IRON_GOLEM:20:1:10:&b&l%player%'s Guardians — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+  2:
+    chance: 0.5
+    cooldown: 400
+    effects:
+      - { SOUND: { sound: "ENTITY_GUARDIAN_ATTACK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "NAUTILUS", count: 8 } }
+      - { GUARD: { type: "IRON_GOLEM", count: 1, ttl: 400 } }  # from SPAWN:IRON_GOLEM:20:1:10:&b&l%player%'s Guardians — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+  3:
+    chance: 0.65
+    cooldown: 400
+    effects:
+      - { SOUND: { sound: "ENTITY_GUARDIAN_ATTACK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "NAUTILUS", count: 8 } }
+      - { GUARD: { type: "IRON_GOLEM", count: 1, ttl: 400 } }  # from SPAWN:IRON_GOLEM:20:1:10:&b&l%player%'s Guardians — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+  4:
+    chance: 0.85
+    cooldown: 400
+    effects:
+      - { SOUND: { sound: "ENTITY_GUARDIAN_ATTACK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "NAUTILUS", count: 8 } }
+      - { GUARD: { type: "IRON_GOLEM", count: 1, ttl: 400 } }  # from SPAWN:IRON_GOLEM:20:1:10:&b&l%player%'s Guardians — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+  5:
+    chance: 1
+    cooldown: 400
+    effects:
+      - { SOUND: { sound: "ENTITY_GUARDIAN_ATTACK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "NAUTILUS", count: 8 } }
+      - { GUARD: { type: "IRON_GOLEM", count: 1, ttl: 400 } }  # from SPAWN:IRON_GOLEM:20:1:10:&b&l%player%'s Guardians — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+  6:
+    chance: 2
+    cooldown: 400
+    effects:
+      - { SOUND: { sound: "ENTITY_GUARDIAN_ATTACK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "NAUTILUS", count: 8 } }
+      - { GUARD: { type: "IRON_GOLEM", count: 2, ttl: 500 } }  # from SPAWN:IRON_GOLEM:25:2:10:&b&l%player%'s Guardians — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+  7:
+    chance: 3
+    cooldown: 400
+    effects:
+      - { SOUND: { sound: "ENTITY_GUARDIAN_ATTACK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "NAUTILUS", count: 8 } }
+      - { GUARD: { type: "IRON_GOLEM", count: 2, ttl: 500 } }  # from SPAWN:IRON_GOLEM:25:2:10:&b&l%player%'s Guardians — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+  8:
+    chance: 4
+    cooldown: 400
+    effects:
+      - { SOUND: { sound: "ENTITY_GUARDIAN_ATTACK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "NAUTILUS", count: 8 } }
+      - { GUARD: { type: "IRON_GOLEM", count: 2, ttl: 500 } }  # from SPAWN:IRON_GOLEM:25:2:10:&b&l%player%'s Guardians — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+  9:
+    chance: 5
+    cooldown: 400
+    effects:
+      - { SOUND: { sound: "ENTITY_GUARDIAN_ATTACK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "NAUTILUS", count: 8 } }
+      - { GUARD: { type: "IRON_GOLEM", count: 2, ttl: 600 } }  # from SPAWN:IRON_GOLEM:30:2:10:&b&l%player%'s Guardians — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+  10:
+    chance: 6
+    cooldown: 400
+    effects:
+      - { SOUND: { sound: "ENTITY_GUARDIAN_ATTACK", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "NAUTILUS", count: 8 } }
+      - { GUARD: { type: "IRON_GOLEM", count: 3, ttl: 900 } }  # from SPAWN:IRON_GOLEM:45:3:10:&b&l%player%'s Guardians — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)

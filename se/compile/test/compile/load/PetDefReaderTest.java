@@ -75,6 +75,41 @@ class PetDefReaderTest {
     }
 
     @Test
+    void perPetProgressionParsesWithoutChangingLegacyDefaults() {
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            display: "Lava Elemental"
+            type: ACTIVE
+            max-level: 4
+            experience-to-level: { 2: 2000, 3: 3000, 4: 4000 }
+            levels:
+              1:
+                cooldown: 6000
+                experience-on-use: 32
+                effects: [ { SOUND: { sound: BLOCK_LAVA_POP } } ]
+            """;
+        PetDefReader.Parsed parsed = PetDefReader.read("lava", root(yaml, diags), counter(), diags);
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        assertEquals(4, parsed.def().maxLevelOr(100));
+        assertEquals(2000, parsed.def().expToNext(1, 100));
+        assertEquals(3000, parsed.def().expToNext(2, 100));
+        assertEquals(32, parsed.def().brackets().get(0).experienceOnUse());
+
+        Diagnostics legacyDiags = new Diagnostics();
+        String legacy = """
+            display: "Legacy"
+            type: ACTIVE
+            levels:
+              1: { effects: [ { SOUND: { sound: BLOCK_NOTE_BLOCK_PLING } } ] }
+            """;
+        PetDef legacyDef = PetDefReader.read("legacy", root(legacy, legacyDiags), counter(), legacyDiags).def();
+        assertEquals(100, legacyDef.maxLevelOr(100));
+        assertEquals(250, legacyDef.expToNext(1, 250));
+        assertEquals(-1, legacyDef.brackets().get(0).experienceOnUse());
+    }
+
+    @Test
     void passivePetDefaultsToPassiveAndForcesAuthoredUseBack() {
         Diagnostics diags = new Diagnostics();
         String yaml = """

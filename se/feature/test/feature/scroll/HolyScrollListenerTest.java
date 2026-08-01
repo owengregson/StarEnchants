@@ -53,7 +53,7 @@ class HolyScrollListenerTest {
         KeptItemsStore kept = new KeptItemsStore();
         Messages messages = mock(Messages.class);
         List<ItemStack> pulled = new ArrayList<>(List.of(mock(ItemStack.class)));
-        when(service.keepFromDrops(any())).thenReturn(pulled);
+        when(service.keepFromDrops(any(), any())).thenReturn(pulled);
         when(service.keptMessage(1)).thenReturn("kept-1");
 
         Player player = mock(Player.class);
@@ -73,7 +73,7 @@ class HolyScrollListenerTest {
         HolyScrollService service = mock(HolyScrollService.class);
         KeptItemsStore kept = new KeptItemsStore();
         Messages messages = mock(Messages.class);
-        when(service.keepFromDrops(any())).thenReturn(new ArrayList<>(List.of(mock(ItemStack.class))));
+        when(service.keepFromDrops(any(), any())).thenReturn(new ArrayList<>(List.of(mock(ItemStack.class))));
 
         Player player = mock(Player.class);
         when(player.getUniqueId()).thenReturn(id);
@@ -101,7 +101,7 @@ class HolyScrollListenerTest {
         listener.onDeath(event);
         listener.onDeathCommit(event);
 
-        verify(service, never()).keepFromDrops(any());
+        verify(service, never()).keepFromDrops(any(), any());
         assertTrue(kept.drain(id).isEmpty());
         verify(messages, never()).sendText(any(), anyString());
         verify(service, never()).keptMessage(anyInt());

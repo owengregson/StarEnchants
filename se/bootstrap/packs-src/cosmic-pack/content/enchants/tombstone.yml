@@ -1,0 +1,43 @@
+# Cosmic codex source: 07-enchants-mastery-soul.md — mastery/MasteryTombstone.java
+display: Tombstone
+description: A chance to drop falling Anvils on nearby enemies, each anvil that lands on an enemy will inflict 10% Armor Durability
+  damage, while also stunning and silencing them for 4 seconds.
+trigger:
+- DEFENSE
+applies-to:
+- ARMOR
+group: mastery
+tier: mastery
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    abilities:
+      - { trigger: DEFENSE, effects: [] }
+      - &impact
+        trigger: IMPACT
+        condition: '%damage% == -1010'
+        effects:
+          - { DURABILITY: { mode: damage, target: armor, percent: 10, who: '@Victim' } }
+          - { HURT_ANIMATION: { who: '@Victim' } }
+          - { SOUND: { sound: ZOMBIE_WOODBREAK, volume: 5.0, pitch: 0.8, who: '@Victim' } }
+          - { SOUND: { sound: ZOMBIE_WOOD, volume: 5.0, pitch: 1.1, who: '@Victim' } }
+          - { MESSAGE: { text: '&c&l* TOMBSTONE [&7{ATTACKER} (-10% Armor Durability)&c&l] *', who: '@Victim' } }
+  2:
+    abilities: [{ trigger: DEFENSE, effects: [] }, *impact]
+  3:
+    abilities: [{ trigger: DEFENSE, effects: [] }, *impact]
+  4:
+    abilities: [{ trigger: DEFENSE, effects: [] }, *impact]
+  5:
+    abilities: [{ trigger: DEFENSE, effects: [] }, *impact]
+  6:
+    abilities: [{ trigger: DEFENSE, effects: [] }, *impact]
+  7:
+    abilities: [{ trigger: DEFENSE, effects: [] }, *impact]
+  8:
+    abilities: [{ trigger: DEFENSE, effects: [] }, *impact]
+  9:
+    abilities: [{ trigger: DEFENSE, effects: [] }, *impact]
+  10:
+    abilities: [{ trigger: DEFENSE, effects: [] }, *impact]

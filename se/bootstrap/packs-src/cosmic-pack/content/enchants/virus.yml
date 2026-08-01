@@ -1,0 +1,27 @@
+# Cosmic codex source: 05-enchants-bows.md — bow/Virus.java
+display: Virus
+description: 'A chance to remove regeneration and amplify subsequent poison or wither damage. '
+trigger:
+- BOW
+applies-to:
+- BOW
+group: unique
+tier: unique
+stacking: HIGHEST
+levels:
+  1:
+    abilities:
+      - { trigger: BOW, effects: &mark1 [{ VIRUS_MARK: { multiplier: 2, duration: 30 } }] }
+      - { trigger: BOW, chance: 15, effects: &strip [{ REMOVE_POTION: { effect: REGENERATION, who: '@Victim' } }, { PARTICLE: { particle: SPELL_WITCH, count: 25, spread: 0, speed: 0.4, anchor: feet, y-offset: 1, who: '@Victim' } }, { SOUND: { sound: ENDERMAN_TELEPORT, volume: 0.6, pitch: 2, audience: target, who: '@Victim' } }] }
+  2:
+    abilities:
+      - { trigger: BOW, effects: [{ VIRUS_MARK: { multiplier: 3, duration: 60 } }] }
+      - { trigger: BOW, chance: 30, effects: *strip }
+  3:
+    abilities:
+      - { trigger: BOW, effects: [{ VIRUS_MARK: { multiplier: 4, duration: 90 } }] }
+      - { trigger: BOW, chance: 45, effects: *strip }
+  4:
+    abilities:
+      - { trigger: BOW, effects: [{ VIRUS_MARK: { multiplier: 5, duration: 120 } }] }
+      - { trigger: BOW, chance: 60, effects: *strip }

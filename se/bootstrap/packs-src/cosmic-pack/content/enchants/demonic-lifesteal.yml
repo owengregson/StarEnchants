@@ -1,35 +1,15 @@
-# Imported from EliteEnchantments (id: demonic-lifesteal). Review before shipping.
-display: "Demonic Lifesteal"
-description:
-  - "&eMythic upgrade for Lifesteal."
-  - "&eRestores much more health on"
-  - "&ehit."
-  - "&c&l(!)&r &7Requires &6Lifesteal"
+# Cosmic codex source: 06-enchants-tools-heroic.md — heroic/HeroicLifesteal.java
+display: Demonic Lifesteal
+description: Heals much more HP at a greatly increased rate compared to normal Lifesteal. Once applied, this enchantment can only be extracted from items with heroic black scrolls.
 trigger: ATTACK
-applies-to: [WEAPON]
-group: "mythic"
-tier: mythic
-requires: ["enchants/lifesteal"]
-removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
+applies-to: [SWORD]
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: HIGHEST
 levels:
-  1:
-    chance: 25
-    cooldown: 120
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 0.8 } }
-      - { PARTICLE: { particle: "SOUL_FIRE_FLAME", count: 8, who: "@Self" } }
-      - { MODIFY_HEALTH: { amount: 3, mode: "give", who: "@Self" } }
-  2:
-    chance: 30
-    cooldown: 120
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 0.8 } }
-      - { PARTICLE: { particle: "SOUL_FIRE_FLAME", count: 8, who: "@Self" } }
-      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }
-  3:
-    chance: 35
-    cooldown: 120
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 0.8 } }
-      - { PARTICLE: { particle: "SOUL_FIRE_FLAME", count: 8, who: "@Self" } }
-      - { MODIFY_HEALTH: { amount: 5, mode: "give", who: "@Self" } }
+  1: { chance: 15, condition: '%victim.necromancermask% == false', effects: [{ MODIFY_HEALTH: { amount: 8, mode: give, who: '@Self' } }] }
+  2: { chance: 20, condition: '%victim.necromancermask% == false', effects: [{ MODIFY_HEALTH: { amount: 12, mode: give, who: '@Self' } }] }
+  3: { chance: 25, condition: '%victim.necromancermask% == false', effects: [{ MODIFY_HEALTH: { amount: 15, mode: give, who: '@Self' } }] }
+requires: [enchants/lifesteal]
+removes-required: true

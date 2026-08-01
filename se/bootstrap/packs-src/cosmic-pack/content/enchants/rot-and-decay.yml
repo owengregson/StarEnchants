@@ -1,91 +1,23 @@
-# Imported from EliteEnchantments (id: rot-and-decay). Review before shipping.
-display: "Rot and Decay"
-description:
-  - "&eOn hit, raises rotting zombies"
-  - "&ethat maul the target,"
-  - "&ewithering them."
-trigger: ATTACK
-applies-to: [ARMOR]
-group: "godly"
-tier: godly
+# Cosmic codex source: 07-enchants-mastery-soul.md — mastery/MasteryRotAndDecay.java
+# Exact intended runtime is implemented by RotAndDecayListener.
+display: Rot and Decay
+description: Decay the world around you, increasingly damaging the health and durability of enemies standing on the decayed blocks. Also spawns Rotten Corpses that deal massive durability damage to enemy players on contact.
+trigger:
+- DEFENSE
+applies-to:
+- ARMOR
+group: mastery
+tier: mastery
+disabled-environments: [THE_END]
+stacking: HIGHEST
 levels:
-  1:
-    chance: 1
-    cooldown: 200
-    effects:
-      - { SOUND: { sound: "ENTITY_ZOMBIE_INFECT", volume: 0.9, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SOUL", count: 10 } }
-      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "activator", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
-      - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
-  2:
-    chance: 2
-    cooldown: 200
-    effects:
-      - { SOUND: { sound: "ENTITY_ZOMBIE_INFECT", volume: 0.9, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SOUL", count: 10 } }
-      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "activator", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
-      - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
-  3:
-    chance: 3
-    cooldown: 200
-    effects:
-      - { SOUND: { sound: "ENTITY_ZOMBIE_INFECT", volume: 0.9, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SOUL", count: 10 } }
-      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "activator", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
-      - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
-  4:
-    chance: 4
-    cooldown: 200
-    effects:
-      - { SOUND: { sound: "ENTITY_ZOMBIE_INFECT", volume: 0.9, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SOUL", count: 10 } }
-      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "activator", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
-      - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
-  5:
-    chance: 5
-    cooldown: 200
-    effects:
-      - { SOUND: { sound: "ENTITY_ZOMBIE_INFECT", volume: 0.9, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SOUL", count: 10 } }
-      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "activator", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
-      - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
-  6:
-    chance: 6
-    cooldown: 200
-    effects:
-      - { SOUND: { sound: "ENTITY_ZOMBIE_INFECT", volume: 0.9, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SOUL", count: 10 } }
-      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "activator", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
-      - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
-  7:
-    chance: 7
-    cooldown: 200
-    effects:
-      - { SOUND: { sound: "ENTITY_ZOMBIE_INFECT", volume: 0.9, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SOUL", count: 10 } }
-      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "activator", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
-      - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
-  8:
-    chance: 8
-    cooldown: 200
-    effects:
-      - { SOUND: { sound: "ENTITY_ZOMBIE_INFECT", volume: 0.9, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SOUL", count: 10 } }
-      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "activator", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
-      - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
-  9:
-    chance: 9
-    cooldown: 200
-    effects:
-      - { SOUND: { sound: "ENTITY_ZOMBIE_INFECT", volume: 0.9, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SOUL", count: 10 } }
-      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "activator", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
-      - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
-  10:
-    chance: 10
-    cooldown: 200
-    effects:
-      - { SOUND: { sound: "ENTITY_ZOMBIE_INFECT", volume: 0.9, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SOUL", count: 10 } }
-      - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 100, health: 100, owner: "activator", who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
-      - { POTION: { effect: "WITHER", level: 1, duration: 100, who: "@Victim" } }  # from ROT_DECAY — EE ROT_DECAY → SPAWN_ENTITY:ZOMBIE x3 + POTION:WITHER on the foe
+  1: { effects: [] }
+  2: { effects: [] }
+  3: { effects: [] }
+  4: { effects: [] }
+  5: { effects: [] }
+  6: { effects: [] }
+  7: { effects: [] }
+  8: { effects: [] }
+  9: { effects: [] }
+  10: { effects: [] }

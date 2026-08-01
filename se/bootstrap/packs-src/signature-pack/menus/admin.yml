@@ -1,0 +1,6 @@
+# Grant Books GUI — pick tier, enchant then level to grant a book (requires starenchants.admin).
+# Tiles drill from tier into enchant into level. See menus/apply.yml for the full field list.
+
+title: "&d&l❖ Grant Books ❖"
+frame: "border"
+filler: "BLACK_STAINED_GLASS_PANE"

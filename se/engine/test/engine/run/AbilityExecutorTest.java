@@ -78,6 +78,24 @@ class AbilityExecutorTest {
     }
 
     @Test
+    void noSoulsRunsOnlyTheAuthoredFailureEffects() {
+        LivingEntity victim = mock(LivingEntity.class);
+        Ability ability = Abilities.ability().trigger(TRIGGER).affinity(Affinity.TARGET_ENTITY)
+                .soulCost(2)
+                .effects(igniteEffect("VICTIM", 60, Affinity.TARGET_ENTITY))
+                .noSoulEffects(igniteEffect("VICTIM", 20, Affinity.TARGET_ENTITY))
+                .build();
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
+
+        int activated = executor.run(new Ability[] {ability}, new int[] {0}, activation(),
+                context(null, victim), sink, KEYS);
+        sink.flush();
+
+        assertEquals(0, activated);
+        verify(victim).setFireTicks(20);
+    }
+
+    @Test
     void nonMatchingTriggerDoesNotActivate() {
         LivingEntity victim = mock(LivingEntity.class);
         Ability onOtherTrigger = Abilities.ability().trigger(5).affinity(Affinity.TARGET_ENTITY)

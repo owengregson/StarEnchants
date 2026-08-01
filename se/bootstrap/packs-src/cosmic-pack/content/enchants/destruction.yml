@@ -1,55 +1,46 @@
-# Imported from EliteEnchantments (id: destruction). Review before shipping.
-display: "Destruction"
-description:
-  - "&eWhen struck, lashes every nearby enemy"
-  - "&eand saps the damage they deal."
-trigger: DEFENSE
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/Destruction.java
+display: Destruction
+description: Periodically damages and independently debuffs every nearby enemy using its intended level-scaled cadence.
+trigger: REPEATING
 applies-to: [HELMET]
-group: "legendary"
+group: legendary
 tier: legendary
+stacking: HIGHEST
 levels:
   1:
-    chance: 10
-    cooldown: 160
+    repeat: 300
     effects:
-      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
-      - { DAMAGE: { amount: 1, who: "@Aoe{r=4,filter=ENEMIES}" } }
-      - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
-      - { WEAKEN: { percent: 4, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { DAMAGE: { amount: 1, attributed: false, who: "@Aoe{r=1,filter=ENEMY_PLAYERS}" } }
+      - { PARTICLE: { particle: LAVA, count: 20, speed: 0.5, spread: 0, anchor: feet, y-offset: 1, who: "@Aoe{r=1,filter=ENEMY_PLAYERS}" } }
+      - { POTION: { effect: SLOW, level: 1, duration: 20, chance: 15, particle: SPELL_WITCH, particle-count: 10, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: "@Aoe{r=1,filter=ENEMY_PLAYERS}" } }
   2:
-    chance: 12.5
-    cooldown: 160
+    repeat: 150
     effects:
-      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
-      - { DAMAGE: { amount: 1, who: "@Aoe{r=4,filter=ENEMIES}" } }
-      - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
-      - { WEAKEN: { percent: 5.33, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { DAMAGE: { amount: 1, attributed: false, who: "@Aoe{r=2,filter=ENEMY_PLAYERS}" } }
+      - { PARTICLE: { particle: LAVA, count: 20, speed: 0.5, spread: 0, anchor: feet, y-offset: 1, who: "@Aoe{r=2,filter=ENEMY_PLAYERS}" } }
+      - { POTION: { effect: SLOW, level: 1, duration: 40, chance: 15, particle: SPELL_WITCH, particle-count: 10, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: "@Aoe{r=2,filter=ENEMY_PLAYERS}" } }
+      - { POTION: { effect: SLOW_DIGGING, level: 4, duration: 80, chance: 10, particle: SPELL_WITCH, particle-count: 20, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: "@Aoe{r=2,filter=ENEMY_PLAYERS}" } }
   3:
-    chance: 15
-    cooldown: 160
+    repeat: 100
     effects:
-      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
-      - { DAMAGE: { amount: 1, who: "@Aoe{r=4,filter=ENEMIES}" } }
-      - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
-      - { WEAKEN: { percent: 6.67, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { DAMAGE: { amount: 1, attributed: false, who: "@Aoe{r=3,filter=ENEMY_PLAYERS}" } }
+      - { PARTICLE: { particle: LAVA, count: 20, speed: 0.5, spread: 0, anchor: feet, y-offset: 1, who: "@Aoe{r=3,filter=ENEMY_PLAYERS}" } }
+      - { POTION: { effect: SLOW, level: 2, duration: 60, chance: 15, particle: SPELL_WITCH, particle-count: 10, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: "@Aoe{r=3,filter=ENEMY_PLAYERS}" } }
+      - { POTION: { effect: SLOW_DIGGING, level: 5, duration: 120, chance: 10, particle: SPELL_WITCH, particle-count: 20, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: "@Aoe{r=3,filter=ENEMY_PLAYERS}" } }
+      - { POTION: { effect: WITHER, level: 2, duration: 120, chance: 8.5, particle: SPELL_WITCH, particle-count: 30, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: "@Aoe{r=3,filter=ENEMY_PLAYERS}" } }
   4:
-    chance: 17.5
-    cooldown: 160
+    repeat: 75
     effects:
-      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
-      - { DAMAGE: { amount: 1, who: "@Aoe{r=4,filter=ENEMIES}" } }
-      - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
-      - { WEAKEN: { percent: 8, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { DAMAGE: { amount: 1, attributed: false, who: "@Aoe{r=4,filter=ENEMY_PLAYERS}" } }
+      - { PARTICLE: { particle: LAVA, count: 20, speed: 0.5, spread: 0, anchor: feet, y-offset: 1, who: "@Aoe{r=4,filter=ENEMY_PLAYERS}" } }
+      - { POTION: { effect: SLOW, level: 2, duration: 80, chance: 15, particle: SPELL_WITCH, particle-count: 10, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: "@Aoe{r=4,filter=ENEMY_PLAYERS}" } }
+      - { POTION: { effect: SLOW_DIGGING, level: 6, duration: 160, chance: 10, particle: SPELL_WITCH, particle-count: 20, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: "@Aoe{r=4,filter=ENEMY_PLAYERS}" } }
+      - { POTION: { effect: WITHER, level: 2, duration: 160, chance: 8.5, particle: SPELL_WITCH, particle-count: 30, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: "@Aoe{r=4,filter=ENEMY_PLAYERS}" } }
   5:
-    chance: 20
-    cooldown: 160
+    repeat: 60
     effects:
-      - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
-      - { DAMAGE: { amount: 1, who: "@Aoe{r=4,filter=ENEMIES}" } }
-      - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=4,filter=ENEMIES}" } }
-      - { WEAKEN: { percent: 10, duration: 100, who: "@Aoe{r=4,filter=ENEMIES}" } }
+      - { DAMAGE: { amount: 2, attributed: false, who: "@Aoe{r=5,filter=ENEMY_PLAYERS}" } }
+      - { PARTICLE: { particle: LAVA, count: 20, speed: 0.5, spread: 0, anchor: feet, y-offset: 1, who: "@Aoe{r=5,filter=ENEMY_PLAYERS}" } }
+      - { POTION: { effect: SLOW, level: 2, duration: 100, chance: 15, particle: SPELL_WITCH, particle-count: 10, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: "@Aoe{r=5,filter=ENEMY_PLAYERS}" } }
+      - { POTION: { effect: SLOW_DIGGING, level: 7, duration: 200, chance: 10, particle: SPELL_WITCH, particle-count: 20, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: "@Aoe{r=5,filter=ENEMY_PLAYERS}" } }
+      - { POTION: { effect: WITHER, level: 2, duration: 200, chance: 8.5, particle: SPELL_WITCH, particle-count: 30, particle-speed: 0.5, particle-anchor: feet, particle-y-offset: 1, who: "@Aoe{r=5,filter=ENEMY_PLAYERS}" } }

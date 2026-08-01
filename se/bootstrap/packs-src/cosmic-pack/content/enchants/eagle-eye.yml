@@ -1,0 +1,42 @@
+# Cosmic codex source: 05-enchants-bows.md — bow/EagleEye.java
+display: Eagle Eye
+description: 'Chance to deal 1-4 durability damage to ALL armor pieces of enemy player. The # of durability damage dealt is
+  based on how far of a bow shot you hit them with. The further away, the more durability damage.'
+trigger:
+- BOW
+applies-to:
+- BOW
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
+levels:
+  1:
+    abilities: &level1
+      - { trigger: BOW, chance: 25, condition: &near '%victim.isplayer% >= 1 && %distance% < 10', effects: &d1 [{ DURABILITY: { amount: 1, target: armor, mode: damage, who: '@Victim' } }, { PARTICLE: { particle: CRIT_MAGIC, count: 30, spread: 1, random-spread: true, speed: 0.45, anchor: feet, who: '@Victim' } }, { SOUND: { sound: ANVIL_BREAK, volume: 0.3, pitch: 0.8, audience: target, at: activation, who: '@Self' } }] }
+      - { trigger: BOW, chance: 25, condition: &mid '%victim.isplayer% >= 1 && %distance% >= 10 && %distance% < 20', effects: &d2 [{ DURABILITY: { amount: 2, target: armor, mode: damage, who: '@Victim' } }, { PARTICLE: { particle: CRIT_MAGIC, count: 30, spread: 1, random-spread: true, speed: 0.45, anchor: feet, who: '@Victim' } }, { SOUND: { sound: ANVIL_BREAK, volume: 0.3, pitch: 0.8, audience: target, at: activation, who: '@Self' } }] }
+      - { trigger: BOW, chance: 25, condition: &far '%victim.isplayer% >= 1 && %distance% >= 20 && %distance% < 32', effects: &d3 [{ DURABILITY: { amount: 3, target: armor, mode: damage, who: '@Victim' } }, { PARTICLE: { particle: CRIT_MAGIC, count: 30, spread: 1, random-spread: true, speed: 0.45, anchor: feet, who: '@Victim' } }, { SOUND: { sound: ANVIL_BREAK, volume: 0.3, pitch: 0.8, audience: target, at: activation, who: '@Self' } }] }
+      - { trigger: BOW, chance: 25, condition: &long '%victim.isplayer% >= 1 && %distance% >= 32', effects: &d4 [{ DURABILITY: { amount: 4, target: armor, mode: damage, who: '@Victim' } }, { PARTICLE: { particle: CRIT_MAGIC, count: 30, spread: 1, random-spread: true, speed: 0.45, anchor: feet, who: '@Victim' } }, { SOUND: { sound: ANVIL_BREAK, volume: 0.3, pitch: 0.8, audience: target, at: activation, who: '@Self' } }] }
+  2:
+    abilities:
+      - { trigger: BOW, chance: 30, condition: *near, effects: *d1 }
+      - { trigger: BOW, chance: 30, condition: *mid, effects: *d2 }
+      - { trigger: BOW, chance: 30, condition: *far, effects: *d3 }
+      - { trigger: BOW, chance: 30, condition: *long, effects: *d4 }
+  3:
+    abilities:
+      - { trigger: BOW, chance: 35, condition: *near, effects: *d1 }
+      - { trigger: BOW, chance: 35, condition: *mid, effects: *d2 }
+      - { trigger: BOW, chance: 35, condition: *far, effects: *d3 }
+      - { trigger: BOW, chance: 35, condition: *long, effects: *d4 }
+  4:
+    abilities:
+      - { trigger: BOW, chance: 40, condition: *near, effects: *d1 }
+      - { trigger: BOW, chance: 40, condition: *mid, effects: *d2 }
+      - { trigger: BOW, chance: 40, condition: *far, effects: *d3 }
+      - { trigger: BOW, chance: 40, condition: *long, effects: *d4 }
+  5:
+    abilities:
+      - { trigger: BOW, chance: 45, condition: *near, effects: *d1 }
+      - { trigger: BOW, chance: 45, condition: *mid, effects: *d2 }
+      - { trigger: BOW, chance: 45, condition: *far, effects: *d3 }
+      - { trigger: BOW, chance: 45, condition: *long, effects: *d4 }

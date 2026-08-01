@@ -34,6 +34,10 @@ final class Targets {
         MOBS,
         /** Every hostile mob + players the {@link Allies} hook does not consider allied to the actor. */
         ENEMIES,
+        /** Every non-player living entity + players not allied to the actor. */
+        NONALLIES,
+        /** Players other than the actor that are not allied to the actor. */
+        ENEMY_PLAYERS,
         /** Players the {@link Allies} hook considers allied to the actor (never the actor itself). */
         ALLIES;
 
@@ -45,6 +49,8 @@ final class Targets {
                 case MOBS -> !(entity instanceof Player);
                 case ENEMIES -> isHostile(entity)
                         || (entity instanceof Player p && !Allies.allied(actor, p));
+                case NONALLIES -> !(entity instanceof Player p) || !Allies.allied(actor, p);
+                case ENEMY_PLAYERS -> entity instanceof Player p && !p.equals(actor) && !Allies.allied(actor, p);
                 case ALLIES -> entity instanceof Player p && Allies.allied(actor, p);
             };
         }

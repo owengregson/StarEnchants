@@ -1,34 +1,23 @@
-# Imported from EliteEnchantments (id: inquisitive). Review before shipping.
-display: "Inquisitive"
-description:
-  - "&eKilling a mob grants bonus"
-  - "&eexperience."
-trigger: KILL
-applies-to: [SWORD]
-group: "uncommon"
-tier: uncommon
+# Cosmic codex source: 03-enchants-swords.md — swords/Inquisitive.java
+display: Inquisitive
+description: Increases EXP drops from mobs.
+trigger:
+- ATTACK
+applies-to:
+- SWORD
+group: legendary
+tier: legendary
+stacking: HIGHEST
 levels:
   1:
-    chance: 7.5
-    effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 0.8, pitch: 1.5 } }
-      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 10 } }
-      - { MODIFY_EXP: { amount: 10, mode: "give" } }  # from EXP:10 — EXP → MODIFY_EXP
+    abilities:
+      - { trigger: ATTACK, chance: 7.5, condition: '%victim.isplayer% == 0', effects: [{ EXP_DROP_MARK: { channel: inquisitive, multiplier: 1.25 } }] }
   2:
-    chance: 15
-    effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 0.8, pitch: 1.5 } }
-      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 10 } }
-      - { MODIFY_EXP: { amount: 15, mode: "give" } }  # from EXP:15 — EXP → MODIFY_EXP
+    abilities:
+      - { trigger: ATTACK, chance: 15, condition: '%victim.isplayer% == 0', effects: [{ EXP_DROP_MARK: { channel: inquisitive, multiplier: 1.5 } }] }
   3:
-    chance: 22.5
-    effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 0.8, pitch: 1.5 } }
-      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 10 } }
-      - { MODIFY_EXP: { amount: 20, mode: "give" } }  # from EXP:20 — EXP → MODIFY_EXP
+    abilities:
+      - { trigger: ATTACK, chance: 22.5, condition: '%victim.isplayer% == 0', effects: [{ EXP_DROP_MARK: { channel: inquisitive, multiplier: 1.75 } }] }
   4:
-    chance: 30
-    effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 0.8, pitch: 1.5 } }
-      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 10 } }
-      - { MODIFY_EXP: { amount: 25, mode: "give" } }  # from EXP:25 — EXP → MODIFY_EXP
+    abilities:
+      - { trigger: ATTACK, chance: 30, condition: '%victim.isplayer% == 0', effects: [{ EXP_DROP_MARK: { channel: inquisitive, multiplier: 2 } }] }

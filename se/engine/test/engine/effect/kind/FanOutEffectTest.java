@@ -80,10 +80,10 @@ class FanOutEffectTest {
     List<DynamicTest> livingTargetIntents() {
         return List.of(
                 entity("DAMAGE → damage (flat amount only, percent-of-max 0)", new DamageEffect(),
-                        c -> c.with("amount", 6.0).with("percent-of-max", 0.0),
+                        c -> c.with("amount", 6.0).with("percent-of-max", 0.0).with("attributed", true),
                         (s, t) -> verify(s).damage(t, 6.0, null)),
                 entity("DAMAGE → damagePercentOfMax (percent-of-max only, amount 0)", new DamageEffect(),
-                        c -> c.with("amount", 0.0).with("percent-of-max", 10.0),
+                        c -> c.with("amount", 0.0).with("percent-of-max", 10.0).with("attributed", true),
                         (s, t) -> verify(s).damagePercentOfMax(t, 10.0, null)),
                 entity("CURE (default ALL) → cureByCategory(0)", new CureEffect(),
                         c -> c.with("category", "ALL"), (s, t) -> verify(s).cureByCategory(t, 0)),
@@ -94,17 +94,18 @@ class FanOutEffectTest {
                 entity("EXTINGUISH → extinguish", new ExtinguishEffect(),
                         c -> { }, (s, t) -> verify(s).extinguish(t)),
                 entity("FILL_OXYGEN → fillAir", new FillOxygenEffect(),
-                        c -> { }, (s, t) -> verify(s).fillAir(t)),
+                        c -> c.with("amount", -1), (s, t) -> verify(s).fillAir(t, -1)),
                 entity("KILL → kill", new KillEffect(),
                         c -> { }, (s, t) -> verify(s).kill(t)),
                 entity("REMOVE_ARMOR → removeArmor", new RemoveArmorEffect(),
-                        c -> { }, (s, t) -> verify(s).removeArmor(t)),
+                        c -> c.with("destination", "drop"), (s, t) -> verify(s).removeArmor(t)),
                 entity("IGNITE → ignite(duration)", new IgniteEffect(),
                         c -> c.with("duration", 60), (s, t) -> verify(s).ignite(t, 60)),
                 entity("INVINCIBLE → invincible(ticks)", new InvincibleEffect(),
                         c -> c.with("ticks", 100), (s, t) -> verify(s).invincible(t, 100)),
-                entity("LIGHTNING → lightningAndDamage(damage)", new LightningEffect(),
-                        c -> c.with("damage", 6.0), (s, t) -> verify(s).lightningAndDamage(t, 6.0, null)),
+                entity("LIGHTNING → lightning(real, damage)", new LightningEffect(),
+                        c -> c.with("damage", 6.0).with("real", true),
+                        (s, t) -> verify(s).lightning(t, true, 6.0, null)),
                 entity("HEALTH → addMaxHealth(amount)", new HealthEffect(),
                         c -> c.with("amount", 4.0), (s, t) -> verify(s).addMaxHealth(t, 4.0)),
                 entity("KNOCKBACK_CONTROL → controlKnockback(multiplier, duration)", new KnockbackControlEffect(),
@@ -120,9 +121,28 @@ class FanOutEffectTest {
                         c -> c.with("duration", 80).with("dot", 3.0).with("dot-period", 30)
                                 .with("slow", 7.0).with("neutralize-frost-slow", false),
                         (s, t) -> verify(s).freeze(t, 80, 3.0, 30, 7.0, false, null)),
+                dynamicTest("DROP_HEAD → immediate drop or deferred per-channel mark", () -> {
+                    Player actor = mock(Player.class);
+                    Player victim = mock(Player.class);
+
+                    Sink immediateSink = mock(Sink.class);
+                    FakeEffectCtx immediate = FakeEffectCtx.create().actor(actor)
+                            .with("defer", false).with("channel", "default").targets("who", victim);
+                    new DropHeadEffect().run(immediate, immediateSink);
+                    verify(immediateSink).dropHead(victim, actor);
+                    verifyNoMoreInteractions(immediateSink);
+
+                    Sink deferredSink = mock(Sink.class);
+                    FakeEffectCtx deferred = FakeEffectCtx.create().actor(actor)
+                            .with("defer", true).with("channel", "headless").targets("who", victim);
+                    new DropHeadEffect().run(deferred, deferredSink);
+                    verify(deferredSink).markHeadDrop(victim, "headless");
+                    verifyNoMoreInteractions(deferredSink);
+                }),
                 // §C: the authored 1-based level reaches the Sink as the 0-based Bukkit amplifier (level − 1).
                 entity("POTION → potion(effect, level−1, duration)", new PotionEffect(),
-                        c -> c.with("effect", 7).with("level", 2).with("duration", 100),
+                        c -> c.with("effect", 7).with("level", 2).with("duration", 100)
+                                .with("chance", 100.0).with("unless-present", false).with("force", false),
                         (s, t) -> verify(s).potion(t, 7, 1, 100)),
                 // ADR-0054: DAMAGE/LIGHTNING attribute the activating player, so a deferred application
                 // (a WAIT DoT tick, a bystander target) fires an attributed event downstream.
@@ -131,7 +151,8 @@ class FanOutEffectTest {
                     LivingEntity a = mock(LivingEntity.class);
                     LivingEntity b = mock(LivingEntity.class);
                     FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
-                            .with("amount", 6.0).with("percent-of-max", 10.0).targets("who", a, b);
+                            .with("amount", 6.0).with("percent-of-max", 10.0).with("attributed", true)
+                            .targets("who", a, b);
                     Sink sink = mock(Sink.class);
                     new DamageEffect().run(ctx, sink);
                     verify(sink).damage(a, 6.0, actor);
@@ -139,10 +160,11 @@ class FanOutEffectTest {
                     verify(sink).damage(b, 6.0, actor);
                     verify(sink).damagePercentOfMax(b, 10.0, actor);
                     verifyNoMoreInteractions(sink);
-                    FakeEffectCtx bolt = FakeEffectCtx.create().actor(actor).with("damage", 5.0).targets("who", a);
+                    FakeEffectCtx bolt = FakeEffectCtx.create().actor(actor)
+                            .with("damage", 5.0).with("real", false).targets("who", a);
                     Sink boltSink = mock(Sink.class);
                     new LightningEffect().run(bolt, boltSink);
-                    verify(boltSink).lightningAndDamage(a, 5.0, actor);
+                    verify(boltSink).lightning(a, false, 5.0, actor);
                     verifyNoMoreInteractions(boltSink);
                 }),
                 // ADR-0065: FREEZE attributes the activator to every DoT tick — two targets catch a broken fan-out.
@@ -170,8 +192,12 @@ class FanOutEffectTest {
                         c -> c.with("ticks", 200), (s, p) -> verify(s).setFlight(p, 200)),
                 playerOnly("KEEP_ON_DEATH → keepOnDeath(duration)", new KeepOnDeathEffect(),
                         c -> c.with("duration", 200), (s, p) -> verify(s).keepOnDeath(p, 200)),
-                playerOnly("TELEBLOCK → teleblock(duration)", new TeleblockEffect(),
-                        c -> c.with("duration", 400), (s, p) -> verify(s).teleblock(p, 400)),
+                players("TELEBLOCK → teleblock(duration)", new TeleblockEffect(),
+                        c -> c.with("duration", 100).with("mode", "BLOCK"),
+                        (s, p) -> verify(s).teleblock(p, 100)),
+                players("TELEBLOCK clear → teleblock(-1)", new TeleblockEffect(),
+                        c -> c.with("duration", 0).with("mode", "CLEAR"),
+                        (s, p) -> verify(s).teleblock(p, -1)),
                 playerOnly("MOVEMENT_SPEED → movementSpeed(speed, ticks)", new MovementSpeedEffect(),
                         c -> c.with("speed", 0.4).with("ticks", 200),
                         (s, p) -> verify(s).movementSpeed(p, 0.4, 200)),
@@ -179,9 +205,19 @@ class FanOutEffectTest {
                         c -> c.with("material", 4).with("count", 2), (s, p) -> verify(s).giveItem(p, 4, 2)),
                 playerOnly("REMOVE_ITEM → removeItem(material, count)", new RemoveItemEffect(),
                         c -> c.with("material", 9).with("count", 5), (s, p) -> verify(s).removeItem(p, 9, 5)),
-                playerOnly("SET_VAR → setVar(name, value, ttl)", new SetVarEffect(),
+                entity("SET_VAR → setVar(name, value, ttl)", new SetVarEffect(),
                         c -> c.with("name", "rage").with("value", "1").with("ttl", 200),
                         (s, p) -> verify(s).setVar(p, "rage", "1", 200)),
+                dynamicTest("COUNT_TARGETS → stores the resolved count on the actor", () -> {
+                    Player actor = mock(Player.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
+                            .with("name", "leadership-allies").with("ttl", 121)
+                            .targets("who", mock(Player.class), mock(Player.class), mock(Player.class));
+                    Sink sink = mock(Sink.class);
+                    new CountTargetsEffect().run(ctx, sink);
+                    verify(sink).setVar(actor, "leadership-allies", "3", 121);
+                    verifyNoMoreInteractions(sink);
+                }),
                 playerOnly("INVERT_VAR → invertVar(name)", new InvertVarEffect(),
                         c -> c.with("name", "flag"), (s, p) -> verify(s).invertVar(p, "flag")),
                 playerOnly("SUPPRESS timed → suppress(scope, key, duration, sourceDefId, nextHit=false, charges)",

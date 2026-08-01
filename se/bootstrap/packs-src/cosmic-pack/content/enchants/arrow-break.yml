@@ -1,0 +1,30 @@
+# Cosmic codex source: 04-enchants-axes.md — axes/ArrowBreak.java
+display: Arrow Break
+description: Chance for arrows to bounce off and do no damage to you whenever you are wielding an axe with this enchantment
+  on it.
+trigger:
+- DEFENSE
+applies-to:
+- AXE
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
+levels:
+  1:
+    abilities:
+      - { trigger: DEFENSE, chance: 7, condition: '%damagecause% == "PROJECTILE"', effects: &bounce [{ CANCEL: {} }, { REMOVE_PROJECTILE: {} }, { PARTICLE: { particle: CRIT, count: 16, spread: 0, speed: 0.6 } }, { SOUND: { sound: ITEM_BREAK, volume: 0.7, pitch: 0.2, audience: target, who: '@Self' } }] }
+  2:
+    abilities:
+      - { trigger: DEFENSE, chance: 9, condition: '%damagecause% == "PROJECTILE"', effects: *bounce }
+  3:
+    abilities:
+      - { trigger: DEFENSE, chance: 11, condition: '%damagecause% == "PROJECTILE"', effects: *bounce }
+  4:
+    abilities:
+      - { trigger: DEFENSE, chance: 13, condition: '%damagecause% == "PROJECTILE"', effects: *bounce }
+  5:
+    abilities:
+      - { trigger: DEFENSE, chance: 15, condition: '%damagecause% == "PROJECTILE"', effects: *bounce }
+  6:
+    abilities:
+      - { trigger: DEFENSE, chance: 17, condition: '%damagecause% == "PROJECTILE"', effects: *bounce }

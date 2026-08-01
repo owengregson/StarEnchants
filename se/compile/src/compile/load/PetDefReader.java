@@ -5,6 +5,7 @@ import compile.model.SourceKind;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.IntSupplier;
@@ -31,11 +32,11 @@ final class PetDefReader {
 
     private static final Set<String> ROOT_KEYS = Set.of(
             "display", "color", "type", "head", "material", "descriptor", "description", "permission",
-            "message-on-no-home", "levels");
+            "message-on-no-home", "max-level", "experience-to-level", "levels");
     private static final Set<String> ABILITY_KEYS = Set.of(
             "trigger", "disabled-worlds", "repeat", "chance", "cooldown", "soul-cost", "condition", "effects");
     private static final Set<String> BRACKET_KEYS = Set.of(
-            "cooldown", "duration", "abilities",
+            "cooldown", "duration", "experience-on-use", "description", "abilities",
             // single-ability shorthand (a bracket with exactly one ability authors these at the top level):
             "trigger", "disabled-worlds", "repeat", "chance", "soul-cost", "condition", "effects");
 
@@ -78,6 +79,13 @@ final class PetDefReader {
         List<String> description = root.stringList("description");
         String permission = orEmpty(ContentParse.blankToNull(root.string("permission")));
         String messageOnNoHome = orEmpty(ContentParse.blankToNull(root.string("message-on-no-home")));
+        int maxLevel = ContentParse.optInt(root, "max-level", 0, diags);
+        if (maxLevel < 0 || root.has("max-level") && maxLevel < 1) {
+            diags.error(DiagCode.E_LOAD_PET, "pet '" + key + "' max-level must be at least 1",
+                    root.sourceOf("max-level"));
+            maxLevel = 0;
+        }
+        Map<Integer, Integer> experienceToLevel = readExperienceToLevel(key, root, maxLevel, diags);
 
         YamlNode levels = root.child("levels");
         if (levels == null || !levels.isMapping()) {
@@ -118,8 +126,38 @@ final class PetDefReader {
         }
 
         PetDef def = new PetDef(key, display, color, active, head, material, descriptor, description, permission,
-                messageOnNoHome, brackets);
+                messageOnNoHome, maxLevel, experienceToLevel, brackets);
         return new Parsed(def, abilities);
+    }
+
+    private static Map<Integer, Integer> readExperienceToLevel(String key, YamlNode root, int maxLevel,
+                                                               Diagnostics diags) {
+        if (!root.has("experience-to-level")) {
+            return Map.of();
+        }
+        YamlNode xp = root.child("experience-to-level");
+        if (!xp.isMapping()) {
+            diags.error(DiagCode.E_LOAD_PET, "pet '" + key + "' experience-to-level must be a mapping",
+                    root.sourceOf("experience-to-level"));
+            return Map.of();
+        }
+        TreeMap<Integer, Integer> values = new TreeMap<>();
+        for (YamlNode.Entry entry : xp.entries()) {
+            Integer target = parseFloor(entry.key());
+            Integer amount = ContentParse.parseInt(entry.value().scalar());
+            if (target == null || target < 2 || maxLevel > 0 && target > maxLevel) {
+                diags.error(DiagCode.E_LOAD_PET, "pet '" + key + "' has invalid XP target level '"
+                        + entry.key() + "'", entry.value().source());
+                continue;
+            }
+            if (amount == null || amount < 1) {
+                diags.error(DiagCode.E_LOAD_PET, "pet '" + key + "' XP for level " + target
+                        + " must be a positive integer", entry.value().source());
+                continue;
+            }
+            values.put(target, amount);
+        }
+        return values;
     }
 
     /** A field that may be ONE string or a list of lines (the descriptor is usually a single wrapped line). */
@@ -143,7 +181,14 @@ final class PetDefReader {
         ContentParse.warnUnknownKeys(node, BRACKET_KEYS, diags);
         int cooldown = ContentParse.resolveInt(node, "cooldown", 0, diags);
         int duration = ContentParse.resolveInt(node, "duration", 0, diags);
+        int experienceOnUse = ContentParse.optInt(node, "experience-on-use", -1, diags);
+        if (experienceOnUse < -1) {
+            diags.error(DiagCode.E_LOAD_PET, "pet '" + key + "' level " + floor
+                    + " experience-on-use must be zero or greater", node.sourceOf("experience-on-use"));
+            experienceOnUse = -1;
+        }
 
+        List<String> description = linesOf(node, "description");
         List<String> useKeys = new ArrayList<>();
         List<String> wornKeys = new ArrayList<>();
         List<String> conditionSources = new ArrayList<>();
@@ -178,7 +223,7 @@ final class PetDefReader {
             }
         }
         return new PetBracket(floor, firstUseCooldown >= 0 ? firstUseCooldown : cooldown, duration,
-                useKeys, wornKeys, conditionSources);
+                experienceOnUse, description, useKeys, wornKeys, conditionSources);
     }
 
     /** Read one ability block, classify it USE vs worn by trigger, and append + return its {@link AbilityDef}. */

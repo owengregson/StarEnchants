@@ -185,6 +185,20 @@ final class RecordingSink extends DispatchSinkBase {
     }
 
     @Override
+    protected void adjustArmorSlotDurability(LivingEntity entity, int slot, int amount) {
+    }
+
+    @Override
+    protected void repairMostDamagedArmorPiece(LivingEntity entity, int amount) {
+    }
+
+    @Override
+    protected void particleDirect(LivingEntity target, int particleId, int count, int blockMaterialId,
+                                  double offsetX, double offsetY, double offsetZ, double speed,
+                                  int anchor, double yOffset) {
+    }
+
+    @Override
     protected void setGuardTarget(Entity spawned, LivingEntity target) {
     }
 

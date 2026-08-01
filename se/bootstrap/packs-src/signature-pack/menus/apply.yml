@@ -1,0 +1,6 @@
+# Apply Enchant GUI — surfaces the enchant-application layout (click applies the enchant).
+# Any field you omit keeps the built-in default. See menus/apply.yml for the full field list.
+
+title: "&d&l✦ Apply Enchant ✦"
+frame: "border"
+filler: "BLACK_STAINED_GLASS_PANE"

@@ -1,0 +1,12 @@
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/Enlighted.java
+display: Enlighted
+description: Chance to heal exactly 1 HP one tick after taking damage.
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: legendary
+tier: legendary
+stacking: HIGHEST
+levels:
+  1: { chance: 7.5, effects: [{ MODIFY_HEALTH: { amount: 1, mode: give, who: "@Self", wait: 1 } }] }
+  2: { chance: 15, effects: [{ MODIFY_HEALTH: { amount: 1, mode: give, who: "@Self", wait: 1 } }] }
+  3: { chance: 22.5, effects: [{ MODIFY_HEALTH: { amount: 1, mode: give, who: "@Self", wait: 1 } }] }

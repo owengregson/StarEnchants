@@ -19,7 +19,8 @@ import schema.diag.Source;
  * @param key         the source-prefixed key ({@code masks/<stem>}) a masked helmet stamps and {@link Library#maskDefOf} looks up
  * @param display     bare display name (no colour codes) filled into the universal likeness as {@code {NAME}}
  * @param color       the mask's colour code sequence (e.g. {@code "&6"}), filled as {@code {COLOR}}
- * @param description the authored description lines, verbatim (filled as {@code {DESCRIPTION}})
+ * @param description the authored description lines, verbatim (filled into {@code {DESCRIPTION}})
+ * @param summary     short special-ability label rendered for this component inside a Multi-Mask
  * @param head        base64 texture value for the worn player-head repaint; {@code ""} = untextured (material fallback)
  * @param material    material token shown when head textures are unsupported; defaults to {@code PLAYER_HEAD}
  */
@@ -28,6 +29,7 @@ public record MaskDef(
         String display,
         String color,
         List<String> description,
+        String summary,
         String head,
         String material,
         Source source) {

@@ -1,0 +1,249 @@
+# StarEnchants — master config (docs/v3-directives.md §L).
+#
+# This file holds the CROSS-CUTTING knobs: ceilings and switches that are not a single item's "physical
+# likeness" (those live in items/*.yml) and not player-facing text (that lives in lang.yml). Edit here, then
+# run /se reload — the master config, items/, menus/, lang.yml and content/ all reload together in one
+# transaction. Most values below are re-read live on the next use, so a reload re-tunes them without a restart
+# (the exceptions — integration discovery and the auto-reload interval — are armed once at boot and noted).
+
+# Per-feature master switches. Each turns a whole subsystem on/off. enchants/sets/crystals/heroic drop that
+# source when a player's worn state is resolved (their combat + trigger effects go inert; re-read live, so a
+# /se reload takes effect at once). slots/souls/scrolls gate their apply/interaction listeners at boot, so a
+# change to those three takes effect on the next server start (like the integration toggles below).
+features:
+  enchants: true   # enchant effects fire in combat / on triggers
+  sets: true       # armour-set bonuses (and the held-weapon set bonus) apply
+  crystals: true   # crystal effects fire
+  heroic: true     # heroic percents feed the additive damage fold
+  slots: true      # the slot-expander orb can be applied to gear
+  souls: true      # the soul gem system (deposit on kill, soul mode, gem inventory)
+  scrolls: true    # scroll-family interactions (black/randomizer/transmog/holy/nametag/godly transmog)
+  use-items: true  # right-click use-items fire their abilities (§3.6); false leaves a held use-item inert
+  pets: true       # pets contribute to worn state and the pet gestures are live (ADR-0052); false = inert heads
+  masks: true      # masks contribute to worn state, the mask gestures (apply/remove) + worn repaint are live (ADR-0053); false = inert
+  reforges: true   # weapon reforges contribute while HELD and the reforge gestures (apply / shift-right-click active) are live (ADR-0070); false = inert
+
+# Combat caps (cross-cutting). The additive damage fold (ADR-0012) sums every source's outgoing% and
+# reduction%; these ceil those sums (a negative value = no cap). The 0.70 outgoing cap is a PRE-SCALE ceiling on
+# the summed outgoing FRACTION (the percent bucket) — a tight one-shot backstop (≈ x4.5 base once attack-scale 5 is
+# applied) that kills a 20 hp pool but not an Overload pool (the HP-pool meta ADR-0050 R1 assumes); under the
+# flat-forward economy (ADR-0050 R3) attack flat riders land raw below it. The 60% reduction cap is
+# the ADR-0050 combination-proofing backstop: no legal stack of heroic + set + crystals + enchants can exceed
+# it (the designed steady-state sits near 30%); full negates are CANCEL, which this cap cannot touch.
+#
+# attack-scale (ADR-0050 R2): content is authored on a NORMALIZED scale (the numbers players read), and this
+# ONE knob adapts the whole custom attack side (percent + flat, applied AFTER the outgoing cap) to the
+# server's armor pipeline. This pack ships calibrated for Mental-1.8 combat, whose flat armor + Prot IV
+# stack passes only ~5% of a hit through — hence 5.0. A modern-vanilla-armor server sets 1.0. Defense
+# percents and vanilla-vs-vanilla combat are never scaled. pvp/pve gate whether StarEnchants combat effects
+# apply at all in that context. All read live on /se reload.
+combat:
+  max-bonus-damage: 0.70      # pre-scale cap on the summed outgoing fraction (0.70 = at most +70%); one-shot backstop ≈ x4.5 base at attack-scale 5; <0 = uncapped
+  max-bonus-reduction: 0.60   # ceiling on summed damage-reduction fraction (0.60 = at most 60%); <0 = uncapped
+  attack-scale: 5.0           # post-cap multiplier on the custom attack side; 1.0 = neutral (modern vanilla armor)
+  pvp: true                   # apply combat effects in player-vs-player hits
+  pve: true                   # apply combat effects in player-vs-environment hits
+
+# Mining rewards (cross-cutting). Read live on /se reload.
+mining:
+  # Suppress the MINE trigger on a block a player placed since the last server start, so a place/break loop
+  # cannot farm MINE rewards (XP, money, auto-smelt, teleport-drops). This suppresses the WHOLE MINE dispatch on
+  # a placed block — QoL MINE effects are gated too (vanilla-consistent, mcMMO-precedented). Placement memory is
+  # boot-lifetime only: a restart forgets prior placements. false = reward every break (the old behaviour).
+  placed-block-guard: true
+
+# Vanilla-station guards on plugin SET gear. Read live on /se reload. Set pieces and set weapons carry their whole
+# plugin identity (set key, custom enchants, crystals, heroic) in item NBT, which vanilla stations copy wholesale —
+# so an unguarded station would bolt off-design stats onto gear the pack balanced as diamond. Each guard denies one
+# station on set gear; false = restore that station's vanilla behaviour. A bare anvil RENAME of set gear always
+# works (it adds no stats). Grindstone/smithing exist only on modern servers (1.14/1.16+); on 1.8.9 only the anvil.
+stations:
+  anvil-guard: true       # deny anvil combine/repair on set gear (adding Mending etc. / cheap repair); rename stays allowed
+  grindstone-guard: true  # deny grindstone disenchant/merge on set gear (cashing minted vanilla enchants for XP)
+  smithing-guard: true    # deny the smithing-table netherite upgrade on set gear
+
+# Player feedback (chat style). prefix is prepended to every message the plugin sends through its message
+# facade (chat feedback only — never item names/lore). feedback toggles the keyed gameplay-feedback channel
+# (e.g. menu confirmations); false = a quieter server (admin command echoes still print). Read live on reload.
+messages:
+  prefix: ""        # e.g. "&8[&dSE&8] " — prepended to plugin chat messages
+  feedback: true    # send keyed gameplay-feedback messages to players
+
+# Global enchant message-on-activate (§L). The Cosmic Pack enables both sides: when an enchant fires the holder
+# sees "{ENCHANT} ON [victim]" and the other party sees "{ENCHANT} FROM [attacker]". This replaces the old
+# per-enchant self-announce MESSAGE effects (divine immolation, phoenix, …), which are removed from the pack.
+# Tokens: {ENCHANT} = display name, {TIER_COLOR} = tier & colour, {VICTIM}/{ATTACKER} = the party names.
+message-on-activate:
+  by-enabled: true
+  by-template: "{TIER_COLOR}&l** {ENCHANT} &r&7[&f{VICTIM}&7] {TIER_COLOR}&l**"
+  on-enabled: true
+  on-template: "{TIER_COLOR}&l** {ENCHANT} &7FROM &r&7[&c{ATTACKER}&7] {TIER_COLOR}&l **"
+  uppercase: true   # render the {ENCHANT} name in UPPERCASE
+
+# Universal armour-set equip/unequip feedback (§6.6). ONE config for ALL sets (not per-set): equipping a
+# completed set plays equip-sound + equip-particle at the player, removing it plays unequip-sound +
+# unequip-particle. Sounds use our unified { sound, volume, pitch } bracket form; particles our
+# { particle, count, color, spread, y-offset } form. With use-set-color on, the dust cloud is tinted to each
+# set's own & colour (read from its display name), so the supreme set's cloud is dark red, etc.
+sets:
+  message-uppercase: true   # auto-capitalise the set equip/remove message (colour codes preserved)
+  use-set-color: true       # tint the equip/unequip dust to the set's own & colour
+  equip-sound:
+    - { sound: BLOCK_BEACON_POWER_SELECT, volume: 0.4, pitch: 2 }
+    - { sound: BLOCK_BONE_BLOCK_BREAK, volume: 1, pitch: 1 }
+    - { sound: ITEM_ARMOR_EQUIP_COPPER, volume: 0.4, pitch: 1 }
+  unequip-sound:
+    - { sound: BLOCK_GLASS_BREAK, volume: 0.25, pitch: 0.8 }
+    - { sound: BLOCK_CHAIN_STEP, volume: 0.6, pitch: 1.0 }
+    - { sound: BLOCK_COPPER_GOLEM_STATUE_BREAK, volume: 1, pitch: 1 }
+    - { sound: ITEM_LLAMA_CARPET_UNEQUIP, volume: 0.4, pitch: 2 }
+  # A dust cloud at the same density as the soul-gem activate cloud. The EQUIP cloud is tinted to each set's
+  # colour (use-set-color above); the UNEQUIP cloud stays gray (&7 = 170,170,170) for every set.
+  equip-particle:   { particle: REDSTONE, count: 20, spread: 1.25, y-offset: 1.0 }
+  unequip-particle: { particle: REDSTONE, count: 20, color: { r: 170, g: 170, b: 170 }, spread: 1.25, y-offset: 1.0 }
+
+# Universal enchant-book apply feedback. A SUCCESSFUL book-onto-gear apply plays the success cue; any FAILED one
+# (gear shattered, white-scroll protected, or unharmed) plays the fail cue. `sound` is our unified
+# { sound: NAME, volume: V, pitch: P } bracket form; `particles` is a list of tokens spawned at the applier.
+# Read live on /se reload.
+apply-cues:
+  success:
+    sound: { sound: ENTITY_PLAYER_LEVELUP, volume: 0.7, pitch: 1.4 }
+    particles:
+      - HAPPY_VILLAGER
+  fail:
+    sound: { sound: ENTITY_ITEM_BREAK, volume: 1.0, pitch: 1.0 }
+    particles:
+      - SMOKE_NORMAL
+
+# Enchant slots (§H). The hard cap on TOTAL slots (base + purchased) lives in the expander's own config
+# (items/slots.yml -> hard-cap), per §H; only the base every item starts with is cross-cutting.
+slots:
+  base: 9
+  # The gear lore line shown once a slot-expander orb has ADDED slots (rendered below the enchant/set lines,
+  # above the white-scroll/holy/trak lines). {TOTAL} = base + added slots; {ADDED} = the orb-granted slots.
+  lore-line: "&a&l{TOTAL} Enchantment Slots &r&7(Orb [{#8ac35c}+{ADDED}&7])"
+
+# Souls (§D). The full soul economy — per-kill amount, per-mob overrides, colour tiers, sounds, particles,
+# messages — is the gem's likeness in items/soul-gem.yml. Only the master deposit switch lives here.
+souls:
+  # Whether souls deposit into a carried gem on ANY kill. false disables the deposit-on-kill mechanic entirely
+  # (the give/combine/split commands and soul-cost spending still work).
+  deposit-on-any-kill: true
+
+# Crystals (§E, ADR-0034). Per-item crystal slots are a SEPARATE ledger from enchant slots; the crystal ITEM's
+# likeness (material/name/lore) lives in items/crystal.yml. Applying a crystal always succeeds (no roll).
+crystals:
+  # Crystal slots (entries) every item has by default.
+  slots: 1
+  # The "global max multi-crystal count": how many crystals may merge into ONE multi-crystal (and thus into one
+  # gear entry). 2 = a crystal may hold at most two combined effects.
+  max-merge: 2
+
+# Pets (ADR-0052 / ADR-0059). The universal knobs for every pet: leveling economy, the level-up cue, the
+# income ceiling, and the universal messages. A hotbar pet gains exp-per-mob-kill per mob kill and
+# exp-per-xp-point × the XP gained on every vanilla XP pickup; an ACTIVE pet also gains a random
+# [exp-per-level/8, exp-per-level/5] exp (min 1) on each successful right-click. Any pet sitting in the
+# player's main inventory passively earns passive-levels-per-hour of ONLINE time (fractions carried exactly
+# on the item, so moving a pet never loses progress); a PASSIVE-type pet held in the HOTBAR earns
+# passive-hotbar-levels-per-hour instead. Every exp-per-level exp is one level, capped at max-level (accrual
+# parks there). Pet Food's +levels lives on ITS likeness (items/pet-food.yml). level-up-sound /
+# level-up-particle play for the holder whenever a pet gains a level from ANY source — once per gain event,
+# so a +10 food plays one cue; blank the sound ("") / empty the particle ({ }) to silence it.
+# max-percent-money-cap ceilings ONE Fish-pet interest deposit (<= 0 = uncapped). The message templates
+# carry {COLOR} (the pet's own colour), {NAME} (uppercased in activate/end when uppercase is on) and
+# {TIME_FORMATTED}; an empty template is silent. All read live on /se reload.
+pets:
+  max-level: 100
+  exp-per-level: 100
+  exp-per-mob-kill: 5
+  exp-per-xp-point: 1.0
+  passive-levels-per-hour: 0.5          # every pet in the main inventory, per hour of ONLINE time
+  passive-hotbar-levels-per-hour: 1.0   # a PASSIVE-type pet held in the hotbar earns this instead
+  level-up-sound: { sound: entity.player.levelup, volume: 0.8, pitch: 1.5 }
+  level-up-particle: { particle: HAPPY_VILLAGER, count: 12, spread: 0.4, y-offset: 1.0 }
+  max-percent-money-cap: 1000000
+  message-on-activate: "&{COLOR}&l** PET ABILITY: &f&l&n{NAME}&r &{COLOR}&l**"
+  message-on-end: "&{COLOR}&l** PET ABILITY: &r&c&l&nENDED&r &{COLOR}&l**"
+  # Sent to the holder when an armed CHANCE-gated pet effect lands on a hit (the Anubis scroll strip) —
+  # it replaces the enchant proc line there, which cannot name a pet. Empty = silent.
+  message-on-effect: "&{COLOR}&l** {NAME} PET EFFECT **"
+  message-on-cooldown: "&c&l(!) {NAME}&r&c&l is on cooldown for another &f&n{TIME_FORMATTED}&r&c&l!"
+  message-on-fail: "&c&l(!) You cannot use {NAME}&r&c&l right now!"
+  uppercase: true
+
+# Masks (ADR-0053 §8). The /near immunity (the Hacker mask) is an OWNED interception: no plugin can filter
+# another plugin's proximity scan, so NearGuard listens for these command names, cancels them, and answers with
+# its OWN proximity listing (scanning near-radius blocks) that omits near-warded players. near-commands lists the
+# command names it intercepts (no leading slash) — while ANY name is configured, this owned listing REPLACES the
+# external plugin's /near output format (a documented, opt-out divergence). Set near-commands: [] to disable the
+# interception entirely and restore the external plugin's own /near (the Hacker hiding then no longer works).
+# On Folia, a cross-region player's location is a region-guarded read: unreadable = omitted from the listing.
+# /invsee needs no such knob — its InventoryOpenEvent cancel is plugin-agnostic. All read live on /se reload.
+masks:
+  near-commands: ["near"]   # command names NearGuard intercepts (no leading slash); [] disables the interception
+  near-radius: 200          # radius in blocks the owned /near listing scans
+
+# Weapon Reforges (ADR-0070). A reforge drag-applies onto a WEAPON (one socket per weapon — the ONLY knob
+# here decides what counts as a weapon) and its signature ability fires on SHIFT + Right Click while that
+# weapon is held. The reforge ITEM's likeness lives in items/reforge.yml; each reforge's identity + ability
+# in content/reforges/<key>.yml. Removal is the Item Extractor (items/crystal.yml `extractor:`). weapon-groups
+# takes ItemGroups tokens (SWORD, AXE, TRIDENT, MACE, or the WEAPON composite); a token's materials that don't
+# exist on this server version are simply skipped. Read live on /se reload.
+reforges:
+  weapon-groups: [SWORD, AXE]
+  # The universal reforge chat lines — the pets convention 1:1 (ADR-0052 shape): activated on a successful
+  # SHIFT+right-click, ENDED when a timed window (Berry Overdrive, The Ace) closes, plus the on-cooldown /
+  # fail lines. Tokens: {COLOR} the reforge's colour, {NAME} its display (uppercased on activate/end when
+  # `uppercase` is on), {TIME_FORMATTED} the remaining cooldown. Empty = silent.
+  message-on-activate: "&{COLOR}&l** REFORGE ABILITY: &f&l&n{NAME}&r &{COLOR}&l**"
+  message-on-end: "&{COLOR}&l** REFORGE ABILITY: &r&c&l&nENDED&r &{COLOR}&l**"
+  message-on-cooldown: "&c&l(!) {NAME}&r&c&l is on cooldown for another &f&n{TIME_FORMATTED}&r&c&l!"
+  message-on-fail: "&c&l(!) You cannot use {NAME}&r&c&l right now!"
+  uppercase: true
+
+# Heroic (§F / ADR-0037). The granted percents, success range and material-upgrade map are the upgrade's
+# likeness in items/heroic.yml. A heroic piece's percents feed the SAME additive damage fold every enchant
+# uses (ADR-0012) — a weapon adds its outgoing%, armour its reduction% — so there is no cross-cutting knob.
+
+# Lore render style (§L). Legacy '&' colour codes. Re-read on every lore render, so a reload restyles live.
+lore:
+  enchant-color: "&7"      # an enchant's display name
+  level-color: ""          # blank → the level numeral inherits each enchant's tier colour
+  crystal-color: "&b"      # a crystal line
+  roman: true              # levels as Roman numerals (Venom III) vs Arabic (Venom 3)
+  unknown-label: "&8Unknown Enchant"  # shown for a stored key no longer in the catalog
+
+# Integration discovery (§N). Toggles read ONCE at boot (un-discovering a provider mid-run is not clean), so a
+# change here takes effect on the next server start. Named integrations (worldguard, vault, mental, …) read
+# from the 'named' map below; an unlisted name is enabled. e.g. `named: {mental: false}` stops StarEnchants
+# coordinating KNOCKBACK_CONTROL with the Mental knockback plugin.
+integrations:
+  protection: true   # discover ProtectionProviders for the region/build gate
+  economy: true      # discover an EconomyProvider for the money effects
+  named: {}
+
+# Reload behaviour (§L).
+reload:
+  re-resolve-players: true  # re-resolve every online player's worn state after a content swap
+  auto-seconds: 0           # auto-/se-reload interval in seconds (0 = off; armed once at boot)
+
+# Command trigger (§B). The COMMAND trigger fires a player's worn COMMAND-trigger enchants when they run a
+# configured command. Registered ONCE at boot (a command name cannot be re-bound mid-run cleanly), so a
+# change here takes effect on the next server start, not a /se reload.
+command-trigger:
+  enabled: true                                     # register the command at boot
+  name: cast                                        # the command players run (no leading slash): /cast
+  description: "Trigger your COMMAND enchantments."  # shown in tab/help listings
+
+# Engine runtime. Combat-integrity per-player state — ability cooldowns and victim-applied teleport-block /
+# suppression windows — is RETAINED across a relog (against the monotonic game tick), so a quick
+# disconnect+reconnect can no longer skip a long cooldown (e.g. Phoenix) or shed a landed debuff. An offline
+# player's entries are only read again on rejoin; this periodic sweep evicts already-elapsed ones to bound
+# memory for players who never return. Armed once at boot (restart to re-tune), so NOT a /se reload knob.
+engine:
+  offline-state-sweep-ticks: 6000   # sweep interval in ticks (6000 = 5 min); <= 0 disables the periodic sweep
+  # Temp cosmetic blocks (magma floors, footprint trails) revert on a timer; on Folia a chunk unload can drop that
+  # timer and strand the block. Chunk-load re-arms the revert; this sweep also force-reverts any loaded-chunk tile
+  # whose timer was dropped. Armed once at boot (restart to re-tune).
+  temp-block-sweep-ticks: 600       # sweep interval in ticks (600 = 30s); <= 0 disables the periodic sweep

@@ -1,50 +1,35 @@
-# Imported from EliteEnchantments (id: dodge). Review before shipping.
-display: "Dodge"
-description:
-  - "&eA chance to fully negate an attack."
-  - "&eSneaking doubles it."
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/Dodge.java
+display: Dodge
+description: Chance to cancel physical melee or projectile attacks; sneaking adds exactly 15 percentage points.
 trigger: DEFENSE
 applies-to: [ARMOR]
-group: "epic"
-tier: epic
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
 levels:
   1:
-    chance: 1
-    cooldown: 100
-    condition: "%sneaking% : +1 %chance%"
-    effects:
-      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CLOUD", count: 8 } }
-      - { CANCEL: {} }
+    abilities:
+      - trigger: DEFENSE
+        chance: 2.5
+        condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && !%sneaking%"
+        effects: &dodge [{ CANCEL: {} }, { MESSAGE: { text: "&e*DODGE*" } }, { PARTICLE: { particle: CLOUD, count: 10, speed: 0.2, spread: 0, anchor: feet, who: "@Self" } }, { SOUND: { sound: ENTITY_BAT_TAKEOFF, volume: 1, pitch: 0.75 } }]
+      - trigger: DEFENSE
+        chance: 17.5
+        condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && %sneaking%"
+        effects: *dodge
   2:
-    chance: 1.5
-    cooldown: 100
-    condition: "%sneaking% : +1.5 %chance%"
-    effects:
-      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CLOUD", count: 8 } }
-      - { CANCEL: {} }
+    abilities:
+      - { trigger: DEFENSE, chance: 5, condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && !%sneaking%", effects: *dodge }
+      - { trigger: DEFENSE, chance: 20, condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && %sneaking%", effects: *dodge }
   3:
-    chance: 2
-    cooldown: 100
-    condition: "%sneaking% : +2 %chance%"
-    effects:
-      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CLOUD", count: 8 } }
-      - { CANCEL: {} }
+    abilities:
+      - { trigger: DEFENSE, chance: 7.5, condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && !%sneaking%", effects: *dodge }
+      - { trigger: DEFENSE, chance: 22.5, condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && %sneaking%", effects: *dodge }
   4:
-    chance: 2.5
-    cooldown: 100
-    condition: "%sneaking% : +2.5 %chance%"
-    effects:
-      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CLOUD", count: 8 } }
-      - { CANCEL: {} }
+    abilities:
+      - { trigger: DEFENSE, chance: 10, condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && !%sneaking%", effects: *dodge }
+      - { trigger: DEFENSE, chance: 25, condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && %sneaking%", effects: *dodge }
   5:
-    chance: 3
-    cooldown: 100
-    condition: "%sneaking% : +3 %chance%"
-    effects:
-      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CLOUD", count: 8 } }
-      - { CANCEL: {} }
+    abilities:
+      - { trigger: DEFENSE, chance: 12.5, condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && !%sneaking%", effects: *dodge }
+      - { trigger: DEFENSE, chance: 27.5, condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && %sneaking%", effects: *dodge }

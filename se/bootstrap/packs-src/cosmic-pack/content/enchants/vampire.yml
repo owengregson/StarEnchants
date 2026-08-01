@@ -1,0 +1,14 @@
+# Cosmic codex source: 03-enchants-swords.md — swords/Vampire.java
+display: Vampire
+description: A chance to heal you for up to 3hp a few seconds after you strike.
+trigger:
+- ATTACK
+applies-to:
+- SWORD
+group: elite
+tier: elite
+stacking: HIGHEST
+levels:
+  1: { chance: 5, condition: &allowed '%victim.necromancermask% == false', effects: [{ SOUND: { sound: DRINK, volume: 0.75, pitch: 2, audience: target, who: '@Self' } }, { MODIFY_HEALTH: { amount: 1, mode: give, wait: 60, success-sound: DRINK, sound-volume: 0.75, sound-pitch: 2 } }] }
+  2: { chance: 10, condition: *allowed, effects: [{ SOUND: { sound: DRINK, volume: 0.75, pitch: 2, audience: target, who: '@Self' } }, { MODIFY_HEALTH: { amount: 2, mode: give, wait: 60, success-sound: DRINK, sound-volume: 0.75, sound-pitch: 2 } }] }
+  3: { chance: 15, condition: *allowed, effects: [{ SOUND: { sound: DRINK, volume: 0.75, pitch: 2, audience: target, who: '@Self' } }, { MODIFY_HEALTH: { amount: 3, mode: give, wait: 60, success-sound: DRINK, sound-volume: 0.75, sound-pitch: 2 } }] }

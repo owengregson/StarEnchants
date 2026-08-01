@@ -1,0 +1,27 @@
+# Cosmic codex source: 05-enchants-bows.md — bow/Longbow.java
+display: Longbow
+description: Greatly increases damage dealt to enemy players that have a bow in their hands.
+trigger:
+- BOW
+applies-to:
+- BOW
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
+levels:
+  1:
+    abilities:
+      - { trigger: BOW, condition: &bow '%victim.helditem% == "BOW"', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.25 } }] }
+      - { trigger: BOW, condition: &bowplayer '%victim.helditem% == "BOW" && %victim.type% == "PLAYER"', effects: [{ SOUND: { sound: ARROW_HIT, volume: 1, pitch: 0.4, audience: target, who: '@Victim' } }] }
+  2:
+    abilities:
+      - { trigger: BOW, condition: *bow, effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.50 } }] }
+      - { trigger: BOW, condition: *bowplayer, effects: [{ SOUND: { sound: ARROW_HIT, volume: 1, pitch: 0.4, audience: target, who: '@Victim' } }] }
+  3:
+    abilities:
+      - { trigger: BOW, condition: *bow, effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.75 } }] }
+      - { trigger: BOW, condition: *bowplayer, effects: [{ SOUND: { sound: ARROW_HIT, volume: 1, pitch: 0.4, audience: target, who: '@Victim' } }] }
+  4:
+    abilities:
+      - { trigger: BOW, condition: *bow, effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 2.0 } }] }
+      - { trigger: BOW, condition: *bowplayer, effects: [{ SOUND: { sound: ARROW_HIT, volume: 1, pitch: 0.4, audience: target, who: '@Victim' } }] }

@@ -78,6 +78,7 @@ class CombatDispatchReforgeTest {
         Player p = mock(Player.class);
         when(p.getUniqueId()).thenReturn(attackerId);
         when(p.isValid()).thenReturn(true);
+        when(p.getLocation()).thenReturn(mock(Location.class));
         return p;
     }
 
@@ -135,6 +136,7 @@ class CombatDispatchReforgeTest {
         Player shooter = attacker();
         Arrow arrow = mock(Arrow.class);
         when(arrow.getShooter()).thenReturn(shooter);
+        when(arrow.getLocation()).thenReturn(mock(Location.class));
         double[] committed = {Double.NaN};
         EntityDamageByEntityEvent event = hit(arrow, victimPlayer(), 9.0, committed);
 

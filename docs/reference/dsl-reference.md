@@ -6,6 +6,17 @@ _Generated from the engine's effect / selector / trigger / condition / variable 
 
 The actions an ability runs. Each is a block map `{ HEAD: { param: value, who:, wait: } }` in an enchant/set/crystal's `effects:` list.
 
+### ARMOR_BATTERY
+
+Repair all of the actor's armor, then damage the opponent armor slot matching the actor's first worn source enchant.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ ARMOR_BATTERY: { source-enchant: <string>, repair: <int[0..]=2>, retaliation: <int[0..]=1> } }`
+- _param_ `source-enchant` `string`
+- _param_ `repair` `int[0..]`
+- _param_ `retaliation` `int[0..]`
+- _example_: `{ ARMOR_BATTERY: { source-enchant: enchants/immortal, repair: 2, retaliation: 1 } }`
+
 ### BATTERY
 
 Arm a damage battery on the wearer: the next `hits` landed hits they take each bank `bank-percent`% of the final damage; their next landed hit on an enemy unloads the entire bank as bonus damage on that hit, then the core resets — a hit with nothing banked still spends the core. No time limit; the ability cooldown paces re-arms. Cleared on death.
@@ -16,6 +27,57 @@ Arm a damage battery on the wearer: the next `hits` landed hits they take each b
 - _param_ `hits` `int[1..10]`
 - _target_ `who`: selector `SELF`
 - _example_: `{ BATTERY: { bank-percent: 20, hits: 3 } }`
+
+### BLEED_STACK
+
+Increment the shared 20-stack Bleed state and apply stack movement, block cues, and nearby allied Blood Lust healing.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ BLEED_STACK: { speed-step: <double[0..]>, half-floor: <int[0..]=0>, blood-lust-floor: <double[0..]>, blood-lust-scale: <double[0..]>, primary-block: <material>, secondary-block: <material>, slow: <potion_effect>, blood-lust-particle: <particle>, blood-lust-sound: <sound> } }`
+- _param_ `speed-step` `double[0..]`
+- _param_ `half-floor` `int[0..]`
+- _param_ `blood-lust-floor` `double[0..]`
+- _param_ `blood-lust-scale` `double[0..]`
+- _param_ `primary-block` `material`
+- _param_ `secondary-block` `material`
+- _param_ `slow` `potion_effect`
+- _param_ `blood-lust-particle` `particle`
+- _param_ `blood-lust-sound` `sound`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ BLEED_STACK: { speed-step: 0.005, blood-lust-floor: 2, blood-lust-scale: 0.05, primary-block: REDSTONE_BLOCK, slow: SLOW, blood-lust-sound: EAT } }`
+
+### BLESS
+
+If blocked-by is active, show blocked-message and stop. Otherwise clear Cosmic Bleed, play the private sound, remove the first active authored potion, and show the success message. Optionally throttle only that message while one armor set is active.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ BLESS: { blocked-by: <string=>, blocked-message: <string=>, success-message: <string=>, sound: <sound>, volume: <double[0..]=1>, pitch: <double[0..]=1>, message-throttle-set: <string=>, message-throttle: <ticks[0..]=0>, effect-1: <potion_effect>, effect-2: <potion_effect>, effect-3: <potion_effect>, effect-4: <potion_effect>, effect-5: <potion_effect>, effect-6: <potion_effect>, effect-7: <potion_effect>, effect-8: <potion_effect>, effect-9: <potion_effect>, effect-10: <potion_effect>, effect-11: <potion_effect>, effect-12: <potion_effect>, effect-13: <potion_effect>, effect-14: <potion_effect>, effect-15: <potion_effect>, effect-16: <potion_effect> } }`
+- _param_ `blocked-by` `string`
+- _param_ `blocked-message` `string`
+- _param_ `success-message` `string`
+- _param_ `sound` `sound`
+- _param_ `volume` `double[0..]`
+- _param_ `pitch` `double[0..]`
+- _param_ `message-throttle-set` `string`
+- _param_ `message-throttle` `ticks[0..]`
+- _param_ `effect-1` `potion_effect`
+- _param_ `effect-2` `potion_effect`
+- _param_ `effect-3` `potion_effect`
+- _param_ `effect-4` `potion_effect`
+- _param_ `effect-5` `potion_effect`
+- _param_ `effect-6` `potion_effect`
+- _param_ `effect-7` `potion_effect`
+- _param_ `effect-8` `potion_effect`
+- _param_ `effect-9` `potion_effect`
+- _param_ `effect-10` `potion_effect`
+- _param_ `effect-11` `potion_effect`
+- _param_ `effect-12` `potion_effect`
+- _param_ `effect-13` `potion_effect`
+- _param_ `effect-14` `potion_effect`
+- _param_ `effect-15` `potion_effect`
+- _param_ `effect-16` `potion_effect`
+- _target_ `who`: selector `SELF`
+- _example_: `{ BLESS: { blocked-by: deep-wounds, sound: SPLASH, effect-1: POISON } }`
 
 ### BLINK
 
@@ -38,13 +100,27 @@ Blink (reforges): instantly teleport up to distance blocks along your facing if 
 - _param_ `accent-pitch` `double[0..]`
 - _example_: `{ BLINK: { distance: 4 } }`
 
+### BLOCK_BREAK_EFFECT
+
+Play the combined block-break particles and sound used by Bukkit STEP_SOUND/effect 2001. once-at-actor emits one cue at the captured actor origin only when 'who' matched.
+
+- _affinity_: `REGION`
+- _usage_: `{ BLOCK_BREAK_EFFECT: { block: <material>, anchor: <enum{body|feet|eye}=feet>, y-offset: <double=0.0>, once-at-actor: <bool=false> } }`
+- _param_ `block` `material`
+- _param_ `anchor` `enum{body|feet|eye}`
+- _param_ `y-offset` `double`
+- _param_ `once-at-actor` `bool`
+- _target_ `who`: selector `HERE`
+- _example_: `{ BLOCK_BREAK_EFFECT: { block: DIAMOND_BLOCK, who: "@Self" } }`
+
 ### BREAK_BLOCK
 
 Break the target block(s) (default @Here; drops=false clears). @Vein/@Tunnel/@Trench for shapes.
 
 - _affinity_: `REGION`
-- _usage_: `{ BREAK_BLOCK: { drops: <bool=true> } }`
+- _usage_: `{ BREAK_BLOCK: { drops: <bool=true>, use-held-tool: <bool=false> } }`
 - _param_ `drops` `bool`
+- _param_ `use-held-tool` `bool`
 - _target_ `at`: selector `HERE`
 - _example_: `{ BREAK_BLOCK: { drops: true } }`
 
@@ -73,6 +149,15 @@ Cancel the Bukkit event that triggered this activation.
 - _usage_: `{ CANCEL: {} }`
 - _example_: `{ CANCEL: {} }`
 
+### CLEAR_BLEED
+
+Clear Cosmic Bleed stacks, restoring player walk speed or removing mob Slowness.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ CLEAR_BLEED: {} }`
+- _target_ `who`: selector `SELF`
+- _example_: `{ CLEAR_BLEED: { who: "@Self" } }`
+
 ### CONVERT_SUMMON
 
 Convert EVERY mob within `radius` blocks of the wearer to the wearer's side, permanently: each rebinds its ownership (a hit on it now fires the wearer's GUARDIAN_HURT) and tamed mobs re-tame; an enemy summon turns on its former owner, a wild mob on the wearer's nearest enemy player, and bat swarm clouds permanently swarm their former owner. Only players, armour stands and the wearer are exempt.
@@ -84,6 +169,31 @@ Convert EVERY mob within `radius` blocks of the wearer to the wearer's side, per
 - _target_ `who`: selector `SELF`
 - _example_: `{ CONVERT_SUMMON: { radius: 12 } }`
 
+### COSMIC_SILENCE
+
+Roll Cosmic Silence at 2% per Silence+held-Solitude level, honor Dragon Slayer's 75% block, then suppress only defense procs for one second per combined level with exact feedback.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ COSMIC_SILENCE: { level: <int[1..4]>, solitude: <string=enchants/solitude>, sound: <sound>, enchantment-particle: <particle>, portal-particle: <particle> } }`
+- _param_ `level` `int[1..4]`
+- _param_ `solitude` `string`
+- _param_ `sound` `sound`
+- _param_ `enchantment-particle` `particle`
+- _param_ `portal-particle` `particle`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ COSMIC_SILENCE: { level: 4, sound: WITHER_HURT, enchantment-particle: ENCHANTMENT_TABLE, portal-particle: PORTAL, who: '@Victim' } }`
+
+### COUNT_TARGETS
+
+Count resolved targets and store the integer on the actor as %name% (ttl ticks, 0 = forever).
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ COUNT_TARGETS: { name: <string>, ttl: <ticks[0..]=0> } }`
+- _param_ `name` `string`
+- _param_ `ttl` `ticks[0..]`
+- _target_ `who`: selector `AOE`
+- _example_: `{ COUNT_TARGETS: { name: nearby-allies, ttl: 121, who: "@Aoe{r=7,filter=ALLIES}" } }`
+
 ### CURE
 
 Clear active potion effects of one category from the target(s): ALL (default), HARMFUL, BENEFICIAL, or NEUTRAL. category HARMFUL strips only debuffs (positive effects untouched).
@@ -94,14 +204,43 @@ Clear active potion effects of one category from the target(s): ALL (default), H
 - _target_ `who`: selector `SELF`
 - _example_: `{ CURE: { category: HARMFUL } }`
 
+### CURE_ONE_OF
+
+Remove exactly one active potion effect, choosing the first effect encountered by the server whose type appears in effect-1 through effect-16. Unlisted effects remain. Optionally throttle the success message only while one authored armor set is active.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ CURE_ONE_OF: { effect-1: <potion_effect>, success-message: <string=>, message-throttle-set: <string=>, message-throttle: <ticks[0..]=0>, effect-2: <potion_effect>, effect-3: <potion_effect>, effect-4: <potion_effect>, effect-5: <potion_effect>, effect-6: <potion_effect>, effect-7: <potion_effect>, effect-8: <potion_effect>, effect-9: <potion_effect>, effect-10: <potion_effect>, effect-11: <potion_effect>, effect-12: <potion_effect>, effect-13: <potion_effect>, effect-14: <potion_effect>, effect-15: <potion_effect>, effect-16: <potion_effect> } }`
+- _param_ `effect-1` `potion_effect`
+- _param_ `success-message` `string`
+- _param_ `message-throttle-set` `string`
+- _param_ `message-throttle` `ticks[0..]`
+- _param_ `effect-2` `potion_effect`
+- _param_ `effect-3` `potion_effect`
+- _param_ `effect-4` `potion_effect`
+- _param_ `effect-5` `potion_effect`
+- _param_ `effect-6` `potion_effect`
+- _param_ `effect-7` `potion_effect`
+- _param_ `effect-8` `potion_effect`
+- _param_ `effect-9` `potion_effect`
+- _param_ `effect-10` `potion_effect`
+- _param_ `effect-11` `potion_effect`
+- _param_ `effect-12` `potion_effect`
+- _param_ `effect-13` `potion_effect`
+- _param_ `effect-14` `potion_effect`
+- _param_ `effect-15` `potion_effect`
+- _param_ `effect-16` `potion_effect`
+- _target_ `who`: selector `SELF`
+- _example_: `{ CURE_ONE_OF: { effect-1: POISON, effect-2: WITHER, who: "@Self" } }`
+
 ### DAMAGE
 
 Deal extra damage to the target: a flat amount and/or percent-of-max of the target's own maximum health (they sum when both are given).
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ DAMAGE: { amount: <double[0..]=0>, percent-of-max: <double[0..100]=0> } }`
+- _usage_: `{ DAMAGE: { amount: <double[0..]=0>, percent-of-max: <double[0..100]=0>, attributed: <bool=true> } }`
 - _param_ `amount` `double[0..]`
 - _param_ `percent-of-max` `double[0..100]`
+- _param_ `attributed` `bool` — false uses a generic damage event with no attacker attribution
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ DAMAGE: { amount: 6, percent-of-max: 10 } }`
 
@@ -119,14 +258,15 @@ Cap the wearer's next incoming hit at factor times the last damage they took, fo
 
 ### DAMAGE_MOD
 
-Contribute to the damage fold: side attack/defense, mode add (percent) or flat (raw amount). A NEGATIVE amount is a self-nerf — attack:add:-50 halves your own outgoing damage. Replaces ADD_DAMAGE/REDUCE_DAMAGE/FLAT_DAMAGE/FLAT_REDUCE.
+Contribute to the damage fold: side attack/defense; mode add uses a percentage, flat a raw amount, and multiply an exact direct factor. A NEGATIVE add amount is a self-nerf. cap clamps a positive evaluated amount when greater than zero (0 = uncapped).
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ DAMAGE_MOD: { side: <enum{attack|defense}>, mode: <enum{add|flat}=add>, amount: <double> } }`
+- _usage_: `{ DAMAGE_MOD: { side: <enum{attack|defense}>, mode: <enum{add|flat|multiply}=add>, amount: <double>, cap: <double[0..]=0> } }`
 - _param_ `side` `enum{attack|defense}`
-- _param_ `mode` `enum{add|flat}`
+- _param_ `mode` `enum{add|flat|multiply}`
 - _param_ `amount` `double`
-- _example_: `{ DAMAGE_MOD: { side: attack, mode: add, amount: 25 } }`
+- _param_ `cap` `double[0..]`
+- _example_: `{ DAMAGE_MOD: { side: attack, mode: add, amount: 25, cap: 75 } }`
 
 ### DAMAGE_SCALE
 
@@ -171,6 +311,38 @@ Arm an unhanding window on the wearer for `duration` ticks: their next landed me
 - _target_ `who`: selector `SELF`
 - _example_: `{ DISARM_SHUFFLE: { duration: 80, damage-malus: 20 } }`
 
+### DISTANCE_DAMAGE
+
+Multiply outgoing damage by one factor built from cumulative strict distance thresholds.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ DISTANCE_DAMAGE: { distance: <double[0..]>, near-1: <double[0..]=0.25>, near-2: <double[0..]=0.5>, near-3: <double[0..]=0.75>, near-4: <double[0..]=1.0>, near-5: <double[0..]=1.5>, near-per-level: <double[0..]=0.01>, far-1: <double[0..]=2.0>, far-2: <double[0..]=2.5>, far-3: <double[0..]=3.0>, far-penalty-1: <double[0..]=0.01>, far-penalty-2: <double[0..]=0.0125>, far-penalty-3: <double[0..]=0.025> } }`
+- _param_ `distance` `double[0..]`
+- _param_ `near-1` `double[0..]`
+- _param_ `near-2` `double[0..]`
+- _param_ `near-3` `double[0..]`
+- _param_ `near-4` `double[0..]`
+- _param_ `near-5` `double[0..]`
+- _param_ `near-per-level` `double[0..]`
+- _param_ `far-1` `double[0..]`
+- _param_ `far-2` `double[0..]`
+- _param_ `far-3` `double[0..]`
+- _param_ `far-penalty-1` `double[0..]`
+- _param_ `far-penalty-2` `double[0..]`
+- _param_ `far-penalty-3` `double[0..]`
+- _example_: `{ DISTANCE_DAMAGE: { distance: '%distance%' } }`
+
+### DROP_HEAD
+
+Drop each selected player's skinned head, or mark one per channel for their next death when defer is true.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ DROP_HEAD: { defer: <bool=false>, channel: <string=default> } }`
+- _param_ `defer` `bool`
+- _param_ `channel` `string`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ DROP_HEAD: { defer: true, channel: headless, who: "@Victim" } }`
+
 ### DROP_ITEM
 
 Drop a material as an item at the activation location. No-op if there is no location.
@@ -186,10 +358,13 @@ Drop a material as an item at the activation location. No-op if there is no loca
 Modify durability of the player's held item and/or worn armor: restore (amount<0 = full) or damage. Replaces ADD_DURABILITY/ADD_DURABILITY_ITEM/REPAIR/DAMAGE_ARMOR.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ DURABILITY: { amount: <int=-1>, target: <enum{item|armor|all}=item>, mode: <enum{restore|damage}=restore> } }`
+- _usage_: `{ DURABILITY: { amount: <int=-1>, percent: <double[0..100]>, target: <enum{item|armor|all}=item>, mode: <enum{restore|damage}=restore>, selection: <enum{all|most-damaged|random}=all>, slot: <enum{boots|leggings|chestplate|helmet}> } }`
 - _param_ `amount` `int` — durability points; negative fully restores (restore mode)
+- _param_ `percent` `double[0..100]` — damage mode only: percent of each armor piece type's maximum durability
 - _param_ `target` `enum{item|armor|all}`
 - _param_ `mode` `enum{restore|damage}`
+- _param_ `selection` `enum{all|most-damaged|random}` — armor selection: most-damaged for restore, random for one uniformly-selected damage slot
+- _param_ `slot` `enum{boots|leggings|chestplate|helmet}` — damage exactly one armor slot instead of all armor
 - _target_ `who`: selector `SELF`
 - _example_: `{ DURABILITY: { amount: -1, target: item } }`
 
@@ -224,9 +399,20 @@ Create an explosion at the target.
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ EXPLODE: { power: 4, breakBlocks: false } }`
 
+### EXP_DROP_MARK
+
+Mark each target with a named death-XP multiplier. Re-marking replaces that channel; distinct channels multiply.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ EXP_DROP_MARK: { channel: <string>, multiplier: <double[0..]> } }`
+- _param_ `channel` `string`
+- _param_ `multiplier` `double[0..]`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ EXP_DROP_MARK: { channel: inquisitive, multiplier: 1.5, who: "@Victim" } }`
+
 ### EXP_MULTIPLY
 
-Multiply the XP gained (EXP_GAIN trigger) by a factor.
+Multiply XP on the triggering EXP_GAIN or MINE event by a factor.
 
 - _affinity_: `CONTEXT_LOCAL`
 - _usage_: `{ EXP_MULTIPLY: { factor: <double[0..]=2.0> } }`
@@ -241,6 +427,19 @@ Put out the target's fire.
 - _usage_: `{ EXTINGUISH: {} }`
 - _target_ `who`: selector `SELF`
 - _example_: `{ EXTINGUISH: {} }`
+
+### FAKE_BLOCK
+
+Show a client-only block at each target to players within the radius, then restore the real block.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ FAKE_BLOCK: { block: <material>, duration: <ticks[0..]>, radius: <double[0..]=32>, anchor: <enum{body|feet|eye}=body> } }`
+- _param_ `block` `material`
+- _param_ `duration` `ticks[0..]`
+- _param_ `radius` `double[0..]`
+- _param_ `anchor` `enum{body|feet|eye}`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ FAKE_BLOCK: { block: WATER, duration: 45, radius: 32, anchor: eye, who: '@Victim' } }`
 
 ### FALLING_BLOCK
 
@@ -258,12 +457,13 @@ Spawn a (2*radius+1)² grid of falling blocks `height` blocks above each target 
 
 ### FILL_OXYGEN
 
-Refill the target's air supply.
+Add air ticks up to the target's maximum; omit amount for a full refill.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ FILL_OXYGEN: {} }`
+- _usage_: `{ FILL_OXYGEN: { amount: <int=-1> } }`
+- _param_ `amount` `int` — air ticks to add; negative refills completely
 - _target_ `who`: selector `SELF`
-- _example_: `{ FILL_OXYGEN: {} }`
+- _example_: `{ FILL_OXYGEN: { amount: 20 } }`
 
 ### FIREWORK
 
@@ -367,11 +567,24 @@ Singularity (reforges): throw a particle beam onto the block in your sights (max
 Summon count guardian mobs of type at the activation location, each targeting the attacker, auto-removed after ttl ticks (default 200; 0 = permanent); optional custom name. A targeted SPAWN_ENTITY for retaliation — author on DEFENSE.
 
 - _affinity_: `REGION`
-- _usage_: `{ GUARD: { type: <entity_type>, count: <int[1..]=1>, ttl: <ticks[0..]=200>, name: <string=> } }`
+- _usage_: `{ GUARD: { type: <entity_type>, count: <int[1..]=1>, ttl: <ticks[0..]=200>, name: <string=>, health: <double[0..]=0>, spawn-y-offset: <double[-16..16]=0>, chunk-cap: <int[0..]=0>, retarget-radius: <double[0..]=0>, retarget-period: <ticks[1..]=20>, fire-resistance: <bool=false>, regeneration: <bool=false>, strength: <bool=false>, speed: <bool=false>, resistance: <bool=false>, sound: <sound>, sound-volume: <double[0..]=1>, sound-pitch: <double[0..]=1> } }`
 - _param_ `type` `entity_type`
 - _param_ `count` `int[1..]`
 - _param_ `ttl` `ticks[0..]`
 - _param_ `name` `string`
+- _param_ `health` `double[0..]` — 0 keeps the entity default
+- _param_ `spawn-y-offset` `double[-16..16]`
+- _param_ `chunk-cap` `int[0..]` — 0 disables the cap
+- _param_ `retarget-radius` `double[0..]` — 0 disables periodic retargeting
+- _param_ `retarget-period` `ticks[1..]`
+- _param_ `fire-resistance` `bool`
+- _param_ `regeneration` `bool`
+- _param_ `strength` `bool`
+- _param_ `speed` `bool`
+- _param_ `resistance` `bool`
+- _param_ `sound` `sound`
+- _param_ `sound-volume` `double[0..]`
+- _param_ `sound-pitch` `double[0..]`
 - _target_ `who`: selector `ATTACKER`
 - _example_: `{ GUARD: { type: IRON_GOLEM, count: 1, ttl: 200, name: "&bGuardian" } }`
 
@@ -385,6 +598,19 @@ Bonus maximum health. On PASSIVE/HELD @Self it is a maintained worn bonus (recon
 - _target_ `who`: selector `SELF`
 - _example_: `{ HEALTH: { amount: 4 } }`
 
+### HERO_KILLER
+
+Require active soul mode, positive carried souls, a settled held slot, no Soul Trap, and a victim wearing heroic armor; charge four souls at most once per second and multiply the hit by 1 + 0.10 * level.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ HERO_KILLER: { level: <int[1..3]>, cost: <int[0..]=4>, cost-period: <ticks[0..]=20>, anti-swap: <ticks[0..]=5> } }`
+- _param_ `level` `int[1..3]`
+- _param_ `cost` `int[0..]`
+- _param_ `cost-period` `ticks[0..]`
+- _param_ `anti-swap` `ticks[0..]`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ HERO_KILLER: { level: 3 } }`
+
 ### HIT_TEMPO
 
 Arm a hit-tempo window on the wearer for `duration` ticks: their melee victims' damage-immunity window is halved for the wearer's hits only (model MENTAL = the 1.8-combat half-window gate; VANILLA = the 1.9+ full-window cadence), each such hit deals `damage-percent`% of its normal damage, and on 1.9+ the wearer gains `attack-speed` (+1.0 = doubled) swing speed for the window. Third-party attackers are unaffected — their hits keep natural immunity.
@@ -397,6 +623,15 @@ Arm a hit-tempo window on the wearer for `duration` ticks: their melee victims' 
 - _param_ `attack-speed` `double[0..]`
 - _target_ `who`: selector `SELF`
 - _example_: `{ HIT_TEMPO: { duration: 100, model: MENTAL, damage-percent: 33.3, attack-speed: 1.0 } }`
+
+### HURT_ANIMATION
+
+Play the target's vanilla red hurt animation without causing another damage event.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ HURT_ANIMATION: {} }`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ HURT_ANIMATION: { who: '@Victim' } }`
 
 ### IGNITE
 
@@ -434,6 +669,16 @@ Make the target player(s) immune to a damage cause (sword/axe/projectile/potion/
 - _param_ `duration` `ticks[0..]`
 - _target_ `who`: selector `SELF`
 - _example_: `{ IMMUNE: { type: potion, duration: 100 } }`
+
+### INFINITE_LUCK_GATE
+
+Halt the current armor-set ability when the victim has Infinite Luck at the required level. Each equipped heroic armor piece independently contributes 12.5% to the source-code counter-roll that lets the set bonus through.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ INFINITE_LUCK_GATE: { required-level: <int[1..5]> } }`
+- _param_ `required-level` `int[1..5]`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ INFINITE_LUCK_GATE: { required-level: 3, who: '@Victim' } }`
 
 ### INVERT_VAR
 
@@ -514,8 +759,9 @@ Scale the target's incoming knockback for duration ticks: 0 cancels it, 0.5 halv
 Strike the target(s) with lightning, optionally dealing extra damage (0 = cosmetic).
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ LIGHTNING: { damage: <double[0..]=0> } }`
+- _usage_: `{ LIGHTNING: { damage: <double[0..]=0>, real: <bool=false> } }`
 - _param_ `damage` `double[0..]`
+- _param_ `real` `bool`
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ LIGHTNING: { damage: 6 } }`
 
@@ -568,10 +814,13 @@ Temporarily remove `fraction` of the target's overhealth (max health above `base
 Send feedback on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade timings). Default recipient self; `who` can name any party (e.g. @Victim). The `{ATTACKER}`/`{VICTIM}` tokens expand to the activating player and the other combat party. Replaces ACTIONBAR/TITLE.
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ MESSAGE: { text: <string>, channel: <enum{chat|actionbar|title}=chat>, subtitle: <string=>, fadeIn: <ticks[0..]=10>, stay: <ticks[0..]=70>, fadeOut: <ticks[0..]=20> } }`
+- _usage_: `{ MESSAGE: { text: <string>, channel: <enum{chat|actionbar|title}=chat>, subtitle: <string=>, number: <double>, decimals: <int[0..12]=2>, grouping: <bool=false>, fadeIn: <ticks[0..]=10>, stay: <ticks[0..]=70>, fadeOut: <ticks[0..]=20> } }`
 - _param_ `text` `string`
 - _param_ `channel` `enum{chat|actionbar|title}`
 - _param_ `subtitle` `string` — title channel only
+- _param_ `number` `double` — optional expression exposed as {NUMBER}
+- _param_ `decimals` `int[0..12]` — maximum decimal places for {NUMBER}
+- _param_ `grouping` `bool` — group thousands in {NUMBER} with commas
 - _param_ `fadeIn` `ticks[0..]` — title channel only
 - _param_ `stay` `ticks[0..]` — title channel only
 - _param_ `fadeOut` `ticks[0..]` — title channel only
@@ -605,9 +854,22 @@ Modify a player target's hunger: give food points (clamped to 20) or take them (
 Modify a target's health: give heals them, take deals direct health damage, transfer (lifesteal) damages the target and heals the activator by the same amount, set forces their health to the amount. Replaces HEAL.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ MODIFY_HEALTH: { amount: <double[0..]>, mode: <enum{give|take|transfer|set}=give> } }`
+- _usage_: `{ MODIFY_HEALTH: { amount: <double[0..]>, cap: <double[0..]=0>, mode: <enum{give|take|transfer|set}=give>, base-round: <enum{none|floor}=none>, success-sound: <sound>, sound-volume: <double[0..]=1>, sound-pitch: <double[0..]=1>, require-headroom: <bool=false>, strict-headroom: <bool=false>, success-particle: <particle>, particle-count: <int[0..]=1>, particle-spread: <double[0..]=0>, particle-speed: <double[0..]=0>, particle-anchor: <enum{body|feet|eye}=body>, particle-y-offset: <double[-16..16]=0> } }`
 - _param_ `amount` `double[0..]`
+- _param_ `cap` `double[0..]` — optional maximum resolved amount; 0 = uncapped
 - _param_ `mode` `enum{give|take|transfer|set}`
+- _param_ `base-round` `enum{none|floor}` — for give mode, floor uses floor(current health) + amount before clamping
+- _param_ `success-sound` `sound` — private player cue emitted only when give mode actually raises health
+- _param_ `sound-volume` `double[0..]`
+- _param_ `sound-pitch` `double[0..]`
+- _param_ `require-headroom` `bool` — heal only when current + amount does not exceed max
+- _param_ `strict-headroom` `bool` — with require-headroom, require current + amount to be strictly below max
+- _param_ `success-particle` `particle`
+- _param_ `particle-count` `int[0..]`
+- _param_ `particle-spread` `double[0..]`
+- _param_ `particle-speed` `double[0..]`
+- _param_ `particle-anchor` `enum{body|feet|eye}`
+- _param_ `particle-y-offset` `double[-16..16]`
 - _target_ `who`: selector `SELF`
 - _example_: `{ MODIFY_HEALTH: { amount: 4, mode: give, who: "@Self" } }`
 
@@ -638,12 +900,16 @@ Set the player target's walk speed for a span of ticks, then restore the default
 Spawn particles at the activation location, or at each entity in `who` when given (centered on the body, not the feet). `block` carries a block material as crack/dust data. `spread` is the horizontal Gaussian offset (set 0 for a point burst); `spread-y` the vertical offset, where the -1 default means "use `spread`". No-op if there is no location.
 
 - _affinity_: `REGION`
-- _usage_: `{ PARTICLE: { particle: <particle>, count: <int[0..]=1>, block: <material>, spread: <double[0..4]=0.4>, spread-y: <double[-1..4]=-1> } }`
+- _usage_: `{ PARTICLE: { particle: <particle>, count: <int[0..]=1>, block: <material>, spread: <double[0..4]=0.4>, spread-y: <double[-1..4]=-1>, random-spread: <bool=false>, speed: <double[0..]=0>, anchor: <enum{body|feet|eye}=body>, y-offset: <double[-16..16]=0> } }`
 - _param_ `particle` `particle`
 - _param_ `count` `int[0..]`
 - _param_ `block` `material`
 - _param_ `spread` `double[0..4]`
 - _param_ `spread-y` `double[-1..4]`
+- _param_ `random-spread` `bool` — choose each authored axis spread independently in [0, spread)
+- _param_ `speed` `double[0..]` — particle packet/API speed-extra value
+- _param_ `anchor` `enum{body|feet|eye}` — entity target anchor; ignored for @Here
+- _param_ `y-offset` `double[-16..16]` — vertical position offset after selecting the anchor
 - _target_ `who`: selector `HERE`
 - _example_: `{ PARTICLE: { particle: BLOCK_CRACK, count: 20, block: REDSTONE_BLOCK, who: "@Victim" } }`
 
@@ -685,10 +951,24 @@ Draw a horizontal ring of `count` coloured-dust motes of radius `radius` at `hei
 Apply a potion effect to the target(s) at the given LEVEL (1-based: level 1 = the I tier), for a duration in ticks. The effect name is resolved to a handle at compile time. On a HELD/PASSIVE source it is removed again when the item is unequipped (§B lifecycle).
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ POTION: { effect: <potion_effect>, level: <int[1..]>, duration: <ticks[0..]> } }`
+- _usage_: `{ POTION: { effect: <potion_effect>, level: <int[1..]>, duration: <ticks[0..]>, duration-min: <ticks[0..]>, duration-max: <ticks[0..]>, duration-step: <int[1..]=1>, duration-random-base: <double[0..]>, duration-random-range: <double[0..]>, duration-random-scale: <int[1..]=1>, unless-present: <bool=false>, force: <bool=false>, chance: <double[0..100]=100>, particle: <particle>, particle-count: <int[0..]=1>, particle-speed: <double[0..]=0>, particle-anchor: <enum{body|feet|eye}=body>, particle-y-offset: <double[-16..16]=0> } }`
 - _param_ `effect` `potion_effect`
 - _param_ `level` `int[1..]`
 - _param_ `duration` `ticks[0..]`
+- _param_ `duration-min` `ticks[0..]`
+- _param_ `duration-max` `ticks[0..]`
+- _param_ `duration-step` `int[1..]`
+- _param_ `duration-random-base` `double[0..]` — when paired with duration-random-range, floor(random*range+base)*scale
+- _param_ `duration-random-range` `double[0..]`
+- _param_ `duration-random-scale` `int[1..]`
+- _param_ `unless-present` `bool` — skip the target when it already has this potion type
+- _param_ `force` `bool` — replace the active potion using Bukkit's force-add path
+- _param_ `chance` `double[0..100]` — independent roll per resolved target
+- _param_ `particle` `particle` — particle emitted at a target only when its roll succeeds
+- _param_ `particle-count` `int[0..]`
+- _param_ `particle-speed` `double[0..]`
+- _param_ `particle-anchor` `enum{body|feet|eye}`
+- _param_ `particle-y-offset` `double[-16..16]`
 - _target_ `who`: selector `SELF`
 - _example_: `{ POTION: { effect: STRENGTH, level: 1, duration: 100 } }`
 
@@ -716,6 +996,15 @@ Launch count projectiles of a type from the activator's eye (covers SPAWN_ARROWS
 - _param_ `incendiary` `bool`
 - _example_: `{ PROJECTILE: { type: FIREBALL, count: 1, speed: 1.5, yield: 2, incendiary: true } }`
 
+### PROJECTILE_MARK
+
+Attach an integer mark to the projectile fired by the current BOW_FIRE activation.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ PROJECTILE_MARK: { value: <int[1..]> } }`
+- _param_ `value` `int[1..]`
+- _example_: `{ PROJECTILE_MARK: { value: 3 } }`
+
 ### REFLECT
 
 Mark the target so a percent of their own outgoing damage is reflected back onto them for a duration in ticks (Hex). Player targets only; default target the combat victim.
@@ -727,12 +1016,40 @@ Mark the target so a percent of their own outgoing damage is reflected back onto
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ REFLECT: { percent: 20, duration: 80, who: "@Victim" } }`
 
+### REGENERATION
+
+Start one non-overlapping regeneration window per player; heal at t=0 and every period through the inclusive uniformly-selected duration boundary. Particle feedback occurs only on a heal.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ REGENERATION: { amount: <double[0..]>, period: <ticks[1..]>, duration-min: <ticks[0..]>, duration-max: <ticks[0..]>, particle: <particle>, count: <int[0..]=1>, speed: <double[0..]=0>, anchor: <enum{body|feet|eye}=body>, y-offset: <double[-16..16]=0> } }`
+- _param_ `amount` `double[0..]`
+- _param_ `period` `ticks[1..]`
+- _param_ `duration-min` `ticks[0..]`
+- _param_ `duration-max` `ticks[0..]`
+- _param_ `particle` `particle`
+- _param_ `count` `int[0..]`
+- _param_ `speed` `double[0..]`
+- _param_ `anchor` `enum{body|feet|eye}`
+- _param_ `y-offset` `double[-16..16]`
+- _target_ `who`: selector `SELF`
+- _example_: `{ REGENERATION: { amount: 1, period: 60, duration-min: 110, duration-max: 125, particle: SPELL, count: 15, speed: 0.04, anchor: eye, y-offset: 0.5 } }`
+
 ### REMOVE_ARMOR
 
 Strip one random worn armour piece from the target(s) and drop it.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ REMOVE_ARMOR: {} }`
+- _usage_: `{ REMOVE_ARMOR: { destination: <enum{drop|inventory}=drop>, victim-message: <string=>, victim-description: <string=>, attacker-message: <string=>, blank-lines: <int[0..]=0>, sound: <sound>, sound-volume: <double[0..]=1>, sound-pitch: <double[0..]=1>, block: <material>, block-height: <int[0..]=1> } }`
+- _param_ `destination` `enum{drop|inventory}`
+- _param_ `victim-message` `string`
+- _param_ `victim-description` `string`
+- _param_ `attacker-message` `string`
+- _param_ `blank-lines` `int[0..]`
+- _param_ `sound` `sound`
+- _param_ `sound-volume` `double[0..]`
+- _param_ `sound-pitch` `double[0..]`
+- _param_ `block` `material`
+- _param_ `block-height` `int[0..]`
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ REMOVE_ARMOR: {} }`
 
@@ -757,6 +1074,25 @@ Remove a potion effect from the target(s).
 - _target_ `who`: selector `SELF`
 - _example_: `{ REMOVE_POTION: { effect: POISON } }`
 
+### REMOVE_POTION_UP_TO
+
+Remove the selected potion only when its current 1-based strength is at or below max-level.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ REMOVE_POTION_UP_TO: { effect: <potion_effect>, max-level: <int[1..]> } }`
+- _param_ `effect` `potion_effect`
+- _param_ `max-level` `int[1..]`
+- _target_ `who`: selector `SELF`
+- _example_: `{ REMOVE_POTION_UP_TO: { effect: BLINDNESS, max-level: 2, who: "@Self" } }`
+
+### REMOVE_PROJECTILE
+
+Request deletion of the raw projectile that caused the current damage event.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ REMOVE_PROJECTILE: {} }`
+- _example_: `{ REMOVE_PROJECTILE: {} }`
+
 ### REMOVE_SOULS
 
 Debit souls from a soul gem: @Self (default) charges the activator's active gem, @Victim drains the target's own gem. A no-op when that player is not in soul mode.
@@ -767,6 +1103,75 @@ Debit souls from a soul gem: @Self (default) charges the activator's active gem,
 - _target_ `who`: selector `SELF`
 - _example_: `{ REMOVE_SOULS: { amount: 5 } }`
 
+### REQUIRE_SOUL_TOTAL
+
+Continue only when the actor's authoritative current soul total modulo divisor equals remainder; require-paid also rejects a live soul-cost waiver.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ REQUIRE_SOUL_TOTAL: { divisor: <int[1..]=20>, remainder: <int[0..]=0>, require-paid: <bool=false> } }`
+- _param_ `divisor` `int[1..]`
+- _param_ `remainder` `int[0..]`
+- _param_ `require-paid` `bool`
+- _example_: `{ REQUIRE_SOUL_TOTAL: { divisor: 20, remainder: 0, require-paid: true } }`
+
+### REQUIRE_VALUE
+
+Continue the current ability only when value is between min and max, inclusive.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ REQUIRE_VALUE: { value: <double>, min: <double=-1.7976931348623157E308>, max: <double=1.7976931348623157E308> } }`
+- _param_ `value` `double`
+- _param_ `min` `double`
+- _param_ `max` `double`
+- _example_: `{ REQUIRE_VALUE: { value: '%victim.isplayer%', min: 1 } }`
+
+### REQUIRE_VAR
+
+Continue only when the named per-player variable has the authored presence state.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ REQUIRE_VAR: { name: <string>, present: <bool=true> } }`
+- _param_ `name` `string`
+- _param_ `present` `bool`
+- _target_ `who`: selector `SELF`
+- _example_: `{ REQUIRE_VAR: { name: feedback-throttle, present: false } }`
+
+### RESISTED_POTION
+
+Use one shared base-chance roll for all targets, subtracting each target's worn resistance enchant level independently before applying the potion.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ RESISTED_POTION: { chance: <double[0..100]>, resistance-enchant: <string>, resistance-enchant-alt: <string=>, resist-per-level: <double[0..]>, effect: <potion_effect>, level: <int[1..]>, duration: <ticks[0..]>, blocked-message: <string=>, cue-block: <enum{none|current-or-stone}=none>, cue-y-offset: <double=0> } }`
+- _param_ `chance` `double[0..100]`
+- _param_ `resistance-enchant` `string`
+- _param_ `resistance-enchant-alt` `string`
+- _param_ `resist-per-level` `double[0..]`
+- _param_ `effect` `potion_effect`
+- _param_ `level` `int[1..]`
+- _param_ `duration` `ticks[0..]`
+- _param_ `blocked-message` `string`
+- _param_ `cue-block` `enum{none|current-or-stone}`
+- _param_ `cue-y-offset` `double`
+- _target_ `who`: selector `AOE`
+- _example_: `{ RESISTED_POTION: { chance: 12, resistance-enchant: enchants/metaphysical, resist-per-level: 4, effect: SLOW, level: 2, duration: 60, who: '@Aoe{r=2,filter=NONALLIES}' } }`
+
+### RESISTED_ROLL
+
+Gate the remaining effects with one base-chance roll and the same roll against chance minus resistance-level*resist-per-level. Values are percentages.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ RESISTED_ROLL: { chance: <double[0..100]>, resistance-level: <double[0..]=0>, resist-per-level: <double[0..]=0>, min-chance: <double[0..100]=0>, blocked-message: <string=>, immune: <double[0..]=0>, immune-message: <string=>, immune-chance: <double[0..100]=0>, immune-chance-message: <string=> } }`
+- _param_ `chance` `double[0..100]`
+- _param_ `resistance-level` `double[0..]`
+- _param_ `resist-per-level` `double[0..]`
+- _param_ `min-chance` `double[0..100]`
+- _param_ `blocked-message` `string`
+- _param_ `immune` `double[0..]`
+- _param_ `immune-message` `string`
+- _param_ `immune-chance` `double[0..100]`
+- _param_ `immune-chance-message` `string`
+- _example_: `{ RESISTED_ROLL: { chance: 12, resistance-level: '%victim.metaphysical%', resist-per-level: 2.5, blocked-message: '&8&l** METAPHYSICAL blocked! **' } }`
+
 ### RUN_COMMAND
 
 Run a command as the console (default) or as the activating player. The `{PLAYER}`/`{UUID}`/`{WORLD}` tokens expand to the actor's name, uuid, and world. Affinity GLOBAL — the console path runs on the global thread; the player path runs on the actor's own thread. The `{PLAYER}` token refuses to run the command when the actor's name falls outside the standard `[A-Za-z0-9_]` (1-16) username charset.
@@ -776,6 +1181,20 @@ Run a command as the console (default) or as the activating player. The `{PLAYER
 - _param_ `command` `string`
 - _param_ `as` `enum{console|player}` — who runs it: console (default) or the player
 - _example_: `{ RUN_COMMAND: { command: "eco give {PLAYER} 100" } }`
+
+### SABOTAGE
+
+Require settled held weapon, active positive soul mode, and no Soul Trap; charge eight souls at most once per second and mark the victim for Rocket Escape's 10% per level failure roll.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ SABOTAGE: { level: <int[1..5]>, duration: <ticks[0..]=20>, cost: <int[0..]=8>, cost-period: <ticks[0..]=20>, anti-swap: <ticks[0..]=5> } }`
+- _param_ `level` `int[1..5]`
+- _param_ `duration` `ticks[0..]`
+- _param_ `cost` `int[0..]`
+- _param_ `cost-period` `ticks[0..]`
+- _param_ `anti-swap` `ticks[0..]`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ SABOTAGE: { level: 5 } }`
 
 ### SEEK
 
@@ -800,30 +1219,67 @@ Set the target block(s) to a material (default @Here = the activation block).
 Set a per-player variable readable in later conditions as %name% (ttl ticks, 0 = forever).
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ SET_VAR: { name: <string>, value: <string=>, ttl: <ticks[0..]=0> } }`
+- _usage_: `{ SET_VAR: { name: <string>, value: <string=>, ttl: <ticks[0..]=0>, clear-on-stop: <bool=false> } }`
 - _param_ `name` `string`
 - _param_ `value` `string`
 - _param_ `ttl` `ticks[0..]`
+- _param_ `clear-on-stop` `bool`
 - _target_ `who`: selector `SELF`
 - _example_: `{ SET_VAR: { name: rage, value: 1, ttl: 200, who: "@Self" } }`
 
 ### SMELT
 
-Auto-smelt the block broken by this MINE activation (ore→ingot, sand→glass, …).
+Auto-smelt the block broken by this MINE activation, with an output amount, recipe profile, and up to two held-enchant exclusions.
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ SMELT: {} }`
+- _usage_: `{ SMELT: { amount: <int[1..]=1>, profile: <enum{RECIPES|IRON_GOLD_ORE}=RECIPES>, unless-held: <string=>, unless-held2: <string=> } }`
+- _param_ `amount` `int[1..]`
+- _param_ `profile` `enum{RECIPES|IRON_GOLD_ORE}`
+- _param_ `unless-held` `string`
+- _param_ `unless-held2` `string`
 - _example_: `{ SMELT: {} }`
+
+### SOUL_TRAP
+
+Require active attacker soul mode and a settled held slot, enforce trap/grace windows, rate-limit the attacker cost, steal victim souls or deal fallback damage, suppress the authored soul group, disable victim soul mode, and emit exact private feedback.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ SOUL_TRAP: { key: <string>, duration: <ticks[0..]>, retrap-grace: <ticks[0..]=100>, steal: <int[1..]>, fallback-damage: <double[0..]>, cost: <int[0..]=5>, cost-period: <ticks[0..]=20>, anti-swap: <ticks[0..]=5>, message: <string>, sound: <sound>, sound-volume: <double[0..]=1>, sound-pitch: <double[0..]=1>, particle-1: <particle>, particle-1-count: <int[0..]>, particle-1-speed: <double[0..]>, particle-2: <particle>, particle-2-count: <int[0..]>, particle-2-speed: <double[0..]> } }`
+- _param_ `key` `string` — soul group key; compile-lowered into the shared suppression namespace
+- _param_ `duration` `ticks[0..]`
+- _param_ `retrap-grace` `ticks[0..]`
+- _param_ `steal` `int[1..]`
+- _param_ `fallback-damage` `double[0..]`
+- _param_ `cost` `int[0..]`
+- _param_ `cost-period` `ticks[0..]`
+- _param_ `anti-swap` `ticks[0..]`
+- _param_ `message` `string`
+- _param_ `sound` `sound`
+- _param_ `sound-volume` `double[0..]`
+- _param_ `sound-pitch` `double[0..]`
+- _param_ `particle-1` `particle`
+- _param_ `particle-1-count` `int[0..]`
+- _param_ `particle-1-speed` `double[0..]`
+- _param_ `particle-2` `particle`
+- _param_ `particle-2-count` `int[0..]`
+- _param_ `particle-2-speed` `double[0..]`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ SOUL_TRAP: { key: soul, duration: 80, steal: 10, fallback-damage: 2, message: "&9&l** SOUL TRAP &7[4s]&9&l**", sound: ENDERMAN_SCREAM, particle-1: SPELL_WITCH, particle-1-count: 60, particle-1-speed: 0.7, particle-2: SPELL, particle-2-count: 25, particle-2-speed: 0.4 } }`
 
 ### SOUND
 
 Play a sound at the activation location. No-op if the activation has no location.
 
 - _affinity_: `REGION`
-- _usage_: `{ SOUND: { sound: <sound>, volume: <double[0..]=1>, pitch: <double[0..]=1> } }`
+- _usage_: `{ SOUND: { sound: <sound>, volume: <double[0..]=1>, pitch: <double[0..]=1>, dedupe: <bool=true>, audience: <enum{world|target}=world>, players-only: <bool=false>, at: <enum{target|activation}=target> } }`
 - _param_ `sound` `sound`
 - _param_ `volume` `double[0..]`
 - _param_ `pitch` `double[0..]`
+- _param_ `dedupe` `bool` — collapse the same sound id to one play per event sink
+- _param_ `audience` `enum{world|target}`
+- _param_ `players-only` `bool` — skip resolved non-player living targets
+- _param_ `at` `enum{target|activation}` — where the sound is located when who resolves entities
+- _target_ `who`: selector `HERE`
 - _example_: `{ SOUND: { sound: ENTITY_GENERIC_EXPLODE, volume: 1, pitch: 1 } }`
 
 ### SPAWN_ENTITY
@@ -831,7 +1287,7 @@ Play a sound at the activation location. No-op if the activation has no location
 Spawn count entities of type at the target's (or activation) location; ttl ticks until removal (0 = permanent), optional starting health, and owner=activator to tame an owned summon to the activator. ADR-0052 summon flags: powered charges a creeper; ai=false disables mob AI; targeting=false stops the summon acquiring targets; saddled + mount=activator make a horse-type rideable and seat the activator; detonate=PLAYER_HIT makes a creeper explode ONLY when a player hits it (it never self-detonates); invincible=true zeroes all damage to the summon (it cannot die but still takes hits and knockback); speed is a multiplier on the spawned entity's vanilla movement-speed base (0 = untouched). Replaces SPAWN/TNT.
 
 - _affinity_: `REGION`
-- _usage_: `{ SPAWN_ENTITY: { type: <entity_type>, count: <int[1..]=1>, ttl: <ticks[0..]=0>, health: <double[0..]=0>, owner: <enum{none|activator}=none>, powered: <bool=false>, ai: <bool=true>, targeting: <bool=true>, saddled: <bool=false>, mount: <enum{none|activator}=none>, detonate: <enum{NONE|PLAYER_HIT}=NONE>, invincible: <bool=false>, speed: <double[0..]=0> } }`
+- _usage_: `{ SPAWN_ENTITY: { type: <entity_type>, count: <int[1..]=1>, ttl: <ticks[0..]=0>, health: <double[0..]=0>, owner: <enum{none|activator}=none>, powered: <bool=false>, ai: <bool=true>, targeting: <bool=true>, saddled: <bool=false>, mount: <enum{none|activator}=none>, detonate: <enum{NONE|PLAYER_HIT}=NONE>, invincible: <bool=false>, speed: <double[0..]=0>, spawn-y-offset: <double[-16..16]=0>, custom-name: <string=>, plague-level: <int[0..]=0> } }`
 - _param_ `type` `entity_type`
 - _param_ `count` `int[1..]`
 - _param_ `ttl` `ticks[0..]`
@@ -845,6 +1301,9 @@ Spawn count entities of type at the target's (or activation) location; ttl ticks
 - _param_ `detonate` `enum{NONE|PLAYER_HIT}`
 - _param_ `invincible` `bool`
 - _param_ `speed` `double[0..]`
+- _param_ `spawn-y-offset` `double[-16..16]`
+- _param_ `custom-name` `string`
+- _param_ `plague-level` `int[0..]`
 - _target_ `who`: selector `SELF`
 - _example_: `{ SPAWN_ENTITY: { type: WOLF, count: 1, ttl: 0, health: 0, owner: activator } }`
 
@@ -917,8 +1376,9 @@ Castling (reforges): lock the enemy in your crosshair (range, line of sight), ch
 Block the target player(s) from teleporting (ender pearl / chorus fruit) for duration ticks.
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ TELEBLOCK: { duration: <ticks[0..]=400> } }`
+- _usage_: `{ TELEBLOCK: { duration: <ticks[0..]=400>, mode: <enum{BLOCK|CLEAR}=BLOCK> } }`
 - _param_ `duration` `ticks[0..]`
+- _param_ `mode` `enum{BLOCK|CLEAR}`
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ TELEBLOCK: { duration: 400 } }`
 
@@ -937,10 +1397,18 @@ Teleport the target to the actor's or the victim's location.
 Teleport the mover(s) `distance` blocks behind the reference (of: VICTIM — the attacker on a DEFENSE trigger — or ACTOR), facing as it faces. Unsafe (blocked / wall between) → onFail ONTOP lands on the reference, NONE cancels.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ TELEPORT_BEHIND: { of: <enum{VICTIM|ACTOR}=VICTIM>, distance: <double[0..]=1>, onFail: <enum{ONTOP|NONE}=ONTOP> } }`
+- _usage_: `{ TELEPORT_BEHIND: { of: <enum{VICTIM|ACTOR}=VICTIM>, distance: <double[0..]=1>, onFail: <enum{ONTOP|NONE}=ONTOP>, sound: <sound>, sound-volume: <double[0..]=1>, sound-pitch: <double[0..]=1>, departure-particle: <particle>, arrival-particle: <particle>, particle-count: <int[0..]=20>, particle-speed: <double[0..]=0.5>, particle-spread: <double[0..]=1> } }`
 - _param_ `of` `enum{VICTIM|ACTOR}`
 - _param_ `distance` `double[0..]`
 - _param_ `onFail` `enum{ONTOP|NONE}`
+- _param_ `sound` `sound`
+- _param_ `sound-volume` `double[0..]`
+- _param_ `sound-pitch` `double[0..]`
+- _param_ `departure-particle` `particle`
+- _param_ `arrival-particle` `particle`
+- _param_ `particle-count` `int[0..]`
+- _param_ `particle-speed` `double[0..]`
+- _param_ `particle-spread` `double[0..]`
 - _target_ `who`: selector `SELF`
 - _example_: `{ TELEPORT_BEHIND: { of: VICTIM, distance: 1, onFail: ONTOP, who: "@Self" } }`
 
@@ -989,14 +1457,26 @@ Break every confining trap currently on the wearer — encasing webs, web boxes,
 Apply velocity to the target(s): mode=add uses x/y/z; mode=away knocks them back from the activator with strength. Replaces THROW/LAUNCH/KNOCKBACK.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ VELOCITY: { mode: <enum{add|away}=add>, x: <double=0>, y: <double=0>, z: <double=0>, strength: <double[0..]=0> } }`
-- _param_ `mode` `enum{add|away}`
+- _usage_: `{ VELOCITY: { mode: <enum{add|set|away}=add>, x: <double=0>, y: <double=0>, z: <double=0>, strength: <double[0..]=0>, from: <enum{actor|victim}=actor> } }`
+- _param_ `mode` `enum{add|set|away}`
 - _param_ `x` `double`
 - _param_ `y` `double`
 - _param_ `z` `double`
 - _param_ `strength` `double[0..]`
+- _param_ `from` `enum{actor|victim}`
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ VELOCITY: { mode: add, x: 0, y: 1.2, z: 0 } }`
+
+### VIRUS_MARK
+
+Multiply subsequent Poison and Wither damage to each target for the given duration.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ VIRUS_MARK: { multiplier: <double[0..]>, duration: <ticks[0..]> } }`
+- _param_ `multiplier` `double[0..]`
+- _param_ `duration` `ticks[0..]`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ VIRUS_MARK: { multiplier: 3, duration: 60, who: "@Victim" } }`
 
 ### WALKER
 
@@ -1069,9 +1549,9 @@ Every player within r blocks of the target, except the activator.
 
 Living entities within r blocks of the target, except the activator; optionally filtered, capped, and with the combat victim excluded.
 
-- _usage_: `{ AOE: { r: <double[0..]=4>, filter: <enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}=ALL>, limit: <int[0..]=0>, exclude: <enum{none|victim}=none> } }`
+- _usage_: `{ AOE: { r: <double[0..]=4>, filter: <enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|NONALLIES|ENEMY_PLAYERS|ALLIES}=ALL>, limit: <int[0..]=0>, exclude: <enum{none|victim}=none> } }`
 - _param_ `r` `double[0..]` — radius in blocks
-- _param_ `filter` `enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}` — which entities to include
+- _param_ `filter` `enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|NONALLIES|ENEMY_PLAYERS|ALLIES}` — which entities to include
 - _param_ `limit` `int[0..]` — max targets, nearest first (0 = unlimited)
 - _param_ `exclude` `enum{none|victim}` — remove the combat victim from the matches (Destruction hits everyone BUT the primary victim)
 - _example_: `@Aoe{r=6, filter=MONSTERS, exclude=victim}`
@@ -1223,6 +1703,8 @@ The event that fires an ability (an enchant/set/crystal's `trigger:`). Triggers 
 | `EXP_GAIN` | NEUTRAL | false | true | false |
 | `USE` | NEUTRAL | true | false | false |
 | `GUARDIAN_HURT` | NEUTRAL | false | true | false |
+| `ALLY_DEATH` | NEUTRAL | false | true | false |
+| `BLOCK_DAMAGE` | NEUTRAL | true | false | false |
 
 ## Conditions
 
@@ -1266,17 +1748,23 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | --- | --- |
 | `%actor.behindvictim%` | BOOL |
 | `%actor.belowvictim%` | NUM |
+| `%actor.environment%` | STR |
+| `%actor.falldistance%` | NUM |
 | `%actor.food%` | NUM |
 | `%actor.gamemode%` | STR |
 | `%actor.groundblock%` | STR |
 | `%actor.health%` | NUM |
 | `%actor.healthpercent%` | NUM |
 | `%actor.helditem%` | STR |
+| `%actor.heldsettled5%` | BOOL |
 | `%actor.level%` | NUM |
 | `%actor.maxhealth%` | NUM |
 | `%actor.totalexp%` | NUM |
 | `%actor.type%` | STR |
+| `%actor.walkspeed%` | NUM |
 | `%actor.world%` | STR |
+| `%aegisattackerindex%` | NUM |
+| `%antigankattackers%` | NUM |
 | `%attackerindex%` | NUM |
 | `%block.type%` | STR |
 | `%blocking%` | BOOL |
@@ -1284,6 +1772,7 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%damage%` | NUM |
 | `%damagecause%` | STR |
 | `%distance%` | NUM |
+| `%finaldamage%` | NUM |
 | `%flying%` | BOOL |
 | `%gliding%` | BOOL |
 | `%isblock%` | BOOL |
@@ -1291,25 +1780,42 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%nearbyenemies%` | NUM |
 | `%onfire%` | BOOL |
 | `%onground%` | BOOL |
+| `%projectileheight%` | NUM |
+| `%projectilemark%` | NUM |
 | `%ragestacks%` | NUM |
 | `%recentattackers%` | NUM |
 | `%sneaking%` | BOOL |
 | `%sprinting%` | BOOL |
 | `%swimming%` | BOOL |
+| `%victim.bleedstacks%` | NUM |
 | `%victim.blocking%` | BOOL |
+| `%victim.boss%` | BOOL |
+| `%victim.devouraffected%` | BOOL |
+| `%victim.dragonslayer%` | NUM |
 | `%victim.flying%` | BOOL |
 | `%victim.food%` | NUM |
+| `%victim.frommobspawner%` | BOOL |
 | `%victim.gliding%` | BOOL |
 | `%victim.health%` | NUM |
 | `%victim.healthpercent%` | NUM |
 | `%victim.helditem%` | STR |
+| `%victim.induel%` | BOOL |
 | `%victim.inzone%` | BOOL |
+| `%victim.isplayer%` | NUM |
 | `%victim.maxhealth%` | NUM |
+| `%victim.metaphysical%` | NUM |
 | `%victim.mobtype%` | STR |
+| `%victim.necromancermask%` | BOOL |
+| `%victim.poltergeist%` | NUM |
+| `%victim.polymorphicmetaphysical%` | NUM |
+| `%victim.rageaffected%` | BOOL |
+| `%victim.slowed%` | BOOL |
 | `%victim.sneaking%` | BOOL |
 | `%victim.sprinting%` | BOOL |
+| `%victim.sticky%` | NUM |
 | `%victim.swimming%` | BOOL |
 | `%victim.type%` | STR |
+| `%victim.walkspeed%` | NUM |
 | `%world.raining%` | BOOL |
 | `%world.thundering%` | BOOL |
 | `%world.time%` | NUM |

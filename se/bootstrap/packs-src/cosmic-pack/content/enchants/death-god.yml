@@ -1,34 +1,21 @@
-# Imported from EliteEnchantments (id: death-god). Review before shipping.
-display: "Death God"
-description:
-  - "&eWhen hit at low health, restores"
-  - "&ea burst of health."
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/DeathGod.java
+display: Death God
+description: Near-death hits have a level-scaled chance to be cancelled and heal the wearer.
 trigger: DEFENSE
 applies-to: [HELMET]
-group: "legendary"
+group: legendary
 tier: legendary
+stacking: HIGHEST
 levels:
   1:
-    chance: 15
-    cooldown: 200
-    condition: "%actor.healthpercent% <= 25"
-    effects:
-      - { SOUND: { sound: "ENTITY_WITHER_SPAWN", volume: 0.6, pitch: 0.8 } }
-      - { PARTICLE: { particle: "SOUL", count: 16 } }
-      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:3:5 — EE HEAL:ADD → MODIFY_HEALTH (give, self)
+    chance: 1.5
+    condition: "%actor.health% - %finaldamage% <= 5"
+    effects: [{ CANCEL: {} }, { MODIFY_HEALTH: { amount: 6, mode: give, who: "@Self" } }, { MESSAGE: { text: "&6&l* DEATH GOD [&6+6HP&l] *", who: "@Self" } }]
   2:
-    chance: 25
-    cooldown: 200
-    condition: "%actor.healthpercent% <= 25"
-    effects:
-      - { SOUND: { sound: "ENTITY_WITHER_SPAWN", volume: 0.6, pitch: 0.8 } }
-      - { PARTICLE: { particle: "SOUL", count: 16 } }
-      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:3:5 — EE HEAL:ADD → MODIFY_HEALTH (give, self)
+    chance: 3
+    condition: "%actor.health% - %finaldamage% <= 6"
+    effects: [{ CANCEL: {} }, { MODIFY_HEALTH: { amount: 7, mode: give, who: "@Self" } }, { MESSAGE: { text: "&6&l* DEATH GOD [&6+7HP&l] *", who: "@Self" } }]
   3:
-    chance: 35
-    cooldown: 200
-    condition: "%actor.healthpercent% <= 25"
-    effects:
-      - { SOUND: { sound: "ENTITY_WITHER_SPAWN", volume: 0.6, pitch: 0.8 } }
-      - { PARTICLE: { particle: "SOUL", count: 16 } }
-      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }  # from HEAL:ADD:3:5 — EE HEAL:ADD → MODIFY_HEALTH (give, self)
+    chance: 4.5
+    condition: "%actor.health% - %finaldamage% <= 7"
+    effects: [{ CANCEL: {} }, { MODIFY_HEALTH: { amount: 8, mode: give, who: "@Self" } }, { MESSAGE: { text: "&6&l* DEATH GOD [&6+8HP&l] *", who: "@Self" } }]

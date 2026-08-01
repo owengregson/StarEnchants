@@ -12,6 +12,8 @@ import item.codec.MaskCodec;
 import item.head.HeadEquip;
 import item.head.TexturedHeads;
 import item.mint.ItemFactory;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -25,8 +27,9 @@ import platform.text.Tokens;
 /**
  * The mask item economy (ADR-0053 §3, §6) — mints mask heads from the ONE universal likeness, APPLIES them
  * onto helmets (unconditional — no success roll, the crystal rule), and REMOVES them back off intact. The
- * crystal shape minus merge/multi/slots: a mask is a single identity on a helmet, so apply is a boolean
- * occupancy and remove pops the one key. Gear mutation + eligibility delegate to {@link ItemEnchanter};
+ * crystal shape minus slots: a regular mask is one identity, while a Multi-Mask stores an ordered,
+ * deduplicated component identity and expands every child ability while worn. Helmet occupancy remains boolean,
+ * and remove pops the complete regular-or-compound key intact. Gear mutation + eligibility delegate to {@link ItemEnchanter};
  * the minted head comes from the {@link TexturedHeads} era seam with the def's material as the untexturable
  * fallback. The likeness tokens ({@code {COLOR}}/{@code {NAME}}/{@code {NAME_UPPER}}/line-expanding
  * {@code {DESCRIPTION}}/{@code {APPLIES}}) follow the pet likeness, not the crystal's {@code CrystalNames} join —
@@ -65,7 +68,7 @@ public final class MaskService {
      * def's fallback material; identity stamped, universal likeness rendered. {@code null} for an unknown key.
      */
     public ItemStack mint(String key) {
-        MaskDef def = content.library().maskDefOf(key);
+        MaskDef def = content.library().maskDefOf(MaskCodec.definitionKey(key));
         if (def == null) {
             return null;
         }
@@ -81,8 +84,31 @@ public final class MaskService {
         // not the equippable component, so this never blocks applying the mask onto a helmet.
         headEquip.unwearable(stack);
         codec.stamp(stack, key);
-        render(stack, def);
+        if (MaskCodec.isMulti(key)) {
+            renderMulti(stack, def, MaskCodec.components(key));
+        } else {
+            render(stack, def);
+        }
         return stack;
+    }
+
+    /**
+     * Mint a compound Multi-Mask from existing mask definition keys. Components retain first occurrence
+     * order, duplicates and nested Multi-Masks are ignored, and every surviving component must exist.
+     */
+    public ItemStack mintMulti(List<String> componentKeys) {
+        LinkedHashSet<String> valid = new LinkedHashSet<>();
+        for (String key : componentKeys == null ? List.<String>of() : componentKeys) {
+            if (key == null || MaskCodec.MULTI_MASK_KEY.equals(key) || MaskCodec.isMulti(key)) {
+                continue;
+            }
+            if (content.library().maskDefOf(key) == null) {
+                return null;
+            }
+            valid.add(key);
+        }
+        String key = MaskCodec.multiKey(List.copyOf(valid));
+        return key == null || content.library().maskDefOf(MaskCodec.MULTI_MASK_KEY) == null ? null : mint(key);
     }
 
     /** Name/lore from the universal likeness — render-from-state (§4.2); the pet token idiom, per-def values. */
@@ -96,6 +122,37 @@ public final class MaskService {
         };
         List<String> lore = Tokens.expandLines(cfg.lore(), "DESCRIPTION", def.description(), tokens);
         ItemFactory.decorated(stack, Tokens.sub(cfg.name(), tokens), ItemFactory.wrapLore(lore));
+    }
+
+    private void renderMulti(ItemStack stack, MaskDef multi, List<String> componentKeys) {
+        MaskItemConfig cfg = config.get();
+        List<String> labels = new ArrayList<>();
+        List<String> componentLines = new ArrayList<>();
+        for (String key : componentKeys) {
+            MaskDef def = content.library().maskDefOf(key);
+            if (def == null) {
+                continue;
+            }
+            labels.add(def.color() + "&l" + def.display());
+            Object[] componentTokens = {
+                    "COLOR", def.color(),
+                    "NAME", def.display(),
+                    "SUMMARY", def.summary(),
+            };
+            componentLines.add(Tokens.sub(cfg.multiComponentName(), componentTokens));
+            if (!def.summary().isBlank()) {
+                componentLines.add(Tokens.sub(cfg.multiComponentAbility(), componentTokens));
+            }
+        }
+        String joined = String.join("&f, ", labels);
+        Object[] tokens = {
+                "COLOR", multi.color(),
+                "NAME", multi.display(),
+                "MASKS", joined,
+                "APPLIES", APPLIES,
+        };
+        List<String> lore = Tokens.expandLines(cfg.multiLore(), "COMPONENTS", componentLines, tokens);
+        ItemFactory.decorated(stack, Tokens.sub(cfg.multiName(), tokens), ItemFactory.wrapLore(lore));
     }
 
     /** Mask-onto-helmet gesture: validate, stamp, spend the cursor — unconditional on an eligible target. */
@@ -139,6 +196,16 @@ public final class MaskService {
 
     /** The colour-styled display for a chat message ({@code &6&lMidas}) — the universal bold-name styling. */
     private String label(String key) {
+        if (MaskCodec.isMulti(key)) {
+            List<String> labels = new ArrayList<>();
+            for (String component : MaskCodec.components(key)) {
+                MaskDef def = content.library().maskDefOf(component);
+                if (def != null) {
+                    labels.add(def.color() + "&l" + def.display());
+                }
+            }
+            return "&f&lMulti-Mask&f (" + String.join("&f, ", labels) + "&f)";
+        }
         MaskDef def = content.library().maskDefOf(key);
         return def == null ? key : def.color() + "&l" + def.display();
     }

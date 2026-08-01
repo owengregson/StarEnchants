@@ -1,0 +1,15 @@
+# Cosmic codex source: 11-masks.md
+display: Monopoly Mask
+color: '&b'
+head: eyJ0aW1lc3RhbXAiOjE1NDI3MDEwNDEwNjMsInByb2ZpbGVJZCI6ImEzOWVmNTdhMzg3YzRjZDE5NzQwNTliNzMyZWJjN2E1IiwicHJvZmlsZU5hbWUiOiJNZXJjaGFudCIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9hM2M0ZDA5ZGViNzkwNDkyYTA0OTIxNTA3OTc3Y2FiOTI2MzViODgxODRkNDg5ZjgzYzM0YjYwZTdkOGE0MjViIn19fQ==
+material: PLAYER_HEAD
+summary: 33% Holy White Scroll negation
+description:
+- "&c33% Holy White Scroll negation"
+- "&c-5% ENEMY DMG"
+- "&7The mask of a man who has it all,"
+- "&7a truly powerful entity to contest with."
+- "&6&l * &6Black Friday 2018"
+abilities:
+- trigger: PASSIVE
+  effects: []

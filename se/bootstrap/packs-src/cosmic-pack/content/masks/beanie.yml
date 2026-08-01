@@ -1,0 +1,12 @@
+# Cosmic codex source: 11-masks.md
+display: Beanie__ Mask
+color: '&b'
+head: eyJ0aW1lc3RhbXAiOjE1NDc1MjgxNzA0MTMsInByb2ZpbGVJZCI6IjEwNTM1MzMwYTNlYTQ5ZjM4YWRlYTcxYWFmNTZkZTY1IiwicHJvZmlsZU5hbWUiOiJCZWFuaWVfXyIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9jYjU3NTNiYjVkZDM2ODRlOTdlYTY0MzNjOTI2MGZmYjk3NWQ5ZTYzMzA5Y2JjODM1YTE0ZWQ1YWUxMmQ1OTIwIn19fQ==
+material: PLAYER_HEAD
+summary: ''
+description:
+- "&7A beanie to keep your head warm."
+- "&6&l * &6Snow Day Lootbox Release"
+abilities:
+- trigger: PASSIVE
+  effects: []

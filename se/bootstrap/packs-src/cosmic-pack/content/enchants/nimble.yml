@@ -1,0 +1,21 @@
+# Cosmic codex source: 01-enchants-armor-a-l.md — armor/boots/Nimble.java
+display: Nimble
+description: Increases mcMMO XP gained in Acrobatics while equipped.
+trigger:
+- DEFENSE
+applies-to:
+- BOOTS
+group: unique
+tier: unique
+stacking: HIGHEST
+levels:
+  1:
+    effects: []
+  2:
+    effects: []
+  3:
+    effects: []
+  4:
+    effects: []
+  5:
+    effects: []

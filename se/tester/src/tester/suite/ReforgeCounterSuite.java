@@ -825,7 +825,7 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
             hop(ringer, sky, () -> hop(enemy, sky.clone().add(2, 0, 0), () -> Scheduling.onRegion(sky, () -> {
                 ModernDispatchSink spawnSink = new ModernDispatchSink(handles, freshEnv(() -> 0L));
                 spawnSink.guard(ringer, sky.clone().add(1, 0, 0), golemId, 1, 600, "&bBellGuard",
-                        enemy.getUniqueId()); // target=ringer initially, owned by the enemy
+                        enemy.getUniqueId(), 0.0, 0.0, 0, 0.0, 20, 0, -1, 1.0f, 1.0f); // target=ringer initially, owned by the enemy
                 spawnSink.flush();
                 Scheduling.onRegionLater(sky, 3L, () -> {
                     Mob golem = findMob(world, sky, EntityType.IRON_GOLEM);
@@ -951,7 +951,7 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
         h.expect(key);
         int cowId = resolveId(resolvers.entityType("COW"), "COW");
         SummonFlags flags = new SummonFlags(false, false, true /* noTarget */, false, false, false,
-                true /* invincible */, 0.0);
+                true /* invincible */, 0.0, "", 0);
         Location sky = new Location(world, arena.getX(), ARENA_Y, arena.getZ());
         CombatRig rig = new CombatRig(plugin);
         rig.onArena(world.getSpawnLocation(), sky, () -> {
@@ -1025,11 +1025,12 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
             hop(ringer, sky, () -> hop(enemy, sky.clone().add(2, 0, 0), () -> Scheduling.onRegion(sky, () -> {
                 ModernDispatchSink spawnSink = new ModernDispatchSink(handles, freshEnv(() -> 0L));
                 spawnSink.guard(enemy, sky.clone().add(1, 0, 0), golemId, 1, 600, "&aOwnGuard",
-                        ringer.getUniqueId()); // already the ringer's, near the ringer
+                        ringer.getUniqueId(), 0.0, 0.0, 0, 0.0, 20, 0, -1, 1.0f, 1.0f); // already the ringer's, near the ringer
                 spawnSink.flush();
                 Scheduling.onRegion(farGolemAt, () -> {
                     ModernDispatchSink farSink = new ModernDispatchSink(handles, freshEnv(() -> 0L));
-                    farSink.guard(ringer, farGolemAt, golemId, 1, 600, "&cFarGuard", enemy.getUniqueId());
+                    farSink.guard(ringer, farGolemAt, golemId, 1, 600, "&cFarGuard", enemy.getUniqueId(),
+                            0.0, 0.0, 0, 0.0, 20, 0, -1, 1.0f, 1.0f);
                     farSink.flush();
                     Scheduling.onRegionLater(sky, 4L, () -> {
                         Mob own = findNamedMob(world, sky, EntityType.IRON_GOLEM, "OwnGuard");

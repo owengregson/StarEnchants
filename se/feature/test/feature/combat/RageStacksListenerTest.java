@@ -37,7 +37,7 @@ class RageStacksListenerTest {
 
         listener.onDamage(hit(attacker, victim));
 
-        verify(service).onHit(attacker);       // attack side: build/advance the attacker's run
+        verify(service).onHit(attacker, true);       // attack side: build/advance the attacker's run
         verify(service).onHitTaken(victim);    // defense side: the victim's own run is broken
     }
 
@@ -49,7 +49,7 @@ class RageStacksListenerTest {
         listener.onDamage(hit(mob, victim));
 
         verify(service).onHitTaken(victim);    // getting hit by anything breaks your run
-        verify(service, never()).onHit(any());
+        verify(service, never()).onHit(any(), org.mockito.ArgumentMatchers.anyBoolean());
     }
 
     @Test
@@ -59,7 +59,7 @@ class RageStacksListenerTest {
 
         listener.onDamage(hit(attacker, mob));
 
-        verify(service).onHit(attacker);
+        verify(service).onHit(attacker, false);
         verify(service, never()).onHitTaken(any());
     }
 
@@ -85,7 +85,7 @@ class RageStacksListenerTest {
             ReHitGuard.clearSkipped();
         }
 
-        verify(service, never()).onHit(any()); // one swing = one advance (the crit-upgrade double-rage bug)
+        verify(service, never()).onHit(any(), org.mockito.ArgumentMatchers.anyBoolean());
         verify(service).onHitTaken(victim);    // the break is idempotent and stays unguarded
     }
 }

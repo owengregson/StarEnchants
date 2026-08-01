@@ -109,10 +109,24 @@ class ModuleTreeGateTest {
      * SpawnInvulnerability#resolved is adjudicated (ADR-0071 amendments): a per-JVM reflective MEMO of the
      * 1.16.5–1.20.6 companion-timer field — no boot-time install, no teardown, derived purely from the handle
      * class; volatile only for safe cross-thread publication of the resolved Field.
+     *
+     * <p>The Cosmic resolver bridges are boot-scoped, read-only adapters from engine effects into the one
+     * item/worn composition root, following the existing FactPopulator resolver seam. The three active Cosmic
+     * services are instance-owned despite their static entry points: each module declares its instance
+     * {@code stop()} in the fold, which clears the static only when it still points to that instance.
      */
     private static final Set<String> FROZEN_STATICS = Set.of(
+            "ActiveMasks#resolver",
+            "ActiveSets#resolver",
             "CombatDispatch#friendlyFire",
+            "CosmicSmitePet#active",
+            "CosmicWorldDestroyer#active",
+            "EnchantArmorSlots#resolver",
+            "EnchantLevels#resolver",
             "FactPopulator#entityTypeResolver",
+            "FeignDeathListener#active",
+            "HeldEnchantLevels#resolver",
+            "HeroicArmorPieces#resolver",
             "ItemFactory#customItemResolver",
             "ItemFactory#itemWrapWidth",
             "Colors#hexMode",

@@ -1,0 +1,15 @@
+# Cosmic codex source: 11-masks.md
+display: Bunny Mask
+color: '&d'
+head: eyJ0aW1lc3RhbXAiOjE1NTU2MDIyMzEwNDUsInByb2ZpbGVJZCI6ImQ4ZmQzYjUxYzZiNzRlNmY4NmExY2FlM2ZiNjI3NzYwIiwicHJvZmlsZU5hbWUiOiJNeXN0ZXJ5TWVyY2hhbnQiLCJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2IzMDg3MGVmYWI1ZjMzNTk4YjEwNzg3MzRhNDRjMzM1NjJiZGU4M2I2YTM5ODc0NmRmZmNlMDZjN2QxOThmNiIsIm1ldGFkYXRhIjp7Im1vZGVsIjoic2xpbSJ9fX19
+material: PLAYER_HEAD
+summary: 1.65x Mobs from Spawners in Chunk
+description:
+- "&c1.65x Mobs from Spawners in Chunk"
+- "&7And so the gods declared to all"
+- "&7the easter bunnies: be fruitful"
+- "&7and multiply."
+- "&6&l * &6Easter 2019"
+abilities:
+- trigger: PASSIVE
+  effects: []

@@ -1,0 +1,118 @@
+# Cosmic codex source: 10-armor-sets.md
+display: '&2&lNecromancer'
+description: Necromancer Cosmic armor set.
+complete: 4
+announce: false
+equip-message: ''
+remove-message: ''
+armor:
+  enchants: { DURABILITY: 3, PROTECTION_ENVIRONMENTAL: 4 }
+  lore: []
+  pieces:
+    helmet:
+      material: LEATHER_HELMET
+      color: '#00FF00'
+      name: '&2&lSkull of Souls'
+      lore: ['&7&oA floating skull imbued with', '&7&oevil enchantments and demonic energy.', '', '&7+2 Armor Value', '&7810 Durability', '&4This armor is stronger than diamond.']
+      heroic: { incoming: 0.08, flat-reduction: 0.5 }
+      enchant-rolls:
+      - { enchant: enchants/armored, mode: ability-near-max }
+      - { enchant: enchants/implants, mode: ability-near-max }
+      - { enchant: enchants/drunk, mode: ability-near-max }
+      - { enchant: enchants/arrow-deflect, mode: ability-near-max }
+      - { enchant: enchants/death-god, mode: ability-near-max }
+      - { enchant: enchants/resilience, mode: ability-near-max }
+      - { enchant: enchants/protection, mode: ability-near-max }
+      - { enchant: enchants/ender-shift, mode: ability-near-max }
+      - { enchant: enchants/valor, mode: ability-near-max, chance: 60 }
+      - { enchant: enchants/angelic, mode: ability-near-max, chance: 60 }
+      - { enchant: enchants/tank, mode: ability-near-max, chance: 60 }
+      - { enchant: enchants/paladin-armored, mode: ability-near-max, chance: 20 }
+      - { enchant: enchants/alien-implants, mode: ability-near-max, chance: 17.5 }
+      enchant-pools:
+      - count: 2
+        mode: ability-near-max
+        enchants: [enchants/mortal-coil, enchants/soul-siphon, enchants/rot-and-decay, enchants/demonic-gateway]
+    chestplate:
+      material: LEATHER_CHESTPLATE
+      color: '#00FF00'
+      name: '&2&lRobe of the Necromancer'
+      lore: ['&7&oSpider Silk woven robes that camouflage', '&7&ointo the darkness of the night', '', '&7+4 Armor Value', '&71000 Durability', '&4This armor is stronger than diamond.']
+      heroic: { incoming: 0.16, flat-reduction: 0.5 }
+      enchant-rolls:
+      - { enchant: enchants/armored, mode: ability-near-max }
+      - { enchant: enchants/overload, mode: ability-near-max }
+      - { enchant: enchants/deathbringer, mode: ability-near-max }
+      - { enchant: enchants/enlighted, mode: ability-near-max }
+      - { enchant: enchants/diminish, mode: ability-near-max }
+      - { enchant: enchants/aegis, mode: ability-near-max }
+      - { enchant: enchants/leadership, mode: ability-near-max }
+      - { enchant: enchants/blood-lust, mode: ability-near-max }
+      - { enchant: enchants/shockwave, mode: ability-near-max }
+      - { enchant: enchants/valor, mode: ability-near-max, chance: 60 }
+      - { enchant: enchants/angelic, mode: ability-near-max, chance: 60 }
+      - { enchant: enchants/tank, mode: ability-near-max, chance: 60 }
+      - { enchant: enchants/paladin-armored, mode: ability-near-max, chance: 20 }
+      - { enchant: enchants/godly-overload, mode: ability-near-max, chance: 17.5 }
+      - { enchant: enchants/planetary-deathbringer, mode: ability-near-max, chance: 22.5 }
+      - { enchant: enchants/divine-enlighted, mode: ability-near-max, chance: 22.5 }
+      - { enchant: enchants/vengeful-diminish, mode: ability-near-max, chance: 15 }
+      enchant-pools:
+      - count: 2
+        mode: ability-near-max
+        enchants: [enchants/mortal-coil, enchants/soul-siphon, enchants/rot-and-decay, enchants/demonic-gateway]
+    leggings:
+      material: LEATHER_LEGGINGS
+      color: '#00FF00'
+      name: '&2&lTattered Wrappings of Death'
+      lore: ['&7&oOnce tormented by death, it now', '&7&oloyally serves and protects you.', '', '&7+3 Armor Value', '&7935 Durability', '&4This armor is stronger than diamond.']
+      heroic: { incoming: 0.13, flat-reduction: 0.5 }
+      enchant-rolls:
+      - { enchant: enchants/armored, mode: ability-near-max }
+      - { enchant: enchants/nature-wrath, mode: ability-near-max }
+      - { enchant: enchants/clarity, mode: ability-near-max }
+      - { enchant: enchants/obsidianshield, mode: ability-near-max }
+      - { enchant: enchants/cactus, mode: ability-near-max }
+      - { enchant: enchants/lucky, mode: ability-near-max }
+      - { enchant: enchants/voodoo, mode: ability-near-max }
+      - { enchant: enchants/spirits, mode: ability-near-max }
+      - { enchant: enchants/valor, mode: ability-near-max, chance: 60 }
+      - { enchant: enchants/angelic, mode: ability-near-max, chance: 60 }
+      - { enchant: enchants/tank, mode: ability-near-max, chance: 60 }
+      - { enchant: enchants/paladin-armored, mode: ability-near-max, chance: 20 }
+      - { enchant: enchants/immortal, mode: ability-near-max, chance: 30 }
+      enchant-pools:
+      - count: 2
+        mode: ability-near-max
+        enchants: [enchants/mortal-coil, enchants/soul-siphon, enchants/rot-and-decay, enchants/demonic-gateway]
+    boots:
+      material: LEATHER_BOOTS
+      color: '#00FF00'
+      name: '&2&lDemon Foot'
+      lore: ['&7&oA good luck charm for those who are', '&7&omasters of the dark magick of necromancy.', '', '&7+2 Armor Value', '&7686 Durability', '&4This armor is stronger than diamond.']
+      heroic: { incoming: 0.08, flat-reduction: 0.5 }
+      enchant-rolls:
+      - { enchant: enchants/armored, mode: ability-near-max }
+      - { enchant: enchants/metaphysical, mode: ability-near-max }
+      - { enchant: enchants/ender-walker, mode: ability-near-max }
+      - { enchant: enchants/springs, mode: ability-near-max }
+      - { enchant: enchants/rocket-escape, mode: ability-near-max }
+      - { enchant: enchants/dodge, mode: ability-near-max }
+      - { enchant: enchants/phoenix, mode: ability-near-max }
+      - { enchant: enchants/guardians, mode: ability-near-max }
+      - { enchant: enchants/gears, mode: max }
+      - { enchant: enchants/valor, mode: ability-near-max, chance: 60 }
+      - { enchant: enchants/angelic, mode: ability-near-max, chance: 60 }
+      - { enchant: enchants/tank, mode: ability-near-max, chance: 60 }
+      - { enchant: enchants/paladin-armored, mode: ability-near-max, chance: 20 }
+      - { enchant: enchants/ethereal-dodge, mode: ability-near-max, chance: 22.5 }
+      - { enchant: enchants/phoenix, mode: ability-near-max, chance: 35 }
+      - { enchant: enchants/guided-rocket-escape, mode: ability-near-max, chance: 12.5 }
+      enchant-pools:
+      - count: 2
+        mode: ability-near-max
+        enchants: [enchants/mortal-coil, enchants/soul-siphon, enchants/rot-and-decay, enchants/demonic-gateway]
+bonuses:
+- 'on': armor
+  trigger: PASSIVE
+  effects: []

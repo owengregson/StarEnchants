@@ -54,6 +54,18 @@ public final class VarStore implements PlayerScoped {
                 .put(canonical(name), new Entry(value == null ? "" : value, expiry));
     }
 
+    /** Remove one named variable without disturbing unrelated player state. */
+    public void remove(UUID player, String name) {
+        Map<String, Entry> vars = byPlayer.get(player);
+        if (vars == null) {
+            return;
+        }
+        vars.remove(canonical(name));
+        if (vars.isEmpty()) {
+            byPlayer.remove(player, vars);
+        }
+    }
+
     /**
      * Boolean-flip {@code player}'s var {@code name}, preserving its remaining TTL: {@code 0} (also
      * unset/non-numeric) becomes {@code "1"}, any non-zero becomes {@code "0"}. An unset var is created

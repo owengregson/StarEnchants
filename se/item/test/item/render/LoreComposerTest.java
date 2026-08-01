@@ -65,6 +65,45 @@ class LoreComposerTest {
     }
 
     @Test
+    void setMemberTokenSelectsExactLoreAndSuppressesDuplicateGenericHeroicLine() {
+        LoreRenderer.SetLore setLore = new LoreRenderer.SetLore() {
+            @Override public List<String> armor(String setKey) {
+                return List.of("&3Shared set bonus");
+            }
+
+            @Override public List<String> armor(String setKey, String memberKey) {
+                if (memberKey == null) {
+                    return armor(setKey);
+                }
+                return List.of("&7Ghostly " + memberKey, "", "&7+2 Armor Value", "&3Shared set bonus");
+            }
+
+            @Override public boolean authoredHeroic(String setKey, String memberKey) {
+                return "helmet".equals(memberKey);
+            }
+
+            @Override public List<String> weapon(String setKey) {
+                return List.of("&7Set weapon");
+            }
+        };
+        LoreComposer exact = new LoreComposer(LoreRenderer.Config.of(LoreStyle.DEFAULT, NAMES)
+                .withSetLore(setLore)
+                .withHeroicLine(() -> HEROIC));
+        CombatState helmet = new CombatState(Map.of(), List.of(), "sets/ghost", "helmet", null,
+                false, new HeroicStat(0, 0.08, 0, 0, 0.5), 0, null, null);
+
+        assertEquals(List.of("§7Ghostly helmet", "", "§7+2 Armor Value", "§3Shared set bonus"),
+                exact.compose(helmet, "HELMET", List.of(), List.of()),
+                "the authored member already contains exact Heroic presentation, so no generic line is appended");
+
+        CombatState legacyPiece = new CombatState(Map.of(), List.of(), "sets/ghost", false,
+                new HeroicStat(0, 0.08, 0));
+        assertEquals(List.of("§3Shared set bonus", "§6§lHEROIC HELMET (§e-8% DMG§7)"),
+                exact.compose(legacyPiece, "HELMET", List.of(), List.of()),
+                "old pieces without a member token use shared lore and retain the generic Heroic marker");
+    }
+
+    @Test
     void maskLineLandsDirectlyBelowTheCrystalLineInTheBody() {
         // ADR-0053: a masked helmet's mask line is the LAST body line, immediately after the crystal line(s).
         LoreComposer composer = composer();
@@ -72,6 +111,22 @@ class LoreComposerTest {
         List<String> body = composer.body(state);
         assertEquals("§8S Aaa", body.get(body.size() - 2), "the crystal line sits directly above the mask line");
         assertEquals("§8Mask: Agent", body.get(body.size() - 1), "the mask line is the last body line, {NAME}→display");
+    }
+
+    @Test
+    void maskSummarySectionRendersOnlyForMasksWithAnAbilitySummary() {
+        LoreComposer withSummary = new LoreComposer(LoreRenderer.Config.of(LoreStyle.DEFAULT, NAMES)
+                .withMaskLine(() -> "&7&lATTACHED: {NAME}{SUMMARY_SECTION}")
+                .withMaskSummaryOf(key -> "50% Mastery Enchant Negation."));
+        CombatState mask = new CombatState(Map.of(), List.of()).withMask("masks/agent");
+        assertEquals(List.of("§7§lATTACHED: Agent§f (§c50% Mastery Enchant Negation.§f)"),
+                withSummary.body(mask));
+
+        LoreComposer cosmetic = new LoreComposer(LoreRenderer.Config.of(LoreStyle.DEFAULT, NAMES)
+                .withMaskLine(() -> "&7&lATTACHED: {NAME}{SUMMARY_SECTION}")
+                .withMaskSummaryOf(key -> ""));
+        assertEquals(List.of("§7§lATTACHED: Agent"), cosmetic.body(mask),
+                "a null-special-ability mask must not render empty parentheses");
     }
 
     @Test

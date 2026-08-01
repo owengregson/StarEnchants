@@ -26,6 +26,14 @@ public final class TeleportBehindEffect implements EffectKind {
             .param("of", D.enumOf("VICTIM", "ACTOR").def("VICTIM"))
             .param("distance", D.DOUBLE.min(0).def(1))
             .param("onFail", D.enumOf("ONTOP", "NONE").def("ONTOP"))
+            .param("sound", D.sound().optional())
+            .param("sound-volume", D.DOUBLE.min(0).def(1))
+            .param("sound-pitch", D.DOUBLE.min(0).def(1))
+            .param("departure-particle", D.particle().optional())
+            .param("arrival-particle", D.particle().optional())
+            .param("particle-count", D.INT.min(0).def(20))
+            .param("particle-speed", D.DOUBLE.min(0).def(0.5))
+            .param("particle-spread", D.DOUBLE.min(0).def(1))
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
             .actorOrigin()
@@ -83,7 +91,17 @@ public final class TeleportBehindEffect implements EffectKind {
         Location eye = ctx.actorOriginEye();
         Location sightFrom = eye != null ? eye : refLoc;
         for (LivingEntity mover : ctx.targets("who")) {
-            sink.teleportSafe(mover, behind, fallback, sightFrom);
+            if (ctx.args().has("sound") || ctx.args().has("departure-particle")
+                    || ctx.args().has("arrival-particle")) {
+                sink.teleportSafeWithCues(mover, behind, fallback, sightFrom,
+                        ctx.args().has("sound") ? ctx.integer("sound") : -1,
+                        (float) ctx.dbl("sound-volume"), (float) ctx.dbl("sound-pitch"),
+                        ctx.args().has("departure-particle") ? ctx.integer("departure-particle") : -1,
+                        ctx.args().has("arrival-particle") ? ctx.integer("arrival-particle") : -1,
+                        ctx.integer("particle-count"), ctx.dbl("particle-speed"), ctx.dbl("particle-spread"));
+            } else {
+                sink.teleportSafe(mover, behind, fallback, sightFrom);
+            }
         }
     }
 }

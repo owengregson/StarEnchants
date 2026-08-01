@@ -1,0 +1,23 @@
+# Cosmic codex source: 05-enchants-bows.md — bow/Cowification.java + CowificationListener.java
+display: Cowification
+description: Shoots exploding cows.
+trigger:
+- BOW
+applies-to:
+- BOW
+group: unique
+tier: unique
+stacking: HIGHEST
+levels:
+  1:
+    abilities:
+      - { trigger: BOW, effects: &impact [{ PARTICLE: { particle: EXPLOSION_LARGE, count: 1, spread: 0, speed: 0.25, anchor: eye, who: '@Victim' } }] }
+      - { trigger: BOW, effects: [{ RESISTED_ROLL: { chance: 10, resistance-level: 0, resist-per-level: 0 } }, { POTION: { effect: CONFUSION, level: 2, duration: 20, who: '@Victim' } }, { SOUND: { sound: COW_IDLE, volume: 1.0, pitch: 0.75, audience: target, players-only: true, who: '@Victim' } }] }
+  2:
+    abilities:
+      - { trigger: BOW, effects: *impact }
+      - { trigger: BOW, effects: [{ RESISTED_ROLL: { chance: 20, resistance-level: 0, resist-per-level: 0 } }, { POTION: { effect: CONFUSION, level: 2, duration: 40, who: '@Victim' } }, { SOUND: { sound: COW_IDLE, volume: 1.0, pitch: 0.75, audience: target, players-only: true, who: '@Victim' } }] }
+  3:
+    abilities:
+      - { trigger: BOW, effects: *impact }
+      - { trigger: BOW, effects: [{ RESISTED_ROLL: { chance: 30, resistance-level: 0, resist-per-level: 0 } }, { POTION: { effect: CONFUSION, level: 2, duration: 60, who: '@Victim' } }, { SOUND: { sound: COW_IDLE, volume: 1.0, pitch: 0.75, audience: target, players-only: true, who: '@Victim' } }] }

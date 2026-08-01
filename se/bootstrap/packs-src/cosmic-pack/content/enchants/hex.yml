@@ -1,46 +1,14 @@
-# Imported from EliteEnchantments (id: hex). Review before shipping.
-display: "Hex"
-description:
-  - "&eCurses the target so a portion of"
-  - "&ethe damage they deal is turned back"
-  - "&eon them."
+# Cosmic codex source: 04-enchants-axes.md — axes/Hex.java + HexListener.java
+display: Hex
+description: Once a target is afflicted with Hex, damage they deal is reflected back onto them for 2-4 seconds.
 trigger: ATTACK
 applies-to: [AXE]
-group: "legendary"
+group: legendary
 tier: legendary
+stacking: HIGHEST
 levels:
-  1:
-    chance: 15
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.1 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { REFLECT: { percent: 10, duration: 80, who: "@Victim" } }
-  2:
-    chance: 18
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.1 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { REFLECT: { percent: 12, duration: 80, who: "@Victim" } }
-  3:
-    chance: 21
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.1 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { REFLECT: { percent: 15, duration: 80, who: "@Victim" } }
-  4:
-    chance: 24
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.1 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { REFLECT: { percent: 18, duration: 80, who: "@Victim" } }
-  5:
-    chance: 27
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.1 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { REFLECT: { percent: 20, duration: 80, who: "@Victim" } }
+  1: { effects: [] } # Native: 2%, 2s, self-damage cap 5.
+  2: { effects: [] } # Native: 4%, 3s, self-damage cap 5.
+  3: { effects: [] } # Native: 6%, 3s, self-damage cap 6.
+  4: { effects: [] } # Native: 8%, 4s, self-damage cap 7.
+  5: { effects: [] } # Native: 10%, 4s, self-damage cap 8.

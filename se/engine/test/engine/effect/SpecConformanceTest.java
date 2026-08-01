@@ -33,13 +33,12 @@ import testfx.SpecDrivenCtx;
 class SpecConformanceTest {
 
     /**
-     * SUPPRESS is the one kind whose args the erase stage REWRITES before runtime ({@code scope}/{@code key}
-     * String → long, the bridge invariant in {@code DefaultEraseStage.eraseSuppressArgs}). So at {@code run()}
-     * it reads its scope/key as the post-erasure integers, not the authored ENUM/STRING the spec declares —
-     * the only kind whose runtime read types differ from its spec. It still gets the round-trip checks; only
-     * the spec-typed run is skipped.
+     * SUPPRESS and SOUL_TRAP have args the erase stage rewrites before runtime. SUPPRESS lowers
+     * {@code scope}/{@code key}/{@code mode}; SOUL_TRAP interns {@code key}. Their runtime read types therefore
+     * differ from the authored spec types. They still get the round-trip checks; only the spec-typed run is
+     * skipped.
      */
-    private static final Set<String> ERASE_REWRITTEN = Set.of("SUPPRESS");
+    private static final Set<String> ERASE_REWRITTEN = Set.of("SUPPRESS", "SOUL_TRAP");
 
     @Test
     void theRegistryIsNotEmpty() {
@@ -66,6 +65,7 @@ class SpecConformanceTest {
             FakeEffectCtx ctx = SpecDrivenCtx.scalars(spec);
             Player p = mock(Player.class);
             Location loc = mock(Location.class);
+            when(loc.clone()).thenReturn(loc);
             when(p.getLocation()).thenReturn(loc);
             when(p.getUniqueId()).thenReturn(UUID.randomUUID());
             ctx.actor(p).victim(p).location(loc).activeGem(UUID.randomUUID());
@@ -75,8 +75,13 @@ class SpecConformanceTest {
             }
             Sink sink = mock(Sink.class);
 
-            assertDoesNotThrow(() -> kind.run(ctx, sink),
-                    spec.head() + ".run read a parameter its EffectSpec does not declare");
+            assertDoesNotThrow(() -> {
+                try {
+                    kind.run(ctx, sink);
+                } catch (EffectHalt expected) {
+                    // REQUIRE/RESISTED gates use an exception as normal per-effect control flow.
+                }
+            }, spec.head() + ".run read a parameter its EffectSpec does not declare");
             assertDoesNotThrow(() -> kind.stop(ctx, sink),
                     spec.head() + ".stop read a parameter its EffectSpec does not declare");
         }));

@@ -333,10 +333,12 @@ class CompilerFuzzTest {
         Args args = e.args();
         ParamSpec spec = EFFECTS.lookup(e.head()).get().spec().paramSpec();
         boolean suppress = e.head().equals("SUPPRESS");
+        boolean soulTrap = e.head().equals("SOUL_TRAP");
         for (Param p : spec.params()) {
             String name = p.name();
-            if (suppress && (name.equals("scope") || name.equals("key") || name.equals("mode"))) {
-                continue; // erase-rewritten to longs (asserted by the SUPPRESS bridge)
+            if ((suppress && (name.equals("scope") || name.equals("key") || name.equals("mode")))
+                    || (soulTrap && name.equals("key"))) {
+                continue; // erase-rewritten to numeric runtime ids (asserted by the dedicated bridges)
             }
             ContentFuzz.Authored auth = line.named().get(name);
             if (auth == null) {

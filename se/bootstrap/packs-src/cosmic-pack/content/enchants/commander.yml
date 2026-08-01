@@ -1,0 +1,21 @@
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/Commander.java + CommanderTask.java
+display: Commander
+description: Every 160 ticks, buffs nearby allies in the source-exact level-scaled box; the wearer is excluded.
+trigger: REPEATING
+repeat: 160
+initial-delay: 20
+applies-to: [ARMOR]
+group: unique
+tier: unique
+stacking: HIGHEST
+levels:
+  1:
+    effects: [{ POTION: { effect: FAST_DIGGING, level: 1, duration: 300, who: "@Aoe{r=5,filter=ALLIES}" } }]
+  2:
+    effects: [{ POTION: { effect: FAST_DIGGING, level: 1, duration: 300, who: "@Aoe{r=7,filter=ALLIES}" } }, { REMOVE_POTION: { effect: WEAKNESS, who: "@Aoe{r=7,filter=ALLIES}" } }]
+  3:
+    effects: [{ POTION: { effect: FAST_DIGGING, level: 1, duration: 300, who: "@Aoe{r=9,filter=ALLIES}" } }, { REMOVE_POTION: { effect: WEAKNESS, who: "@Aoe{r=9,filter=ALLIES}" } }, { REMOVE_POTION: { effect: CONFUSION, who: "@Aoe{r=9,filter=ALLIES}" } }]
+  4:
+    effects: [{ POTION: { effect: FAST_DIGGING, level: 1, duration: 600, who: "@Aoe{r=11,filter=ALLIES}" } }, { REMOVE_POTION: { effect: WEAKNESS, who: "@Aoe{r=11,filter=ALLIES}" } }, { REMOVE_POTION: { effect: CONFUSION, who: "@Aoe{r=11,filter=ALLIES}" } }, { POTION: { effect: SPEED, level: 1, duration: 300, who: "@Aoe{r=11,filter=ALLIES}" } }]
+  5:
+    effects: [{ POTION: { effect: FAST_DIGGING, level: 2, duration: 600, who: "@Aoe{r=13,filter=ALLIES}" } }, { REMOVE_POTION: { effect: WEAKNESS, who: "@Aoe{r=13,filter=ALLIES}" } }, { REMOVE_POTION: { effect: CONFUSION, who: "@Aoe{r=13,filter=ALLIES}" } }, { POTION: { effect: SPEED, level: 2, duration: 300, who: "@Aoe{r=13,filter=ALLIES}" } }, { REMOVE_POTION: { effect: POISON, who: "@Aoe{r=13,filter=ALLIES}" } }]

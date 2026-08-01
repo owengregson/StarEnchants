@@ -1,42 +1,33 @@
-# Imported from EliteEnchantments (id: snare). Review before shipping.
-display: "Snare"
-description:
-  - "&eArrows apply Slowness and Mining"
-  - "&eFatigue to the target."
-trigger: BOW
-applies-to: [BOW]
-group: "uncommon"
-tier: uncommon
+# Cosmic codex source: 05-enchants-bows.md — bow/Snare.java
+display: Snare
+description: Chance to slow and fatigue enemies with projectiles.
+trigger:
+- BOW
+applies-to:
+- BOW
+group: elite
+tier: elite
+stacking: HIGHEST
 levels:
   1:
-    chance: 12
-    cooldown: 100
     effects:
-      - { SOUND: { sound: "BLOCK_TRIPWIRE_CLICK_ON", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
-      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW_DIGGING:1:TARGET:3 — EE seconds → ticks (x20)
+      - { RESISTED_ROLL: { chance: 9, resistance-level: '%victim.metaphysical%', resist-per-level: 7, blocked-message: '&8&l** METAPHYSICAL (&8Snare blocked!&l) **' } }
+      - { POTION: { effect: SLOW, level: 2, duration: 40, who: '@Victim' } }
+      - { BLOCK_BREAK_EFFECT: { block: VINE, anchor: feet, y-offset: 0.5, who: '@Victim' } }
   2:
-    chance: 16
-    cooldown: 100
     effects:
-      - { SOUND: { sound: "BLOCK_TRIPWIRE_CLICK_ON", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
-      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW_DIGGING:1:TARGET:3 — EE seconds → ticks (x20)
+      - { RESISTED_ROLL: { chance: 18, resistance-level: '%victim.metaphysical%', resist-per-level: 7, blocked-message: '&8&l** METAPHYSICAL (&8Snare blocked!&l) **' } }
+      - { POTION: { effect: SLOW, level: 3, duration: 60, who: '@Victim' } }
+      - { BLOCK_BREAK_EFFECT: { block: VINE, anchor: feet, y-offset: 0.5, who: '@Victim' } }
   3:
-    chance: 20
-    cooldown: 100
     effects:
-      - { SOUND: { sound: "BLOCK_TRIPWIRE_CLICK_ON", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
-      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW_DIGGING:1:TARGET:3 — EE seconds → ticks (x20)
+      - { RESISTED_ROLL: { chance: 27, resistance-level: '%victim.metaphysical%', resist-per-level: 7, blocked-message: '&8&l** METAPHYSICAL (&8Snare blocked!&l) **' } }
+      - { POTION: { effect: SLOW, level: 4, duration: 80, who: '@Victim' } }
+      - { POTION: { effect: SLOW_DIGGING, level: 1, duration: 80, who: '@Victim' } }
+      - { BLOCK_BREAK_EFFECT: { block: VINE, anchor: feet, y-offset: 0.5, who: '@Victim' } }
   4:
-    chance: 24
-    cooldown: 100
     effects:
-      - { SOUND: { sound: "BLOCK_TRIPWIRE_CLICK_ON", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW:1:TARGET:3 — EE seconds → ticks (x20)
-      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 60, who: "@Victim" } }  # from POTION:SLOW_DIGGING:1:TARGET:3 — EE seconds → ticks (x20)
+      - { RESISTED_ROLL: { chance: 36, resistance-level: '%victim.metaphysical%', resist-per-level: 7, blocked-message: '&8&l** METAPHYSICAL (&8Snare blocked!&l) **' } }
+      - { POTION: { effect: SLOW, level: 5, duration: 100, who: '@Victim' } }
+      - { POTION: { effect: SLOW_DIGGING, level: 2, duration: 100, who: '@Victim' } }
+      - { BLOCK_BREAK_EFFECT: { block: VINE, anchor: feet, y-offset: 0.5, who: '@Victim' } }

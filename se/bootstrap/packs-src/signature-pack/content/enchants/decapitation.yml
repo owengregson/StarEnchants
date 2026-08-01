@@ -1,0 +1,28 @@
+# Imported from EliteEnchantments (id: decapitation). Review before shipping.
+display: "Decapitation"
+description:
+  - "&eTargets you kill drop their own"
+  - "&ehead as an item."
+trigger: KILL
+applies-to: [AXE]
+group: "common"
+tier: common
+levels:
+  1:
+    chance: 15
+    effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_CRIT", volume: 1.0, pitch: 0.8 } }
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 10 } }
+      - { DROP_ITEM: { material: "PLAYER_HEAD", count: 1 } }  # from DROP_HEAD:TARGET — EE DROP_HEAD → DROP_ITEM:PLAYER_HEAD (a generic head; the skin owner is not preserved)
+  2:
+    chance: 30
+    effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_CRIT", volume: 1.0, pitch: 0.8 } }
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 10 } }
+      - { DROP_ITEM: { material: "PLAYER_HEAD", count: 1 } }  # from DROP_HEAD:TARGET — EE DROP_HEAD → DROP_ITEM:PLAYER_HEAD (a generic head; the skin owner is not preserved)
+  3:
+    chance: 50
+    effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_CRIT", volume: 1.0, pitch: 0.8 } }
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 10 } }
+      - { DROP_ITEM: { material: "PLAYER_HEAD", count: 1 } }  # from DROP_HEAD:TARGET — EE DROP_HEAD → DROP_ITEM:PLAYER_HEAD (a generic head; the skin owner is not preserved)

@@ -17,7 +17,8 @@ public record EngineStores(
         VarStore vars, SuppressionStore suppression, KnockbackControlStore knockback,
         KeepOnDeathStore keepOnDeath, TeleblockStore teleblock, ImmuneStore immune,
         CooldownStore cooldowns, ComboStore combo, WhyStore why,
-        RecentAttackersStore recentAttackers, ReflectMarksStore reflectMarks,
+        RecentAttackersStore recentAttackers, RecentAttackersStore antiGankAttackers,
+        ReflectMarksStore reflectMarks,
         OutgoingDebuffStore outgoingDebuff, DamageCapStore damageCap, RageStackStore rageStacks,
         WardStore ward, HitTempoStore hitTempo, BatteryStore battery,
         DisarmWindowStore disarmWindows) {
@@ -33,6 +34,7 @@ public record EngineStores(
         Objects.requireNonNull(combo, "combo");
         Objects.requireNonNull(why, "why");
         Objects.requireNonNull(recentAttackers, "recentAttackers");
+        Objects.requireNonNull(antiGankAttackers, "antiGankAttackers");
         Objects.requireNonNull(reflectMarks, "reflectMarks");
         Objects.requireNonNull(outgoingDebuff, "outgoingDebuff");
         Objects.requireNonNull(damageCap, "damageCap");
@@ -48,7 +50,7 @@ public record EngineStores(
         return new EngineStores(new VarStore(), new SuppressionStore(), new KnockbackControlStore(),
                 new KeepOnDeathStore(), new TeleblockStore(), new ImmuneStore(),
                 new CooldownStore(), new ComboStore(), new WhyStore(),
-                new RecentAttackersStore(), new ReflectMarksStore(), new OutgoingDebuffStore(), new DamageCapStore(),
+                new RecentAttackersStore(), new RecentAttackersStore(), new ReflectMarksStore(), new OutgoingDebuffStore(), new DamageCapStore(),
                 new RageStackStore(), new WardStore(), new HitTempoStore(), new BatteryStore(),
                 new DisarmWindowStore());
     }
@@ -56,8 +58,8 @@ public record EngineStores(
     /** Every store as the {@link PlayerScoped} seam, in sweep order. */
     public List<PlayerScoped> all() {
         return List.of(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns, combo, why,
-                recentAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks, ward, hitTempo, battery,
-                disarmWindows);
+                recentAttackers, antiGankAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks, ward,
+                hitTempo, battery, disarmWindows);
     }
 
     /**
@@ -69,8 +71,8 @@ public record EngineStores(
      * cap only protects its owner.
      */
     public List<PlayerScoped> quitVolatile() {
-        return List.of(vars, knockback, keepOnDeath, immune, combo, why, recentAttackers, damageCap, rageStacks,
-                ward, hitTempo, battery, disarmWindows);
+        return List.of(vars, knockback, keepOnDeath, immune, combo, why, recentAttackers, antiGankAttackers,
+                damageCap, rageStacks, ward, hitTempo, battery, disarmWindows);
     }
 
     /**

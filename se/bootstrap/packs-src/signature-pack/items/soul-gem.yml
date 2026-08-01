@@ -1,0 +1,63 @@
+# The soul gem — a DISTINCT item you right-click to toggle soul mode on/off. Souls accrue on ANY kill
+# (souls-per-kill, optionally per-mob) regardless of soul mode; soul mode is the "spend switch" that lets
+# soul-cost enchants and the REMOVE_SOULS effect consume them. Drag one gem onto another to combine (their
+# souls sum into a new gem); /splitsouls <amount> (alias of /se split) carves souls into a new gem.
+# This is the Cosmic Pack likeness: the live soul count rides in the NAME. Everything below the
+# name/lore is the global mechanic (identical to the default item); reload with /se reload.
+type: soul-gem
+material: EMERALD
+# {AMOUNT} = the live count, {SOUL_COLOR} = its tier colour; both re-render on every change and work in the
+# name as well as the lore. Authored lore lines auto-wrap (config lore.item-wrap).
+name: "&c&lSoul Gem [&r{SOUL_COLOR}&n&l{AMOUNT}&r&c&l]"
+lore:
+  - ""
+  - "&c* &7Right Click while holding this item to toggle &c&nSoul Mode."
+  - ""
+  - "&c* &7While in Soul Mode, your equipped soul enchantments can activate and drain souls for as long as this mode is enabled."
+  - ""
+  - "&c* &7Use &c&n/splitsouls&r &7on this item to split souls off of it."
+  - ""
+  - "&c* &7Stack other &c&nSoul Gems&r &7on top of this one to combine their soul counts."
+
+# Acquisition (deposit on any kill).
+souls-per-kill: 1
+# Optional per-mob overrides (EntityType name -> amount); anything not listed uses souls-per-kill.
+souls-per-mob:
+  WITHER: 100
+  ENDER_DRAGON: 250
+  PLAYER: 10
+
+# Soul-colour tiers for the {SOUL_COLOR} placeholder (min count -> &colour); highest wins.
+soul-colors:
+  1: "&f"
+  64: "&a"
+  256: "&b"
+  1024: "&d"
+# The colour shown below every tier (an empty gem).
+empty-soul-color: "&7"
+
+# Sounds — our unified bracket form { sound: NAME, volume: V, pitch: P } (volume/pitch optional, default 1.0).
+# Each action takes a LIST so it can play several at once; an empty/omitted list is silent.
+sounds:
+  toggle-on:                                                    # entering soul mode
+    - { sound: BLOCK_RESPAWN_ANCHOR_CHARGE, volume: 1.0, pitch: 0.1 }
+    - { sound: ITEM_CHORUS_FRUIT_TELEPORT, volume: 1.0, pitch: 1.7 }
+  toggle-off:                                                   # leaving soul mode
+    - { sound: BLOCK_GLASS_BREAK, volume: 1.0, pitch: 0.1 }
+  use:                                                          # souls spent by an enchant / REMOVE_SOULS
+    - { sound: ENTITY_GENERIC_EAT, volume: 10.0, pitch: 1.0 }
+  combine:                                                      # stacking one gem onto another
+    - { sound: ENTITY_EXPERIENCE_ORB_PICKUP, volume: 1.0, pitch: 1.0 }
+  split:                                                        # /splitsouls (or /se split)
+    - { sound: BLOCK_GLASS_BREAK, volume: 1.0, pitch: 1.4 }
+
+# Particles — our unified bracket form { particle: NAME, count: N, color: { r, g, b }, spread: S, y-offset: Y }.
+# `color` applies only to the dust particle; enable/disable fire at the toggle, `idle` is the while-active aura,
+# `use` fires when souls are spent.
+particles:
+  enable:  { particle: REDSTONE, count: 20, color: { r: 91,  g: 245, b: 83 }, spread: 1.25, y-offset: 1.0 }
+  disable: { particle: REDSTONE, count: 20, color: { r: 250, g: 55,  b: 74 }, spread: 1.25, y-offset: 1.0 }
+  idle:    { particle: ENCHANTMENT_TABLE, count: 8,  spread: 0.75, y-offset: 1.0 }
+  use:     { particle: SPELL_WITCH,       count: 15, spread: 0.75, y-offset: 1.0 }
+
+# Messages (soul mode on/off, soul-use, /splitsouls) live in lang.yml.

@@ -19,6 +19,8 @@ public final class DamageEffect implements EffectKind {
     static final EffectSpec SPEC = EffectSpec.of("DAMAGE")
             .param("amount", D.DOUBLE.min(0).def(0))
             .param("percent-of-max", D.DOUBLE.min(0).max(100).def(0))
+            .param("attributed", D.BOOL.def(true),
+                    "false uses a generic damage event with no attacker attribution")
             .target("who", T.VICTIM)
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Deal extra damage to the target: a flat amount and/or percent-of-max of the target's own "
@@ -35,14 +37,15 @@ public final class DamageEffect implements EffectKind {
     public void run(EffectCtx ctx, Sink sink) {
         double amount = ctx.dbl("amount");
         double percentOfMax = ctx.dbl("percent-of-max");
+        LivingEntity attacker = ctx.bool("attributed") ? ctx.actor() : null;
         for (LivingEntity target : ctx.targets("who")) {
             // The activator attributes any deferred application (ADR-0054) — a WAIT tier (the bleed DoT)
             // or a non-victim target fires an attributed event; a same-hit victim rider folds instead.
             if (amount > 0) {
-                sink.damage(target, amount, ctx.actor());
+                sink.damage(target, amount, attacker);
             }
             if (percentOfMax > 0) {
-                sink.damagePercentOfMax(target, percentOfMax, ctx.actor());
+                sink.damagePercentOfMax(target, percentOfMax, attacker);
             }
         }
     }

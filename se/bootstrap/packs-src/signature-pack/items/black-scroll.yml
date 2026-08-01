@@ -1,0 +1,25 @@
+# Black Scroll — the Cosmic Pack likeness (docs/v3-directives.md §I). Drag onto enchanted gear to
+# EXTRACT one (random) enchant into a book; the extraction ALWAYS succeeds. The drawn book's CONVERSION
+# success rate is rolled in [min-convert, max-convert] when the scroll is minted (clamped to the global
+# books.max-success ceiling) and shown in the lore below. Only the name/lore differ from the default item;
+# the mechanic is global. reload with /se reload.
+type: black-scroll
+
+# DRIED_KELP is 1.13+; the 1.8.9 lane degrades it to the ink sac (INK_SACK) via ItemFactory.LEGACY_FALLBACK.
+material: DRIED_KELP
+name: "{#473f31}&lBlack Scroll"
+# {SUCCESS} = the drawn book's rolled success rate. Lines auto-wrap at config lore.item-wrap.
+lore:
+  - ""
+  - "&6{SUCCESS}% Success Rate"
+  - ""
+  - "&eRemoves a random enchantment from your item and returns it to your inventory with the specified success rate."
+  - ""
+  - "&eApplies to: &r&f&n{KINDS}"
+  - "&7Drag n' Drop on an item to apply."
+# Item-group kinds this scroll may extract from: e.g. ARMOR, WEAPON, TOOL, ALL (any item). {KINDS} renders the label.
+applies-to: [ARMOR, WEAPON, TOOL]
+# The drawn book's success rate is rolled in [min-convert, max-convert] (each 0–100), then clamped to the
+# global books.max-success ceiling.
+min-convert: 50
+max-convert: 100

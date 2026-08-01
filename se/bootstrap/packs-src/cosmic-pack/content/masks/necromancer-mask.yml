@@ -1,0 +1,14 @@
+# Cosmic codex source: 11-masks.md
+display: Necromancer Mask
+color: '&2'
+head: eyJ0aW1lc3RhbXAiOjE1NDI4MTkzNjA5MTIsInByb2ZpbGVJZCI6ImEzOWVmNTdhMzg3YzRjZDE5NzQwNTliNzMyZWJjN2E1IiwicHJvZmlsZU5hbWUiOiJNZXJjaGFudCIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS84ZmMzMmMwN2U0ZjJiZWFkZTM5ZWFjM2YxYWFmMzJkYjQ4ZjI0MTEwZDM2YmIzMzM0MGU1ZTUzZWQ2Y2YyN2ViIn19fQ==
+material: PLAYER_HEAD
+summary: Immune to Lifesteal
+description:
+- "&cImmune to Lifesteal"
+- "&7An enchanted skull conjured from"
+- "&7the depths of the underworld."
+- "&6&l * &6Necromancer Mastery Kit"
+abilities:
+- trigger: PASSIVE
+  effects: []

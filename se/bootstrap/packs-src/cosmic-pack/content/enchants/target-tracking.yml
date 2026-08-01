@@ -1,0 +1,12 @@
+# Cosmic codex source: 05-enchants-bows.md — bow/TargetTracking.java
+display: Target Tracking
+description: Automatically /f focus any target you hit.
+trigger: BOW
+applies-to:
+- BOW
+group: simple
+tier: simple
+stacking: HIGHEST
+levels:
+  1:
+    effects: []

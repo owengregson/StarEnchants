@@ -1,0 +1,16 @@
+# Cosmic codex source: 06-enchants-tools-heroic.md — tools/ObsidianDestroyer.java
+display: Obsidian Destroyer
+description: Chance to instantly break obsidian blocks.
+trigger:
+- INTERACT_LEFT
+applies-to:
+- PICKAXE
+group: unique
+tier: unique
+stacking: HIGHEST
+levels:
+  1: { chance: 20, condition: &gate '%block.type% == "OBSIDIAN" && %actor.environment% != "THE_END"', effects: &break [{ BREAK_BLOCK: { drops: true, use-held-tool: true } }] }
+  2: { chance: 40, condition: *gate, effects: *break }
+  3: { chance: 60, condition: *gate, effects: *break }
+  4: { chance: 80, condition: *gate, effects: *break }
+  5: { condition: *gate, effects: *break }

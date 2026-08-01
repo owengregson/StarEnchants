@@ -1,0 +1,30 @@
+# Cosmic codex source: 06-enchants-tools-heroic.md — tools/Skilling.java
+display: Skilling
+description: Increases mcMMO XP gained in all GATHERING skills while equipped.
+trigger:
+- MINE
+applies-to: [PICKAXE, HOE, SHOVEL, AXE, FISHING_ROD]
+group: unique
+tier: unique
+stacking: HIGHEST
+levels:
+  1:
+    effects: []
+  2:
+    effects: []
+  3:
+    effects: []
+  4:
+    effects: []
+  5:
+    effects: []
+  6:
+    effects: []
+  7:
+    effects: []
+  8:
+    effects: []
+  9:
+    effects: []
+  10:
+    effects: []

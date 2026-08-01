@@ -28,6 +28,35 @@ public interface SoulDebit {
     default void debitTarget(Player target, int amount) {
     }
 
+    /** Whether the player currently has StarEnchants soul mode enabled. Thread-safe. */
+    default boolean active(Player player) {
+        return false;
+    }
+
+    /** Last holder-thread snapshot of all carried gem souls. Thread-safe. */
+    default int total(Player player) {
+        return 0;
+    }
+
+    /** Current authoritative soul-mode pool total, including synchronous gate-10 spends. */
+    default int currentTotal(Player player) {
+        return total(player);
+    }
+
+    /** Whether the player's current timed state waives soul costs. Thread-safe. */
+    default boolean costFree(Player player) {
+        return false;
+    }
+
+    /** Drain up to {@code amount} from all carried gems and return what was actually removed. Holder thread. */
+    default int drainUpTo(Player player, int amount) {
+        return 0;
+    }
+
+    /** Forcibly disable soul mode if active. Holder thread. */
+    default void disable(Player player) {
+    }
+
     /** No soul system wired — every debit is a no-op. */
     SoulDebit NONE = (holder, gemId, amount) -> { };
 }

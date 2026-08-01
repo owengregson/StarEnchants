@@ -1,29 +1,18 @@
-# Imported from EliteEnchantments (id: hardened). Review before shipping.
-display: "Hardened"
-description:
-  - "&eYour armor sometimes refuses to"
-  - "&elose durability."
-trigger: ITEM_DAMAGE
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/Hardened.java
+display: Hardened
+description: Chance on any damage event to restore one durability point to the single most damaged armor piece.
+trigger: DEFENSE
 applies-to: [ARMOR]
-group: "uncommon"
-tier: uncommon
-condition: "%itemdamage.armor%"
+group: elite
+tier: elite
+stacking: HIGHEST
 levels:
   1:
     chance: 20
-    effects:
-      - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 0.6, pitch: 1.4 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { CANCEL: {} }
+    effects: [{ DURABILITY: { amount: 1, target: armor, mode: restore, selection: most-damaged } }, { PARTICLE: { particle: SPELL, count: 4, speed: 1, spread: 0, anchor: feet, who: "@Self" } }]
   2:
-    chance: 35
-    effects:
-      - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 0.6, pitch: 1.4 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { CANCEL: {} }
+    chance: 40
+    effects: [{ DURABILITY: { amount: 1, target: armor, mode: restore, selection: most-damaged } }, { PARTICLE: { particle: SPELL, count: 4, speed: 1, spread: 0, anchor: feet, who: "@Self" } }]
   3:
-    chance: 50
-    effects:
-      - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 0.6, pitch: 1.4 } }
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { CANCEL: {} }
+    chance: 60
+    effects: [{ DURABILITY: { amount: 1, target: armor, mode: restore, selection: most-damaged } }, { PARTICLE: { particle: SPELL, count: 4, speed: 1, spread: 0, anchor: feet, who: "@Self" } }]

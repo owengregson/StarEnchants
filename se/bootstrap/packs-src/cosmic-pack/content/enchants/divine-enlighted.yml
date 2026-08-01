@@ -1,0 +1,16 @@
+# Cosmic codex source: 06-enchants-tools-heroic.md — heroic/HeroicEnlighted.java
+display: Divine Enlighted
+description: Heroic Enchantment. High chance of healing lots of HP while taking damage. Requires Enlighted III enchant on
+  item to apply. Cannot be black-scrolled.
+trigger:
+- DEFENSE
+applies-to:
+- ARMOR
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1: { chance: 7.5, effects: [{ MODIFY_HEALTH: { amount: 2, mode: give, wait: 1 } }] }
+  2: { chance: 15, effects: [{ MODIFY_HEALTH: { amount: 2, mode: give, wait: 1 } }] }
+  3: { chance: 22.5, effects: [{ MODIFY_HEALTH: { amount: 2, mode: give, wait: 1 } }] }

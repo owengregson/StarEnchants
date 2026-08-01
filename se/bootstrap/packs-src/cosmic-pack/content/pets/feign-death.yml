@@ -1,0 +1,42 @@
+# Cosmic codex source: 12-pets.md
+display: Feign Death
+color: '&e'
+type: ACTIVE
+head: eyJ0aW1lc3RhbXAiOjE1NTk2ODAwNTI5MDcsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS81NjBhMDE0ZDhjOTAyMzVmNzc1Y2Y5OTljY2M2ODM2NWQ3OGM2YTM2NjI0MDM5MjBlNjQ5NjM0MjZlY2IyNDc1In19fQ==
+material: PLAYER_HEAD
+descriptor:
+- '&7A Cosmic inventory pet.'
+description:
+- '&7Fake your death and vanish for 1.5s or until 1 hit(s).'
+max-level: 4
+experience-to-level:
+  2: 1500
+  3: 2250
+  4: 3000
+levels:
+  1:
+    cooldown: 12000
+    experience-on-use: 1
+    description:
+    - '&7Fake your death and vanish for 1.5s or until 1 hit(s).'
+    effects: &activate
+    - { SOUND: { sound: BLOCK_SNOW_BREAK, volume: 1.1, pitch: 3.0 } }
+    - { SOUND: { sound: ENTITY_WITHER_SHOOT, volume: 1.1, pitch: 3.0 } }
+  2:
+    cooldown: 12000
+    experience-on-use: 1
+    description:
+    - '&7Fake your death and vanish for 3s or until 2 hit(s).'
+    effects: *activate
+  3:
+    cooldown: 12000
+    experience-on-use: 1
+    description:
+    - '&7Fake your death and vanish for 4.5s or until 3 hit(s).'
+    effects: *activate
+  4:
+    cooldown: 12000
+    experience-on-use: 1
+    description:
+    - '&7Fake your death and vanish for 6s or until 4 hit(s).'
+    effects: *activate

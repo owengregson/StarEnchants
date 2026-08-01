@@ -1,0 +1,6 @@
+# Crystals GUI — browse every crystal; operators can mint copies.
+# Tiles describe each crystal's slot effect. See menus/apply.yml for the full field list.
+
+title: "&d&l✦ Crystals ✦"
+frame: "border"
+filler: "BLACK_STAINED_GLASS_PANE"

@@ -1,0 +1,31 @@
+# Imported from EliteEnchantments (id: frozen). Review before shipping.
+display: "Frozen"
+description:
+  - "&eWhen hit, applies Slowness to"
+  - "&ethe attacker."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "common"
+tier: common
+levels:
+  1:
+    chance: 10
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 0.9, pitch: 1.4 } }
+      - { PARTICLE: { particle: "SNOWFLAKE", count: 14, who: "@Attacker" } }
+      - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Attacker" } }
+  2:
+    chance: 15
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 0.9, pitch: 1.4 } }
+      - { PARTICLE: { particle: "SNOWFLAKE", count: 14, who: "@Attacker" } }
+      - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Attacker" } }
+  3:
+    chance: 20
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 0.9, pitch: 1.4 } }
+      - { PARTICLE: { particle: "SNOWFLAKE", count: 14, who: "@Attacker" } }
+      - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Attacker" } }

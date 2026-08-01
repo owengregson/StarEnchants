@@ -54,6 +54,7 @@ command.unopened.usage: "&eUsage: /se unopened <tier> &7— right-click it to re
 command.useitem.usage: "&eUsage: /se give useitem <player> <key> [amount] &7— a right-click item you consume/hold"
 command.pet.usage: "&eUsage: /se give pet <player> <key> [level] &7— a leveling pet head (ADR-0052)"
 command.mask.usage: "&eUsage: /se give mask <player> <key> &7— a wearable mask head (ADR-0053)"
+command.mask.multi-usage: "&eUsage: /se give mask <player> multi-mask <mask> [mask...]"
 command.reforge.usage: "&eUsage: /se reforge <key> &7— a weapon reforge you drag onto a sword or axe"
 command.book.usage: "&eUsage: /se book <enchant> [level] &7— a book you drag onto gear to apply it"
 command.give.crystal: "&aMinted a crystal: &f{KEY}&a. &7Drag it onto gear to apply."

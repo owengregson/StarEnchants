@@ -148,6 +148,22 @@ public final class PackImporter {
                         return def != null ? def.armorLore() : List.of();
                     }
 
+                    @Override public List<String> armor(String setKey, String memberKey) {
+                        SetDef def = library.setDefOf(setKey);
+                        if (def == null || memberKey == null) {
+                            return def != null ? def.armorLore() : List.of();
+                        }
+                        List<String> out = new ArrayList<>();
+                        for (SetDef.Member member : def.armorMembers()) {
+                            if (member.slot().equalsIgnoreCase(memberKey)) {
+                                out.addAll(member.lore());
+                                break;
+                            }
+                        }
+                        out.addAll(def.armorLore());
+                        return List.copyOf(out);
+                    }
+
                     @Override public List<String> weapon(String setKey) {
                         SetDef def = library.setDefOf(setKey);
                         return def != null ? def.weaponLore() : List.of();

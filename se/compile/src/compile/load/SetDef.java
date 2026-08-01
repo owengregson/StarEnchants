@@ -61,7 +61,85 @@ public record SetDef(
         weaponEnchants = Collections.unmodifiableMap(new LinkedHashMap<>(weaponEnchants));
     }
 
-    public record Member(String slot, String material, String name) {
+    public record Member(
+            String slot,
+            String material,
+            String name,
+            List<String> lore,
+            Integer leatherColor,
+            Map<String, Integer> enchants,
+            List<EnchantRoll> enchantRolls,
+            List<EnchantPool> enchantPools,
+            List<EnchantChoice> enchantChoices,
+            Heroic heroic) {
+
+        public Member {
+            lore = lore == null ? List.of() : List.copyOf(lore);
+            enchants = enchants == null ? Map.of()
+                    : Collections.unmodifiableMap(new LinkedHashMap<>(enchants));
+            enchantRolls = enchantRolls == null ? List.of() : List.copyOf(enchantRolls);
+            enchantPools = enchantPools == null ? List.of() : List.copyOf(enchantPools);
+            enchantChoices = enchantChoices == null ? List.of() : List.copyOf(enchantChoices);
+            heroic = heroic == null ? Heroic.NONE : heroic;
+        }
+
+        /** Backward-compatible physical member with no per-piece overrides. */
+        public Member(String slot, String material, String name) {
+            this(slot, material, name, List.of(), null, Map.of(), List.of(), List.of(), List.of(), Heroic.NONE);
+        }
+    }
+
+    /** One independently-chanced custom-enchant roll, evaluated in authored order at mint time. */
+    public record EnchantRoll(String enchant, double chance, RollMode mode, int level, int maxLevel) {
+        public EnchantRoll {
+            chance = Math.max(0.0, Math.min(100.0, chance));
+            mode = mode == null ? RollMode.FIXED : mode;
+            level = Math.max(1, level);
+            maxLevel = Math.max(level, maxLevel);
+        }
+    }
+
+    /** A uniform sample without replacement from {@code enchants}, then one level roll per selected enchant. */
+    public record EnchantPool(List<String> enchants, int count, RollMode mode) {
+        public EnchantPool {
+            enchants = enchants == null ? List.of() : List.copyOf(enchants);
+            count = Math.max(0, Math.min(count, enchants.size()));
+            mode = mode == null ? RollMode.ABILITY_NEAR_MAX : mode;
+        }
+    }
+
+    /** One weighted, mutually-exclusive branch; all rolls in the selected branch are then evaluated in order. */
+    public record EnchantChoice(List<EnchantBranch> options) {
+        public EnchantChoice {
+            options = options == null ? List.of() : List.copyOf(options);
+        }
+    }
+
+    public record EnchantBranch(double weight, List<EnchantRoll> rolls) {
+        public EnchantBranch {
+            weight = Math.max(0.0, weight);
+            rolls = rolls == null ? List.of() : List.copyOf(rolls);
+        }
+    }
+
+    public enum RollMode {
+        FIXED,
+        MAX,
+        UNIFORM,
+        RANGE,
+        PLAIN_NEAR_MAX,
+        ABILITY_NEAR_MAX
+    }
+
+    /** Exact on-item Heroic stats for pieces minted heroic by their source set. */
+    public record Heroic(double percentDamage, double percentReduction, double durability,
+                         double flatDamage, double flatReduction) {
+        public static final Heroic NONE = new Heroic(0.0, 0.0, 0.0, 0.0, 0.0);
+
+        public boolean isZero() {
+            return percentDamage == 0.0 && percentReduction == 0.0 && durability == 0.0
+                    && flatDamage == 0.0 && flatReduction == 0.0;
+        }
     }
 
     public boolean hasWeapon() {

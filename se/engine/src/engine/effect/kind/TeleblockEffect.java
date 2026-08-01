@@ -18,6 +18,7 @@ public final class TeleblockEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("TELEBLOCK")
             .param("duration", D.TICKS.def(400))
+            .param("mode", D.enumOf("BLOCK", "CLEAR").def("BLOCK"))
             .target("who", T.VICTIM)
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Block the target player(s) from teleporting (ender pearl / chorus fruit) for duration ticks.")
@@ -32,9 +33,10 @@ public final class TeleblockEffect implements EffectKind {
     @Override
     public void run(EffectCtx ctx, Sink sink) {
         int duration = ctx.integer("duration");
+        boolean clear = "CLEAR".equals(ctx.str("mode"));
         for (LivingEntity target : ctx.targets("who")) {
             if (target instanceof Player player) {
-                sink.teleblock(player, duration);
+                sink.teleblock(player, clear ? -1 : duration);
             }
         }
     }

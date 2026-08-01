@@ -1,0 +1,61 @@
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/Lifebloom.java
+display: Lifebloom
+description: On an otherwise lethal hit, fully heals nearby allies; the wearer is not saved.
+trigger: DEFENSE
+applies-to: [LEGGINGS]
+group: unique
+tier: unique
+stacking: HIGHEST
+levels:
+  1:
+    cooldown: 200
+    condition: "%actor.health% - %finaldamage% <= 0"
+    effects:
+      - { SOUND: { sound: ENTITY_EXPERIENCE_ORB_PICKUP, volume: 2, pitch: 0.75 } }
+      - { PARTICLE: { particle: REDSTONE, count: 65, speed: 1.4, spread: 0, anchor: eye, y-offset: 1, who: "@Self" } }
+      - { MODIFY_HEALTH: { amount: 2048, mode: give, who: "@Aoe{r=2,filter=ALLIES}" } }
+      - { MESSAGE: { text: "&a&l(!) &a{ATTACKER}'s Lifebloom was activated, fight on!", who: "@Aoe{r=2,filter=ALLIES}" } }
+      - { SOUND: { sound: ENTITY_EXPERIENCE_ORB_PICKUP, volume: 1.5, pitch: 0.75, dedupe: false, who: "@Aoe{r=2,filter=ALLIES}" } }
+      - { PARTICLE: { particle: HAPPY_VILLAGER, count: 16, speed: 2, spread: 0, anchor: feet, y-offset: 1, who: "@Aoe{r=2,filter=ALLIES}" } }
+  2:
+    cooldown: 200
+    condition: "%actor.health% - %finaldamage% <= 0"
+    effects:
+      - { SOUND: { sound: ENTITY_EXPERIENCE_ORB_PICKUP, volume: 2, pitch: 0.75 } }
+      - { PARTICLE: { particle: REDSTONE, count: 65, speed: 1.4, spread: 0, anchor: eye, y-offset: 1, who: "@Self" } }
+      - { MODIFY_HEALTH: { amount: 2048, mode: give, who: "@Aoe{r=5,filter=ALLIES}" } }
+      - { MESSAGE: { text: "&a&l(!) &a{ATTACKER}'s Lifebloom was activated, fight on!", who: "@Aoe{r=5,filter=ALLIES}" } }
+      - { SOUND: { sound: ENTITY_EXPERIENCE_ORB_PICKUP, volume: 1.5, pitch: 0.75, dedupe: false, who: "@Aoe{r=5,filter=ALLIES}" } }
+      - { PARTICLE: { particle: HAPPY_VILLAGER, count: 16, speed: 2, spread: 0, anchor: feet, y-offset: 1, who: "@Aoe{r=5,filter=ALLIES}" } }
+  3:
+    cooldown: 200
+    condition: "%actor.health% - %finaldamage% <= 0"
+    effects:
+      - { SOUND: { sound: ENTITY_EXPERIENCE_ORB_PICKUP, volume: 2, pitch: 0.75 } }
+      - { PARTICLE: { particle: REDSTONE, count: 65, speed: 1.4, spread: 0, anchor: eye, y-offset: 1, who: "@Self" } }
+      - { MODIFY_HEALTH: { amount: 2048, mode: give, who: "@Aoe{r=7,filter=ALLIES}" } }
+      - { MESSAGE: { text: "&a&l(!) &a{ATTACKER}'s Lifebloom was activated, fight on!", who: "@Aoe{r=7,filter=ALLIES}" } }
+      - { SOUND: { sound: ENTITY_EXPERIENCE_ORB_PICKUP, volume: 1.5, pitch: 0.75, dedupe: false, who: "@Aoe{r=7,filter=ALLIES}" } }
+      - { PARTICLE: { particle: HAPPY_VILLAGER, count: 16, speed: 2, spread: 0, anchor: feet, y-offset: 1, who: "@Aoe{r=7,filter=ALLIES}" } }
+  4:
+    cooldown: 200
+    condition: "%actor.health% - %finaldamage% <= 0"
+    effects:
+      - { SOUND: { sound: ENTITY_EXPERIENCE_ORB_PICKUP, volume: 2, pitch: 0.75 } }
+      - { PARTICLE: { particle: REDSTONE, count: 65, speed: 1.4, spread: 0, anchor: eye, y-offset: 1, who: "@Self" } }
+      - { MODIFY_HEALTH: { amount: 2048, mode: give, who: "@Aoe{r=10,filter=ALLIES}" } }
+      - { POTION: { effect: ABSORPTION, level: 1, duration: 120, who: "@Aoe{r=10,filter=ALLIES}" } }
+      - { MESSAGE: { text: "&a&l(!) &a{ATTACKER}'s Lifebloom was activated, fight on!", who: "@Aoe{r=10,filter=ALLIES}" } }
+      - { SOUND: { sound: ENTITY_EXPERIENCE_ORB_PICKUP, volume: 1.5, pitch: 0.75, dedupe: false, who: "@Aoe{r=10,filter=ALLIES}" } }
+      - { PARTICLE: { particle: HAPPY_VILLAGER, count: 16, speed: 2, spread: 0, anchor: feet, y-offset: 1, who: "@Aoe{r=10,filter=ALLIES}" } }
+  5:
+    cooldown: 200
+    condition: "%actor.health% - %finaldamage% <= 0"
+    effects:
+      - { SOUND: { sound: ENTITY_EXPERIENCE_ORB_PICKUP, volume: 2, pitch: 0.75 } }
+      - { PARTICLE: { particle: REDSTONE, count: 65, speed: 1.4, spread: 0, anchor: eye, y-offset: 1, who: "@Self" } }
+      - { MODIFY_HEALTH: { amount: 2048, mode: give, who: "@Aoe{r=12,filter=ALLIES}" } }
+      - { POTION: { effect: ABSORPTION, level: 2, duration: 120, who: "@Aoe{r=12,filter=ALLIES}" } }
+      - { MESSAGE: { text: "&a&l(!) &a{ATTACKER}'s Lifebloom was activated, fight on!", who: "@Aoe{r=12,filter=ALLIES}" } }
+      - { SOUND: { sound: ENTITY_EXPERIENCE_ORB_PICKUP, volume: 1.5, pitch: 0.75, dedupe: false, who: "@Aoe{r=12,filter=ALLIES}" } }
+      - { PARTICLE: { particle: HAPPY_VILLAGER, count: 16, speed: 2, spread: 0, anchor: feet, y-offset: 1, who: "@Aoe{r=12,filter=ALLIES}" } }

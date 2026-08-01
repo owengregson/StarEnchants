@@ -2,6 +2,7 @@ package item.render;
 
 import item.codec.CombatState;
 import item.codec.HeroicStat;
+import item.codec.MaskCodec;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +52,9 @@ public final class LoreComposer {
         if (state.setKey() != null) {
             // Armour member: the set's shared armour lore (§6.6), word-wrapped to the universal item-wrap width
             // via wrapAll (NOT a per-line wrap loop) so the author's blank separator lines survive.
-            for (String wrapped : TextWrap.wrapAll(config.setLore().armor(state.setKey()), item.mint.ItemFactory.itemWrapWidth())) {
+            for (String wrapped : TextWrap.wrapAll(
+                    config.setLore().armor(state.setKey(), state.setMemberKey()),
+                    item.mint.ItemFactory.itemWrapWidth())) {
                 out.add(Colors.translate(wrapped));
             }
         }
@@ -103,9 +106,24 @@ public final class LoreComposer {
         // §mask line (ADR-0053): directly BELOW the crystal line(s) and still in the body, so on a masked helmet it
         // sits above only the heroic + protection + trak lines compose() appends. {NAME} → the mask's styled display.
         if (state.maskKey() != null) {
-            String maskTemplate = config.maskLine().get();
+            boolean multi = MaskCodec.isMulti(state.maskKey());
+            String maskTemplate = (multi ? config.maskLineMulti() : config.maskLine()).get();
             if (maskTemplate != null && !maskTemplate.isBlank()) {
-                out.add(Colors.translate(Tokens.sub(maskTemplate, "NAME", nameOr(state.maskKey(), style))));
+                if (multi) {
+                    List<String> names = new ArrayList<>();
+                    for (String component : MaskCodec.components(state.maskKey())) {
+                        names.add(nameOr(component, style));
+                    }
+                    out.add(Colors.translate(Tokens.sub(maskTemplate, "MASKS", String.join("&f, ", names))));
+                } else {
+                    String summary = config.maskSummaryOf().apply(state.maskKey());
+                    summary = summary == null ? "" : summary;
+                    String summarySection = summary.isBlank() ? "" : "&f (&c" + summary + "&f)";
+                    out.add(Colors.translate(Tokens.sub(maskTemplate,
+                            "NAME", nameOr(state.maskKey(), style),
+                            "SUMMARY", summary,
+                            "SUMMARY_SECTION", summarySection)));
+                }
             }
         }
         return out;
@@ -120,7 +138,10 @@ public final class LoreComposer {
      */
     public List<String> compose(CombatState state, String kind, List<String> protection, List<String> traks) {
         List<String> lore = body(state);
-        String heroic = heroicBodyLine(state.heroic(), kind, config.heroicLine().get());
+        String heroic = state.setKey() != null
+                && config.setLore().authoredHeroic(state.setKey(), state.setMemberKey())
+                ? null
+                : heroicBodyLine(state.heroic(), kind, config.heroicLine().get());
         if (heroic != null) {
             lore.add(heroic);
         }

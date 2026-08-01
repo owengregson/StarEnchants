@@ -242,8 +242,8 @@ class MigratorTest {
         // Combat (ATTACK direction): the foe is @Victim.
         assertEquals("POTION:CONFUSION:1:60:@Victim", Mappings.eeEffect("POTION:CONFUSION:1:TARGET:3").se()); // sec→ticks
         assertEquals("POTION:FAST_DIGGING:1:200:@Self", Mappings.eeEffect("POTION:FAST_DIGGING:1:PLAYER").se()); // no-dur default
-        assertEquals("MODIFY_HEALTH:2:give:@Self", Mappings.eeEffect("HEAL:ADD:1:2").se());        // range → max
-        assertEquals("MODIFY_HEALTH:50:give:@Self", Mappings.eeEffect("HEAL:ADD:40:50:PLAYER").se()); // trailing target ignored
+        assertEquals("MODIFY_HEALTH:2:0:give:@Self", Mappings.eeEffect("HEAL:ADD:1:2").se());        // range → max
+        assertEquals("MODIFY_HEALTH:50:0:give:@Self", Mappings.eeEffect("HEAL:ADD:40:50:PLAYER").se()); // trailing target ignored
         assertEquals("DAMAGE_MOD:defense:add:1.85", Mappings.eeEffect("REDUCTION:1.85").se());     // decimal kept
         assertEquals("DAMAGE_MOD:defense:add:100", Mappings.eeEffect("REDUCTION:150").se());       // clamped to 100
         assertEquals("DAMAGE_MOD:attack:add:25", Mappings.eeEffect("DAMAGE_INCREASE:25").se());
@@ -277,7 +277,7 @@ class MigratorTest {
         assertEquals("DROP_ITEM:PLAYER_HEAD:1", Mappings.eeEffect("DROP_HEAD:TARGET").se());
         assertEquals("DAMAGE:8:@Victim", Mappings.eeEffect("SNIPER").se());
         assertEquals("REMOVE_ARMOR:@Victim", Mappings.eeEffect("REMOVE_ARMOR").se());
-        assertEquals("MODIFY_HEALTH:12:set:@Victim", Mappings.eeEffect("REDUCE_HEARTS:12:5").se());
+        assertEquals("MODIFY_HEALTH:12:0:set:@Victim", Mappings.eeEffect("REDUCE_HEARTS:12:5").se());
         assertEquals("TELEBLOCK:400:@Victim", Mappings.eeEffect("TELEBLOCK:20").se());           // seconds → ticks
         assertEquals("IMMUNE:potion:100:@Self", Mappings.eeEffect("IMMUNE:POTION").se());        // no duration → 100t
         assertEquals("SMELT", Mappings.eeEffect("SMELT").se());
@@ -320,7 +320,7 @@ class MigratorTest {
         // DEFENSE direction: the foe is @Attacker (the entity that struck the wielder); the wielder is @Self.
         assertEquals("DAMAGE:6:@Attacker", Mappings.eeEffect("DAMAGE:1:6:TARGET", true).se());
         assertEquals("POTION:WITHER:1:80:@Attacker", Mappings.eeEffect("POTION:WITHER:1:TARGET:4", true).se());
-        assertEquals("MODIFY_HEALTH:3:give:@Self", Mappings.eeEffect("HEAL:ADD:2:3", true).se()); // self-heal both ways
+        assertEquals("MODIFY_HEALTH:3:0:give:@Self", Mappings.eeEffect("HEAL:ADD:2:3", true).se()); // self-heal both ways
         assertEquals("SUPPRESS:GROUP:rare:200:@Attacker",
                 Mappings.eeEffect("DISABLE_ENCHANTMENT_GROUP:RARE:10", true).se());
     }
@@ -330,7 +330,7 @@ class MigratorTest {
         // ender-walker: "DEFENSE;<factor>;HEAL:ADD:1:2" → the inner HEAL maps; the threshold factor is dropped.
         var compound = Mappings.eeEffect("DEFENSE;2.5;HEAL:ADD:1:3", true);
         assertTrue(compound.mapped());
-        assertEquals("MODIFY_HEALTH:3:give:@Self", compound.se());
+        assertEquals("MODIFY_HEALTH:3:0:give:@Self", compound.se());
     }
 
     @Test
@@ -429,7 +429,7 @@ class MigratorTest {
         // on the attack side); AE @Victim is the foe → @Victim.
         assertEquals("DAMAGE:4:@Victim", Mappings.aeEffect("DAMAGE:4 @Victim").se());
         assertEquals("POTION:POISON:1:60:@Self", Mappings.aeEffect("POTION:POISON:0:60 @Attacker").se()); // §C: AE amplifier 0 → SE level 1
-        assertEquals("MODIFY_HEALTH:2:give:@Self", Mappings.aeEffect("ADD_HEALTH:2 @Self").se()); // AE add-health → MODIFY_HEALTH (give)
+        assertEquals("MODIFY_HEALTH:2:0:give:@Self", Mappings.aeEffect("ADD_HEALTH:2 @Self").se()); // AE add-health → MODIFY_HEALTH (give)
         assertEquals("DAMAGE:6:@Victim", Mappings.aeEffect("DAMAGE:6:@Victim").se()); // colon-attached selector
         // Legacy %victim% form maps; large money values survive (not int-capped). §C collapses money to
         // MODIFY_MONEY: add→give, remove→take, STEAL→transfer.
@@ -478,10 +478,10 @@ class MigratorTest {
     @Test
     void aeSelectorsAreTriggerDirectionAware() {
         // ATTACK direction: AE @Attacker = the wielder → @Self; AE @Victim = the foe → @Victim.
-        assertEquals("MODIFY_HEALTH:4:give:@Self", Mappings.aeEffect("ADD_HEALTH:4 @Attacker", false).se());
+        assertEquals("MODIFY_HEALTH:4:0:give:@Self", Mappings.aeEffect("ADD_HEALTH:4 @Attacker", false).se());
         assertEquals("DAMAGE:4:@Victim", Mappings.aeEffect("DAMAGE:4 @Victim", false).se());
         // DEFENSE direction: AE @Victim = the wielder → @Self; AE @Attacker = the foe → @Attacker.
-        assertEquals("MODIFY_HEALTH:4:give:@Self", Mappings.aeEffect("ADD_HEALTH:4 @Victim", true).se());
+        assertEquals("MODIFY_HEALTH:4:0:give:@Self", Mappings.aeEffect("ADD_HEALTH:4 @Victim", true).se());
         assertEquals("DAMAGE:4:@Attacker", Mappings.aeEffect("DAMAGE:4 @Attacker", true).se());
     }
 

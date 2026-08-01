@@ -1,0 +1,16 @@
+# FishTrak Gem — the Cosmic Pack likeness (docs/v3-directives.md §I). Drag onto a fishing rod to reveal the
+# LIFETIME number of fish caught with it (tracked in the background from first use). Applied items are not
+# exclusive — gear may carry several traks (blocktrak / mobtrak / soultrak / fishtrak) and a white/holy scroll
+# at once. The mechanic is global; reload with /se reload.
+type: fishtrak
+
+material: CLAY_BALL
+name: "{#b0b9d5}&lFishTrak Gem"
+# {KINDS} = the applies-to label; {COUNT} = the live count. Lore auto-wraps at config lore.item-wrap.
+lore:
+  - "&eDisplays the amount of fish caught with the rod since it was forged."
+  - ""
+  - "&eApplies to: &r&f&n{KINDS}"
+  - "&7Drag n' Drop on an item to apply."
+applies-to: [FISHING_ROD]
+count-format: "&7Fish Caught: &f{COUNT}"

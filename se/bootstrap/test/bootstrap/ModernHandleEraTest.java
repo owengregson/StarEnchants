@@ -24,7 +24,7 @@ import schema.diag.Diagnostic;
 import schema.spec.HandleCategory;
 
 /**
- * The MODERN-era twin of {@link CosmicPackValidationTest}: every shipped content library must also
+ * The MODERN-era twin of {@link SignaturePackValidationTest}: every shipped content library must also
  * resolve its sound/particle tokens on the post-1.20.5 enum flattening, not only the 1.17.1 floor the
  * compile classpath provides. The 1.20.5 rename wave (ENCHANTMENT_TABLE→ENCHANT, TOTEM→TOTEM_OF_UNDYING,
  * …) once shipped 79 authored particle lines that loaded on the floor but died as {@code E_UNKNOWN_HANDLE}
@@ -39,7 +39,7 @@ class ModernHandleEraTest {
     @ParameterizedTest
     @ValueSource(strings = {"1.21.11", "26.1.2"})
     void cosmicPackResolvesOnModernEra(String era) {
-        compileClean(Path.of("packs-src/cosmic-pack/content"), era, 400);
+        compileClean(Path.of("packs-src/signature-pack/content"), era, 400);
     }
 
     @ParameterizedTest

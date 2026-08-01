@@ -1,0 +1,14 @@
+# Cosmic codex source: 11-masks.md
+display: Spectral Mask
+color: '&3'
+head: eyJ0aW1lc3RhbXAiOjE1NTA2OTcxNjQ1ODYsInByb2ZpbGVJZCI6ImQ4ZmQzYjUxYzZiNzRlNmY4NmExY2FlM2ZiNjI3NzYwIiwicHJvZmlsZU5hbWUiOiJNeXN0ZXJ5TWVyY2hhbnQiLCJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2FhMWY4YjMwMmMwN2RlYTJlNTA1M2FkNTVjOGQ4MTFkNjBjNTdlZWQyNjY5MzY5MGQzNTNiMzgxMTliZDk1MSIsIm1ldGFkYXRhIjp7Im1vZGVsIjoic2xpbSJ9fX19
+material: PLAYER_HEAD
+summary: Zombie Auto-disguise at y>200 (in combat)
+description:
+- "&cZombie Auto-disguise at y>200 (in combat)"
+- "&7As silent as the night, as mystic"
+- "&7as the full moon: The Spectre"
+- "&6&l * &6Baked Lootbox Release"
+abilities:
+- trigger: PASSIVE
+  effects: []

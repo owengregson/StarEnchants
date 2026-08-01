@@ -71,7 +71,7 @@ class EngineDamageReentryTest {
         verifyNoInteractions(service); // a DoT tick is not a melee swing
 
         listener.onDamage(event); // the same hit OUTSIDE the frame is a real swing
-        verify(service).onHit(attacker);
+        verify(service).onHit(attacker, false);
     }
 
     @Test

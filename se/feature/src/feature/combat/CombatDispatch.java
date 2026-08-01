@@ -3,6 +3,10 @@ package feature.combat;
 import compile.load.ContentHolder;
 import compile.model.Ability;
 import compile.model.Snapshot;
+import compile.model.SourceKind;
+import engine.effect.kind.ActiveSets;
+import engine.effect.kind.EnchantLevels;
+import engine.effect.kind.HeldEnchantLevels;
 import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
 import engine.run.ActorProbe;
@@ -25,8 +29,12 @@ import engine.stores.ReflectMarksStore;
 import engine.stores.SuppressionStore;
 import feature.soul.SoulBinding;
 import feature.trigger.TriggerRunner;
+import item.worn.WornState;
 import item.worn.WornStateStore;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -51,6 +59,7 @@ import engine.sink.SinkFactory;
 public final class CombatDispatch {
 
     private final TriggerRunner runner;
+    private final WornStateStore worn;
     private final SinkFactory sinkFactory;
     private final ContentHolder content;
     // The per-boot sink wiring, threaded to every per-event sink so a write and its separate-event reader share stores.
@@ -60,7 +69,8 @@ public final class CombatDispatch {
     // quit-cleanup authority (§5.4).
     private final ComboStore combo;
     // ADR-0049 per-player combat windows, consulted here and written by the sink intents (shared via the env).
-    private final RecentAttackersStore recent;    // §2 gank window (Aegis / Anti Gank facts)
+    private final RecentAttackersStore recent;    // §2 general/Aegis gank window
+    private final RecentAttackersStore antiGankRecent; // Anti Gank records only while its enchanted axe is held
     private final ReflectMarksStore reflectMarks;  // §3 Hex reflect
     private final OutgoingDebuffStore outgoingDebuff; // §4 Weaken/Destruction
     private final DamageCapStore damageCap;         // §5 Diminish
@@ -132,10 +142,12 @@ public final class CombatDispatch {
         this.sinkFactory = Objects.requireNonNull(sinkFactory, "sinkFactory");
         this.content = Objects.requireNonNull(content, "content");
         this.env = Objects.requireNonNull(env, "env");
+        this.worn = Objects.requireNonNull(worn, "worn");
         this.projectiles = Objects.requireNonNull(projectiles, "projectiles");
         Objects.requireNonNull(caps, "caps");
         this.combo = env.stores().combo();
         this.recent = env.stores().recentAttackers();
+        this.antiGankRecent = env.stores().antiGankAttackers();
         this.reflectMarks = env.stores().reflectMarks();
         this.outgoingDebuff = env.stores().outgoingDebuff();
         this.damageCap = env.stores().damageCap();
@@ -210,6 +222,10 @@ public final class CombatDispatch {
             return;
         }
         long now = nowTicks.getAsLong();
+        int projectileMark = rawDamager instanceof Projectile
+                ? env.projectileMarks().consume(rawDamager.getUniqueId(), now) : 0;
+        double projectileHeight = rawDamager instanceof Projectile
+                ? rawDamager.getLocation().getY() - victimEntity.getLocation().getY() : 0.0;
         UUID attackerId = damager.getUniqueId();     // the resolved source (a projectile's shooter, §2 gank id)
         // §3.7 Proc SE combat EXACTLY ONCE per hit. A stronger blow inside the victim's i-frame window fires a
         // SECOND EntityDamageByEntityEvent for the SAME swing (vanilla's "damage the difference": a crit
@@ -272,6 +288,9 @@ public final class CombatDispatch {
         // victim's %recentattackers%/%attackerindex% facts already include this hit.
         if (victimEntity instanceof Player recorded) {
             recent.record(recorded.getUniqueId(), attackerId, now);
+            if (HeldEnchantLevels.held(recorded, "enchants/anti-gank") > 0) {
+                antiGankRecent.record(recorded.getUniqueId(), attackerId, now);
+            }
             // Bat cloud (ADR-0068): capture the attacker ENTITY at-hit on the victim's thread; the
             // owner-side publisher reads its pose later under a Regions guard (the ADR-0043 shape).
             SwarmClouds.noteHit(recorded.getUniqueId(), damager, now);
@@ -281,11 +300,14 @@ public final class CombatDispatch {
         boolean victimIsPlayer = victimEntity instanceof Player;
         // §N friendly-fire: skip ALL SE combat effects between two friendly players.
         boolean friendly = damager instanceof Player a && victimEntity instanceof Player v && friendlyFire.test(a, v);
+        boolean weakCosmicBow = rawDamager instanceof Projectile
+                && CosmicProjectilePower.weak(rawDamager.getUniqueId());
 
         // Attack side: self = attacker, target = victim.
         UUID comboActor = null;      // set iff combo.hit ran — a cancelled event rolls the streak back below
         Object comboMark = null;
-        if (damager instanceof Player attackerPlayer && contextEnabled(victimIsPlayer) && !friendly) {
+        if (damager instanceof Player attackerPlayer && contextEnabled(victimIsPlayer) && !friendly
+                && !weakCosmicBow) {
             int attackId = attackTrigger(projectiles, rawDamager, attackTriggerId, bowTriggerId, tridentTriggerId);
             comboActor = attackerPlayer.getUniqueId();
             comboMark = combo.mark(comboActor);
@@ -332,24 +354,38 @@ public final class CombatDispatch {
                             victimEntity.getUniqueId(), reforgePending);
                 }
             }
-            int attackerRecent = recent.distinctCount(attackerPlayer.getUniqueId(), now); // how many are ganking the attacker (Anti Gank)
+            int attackerRecent = recent.distinctCount(attackerPlayer.getUniqueId(), now); // how many are ganking the attacker (general)
+            int antiGankAttackers = antiGankRecent.distinctCount(attackerPlayer.getUniqueId(), now, 120);
             ActivationContext attackCtx = new ActivationContext(attackerPlayer, victim, null, at, incomingDamage,
-                    null, streak, causeName, false, attackerRecent, 0);
-            runner.run(abilities, snapshot.generation(), worldId, attackId, true, attackerPlayer, attackCtx, sink,
-                    snapshot.stableKeys());
+                    event.getFinalDamage(), null, streak, causeName, false, attackerRecent, 0, projectileMark,
+                    projectileHeight, antiGankAttackers, 0);
+            ReflectedCandidates reflected = splitReflected(snapshot, attackerPlayer,
+                    victimEntity instanceof Player player ? player : null, attackId);
+            runner.runCandidates(abilities, snapshot.generation(), worldId, attackId, true, attackerPlayer,
+                    attackCtx, sink, snapshot.stableKeys(), reflected.normal());
+            // Cosmic rolls reflection once per enchant, before that enchant's own proc chance. Reflected
+            // candidates execute as the defender against the attacker in a separate fold: direct target effects
+            // naturally reverse, while event-damage bonuses become attributed retaliation rather than increasing
+            // the blow still landing on the defender.
+            runReflected(snapshot, worldId, attackId, reflected.reflected(),
+                    victimEntity instanceof Player player ? player : null, attackerPlayer, at,
+                    incomingDamage, event.getDamage(), event.getFinalDamage(), causeName, projectileMark,
+                    projectileHeight);
             // §8 ECHO_STRIKE (Double Strike): re-run the attacker walk EXACTLY once over the same event/sink/fold.
             // Checked once → run once, so a second ECHO_STRIKE proc in the echo pass cannot request a third pass.
             if (sink.echoRequested()) {
-                runner.run(abilities, snapshot.generation(), worldId, attackId, true, attackerPlayer, attackCtx, sink,
-                        snapshot.stableKeys());
+                runner.runCandidates(abilities, snapshot.generation(), worldId, attackId, true, attackerPlayer,
+                        attackCtx, sink, snapshot.stableKeys(), reflected.normal());
             }
         }
         // Defense side: self = victim, target = attacker.
         if (victimEntity instanceof Player defenderPlayer && contextEnabled(damager instanceof Player) && !friendly) {
             int defenderRecent = recent.distinctCount(defenderPlayer.getUniqueId(), now);   // distinct attackers on me (Aegis)
             int attackerIndex = recent.indexOf(defenderPlayer.getUniqueId(), attackerId, now); // 1-based order of THIS attacker
+            int aegisAttackerIndex = recent.indexOf(defenderPlayer.getUniqueId(), attackerId, now, 100);
             ActivationContext defenseCtx = new ActivationContext(defenderPlayer, attacker, attacker, at,
-                    incomingDamage, null, 0, causeName, false, defenderRecent, attackerIndex);
+                    incomingDamage, event.getFinalDamage(), null, 0, causeName, false, defenderRecent, attackerIndex,
+                    projectileMark, projectileHeight, 0, aegisAttackerIndex);
             runner.run(abilities, snapshot.generation(), worldId, defenseTriggerId, false, defenderPlayer, defenseCtx,
                     sink, snapshot.stableKeys());
             // §7 one-shot SUPPRESS consume (Neutralize): burn the victim's armed one-shots after their defense walk.
@@ -406,6 +442,129 @@ public final class CombatDispatch {
             reHits.stamp(victimEntity.getUniqueId(), attackerId, now);
         }
         sink.flush();
+        if (sink.removeProjectileRequested() && rawDamager instanceof Projectile) {
+            rawDamager.remove();
+        }
+    }
+
+    /** Cosmic Enchant Reflect candidate partition, preserving original worn order within both routes. */
+    private ReflectedCandidates splitReflected(Snapshot snapshot, Player attacker, Player defender, int triggerId) {
+        WornState state = worn.get(attacker.getUniqueId());
+        if (state == null || state.gen() != snapshot.generation()) {
+            return ReflectedCandidates.EMPTY;
+        }
+        int[] candidates = state.byTrigger(triggerId);
+        if (defender == null || candidates.length == 0) {
+            return new ReflectedCandidates(candidates, new int[0]);
+        }
+        java.util.Map<Integer, Integer> heldEnchantCounts = new java.util.HashMap<>();
+        for (int id : state.heldEnchantByTrigger(triggerId)) {
+            heldEnchantCounts.merge(id, 1, Integer::sum);
+        }
+        int normalLevel = EnchantLevels.worn(defender, "enchants/enchant-reflect");
+        int heroicLevel = CosmicTierGate.tierSixPlusEnabled(defender)
+                ? EnchantLevels.worn(defender, "enchants/heroic-enchant-reflect") : 0;
+        int masteryLevel = ActiveSets.has(defender, "sets/dragon-slayer") ? 10 : 0;
+        if (normalLevel == 0 && heroicLevel == 0 && masteryLevel == 0) {
+            return new ReflectedCandidates(candidates, new int[0]);
+        }
+
+        Map<String, Boolean> rolls = new LinkedHashMap<>();
+        ArrayList<Integer> normal = new ArrayList<>(candidates.length);
+        ArrayList<Integer> reflected = new ArrayList<>();
+        for (int id : candidates) {
+            if (id < 0 || id >= snapshot.abilities().length) {
+                continue;
+            }
+            Ability ability = snapshot.abilities()[id];
+            int heldCopies = heldEnchantCounts.getOrDefault(id, 0);
+            if (ability.sourceKind() != SourceKind.ENCHANT || heldCopies <= 0) {
+                normal.add(id);
+                continue;
+            }
+            if (heldCopies == 1) {
+                heldEnchantCounts.remove(id);
+            } else {
+                heldEnchantCounts.put(id, heldCopies - 1);
+            }
+            String stableKey = snapshot.stableKeys().keyOf(id);
+            String enchantKey = baseContentKey(stableKey, id);
+            boolean isReflected = rolls.computeIfAbsent(enchantKey,
+                    ignored -> reflectRoll(snapshot, ability, normalLevel, heroicLevel, masteryLevel));
+            (isReflected ? reflected : normal).add(id);
+        }
+        return new ReflectedCandidates(toInts(normal), toInts(reflected));
+    }
+
+    /** enchants/lifesteal/5/a1 -> enchants/lifesteal; each enchant gets one independent Reflect roll. */
+    static String baseContentKey(String stableKey, int fallbackId) {
+        if (stableKey == null) {
+            return "#" + fallbackId;
+        }
+        int first = stableKey.indexOf('/');
+        int second = first < 0 ? -1 : stableKey.indexOf('/', first + 1);
+        return second < 0 ? stableKey : stableKey.substring(0, second);
+    }
+
+    /** Exact source precedence and deliberate integer-division chance curve. */
+    private static boolean reflectRoll(Snapshot snapshot, Ability ability, int normal, int heroic, int mastery) {
+        int groupId = ability.cdScopeGroup();
+        String group = groupId < 0 || groupId >= snapshot.interners().cooldownScopes().size()
+                ? "" : snapshot.interners().cooldownScopes().nameOf(groupId);
+        int tier = switch (group.toLowerCase(java.util.Locale.ROOT)) {
+            case "simple" -> 1;
+            case "unique" -> 2;
+            case "elite" -> 3;
+            case "ultimate" -> 4;
+            case "legendary" -> 5;
+            case "soul" -> 6;
+            case "heroic" -> 7;
+            case "mastery" -> 8;
+            default -> 0;
+        };
+        int level = ability.level();
+        int reflectLevel = mastery > 0 && tier == 8 && mastery >= level ? mastery
+                : heroic > 0 && tier <= 7 && heroic >= level ? heroic
+                : normal > 0 && tier <= 5 && normal >= level ? normal : 0;
+        return reflectLevel > 0
+                && Math.random() <= 0.02 + 0.01 * (reflectLevel / 3);
+    }
+
+    private void runReflected(Snapshot snapshot, int worldId, int triggerId, int[] candidates,
+                              Player reflector, Player attacker, Location location, double incomingDamage,
+                              double baseDamage, double finalDamage, String causeName, int projectileMark,
+                              double projectileHeight) {
+        if (reflector == null || candidates.length == 0) {
+            return;
+        }
+        SinkReadback reflectedSink = sinkFactory.create(env);
+        reflectedSink.fold().caps(maxBonusDamage.getAsDouble(), maxBonusReduction.getAsDouble());
+        reflectedSink.fold().attackScale(attackScale.getAsDouble());
+        ActivationContext reflectedContext = new ActivationContext(reflector, attacker, attacker, location,
+                incomingDamage, finalDamage, null, 0, causeName, false, 0, 0, projectileMark, projectileHeight);
+        runner.runBorrowedCandidates(snapshot.abilities(), snapshot.generation(), worldId, triggerId, reflector,
+                reflectedContext, reflectedSink, snapshot.stableKeys(), candidates);
+        if (reflectedSink.echoRequested()) {
+            runner.runBorrowedCandidates(snapshot.abilities(), snapshot.generation(), worldId, triggerId, reflector,
+                    reflectedContext, reflectedSink, snapshot.stableKeys(), candidates);
+        }
+        double bonus = reflectedSink.fold().apply(baseDamage) - baseDamage;
+        if (bonus > 0.0) {
+            reflectedSink.damage(attacker, bonus, reflector);
+        }
+        reflectedSink.flush();
+    }
+
+    private static int[] toInts(List<Integer> ids) {
+        int[] out = new int[ids.size()];
+        for (int i = 0; i < ids.size(); i++) {
+            out[i] = ids.get(i);
+        }
+        return out;
+    }
+
+    private record ReflectedCandidates(int[] normal, int[] reflected) {
+        private static final ReflectedCandidates EMPTY = new ReflectedCandidates(new int[0], new int[0]);
     }
 
     /** Whether StarEnchants combat effects apply in this context — {@code pvp} ⇒ the PvP gate, else PvE (§L). */

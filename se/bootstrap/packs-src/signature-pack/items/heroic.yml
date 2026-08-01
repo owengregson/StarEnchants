@@ -1,0 +1,55 @@
+# The heroic upgrade item — a "Heroic Ingot" you drag onto any armour piece or weapon to reforge it into
+# Heroic form (heroic is NOT set-bound). On success it stamps the heroic stats, swaps the DISPLAY to a gold
+# piece, and — with diamond-stats on — keeps it functioning as diamond (attack / armour / durability) via the
+# plugin's own combat maths (no version-specific item-attribute API). Everything below is configurable.
+type: heroic
+material: GOLD_INGOT
+name: "&e&k|||&r {#fcd549}&lHeroic Ingot&r &e&k|||&r"
+# {SUCCESS}/{FAILURE} = the success/failure rate; {OUTGOING}/{INCOMING}/{DURABILITY} = the per-stat percents;
+# {KINDS} = what it applies to (our unified item-lore tokens). Auto-wrapped where the renderer wraps.
+lore:
+  - "&a{SUCCESS}% Success Rate"
+  - "&c{FAILURE}% Failure Rate"
+  - ""
+  - "&e* &6+{OUTGOING}% Outgoing Damage"
+  - "&e* &6-{INCOMING}% Incoming Damage"
+  - "&e* &6+{DURABILITY}% Durability"
+  - ""
+  - "&eReforges a single piece of gear into Heroic form, granting it legendary capabilities stronger than diamond."
+  - ""
+  - "&eApplies to: &f&n{KINDS}"
+  - "&7Drag n' Drop on an item to apply."
+# Per-attempt success is drawn from [success-min, success-max]; min == max here for a single headline rate.
+success-min: 50
+success-max: 50
+# Gear unharmed on a failed roll (the upgrade is consumed either way). Set true to destroy the gear on fail.
+destroy-on-fail: false
+# Heroic stats granted on success (fractions): weapon +outgoing, armour −incoming, and the wear-cancel chance
+# (0.20 ≈ the piece takes 80% of normal durability damage). Reduction is per PIECE and armour stacks x4 per
+# player — 0.02 = 8% total on a full heroic set (ADR-0050); a weapon is a single copy.
+percent-damage: 0.20
+percent-reduction: 0.02
+durability: 0.20
+# entity = PvP/entity damage only (default); all = every damage cause.
+reduction-scope: ENTITY
+# Re-stat the gold display piece so it functions as diamond (attack / armour / durability), not gold.
+diamond-stats: true
+# HOW diamond-equivalence is applied (ADR-0031/0032). true (default): write REAL vanilla attribute modifiers —
+# armour-point + toughness for armour, attack-damage for weapons — a custom diamond max-durability where the server
+# supports it (Minecraft 1.20.5+), and the vendor-neutral `combat:effective_material` marker naming the diamond the
+# gold piece stands in for. So the stats are correct on the HUD/tooltip (the explicit modifiers suppress the gold
+# display's defaults — no hidden attributes) AND read by combat plugins that recompute from vanilla values, e.g.
+# Mental, which presents the era-correct (1.8) form on its own servers. false: keep the plugin's own combat-maths
+# approximation (invisible to vanilla attributes; the pre-ADR-0031 behaviour). On the 1.8.9 fork this silently
+# falls back to the plugin-maths approximation (no attribute API, no Mental).
+vanilla-stats: true
+# The HEROIC lore line stamped on a reforged piece ({TYPE} = the gear kind).
+lore-line: "&e&k|||&r &6&lHEROIC {TYPE} &r&e&k|||&r"
+# Display swap on success: diamond gear becomes its gold twin (diamond stats kept via diamond-stats above).
+material-upgrades:
+  DIAMOND_HELMET: GOLDEN_HELMET
+  DIAMOND_CHESTPLATE: GOLDEN_CHESTPLATE
+  DIAMOND_LEGGINGS: GOLDEN_LEGGINGS
+  DIAMOND_BOOTS: GOLDEN_BOOTS
+  DIAMOND_SWORD: GOLDEN_SWORD
+  DIAMOND_AXE: GOLDEN_AXE

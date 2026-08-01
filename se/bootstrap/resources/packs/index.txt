@@ -1,5 +1,6 @@
 # First-boot extraction manifest for bundled config packs (ADR-0023). One pack archive per line,
 # relative to packs/. Each listed .zip is copied to <data>/packs/ on first enable (never overwriting
-# an operator's copy) so /se pack apply <name> can swap it in. The shipped cosmic-pack.zip is
-# produced at build time from se/bootstrap/packs-src/cosmic-pack/ (a reviewable config tree).
+# an operator's copy) so /se pack apply <name> can swap it in. Both archives are produced at build time
+# from their reviewable trees under se/bootstrap/packs-src/.
+signature-pack.zip
 cosmic-pack.zip

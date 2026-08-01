@@ -1,0 +1,14 @@
+# Cosmic codex source: 11-masks.md
+display: Turkey Mask
+color: '&e'
+head: eyJ0aW1lc3RhbXAiOjE1NDI3MDEwMDY0NzMsInByb2ZpbGVJZCI6ImEzOWVmNTdhMzg3YzRjZDE5NzQwNTliNzMyZWJjN2E1IiwicHJvZmlsZU5hbWUiOiJNZXJjaGFudCIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9lN2Q5NzQ1N2Q2ODhkZWRjN2ZlZDRkNTU5OWExNGMyODBmM2RjYWIyOTM3YjJiMDcxYWZkOGZlZWFjMGViZmFmIn19fQ==
+material: PLAYER_HEAD
+summary: +2% Dodge
+description:
+- "&c+2% Dodge"
+- "&7Stay nimble and fast, or the"
+- "&7Pilgrims will catch and cook you!"
+- "&6&l * &6Thanksgiving 2018"
+abilities:
+- trigger: PASSIVE
+  effects: []

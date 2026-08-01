@@ -1,0 +1,112 @@
+# Cosmic codex source: 10-armor-sets.md
+display: '&e&lDragon Slayer'
+description: Dragon Slayer Cosmic armor set.
+complete: 4
+announce: true
+equip-message: "\n&e&lDRAGON SLAYER SET BONUS:\n&e&l * &e+15% OUTGOING DAMAGE\n&e&l * &e-20% INCOMING DAMAGE\n&e&l * &eIMMUNE TO FREEZE\n&e&l * &eMASTERY ENCHANT REFLECT X\n&e&l * &eNEGATE 75% OF ENEMY SILENCE\n&e&l * &e25% MASTERY ENCHANT NEGATION"
+remove-message: ''
+armor:
+  enchants: { PROTECTION_ENVIRONMENTAL: 5, DURABILITY: 3 }
+  lore:
+  - '&e&lDRAGON SLAYER SET BONUS'
+  - '&e&l* &e+15% PvP Damage'
+  - '&e&l* &e-20% Incoming Damage'
+  - '&e&l* &eImmune to Freezes'
+  - '&e&l* &eMastery Enchant Reflect X'
+  - '&e&l* &eNegate 75% of Enemy Silence'
+  - '&e&l* &e25% Mastery Enchant Negation'
+  - '&7(&7&oRequires all 4 dragon slayer items&7)'
+  pieces:
+    helmet:
+      material: DIAMOND_HELMET
+      name: '&e&lDecapitated Dragon Skull&r'
+      lore: ['&e&oThe mythical helmet of a Slayer of Dragons.', '']
+      enchant-rolls:
+      - { enchant: enchants/drunk, mode: plain-near-max }
+      - { enchant: enchants/armored, mode: plain-near-max }
+      - { enchant: enchants/deathbringer, mode: plain-near-max }
+      - { enchant: enchants/tank, mode: plain-near-max }
+      - { enchant: enchants/angelic, mode: plain-near-max }
+      - { enchant: enchants/implants, mode: plain-near-max }
+      - { enchant: enchants/valor, mode: plain-near-max }
+      - { enchant: enchants/death-god, mode: plain-near-max }
+      - { enchant: enchants/repair-guard, mode: plain-near-max }
+      - { enchant: enchants/ender-shift, mode: plain-near-max }
+      - { enchant: enchants/paladin-armored, mode: plain-near-max, chance: 40 }
+      - { enchant: enchants/planetary-deathbringer, mode: plain-near-max, chance: 40 }
+      - { enchant: enchants/alien-implants, mode: plain-near-max, chance: 40 }
+      - { enchant: enchants/immortal, mode: plain-near-max, chance: 30 }
+    chestplate:
+      material: DIAMOND_CHESTPLATE
+      name: '&e&lFirey Chestplate of Dragons&r'
+      lore: ['&e&oThe mythical chestplate of a Slayer of Dragons.', '']
+      enchant-rolls:
+      - { enchant: enchants/overload, mode: plain-near-max }
+      - { enchant: enchants/leadership, mode: plain-near-max }
+      - { enchant: enchants/armored, mode: plain-near-max }
+      - { enchant: enchants/tank, mode: plain-near-max }
+      - { enchant: enchants/angelic, mode: plain-near-max }
+      - { enchant: enchants/valor, mode: plain-near-max }
+      - { enchant: enchants/aegis, mode: plain-near-max }
+      - { enchant: enchants/dodge, mode: plain-near-max }
+      - { enchant: enchants/frozen, mode: plain-near-max }
+      - { enchant: enchants/enchant-reflect, mode: plain-near-max }
+      - { enchant: enchants/godly-overload, mode: plain-near-max, chance: 40 }
+      enchant-choices:
+      - options:
+        - weight: 5
+          enchant-rolls:
+          - { enchant: enchants/enchant-reflect, mode: max }
+          - { enchant: enchants/heroic-enchant-reflect, mode: plain-near-max }
+        - { weight: 95, enchant-rolls: [] }
+    leggings:
+      material: DIAMOND_LEGGINGS
+      name: '&e&lScorched Leggings of Dragons&r'
+      lore: ['&e&oThe mythical leggings of a Slayer of Dragons.', '']
+      enchant-rolls:
+      - { enchant: enchants/enlighted, mode: plain-near-max }
+      - { enchant: enchants/lucky, mode: plain-near-max }
+      - { enchant: enchants/obsidianshield, mode: plain-near-max }
+      - { enchant: enchants/armored, mode: plain-near-max }
+      - { enchant: enchants/tank, mode: plain-near-max }
+      - { enchant: enchants/valor, mode: plain-near-max }
+      - { enchant: enchants/angelic, mode: plain-near-max }
+      - { enchant: enchants/arrow-deflect, mode: plain-near-max }
+      - { enchant: enchants/clarity, mode: plain-near-max }
+      - { enchant: enchants/cactus, mode: plain-near-max }
+      - { enchant: enchants/divine-enlighted, mode: plain-near-max, chance: 40 }
+      - { enchant: enchants/nature-wrath, mode: max, chance: 7.5 }
+    boots:
+      material: DIAMOND_BOOTS
+      name: '&e&lDragon Slayer Battle Boots&r'
+      lore: ['&e&oThe mythical boots of a Slayer of Dragons.', '']
+      enchant-rolls:
+      - { enchant: enchants/gears, mode: plain-near-max }
+      - { enchant: enchants/rocket-escape, mode: plain-near-max }
+      - { enchant: enchants/armored, mode: plain-near-max }
+      - { enchant: enchants/tank, mode: plain-near-max }
+      - { enchant: enchants/valor, mode: plain-near-max }
+      - { enchant: enchants/angelic, mode: plain-near-max }
+      - { enchant: enchants/springs, mode: plain-near-max }
+      - { enchant: enchants/guardians, mode: plain-near-max }
+      - { enchant: enchants/voodoo, mode: plain-near-max }
+      - { enchant: enchants/ender-walker, mode: plain-near-max }
+      - { enchant: enchants/ghost, mode: plain-near-max }
+      - { enchant: enchants/ghostly-ghost, mode: plain-near-max, chance: 40 }
+      - { enchant: enchants/phoenix, mode: plain-near-max, chance: 7.5 }
+bonuses:
+- 'on': armor
+  trigger: ATTACK
+  condition: '%victim.type% == "PLAYER"'
+  effects:
+  - DAMAGE_MOD:
+      side: attack
+      mode: add
+      amount: 15
+- 'on': armor
+  trigger: DEFENSE
+  effects:
+  - DAMAGE_MOD:
+      side: defense
+      mode: add
+      amount: 20

@@ -1,65 +1,122 @@
-# Yeti — icy diamond set: bites harder, shrugs off blows, slows attackers.
-display: "{#90dae7}&lYeti"
-description: "{#90dae7}Harness the chilling might of the Yeti set, garments imbued with the frost of the highest peaks."
+# Cosmic codex source: 10-armor-sets.md
+display: '&f&lYeti'
+description: Yeti Cosmic armor set.
 complete: 4
-# Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
 announce: true
-equip-message: "\n{#90dae7}&l** Yeti SET EQUIPPED {#90dae7}&l**\n"
-remove-message: "\n&7&l** Yeti SET REMOVED **\n"
+equip-message: '&f&lYETI SET BONUS: &f+10% ATK / -10% DMG'
+remove-message: ''
 armor:
-  enchants:
-    PROTECTION: 4
-    UNBREAKING: 3
+  enchants: { DURABILITY: 3, PROTECTION_ENVIRONMENTAL: 4 }
   lore:
-    - "{#90dae7}Harness the chilling might of the Yeti set, garments imbued with the frost of the highest peaks."
-    - ""
-    - "{#90dae7}&lYETI SET BONUS"
-    - "{#90dae7}* Deal 10% more damage to all enemies"
-    - "{#90dae7}* Enemies deal 10% less damage to you"
-    - "{#90dae7}* Fortified Passive Ability"
-    - ""
-    - "{#90dae7}&lFORTIFIED"
-    - "{#90dae7}* Chance to nullify an incoming attack and spawn a defensive Ice Wall in front of your enemy"
-    - "&7&o(Requires all four Yeti set items.)&r"
+  - '&b&lYETI SET BONUS'
+  - '&b&l* &bDeal +10% damage to all enemies.'
+  - '&b&l* &bEnemies deal 10% less damage to you.'
+  - '&7(&oRequires all 4 yeti items.&7)'
   pieces:
-    helmet:     { material: DIAMOND_HELMET,     name: "{#90dae7}&lFrozen Headgear&r" }
-    chestplate: { material: DIAMOND_CHESTPLATE, name: "{#90dae7}&lArctic Plate&r" }
-    leggings:   { material: DIAMOND_LEGGINGS,   name: "{#90dae7}&lGlacial Leggings&r" }
-    boots:      { material: DIAMOND_BOOTS,      name: "{#90dae7}&lIcy Stompers&r" }
-weapon:
-  enchants:
-    SHARPNESS: 5
-    UNBREAKING: 3
-  material: DIAMOND_AXE
-  name: "{#90dae7}&lFrozen Mace&r"
-  lore:
-    - "{#90dae7}Bring the chill of the arctic with the Frozen Mace, an icy weapon that freezes all who dare oppose it."
-    - ""
-    - "{#90dae7}&lYETI WEAPON BONUS"
-    - "{#90dae7}* Deal 10% more damage to all enemies"
-    - "&7&o(Requires all four Yeti set items.)"
-# Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
+    helmet:
+      material: DIAMOND_HELMET
+      name: '&b&lYeti Facemask'
+      lore: ['&bThe savage mask of the Yeti.', '']
+      enchant-rolls:
+      - { enchant: enchants/drunk, mode: plain-near-max }
+      - { enchant: enchants/enlighted, mode: plain-near-max }
+      - { enchant: enchants/deathbringer, mode: plain-near-max }
+      - { enchant: enchants/armored, mode: plain-near-max }
+      - { enchant: enchants/tank, mode: plain-near-max }
+      - { enchant: enchants/hardened, mode: plain-near-max }
+      - { enchant: enchants/implants, mode: plain-near-max }
+      - { enchant: enchants/valor, mode: plain-near-max }
+      - { enchant: enchants/protection, mode: plain-near-max }
+      - { enchant: enchants/ender-shift, mode: plain-near-max }
+      - { enchant: enchants/arrow-deflect, mode: plain-near-max }
+      - { enchant: enchants/death-god, mode: plain-near-max }
+      - { enchant: enchants/angelic, mode: plain-near-max }
+    chestplate:
+      material: DIAMOND_CHESTPLATE
+      name: '&b&lBloody Yeti Torso'
+      lore: ['&bThe impermeable chestplate of the Yeti.', '']
+      enchant-rolls:
+      - { enchant: enchants/godly-overload, mode: plain-near-max }
+      - { enchant: enchants/blood-lust, mode: plain-near-max }
+      - { enchant: enchants/deathbringer, mode: plain-near-max }
+      - { enchant: enchants/enlighted, mode: plain-near-max }
+      - { enchant: enchants/tank, mode: plain-near-max }
+      - { enchant: enchants/armored, mode: plain-near-max }
+      - { enchant: enchants/leadership, mode: plain-near-max }
+      - { enchant: enchants/spirit-link, mode: plain-near-max }
+      - { enchant: enchants/aegis, mode: plain-near-max }
+      - { enchant: enchants/blood-link, mode: plain-near-max }
+      - { enchant: enchants/guardians, mode: plain-near-max }
+      - { enchant: enchants/angelic, mode: plain-near-max }
+    leggings:
+      material: DIAMOND_LEGGINGS
+      name: '&b&lFuzzy Yeti Leggings'
+      lore: ['&bThe cozy yet monstrous legs of the Yeti.', '']
+      enchant-rolls:
+      - { enchant: enchants/clarity, mode: plain-near-max }
+      - { enchant: enchants/enlighted, mode: plain-near-max }
+      - { enchant: enchants/deathbringer, mode: plain-near-max }
+      - { enchant: enchants/armored, mode: plain-near-max }
+      - { enchant: enchants/tank, mode: plain-near-max }
+      - { enchant: enchants/angelic, mode: plain-near-max }
+      - { enchant: enchants/obsidianshield, mode: plain-near-max }
+      - { enchant: enchants/dodge, mode: plain-near-max }
+      - { enchant: enchants/sticky, mode: plain-near-max }
+      - { enchant: enchants/repair-guard, mode: plain-near-max }
+      - { enchant: enchants/valor, mode: plain-near-max }
+      - { enchant: enchants/lucky, mode: plain-near-max }
+      - { enchant: enchants/cactus, mode: plain-near-max }
+    boots:
+      material: DIAMOND_BOOTS
+      name: '&b&lBig-Yeti Boots'
+      lore: ['&bBigfoot has nothing on these boots.', '']
+      enchant-rolls:
+      - { enchant: enchants/gears, mode: plain-near-max }
+      - { enchant: enchants/deathbringer, mode: plain-near-max }
+      - { enchant: enchants/enlighted, mode: plain-near-max }
+      - { enchant: enchants/armored, mode: plain-near-max }
+      - { enchant: enchants/angelic, mode: plain-near-max }
+      - { enchant: enchants/springs, mode: plain-near-max }
+      - { enchant: enchants/rocket-escape, mode: plain-near-max }
+      - { enchant: enchants/ender-walker, mode: plain-near-max }
+      - { enchant: enchants/hardened, mode: plain-near-max }
+      - { enchant: enchants/metaphysical, mode: plain-near-max }
+      - { enchant: enchants/repair-guard, mode: plain-near-max }
+      - { enchant: enchants/valor, mode: plain-near-max }
+      - { enchant: enchants/tank, mode: plain-near-max }
 bonuses:
-  - on: armor
-    trigger: DEFENSE
-    chance: 100
-    effects:
-      - { DAMAGE_MOD: { side: defense, mode: add, amount: 10 } }
-  # Fortified — 20% on being hit (30s cd): negate the hit and freeze the ground under the attacker for 3s — a
-  # mixed frost-palette footprint that replaces only solid ground (never air), so it reads as a floor, not a wall.
-  - on: armor
-    trigger: DEFENSE
-    chance: 20
-    cooldown: 600
-    effects:
-      - { SOUND: { sound: "ENTITY_BREEZE_HURT|ENTITY_POLAR_BEAR_HURT", volume: 1.0, pitch: 1.0 } }
-      - { CANCEL: {} }
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "ICE", material2: "BLUE_ICE", material3: "PACKED_ICE", material4: "SNOW_BLOCK", radius: 1, dy: -1, ticks: 60, airOnly: false, who: "@Attacker" } }
-      - { PARTICLE: { particle: SNOWFLAKE, count: 15, who: "@Attacker" } }
-      - { MESSAGE: { channel: title, text: "{#90dae7}&l** FORTIFIED **", subtitle: "&7from &c{ATTACKER}", who: "@Victim" } }
-      - { MESSAGE: { text: "{#90dae7}&l** FORTIFIED &r&7[&f{VICTIM}&7] &r{#90dae7}&l**" } }
-  - on: weapon
-    trigger: ATTACK
-    chance: 100
-    effects:
-      - { DAMAGE_MOD: { side: attack, mode: add, amount: 20 } }
+- 'on': armor
+  trigger: ATTACK
+  effects:
+  - INFINITE_LUCK_GATE:
+      required-level: 1
+  - DAMAGE_MOD:
+      side: attack
+      mode: add
+      amount: 10
+- 'on': armor
+  trigger: DEFENSE
+  effects:
+  - DAMAGE_MOD:
+      side: defense
+      mode: add
+      amount: 10
+- 'on': weapon
+  trigger: ATTACK
+  effects: []
+weapon:
+  enchants: { DAMAGE_ALL: 5, DURABILITY: 3 }
+  material: DIAMOND_AXE
+  name: '&b&lYeti Maul'
+  lore:
+  - '&7A penetrating axe used by a Yeti.'
+  - ''
+  - '&b&lYETI WEAPON BONUS'
+  - '&bDeal +75% Durability Damage.'
+  - '&bDeal +7.5% DMG to enemies'
+  - '&bBypass 50% of Heroic Armor'
+  - '&7(&7&oRequires all 4 yeti items.&7)'
+  enchant-rolls:
+  - { enchant: enchants/silence, mode: max }
+  - { enchant: enchants/lifesteal, mode: max }
+  - { enchant: enchants/demonic-lifesteal, mode: uniform, chance: 25 }

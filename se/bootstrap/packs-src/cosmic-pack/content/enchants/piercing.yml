@@ -1,29 +1,14 @@
-# Imported from EliteEnchantments (id: piercing). Review before shipping.
-display: "Piercing"
-description:
-  - "&eArrows deal bonus damage on hit."
+# Cosmic codex source: 05-enchants-bows.md — bow/Piercing.java
+display: Piercing
+description: Deals exactly 2.5% additional pre-armor hit damage per level to player targets.
 trigger: BOW
 applies-to: [BOW]
-group: "epic"
-tier: epic
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
 levels:
-  1:
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
-  2:
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
-  3:
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
-  4:
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 13 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
-  5:
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }  # EE DAMAGE_INCREASE → DAMAGE_MOD:attack:add
+  1: { condition: &player '%victim.isplayer% >= 1', effects: &l1 [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.025 } }, { SOUND: { sound: ARROW_HIT, volume: 1.2, pitch: 0.6, audience: target, at: target, who: '@Self' } }, { PARTICLE: { particle: CRIT, count: 20, spread: 1, random-spread: true, speed: 0.5, anchor: feet, who: '@Victim' } }] }
+  2: { condition: *player, effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.05 } }, { SOUND: { sound: ARROW_HIT, volume: 1.2, pitch: 0.6, audience: target, at: target, who: '@Self' } }, { PARTICLE: { particle: CRIT, count: 20, spread: 1, random-spread: true, speed: 0.5, anchor: feet, who: '@Victim' } }] }
+  3: { condition: *player, effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.075 } }, { SOUND: { sound: ARROW_HIT, volume: 1.2, pitch: 0.6, audience: target, at: target, who: '@Self' } }, { PARTICLE: { particle: CRIT, count: 20, spread: 1, random-spread: true, speed: 0.5, anchor: feet, who: '@Victim' } }] }
+  4: { condition: *player, effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.1 } }, { SOUND: { sound: ARROW_HIT, volume: 1.2, pitch: 0.6, audience: target, at: target, who: '@Self' } }, { PARTICLE: { particle: CRIT, count: 20, spread: 1, random-spread: true, speed: 0.5, anchor: feet, who: '@Victim' } }] }
+  5: { condition: *player, effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.125 } }, { SOUND: { sound: ARROW_HIT, volume: 1.2, pitch: 0.6, audience: target, at: target, who: '@Self' } }, { PARTICLE: { particle: CRIT, count: 20, spread: 1, random-spread: true, speed: 0.5, anchor: feet, who: '@Victim' } }] }

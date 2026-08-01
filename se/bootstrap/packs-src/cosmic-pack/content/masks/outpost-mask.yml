@@ -1,0 +1,14 @@
+# Cosmic codex source: 11-masks.md
+display: Outpost Mask
+color: '&b'
+head: eyJ0aW1lc3RhbXAiOjE1NjIwOTcxMDIzMjksInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS84ZmZmNDFlMWFmYzU5N2IxNGY3N2I4ZTQ0ZTJhMTM0ZGFiZTE2MWExNTI2YWRlODBlNjI5MGYyZGYzMzFkYzExIn19fQ==
+material: PLAYER_HEAD
+summary: Capture, destroy /outpost caps 2x faster
+description:
+- "&cCapture, destroy /outpost caps 2x faster"
+- "&7Your very presence commands unquestioning,"
+- "&7unwaivering admiration and respect."
+- "&6&l * &6July 2019"
+abilities:
+- trigger: PASSIVE
+  effects: []

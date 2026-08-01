@@ -80,7 +80,7 @@ public enum DiagCode {
     E_LOAD_YAML,           // a content file is not parseable YAML
     E_LOAD_IO,             // a content file could not be read
     E_LOAD_KEY,            // a content file has no usable name stem
-    E_LOAD_CHANCE,         // a chance: value is outside [0,100] or non-numeric
+    E_LOAD_CHANCE,         // a chance: value is negative, non-finite, or non-numeric
     E_LOAD_INT,            // a value that must be an integer is not
     E_LOAD_DOUBLE,         // a value that must be a number is not
     W_LOAD_BOOL,           // a value that must be a boolean is outside the true/yes/on/1 | false/no/off/0 vocabulary — warned, fallback kept

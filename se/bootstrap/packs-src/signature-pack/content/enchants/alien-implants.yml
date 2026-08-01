@@ -1,0 +1,33 @@
+# Imported from EliteEnchantments (id: alien-implants). Review before shipping.
+display: "Alien Implants"
+description:
+  - "&eMythic upgrade for Implants."
+  - "&eRestores more health and hunger,"
+  - "&emore often."
+  - "&c&l(!)&r &7Requires &eImplants"
+trigger: REPEATING
+repeat: 80
+applies-to: [HELMET]
+group: "mythic"
+tier: mythic
+requires: ["enchants/implants"]
+removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
+levels:
+  1:
+    chance: 25
+    effects:
+      - { PARTICLE: { particle: "END_ROD", count: 8 } }
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }
+      - { MODIFY_FOOD: { amount: 2, mode: "give" } }  # from FEED:2 — EE FEED → MODIFY_FOOD
+  2:
+    chance: 45
+    effects:
+      - { PARTICLE: { particle: "END_ROD", count: 8 } }
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }
+      - { MODIFY_FOOD: { amount: 2, mode: "give" } }  # from FEED:2 — EE FEED → MODIFY_FOOD
+  3:
+    chance: 65
+    effects:
+      - { PARTICLE: { particle: "END_ROD", count: 8 } }
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }
+      - { MODIFY_FOOD: { amount: 2, mode: "give" } }  # from FEED:2 — EE FEED → MODIFY_FOOD

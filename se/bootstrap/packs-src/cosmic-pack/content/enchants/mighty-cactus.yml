@@ -1,0 +1,21 @@
+# Cosmic codex source: 06-enchants-tools-heroic.md — heroic/HeroicCactus.java
+display: Mighty Cactus
+description: Heroic Enchantment. +50% chance per level to negate all Thorns enchantment damage.
+trigger:
+- DEFENSE
+- PASSIVE
+applies-to:
+- ARMOR
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    abilities:
+      - { trigger: DEFENSE, condition: '%victim.type% == "PLAYER"', effects: &retaliate1 [{ DAMAGE: { amount: 0.5, attributed: false, who: '@Attacker' } }, { BLOCK_BREAK_EFFECT: { block: CACTUS, anchor: feet, who: '@Self' } }] }
+      - { trigger: DEFENSE, chance: 50, condition: '%damagecause% == "THORNS"', effects: [{ CANCEL: {} }] }
+  2:
+    abilities:
+      - { trigger: DEFENSE, condition: '%victim.type% == "PLAYER"', effects: [{ DAMAGE: { amount: 1, attributed: false, who: '@Attacker' } }, { BLOCK_BREAK_EFFECT: { block: CACTUS, anchor: feet, who: '@Self' } }] }
+      - { trigger: DEFENSE, condition: '%damagecause% == "THORNS"', effects: [{ CANCEL: {} }] }

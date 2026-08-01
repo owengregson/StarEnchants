@@ -1,30 +1,37 @@
-# Imported from EliteEnchantments (id: drunk). Review before shipping.
-display: "Drunk"
-description:
-  - "&eSlows your movement and mining"
-  - "&ebut grants Strength."
-trigger: [PASSIVE, ATTACK]
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/Drunk.java
+display: Drunk
+description: Grants permanent Strength with Slowness and Mining Fatigue, and can inflict Nausea on the wearer when damaged.
+trigger: PASSIVE
 applies-to: [HELMET]
-group: "rare"
-tier: rare
+group: legendary
+tier: legendary
+stacking: EACH
 levels:
   1:
-    effects:
-      - { POTION: { effect: "SLOW", level: 1, duration: 200, who: "@Self" } }  # from POTION:SLOW:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
-      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 200, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }  # was POTION:INCREASE_DAMAGE — vanilla Strength is banned from content (era potion math re-amplifies it); R4 → +8% on the additive attack fold
+    abilities:
+      - trigger: PASSIVE
+        effects: [{ POTION: { effect: INCREASE_DAMAGE, level: 1, duration: 2147483647 } }, { POTION: { effect: SLOW, level: 1, duration: 2147483647 } }, { POTION: { effect: SLOW_DIGGING, level: 1, duration: 2147483647 } }]
+      - trigger: DEFENSE
+        chance: 1
+        effects: [{ POTION: { effect: CONFUSION, level: 1, duration: 40 } }, { MESSAGE: { text: "&eYou're starting to feel very dizzy..." } }]
   2:
-    effects:
-      - { POTION: { effect: "SLOW", level: 1, duration: 200, who: "@Self" } }  # from POTION:SLOW:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
-      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 200, who: "@Self" } }  # from POTION:SLOW_DIGGING:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }  # was POTION:INCREASE_DAMAGE — vanilla Strength is banned from content (era potion math re-amplifies it); R4 → +10% on the additive attack fold
+    abilities:
+      - trigger: PASSIVE
+        effects: [{ POTION: { effect: INCREASE_DAMAGE, level: 2, duration: 2147483647 } }, { POTION: { effect: SLOW, level: 1, duration: 2147483647 } }, { POTION: { effect: SLOW_DIGGING, level: 2, duration: 2147483647 } }]
+      - trigger: DEFENSE
+        chance: 2
+        effects: [{ POTION: { effect: CONFUSION, level: 1, duration: 80 } }, { MESSAGE: { text: "&eYou're starting to feel very dizzy..." } }]
   3:
-    effects:
-      - { POTION: { effect: "SLOW", level: 2, duration: 200, who: "@Self" } }  # from POTION:SLOW:2:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
-      - { POTION: { effect: "SLOW_DIGGING", level: 2, duration: 200, who: "@Self" } }  # from POTION:SLOW_DIGGING:2:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # was POTION:INCREASE_DAMAGE — vanilla Strength is banned from content (era potion math re-amplifies it); R4 → +12% on the additive attack fold
+    abilities:
+      - trigger: PASSIVE
+        effects: [{ POTION: { effect: INCREASE_DAMAGE, level: 2, duration: 2147483647 } }, { POTION: { effect: SLOW, level: 2, duration: 2147483647 } }, { POTION: { effect: SLOW_DIGGING, level: 2, duration: 2147483647 } }]
+      - trigger: DEFENSE
+        chance: 3
+        effects: [{ POTION: { effect: CONFUSION, level: 1, duration: 120 } }, { MESSAGE: { text: "&eYou're starting to feel very dizzy..." } }]
   4:
-    effects:
-      - { POTION: { effect: "SLOW", level: 2, duration: 200, who: "@Self" } }  # from POTION:SLOW:2:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
-      - { POTION: { effect: "SLOW_DIGGING", level: 2, duration: 200, who: "@Self" } }  # from POTION:SLOW_DIGGING:2:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
-      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }  # was POTION:INCREASE_DAMAGE — vanilla Strength is banned from content (era potion math re-amplifies it); R4 → +12% on the additive attack fold
+    abilities:
+      - trigger: PASSIVE
+        effects: [{ POTION: { effect: INCREASE_DAMAGE, level: 3, duration: 2147483647 } }, { POTION: { effect: SLOW, level: 3, duration: 2147483647 } }, { POTION: { effect: SLOW_DIGGING, level: 3, duration: 2147483647 } }]
+      - trigger: DEFENSE
+        chance: 4
+        effects: [{ POTION: { effect: CONFUSION, level: 2, duration: 160 } }, { MESSAGE: { text: "&eYou're starting to feel very dizzy..." } }]

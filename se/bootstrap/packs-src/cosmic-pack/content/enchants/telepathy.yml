@@ -1,33 +1,55 @@
-# Imported from EliteEnchantments (id: telepathy). Review before shipping.
-display: "Telepathy"
-description:
-  - "&eSends mined block drops straight"
-  - "&eto your inventory."
-trigger: MINE
-applies-to: [TOOL]
-group: "common"
-tier: common
+# Cosmic codex source: 06-enchants-tools-heroic.md — tools/Telepathy.java
+display: Telepathy
+description: Automatically places blocks broken by tools in your inventory.
+trigger:
+- MINE
+applies-to:
+- PICKAXE
+- HOE
+- SHOVEL
+- AXE
+- FISHING_ROD
+group: unique
+tier: unique
+stacking: HIGHEST
 levels:
   1:
-    chance: 40
     effects:
-      - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 0.8, pitch: 1.4 } }
-      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 6 } }
-      - { TELEPORT_DROPS: {} }  # from TELEPORT_DROPS — EE TELEPORT_DROPS → TELEPORT_DROPS (drops to inventory on MINE)
+    - SOUND:
+        sound: ENTITY_ITEM_PICKUP
+        volume: 0.8
+        pitch: 1.4
+    - PARTICLE:
+        particle: ENCHANTMENT_TABLE
+        count: 6
+    - TELEPORT_DROPS: {}
   2:
-    chance: 60
     effects:
-      - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 0.8, pitch: 1.4 } }
-      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 6 } }
-      - { TELEPORT_DROPS: {} }  # from TELEPORT_DROPS — EE TELEPORT_DROPS → TELEPORT_DROPS (drops to inventory on MINE)
+    - SOUND:
+        sound: ENTITY_ITEM_PICKUP
+        volume: 0.8
+        pitch: 1.4
+    - PARTICLE:
+        particle: ENCHANTMENT_TABLE
+        count: 6
+    - TELEPORT_DROPS: {}
   3:
-    chance: 80
     effects:
-      - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 0.8, pitch: 1.4 } }
-      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 6 } }
-      - { TELEPORT_DROPS: {} }  # from TELEPORT_DROPS — EE TELEPORT_DROPS → TELEPORT_DROPS (drops to inventory on MINE)
+    - SOUND:
+        sound: ENTITY_ITEM_PICKUP
+        volume: 0.8
+        pitch: 1.4
+    - PARTICLE:
+        particle: ENCHANTMENT_TABLE
+        count: 6
+    - TELEPORT_DROPS: {}
   4:
     effects:
-      - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 0.8, pitch: 1.4 } }
-      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 6 } }
-      - { TELEPORT_DROPS: {} }  # from TELEPORT_DROPS — EE TELEPORT_DROPS → TELEPORT_DROPS (drops to inventory on MINE)
+    - SOUND:
+        sound: ENTITY_ITEM_PICKUP
+        volume: 0.8
+        pitch: 1.4
+    - PARTICLE:
+        particle: ENCHANTMENT_TABLE
+        count: 6
+    - TELEPORT_DROPS: {}

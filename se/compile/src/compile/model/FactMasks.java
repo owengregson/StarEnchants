@@ -18,17 +18,18 @@ public final class FactMasks {
 
     /** The union of {@code condition}'s slots and every effect arg's expression slots; {@link FactMask#ALL} if a slot overflows a 64-bit space. */
     public static FactMask of(CompiledCondition condition, CompiledEffect[] effects) {
+        return of(condition, effects, new CompiledEffect[0]);
+    }
+
+    /** Union normal and gate-10 failure effect expressions into the demand-population mask. */
+    public static FactMask of(CompiledCondition condition, CompiledEffect[] effects,
+                              CompiledEffect[] noSoulEffects) {
         Acc acc = new Acc();
         if (condition != null) {
             acc.cond(condition.root());
         }
-        for (CompiledEffect effect : effects) {
-            for (Object value : effect.args().asMap().values()) {
-                if (value instanceof NumExpr expr) {
-                    acc.num(expr); // e.g. DAMAGE_MOD:...:%combo% reads the combo number slot at run time
-                }
-            }
-        }
+        acc.effects(effects);
+        acc.effects(noSoulEffects);
         return acc.mask();
     }
 
@@ -103,6 +104,16 @@ public final class FactMasks {
                 // Reference no fact slot.
             } else {
                 throw new IllegalStateException("unhandled node: " + node.getClass());
+            }
+        }
+
+        void effects(CompiledEffect[] effects) {
+            for (CompiledEffect effect : effects) {
+                for (Object value : effect.args().asMap().values()) {
+                    if (value instanceof NumExpr expr) {
+                        num(expr);
+                    }
+                }
             }
         }
 

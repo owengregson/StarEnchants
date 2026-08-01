@@ -1,0 +1,15 @@
+# Cosmic codex source: 07-enchants-mastery-soul.md — mastery/MasteryAutoSell.java
+display: Auto Sell
+description: Automatically sells all blocks broken by your pickaxe for /shop value.
+trigger:
+- ATTACK
+- DEFENSE
+- PASSIVE
+applies-to: [PICKAXE, HOE, SHOVEL, AXE, FISHING_ROD]
+group: mastery
+tier: mastery
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    effects: []

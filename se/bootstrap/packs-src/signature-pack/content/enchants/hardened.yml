@@ -1,0 +1,29 @@
+# Imported from EliteEnchantments (id: hardened). Review before shipping.
+display: "Hardened"
+description:
+  - "&eYour armor sometimes refuses to"
+  - "&elose durability."
+trigger: ITEM_DAMAGE
+applies-to: [ARMOR]
+group: "uncommon"
+tier: uncommon
+condition: "%itemdamage.armor%"
+levels:
+  1:
+    chance: 20
+    effects:
+      - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 0.6, pitch: 1.4 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
+      - { CANCEL: {} }
+  2:
+    chance: 35
+    effects:
+      - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 0.6, pitch: 1.4 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
+      - { CANCEL: {} }
+  3:
+    chance: 50
+    effects:
+      - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 0.6, pitch: 1.4 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
+      - { CANCEL: {} }

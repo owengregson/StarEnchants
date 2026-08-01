@@ -1,0 +1,16 @@
+# Cosmic codex source: 03-enchants-swords.md — swords/Greatsword.java
+display: Greatsword
+description: Multiplies damage against players who are wielding a BOW at the time they are hit.
+trigger:
+- ATTACK
+applies-to:
+- SWORD
+group: elite
+tier: elite
+stacking: HIGHEST
+levels:
+  1: { condition: &bow '%victim.helditem% == "BOW"', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.05 } }] }
+  2: { condition: *bow, effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.10 } }] }
+  3: { condition: *bow, effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.15 } }] }
+  4: { condition: *bow, effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.20 } }] }
+  5: { condition: *bow, effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.25 } }] }

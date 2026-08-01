@@ -1,0 +1,13 @@
+# Cosmic codex source: 11-masks.md
+display: Headless Mask
+color: '&6'
+head: eyJ0aW1lc3RhbXAiOjE1Mzk2ODUyODcwNjgsInByb2ZpbGVJZCI6IjU5ZjAzOTljZWVlMzQwOTViYzJmOTBkZTMwNGM5OGMxIiwicHJvZmlsZU5hbWUiOiJCYW5kaWl0byIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS85YWJkNjA4ZTdkYWNlMmU2OTkyZTQ3ZmJiMmRjZjY2NDhkOTc1Y2FlOGQzMjYxNWM2Y2YwM2VkYzdkYjMyODY4IiwibWV0YWRhdGEiOnsibW9kZWwiOiJzbGltIn19fX0=
+material: PLAYER_HEAD
+summary: ''
+description:
+- "&7A terrifying Mask from the"
+- "&7grave of the Headless Horseman."
+- "&6&l * &6October 2018"
+abilities:
+- trigger: PASSIVE
+  effects: []

@@ -18,6 +18,8 @@ import java.util.List;
  * @param floor            the minimum pet level at which this bracket is live
  * @param cooldownTicks    the bracket's right-click cooldown (ability a0's, surfaced as {@code {TIME_FORMATTED}})
  * @param durationTicks    the ACTIVE armed window; {@code 0} = no window (instant effects, no ENDED message)
+ * @param experienceOnUse   exact XP credited after a successful USE; {@code -1} = legacy global random grant
+ * @param description       optional bracket-specific ability description; empty uses the pet's root description
  * @param useStableKeys    stable keys of the bracket's USE abilities, in authored order
  * @param wornStableKeys   stable keys of the bracket's non-USE abilities, in authored order
  * @param conditionSources authored condition strings aligned to {@link #useStableKeys} ({@code ""} where none);
@@ -27,11 +29,14 @@ public record PetBracket(
         int floor,
         int cooldownTicks,
         int durationTicks,
+        int experienceOnUse,
+        List<String> description,
         List<String> useStableKeys,
         List<String> wornStableKeys,
         List<String> conditionSources) {
 
     public PetBracket {
+        description = List.copyOf(description);
         useStableKeys = List.copyOf(useStableKeys);
         wornStableKeys = List.copyOf(wornStableKeys);
         conditionSources = List.copyOf(conditionSources);

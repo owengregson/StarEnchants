@@ -1,0 +1,35 @@
+# Imported from EliteEnchantments (id: demonic-lifesteal). Review before shipping.
+display: "Demonic Lifesteal"
+description:
+  - "&eMythic upgrade for Lifesteal."
+  - "&eRestores much more health on"
+  - "&ehit."
+  - "&c&l(!)&r &7Requires &6Lifesteal"
+trigger: ATTACK
+applies-to: [WEAPON]
+group: "mythic"
+tier: mythic
+requires: ["enchants/lifesteal"]
+removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
+levels:
+  1:
+    chance: 25
+    cooldown: 120
+    effects:
+      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SOUL_FIRE_FLAME", count: 8, who: "@Self" } }
+      - { MODIFY_HEALTH: { amount: 3, mode: "give", who: "@Self" } }
+  2:
+    chance: 30
+    cooldown: 120
+    effects:
+      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SOUL_FIRE_FLAME", count: 8, who: "@Self" } }
+      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }
+  3:
+    chance: 35
+    cooldown: 120
+    effects:
+      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SOUL_FIRE_FLAME", count: 8, who: "@Self" } }
+      - { MODIFY_HEALTH: { amount: 5, mode: "give", who: "@Self" } }

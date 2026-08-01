@@ -1,0 +1,23 @@
+# Cosmic codex source: 07-enchants-mastery-soul.md — mastery/MasteryPoltergeist.java
+display: Poltergeist
+description: Immune to Nature's Wrath snare, a chance to negate Dimensional Traveler and Mother of Yijki stun and damage from
+  set abilities. Also negates all fall damage.
+trigger:
+- DEFENSE
+- PASSIVE
+applies-to:
+- ARMOR
+group: mastery
+tier: mastery
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    abilities:
+      - { trigger: DEFENSE, condition: &fall '%damagecause% == "FALL"', effects: &cancel [{ CANCEL: {} }] }
+  2:
+    abilities:
+      - { trigger: DEFENSE, condition: *fall, effects: *cancel }
+  3:
+    abilities:
+      - { trigger: DEFENSE, condition: *fall, effects: *cancel }

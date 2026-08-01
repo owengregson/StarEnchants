@@ -1,29 +1,21 @@
-# Imported from EliteEnchantments (id: implants). Review before shipping.
-display: "Implants"
-description:
-  - "&ePeriodically restores health and"
-  - "&ehunger."
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/Implants.java
+display: Implants
+description: Restores 1 food every intended level-scaled period and 1 HP every other period.
 trigger: REPEATING
-repeat: 100
 applies-to: [HELMET]
-group: "uncommon"
-tier: uncommon
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
 levels:
   1:
-    chance: 15
-    effects:
-      - { PARTICLE: { particle: "HEART", count: 4 } }
-      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }  # from HEAL:ADD:1:1 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
-      - { MODIFY_FOOD: { amount: 2, mode: "give" } }  # from FEED:2 — EE FEED → MODIFY_FOOD
+    abilities:
+      - { trigger: REPEATING, repeat: 120, effects: [{ MODIFY_FOOD: { amount: 1, mode: give } }] }
+      - { trigger: REPEATING, repeat: 240, effects: [{ MODIFY_HEALTH: { amount: 1, mode: give } }] }
   2:
-    chance: 20
-    effects:
-      - { PARTICLE: { particle: "HEART", count: 4 } }
-      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }  # from HEAL:ADD:1:1 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
-      - { MODIFY_FOOD: { amount: 2, mode: "give" } }  # from FEED:2 — EE FEED → MODIFY_FOOD
+    abilities:
+      - { trigger: REPEATING, repeat: 60, effects: [{ MODIFY_FOOD: { amount: 1, mode: give } }] }
+      - { trigger: REPEATING, repeat: 120, effects: [{ MODIFY_HEALTH: { amount: 1, mode: give } }] }
   3:
-    chance: 25
-    effects:
-      - { PARTICLE: { particle: "HEART", count: 4 } }
-      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }  # from HEAL:ADD:1:1 — EE HEAL:ADD → MODIFY_HEALTH (give, self); random range → max
-      - { MODIFY_FOOD: { amount: 2, mode: "give" } }  # from FEED:2 — EE FEED → MODIFY_FOOD
+    abilities:
+      - { trigger: REPEATING, repeat: 40, effects: [{ MODIFY_FOOD: { amount: 1, mode: give } }] }
+      - { trigger: REPEATING, repeat: 80, effects: [{ MODIFY_HEALTH: { amount: 1, mode: give } }] }

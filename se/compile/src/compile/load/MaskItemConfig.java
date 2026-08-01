@@ -21,7 +21,9 @@ import java.util.Objects;
  * @param soundRemove     cue played when a mask is popped back off
  */
 public record MaskItemConfig(String name, List<String> lore, String loreWhileOnItem, boolean sounds,
-                             SoundCue soundApply, SoundCue soundRemove) {
+                             SoundCue soundApply, SoundCue soundRemove,
+                             String multiName, List<String> multiLore, String multiComponentName,
+                             String multiComponentAbility, String multiLoreWhileOnItem) {
 
     public MaskItemConfig {
         Objects.requireNonNull(name, "name");
@@ -29,6 +31,19 @@ public record MaskItemConfig(String name, List<String> lore, String loreWhileOnI
         Objects.requireNonNull(loreWhileOnItem, "loreWhileOnItem");
         Objects.requireNonNull(soundApply, "soundApply");
         Objects.requireNonNull(soundRemove, "soundRemove");
+        Objects.requireNonNull(multiName, "multiName");
+        multiLore = List.copyOf(multiLore);
+        Objects.requireNonNull(multiComponentName, "multiComponentName");
+        Objects.requireNonNull(multiComponentAbility, "multiComponentAbility");
+        Objects.requireNonNull(multiLoreWhileOnItem, "multiLoreWhileOnItem");
+    }
+
+    /** Compatibility constructor for the pre-Multi-Mask universal likeness. */
+    public MaskItemConfig(String name, List<String> lore, String loreWhileOnItem, boolean sounds,
+                          SoundCue soundApply, SoundCue soundRemove) {
+        this(name, lore, loreWhileOnItem, sounds, soundApply, soundRemove,
+                defaults().multiName(), defaults().multiLore(), defaults().multiComponentName(),
+                defaults().multiComponentAbility(), defaults().multiLoreWhileOnItem());
     }
 
     public static MaskItemConfig defaults() {
@@ -38,6 +53,11 @@ public record MaskItemConfig(String name, List<String> lore, String loreWhileOnI
                 "&6&lMask Equipped ({NAME}&r&6&l)",
                 true,
                 new SoundCue("block.amethyst_block.chime", 1.0f, 1.0f),
-                new SoundCue("block.amethyst_cluster.break", 1.0f, 1.0f));
+                new SoundCue("block.amethyst_cluster.break", 1.0f, 1.0f),
+                "&f&lMulti-Mask (&r{MASKS}&f&l)",
+                List.of("&7This mask contains the powers of:", "{COMPONENTS}"),
+                "&f&l* {COLOR}&l{NAME}",
+                "&f&l({SUMMARY}&f&l)",
+                "&7&lATTACHED: &f&lMulti-Mask&f ({MASKS}&f)");
     }
 }

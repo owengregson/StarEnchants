@@ -24,6 +24,12 @@ public final class VanillaEnchants {
         this.resolver = resolver == null ? name -> null : resolver;
     }
 
+    /** Resolve a vanilla enchant's declared maximum level, or {@code 0} when the name is unavailable. */
+    public int maxLevel(String name) {
+        Enchantment enchant = resolver.apply(name);
+        return enchant == null ? 0 : Math.max(1, enchant.getMaxLevel());
+    }
+
     /**
      * Apply vanilla enchants by NAME ({@code name → level}) to {@code stack} in place — the cross-version mint
      * path for set-piece base enchants (Protection/Unbreaking/Sharpness, §6.6). Unknown names (resolver miss)

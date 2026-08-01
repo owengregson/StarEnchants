@@ -1,30 +1,13 @@
-# Imported from EliteEnchantments (id: barbarian). Review before shipping.
-display: "Barbarian"
-description:
-  - "&eDeals bonus damage to targets"
-  - "&eholding an axe."
+# Cosmic codex source: 04-enchants-axes.md — axes/Barbarian.java
+display: Barbarian
+description: Multiplies damage against players who are wielding an AXE at the time they are hit.
 trigger: ATTACK
 applies-to: [AXE]
-group: "rare"
-tier: rare
+group: legendary
+tier: legendary
+stacking: HIGHEST
 levels:
-  1:
-    condition: "%victim.helditem% contains \"AXE\""
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.14 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
-  2:
-    condition: "%victim.helditem% contains \"AXE\""
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.24 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
-  3:
-    condition: "%victim.helditem% contains \"AXE\""
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.35 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
-  4:
-    condition: "%victim.helditem% contains \"AXE\""
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 10 } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.45 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
+  1: { condition: &axeholder '(%victim.helditem% == "WOODEN_AXE" || %victim.helditem% == "WOOD_AXE" || %victim.helditem% == "STONE_AXE" || %victim.helditem% == "IRON_AXE" || %victim.helditem% == "GOLDEN_AXE" || %victim.helditem% == "GOLD_AXE" || %victim.helditem% == "DIAMOND_AXE" || %victim.helditem% == "NETHERITE_AXE")', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.05 } }] }
+  2: { condition: *axeholder, effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.1 } }] }
+  3: { condition: *axeholder, effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.15 } }] }
+  4: { condition: *axeholder, effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.2 } }] }

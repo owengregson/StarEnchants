@@ -1,80 +1,49 @@
-# Imported from EliteEnchantments (id: guardians). Review before shipping.
-display: "Guardians"
-description:
-  - "&eWhen hit, summons iron golems"
-  - "&ethat fight for you."
-trigger: DEFENSE
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/Guardians.java
+display: Guardians
+description: Chance on direct player melee to summon source-accurate iron golem guardians.
+trigger: [DEFENSE]
 applies-to: [ARMOR]
-group: "uncommon"
-tier: uncommon
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
 levels:
   1:
-    chance: 0.25
-    cooldown: 400
-    effects:
-      - { SOUND: { sound: "ENTITY_GUARDIAN_ATTACK", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "NAUTILUS", count: 8 } }
-      - { GUARD: { type: "IRON_GOLEM", count: 1, ttl: 400 } }  # from SPAWN:IRON_GOLEM:20:1:10:&b&l%player%'s Guardians — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+    abilities:
+      - { trigger: DEFENSE, chance: 6, cooldown: 200, condition: &normal '%damagecause% == "ENTITY_ATTACK" && %victim.type% == "PLAYER" && %actor.world% != "world_koth" && %actor.world% != "world_duels" && %actor.world% != "world_duels2"', effects: &g1 [{ PARTICLE: { particle: SPELL, count: 45, spread: 1, random-spread: true, speed: 0.64, anchor: feet, y-offset: 2, who: '@Self' } }, { GUARD: { type: IRON_GOLEM, count: 1, ttl: 600, name: "&b&l{ATTACKER}'s Guardian", health: 60, spawn-y-offset: 2, chunk-cap: 100, retarget-radius: 9, retarget-period: 20, fire-resistance: true, sound: IRONGOLEM_DEATH, sound-volume: 1, sound-pitch: 0.55 } }] }
+      - { trigger: DEFENSE, chance: 3, cooldown: 200, condition: &special '%damagecause% == "ENTITY_ATTACK" && %victim.type% == "PLAYER" && (%actor.world% == "world_koth" || %actor.world% == "world_duels" || %actor.world% == "world_duels2")', effects: *g1 }
   2:
-    chance: 0.5
-    cooldown: 400
-    effects:
-      - { SOUND: { sound: "ENTITY_GUARDIAN_ATTACK", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "NAUTILUS", count: 8 } }
-      - { GUARD: { type: "IRON_GOLEM", count: 1, ttl: 400 } }  # from SPAWN:IRON_GOLEM:20:1:10:&b&l%player%'s Guardians — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+    abilities:
+      - { trigger: DEFENSE, chance: 11, cooldown: 200, condition: *normal, effects: &g2 [{ PARTICLE: { particle: SPELL, count: 45, spread: 1, random-spread: true, speed: 0.64, anchor: feet, y-offset: 2, who: '@Self' } }, { GUARD: { type: IRON_GOLEM, count: 1, ttl: 600, name: "&b&l{ATTACKER}'s Guardian", health: 70, spawn-y-offset: 2, chunk-cap: 100, retarget-radius: 9, retarget-period: 20, fire-resistance: true, sound: IRONGOLEM_DEATH, sound-volume: 1, sound-pitch: 0.55 } }] }
+      - { trigger: DEFENSE, chance: 5.5, cooldown: 200, condition: *special, effects: *g2 }
   3:
-    chance: 0.65
-    cooldown: 400
-    effects:
-      - { SOUND: { sound: "ENTITY_GUARDIAN_ATTACK", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "NAUTILUS", count: 8 } }
-      - { GUARD: { type: "IRON_GOLEM", count: 1, ttl: 400 } }  # from SPAWN:IRON_GOLEM:20:1:10:&b&l%player%'s Guardians — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+    abilities:
+      - { trigger: DEFENSE, chance: 16, cooldown: 200, condition: *normal, effects: &g3 [{ PARTICLE: { particle: SPELL, count: 45, spread: 1, random-spread: true, speed: 0.64, anchor: feet, y-offset: 2, who: '@Self' } }, { GUARD: { type: IRON_GOLEM, count: 1, ttl: 600, name: "&b&l{ATTACKER}'s Guardian", health: 80, spawn-y-offset: 2, chunk-cap: 100, retarget-radius: 9, retarget-period: 20, fire-resistance: true, sound: IRONGOLEM_DEATH, sound-volume: 1, sound-pitch: 0.55 } }] }
+      - { trigger: DEFENSE, chance: 8, cooldown: 200, condition: *special, effects: *g3 }
   4:
-    chance: 0.85
-    cooldown: 400
-    effects:
-      - { SOUND: { sound: "ENTITY_GUARDIAN_ATTACK", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "NAUTILUS", count: 8 } }
-      - { GUARD: { type: "IRON_GOLEM", count: 1, ttl: 400 } }  # from SPAWN:IRON_GOLEM:20:1:10:&b&l%player%'s Guardians — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+    abilities:
+      - { trigger: DEFENSE, chance: 20, cooldown: 200, condition: *normal, effects: &g4 [{ PARTICLE: { particle: SPELL, count: 45, spread: 1, random-spread: true, speed: 0.64, anchor: feet, y-offset: 2, who: '@Self' } }, { GUARD: { type: IRON_GOLEM, count: 1, ttl: 600, name: "&b&l{ATTACKER}'s Guardian", health: 90, spawn-y-offset: 2, chunk-cap: 100, retarget-radius: 9, retarget-period: 20, fire-resistance: true, regeneration: true, sound: IRONGOLEM_DEATH, sound-volume: 1, sound-pitch: 0.55 } }] }
+      - { trigger: DEFENSE, chance: 10, cooldown: 200, condition: *special, effects: *g4 }
   5:
-    chance: 1
-    cooldown: 400
-    effects:
-      - { SOUND: { sound: "ENTITY_GUARDIAN_ATTACK", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "NAUTILUS", count: 8 } }
-      - { GUARD: { type: "IRON_GOLEM", count: 1, ttl: 400 } }  # from SPAWN:IRON_GOLEM:20:1:10:&b&l%player%'s Guardians — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+    abilities:
+      - { trigger: DEFENSE, chance: 20, cooldown: 200, condition: *normal, effects: &g5 [{ PARTICLE: { particle: SPELL, count: 45, spread: 1, random-spread: true, speed: 0.64, anchor: feet, y-offset: 2, who: '@Self' } }, { GUARD: { type: IRON_GOLEM, count: 1, ttl: 600, name: "&b&l{ATTACKER}'s Guardian", health: 100, spawn-y-offset: 2, chunk-cap: 100, retarget-radius: 9, retarget-period: 20, fire-resistance: true, regeneration: true, sound: IRONGOLEM_DEATH, sound-volume: 1, sound-pitch: 0.55 } }] }
+      - { trigger: DEFENSE, chance: 10, cooldown: 200, condition: *special, effects: *g5 }
   6:
-    chance: 2
-    cooldown: 400
-    effects:
-      - { SOUND: { sound: "ENTITY_GUARDIAN_ATTACK", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "NAUTILUS", count: 8 } }
-      - { GUARD: { type: "IRON_GOLEM", count: 2, ttl: 500 } }  # from SPAWN:IRON_GOLEM:25:2:10:&b&l%player%'s Guardians — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+    abilities:
+      - { trigger: DEFENSE, chance: 20, cooldown: 200, condition: *normal, effects: &g6 [{ PARTICLE: { particle: SPELL, count: 45, spread: 1, random-spread: true, speed: 0.64, anchor: feet, y-offset: 2, who: '@Self' } }, { GUARD: { type: IRON_GOLEM, count: 1, ttl: 600, name: "&b&l{ATTACKER}'s Guardian", health: 110, spawn-y-offset: 2, chunk-cap: 100, retarget-radius: 9, retarget-period: 20, fire-resistance: true, regeneration: true, strength: true, sound: IRONGOLEM_DEATH, sound-volume: 1, sound-pitch: 0.55 } }] }
+      - { trigger: DEFENSE, chance: 10, cooldown: 200, condition: *special, effects: *g6 }
   7:
-    chance: 3
-    cooldown: 400
-    effects:
-      - { SOUND: { sound: "ENTITY_GUARDIAN_ATTACK", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "NAUTILUS", count: 8 } }
-      - { GUARD: { type: "IRON_GOLEM", count: 2, ttl: 500 } }  # from SPAWN:IRON_GOLEM:25:2:10:&b&l%player%'s Guardians — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+    abilities:
+      - { trigger: DEFENSE, chance: 20, cooldown: 200, condition: *normal, effects: &g7 [{ PARTICLE: { particle: SPELL, count: 45, spread: 1, random-spread: true, speed: 0.64, anchor: feet, y-offset: 2, who: '@Self' } }, { GUARD: { type: IRON_GOLEM, count: 1, ttl: 600, name: "&b&l{ATTACKER}'s Guardian", health: 120, spawn-y-offset: 2, chunk-cap: 100, retarget-radius: 9, retarget-period: 20, fire-resistance: true, regeneration: true, strength: true, sound: IRONGOLEM_DEATH, sound-volume: 1, sound-pitch: 0.55 } }] }
+      - { trigger: DEFENSE, chance: 10, cooldown: 200, condition: *special, effects: *g7 }
   8:
-    chance: 4
-    cooldown: 400
-    effects:
-      - { SOUND: { sound: "ENTITY_GUARDIAN_ATTACK", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "NAUTILUS", count: 8 } }
-      - { GUARD: { type: "IRON_GOLEM", count: 2, ttl: 500 } }  # from SPAWN:IRON_GOLEM:25:2:10:&b&l%player%'s Guardians — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+    abilities:
+      - { trigger: DEFENSE, chance: 20, cooldown: 200, condition: *normal, effects: &g8 [{ PARTICLE: { particle: SPELL, count: 45, spread: 1, random-spread: true, speed: 0.64, anchor: feet, y-offset: 2, who: '@Self' } }, { GUARD: { type: IRON_GOLEM, count: 1, ttl: 600, name: "&b&l{ATTACKER}'s Guardian", health: 130, spawn-y-offset: 2, chunk-cap: 100, retarget-radius: 9, retarget-period: 20, fire-resistance: true, regeneration: true, strength: true, speed: true, sound: IRONGOLEM_DEATH, sound-volume: 1, sound-pitch: 0.55 } }] }
+      - { trigger: DEFENSE, chance: 10, cooldown: 200, condition: *special, effects: *g8 }
   9:
-    chance: 5
-    cooldown: 400
-    effects:
-      - { SOUND: { sound: "ENTITY_GUARDIAN_ATTACK", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "NAUTILUS", count: 8 } }
-      - { GUARD: { type: "IRON_GOLEM", count: 2, ttl: 600 } }  # from SPAWN:IRON_GOLEM:30:2:10:&b&l%player%'s Guardians — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+    abilities:
+      - { trigger: DEFENSE, chance: 20, cooldown: 200, condition: *normal, effects: &g9 [{ PARTICLE: { particle: SPELL, count: 45, spread: 1, random-spread: true, speed: 0.64, anchor: feet, y-offset: 2, who: '@Self' } }, { GUARD: { type: IRON_GOLEM, count: 1, ttl: 600, name: "&b&l{ATTACKER}'s Guardian", health: 140, spawn-y-offset: 2, chunk-cap: 100, retarget-radius: 9, retarget-period: 20, fire-resistance: true, regeneration: true, strength: true, speed: true, sound: IRONGOLEM_DEATH, sound-volume: 1, sound-pitch: 0.55 } }] }
+      - { trigger: DEFENSE, chance: 10, cooldown: 200, condition: *special, effects: *g9 }
   10:
-    chance: 6
-    cooldown: 400
-    effects:
-      - { SOUND: { sound: "ENTITY_GUARDIAN_ATTACK", volume: 0.9, pitch: 1.0 } }
-      - { PARTICLE: { particle: "NAUTILUS", count: 8 } }
-      - { GUARD: { type: "IRON_GOLEM", count: 3, ttl: 900 } }  # from SPAWN:IRON_GOLEM:45:3:10:&b&l%player%'s Guardians — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+    abilities:
+      - { trigger: DEFENSE, chance: 20, cooldown: 200, condition: *normal, effects: &g10 [{ PARTICLE: { particle: SPELL, count: 45, spread: 1, random-spread: true, speed: 0.64, anchor: feet, y-offset: 2, who: '@Self' } }, { GUARD: { type: IRON_GOLEM, count: 2, ttl: 600, name: "&b&l{ATTACKER}'s Guardian", health: 150, spawn-y-offset: 2, chunk-cap: 100, retarget-radius: 9, retarget-period: 20, fire-resistance: true, regeneration: true, strength: true, speed: true, resistance: true, sound: IRONGOLEM_DEATH, sound-volume: 1, sound-pitch: 0.55 } }] }
+      - { trigger: DEFENSE, chance: 10, cooldown: 200, condition: *special, effects: [{ PARTICLE: { particle: SPELL, count: 45, spread: 1, random-spread: true, speed: 0.64, anchor: feet, y-offset: 2, who: '@Self' } }, { GUARD: { type: IRON_GOLEM, count: 1, ttl: 600, name: "&b&l{ATTACKER}'s Guardian", health: 150, spawn-y-offset: 2, chunk-cap: 100, retarget-radius: 9, retarget-period: 20, fire-resistance: true, regeneration: true, strength: true, speed: true, resistance: true, sound: IRONGOLEM_DEATH, sound-volume: 1, sound-pitch: 0.55 } }] }

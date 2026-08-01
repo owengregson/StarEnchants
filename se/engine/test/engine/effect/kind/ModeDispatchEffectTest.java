@@ -119,7 +119,10 @@ class ModeDispatchEffectTest {
                         s -> verify(s).addFlatDamage(2.0)),
                 noTarget("DAMAGE_MOD defense/flat → addFlatReduction", new DamageModEffect(),
                         c -> c.with("side", "defense").with("mode", "flat").with("amount", 3.0),
-                        s -> verify(s).addFlatReduction(3.0)));
+                        s -> verify(s).addFlatReduction(3.0)),
+                noTarget("DAMAGE_MOD cap clamps a positive evaluated amount", new DamageModEffect(),
+                        c -> c.with("side", "attack").with("mode", "add").with("amount", 90.0).with("cap", 75.0),
+                        s -> verify(s).addOutgoingDamage(0.75)));
     }
 
     @TestFactory
@@ -326,7 +329,7 @@ class ModeDispatchEffectTest {
                     verifyNoMoreInteractions(sink);
                 }),
                 dynamicTest("MESSAGE chat fills {VICTIM} with the other combat party's name", () -> {
-                    Player actor = mock(Player.class); // default self recipient
+                    Player actor = mock(Player.class);
                     when(actor.getName()).thenReturn("Wearer");
                     LivingEntity victim = mock(LivingEntity.class);
                     when(victim.getName()).thenReturn("Foe");
@@ -336,6 +339,18 @@ class ModeDispatchEffectTest {
                     Sink sink = mock(Sink.class);
                     new MessageEffect().run(ctx, sink);
                     verify(sink).message(actor, "hit &fFoe");
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("MESSAGE chat fills {SOULS} from the current post-spend total", () -> {
+                    Player actor = mock(Player.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("channel", "chat").with("text", "&7You have &n{SOULS}&7 souls left.")
+                            .actor(actor).targets("who", actor);
+                    Sink sink = mock(Sink.class);
+                    when(sink.soulTotal(actor)).thenReturn(40);
+                    new MessageEffect().run(ctx, sink);
+                    verify(sink).soulTotal(actor);
+                    verify(sink).message(actor, "&7You have &n40&7 souls left.");
                     verifyNoMoreInteractions(sink);
                 }),
                 dynamicTest("MESSAGE to a non-player who recipient is skipped", () -> {
@@ -404,7 +419,8 @@ class ModeDispatchEffectTest {
                     LivingEntity a = mock(LivingEntity.class);
                     Location loc = mock(Location.class);
                     FakeEffectCtx ctx = FakeEffectCtx.create()
-                            .with("mode", "away").with("strength", 1.5).actorOrigin(loc).targets("who", a);
+                            .with("mode", "away").with("from", "actor").with("strength", 1.5)
+                            .actorOrigin(loc).targets("who", a);
                     Sink sink = mock(Sink.class);
                     new VelocityEffect().run(ctx, sink);
                     verify(sink).knockback(a, loc, 1.5);
@@ -412,7 +428,8 @@ class ModeDispatchEffectTest {
                 }),
                 dynamicTest("VELOCITY away with no origin → no-op", () -> {
                     FakeEffectCtx ctx = FakeEffectCtx.create()
-                            .with("mode", "away").with("strength", 1.5).targets("who", mock(LivingEntity.class));
+                            .with("mode", "away").with("from", "actor").with("strength", 1.5)
+                            .targets("who", mock(LivingEntity.class));
                     Sink sink = mock(Sink.class);
                     new VelocityEffect().run(ctx, sink); // uncapturable actor origin → no shove (also no NPE)
                     verifyNoInteractions(sink);

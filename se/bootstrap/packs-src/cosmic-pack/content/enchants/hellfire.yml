@@ -1,45 +1,14 @@
-# Imported from EliteEnchantments (id: hellfire). Review before shipping.
-display: "Hellfire"
-description:
-  - "&eYour arrows fly as explosive"
-  - "&efireballs."
+# Cosmic codex source: 05-enchants-bows.md — bow/Hellfire.java + FireballListener.java
+display: Hellfire
+description: Sets direct targets on fire and burns enemy players near the landing point before dealing a fresh delayed hit.
 trigger: BOW_FIRE
 applies-to: [BOW]
-group: "uncommon"
-tier: uncommon
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
 levels:
-  1:
-    chance: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_BLAZE_SHOOT", volume: 1.0, pitch: 0.9 } }
-      - { PARTICLE: { particle: "FLAME", count: 16 } }
-      - { CANCEL: {} }
-      - { PROJECTILE: { type: "FIREBALL", count: 1, speed: 1.5, yield: 0, incendiary: false } }
-  2:
-    chance: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_BLAZE_SHOOT", volume: 1.0, pitch: 0.9 } }
-      - { PARTICLE: { particle: "FLAME", count: 16 } }
-      - { CANCEL: {} }
-      - { PROJECTILE: { type: "FIREBALL", count: 1, speed: 1.75, yield: 0, incendiary: false } }
-  3:
-    chance: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_BLAZE_SHOOT", volume: 1.0, pitch: 0.9 } }
-      - { PARTICLE: { particle: "FLAME", count: 16 } }
-      - { CANCEL: {} }
-      - { PROJECTILE: { type: "FIREBALL", count: 1, speed: 2.0, yield: 0, incendiary: false } }
-  4:
-    chance: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_BLAZE_SHOOT", volume: 1.0, pitch: 0.9 } }
-      - { PARTICLE: { particle: "FLAME", count: 16 } }
-      - { CANCEL: {} }
-      - { PROJECTILE: { type: "FIREBALL", count: 1, speed: 2.25, yield: 0, incendiary: false } }
-  5:
-    chance: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_BLAZE_SHOOT", volume: 1.0, pitch: 0.9 } }
-      - { PARTICLE: { particle: "FLAME", count: 16 } }
-      - { CANCEL: {} }
-      - { PROJECTILE: { type: "FIREBALL", count: 1, speed: 2.5, yield: 0, incendiary: false } }
+  1: { effects: [] }
+  2: { effects: [] }
+  3: { effects: [] }
+  4: { effects: [] }
+  5: { effects: [] }

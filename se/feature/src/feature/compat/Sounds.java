@@ -48,11 +48,26 @@ public final class Sounds {
         if (constant.isEmpty()) {
             return null;
         }
+        Sound direct = field(constant);
+        if (direct != null) {
+            return direct;
+        }
+        // Cosmic 1.8 names this cue EAT; modern Bukkit renamed the same player-eating sound.
+        if ("EAT".equals(constant)) {
+            return field("ENTITY_GENERIC_EAT");
+        }
+        if ("ENTITY_GENERIC_EAT".equals(constant)) {
+            return field("EAT");
+        }
+        return null;
+    }
+
+    private static Sound field(String constant) {
         try {
             Field field = Sound.class.getField(constant);
             return field.get(null) instanceof Sound s ? s : null;
         } catch (ReflectiveOperationException | RuntimeException absent) {
-            return null; // not a constant on this version → caller skips
+            return null;
         }
     }
 

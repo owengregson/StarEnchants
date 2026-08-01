@@ -38,9 +38,9 @@ features:
 # percents and vanilla-vs-vanilla combat are never scaled. pvp/pve gate whether StarEnchants combat effects
 # apply at all in that context. All read live on /se reload.
 combat:
-  max-bonus-damage: 0.70      # pre-scale cap on the summed outgoing fraction (0.70 = at most +70%); one-shot backstop ≈ x4.5 base at attack-scale 5; <0 = uncapped
-  max-bonus-reduction: 0.60   # ceiling on summed damage-reduction fraction (0.60 = at most 60%); <0 = uncapped
-  attack-scale: 5.0           # post-cap multiplier on the custom attack side; 1.0 = neutral (modern vanilla armor)
+  max-bonus-damage: -1
+  max-bonus-reduction: -1
+  attack-scale: 1.0
   pvp: true                   # apply combat effects in player-vs-player hits
   pve: true                   # apply combat effects in player-vs-environment hits
 
@@ -74,9 +74,9 @@ messages:
 # per-enchant self-announce MESSAGE effects (divine immolation, phoenix, …), which are removed from the pack.
 # Tokens: {ENCHANT} = display name, {TIER_COLOR} = tier & colour, {VICTIM}/{ATTACKER} = the party names.
 message-on-activate:
-  by-enabled: true
+  by-enabled: false
   by-template: "{TIER_COLOR}&l** {ENCHANT} &r&7[&f{VICTIM}&7] {TIER_COLOR}&l**"
-  on-enabled: true
+  on-enabled: false
   on-template: "{TIER_COLOR}&l** {ENCHANT} &7FROM &r&7[&c{ATTACKER}&7] {TIER_COLOR}&l **"
   uppercase: true   # render the {ENCHANT} name in UPPERCASE
 
@@ -156,10 +156,10 @@ crystals:
 pets:
   max-level: 100
   exp-per-level: 100
-  exp-per-mob-kill: 5
-  exp-per-xp-point: 1.0
-  passive-levels-per-hour: 0.5          # every pet in the main inventory, per hour of ONLINE time
-  passive-hotbar-levels-per-hour: 1.0   # a PASSIVE-type pet held in the hotbar earns this instead
+  exp-per-mob-kill: 0
+  exp-per-xp-point: 0
+  passive-levels-per-hour: 0
+  passive-hotbar-levels-per-hour: 0
   level-up-sound: { sound: entity.player.levelup, volume: 0.8, pitch: 1.5 }
   level-up-particle: { particle: HAPPY_VILLAGER, count: 12, spread: 0.4, y-offset: 1.0 }
   max-percent-money-cap: 1000000

@@ -42,6 +42,11 @@ class PassiveEffectDriverTest {
     private static final int SCOPE_ENCHANT = 0; // mirrors ActivationPipeline / CooldownStore packing
 
     @Test
+    void permanentDurationMatchesCosmicSource() {
+        assertEquals(Integer.MAX_VALUE, PassiveEffectDriver.PERMANENT_TICKS);
+    }
+
+    @Test
     void wornNonSuppressedPotionsAreDesired() {
         Ability speed = potionAbility(SPEED, 2, 5);
         Snapshot snapshot = snapshot(speed);

@@ -38,15 +38,21 @@ final class PetsModule {
     final PetHomeStore homes = new PetHomeStore(); // ADR-0061: the Mole dig-home windows
     final PetSharedUseStore sharedGate = new PetSharedUseStore(); // ADR-0070: the shared any-pet 2s gate
     final PetHomeVisuals visuals; // ADR-0061 amendment: the window-tied pulse task + recall cues
+    final feature.pet.CosmicWorldDestroyer worldDestroyer;
+    final feature.pet.CosmicSmitePet cosmicSmite;
     final feature.trigger.WaterSpeedDriver waterSpeed;
     final List<Mintable> mints;
 
-    PetsModule(BootCore core, EquipModule equip) {
+    PetsModule(BootCore core, EquipModule equip, feature.combat.NatureWrathListener natureWrath) {
         this.core = core;
         this.equip = equip;
         PetMessenger messenger = new PetMessenger(core.messages(), () -> core.master().config().pets());
         PetLevelCue cue = new PetLevelCue(() -> core.master().config().pets(), core.particleFx(), core.sounds());
         this.visuals = new PetHomeVisuals(core.triggerDispatch(), homes, core.tick()::get, core.resolvers());
+        this.worldDestroyer = new feature.pet.CosmicWorldDestroyer(core.bindings().sinkFactory(),
+                core.sinkEnv(), core.resolvers());
+        this.cosmicSmite = new feature.pet.CosmicSmitePet(core.bindings().sinkFactory(),
+                core.sinkEnv(), core.protection());
         // The cold-path run reuses the shared TriggerDispatch (its runner/sink wiring), so no second engine spine.
         this.pets = new PetService(core.content(), core.petCodec(), core.triggerDispatch(),
                 core.bindings().texturedHeads(), core.bindings().headEquip(), core.vanillaEnchants(),
@@ -55,7 +61,7 @@ final class PetsModule {
                 () -> core.items().config().petOrDefault(),
                 () -> core.items().config().petFoodOrDefault(),
                 equip.refresher(), core.tick()::get, core.bindings().actorProbe()::isAir,
-                cue, core.rolls(), homes, core.stores().teleblock(), visuals);
+                cue, core.rolls(), homes, core.stores().teleblock(), visuals, natureWrath);
         this.leveler = new PetLevelListener(pets, core.petCodec(), () -> core.master().config().pets(),
                 equip.refresher(), enabled());
         this.sweep = new PetSweep(core.petCodec(), leveler, equip.refresher(), enabled());
@@ -82,6 +88,7 @@ final class PetsModule {
                         core.sounds(), equip.refresher(), enabled))
                 .events(new PetHotbarListener(core.petCodec(), equip.refresher(), enabled))
                 .events(new PetSummonListener(enabled))
+                .events(new feature.pet.CosmicXpBoosterListener(core.stores().vars(), core.tick()::get))
                 .install("water-speed refresh hook", () -> equip.onRefresh(waterSpeed::refresh))
                 .menu(75, new feature.menu.PetsBrowserMenu(core.content(), pets,
                         () -> core.master().config().pets(), core.caps(), core.messages(),
@@ -111,6 +118,9 @@ final class PetsModule {
                 .stop("pet shared-use gate", sharedGate::clearAll)
                 .stop("pet home windows", homes::clearAll)
                 .stop("pet home visuals", visuals::clearAll)
+                .stop("cosmic pet charges", feature.pet.CosmicPetCharges::clearAll)
+                .stop("world destroyer pet", worldDestroyer::stop)
+                .stop("smite pet", cosmicSmite::stop)
                 .build();
     }
 }

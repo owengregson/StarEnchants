@@ -1,0 +1,15 @@
+# Cosmic codex source: 07-enchants-mastery-soul.md — mastery/MasteryLavaStrider.java
+display: Lava Strider
+description: Depth Strider, but for lava. This enchantment requires the user to be on the CosmicClient (https://cosmicclient.com)
+  to function properly due to vanilla client limitations.
+trigger:
+- PASSIVE
+applies-to:
+- BOOTS
+group: mastery
+tier: mastery
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    effects: []

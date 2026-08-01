@@ -1,0 +1,35 @@
+# Imported from EliteEnchantments (id: block). Review before shipping.
+display: "Block"
+description:
+  - "&eWhile blocking, reduces the damage"
+  - "&etaken and deals damage back to"
+  - "&ethe attacker."
+trigger: DEFENSE
+applies-to: [SWORD]
+group: "epic"
+tier: epic
+levels:
+  1:
+    cooldown: 60
+    condition: "%blocking%"
+    effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CRIT", count: 6, who: "@Attacker" } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 20 } }
+      - { DAMAGE: { amount: 1.5, who: "@Attacker" } }
+  2:
+    cooldown: 60
+    condition: "%blocking%"
+    effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CRIT", count: 6, who: "@Attacker" } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }
+      - { DAMAGE: { amount: 2, who: "@Attacker" } }
+  3:
+    cooldown: 60
+    condition: "%blocking%"
+    effects:
+      - { SOUND: { sound: "ITEM_SHIELD_BLOCK", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CRIT", count: 6, who: "@Attacker" } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 30 } }
+      - { DAMAGE: { amount: 2.5, who: "@Attacker" } }

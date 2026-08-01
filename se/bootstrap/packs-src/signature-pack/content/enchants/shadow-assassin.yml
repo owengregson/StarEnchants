@@ -1,0 +1,34 @@
+# Imported from EliteEnchantments (id: shadow-assassin). Review before shipping.
+display: "Shadow Assassin"
+description:
+  - "&eMythic upgrade for Assassin."
+  - "&eDeals even more damage the"
+  - "&ecloser you are to the target."
+  - "&c&l(!)&r &7Requires &eAssassin"
+trigger: ATTACK
+applies-to: [SWORD]
+group: "mythic"
+tier: mythic
+requires: ["enchants/assassin"]
+removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
+levels:
+  1:
+    effects:
+      - { PARTICLE: { particle: "SQUID_INK", count: 10 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "1.05 - %distance% * 0.10" } }  # distance-faded raw bonus — the always-on sword workhorse (ADR-0050 R3 flat economy)
+  2:
+    effects:
+      - { PARTICLE: { particle: "SQUID_INK", count: 10 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "1.15 - %distance% * 0.10" } }  # distance-faded raw bonus — the always-on sword workhorse (ADR-0050 R3 flat economy)
+  3:
+    effects:
+      - { PARTICLE: { particle: "SQUID_INK", count: 10 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "1.25 - %distance% * 0.10" } }  # distance-faded raw bonus — the always-on sword workhorse (ADR-0050 R3 flat economy)
+  4:
+    effects:
+      - { PARTICLE: { particle: "SQUID_INK", count: 10 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "1.35 - %distance% * 0.10" } }  # distance-faded raw bonus — the always-on sword workhorse (ADR-0050 R3 flat economy)
+  5:
+    effects:
+      - { PARTICLE: { particle: "SQUID_INK", count: 10 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "1.45 - %distance% * 0.10" } }  # distance-faded raw bonus — the always-on sword workhorse (ADR-0050 R3 flat economy)

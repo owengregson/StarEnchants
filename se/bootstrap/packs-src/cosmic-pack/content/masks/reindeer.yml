@@ -1,0 +1,21 @@
+# Cosmic codex source: 11-masks.md
+display: Reindeer
+color: '&a'
+head: eyJ0aW1lc3RhbXAiOjE1NDUxOTQ2NjQ4ODMsInByb2ZpbGVJZCI6ImQ4ZmQzYjUxYzZiNzRlNmY4NmExY2FlM2ZiNjI3NzYwIiwicHJvZmlsZU5hbWUiOiJNeXN0ZXJ5TWVyY2hhbnQiLCJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjY4MjQ3YTVmYjI5M2Q3ODU1MjAwOTc4NTRjZmFhNWQxNWY1ZjcxZDg0YTZlNjNhOTZiNjI2OGU3ZWQxM2UyNiJ9fX0=
+material: PLAYER_HEAD
+summary: SPEED IV
+description:
+- "&cSPEED IV"
+- "&cFlight regardless of rank"
+- "&7The decapitated and stuffed"
+- "&7head of one of Santa's"
+- "&7magical reindeer... yikes!"
+- "&6&l* &6Christmas 2018"
+abilities:
+- trigger: PASSIVE
+  effects:
+  - POTION:
+      effect: SPEED
+      level: 4
+      duration: 200
+      who: '@Self'

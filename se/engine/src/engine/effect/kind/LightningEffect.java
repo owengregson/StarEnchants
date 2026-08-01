@@ -14,6 +14,7 @@ public final class LightningEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("LIGHTNING")
             .param("damage", D.DOUBLE.min(0).def(0))
+            .param("real", D.BOOL.def(false))
             .target("who", T.VICTIM)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Strike the target(s) with lightning, optionally dealing extra damage (0 = cosmetic).")
@@ -29,7 +30,7 @@ public final class LightningEffect implements EffectKind {
     public void run(EffectCtx ctx, Sink sink) {
         double damage = ctx.dbl("damage");
         for (LivingEntity target : ctx.targets("who")) {
-            sink.lightningAndDamage(target, damage, ctx.actor()); // bolt damage is attributed (ADR-0054)
+            sink.lightning(target, ctx.bool("real"), damage, ctx.actor());
         }
     }
 }

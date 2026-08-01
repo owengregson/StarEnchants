@@ -1,0 +1,64 @@
+# Phantom — wraith-themed diamond set; offensive buffs and a haunting scythe.
+display: "{#f36363}&lPhantom"
+description: "{#f36363}Move like a wraith through the shadows with the Phantom set, ethereal and elusive as the night."
+complete: 4
+# Announce on a completion transition (Cosmic Pack default; set name + colour authored verbatim).
+announce: true
+equip-message: "\n{#f36363}&l** Phantom SET EQUIPPED {#f36363}&l**\n"
+remove-message: "\n&7&l** Phantom SET REMOVED **\n"
+armor:
+  enchants:
+    PROTECTION: 4
+    UNBREAKING: 3
+  lore:
+    - "{#f36363}Move like a wraith through the shadows with the Phantom set, ethereal and elusive as the night."
+    - ""
+    - "{#f36363}&lPHANTOM SET BONUS"
+    - "{#f36363}* Deal 25% more damage to all enemies"
+    - "{#f36363}* Ghostly Rush Passive Ability"
+    - ""
+    - "{#f36363}&lGHOSTLY RUSH"
+    - "{#f36363}* Permanent Haste I, Strength I, Speed II"
+    - "{#f36363}* Cannot use Soul Enchantments"
+    - "&7&o(Requires all four Phantom set items.)"
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "{#f36363}&lSpectral Hood&r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "{#f36363}&lEthereal Cloak&r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "{#f36363}&lWraith Leggings&r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "{#f36363}&lShadow Boots&r" }
+weapon:
+  enchants:
+    SHARPNESS: 5
+    UNBREAKING: 3
+  material: DIAMOND_SWORD
+  name: "{#f36363}&lGhastly Scythe&r"
+  lore:
+    - "{#f36363}Reap the souls of the fallen with the Ghastly Scythe, a weapon shrouded in spectral mist and haunting whispers."
+    - ""
+    - "{#f36363}&lPHANTOM WEAPON BONUS"
+    - "{#f36363}* Deal 5% more damage to all enemies"
+    - "&7&o(Requires all four Phantom set items.)"
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the set weapon held.
+bonuses:
+  # Ghostly Rush (permanent) — Haste I + Strength I + Speed II while the full set is worn (driver-maintained).
+  - on: armor
+    trigger: [PASSIVE]
+    chance: 100
+    effects:
+      - { POTION: { effect: FAST_DIGGING, level: 1, duration: 200, who: "@Self" } }   # Haste I
+      - { POTION: { effect: INCREASE_DAMAGE, level: 1, duration: 200, who: "@Self" } }  # Strength I
+      - { POTION: { effect: SPEED, level: 2, duration: 200, who: "@Self" } }            # Speed II
+  # Soul-tier lockout — re-armed every 2s (3s TTL) so the wearer's SOUL-group enchants never activate while worn
+  # (every soul-tier enchant carries group: soul). Lapses ~3s after the set is removed.
+  - on: armor
+    trigger: REPEATING
+    repeat: 40
+    chance: 100
+    effects:
+      - { SUPPRESS: { scope: GROUP, key: soul, duration: 60, who: "@Self" } }
+      - { PARTICLE: { particle: SMOKE_NORMAL, count: 4 } }  # Ghostly Rush smoke aura, riding this 2s heartbeat (bare = the wearer)
+  - on: weapon
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }

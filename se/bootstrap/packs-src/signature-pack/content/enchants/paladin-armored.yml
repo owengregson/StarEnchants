@@ -1,0 +1,73 @@
+# Imported from EliteEnchantments (id: paladin-armored). Review before shipping.
+display: "Paladin Armored"
+description:
+  - "&eMythic upgrade for Armored."
+  - "&eHeavily reduces sword damage and"
+  - "&eclears your debuffs."
+  - "&c&l(!)&r &7Requires &6Armored"
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "mythic"
+tier: mythic
+requires: ["enchants/armored"]
+removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
+levels:
+  1:
+    condition: "%victim.helditem% contains \"SWORD\""
+    effects:
+      - { PARTICLE: { particle: "END_ROD", count: 10 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1 } }
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER:true — EE CURE → REMOVE_POTION (self)
+  2:
+    condition: "%victim.helditem% contains \"SWORD\""
+    effects:
+      - { PARTICLE: { particle: "END_ROD", count: 10 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1.5 } }
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER:true — EE CURE → REMOVE_POTION (self)
+  3:
+    condition: "%victim.helditem% contains \"SWORD\""
+    effects:
+      - { PARTICLE: { particle: "END_ROD", count: 10 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2 } }
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER:true — EE CURE → REMOVE_POTION (self)
+  4:
+    condition: "%victim.helditem% contains \"SWORD\""
+    effects:
+      - { PARTICLE: { particle: "END_ROD", count: 10 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2.5 } }
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
+      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER:true — EE CURE → REMOVE_POTION (self)

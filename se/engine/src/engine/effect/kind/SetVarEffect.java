@@ -20,6 +20,7 @@ public final class SetVarEffect implements EffectKind {
             .param("name", D.STRING)
             .param("value", D.STRING.def(""))
             .param("ttl", D.TICKS.def(0))
+            .param("clear-on-stop", D.BOOL.def(false))
             .target("who", T.SELF)
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Set a per-player variable readable in later conditions as %name% (ttl ticks, 0 = forever).")
@@ -37,9 +38,18 @@ public final class SetVarEffect implements EffectKind {
         String value = ctx.str("value");
         int ttl = ctx.integer("ttl");
         for (LivingEntity target : ctx.targets("who")) {
-            if (target instanceof Player p) {
-                sink.setVar(p, name, value, ttl);
-            }
+            sink.setVar(target, name, value, ttl);
+        }
+    }
+
+    @Override
+    public void stop(EffectCtx ctx, Sink sink) {
+        if (!ctx.bool("clear-on-stop")) {
+            return;
+        }
+        String name = ctx.str("name");
+        for (LivingEntity target : ctx.targets("who")) {
+            sink.clearVar(target, name);
         }
     }
 }

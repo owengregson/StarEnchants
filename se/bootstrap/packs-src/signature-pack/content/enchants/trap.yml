@@ -1,0 +1,31 @@
+# Imported from EliteEnchantments (id: trap). Review before shipping.
+display: "Trap"
+description:
+  - "&eOn hit, applies strong Slowness"
+  - "&eto the target."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "rare"
+tier: rare
+levels:
+  1:
+    chance: 10
+    cooldown: 120
+    effects:
+      - { SOUND: { sound: "BLOCK_TRIPWIRE_CLICK_ON", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
+      - { POTION: { effect: "SLOW", level: 2, duration: 60, who: "@Victim" } }
+  2:
+    chance: 14
+    cooldown: 120
+    effects:
+      - { SOUND: { sound: "BLOCK_TRIPWIRE_CLICK_ON", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
+      - { POTION: { effect: "SLOW", level: 2, duration: 60, who: "@Victim" } }
+  3:
+    chance: 18
+    cooldown: 120
+    effects:
+      - { SOUND: { sound: "BLOCK_TRIPWIRE_CLICK_ON", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
+      - { POTION: { effect: "SLOW", level: 2, duration: 60, who: "@Victim" } }

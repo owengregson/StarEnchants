@@ -11,7 +11,6 @@ import schema.diag.Diagnostics;
 import schema.diag.Severity;
 import schema.diag.Source;
 import schema.grammar.EffectLine;
-import schema.spec.Ranges;
 
 /**
  * Shared field-parsing helpers for the content readers (ADR-0014): turn raw {@link YamlNode} text into
@@ -23,12 +22,12 @@ final class ContentParse {
     private ContentParse() {
     }
 
-    /** A {@code [0,100]} activation chance; NaN/out-of-range is a diagnostic, then clamped. */
+    /** A finite, non-negative activation threshold; values at or above 100 are guaranteed. */
     static double clampChance(double chance, Source source, Diagnostics diags) {
-        // NaN passes a naive range check (NaN < 0 and NaN > 100 are both false); guard it explicitly.
-        if (Double.isNaN(chance) || chance < 0.0 || chance > 100.0) {
-            diags.error(DiagCode.E_LOAD_CHANCE, "chance must be a number in [0,100], got " + chance, source);
-            return Double.isNaN(chance) ? 0.0 : Ranges.clampPercent(chance);
+        if (!Double.isFinite(chance) || chance < 0.0) {
+            diags.error(DiagCode.E_LOAD_CHANCE,
+                    "chance must be a finite non-negative number, got " + chance, source);
+            return 0.0;
         }
         return chance;
     }
@@ -242,7 +241,7 @@ final class ContentParse {
         out.add(EffectLine.verbose(effectHead, 1, named, who, item.source()));
     }
 
-    /** A {@code [0,100]} chance knob (scalar); {@code 100} when absent. */
+    /** A finite, non-negative chance threshold (scalar); {@code 100} when absent. */
     static double resolveChance(YamlNode node, String key, Diagnostics diags) {
         double chance = doubleOr(node.has(key) ? node.string(key) : null, 100.0, key, Severity.ERROR,
                 DiagCode.E_LOAD_DOUBLE, node.sourceOf(key), diags);

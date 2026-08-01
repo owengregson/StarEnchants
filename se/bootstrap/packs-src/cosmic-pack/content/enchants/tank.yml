@@ -1,30 +1,21 @@
-# Imported from EliteEnchantments (id: tank). Review before shipping.
-display: "Tank"
-description:
-  - "&eReduces damage taken from"
-  - "&eenemies holding an axe."
+# Cosmic codex source: 02-enchants-armor-m-z.md — armor/Tank.java
+display: Tank
+description: Decreases damage from enemy axes by 1.85% per level, this enchantment is stackable.
 trigger: DEFENSE
 applies-to: [ARMOR]
-group: "rare"
-tier: rare
+group: ultimate
+tier: ultimate
+stacking: EACH
 levels:
   1:
-    condition: "%victim.helditem% contains \"AXE\""
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 0.75 } }
+    condition: &axeholder '%victim.isplayer% == 1 && (%victim.helditem% == "WOODEN_AXE" || %victim.helditem% == "WOOD_AXE" || %victim.helditem% == "STONE_AXE" || %victim.helditem% == "IRON_AXE" || %victim.helditem% == "GOLDEN_AXE" || %victim.helditem% == "GOLD_AXE" || %victim.helditem% == "DIAMOND_AXE" || %victim.helditem% == "NETHERITE_AXE") && %damage% * 0.98125 > 1'
+    effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.98125 } }, { BLOCK_BREAK_EFFECT: { block: IRON_BLOCK } }]
   2:
-    condition: "%victim.helditem% contains \"AXE\""
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1.25 } }
+    condition: '%victim.isplayer% == 1 && (%victim.helditem% == "WOODEN_AXE" || %victim.helditem% == "WOOD_AXE" || %victim.helditem% == "STONE_AXE" || %victim.helditem% == "IRON_AXE" || %victim.helditem% == "GOLDEN_AXE" || %victim.helditem% == "GOLD_AXE" || %victim.helditem% == "DIAMOND_AXE" || %victim.helditem% == "NETHERITE_AXE") && %damage% * 0.9625 > 1'
+    effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.9625 } }, { BLOCK_BREAK_EFFECT: { block: IRON_BLOCK } }]
   3:
-    condition: "%victim.helditem% contains \"AXE\""
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1.75 } }
+    condition: '%victim.isplayer% == 1 && (%victim.helditem% == "WOODEN_AXE" || %victim.helditem% == "WOOD_AXE" || %victim.helditem% == "STONE_AXE" || %victim.helditem% == "IRON_AXE" || %victim.helditem% == "GOLDEN_AXE" || %victim.helditem% == "GOLD_AXE" || %victim.helditem% == "DIAMOND_AXE" || %victim.helditem% == "NETHERITE_AXE") && %damage% * 0.94375 > 1'
+    effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.94375 } }, { BLOCK_BREAK_EFFECT: { block: IRON_BLOCK } }]
   4:
-    condition: "%victim.helditem% contains \"AXE\""
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2.25 } }
+    condition: '%victim.isplayer% == 1 && (%victim.helditem% == "WOODEN_AXE" || %victim.helditem% == "WOOD_AXE" || %victim.helditem% == "STONE_AXE" || %victim.helditem% == "IRON_AXE" || %victim.helditem% == "GOLDEN_AXE" || %victim.helditem% == "GOLD_AXE" || %victim.helditem% == "DIAMOND_AXE" || %victim.helditem% == "NETHERITE_AXE") && %damage% * 0.925 > 1'
+    effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.925 } }, { BLOCK_BREAK_EFFECT: { block: IRON_BLOCK } }]

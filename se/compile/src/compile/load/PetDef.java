@@ -1,6 +1,7 @@
 package compile.load;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Non-runtime metadata of one authored pet (ADR-0052) — a textured player-head item whose
@@ -27,6 +28,9 @@ import java.util.List;
  * @param messageOnNoHome optional line sent when a digger pet is used with no home dug
  *                    ({@code message-on-no-home}); {@code ""} = fall back to the universal fail template
  *                    (ADR-0067)
+ * @param maxLevel    authored per-pet cap; {@code 0} = use the global pets.max-level compatibility default
+ * @param experienceToLevel XP required to reach each target level (keys start at 2); absent keys use the
+ *                    global pets.exp-per-level compatibility default
  * @param brackets    the authored level brackets, sorted ascending by {@link PetBracket#floor()}
  */
 public record PetDef(
@@ -40,12 +44,33 @@ public record PetDef(
         List<String> description,
         String permission,
         String messageOnNoHome,
+        int maxLevel,
+        Map<Integer, Integer> experienceToLevel,
         List<PetBracket> brackets) {
 
     public PetDef {
         descriptor = List.copyOf(descriptor);
         description = List.copyOf(description);
+        experienceToLevel = Map.copyOf(experienceToLevel);
         brackets = List.copyOf(brackets);
+    }
+
+    /** Compatibility constructor for definitions using the pre-per-pet-progression shape. */
+    public PetDef(String key, String display, String color, boolean active, String head, String material,
+                  List<String> descriptor, List<String> description, String permission, String messageOnNoHome,
+                  List<PetBracket> brackets) {
+        this(key, display, color, active, head, material, descriptor, description, permission, messageOnNoHome,
+                0, Map.of(), brackets);
+    }
+
+    /** Resolve the authored cap, retaining the global value for legacy content. */
+    public int maxLevelOr(int globalDefault) {
+        return maxLevel > 0 ? maxLevel : globalDefault;
+    }
+
+    /** XP needed to move from {@code currentLevel} to the next level. */
+    public int expToNext(int currentLevel, int globalDefault) {
+        return experienceToLevel.getOrDefault(currentLevel + 1, globalDefault);
     }
 
     /**

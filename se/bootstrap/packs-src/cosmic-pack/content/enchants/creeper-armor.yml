@@ -1,0 +1,18 @@
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/CreeperArmor.java
+display: Creeper Armor
+description: Cancels explosion damage; higher levels cancel its knockback, and level III heals 10% of the original damage up to 6 HP.
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
+levels:
+  1:
+    condition: "%damagecause% == \"BLOCK_EXPLOSION\" || %damagecause% == \"ENTITY_EXPLOSION\""
+    effects: [{ CANCEL: {} }]
+  2:
+    condition: "%damagecause% == \"BLOCK_EXPLOSION\" || %damagecause% == \"ENTITY_EXPLOSION\""
+    effects: [{ CANCEL: {} }, { VELOCITY: { mode: set, x: 0, y: 0, z: 0, who: "@Self", wait: 1 } }]
+  3:
+    condition: "%damagecause% == \"BLOCK_EXPLOSION\" || %damagecause% == \"ENTITY_EXPLOSION\""
+    effects: [{ MODIFY_HEALTH: { amount: "%damage% * 0.1", cap: 6, mode: give } }, { CANCEL: {} }, { VELOCITY: { mode: set, x: 0, y: 0, z: 0, who: "@Self", wait: 1 } }]

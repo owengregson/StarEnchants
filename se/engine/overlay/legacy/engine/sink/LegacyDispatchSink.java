@@ -51,7 +51,7 @@ import schema.spec.HandleCategory;
  * is silently skipped, exactly as modern (the §9 compile-time warn already fired).
  *
  * <p>1.8 gaps handled below: no Bukkit {@code Particle} (NMS {@code PacketPlayOutWorldParticles}); no
- * {@code attribute} package ({@code setMaxHealth} / NMS {@code GenericAttributes}); no
+ * {@code attribute} package ({@code setMaxHealth} / NMS {@code GenericAttributes)); no
  * {@code meta.Damageable} (durability is on the {@code ItemStack} itself); no off-hand (main hand only); no
  * {@code teleportAsync} (synchronous {@code teleport}); no {@code spigot()}/Adventure (NMS chat/title packets);
  * no {@code Entity.setInvulnerable} (NMS {@code invulnerable} field).
@@ -456,23 +456,77 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
         }
         ItemStack[] armor = equipment.getArmorContents();
         boolean changed = false;
-        for (ItemStack piece : armor) {
+        for (int slot = 0; slot < armor.length; slot++) {
+            ItemStack piece = armor[slot];
             if (piece == null || !isDamageable(piece)) {
                 continue;
             }
             short current = piece.getDurability();
-            short next;
+            int next;
             if (repair) {
-                next = amount < 0 ? 0 : (short) Math.max(0, current - amount);
+                next = amount < 0 ? 0 : Math.max(0, current - amount);
             } else {
-                next = (short) Math.min(piece.getType().getMaxDurability(), current + amount);
+                next = current + amount;
+                if (next > piece.getType().getMaxDurability()) {
+                    armor[slot] = null;
+                    if (entity instanceof Player) {
+                        ((Player) entity).playSound(entity.getLocation(), Sound.ITEM_BREAK, 3.0f, 0.8f);
+                    }
+                    changed = true;
+                    continue;
+                }
             }
-            piece.setDurability(next);
+            piece.setDurability((short) next);
             changed = true;
         }
         if (changed) {
             equipment.setArmorContents(armor);
         }
+    }
+
+    @Override
+    protected void adjustArmorSlotDurability(LivingEntity entity, int slot, int amount) {
+        EntityEquipment equipment = entity.getEquipment();
+        if (equipment == null || slot < 0 || slot >= 4 || amount <= 0) {
+            return;
+        }
+        ItemStack[] armor = equipment.getArmorContents();
+        if (slot >= armor.length || armor[slot] == null || !isDamageable(armor[slot])) {
+            return;
+        }
+        ItemStack piece = armor[slot];
+        int next = piece.getDurability() + amount;
+        if (next > piece.getType().getMaxDurability()) {
+            armor[slot] = null;
+            if (entity instanceof Player) {
+                ((Player) entity).playSound(entity.getLocation(), Sound.ITEM_BREAK, 3.0f, 0.8f);
+            }
+        } else {
+            piece.setDurability((short) next);
+        }
+        equipment.setArmorContents(armor);
+    }
+
+    @Override
+    protected void repairMostDamagedArmorPiece(LivingEntity entity, int amount) {
+        EntityEquipment equipment = entity.getEquipment();
+        if (equipment == null) {
+            return;
+        }
+        ItemStack[] armor = equipment.getArmorContents();
+        ItemStack selected = null;
+        int greatestDamage = 0;
+        for (ItemStack piece : armor) {
+            if (piece != null && isDamageable(piece) && piece.getDurability() > greatestDamage) {
+                selected = piece;
+                greatestDamage = piece.getDurability();
+            }
+        }
+        if (selected == null) {
+            return;
+        }
+        selected.setDurability((short) (amount < 0 ? 0 : Math.max(0, greatestDamage - amount)));
+        equipment.setArmorContents(armor);
     }
 
     /** 1.8: durability lives on the {@code ItemStack}; a positive max durability means the item wears. */
@@ -515,23 +569,59 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
     @Override
     public void particle(Location at, int particleId, int count, int blockMaterialId,
                          double offsetX, double offsetY, double offsetZ) {
+        particle(at, particleId, count, blockMaterialId, offsetX, offsetY, offsetZ, 0.0);
+    }
+
+    @Override
+    public void particle(Location at, int particleId, int count, int blockMaterialId,
+                         double offsetX, double offsetY, double offsetZ, double speed) {
         // 1.8 has no block-crack particle data — the block material is dropped; a plain burst is the fallback (§10).
-        // The packet DOES carry the offset spread, so mixed-position bursts still work.
-        regionOp(at, () -> sendParticleAt(at, particleId, count, (float) offsetX, (float) offsetY, (float) offsetZ));
+        // The packet DOES carry the offset spread and speed.
+        regionOp(at, () -> sendParticleAt(at, particleId, count, (float) offsetX, (float) offsetY,
+                (float) offsetZ, (float) speed));
     }
 
     @Override
     public void particle(LivingEntity target, int particleId, int count, int blockMaterialId,
                          double offsetX, double offsetY, double offsetZ) {
-        // Entity-anchored: read the target's mid-body AT DISPATCH on its own region thread (getHeight is absent on
-        // 1.8, so use a flat +1.0 body-centre); block data dropped as above.
-        entityOp(target, () -> sendParticleAt(target.getLocation().add(0.0, 1.0, 0.0), particleId, count,
-                (float) offsetX, (float) offsetY, (float) offsetZ));
+        particle(target, particleId, count, blockMaterialId, offsetX, offsetY, offsetZ, 0.0);
+    }
+
+    @Override
+    public void particle(LivingEntity target, int particleId, int count, int blockMaterialId,
+                         double offsetX, double offsetY, double offsetZ, double speed) {
+        particle(target, particleId, count, blockMaterialId, offsetX, offsetY, offsetZ, speed, 0, 0.0);
+    }
+
+    @Override
+    public void particle(LivingEntity target, int particleId, int count, int blockMaterialId,
+                         double offsetX, double offsetY, double offsetZ, double speed,
+                         int anchor, double yOffset) {
+        entityOp(target, () -> particleDirect(target, particleId, count, blockMaterialId,
+                offsetX, offsetY, offsetZ, speed, anchor, yOffset));
+    }
+
+    @Override
+    protected void particleDirect(LivingEntity target, int particleId, int count, int blockMaterialId,
+                                  double offsetX, double offsetY, double offsetZ, double speed,
+                                  int anchor, double yOffset) {
+        Location at = switch (anchor) {
+            case 1 -> target.getLocation();
+            case 2 -> target.getEyeLocation();
+            default -> target.getLocation().add(0.0, 1.0, 0.0);
+        };
+        sendParticleAt(at.add(0.0, yOffset, 0.0), particleId, count,
+                (float) offsetX, (float) offsetY, (float) offsetZ, (float) speed);
     }
 
     /** Send an NMS particle packet at {@code at} (with the per-axis offset spread) to nearby players (the shared
      *  body for the particle overloads). */
     private void sendParticleAt(Location at, int particleId, int count, float offsetX, float offsetY, float offsetZ) {
+        sendParticleAt(at, particleId, count, offsetX, offsetY, offsetZ, 0f);
+    }
+
+    private void sendParticleAt(Location at, int particleId, int count, float offsetX, float offsetY, float offsetZ,
+                                float speed) {
         EnumParticle resolved = particle(particleId);
         World world = at.getWorld();
         if (resolved == null || world == null) {
@@ -541,7 +631,7 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
                 resolved, true,
                 (float) at.getX(), (float) at.getY(), (float) at.getZ(),
                 offsetX, offsetY, offsetZ, // offset spread (0 = the old point burst)
-                0f,         // particle data/speed
+                speed,         // particle data/speed
                 Math.max(1, count));
         for (Player viewer : world.getPlayers()) {
             if (viewer.getLocation().distanceSquared(at) <= 64 * 64) { // vanilla long-distance cutoff

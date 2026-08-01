@@ -1,0 +1,14 @@
+# Cosmic codex: 03-enchants-swords.md — swords/SkillSwipe.java
+display: Skill Swipe
+description: A chance to steal some of your enemy's EXP every time you damage them.
+trigger: ATTACK
+applies-to: [SWORD]
+group: unique
+tier: unique
+stacking: HIGHEST
+levels:
+  1: { chance: 20, condition: &player '%victim.isplayer% == 1', effects: [{ MODIFY_EXP: { amount: 6, mode: transfer, who: '@Victim' } }] }
+  2: { chance: 40, condition: *player, effects: [{ MODIFY_EXP: { amount: 12, mode: transfer, who: '@Victim' } }] }
+  3: { chance: 60.00000000000001, condition: *player, effects: [{ MODIFY_EXP: { amount: 18, mode: transfer, who: '@Victim' } }] }
+  4: { chance: 80, condition: *player, effects: [{ MODIFY_EXP: { amount: 24, mode: transfer, who: '@Victim' } }] }
+  5: { chance: 100, condition: *player, effects: [{ MODIFY_EXP: { amount: 30, mode: transfer, who: '@Victim' } }] }

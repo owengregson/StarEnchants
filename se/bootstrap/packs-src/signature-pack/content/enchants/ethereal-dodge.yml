@@ -1,0 +1,53 @@
+# Imported from EliteEnchantments (id: ethereal-dodge). Review before shipping.
+display: "Ethereal Dodge"
+description:
+  - "&eNegates attacks and grants a burst of"
+  - "&eSpeed."
+  - "&c&l(!)&r &7Requires &eDodge"
+trigger: [DEFENSE]
+applies-to: [BOOTS]
+group: "mythic"
+tier: mythic
+requires: ["enchants/dodge"]
+removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
+levels:
+  1:
+    chance: 2
+    cooldown: 160
+    effects:
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CLOUD", count: 10 } }
+      - { CANCEL: {} }
+      - { POTION: { effect: "SPEED", level: 2, duration: 60, who: "@Self" } }
+  2:
+    chance: 3
+    cooldown: 160
+    effects:
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CLOUD", count: 10 } }
+      - { CANCEL: {} }
+      - { POTION: { effect: "SPEED", level: 2, duration: 60, who: "@Self" } }
+  3:
+    chance: 4
+    cooldown: 160
+    effects:
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CLOUD", count: 10 } }
+      - { CANCEL: {} }
+      - { POTION: { effect: "SPEED", level: 2, duration: 60, who: "@Self" } }
+  4:
+    chance: 5
+    cooldown: 160
+    effects:
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CLOUD", count: 10 } }
+      - { CANCEL: {} }
+      - { POTION: { effect: "SPEED", level: 2, duration: 60, who: "@Self" } }
+  5:
+    chance: 6
+    cooldown: 160
+    effects:
+      - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CLOUD", count: 10 } }
+      - { CANCEL: {} }
+      - { POTION: { effect: "SPEED", level: 2, duration: 60, who: "@Self" } }

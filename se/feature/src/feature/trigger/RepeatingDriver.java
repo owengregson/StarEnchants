@@ -14,7 +14,8 @@ import platform.sched.TaskHandle;
 
 /**
  * Drives {@code REPEATING} abilities (§B): one entity-owned repeating task per {@code (player, ability)},
- * each on its own {@code repeat:} period in ticks ({@link Ability#repeatTicks()}).
+ * each on its own {@code repeat:} period in ticks ({@link Ability#repeatTicks()}) and optional
+ * {@code initial-delay:} ({@link Ability#repeatInitialDelayTicks()}).
  *
  * <p>Folia-correct: tasks run via {@link Scheduling#repeatingEntity} and follow the player across regions.
  * The {@link RepeatStore} owns the {@code (player, abilityId) → handle} map (concurrent) but never cancels —
@@ -54,7 +55,8 @@ public final class RepeatingDriver {
             if (period <= 0) {
                 continue; // no period, nothing to schedule
             }
-            TaskHandle handle = Scheduling.repeatingEntity(player, period, period,
+            int initialDelay = Math.max(0, abilities[abilityId].repeatInitialDelayTicks());
+            TaskHandle handle = Scheduling.repeatingEntity(player, initialDelay, period,
                     () -> dispatch.fireRepeating(player, abilityId));
             store.put(id, abilityId, handle).ifPresent(TaskHandle::cancel);
         }

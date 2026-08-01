@@ -1,0 +1,18 @@
+# Cosmic codex source: 06-enchants-tools-heroic.md — heroic/HeroicGhost.java
+display: Ghostly Ghost
+description: Invisble to all /near lookups when outside of a certain range depending on enchantment level.
+trigger:
+- PASSIVE
+applies-to:
+- ARMOR
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    effects: []
+  2:
+    effects: []
+  3:
+    effects: []

@@ -1,49 +1,19 @@
-# Imported from EliteEnchantments (id: mighty-cleave). Review before shipping.
-display: "Mighty Cleave"
-description:
-  - "&eMythic upgrade for Cleave."
-  - "&eStrikes a wider arc around the"
-  - "&etarget."
-  - "&c&l(!)&r &7Requires &eCleave"
+# Cosmic codex: 06-enchants-tools-heroic.md — heroic/HeroicCleave.java
+display: Mighty Cleave
+description: The heroic version of Cleave. Deals up to 7 damage in up to a 4.25 block radius.
 trigger: ATTACK
 applies-to: [AXE]
-group: "mythic"
-tier: mythic
-requires: ["enchants/cleave"]
-removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: HIGHEST
+# Exact victim-centred box scan, unattributed splash damage, shared attacker cooldown,
+# and per-splash-target cooldown are implemented by CosmicWeaponListener.
 levels:
-  1:
-    chance: 25
-    cooldown: 60
-    effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 1.0, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SWEEP_ATTACK", count: 6 } }
-      - { DAMAGE: { amount: 2, who: "@Aoe" } }  # EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
-  2:
-    chance: 30
-    cooldown: 60
-    effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 1.0, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SWEEP_ATTACK", count: 6 } }
-      - { DAMAGE: { amount: 2.5, who: "@Aoe" } }  # EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
-  3:
-    chance: 35
-    cooldown: 60
-    effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 1.0, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SWEEP_ATTACK", count: 6 } }
-      - { DAMAGE: { amount: 3, who: "@Aoe" } }  # EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
-  4:
-    chance: 40
-    cooldown: 60
-    effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 1.0, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SWEEP_ATTACK", count: 6 } }
-      - { DAMAGE: { amount: 3.5, who: "@Aoe" } }  # EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
-  5:
-    chance: 45
-    cooldown: 60
-    effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_SWEEP", volume: 1.0, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SWEEP_ATTACK", count: 6 } }
-      - { DAMAGE: { amount: 4, who: "@Aoe" } }  # EE DAMAGE_ARC → DAMAGE @Aoe (review the radius)
+  1: { effects: [] }
+  2: { effects: [] }
+  3: { effects: [] }
+  4: { effects: [] }
+  5: { effects: [] }
+requires: [enchants/cleave]
+removes-required: true

@@ -13,6 +13,7 @@ import engine.effect.kind.CageEffect;
 import engine.effect.kind.DigHomeEffect;
 import engine.run.UseAttempt;
 import engine.sink.CageGeometry;
+import engine.sink.CombatTag;
 import engine.stores.TeleblockStore;
 import feature.apply.Rolls;
 import feature.menu.MenuIcons;
@@ -28,6 +29,7 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.IntUnaryOperator;
 import java.util.function.LongSupplier;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -60,6 +62,17 @@ import platform.text.Tokens;
  */
 public final class PetService {
 
+    private static final String COSMIC_BLACKSCROLL = "blackscroll";
+    private static final String COSMIC_ENCHANTER = "enchanter";
+    private static final String COSMIC_ANTI_TELEBLOCK = "anti-teleblock";
+    private static final String COSMIC_WATER = "water-elemental";
+    private static final String COSMIC_LAVA = "lava-elemental";
+    private static final String COSMIC_FEIGN_DEATH = "feign-death";
+    private static final String COSMIC_GAIA = "gaia";
+    private static final String COSMIC_TESLA = "tesla";
+    private static final String COSMIC_SMITE = "smite";
+    private static final String COSMIC_WORLD_DESTROYER = "world-destroyer";
+
     /** ADR-0070 rider: the shared any-pet gate a successful activation arms (2s). */
     private static final long SHARED_USE_GATE_TICKS = 40L;
 
@@ -83,6 +96,7 @@ public final class PetService {
     private final PetHomeStore homes;       // ADR-0061: the Mole dig-home windows (same-package store)
     private final TeleblockStore teleblock; // ADR-0061: the pack-wide teleport counter, read at recall
     private final PetHomeVisuals visuals;   // ADR-0061 amendment: the window-tied pulse + recall cues
+    private final feature.combat.NatureWrathListener natureWrath;
 
     public PetService(ContentHolder content, PetCodec codec, TriggerDispatch dispatch, TexturedHeads heads,
                       HeadEquip headEquip, VanillaEnchants vanilla, PetMessenger messenger, PetArmedStore armed,
@@ -90,6 +104,17 @@ public final class PetService {
                       Supplier<PetItemConfig> likeness, Supplier<PetFoodConfig> food, Consumer<Player> refresh,
                       LongSupplier nowTicks, Predicate<Material> isAir, PetLevelCue cue, Random rolls,
                       PetHomeStore homes, TeleblockStore teleblock, PetHomeVisuals visuals) {
+        this(content, codec, dispatch, heads, headEquip, vanilla, messenger, armed, sharedGate, pets, likeness,
+                food, refresh, nowTicks, isAir, cue, rolls, homes, teleblock, visuals, null);
+    }
+
+    public PetService(ContentHolder content, PetCodec codec, TriggerDispatch dispatch, TexturedHeads heads,
+                      HeadEquip headEquip, VanillaEnchants vanilla, PetMessenger messenger, PetArmedStore armed,
+                      PetSharedUseStore sharedGate, Supplier<MasterConfig.PetsSection> pets,
+                      Supplier<PetItemConfig> likeness, Supplier<PetFoodConfig> food, Consumer<Player> refresh,
+                      LongSupplier nowTicks, Predicate<Material> isAir, PetLevelCue cue, Random rolls,
+                      PetHomeStore homes, TeleblockStore teleblock, PetHomeVisuals visuals,
+                      feature.combat.NatureWrathListener natureWrath) {
         this.content = Objects.requireNonNull(content, "content");
         this.codec = Objects.requireNonNull(codec, "codec");
         this.dispatch = Objects.requireNonNull(dispatch, "dispatch");
@@ -110,6 +135,7 @@ public final class PetService {
         this.homes = Objects.requireNonNull(homes, "homes");
         this.teleblock = Objects.requireNonNull(teleblock, "teleblock");
         this.visuals = Objects.requireNonNull(visuals, "visuals");
+        this.natureWrath = natureWrath;
     }
 
     public boolean isPet(ItemStack stack) {
@@ -139,7 +165,7 @@ public final class PetService {
             stack = ItemFactory.buildItem(def.material(), Material.PAPER, null, null);
         }
         headEquip.unwearable(stack); // a pet activates from the HOTBAR, never the helmet slot — deny client-side (1.8.4)
-        int clamped = Math.min(Math.max(1, level), pets.get().maxLevel());
+        int clamped = Math.min(Math.max(1, level), def.maxLevelOr(pets.get().maxLevel()));
         codec.stamp(stack, key, clamped);
         render(stack, def);
         return stack;
@@ -175,6 +201,8 @@ public final class PetService {
         MasterConfig.PetsSection section = pets.get();
         int level = codec.level(stack);
         int exp = codec.exp(stack);
+        int maxLevel = def.maxLevelOr(section.maxLevel());
+        int expNext = level >= maxLevel ? 0 : def.expToNext(level, section.expPerLevel());
         PetBracket bracket = def.bracketFor(level);
         String time = TimeFormat.hmsFromTicks(bracket == null ? 0 : bracket.cooldownTicks());
         Object[] tokens = {
@@ -182,18 +210,23 @@ public final class PetService {
                 "NAME", def.display(),
                 "TIME_FORMATTED", time,
                 "LEVEL", Integer.toString(level),
-                "MAX_LEVEL", Integer.toString(section.maxLevel()),
+                "MAX_LEVEL", Integer.toString(maxLevel),
                 "EXP", Integer.toString(exp),
-                "EXP_NEXT", Integer.toString(section.expPerLevel()),
-                "EXP_BAR", expBar(level, exp, section),
+                "EXP_NEXT", Integer.toString(expNext),
+                "EXP_FORMATTED", formatNumber(exp),
+                "EXP_NEXT_FORMATTED", formatNumber(expNext),
+                "EXP_BAR", expBar(level, exp, maxLevel, expNext),
+                "EXP_BAR_50", expBar50(level, exp, maxLevel, expNext),
+                "EXP_PROGRESS_50", level >= maxLevel
+                        ? "&7 (MAX LEVEL)"
+                        : "&7 (" + formatNumber(exp) + "/" + formatNumber(expNext) + ")",
         };
         List<String> template = PetTokens.colorTolerant(def.active() ? cfg.loreActive() : cfg.lorePassive());
-        // Two line-expanding tokens, nested: {DESCRIPTOR} (the flavour header) then {DESCRIPTION} (the
-        // ability lines). An un-authored descriptor drops its line; strip what's left of its slot so the
-        // lore never opens on a stray blank.
+        List<String> description = bracket != null && !bracket.description().isEmpty()
+                ? bracket.description() : def.description();
         List<String> lore = new ArrayList<>(Tokens.expandLines(
                 Tokens.expandLines(template, "DESCRIPTOR", def.descriptor(), tokens),
-                "DESCRIPTION", def.description(), tokens));
+                "DESCRIPTION", description, tokens));
         while (!lore.isEmpty() && lore.get(0).isBlank()) {
             lore.remove(0);
         }
@@ -210,8 +243,12 @@ public final class PetService {
      * pads a leading space so its first {@code _} does not hug the {@code [}.
      */
     static String expBar(int level, int exp, MasterConfig.PetsSection cfg) {
-        int filled = level >= cfg.maxLevel() ? 10
-                : (int) Math.min(10, Math.max(0, (10L * exp) / cfg.expPerLevel()));
+        return expBar(level, exp, cfg.maxLevel(), cfg.expPerLevel());
+    }
+
+    static String expBar(int level, int exp, int maxLevel, int expToNext) {
+        int filled = level >= maxLevel ? 10
+                : (int) Math.min(10, Math.max(0, (10L * exp) / Math.max(1, expToNext)));
         StringBuilder bar = new StringBuilder("&a");
         bar.append("■ ".repeat(filled)); // each square keeps its trailing space — the last one is the right-hand pad
         bar.append("&7");
@@ -220,6 +257,16 @@ public final class PetService {
         }
         bar.append("_ ".repeat(10 - filled));
         return bar.toString();
+    }
+
+    static String expBar50(int level, int exp, int maxLevel, int expToNext) {
+        int filled = level >= maxLevel ? 50
+                : (int) Math.min(50, Math.max(0, (50L * exp) / Math.max(1, expToNext)));
+        return "&a" + "|".repeat(filled) + "&c" + "|".repeat(50 - filled);
+    }
+
+    private static String formatNumber(int value) {
+        return java.text.NumberFormat.getIntegerInstance(java.util.Locale.US).format(value);
     }
 
     /** What one exp credit did to a pet (the caller re-renders slots / refreshes on a bracket change). */
@@ -235,10 +282,18 @@ public final class PetService {
     static final long FRAC_UNITS_PER_EXP = 60_000L;
 
     static LevelRoll rollExp(int level, int exp, int amount, int maxLevel, int expPerLevel) {
+        return rollExp(level, exp, amount, maxLevel, ignored -> expPerLevel);
+    }
+
+    static LevelRoll rollExp(int level, int exp, int amount, int maxLevel, IntUnaryOperator expToNext) {
         int newLevel = level;
         int newExp = exp + amount;
-        while (newExp >= expPerLevel && newLevel < maxLevel) {
-            newExp -= expPerLevel;
+        while (newLevel < maxLevel) {
+            int threshold = Math.max(1, expToNext.applyAsInt(newLevel));
+            if (newExp < threshold) {
+                break;
+            }
+            newExp -= threshold;
             newLevel++;
         }
         if (newLevel >= maxLevel) {
@@ -285,10 +340,12 @@ public final class PetService {
         MasterConfig.PetsSection cfg = pets.get();
         int level = codec.level(stack);
         int exp = codec.exp(stack);
-        if (level >= cfg.maxLevel()) {
+        int maxLevel = def.maxLevelOr(cfg.maxLevel());
+        if (level >= maxLevel) {
             return Progress.NONE; // capped: exp no longer accrues
         }
-        LevelRoll roll = rollExp(level, exp, amount, cfg.maxLevel(), cfg.expPerLevel());
+        LevelRoll roll = rollExp(level, exp, amount, maxLevel,
+                current -> def.expToNext(current, cfg.expPerLevel()));
         return commitProgress(owner, stack, def, level, exp, roll.level(), roll.exp());
     }
 
@@ -304,8 +361,9 @@ public final class PetService {
         MasterConfig.PetsSection cfg = pets.get();
         int level = codec.level(stack);
         int exp = codec.exp(stack);
-        int newLevel = Math.min(cfg.maxLevel(), level + levels);
-        int newExp = newLevel >= cfg.maxLevel() ? 0 : exp;
+        int maxLevel = def.maxLevelOr(cfg.maxLevel());
+        int newLevel = Math.min(maxLevel, level + levels);
+        int newExp = newLevel >= maxLevel ? 0 : exp;
         return commitProgress(owner, stack, def, level, exp, newLevel, newExp);
     }
 
@@ -322,12 +380,14 @@ public final class PetService {
             return Progress.NONE;
         }
         MasterConfig.PetsSection cfg = pets.get();
-        if (codec.level(stack) >= cfg.maxLevel()) {
+        int level = codec.level(stack);
+        if (level >= def.maxLevelOr(cfg.maxLevel())) {
             return Progress.NONE; // parked at the cap
         }
         double rate = !def.active() && hotbar ? cfg.passiveHotbarLevelsPerHour() : cfg.passiveLevelsPerHour();
+        int expToNext = def.expToNext(level, cfg.expPerLevel());
         int before = codec.expFrac(stack);
-        long units = before + accrueUnitsPerMinute(rate, cfg.expPerLevel());
+        long units = before + accrueUnitsPerMinute(rate, expToNext);
         int whole = (int) Math.min(Integer.MAX_VALUE, units / FRAC_UNITS_PER_EXP);
         int frac = (int) (units % FRAC_UNITS_PER_EXP);
         if (frac != before) {
@@ -349,7 +409,8 @@ public final class PetService {
             return Progress.NONE;
         }
         codec.writeProgress(stack, newLevel, newExp);
-        if (displayedChanged(oldLevel, newLevel, oldExp, newExp, pets.get().expPerLevel())) {
+        int expToNext = def.expToNext(oldLevel, pets.get().expPerLevel());
+        if (displayedChanged(oldLevel, newLevel, oldExp, newExp, expToNext)) {
             render(stack, def); // the name carries {LEVEL}, the lore the bar — silent tenths skip the recompose
         }
         if (newLevel > oldLevel) {
@@ -359,9 +420,10 @@ public final class PetService {
         return new Progress(true, crossed);
     }
 
-    /** Whether the pet on {@code stack} is already at the universal max level (the food check-before-consume). */
+    /** Whether the pet on {@code stack} is already at its resolved max level (the food check-before-consume). */
     public boolean atMaxLevel(ItemStack stack) {
-        return codec.level(stack) >= pets.get().maxLevel();
+        PetDef def = defOf(codec.keyOf(stack));
+        return def == null || codec.level(stack) >= def.maxLevelOr(pets.get().maxLevel());
     }
 
     /**
@@ -379,9 +441,52 @@ public final class PetService {
             messenger.failed(player, def);
             return;
         }
+        UUID playerId = player.getUniqueId();
+        if (COSMIC_ANTI_TELEBLOCK.equals(def.key())
+                && !teleblock.isBlocked(playerId, nowTicks.getAsLong())) {
+            player.playSound(player.getLocation(), "mob.villager.no", 3.0f, 0.7f);
+            player.sendMessage(platform.text.Colors.translate(
+                    "&c&l(!) &cYou must be affected by Teleblock to activate this pet!"));
+            return;
+        }
+        if (COSMIC_BLACKSCROLL.equals(def.key()) && CosmicPetCharges.hasBlackscroll(playerId)) {
+            player.sendMessage(platform.text.Colors.translate("&c&lPET: &cYou already have an active Blackscroll Pet applied. Use a blackscroll before attempting to use another blackscroll pet."));
+            return;
+        }
+        if (COSMIC_ENCHANTER.equals(def.key()) && CosmicPetCharges.hasEnchanter(playerId)) {
+            player.sendMessage(platform.text.Colors.translate("&c&lPET: &cYou already have an active Enchanter Pet applied. Use an Enchantment Book before attempting to use another Enchanter Pet."));
+            return;
+        }
         PetBracket bracket = def.bracketFor(codec.level(stack));
         if (bracket == null || bracket.useStableKeys().isEmpty()) {
             messenger.failed(player, def);
+            return;
+        }
+        if ((COSMIC_WATER.equals(def.key()) || COSMIC_LAVA.equals(def.key()))
+                && countPlainBuckets(player) == 0) {
+            String petName = COSMIC_WATER.equals(def.key()) ? "Water" : "Lava";
+            player.sendMessage(platform.text.Colors.translate("&c&lPET (&c" + petName
+                    + " Pet&c&l)&c:&f No empty buckets in your inventory!"));
+            player.playSound(player.getLocation(), "mob.villager.no", 3.0f, 0.7f);
+            return;
+        }
+        if (COSMIC_FEIGN_DEATH.equals(def.key()) && !feature.combat.FeignDeathListener.petReady(player)) {
+            player.sendMessage(platform.text.Colors.translate(
+                    "&c&l(!) &cYou must wait at least 10s in between feign death use!"));
+            return;
+        }
+        if (COSMIC_GAIA.equals(def.key())
+                && (natureWrath == null || !natureWrath.hasValidTargets(player, codec.level(stack)))) {
+            player.sendMessage(platform.text.Colors.translate("&c&lPET: &cNo valid enemy players nearby!"));
+            return;
+        }
+        if (COSMIC_SMITE.equals(def.key()) && !CosmicSmitePet.hasTarget(player)) {
+            player.sendMessage(platform.text.Colors.translate("&c&lPET: &cNo target found!"));
+            return;
+        }
+        if (COSMIC_WORLD_DESTROYER.equals(def.key()) && !CosmicWorldDestroyer.hasTargets(player)) {
+            player.sendMessage(platform.text.Colors.translate(
+                    "&c&nPET: No valid enemy players nearby! (30x30)"));
             return;
         }
         // ADR-0061: a digger pet's click during a LIVE home window is a RECALL — resolved BEFORE the gate
@@ -410,11 +515,33 @@ public final class PetService {
         UseAttempt attempt = dispatch.fireUse(player, bracket.useStableKeys());
         if (attempt.activated()) {
             sharedGate.arm(player.getUniqueId(), nowTicks.getAsLong() + SHARED_USE_GATE_TICKS); // ADR-0070 rider
+            if (COSMIC_BLACKSCROLL.equals(def.key())) {
+                CosmicPetCharges.armBlackscroll(playerId, codec.level(stack));
+            } else if (COSMIC_ENCHANTER.equals(def.key())) {
+                CosmicPetCharges.armEnchanter(playerId, codec.level(stack));
+            } else if (COSMIC_FEIGN_DEATH.equals(def.key())) {
+                feature.combat.FeignDeathListener.activatePet(player, codec.level(stack));
+            } else if (COSMIC_GAIA.equals(def.key())) {
+                if (natureWrath != null) {
+                    natureWrath.activatePet(player, codec.level(stack));
+                }
+            } else if (COSMIC_SMITE.equals(def.key())) {
+                CosmicSmitePet.activate(player, codec.level(stack));
+            } else if (COSMIC_WORLD_DESTROYER.equals(def.key())) {
+                CosmicWorldDestroyer.activate(player);
+            } else if (COSMIC_ANTI_TELEBLOCK.equals(def.key())) {
+                player.playSound(player.getLocation(), "lava.pop", 1.1f, 1.0f);
+                player.sendMessage(platform.text.Colors.translate(
+                        "&a&lPET (&aAnti Teleblock Pet&a&l)&a:&f Teleblock removed!"));
+            }
             messenger.activated(player, def);
             if (dig != null) {
                 armHome(player, def, dig); // ADR-0061: the dig is non-XP — use-XP lands on the RECALL
+            } else if (COSMIC_WATER.equals(def.key()) || COSMIC_LAVA.equals(def.key())) {
+                int converted = fillBuckets(player, codec.level(stack), COSMIC_LAVA.equals(def.key()));
+                creditUseExp(player, stack, converted);
             } else {
-                creditUseExp(player, stack);
+                creditUseExp(player, stack, bracket);
             }
             openWindow(player, def, bracket);
             return;
@@ -438,11 +565,37 @@ public final class PetService {
      * (incl. the gate-6 cooldown) passed and effects ran. A stacked head is skipped (crediting would level
      * every copy); the held slot is written back here because the listener handed us a copy (A20).
      */
-    private void creditUseExp(Player player, ItemStack stack) {
+    private void creditUseExp(Player player, ItemStack stack, PetBracket bracket) {
         if (stack.getAmount() > 1) {
             return;
         }
-        Progress progress = gainExp(player, stack, useExpRoll(rolls, pets.get().expPerLevel()));
+        int configured = bracket.experienceOnUse() >= 0
+                ? bracket.experienceOnUse()
+                : useExpRoll(rolls, pets.get().expPerLevel());
+        boolean inCombat = CombatTag.inCombat(player.getUniqueId());
+        boolean warZone = "world_koth".equals(player.getWorld().getName());
+        int amount = cosmicUseExp(codec.keyOf(stack), inCombat, warZone, configured);
+        creditUseExp(player, stack, amount);
+    }
+
+    static int cosmicUseExp(String petKey, boolean inCombat, boolean warZone, int configured) {
+        if (COSMIC_FEIGN_DEATH.equals(petKey)) {
+            return !inCombat ? 1 : warZone ? 50 : 5;
+        }
+        if (COSMIC_GAIA.equals(petKey)) {
+            return warZone ? 50 : 5;
+        }
+        if (COSMIC_TESLA.equals(petKey)) {
+            return inCombat && warZone ? 10 : 4;
+        }
+        return configured;
+    }
+
+    private void creditUseExp(Player player, ItemStack stack, int amount) {
+        if (stack.getAmount() > 1) {
+            return;
+        }
+        Progress progress = gainExp(player, stack, amount);
         if (progress.changed()) {
             PlayerInventory inventory = player.getInventory();
             inventory.setItem(inventory.getHeldItemSlot(), stack);
@@ -500,7 +653,7 @@ public final class PetService {
         visuals.recallCues(player, def, player.getLocation(), to); // cues mark both ends before the async hop
         dispatch.teleport(player, to);
         messenger.ended(player, def);
-        creditUseExp(player, stack);
+        creditUseExp(player, stack, def.bracketFor(codec.level(stack)));
         return true;
     }
 
@@ -614,5 +767,44 @@ public final class PetService {
         armed.clear(player);
         homes.clear(player); // the pending expiry task then no-ops via the generation guard — no post-death ENDED
         visuals.clear(player);
+        CosmicPetCharges.clear(player);
+    }
+
+    private static int countPlainBuckets(Player player) {
+        int total = 0;
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (item != null && item.getType() == Material.BUCKET && !item.hasItemMeta()) {
+                total += item.getAmount();
+            }
+        }
+        return total;
+    }
+
+    /**
+     * Convert at most 32*level buckets (all 1152 inventory-capacity units at level 10). Unlike Cosmic's
+     * inverted boundary branch, the fitting portion is converted and the overflow remains empty.
+     */
+    private static int fillBuckets(Player player, int level, boolean lava) {
+        int remaining = level >= 10 ? 1152 : level * 32;
+        int converted = 0;
+        PlayerInventory inventory = player.getInventory();
+        ItemStack[] contents = inventory.getContents();
+        Material filled = lava ? Material.LAVA_BUCKET : Material.WATER_BUCKET;
+        for (int slot = 0; slot < contents.length && remaining > 0; slot++) {
+            ItemStack item = contents[slot];
+            if (item == null || item.getType() != Material.BUCKET || item.hasItemMeta()) {
+                continue;
+            }
+            int take = Math.min(remaining, item.getAmount());
+            int left = item.getAmount() - take;
+            inventory.setItem(slot, left <= 0 ? null : new ItemStack(Material.BUCKET, left));
+            java.util.Map<Integer, ItemStack> overflow = inventory.addItem(new ItemStack(filled, take));
+            for (ItemStack excess : overflow.values()) {
+                player.getWorld().dropItemNaturally(player.getLocation(), excess);
+            }
+            converted += take;
+            remaining -= take;
+        }
+        return converted;
     }
 }

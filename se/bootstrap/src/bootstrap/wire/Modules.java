@@ -61,7 +61,7 @@ public final class Modules {
         this.books = new BooksModule(core, carriers, scrolls); // layers on the carrier economy; the Enchanter's
                                                                 // scroll tiles take the white/black scroll mints
         this.useItems = new UseItemsModule(core);          // §3.6 right-click content items
-        this.pets = new PetsModule(core, equip);           // ADR-0052 leveling head items (needs the refresher)
+        this.pets = new PetsModule(core, equip, triggers.natureWrath);           // ADR-0052 leveling head items (needs the refresher)
         this.masks = new MasksModule(core, equip);         // ADR-0053 helmet masks (subscribes the equip-refresh seam)
         this.traks = new TraksModule(core);
         this.enchants = new EnchantsModule(core);

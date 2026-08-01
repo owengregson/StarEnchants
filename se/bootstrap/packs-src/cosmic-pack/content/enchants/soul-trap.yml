@@ -1,28 +1,82 @@
-# Imported from EliteEnchantments (id: soul-trap). Review before shipping.
-display: "Soul Trap"
-description:
-  - "&eDisables the target's entire soul"
-  - "&etier for a few seconds."
-trigger: ATTACK
-applies-to: [WEAPON]
-group: "soul"
+# Cosmic codex source: 04-enchants-axes.md — axes/SoulTrap.java
+display: Soul Trap
+description: Active Soul Enchantment. Your axe is imbued with sealing magic, and has a chance to disable/negate all soul enchantments
+  of your enemies and drain their souls on hit for (level x 4) seconds. Costs 8 souls per second.
+trigger:
+- ATTACK
+applies-to:
+- AXE
+group: soul
 tier: soul
+disabled-environments: [THE_END]
+stacking: HIGHEST
 levels:
   1:
-    cooldown: 100
+    chance: 7
+    condition: '%victim.type% == "PLAYER"'
     effects:
-      - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.9, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SOUL", count: 12 } }
-      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 60, who: "@Victim" } }
+      - SOUL_TRAP:
+          key: soul
+          duration: 80
+          retrap-grace: 100
+          steal: 10
+          fallback-damage: 2
+          cost: 5
+          cost-period: 20
+          anti-swap: 5
+          message: '&9&l** SOUL TRAP &7[4s]&9&l**'
+          sound: ENDERMAN_SCREAM
+          sound-volume: 1.0
+          sound-pitch: 0.3
+          particle-1: SPELL_WITCH
+          particle-1-count: 60
+          particle-1-speed: 0.7
+          particle-2: SPELL
+          particle-2-count: 25
+          particle-2-speed: 0.4
   2:
-    cooldown: 100
+    chance: 14
+    condition: '%victim.type% == "PLAYER"'
     effects:
-      - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.9, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SOUL", count: 12 } }
-      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 90, who: "@Victim" } }
+      - SOUL_TRAP:
+          key: soul
+          duration: 160
+          retrap-grace: 100
+          steal: 20
+          fallback-damage: 3
+          cost: 5
+          cost-period: 20
+          anti-swap: 5
+          message: '&9&l** SOUL TRAP &7[8s]&9&l**'
+          sound: ENDERMAN_SCREAM
+          sound-volume: 1.0
+          sound-pitch: 0.3
+          particle-1: SPELL_WITCH
+          particle-1-count: 60
+          particle-1-speed: 0.7
+          particle-2: SPELL
+          particle-2-count: 25
+          particle-2-speed: 0.4
   3:
-    cooldown: 100
+    chance: 21
+    condition: '%victim.type% == "PLAYER"'
     effects:
-      - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.9, pitch: 0.9 } }
-      - { PARTICLE: { particle: "SOUL", count: 12 } }
-      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 120, who: "@Victim" } }
+      - SOUL_TRAP:
+          key: soul
+          duration: 240
+          retrap-grace: 100
+          steal: 30
+          fallback-damage: 4
+          cost: 5
+          cost-period: 20
+          anti-swap: 5
+          message: '&9&l** SOUL TRAP &7[12s]&9&l**'
+          sound: ENDERMAN_SCREAM
+          sound-volume: 1.0
+          sound-pitch: 0.3
+          particle-1: SPELL_WITCH
+          particle-1-count: 60
+          particle-1-speed: 0.7
+          particle-2: SPELL
+          particle-2-count: 25
+          particle-2-speed: 0.4

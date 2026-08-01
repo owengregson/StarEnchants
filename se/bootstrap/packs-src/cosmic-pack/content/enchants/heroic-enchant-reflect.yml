@@ -1,0 +1,32 @@
+# Cosmic codex source: 06-enchants-tools-heroic.md — heroic/HeroicReflect.java
+display: Heroic Enchant Reflect
+description: Chance to cause enemy offensive enchants up to Heroic (up to level) to proc on themselves instead of you.
+trigger:
+- PASSIVE
+applies-to:
+- ARMOR
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    effects: []
+  2:
+    effects: []
+  3:
+    effects: []
+  4:
+    effects: []
+  5:
+    effects: []
+  6:
+    effects: []
+  7:
+    effects: []
+  8:
+    effects: []
+  9:
+    effects: []
+  10:
+    effects: []

@@ -1,0 +1,27 @@
+# Cosmic codex source: 04-enchants-axes.md — axes/Blacksmith.java
+display: Blacksmith
+description: Chance to heal your most damaged piece of armor by 1-2 durability whenever you hit a player, but when it procs
+  your attack will only deal 50% of the normal damage.
+trigger:
+- ATTACK
+applies-to:
+- AXE
+group: legendary
+tier: legendary
+stacking: HIGHEST
+levels:
+  1:
+    abilities:
+      - { trigger: ATTACK, chance: 7.5, effects: [{ DURABILITY: { amount: 1, target: armor, mode: restore, selection: most-damaged } }, { DAMAGE_MOD: { side: attack, mode: multiply, amount: 0.5 } }] }
+  2:
+    abilities:
+      - { trigger: ATTACK, chance: 15, effects: [{ DURABILITY: { amount: 1, target: armor, mode: restore, selection: most-damaged } }, { DAMAGE_MOD: { side: attack, mode: multiply, amount: 0.5 } }] }
+  3:
+    abilities:
+      - { trigger: ATTACK, chance: 22.5, effects: [{ DURABILITY: { amount: 1, target: armor, mode: restore, selection: most-damaged } }, { DURABILITY: { amount: 1, target: armor, mode: restore, selection: most-damaged } }, { DAMAGE_MOD: { side: attack, mode: multiply, amount: 0.5 } }] }
+  4:
+    abilities:
+      - { trigger: ATTACK, chance: 30, effects: [{ DURABILITY: { amount: 1, target: armor, mode: restore, selection: most-damaged } }, { DURABILITY: { amount: 1, target: armor, mode: restore, selection: most-damaged } }, { DAMAGE_MOD: { side: attack, mode: multiply, amount: 0.5 } }] }
+  5:
+    abilities:
+      - { trigger: ATTACK, chance: 37.5, effects: [{ DURABILITY: { amount: 2, target: armor, mode: restore, selection: most-damaged } }, { DURABILITY: { amount: 1, target: armor, mode: restore, selection: most-damaged } }, { DAMAGE_MOD: { side: attack, mode: multiply, amount: 0.5 } }] }

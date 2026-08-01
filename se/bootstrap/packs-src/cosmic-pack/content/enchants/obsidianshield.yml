@@ -1,14 +1,19 @@
-# Imported from EliteEnchantments (id: obsidianshield). Review before shipping.
-display: "Obsidian Shield"
-description:
-  - "&eGrants permanent Fire"
-  - "&eResistance."
-trigger: PASSIVE
-applies-to: [ARMOR]
-group: "rare"
-tier: rare
-suppress-immune: true  # permanent worn buff — unsilenceable (Silence/Solitude/Perfect-Solitude can't disable THIS enchant; other enchants still get silenced)
+# Cosmic codex source: 02-enchants-armor-m-z.md — armor/Obsidianshield.java
+display: Obsidianshield
+description: Gives permanent fire resistance.
+trigger:
+- PASSIVE
+applies-to:
+- ARMOR
+group: ultimate
+tier: ultimate
+stacking: EACH
 levels:
   1:
     effects:
-      - { POTION: { effect: "FIRE_RESISTANCE", level: 1, duration: 200, who: "@Self" } }  # from POTION:FIRE_RESISTANCE:1:PLAYER — EE omitted duration — defaulted to 200t (10s); review for held buffs
+    - POTION:
+        effect: FIRE_RESISTANCE
+        level: 1
+        duration: 2147483647
+        who: '@Self'
+suppress-immune: true

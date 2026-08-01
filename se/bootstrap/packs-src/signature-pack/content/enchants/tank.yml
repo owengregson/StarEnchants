@@ -1,0 +1,30 @@
+# Imported from EliteEnchantments (id: tank). Review before shipping.
+display: "Tank"
+description:
+  - "&eReduces damage taken from"
+  - "&eenemies holding an axe."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "rare"
+tier: rare
+levels:
+  1:
+    condition: "%victim.helditem% contains \"AXE\""
+    effects:
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 0.75 } }
+  2:
+    condition: "%victim.helditem% contains \"AXE\""
+    effects:
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1.25 } }
+  3:
+    condition: "%victim.helditem% contains \"AXE\""
+    effects:
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1.75 } }
+  4:
+    condition: "%victim.helditem% contains \"AXE\""
+    effects:
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2.25 } }

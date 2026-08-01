@@ -1,0 +1,20 @@
+# Cosmic codex source: 07-enchants-mastery-soul.md — mastery/MasteryFeignDeath.java
+display: Feign Death
+description: Chance to fake death and vanish for up to 6 seconds, or until you have damaged a player (levelx) times.
+trigger:
+- DEFENSE
+applies-to:
+- ARMOR
+group: mastery
+tier: mastery
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    effects: []
+  2:
+    effects: []
+  3:
+    effects: []
+  4:
+    effects: []

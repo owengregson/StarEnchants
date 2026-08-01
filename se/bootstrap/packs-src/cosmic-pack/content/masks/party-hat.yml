@@ -1,0 +1,14 @@
+# Cosmic codex source: 11-masks.md
+display: Party Hat
+color: '&f'
+head: eyJ0aW1lc3RhbXAiOjE1NDUxOTQ1OTkyNzksInByb2ZpbGVJZCI6ImQ4ZmQzYjUxYzZiNzRlNmY4NmExY2FlM2ZiNjI3NzYwIiwicHJvZmlsZU5hbWUiOiJNeXN0ZXJ5TWVyY2hhbnQiLCJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM0NThjZjBlZDkyNGNhM2VhMzI4ZDg0MTMyODVhYWRlNTM0YTc0ZTQ2ZGQ1NTA0N2IxOWQxNmRlNmRiZjkyYiJ9fX0=
+material: PLAYER_HEAD
+summary: -5% ENEMY DMG
+description:
+- "&c-5% ENEMY DMG"
+- "&c+4% DMG"
+- "&7Everywhere you are is a party."
+- "&6&l* &6New Years 2018"
+abilities:
+- trigger: PASSIVE
+  effects: []

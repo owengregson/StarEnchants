@@ -1,0 +1,50 @@
+# Imported from EliteEnchantments (id: insanity). Review before shipping.
+display: "Insanity"
+description:
+  - "&eDeals bonus damage to targets"
+  - "&eholding a sword."
+trigger: ATTACK
+applies-to: [AXE]
+group: "epic"
+tier: epic
+levels:
+  1:
+    condition: "%victim.helditem% contains \"SWORD\""
+    effects:
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.09 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
+  2:
+    condition: "%victim.helditem% contains \"SWORD\""
+    effects:
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.14 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
+  3:
+    condition: "%victim.helditem% contains \"SWORD\""
+    effects:
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.19 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
+  4:
+    condition: "%victim.helditem% contains \"SWORD\""
+    effects:
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.24 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
+  5:
+    condition: "%victim.helditem% contains \"SWORD\""
+    effects:
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.29 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
+  6:
+    condition: "%victim.helditem% contains \"SWORD\""
+    effects:
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.35 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
+  7:
+    condition: "%victim.helditem% contains \"SWORD\""
+    effects:
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.40 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)
+  8:
+    condition: "%victim.helditem% contains \"SWORD\""
+    effects:
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: 0.45 } }  # matchup bonus in raw hp (ADR-0050 R3 flat economy)

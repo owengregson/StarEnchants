@@ -1,0 +1,6 @@
+# Mint Items GUI — operator self-mint menu for spawning pack items.
+# Browse the catalogue and click a tile to mint a copy. See menus/apply.yml for the full field list.
+
+title: "&6&l✦ Mint Items ✦"
+frame: "border"
+filler: "BLACK_STAINED_GLASS_PANE"

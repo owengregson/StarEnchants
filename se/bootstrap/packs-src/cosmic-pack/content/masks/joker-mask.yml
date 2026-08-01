@@ -1,0 +1,16 @@
+# Cosmic codex source: 11-masks.md
+display: Joker Mask
+color: '&5'
+head: eyJ0aW1lc3RhbXAiOjE1NTc4NDYxODU2MTMsInByb2ZpbGVJZCI6ImQ4ZmQzYjUxYzZiNzRlNmY4NmExY2FlM2ZiNjI3NzYwIiwicHJvZmlsZU5hbWUiOiJNeXN0ZXJ5TWVyY2hhbnQiLCJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODQzZDc0MzA1ZGZlNWY2OTExZjA2MmQ4NjJiYjg5ZTVhNjFiNGNmNzQ0YzJiMDgxNmU1YzI1NGQzODJjODRhNCIsIm1ldGFkYXRhIjp7Im1vZGVsIjoic2xpbSJ9fX19
+material: PLAYER_HEAD
+summary: Increase Combat Tag on players by 4s
+description:
+- "&c+4s Combat Tag on enemy players"
+- "&c-3s Combat Tag on you"
+- "&7Everyone takes everything so"
+- "&7very seriously, you're just trying"
+- "&7to.. haHahaHahaHahaHahaHahaHa!"
+- "&6&l * &6Summer Savage Lootbox Release"
+abilities:
+- trigger: PASSIVE
+  effects: []

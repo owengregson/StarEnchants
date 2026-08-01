@@ -1,0 +1,107 @@
+# Imported from EliteEnchantments (id: deep-bleed). Review before shipping.
+display: "Deep Bleed"
+description:
+  - "&eYour strikes tear a deeper"
+  - "&ebleeding wound; the victim bleeds"
+  - "&eharder and is slowed far more"
+  - "&eover several seconds."
+  - "&c&l(!)&r &7Requires &eBleed"
+trigger: ATTACK
+applies-to: [AXE]
+group: "mythic"
+tier: mythic
+requires: ["enchants/bleed"]
+removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
+levels:
+  1:
+    chance: 8
+    cooldown: 80
+    effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.8, pitch: 0.85 } }
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }
+      # Self-contained upgraded Bleed DoT (removes-required drops the base, so this can't lean on it):
+      # 3 iterations 1s apart via cumulative wait, each dealing 1/6 of the proc'ing hit plus Slowness III.
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
+      - { DAMAGE: { amount: "%damage% / 6", who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 3, duration: 20, who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
+      - { DAMAGE: { amount: "%damage% / 6", who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 3, duration: 20, who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
+      - { DAMAGE: { amount: "%damage% / 6", who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 3, duration: 20, who: "@Victim" } }
+  2:
+    chance: 10
+    cooldown: 80
+    effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.8, pitch: 0.85 } }
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
+      - { DAMAGE: { amount: "%damage% / 6", who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 3, duration: 20, who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
+      - { DAMAGE: { amount: "%damage% / 6", who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 3, duration: 20, who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
+      - { DAMAGE: { amount: "%damage% / 6", who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 3, duration: 20, who: "@Victim" } }
+  3:
+    chance: 12
+    cooldown: 80
+    effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.8, pitch: 0.85 } }
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
+      - { DAMAGE: { amount: "%damage% / 6", who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 3, duration: 20, who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
+      - { DAMAGE: { amount: "%damage% / 6", who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 3, duration: 20, who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
+      - { DAMAGE: { amount: "%damage% / 6", who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 3, duration: 20, who: "@Victim" } }
+  4:
+    chance: 14
+    cooldown: 80
+    effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.8, pitch: 0.85 } }
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
+      - { DAMAGE: { amount: "%damage% / 6", who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 3, duration: 20, who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
+      - { DAMAGE: { amount: "%damage% / 6", who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 3, duration: 20, who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
+      - { DAMAGE: { amount: "%damage% / 6", who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 3, duration: 20, who: "@Victim" } }
+  5:
+    chance: 16
+    cooldown: 80
+    effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.8, pitch: 0.85 } }
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
+      - { DAMAGE: { amount: "%damage% / 6", who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 3, duration: 20, who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
+      - { DAMAGE: { amount: "%damage% / 6", who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 3, duration: 20, who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
+      - { DAMAGE: { amount: "%damage% / 6", who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 3, duration: 20, who: "@Victim" } }
+  6:
+    chance: 18
+    cooldown: 80
+    effects:
+      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.8, pitch: 0.85 } }
+      - { PARTICLE: { particle: "DAMAGE_INDICATOR" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
+      - { DAMAGE: { amount: "%damage% / 6", who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 3, duration: 20, who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
+      - { DAMAGE: { amount: "%damage% / 6", who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 3, duration: 20, who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 15, who: "@Victim", wait: 20 } }
+      - { DAMAGE: { amount: "%damage% / 6", who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 3, duration: 20, who: "@Victim" } }

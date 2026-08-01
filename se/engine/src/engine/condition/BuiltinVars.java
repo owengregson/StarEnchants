@@ -23,6 +23,7 @@ public final class BuiltinVars {
                 .number("actor.level")
                 .number("actor.totalexp")
                 .number("damage")
+                .number("finaldamage")
                 .number("combo")   // unsourced until a combo tracker exists → reads 0
                 .number("actor.healthpercent")
                 .number("victim.healthpercent")
@@ -49,6 +50,7 @@ public final class BuiltinVars {
                 .flag("world.thundering")
                 .flag("victim.inzone")     // victim stands in an actor-owned MARK_ZONE (devil hellfire)
                 .string("actor.world")
+                .string("actor.environment")
                 .string("actor.gamemode")
                 .string("actor.helditem")
                 .string("victim.type")
@@ -65,8 +67,29 @@ public final class BuiltinVars {
                 .flag("itemdamage.armor")    // ITEM_DAMAGE: the damaged item is a worn ARMOR piece (vs the held item)
                 .number("ragestacks")        // the actor's live Rage stacks (min(combo streak, rage level)), sourced from RageStackStore
                 // ADR-0052 pet posture fact — appended (slots are append-only per §3.4).
-                .number("actor.belowvictim") // blocks the actor's feet sit BELOW the victim's (negative = above;
-                                             // 0 with no victim) — Eagle authors its threshold: %actor.belowvictim% > 1.5
+                .number("actor.belowvictim")
+                .number("projectilemark")  // generic BOW_FIRE→impact integer carrier; 0 for non-projectile/unmarked
+                .number("projectileheight") // projectile Y minus victim feet Y at impact; 0 otherwise
+                .flag("victim.rageaffected") // victim was stamped by a Rage multiplier within the Cosmic 200 ms window
+                .flag("victim.devouraffected") // victim was stamped by Devour within the Cosmic 200 ms window
+                .number("victim.bleedstacks") // victim's shared 0..20 Cosmic Bleed stack count
+                .flag("victim.necromancermask") // victim currently wears a Necromancer mask component
+                .number("victim.metaphysical") // victim's highest worn Metaphysical enchant level
+                .number("actor.walkspeed") // current Bukkit walk speed, used by Trap's re-entry guard
+                .number("victim.dragonslayer") // 1 when victim currently has the Dragon Slayer set active
+                .number("victim.sticky") // victim's highest worn Sticky enchant level
+                .number("victim.poltergeist") // victim's highest worn Poltergeist mastery level
+                .flag("victim.slowed") // victim currently has the SLOW potion type
+                .number("victim.isplayer") // 1 for a player victim, otherwise 0
+                .flag("actor.heldsettled5") // Cosmic anti-hot-swap gate: current tick - held change > 5
+                .flag("victim.boss") // victim carries the boss marker consumed by Boss Slayer
+                .number("actor.falldistance") // current fall distance; used by Ethereal Dodge's >5 message gate
+                .flag("victim.frommobspawner") // Bukkit spawn-origin marker maintained by SpawnerOriginListener
+                .flag("victim.induel") // Cosmic duel marker consumed by Obliterate
+                .number("antigankattackers") // distinct attackers in Anti Gank's exact 120-tick window
+                .number("aegisattackerindex") // current attacker's index in Aegis's exact 100-tick window
+                .number("victim.walkspeed") // current player victim walk speed; corrected Trap/Titan Trap re-entry guard
+                .number("victim.polymorphicmetaphysical") // heroic Metaphysical level; independently blocks Ice Aspect
                 .build();
     }
 }

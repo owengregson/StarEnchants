@@ -1,0 +1,29 @@
+# Cosmic codex source: 03-enchants-swords.md — swords/Obliterate.java
+display: Obliterate
+description: Extreme knockback outside The End, duels, and KOTH; KOTH still shows the explosion cue but suppresses movement.
+trigger: [ATTACK, BOW]
+applies-to: [SWORD, AXE, BOW]
+group: simple
+tier: simple
+stacking: HIGHEST
+levels:
+  1:
+    abilities:
+      - { trigger: [ATTACK, BOW], chance: 10, condition: &normal '%actor.environment% != "THE_END" && %victim.induel% == false && %actor.world% != "world_koth"', effects: &l1 [{ PARTICLE: { particle: EXPLOSION_LARGE, count: 3, speed: 1, spread: 0, anchor: feet, y-offset: 1, who: '@Victim' } }, { VELOCITY: { mode: away, strength: 2.3, who: '@Victim' } }] }
+      - { trigger: [ATTACK, BOW], chance: 10, condition: &koth '%actor.environment% != "THE_END" && %victim.induel% == false && %actor.world% == "world_koth"', effects: &cue [{ PARTICLE: { particle: EXPLOSION_LARGE, count: 3, speed: 1, spread: 0, anchor: feet, y-offset: 1, who: '@Victim' } }] }
+  2:
+    abilities:
+      - { trigger: [ATTACK, BOW], chance: 20, condition: *normal, effects: &l2 [{ PARTICLE: { particle: EXPLOSION_LARGE, count: 3, speed: 1, spread: 0, anchor: feet, y-offset: 1, who: '@Victim' } }, { VELOCITY: { mode: away, strength: 2.8, who: '@Victim' } }] }
+      - { trigger: [ATTACK, BOW], chance: 20, condition: *koth, effects: *cue }
+  3:
+    abilities:
+      - { trigger: [ATTACK, BOW], chance: 30.000000000000004, condition: *normal, effects: &l3 [{ PARTICLE: { particle: EXPLOSION_LARGE, count: 3, speed: 1, spread: 0, anchor: feet, y-offset: 1, who: '@Victim' } }, { VELOCITY: { mode: away, strength: 3.3, who: '@Victim' } }] }
+      - { trigger: [ATTACK, BOW], chance: 30.000000000000004, condition: *koth, effects: *cue }
+  4:
+    abilities:
+      - { trigger: [ATTACK, BOW], chance: 40, condition: *normal, effects: &l4 [{ PARTICLE: { particle: EXPLOSION_LARGE, count: 3, speed: 1, spread: 0, anchor: feet, y-offset: 1, who: '@Victim' } }, { VELOCITY: { mode: away, strength: 3.8, who: '@Victim' } }] }
+      - { trigger: [ATTACK, BOW], chance: 40, condition: *koth, effects: *cue }
+  5:
+    abilities:
+      - { trigger: [ATTACK, BOW], chance: 50, condition: *normal, effects: &l5 [{ PARTICLE: { particle: EXPLOSION_LARGE, count: 3, speed: 1, spread: 0, anchor: feet, y-offset: 1, who: '@Victim' } }, { VELOCITY: { mode: away, strength: 4.3, who: '@Victim' } }] }
+      - { trigger: [ATTACK, BOW], chance: 50, condition: *koth, effects: *cue }

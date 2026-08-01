@@ -1,0 +1,14 @@
+# Cosmic codex source: 06-enchants-tools-heroic.md — tools/Oxygenate.java
+display: Oxygenate
+description: Refills oxygen levels when breaking blocks under water.
+trigger: MINE
+applies-to: [PICKAXE, HOE, SHOVEL, AXE, FISHING_ROD]
+group: simple
+tier: simple
+stacking: HIGHEST
+levels:
+  1:
+    effects:
+    - FILL_OXYGEN:
+        amount: 20
+        who: '@Self'

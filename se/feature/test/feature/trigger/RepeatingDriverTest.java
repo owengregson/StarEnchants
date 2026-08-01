@@ -53,7 +53,7 @@ class RepeatingDriverTest {
             abilities[i] = ability(i, 0);
         }
         abilities[3] = ability(3, 20);
-        abilities[7] = ability(7, 40);
+        abilities[7] = ability(7, 40, 5);
         abilities[9] = ability(9, 0);
 
         Snapshot snapshot = Snapshots.snapshot().abilities(abilities).build();
@@ -73,7 +73,9 @@ class RepeatingDriverTest {
 
         assertEquals(2, backend.repeating.size());
         assertEquals(20L, backend.repeating.get(0).periodTicks);
+        assertEquals(20L, backend.repeating.get(0).initialDelayTicks);
         assertEquals(40L, backend.repeating.get(1).periodTicks);
+        assertEquals(5L, backend.repeating.get(1).initialDelayTicks);
         assertTrue(store.has(uuid, 3));
         assertTrue(store.has(uuid, 7));
         assertFalse(store.has(uuid, 9), "a repeatTicks=0 ability is never scheduled");
@@ -117,6 +119,11 @@ class RepeatingDriverTest {
 
     private static Ability ability(int id, int repeatTicks) {
         return Abilities.ability().id(id).defId(id).trigger(REPEATING).repeatTicks(repeatTicks).build();
+    }
+
+    private static Ability ability(int id, int repeatTicks, int initialDelayTicks) {
+        return Abilities.ability().id(id).defId(id).trigger(REPEATING).repeatTicks(repeatTicks)
+                .repeatInitialDelayTicks(initialDelayTicks).build();
     }
 
     private static WornState worn(int... repeatingIds) {

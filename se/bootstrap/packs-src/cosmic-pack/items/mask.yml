@@ -14,20 +14,19 @@ type: mask
 
 # The minted mask item's display name. {COLOR} already carries the mask's own &, so the template supplies only
 # the &l bold and the trailing " Mask" (e.g. "&8&lAgent Mask").
-name: "{COLOR}&l{NAME} Mask"
+name: "{COLOR}&l{NAME}"
 lore:
-  - "&eOverrides the visual appearance of a helmet and imbues it with magic mask abilities."
-  - ""
-  - "{COLOR}&l{NAME_UPPER} MASK BONUS"
   - "{DESCRIPTION}"
   - ""
-  - "&eApplies to: &f&n{APPLIES}&r"
-  - "&7Drag n' Drop on an item to apply."
-  - "&7Right Click while on an item to remove."
+  - "&7&oAttach this mask to any helmet"
+  - "&7&oto give it a visual override!"
+  - ""
+  - "&7To equip, place this mask on a helmet."
+  - "&7To remove, right-click helmet while attached."
 # The single line shown on a mask-bearing HELMET, rendered directly BELOW the crystal line(s) (its own
 # LoreComposer section). {NAME} expands here to the mask's colour-styled display, so a masked helmet always shows
 # which mask it carries.
-lore-while-on-item: "&6&lMask Equipped ({NAME}&r&6&l)"
+lore-while-on-item: "&7&lATTACHED: {NAME}{SUMMARY_SECTION}"
 # Apply / remove gesture sounds (namespaced keys, valid across the version range) — the SAME amethyst cues the
 # crystal likeness carries, since masks share the crystal drag-apply gesture family. apply plays on a successful
 # drag-onto-helmet; remove plays when a right-click pops the mask back off.
@@ -35,3 +34,14 @@ sounds:
   enabled: true
   apply: "block.amethyst_block.chime"
   remove: "block.amethyst_cluster.break"
+
+# Universal likeness for the compound Multi-Mask feature. {MASKS} is the ordered child-name list;
+# {COMPONENTS} expands to the component-name and component-ability lines below.
+multi:
+  name: "&f&lMulti-Mask (&r{MASKS}&f&l)"
+  lore:
+    - "&7This mask contains the powers of:"
+    - "{COMPONENTS}"
+  component-name: "&f&l* {COLOR}&l{NAME}"
+  component-ability: "&f&l(&c{SUMMARY}&f&l)"
+  lore-while-on-item: "&7&lATTACHED: &f&lMulti-Mask&f ({MASKS}&f)"

@@ -1,0 +1,30 @@
+# Imported from EliteEnchantments (id: thundering-blow). Review before shipping.
+# No authored SOUND: the real LIGHTNING strike already plays vanilla thunder — an authored
+# ENTITY_LIGHTNING_BOLT_THUNDER on top double-played the same cue every proc (ADR-0066).
+display: "Thundering Blow"
+description:
+  - "&eOn hit, strikes the target with"
+  - "&ea lightning bolt."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "common"
+tier: common
+levels:
+  1:
+    chance: 8
+    cooldown: 100
+    effects:
+      - { PARTICLE: { particle: "ELECTRIC_SPARK", count: 12 } }
+      - { LIGHTNING: { damage: 2, who: "@Victim" } }  # from LIGHTNING:TARGET:REAL — real strike; damage kept low since bare LIGHTNING damage bypasses the fold
+  2:
+    chance: 12
+    cooldown: 100
+    effects:
+      - { PARTICLE: { particle: "ELECTRIC_SPARK", count: 12 } }
+      - { LIGHTNING: { damage: 2, who: "@Victim" } }  # from LIGHTNING:TARGET:REAL — real strike; damage kept low since bare LIGHTNING damage bypasses the fold
+  3:
+    chance: 16
+    cooldown: 100
+    effects:
+      - { PARTICLE: { particle: "ELECTRIC_SPARK", count: 12 } }
+      - { LIGHTNING: { damage: 2, who: "@Victim" } }  # from LIGHTNING:TARGET:REAL — real strike; damage kept low since bare LIGHTNING damage bypasses the fold

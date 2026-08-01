@@ -1,56 +1,19 @@
-# Imported from EliteEnchantments (id: vengeful-diminish). Review before shipping.
-display: "Vengeful Diminish"
-description:
-  - "&eThe next blow against you is capped at"
-  - "&ehalf the last one, and everything above"
-  - "&ethe cap is turned back on the attacker."
-  - "&c&l(!)&r &7Requires &6Diminish"
+# Cosmic codex: 06-enchants-tools-heroic.md — heroic/HeroicDiminish.java
+display: Vengeful Diminish
+description: Halves a proccing hit, then caps the next larger hit and reflects its excess damage to the attacker.
 trigger: DEFENSE
 applies-to: [CHESTPLATE]
-group: "mythic"
-tier: mythic
-requires: ["enchants/diminish"]
-removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: HIGHEST
+# Exact persistent cap state, immediate halving, and overflow reflection are implemented by CosmicDiminishListener.
 levels:
-  1:
-    chance: 10
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.8 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100 } }
-  2:
-    chance: 14
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.8 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100 } }
-  3:
-    chance: 18
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.8 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100 } }
-  4:
-    chance: 22
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.8 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100 } }
-  5:
-    chance: 26
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.8 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100 } }
-  6:
-    chance: 30
-    cooldown: 100
-    effects:
-      - { SOUND: { sound: "ENTITY_ILLUSIONER_CAST_SPELL", volume: 0.9, pitch: 0.8 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
-      - { DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100 } }
+  1: { effects: [] }
+  2: { effects: [] }
+  3: { effects: [] }
+  4: { effects: [] }
+  5: { effects: [] }
+  6: { effects: [] }
+requires: [enchants/diminish]
+removes-required: true

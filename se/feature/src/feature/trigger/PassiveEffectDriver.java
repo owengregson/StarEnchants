@@ -40,9 +40,8 @@ import org.bukkit.entity.Player;
  */
 public final class PassiveEffectDriver {
 
-    /** "Permanent" duration in ticks (~13.9h) — long enough to never lapse in a session; matches the authored
-     *  permanent-buff convention. Re-applied each refresh, so it also returns within a sweep after a clear. */
-    public static final int PERMANENT_TICKS = 1_000_000;
+    /** Cosmic's exact "permanent while equipped" potion duration. The periodic refresh restores a cleared effect. */
+    public static final int PERMANENT_TICKS = Integer.MAX_VALUE;
 
     private final TriggerDispatch dispatch;
     private final ContentHolder content;

@@ -1,0 +1,15 @@
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/BloodLust.java
+display: Blood Lust
+description: Bleed stack applications within 7 blocks can heal allied wearers; level controls chance and scale.
+trigger: [PASSIVE]
+applies-to: [CHESTPLATE]
+group: legendary
+tier: legendary
+stacking: HIGHEST
+levels:
+  1: { effects: [{ SET_VAR: { name: blood-lust-equipped, value: '1', clear-on-stop: true } }] }
+  2: { effects: [{ SET_VAR: { name: blood-lust-equipped, value: '2', clear-on-stop: true } }] }
+  3: { effects: [{ SET_VAR: { name: blood-lust-equipped, value: '3', clear-on-stop: true } }] }
+  4: { effects: [{ SET_VAR: { name: blood-lust-equipped, value: '4', clear-on-stop: true } }] }
+  5: { effects: [{ SET_VAR: { name: blood-lust-equipped, value: '5', clear-on-stop: true } }] }
+  6: { effects: [{ SET_VAR: { name: blood-lust-equipped, value: '6', clear-on-stop: true } }] }

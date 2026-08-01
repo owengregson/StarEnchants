@@ -20,8 +20,14 @@ public final class DurabilityEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("DURABILITY")
             .param("amount", D.INT.def(-1), "durability points; negative fully restores (restore mode)")
+            .param("percent", D.DOUBLE.range(0, 100).optional(),
+                    "damage mode only: percent of each armor piece type's maximum durability")
             .param("target", D.enumOf("item", "armor", "all").def("item"))
             .param("mode", D.enumOf("restore", "damage").def("restore"))
+            .param("selection", D.enumOf("all", "most-damaged", "random").def("all"),
+                    "armor selection: most-damaged for restore, random for one uniformly-selected damage slot")
+            .param("slot", D.enumOf("boots", "leggings", "chestplate", "helmet").optional(),
+                    "damage exactly one armor slot instead of all armor")
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Modify durability of the player's held item and/or worn armor: restore (amount<0 = full) "
@@ -41,10 +47,28 @@ public final class DurabilityEffect implements EffectKind {
         boolean armor = "armor".equalsIgnoreCase(target) || "all".equalsIgnoreCase(target);
         boolean item = "item".equalsIgnoreCase(target) || "all".equalsIgnoreCase(target);
         boolean damage = "damage".equalsIgnoreCase(ctx.str("mode"));
+        String selection = ctx.args().has("selection") ? ctx.str("selection") : "all";
+        boolean mostDamaged = "most-damaged".equalsIgnoreCase(selection);
+        boolean randomArmor = "random".equalsIgnoreCase(selection);
+        int armorSlot = ctx.args().has("slot") ? switch (ctx.str("slot").toLowerCase(java.util.Locale.ROOT)) {
+            case "boots" -> 0;
+            case "leggings" -> 1;
+            case "chestplate" -> 2;
+            case "helmet" -> 3;
+            default -> -1;
+        } : -1;
         for (LivingEntity who : ctx.targets("who")) {
             if (damage) {
                 if (armor) {
-                    sink.damageArmor(who, amount);
+                    if (ctx.args().has("percent") && armorSlot < 0) {
+                        sink.damageArmorPercent(who, ctx.dbl("percent"));
+                    } else if (armorSlot >= 0) {
+                        sink.damageArmorSlot(who, armorSlot, amount);
+                    } else if (randomArmor) {
+                        sink.damageArmorSlot(who, java.util.concurrent.ThreadLocalRandom.current().nextInt(4), amount);
+                    } else {
+                        sink.damageArmor(who, amount);
+                    }
                 }
                 if (item && who instanceof Player p) {
                     sink.damageHand(p, amount);
@@ -54,7 +78,11 @@ public final class DurabilityEffect implements EffectKind {
                     sink.repairHand(p, amount);
                 }
                 if (armor) {
-                    sink.repairArmor(p, amount);
+                    if (mostDamaged) {
+                        sink.repairMostDamagedArmor(p, amount);
+                    } else {
+                        sink.repairArmor(p, amount);
+                    }
                 }
             }
         }

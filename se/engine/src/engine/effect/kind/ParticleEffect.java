@@ -24,6 +24,12 @@ public final class ParticleEffect implements EffectKind {
             .param("block", D.material().optional())
             .param("spread", D.DOUBLE.min(0).max(4).def(0.4))
             .param("spread-y", D.DOUBLE.min(-1).max(4).def(-1))
+            .param("random-spread", D.BOOL.def(false), "choose each authored axis spread independently in [0, spread)")
+            .param("speed", D.DOUBLE.min(0).def(0), "particle packet/API speed-extra value")
+            .param("anchor", D.enumOf("body", "feet", "eye").def("body"),
+                    "entity target anchor; ignored for @Here")
+            .param("y-offset", D.DOUBLE.min(-16).max(16).def(0),
+                    "vertical position offset after selecting the anchor")
             .target("who", T.HERE)
             .affinity(Affinity.REGION)
             .doc("Spawn particles at the activation location, or at each entity in `who` when given (centered on "
@@ -45,17 +51,35 @@ public final class ParticleEffect implements EffectKind {
         int blockId = ctx.args().has("block") ? ctx.integer("block") : -1; // optional block-crack material → interned id, or none
         double spread = ctx.dbl("spread");
         double spreadY = spreadY(spread, ctx.dbl("spread-y")); // horizontal offset on X/Z; the -1 sentinel folds Y onto it
+        double spreadX = spread;
+        double spreadZ = spread;
+        if (ctx.bool("random-spread")) {
+            java.util.concurrent.ThreadLocalRandom random = java.util.concurrent.ThreadLocalRandom.current();
+            spreadX = random.nextDouble() * spread;
+            spreadY = random.nextDouble() * spreadY;
+            spreadZ = random.nextDouble() * spread;
+        }
+        double speed = ctx.dbl("speed");
+        double yOffset = ctx.dbl("y-offset");
+        int anchor = switch (ctx.str("anchor").toLowerCase(java.util.Locale.ROOT)) {
+            case "feet" -> 1;
+            case "eye" -> 2;
+            default -> 0;
+        };
         java.util.Iterator<LivingEntity> targets = ctx.targets("who").iterator();
         if (targets.hasNext()) {
             // who resolved entities: a per-target burst read at each target's own location at dispatch time.
             do {
-                sink.particle(targets.next(), particleId, count, blockId, spread, spreadY, spread);
+                sink.particle(targets.next(), particleId, count, blockId, spreadX, spreadY, spreadZ, speed,
+                        anchor, yOffset);
             } while (targets.hasNext());
             return;
         }
         org.bukkit.Location loc = ctx.location(); // no who (default @Here): the original activation-location burst
         if (loc != null) {
-            sink.particle(loc, particleId, count, blockId, spread, spreadY, spread);
+            org.bukkit.Location at = yOffset == 0.0 ? loc : loc.clone().add(0.0, yOffset, 0.0);
+            sink.particle(at, particleId, count, blockId,
+                    spreadX, spreadY, spreadZ, speed);
         }
     }
 

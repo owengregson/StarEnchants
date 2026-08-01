@@ -228,6 +228,57 @@ public final class LibraryLoader {
         for (SetDef set : sets) {
             checkSetEnchantRefs(set, set.armorEnchants(), byKey, diags);
             checkSetEnchantRefs(set, set.weaponEnchants(), byKey, diags);
+            for (SetDef.Member member : set.armorMembers()) {
+                checkSetMemberEnchants(set, member, byKey, diags);
+            }
+            if (set.weapon() != null) {
+                checkSetMemberEnchants(set, set.weapon(), byKey, diags);
+            }
+        }
+    }
+
+    private static void checkSetMemberEnchants(SetDef set, SetDef.Member member,
+            java.util.Map<String, EnchantDef> byKey, Diagnostics diags) {
+        checkSetEnchantRefs(set, member.enchants(), byKey, diags);
+        for (SetDef.EnchantRoll roll : member.enchantRolls()) {
+            Integer fixed = roll.mode() == SetDef.RollMode.FIXED ? roll.level() : null;
+            checkSetRollRef(set, roll.enchant(), fixed, byKey, diags);
+            if (roll.mode() == SetDef.RollMode.RANGE) {
+                checkSetRollRef(set, roll.enchant(), roll.maxLevel(), byKey, diags);
+            }
+        }
+        for (SetDef.EnchantPool pool : member.enchantPools()) {
+            for (String ref : pool.enchants()) {
+                checkSetRollRef(set, ref, null, byKey, diags);
+            }
+        }
+        for (SetDef.EnchantChoice choice : member.enchantChoices()) {
+            for (SetDef.EnchantBranch branch : choice.options()) {
+                for (SetDef.EnchantRoll roll : branch.rolls()) {
+                    Integer fixed = roll.mode() == SetDef.RollMode.FIXED ? roll.level() : null;
+                    checkSetRollRef(set, roll.enchant(), fixed, byKey, diags);
+                    if (roll.mode() == SetDef.RollMode.RANGE) {
+                        checkSetRollRef(set, roll.enchant(), roll.maxLevel(), byKey, diags);
+                    }
+                }
+            }
+        }
+    }
+
+    private static void checkSetRollRef(SetDef set, String ref, Integer fixedLevel,
+            java.util.Map<String, EnchantDef> byKey, Diagnostics diags) {
+        if (!ref.startsWith("enchants/")) {
+            return; // a vanilla enchant name — resolved cross-version at mint, as with fixed enchants
+        }
+        EnchantDef def = byKey.get(ref);
+        if (def == null) {
+            diags.error(DiagCode.E_SET_ENCHANT_UNKNOWN,
+                    "set '" + set.key() + "' rolls unknown custom enchant '" + ref + "'", set.source(),
+                    "enchant-rolls and enchant-pools must name an existing custom enchant (enchants/<id>)");
+        } else if (fixedLevel != null && (fixedLevel < 1 || fixedLevel > def.maxLevel())) {
+            diags.error(DiagCode.E_SET_ENCHANT_LEVEL,
+                    "set '" + set.key() + "' rolls '" + ref + "' at level " + fixedLevel
+                            + " (valid 1.." + def.maxLevel() + ")", set.source());
         }
     }
 

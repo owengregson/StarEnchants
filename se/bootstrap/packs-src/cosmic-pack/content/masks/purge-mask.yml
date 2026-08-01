@@ -1,0 +1,15 @@
+# Cosmic codex source: 11-masks.md
+display: Purge Mask
+color: '&c'
+head: eyJ0aW1lc3RhbXAiOjE1NDAzNTU5NDg0MDksInByb2ZpbGVJZCI6ImEzOWVmNTdhMzg3YzRjZDE5NzQwNTliNzMyZWJjN2E1IiwicHJvZmlsZU5hbWUiOiJNZXJjaGFudCIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS85ODYzMWU5ODZlMDEwNWMwNmY2ZDIxNDJlYjI3MmRmMTQ1OTM2NmI3ZGRkY2MxMTk4OTEzNDI2MzZjMjhhMTdlIn19fQ==
+material: PLAYER_HEAD
+summary: +2.5% DMG
+description:
+- "&c+2.5% DMG"
+- "&7A great evil is contained within this"
+- "&7horrifying mask. Who knows what inner"
+- "&7demons it will unleash."
+- "&6&l * &6Halloween 2018"
+abilities:
+- trigger: PASSIVE
+  effects: []

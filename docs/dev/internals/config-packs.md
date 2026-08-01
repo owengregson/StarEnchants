@@ -198,10 +198,12 @@ surface, driven by `packs/index.txt` (one resource path per line) — exactly li
 `content/`, and only when a file does not already exist (never overwriting
 operator edits).
 
-The first shipped pack, `cosmic-pack`, is the full EliteEnchantments port:
-the whole library run through the extended migrator (see
-[the-migrator.md](the-migrator.md)), plus the standard surface. A build-time
-validity test compiles the entire pack clean before it can ship.
+The original full EliteEnchantments port now ships as `signature-pack`: the
+whole library run through the extended migrator (see
+[the-migrator.md](the-migrator.md)), plus the standard surface. The separate
+`cosmic-pack` is the source-faithful, bug-corrected Cosmic codex implementation
+covering its registered enchants, armour sets, masks, and pets. Build-time
+validity tests compile both packs clean before either can ship.
 
 ## Adding a pack
 

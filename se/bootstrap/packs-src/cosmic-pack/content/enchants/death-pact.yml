@@ -1,28 +1,17 @@
-# Imported from EliteEnchantments (id: death-pact). Review before shipping.
-display: "Death Pact"
-description:
-  - "&eThe more health you are missing, the"
-  - "&eless damage you take, and the less"
-  - "&eyou deal."
-trigger: [ATTACK, DEFENSE]
-applies-to: [ARMOR]
-group: "godly"
-tier: godly
+# Cosmic codex source: 07-enchants-mastery-soul.md — mastery/MasteryDeathPact.java
+# Exact runtime is implemented by CosmicMasteryListener.
+display: Death Pact
+description: Take less damage for every 10% of missing HP, while also dealing slightly less damage (based on level).
+trigger:
+- ATTACK
+- DEFENSE
+applies-to:
+- ARMOR
+group: mastery
+tier: mastery
+disabled-environments: [THE_END]
+stacking: HIGHEST
 levels:
-  1:
-    chance: 100
-    effects:
-      - { PARTICLE: { particle: "SOUL", count: 12 } }
-      # Two-way by design: on incoming hits a defense-side reduction blunts the damage taken;
-      # on your own hits the same defense contribution shrinks your outgoing damage.
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: "(100 - %actor.healthpercent%) / 25" } }
-  2:
-    chance: 100
-    effects:
-      - { PARTICLE: { particle: "SOUL", count: 12 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: "(100 - %actor.healthpercent%) / 18" } }
-  3:
-    chance: 100
-    effects:
-      - { PARTICLE: { particle: "SOUL", count: 12 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: "(100 - %actor.healthpercent%) / 12" } }
+  1: { effects: [] }
+  2: { effects: [] }
+  3: { effects: [] }

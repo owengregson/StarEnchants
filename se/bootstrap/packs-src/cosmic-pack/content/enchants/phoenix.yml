@@ -1,32 +1,19 @@
-# Imported from EliteEnchantments (id: phoenix). Review before shipping.
-display: "Phoenix"
-description:
-  - "&eA blow that would kill you"
-  - "&einstead restores a burst of"
-  - "&ehealth."
-trigger: DEFENSE
-applies-to: [BOOTS]
-group: "soul"
+# Cosmic codex source: 02-enchants-armor-m-z.md — armor/Phoenix.java + PhoenixListener.java
+display: Phoenix
+description: Passive Soul Enchantment. A lethal attack heals you to full HP at an escalating soul cost.
+trigger:
+- DEFENSE
+applies-to:
+- BOOTS
+group: soul
 tier: soul
+disabled-environments: [THE_END]
+stacking: HIGHEST
+suppress-immune: true
 levels:
   1:
-    cooldown: 2400
-    condition: "%actor.healthpercent% <= 20"
-    effects:
-      - { SOUND: { sound: "ITEM_FIRECHARGE_USE", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "FLAME", count: 20 } }
-      - { MODIFY_HEALTH: { amount: 10, mode: "give", who: "@Self" } }  # 5 hearts: a burst off the trigger's 20%-health floor, capped at max (never beyond-full)
+    effects: []
   2:
-    cooldown: 2400
-    condition: "%actor.healthpercent% <= 20"
-    effects:
-      - { SOUND: { sound: "ITEM_FIRECHARGE_USE", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "FLAME", count: 20 } }
-      - { MODIFY_HEALTH: { amount: 10, mode: "give", who: "@Self" } }  # 5 hearts: a burst off the trigger's 20%-health floor, capped at max (never beyond-full)
+    effects: []
   3:
-    cooldown: 2400
-    condition: "%actor.healthpercent% <= 20"
-    effects:
-      - { SOUND: { sound: "ITEM_FIRECHARGE_USE", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "FLAME", count: 20 } }
-      - { MODIFY_HEALTH: { amount: 10, mode: "give", who: "@Self" } }  # 5 hearts: a burst off the trigger's 20%-health floor, capped at max (never beyond-full)
+    effects: []

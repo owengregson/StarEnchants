@@ -1,31 +1,13 @@
-# Imported from EliteEnchantments (id: double-strike). Review before shipping.
-display: "Double Strike"
-description:
-  - "&eA chance to strike twice in one swing;"
-  - "&eyour enchants can strike with it too."
-trigger: ATTACK
+# Cosmic codex source: 03-enchants-swords.md — swords/DoubleStrike.java
+# Exact intended runtime is implemented by CosmicWeaponListener.
+display: Double Strike
+description: A chance to attack twice in one swing. All your enchantments can re-proc on this second attack.
+trigger: [ATTACK]
 applies-to: [SWORD]
-group: "legendary"
+group: legendary
 tier: legendary
+stacking: HIGHEST
 levels:
-  1:
-    chance: 8
-    cooldown: 200
-    effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.9, pitch: 1.2 } }
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { ECHO_STRIKE: {} }
-  2:
-    chance: 12
-    cooldown: 200
-    effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.9, pitch: 1.2 } }
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { ECHO_STRIKE: {} }
-  3:
-    chance: 15
-    cooldown: 200
-    effects:
-      - { SOUND: { sound: "ENTITY_PLAYER_ATTACK_STRONG", volume: 0.9, pitch: 1.2 } }
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { ECHO_STRIKE: {} }
+  1: { effects: [] }
+  2: { effects: [] }
+  3: { effects: [] }

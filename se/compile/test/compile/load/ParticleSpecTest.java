@@ -35,11 +35,12 @@ class ParticleSpecTest {
     void readsAColourlessParticle() {
         Diagnostics diags = new Diagnostics();
         ParticleSpec spec = ParticleSpec.from(
-                yaml("{ particle: ENCHANTMENT_TABLE, count: 8, spread: 0.75, y-offset: 1.0 }", diags), diags);
+                yaml("{ particle: ENCHANTMENT_TABLE, count: 8, spread: 0.75, y-offset: 1.0, speed: 1.5 }", diags), diags);
         assertEquals("ENCHANTMENT_TABLE", spec.type());
         assertEquals(0, spec.colorR()); // no color map → 0,0,0 (ignored for a non-dust particle)
         assertEquals(8, spec.amount());
         assertEquals(0.75, spec.spread());
+        assertEquals(1.5, spec.speed());
     }
 
     @Test
@@ -51,11 +52,12 @@ class ParticleSpecTest {
 
     @Test
     void clampsColourComponentsAmountAndSpread() {
-        ParticleSpec spec = new ParticleSpec("DUST", 300, -5, 128, -3, -1.0, 1.0);
+        ParticleSpec spec = new ParticleSpec("DUST", 300, -5, 128, -3, -1.0, 1.0, -2.0);
         assertEquals(255, spec.colorR()); // over-255 clamped down
         assertEquals(0, spec.colorG()); // negative clamped up
         assertEquals(128, spec.colorB()); // in range, untouched
         assertEquals(0, spec.amount()); // negative count clamped to 0
         assertEquals(0.0, spec.spread()); // negative spread clamped to 0
+        assertEquals(0.0, spec.speed()); // negative speed clamped to 0
     }
 }

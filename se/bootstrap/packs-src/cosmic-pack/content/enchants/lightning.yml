@@ -1,0 +1,31 @@
+# Cosmic codex source: 05-enchants-bows.md — bow/Lightning.java
+display: Lightning
+description: A chance to strike lightning where you strike.
+trigger: BOW
+applies-to:
+- BOW
+group: simple
+tier: simple
+stacking: HIGHEST
+levels:
+  1:
+    chance: 10
+    condition: &player '%victim.isplayer% >= 1'
+    effects:
+    - LIGHTNING:
+        damage: 5
+        who: '@Victim'
+  2:
+    chance: 20
+    condition: *player
+    effects:
+    - LIGHTNING:
+        damage: 5
+        who: '@Victim'
+  3:
+    chance: 30.000000000000004
+    condition: *player
+    effects:
+    - LIGHTNING:
+        damage: 5
+        who: '@Victim'

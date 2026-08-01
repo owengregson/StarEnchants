@@ -1,0 +1,26 @@
+# Imported from EliteEnchantments (id: enrage). Review before shipping.
+display: "Enrage"
+description:
+  - "&eOn hit at low health, deals"
+  - "&ebonus damage that grows as your"
+  - "&ehealth falls."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "epic"
+tier: epic
+levels:
+  1:
+    condition: "%actor.healthpercent% < 50"
+    effects:
+      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "(100 - %actor.healthpercent%) / 130" } }  # comeback rider in raw hp — grows as your health falls (ADR-0050 R3 flat economy)
+  2:
+    condition: "%actor.healthpercent% < 50"
+    effects:
+      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "(100 - %actor.healthpercent%) / 110" } }  # comeback rider in raw hp — grows as your health falls (ADR-0050 R3 flat economy)
+  3:
+    condition: "%actor.healthpercent% < 50"
+    effects:
+      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "(100 - %actor.healthpercent%) / 95" } }  # comeback rider in raw hp — grows as your health falls (ADR-0050 R3 flat economy)

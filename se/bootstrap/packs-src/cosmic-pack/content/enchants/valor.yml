@@ -1,0 +1,14 @@
+# Cosmic codex source: 02-enchants-armor-m-z.md — armor/Valor.java
+display: Valor
+description: Reduces incoming damage while wielding a sword by up to 22.5%. This enchantment is stackable.
+trigger: [DEFENSE]
+applies-to: [ARMOR]
+group: ultimate
+tier: ultimate
+stacking: EACH
+levels:
+  1: { condition: '%actor.health% <= 8 && (%actor.helditem% == "IRON_SWORD" || %actor.helditem% == "DIAMOND_SWORD") && %damage% * 0.91 > 1', effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.91 } }, { BLOCK_BREAK_EFFECT: { block: GOLD_BLOCK, anchor: feet, who: '@Self' } }] }
+  2: { condition: '%actor.health% <= 10 && (%actor.helditem% == "IRON_SWORD" || %actor.helditem% == "DIAMOND_SWORD") && %damage% * 0.895 > 1', effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.895 } }, { BLOCK_BREAK_EFFECT: { block: GOLD_BLOCK, anchor: feet, who: '@Self' } }] }
+  3: { condition: '%actor.health% <= 12 && (%actor.helditem% == "IRON_SWORD" || %actor.helditem% == "DIAMOND_SWORD") && %damage% * 0.88 > 1', effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.88 } }, { BLOCK_BREAK_EFFECT: { block: GOLD_BLOCK, anchor: feet, who: '@Self' } }] }
+  4: { condition: '%actor.health% <= 14 && (%actor.helditem% == "IRON_SWORD" || %actor.helditem% == "DIAMOND_SWORD") && %damage% * 0.865 > 1', effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.865 } }, { BLOCK_BREAK_EFFECT: { block: GOLD_BLOCK, anchor: feet, who: '@Self' } }] }
+  5: { condition: '%actor.health% <= 16 && (%actor.helditem% == "IRON_SWORD" || %actor.helditem% == "DIAMOND_SWORD") && %damage% * 0.85 > 1', effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.85 } }, { BLOCK_BREAK_EFFECT: { block: GOLD_BLOCK, anchor: feet, who: '@Self' } }] }

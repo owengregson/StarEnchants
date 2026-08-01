@@ -1,30 +1,21 @@
-# Imported from EliteEnchantments (id: armored). Review before shipping.
-display: "Armored"
-description:
-  - "&eReduces damage taken from"
-  - "&eenemies holding a sword."
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/Armored.java
+display: Armored
+description: Multiplicatively reduces enemy sword damage by 1.875% per level per equipped piece.
 trigger: DEFENSE
 applies-to: [ARMOR]
-group: "epic"
-tier: epic
+group: legendary
+tier: legendary
+stacking: EACH
 levels:
   1:
-    condition: "%victim.helditem% contains \"SWORD\""
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 0.75 } }
+    condition: "%damagecause% == \"ENTITY_ATTACK\" && %victim.helditem% contains \"_SWORD\" && %damage% * 0.98125 > 1"
+    effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.98125 } }, { BLOCK_BREAK_EFFECT: { block: DIAMOND_BLOCK } }]
   2:
-    condition: "%victim.helditem% contains \"SWORD\""
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1.25 } }
+    condition: "%damagecause% == \"ENTITY_ATTACK\" && %victim.helditem% contains \"_SWORD\" && %damage% * 0.9625 > 1"
+    effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.9625 } }, { BLOCK_BREAK_EFFECT: { block: DIAMOND_BLOCK } }]
   3:
-    condition: "%victim.helditem% contains \"SWORD\""
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1.75 } }
+    condition: "%damagecause% == \"ENTITY_ATTACK\" && %victim.helditem% contains \"_SWORD\" && %damage% * 0.94375 > 1"
+    effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.94375 } }, { BLOCK_BREAK_EFFECT: { block: DIAMOND_BLOCK } }]
   4:
-    condition: "%victim.helditem% contains \"SWORD\""
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 8 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2.25 } }
+    condition: "%damagecause% == \"ENTITY_ATTACK\" && %victim.helditem% contains \"_SWORD\" && %damage% * 0.925 > 1"
+    effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.925 } }, { BLOCK_BREAK_EFFECT: { block: DIAMOND_BLOCK } }]

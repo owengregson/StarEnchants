@@ -94,31 +94,16 @@ public final class DefaultLowerStage implements LowerStage {
         Objects.requireNonNull(def, "def");
         Objects.requireNonNull(diags, "diags");
 
-        List<CompiledEffect> out = new ArrayList<>();
-        int waitAccum = 0;
-
-        for (EffectLine line : def.effects()) {
-            if ("WAIT".equalsIgnoreCase(line.head())) {
-                Integer ticks = parseWait(line, diags);
-                if (ticks != null) {
-                    waitAccum += ticks;
-                }
-                continue; // WAIT is timing — never an emitted effect
-            }
-            Optional<compile.CompiledLine> compiled = lineCompiler.compile(line, diags);
-            if (compiled.isEmpty()) {
-                continue; // unknown head — LineCompiler already diagnosed it
-            }
-            compile.CompiledLine cl = compiled.get();
-            CompiledSelector selector = resolveSelector(line, cl.head(), diags);
-            out.add(new CompiledEffect(cl.head(), lowerExprArgs(cl.args(), diags), selector,
-                    waitAccum, affinityOf(cl.head()), effectIdOf.applyAsInt(cl.head())));
-        }
+        List<CompiledEffect> out = lowerEffects(def.effects(), diags);
+        List<CompiledEffect> noSoulEffects = lowerEffects(def.noSoulEffects(), diags);
 
         CompiledCondition condition = lowerCondition(def, diags);
 
         Affinity ability = Affinity.CONTEXT_LOCAL;
         for (CompiledEffect effect : out) {
+            ability = ability.max(effect.affinity());
+        }
+        for (CompiledEffect effect : noSoulEffects) {
             ability = ability.max(effect.affinity());
         }
 
@@ -139,10 +124,35 @@ public final class DefaultLowerStage implements LowerStage {
                 def.cdScopeGroup(),
                 def.cdScopeType(),
                 def.repeatTicks(),
+                def.repeatInitialDelayTicks(),
                 ability,
                 def.source(),
                 def.setPieces(),
-                def.suppressImmune());
+                def.suppressImmune(),
+                noSoulEffects);
+    }
+
+    private List<CompiledEffect> lowerEffects(List<EffectLine> lines, Diagnostics diags) {
+        List<CompiledEffect> out = new ArrayList<>();
+        int waitAccum = 0;
+        for (EffectLine line : lines) {
+            if ("WAIT".equalsIgnoreCase(line.head())) {
+                Integer ticks = parseWait(line, diags);
+                if (ticks != null) {
+                    waitAccum += ticks;
+                }
+                continue;
+            }
+            Optional<compile.CompiledLine> compiled = lineCompiler.compile(line, diags);
+            if (compiled.isEmpty()) {
+                continue;
+            }
+            compile.CompiledLine cl = compiled.get();
+            CompiledSelector selector = resolveSelector(line, cl.head(), diags);
+            out.add(new CompiledEffect(cl.head(), lowerExprArgs(cl.args(), diags), selector,
+                    waitAccum, affinityOf(cl.head()), effectIdOf.applyAsInt(cl.head())));
+        }
+        return out;
     }
 
     /**

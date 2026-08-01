@@ -262,6 +262,39 @@ public final class BootCore {
                 () -> master.config().stations().grindstoneGuard(),
                 () -> master.config().stations().smithingGuard());
         this.itemViews = new ItemViewCache(codec, initial.snapshot().generation());
+        engine.effect.kind.EnchantArmorSlots.resolver((player, enchantKey) -> {
+            org.bukkit.inventory.ItemStack[] armor = player.getInventory().getArmorContents();
+            for (int slot = 0; slot < armor.length; slot++) {
+                org.bukkit.inventory.ItemStack piece = armor[slot];
+                if (piece != null && itemViews.of(piece).combat().enchants().containsKey(enchantKey)) {
+                    return slot;
+                }
+            }
+            return -1;
+        });
+        engine.effect.kind.EnchantLevels.resolver((player, enchantKey) -> {
+            int highest = 0;
+            for (org.bukkit.inventory.ItemStack piece : player.getInventory().getArmorContents()) {
+                if (piece != null) {
+                    highest = Math.max(highest,
+                            itemViews.of(piece).combat().enchants().getOrDefault(enchantKey, 0));
+                }
+            }
+            return highest;
+        });
+        engine.effect.kind.HeldEnchantLevels.resolver((player, enchantKey) -> {
+            org.bukkit.inventory.ItemStack held = hands.mainHand(player);
+            return held == null ? 0 : itemViews.of(held).combat().enchants().getOrDefault(enchantKey, 0);
+        });
+        engine.effect.kind.HeroicArmorPieces.resolver(player -> {
+            int pieces = 0;
+            for (org.bukkit.inventory.ItemStack piece : player.getInventory().getArmorContents()) {
+                if (piece != null && !itemViews.of(piece).combat().heroic().isZero()) {
+                    pieces++;
+                }
+            }
+            return pieces;
+        });
         this.triggers = BuiltinTriggers.registry();
         // ADR-0052 pets: the identity/level/exp codec + the armed-window store, built here so the resolver's
         // pet source and the PetsModule share the ONE pair.
@@ -291,8 +324,30 @@ public final class BootCore {
                 },
                 // ADR-0052 the sixth source: hotbar pets, decided wholly by the pets feature (bracket + armed).
                 new feature.pet.PetWornSource(() -> master.config().features().pets(), petCodec,
-                        () -> content.library(), petArmedStore, tick::get));
+                        () -> content.library(), petArmedStore, tick::get),
+                () -> {
+                    java.util.Set<String> keys = new java.util.HashSet<>();
+                    for (compile.load.EnchantDef def : content.library().catalog()) {
+                        if (!def.stackable()) {
+                            keys.add(def.key());
+                        }
+                    }
+                    return keys;
+                });
         this.worn = new WornStateStore(wornResolver::resolve);
+        engine.effect.kind.ActiveSets.resolver((player, setKey) -> {
+            item.worn.WornState state = worn.get(player.getUniqueId());
+            int setId = content.snapshot().stableKeys().idOf(setKey);
+            return state != null && state.gen() == content.snapshot().generation() && state.isSetActive(setId);
+        });
+        engine.effect.kind.ActiveMasks.resolver((player, maskKey) -> {
+            org.bukkit.inventory.ItemStack helmet = player.getInventory().getHelmet();
+            if (helmet == null) {
+                return false;
+            }
+            String wornMask = itemViews.of(helmet).combat().maskKey();
+            return item.codec.MaskCodec.components(wornMask).contains(maskKey);
+        });
 
         // §I the applied-utility marker set, shared by white/holy scrolls and the trak gems (independent markers).
         this.appliedSlot = new AppliedSlot(ItemKeys.of().appliedSlot(), store);
@@ -355,6 +410,35 @@ public final class BootCore {
                         return def != null ? def.armorLore() : java.util.List.of();
                     }
 
+                    @Override public java.util.List<String> armor(String setKey, String memberKey) {
+                        compile.load.SetDef def = content.library().setDefOf(setKey);
+                        if (def == null || memberKey == null) {
+                            return def != null ? def.armorLore() : java.util.List.of();
+                        }
+                        java.util.List<String> out = new java.util.ArrayList<>();
+                        for (compile.load.SetDef.Member member : def.armorMembers()) {
+                            if (member.slot().equalsIgnoreCase(memberKey)) {
+                                out.addAll(member.lore());
+                                break;
+                            }
+                        }
+                        out.addAll(def.armorLore());
+                        return java.util.List.copyOf(out);
+                    }
+
+                    @Override public boolean authoredHeroic(String setKey, String memberKey) {
+                        compile.load.SetDef def = content.library().setDefOf(setKey);
+                        if (def == null || memberKey == null) {
+                            return false;
+                        }
+                        for (compile.load.SetDef.Member member : def.armorMembers()) {
+                            if (member.slot().equalsIgnoreCase(memberKey)) {
+                                return !member.heroic().isZero();
+                            }
+                        }
+                        return false;
+                    }
+
                     @Override public java.util.List<String> weapon(String setKey) {
                         compile.load.SetDef def = content.library().setDefOf(setKey);
                         return def != null ? def.weaponLore() : java.util.List.of();
@@ -370,6 +454,11 @@ public final class BootCore {
                 .withCrystalLine(() -> items.config().crystalOrDefault().loreWhileOnItem())        // §E on-gear line
                 .withCrystalLineMulti(() -> items.config().crystalOrDefault().loreWhileOnItemMulti()) // §E merged
                 .withMaskLine(() -> items.config().maskOrDefault().loreWhileOnItem()) // ADR-0053 on-helmet mask line
+                .withMaskLineMulti(() -> items.config().maskOrDefault().multiLoreWhileOnItem())
+                .withMaskSummaryOf(key -> {
+                    compile.load.MaskDef mask = content.library().maskDefOf(key);
+                    return mask == null ? null : mask.summary();
+                })
                 .withReforgeLine(() -> items.config().reforgeOrDefault().loreWhileOnItem()), // ADR-0070 on-weapon line
                 store); // ADR-0044 the item-data store backs the renderer's composer-migration marker
         this.itemGroups = ItemGroups.standard();                 // §I shared by the enchanter + trak gems
@@ -387,6 +476,10 @@ public final class BootCore {
         // ONE RNG for every apply/mint economy — injected so rolls are stubbable (Rolls).
         this.rolls = new Random();
 
+        // ONE shared aggregate of every per-player engine store: an effect writes a store through the per-event
+        // sink and a separate reader reads it back — so it must be the SAME instance everywhere.
+        this.stores = EngineStores.fresh();
+
         // Souls (§D): the per-player cross-gem SoulPool is the spend authority. The SoulService owns it and is
         // ALSO the pipeline's gate-10 SoulSpender, so a gate-10 spend and the holder-thread drain share one pool.
         // It rides the engine spine because the sink debit + both dispatchers' binding lookup consume it.
@@ -397,11 +490,7 @@ public final class BootCore {
                 () -> master.config().souls().depositOnAnyKill(), messages, particleFx, hands, sounds,
                 // §I a gem can carry the holy keep-marker; combine/split carry it and the re-render appends its
                 // protected line — the SAME marker seam + protection-line function the LoreRenderer uses.
-                appliedSlot, protectionLinesFn);
-
-        // ONE shared aggregate of every per-player engine store: an effect writes a store through the per-event
-        // sink and a separate reader reads it back — so it must be the SAME instance everywhere.
-        this.stores = EngineStores.fresh();
+                appliedSlot, protectionLinesFn, stores.vars(), tick::get);
 
         // §5.4 offline-state sweep (F03): the quit sweep RETAINS a leaving player's live combat windows against
         // the monotonic tick (so a relog can't skip a cooldown or shed a landed debuff); those entries are only
@@ -435,8 +524,8 @@ public final class BootCore {
         feature.combat.ActivationMessenger activationMessenger = new feature.combat.ActivationMessenger(
                 () -> master.config().messageOnActivate(), () -> master.config().pets(), content);
         this.executor = new AbilityExecutor(effects, BuiltinSelectors.registry(),
-                new ActivationPipeline(stores.cooldowns(), soulService, stores.suppression(), protectionGuard,
-                        ActivationPipeline.Guard.ALLOW, stores.why()), // ADR-0045: record every gate walk
+                new ActivationPipeline(stores.cooldowns(), soulService, stores.suppression(), stores.vars(),
+                        protectionGuard, ActivationPipeline.Guard.ALLOW, stores.why()), // ADR-0045: record every gate walk
                 areaScan(bindings), (key, ability, context) -> {
                     if (key == null) {
                         return; // a null key is skipped, not faked

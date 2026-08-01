@@ -1,0 +1,15 @@
+# Cosmic codex source: 11-masks.md
+display: Dungeon Mask
+color: '&6'
+head: eyJ0aW1lc3RhbXAiOjE1NTk4MzQzNDcyMDUsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS83ZWRhMzY0M2Q2ODZkMDE0OGIwOWE5ZGFlMGJlZDUzODA4ZjkyNTg1ZjJhZjRkY2FhOWNiYzA5MDQ4NzEwZDFiIn19fQ==
+material: PLAYER_HEAD
+summary: 10% chance to not use /dungeon key
+description:
+- "&c10% chance to not use /dungeon key"
+- "&7You take dungeon running extremely"
+- "&7seriously, you solo most dungeons"
+- "&7faster than other groups start them."
+- "&6&l * &6Lit Lootbox Release"
+abilities:
+- trigger: PASSIVE
+  effects: []

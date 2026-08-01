@@ -1,0 +1,102 @@
+# Cosmic codex source: 10-armor-sets.md
+display: '&5&lDimensional Traveler'
+description: Dimensional Traveler Cosmic armor set.
+complete: 4
+announce: true
+equip-message: '&c&lDIMENSIONAL TRAVELER SET BONUS: &c+30% DMG'
+remove-message: ''
+armor:
+  enchants: { DURABILITY: 3, PROTECTION_ENVIRONMENTAL: 4 }
+  lore:
+  - '&5&lTRAVELER SET BONUS'
+  - '&5&l* &5You deal 30% more damage.'
+  - '&5&l* &5Dimensional Shift Passive Ability'
+  - '&7(&oRequires all 4 dimensional traveler items.&7)'
+  pieces:
+    helmet:
+      material: DIAMOND_HELMET
+      name: '&5&lInterdimensional Hood'
+      lore: ['&7A hood that fades in and out of', '&7existence inside the dimension of the owner.', '']
+      enchant-rolls:
+      - { enchant: enchants/alien-implants, mode: plain-near-max }
+      - { enchant: enchants/planetary-deathbringer, mode: plain-near-max }
+      - { enchant: enchants/drunk, mode: plain-near-max }
+      - { enchant: enchants/enlighted, mode: plain-near-max }
+      - { enchant: enchants/armored, mode: plain-near-max }
+      - { enchant: enchants/tank, mode: plain-near-max }
+      - { enchant: enchants/angelic, mode: plain-near-max }
+      - { enchant: enchants/hardened, mode: plain-near-max }
+      - { enchant: enchants/valor, mode: plain-near-max }
+      - { enchant: enchants/dodge, mode: plain-near-max }
+      - { enchant: enchants/guardians, mode: plain-near-max }
+      - { enchant: enchants/sticky, mode: plain-near-max }
+      - { enchant: enchants/implants, mode: plain-near-max }
+      - { enchant: enchants/repair-guard, mode: plain-near-max }
+    chestplate:
+      material: DIAMOND_CHESTPLATE
+      name: '&5&lChestplate of Ad Infinitum'
+      lore: ['&7A cross-dimensional chestplate', '&7with impossibly infinite density', '&7and defensive properties.', '']
+      enchant-rolls:
+      - { enchant: enchants/godly-overload, mode: plain-near-max }
+      - { enchant: enchants/paladin-armored, mode: plain-near-max }
+      - { enchant: enchants/blood-lust, mode: plain-near-max }
+      - { enchant: enchants/enlighted, mode: plain-near-max }
+      - { enchant: enchants/deathbringer, mode: plain-near-max }
+      - { enchant: enchants/armored, mode: plain-near-max }
+      - { enchant: enchants/tank, mode: plain-near-max }
+      - { enchant: enchants/angelic, mode: plain-near-max }
+      - { enchant: enchants/arrow-deflect, mode: plain-near-max }
+      - { enchant: enchants/dodge, mode: plain-near-max }
+      - { enchant: enchants/valor, mode: plain-near-max }
+      - { enchant: enchants/aegis, mode: plain-near-max }
+      - { enchant: enchants/spirit-link, mode: plain-near-max }
+      - { enchant: enchants/leadership, mode: plain-near-max }
+    leggings:
+      material: DIAMOND_LEGGINGS
+      name: '&5&lTimeless Robes'
+      lore: ['&7Robes that evade the 4th dimension and', '&7are in a state of constant existence', '&7across all planets of reality.', '']
+      enchant-rolls:
+      - { enchant: enchants/paladin-armored, mode: plain-near-max }
+      - { enchant: enchants/enlighted, mode: plain-near-max }
+      - { enchant: enchants/clarity, mode: plain-near-max }
+      - { enchant: enchants/deathbringer, mode: plain-near-max }
+      - { enchant: enchants/nature-wrath, mode: plain-near-max }
+      - { enchant: enchants/lucky, mode: plain-near-max }
+      - { enchant: enchants/armored, mode: plain-near-max }
+      - { enchant: enchants/angelic, mode: plain-near-max }
+      - { enchant: enchants/obsidianshield, mode: plain-near-max }
+      - { enchant: enchants/cactus, mode: plain-near-max }
+      - { enchant: enchants/valor, mode: plain-near-max }
+      - { enchant: enchants/metaphysical, mode: plain-near-max }
+      - { enchant: enchants/death-god, mode: plain-near-max }
+      - { enchant: enchants/dodge, mode: plain-near-max }
+    boots:
+      material: DIAMOND_BOOTS
+      name: '&5&lWarp Speed Sandals'
+      lore: ['&7Sandals capable of breaking through', '&7dimensional barriers to allow the barer', '&7to perform impossible feats.', '']
+      enchant-rolls:
+      - { enchant: enchants/ethereal-dodge, mode: plain-near-max }
+      - { enchant: enchants/divine-enlighted, mode: plain-near-max }
+      - { enchant: enchants/gears, mode: plain-near-max }
+      - { enchant: enchants/deathbringer, mode: plain-near-max }
+      - { enchant: enchants/tank, mode: plain-near-max }
+      - { enchant: enchants/angelic, mode: plain-near-max }
+      - { enchant: enchants/ender-walker, mode: plain-near-max }
+      - { enchant: enchants/hardened, mode: plain-near-max }
+      - { enchant: enchants/rocket-escape, mode: plain-near-max }
+      - { enchant: enchants/springs, mode: plain-near-max }
+      - { enchant: enchants/valor, mode: plain-near-max }
+      - { enchant: enchants/dodge, mode: plain-near-max }
+      - { enchant: enchants/sticky, mode: plain-near-max }
+      - { enchant: enchants/diminish, mode: plain-near-max }
+bonuses:
+- 'on': armor
+  trigger: ATTACK
+  effects:
+  - DAMAGE_MOD:
+      side: attack
+      mode: add
+      amount: 30
+- 'on': armor
+  trigger: DEFENSE
+  effects: []

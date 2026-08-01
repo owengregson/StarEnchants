@@ -17,6 +17,7 @@ public final class BreakBlockEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("BREAK_BLOCK")
             .param("drops", D.BOOL.def(true))
+            .param("use-held-tool", D.BOOL.def(false))
             .target("at", T.HERE)
             .affinity(Affinity.REGION)
             .doc("Break the target block(s) (default @Here; drops=false clears). @Vein/@Tunnel/@Trench for shapes.")
@@ -31,8 +32,13 @@ public final class BreakBlockEffect implements EffectKind {
     @Override
     public void run(EffectCtx ctx, Sink sink) {
         boolean drops = ctx.bool("drops");
+        boolean heldTool = ctx.args().has("use-held-tool") && ctx.bool("use-held-tool");
         for (Location loc : ctx.targetLocations("at")) {
-            sink.breakBlock(loc, drops);
+            if (heldTool) {
+                sink.breakBlockWithTool(loc, drops, ctx.actor());
+            } else {
+                sink.breakBlock(loc, drops);
+            }
         }
     }
 }

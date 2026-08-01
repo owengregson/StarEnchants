@@ -1,0 +1,23 @@
+# Cosmic codex source: 05-enchants-bows.md — bow/Infernal.java
+display: Infernal
+description: Explosive fire effect.
+trigger:
+- BOW
+applies-to:
+- BOW
+group: elite
+tier: elite
+stacking: HIGHEST
+levels:
+  1:
+    effects:
+      - { IGNITE: { duration: 20, who: '@Victim' } }
+      - { PARTICLE: { particle: FLAME, count: 10, spread: 1, random-spread: true, speed: 0.25, anchor: eye, who: '@Victim' } }
+  2:
+    effects:
+      - { IGNITE: { duration: 40, who: '@Victim' } }
+      - { PARTICLE: { particle: FLAME, count: 10, spread: 1, random-spread: true, speed: 0.25, anchor: eye, who: '@Victim' } }
+  3:
+    effects:
+      - { IGNITE: { duration: 60, who: '@Victim' } }
+      - { PARTICLE: { particle: FLAME, count: 10, spread: 1, random-spread: true, speed: 0.25, anchor: eye, who: '@Victim' } }

@@ -81,6 +81,28 @@ class CombatCodecTest {
     }
 
     @Test
+    void roundTripsAuthoredSetMemberTokenAndPreservesItThroughCopiers() {
+        CombatState member = new CombatState(Map.of("guard", 2), List.of("crystals/frost"),
+                "sets/ghost", "helmet", null, false, new HeroicStat(0, 0.08, 0, 0, 0.5),
+                3, "masks/agent", null);
+
+        CombatState back = CombatCodec.decodeBlob(CombatCodec.encodeBlob(member));
+        assertEquals("sets/ghost", back.setKey());
+        assertEquals("helmet", back.setMemberKey());
+        assertEquals("helmet", member.withEnchants(Map.of("sharp", 1)).setMemberKey());
+        assertEquals("helmet", member.withCrystals(List.of()).setMemberKey());
+        assertEquals("helmet", member.withHeroic(HeroicStat.NONE).setMemberKey());
+        assertEquals("helmet", member.withMask(null).setMemberKey());
+        assertEquals("helmet", member.withReforge("reforges/singularity").setMemberKey());
+        assertEquals("helmet", member.withAdded(9).setMemberKey());
+
+        // Blobs minted before per-member lore existed have no 'p' label and remain valid.
+        assertNull(CombatCodec.decodeBlob("v1eguard:2cssets/ghost").setMemberKey());
+        // An empty future/invalid member payload is tolerated like the other optional string fields.
+        assertNull(CombatCodec.decodeBlob("v1p").setMemberKey());
+    }
+
+    @Test
     void roundTripsWeaponSetMembership() {
         // A set WEAPON member carries setWeaponKey (label 'w') and NO setKey — it must survive the codec
         // distinct from an armour member, and is not empty.
@@ -179,15 +201,21 @@ class CombatCodecTest {
 
     @Test
     void copiersPreserveTheReforgeKey() {
-        // The setWeaponKey/maskKey trap now covers reforgeKey: every with* copier must carry it through — a
-        // copier that dropped the new field is the one real bug this row catches (ADR-0070).
+        // The setWeaponKey/maskKey trap now covers reforgeKey and authored set-member identity: every with*
+        // copier must carry them through, or a scroll re-render loses the exact Cosmic piece lore.
         CombatState reforged = new CombatState(Map.of("guard", 2), List.of("crystals/frost"),
-                "sets/yeti", null, false, new HeroicStat(0.1, 0.2, 0.3), 3, "masks/agent", "reforges/singularity");
+                "sets/yeti", "helmet", null, false, new HeroicStat(0.1, 0.2, 0.3), 3,
+                "masks/agent", "reforges/singularity");
         assertEquals("reforges/singularity", reforged.withEnchants(Map.of("sharp", 1)).reforgeKey());
         assertEquals("reforges/singularity", reforged.withCrystals(List.of("crystals/zap")).reforgeKey());
         assertEquals("reforges/singularity", reforged.withHeroic(new HeroicStat(0.5, 0.5, 0.5)).reforgeKey());
         assertEquals("reforges/singularity", reforged.withMask("masks/other").reforgeKey());
         assertEquals("reforges/singularity", reforged.withAdded(9).reforgeKey());
+        assertEquals("helmet", reforged.withEnchants(Map.of("sharp", 1)).setMemberKey());
+        assertEquals("helmet", reforged.withCrystals(List.of("crystals/zap")).setMemberKey());
+        assertEquals("helmet", reforged.withHeroic(new HeroicStat(0.5, 0.5, 0.5)).setMemberKey());
+        assertEquals("helmet", reforged.withMask("masks/other").setMemberKey());
+        assertEquals("helmet", reforged.withAdded(9).setMemberKey());
     }
 
     @Test

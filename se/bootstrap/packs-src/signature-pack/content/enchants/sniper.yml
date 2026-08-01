@@ -1,0 +1,45 @@
+# Imported from EliteEnchantments (id: sniper). Review before shipping.
+display: "Sniper"
+description:
+  - "&eArrows deal heavy bonus damage"
+  - "&eon a headshot."
+trigger: BOW
+applies-to: [BOW]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    chance: 15
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
+      - { DAMAGE: { amount: 2, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
+  2:
+    chance: 18
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
+      - { DAMAGE: { amount: 2.5, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
+  3:
+    chance: 21
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
+      - { DAMAGE: { amount: 3, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
+  4:
+    chance: 24
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
+      - { DAMAGE: { amount: 3.5, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)
+  5:
+    chance: 27
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_ARROW_SHOOT", volume: 1.0, pitch: 0.9 } }
+      - { PARTICLE: { particle: "CRIT", count: 6 } }
+      - { DAMAGE: { amount: 4, who: "@Victim" } }  # from SNIPER — EE SNIPER (bonus headshot damage) → flat bonus DAMAGE (SE has no headshot detection)

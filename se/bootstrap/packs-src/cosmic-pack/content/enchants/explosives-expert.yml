@@ -1,0 +1,15 @@
+# Cosmic codex source: 07-enchants-mastery-soul.md — mastery/MasteryExplosivesExpert.java
+display: Explosives Expert
+description: Allows Atomic Detonate to work on all block types for pickaxes, spades, and axes irregardless of the tool being
+  used.
+trigger:
+- PASSIVE
+applies-to:
+- ARMOR
+group: mastery
+tier: mastery
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    effects: []

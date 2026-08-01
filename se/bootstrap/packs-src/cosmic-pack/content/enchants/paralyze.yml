@@ -1,0 +1,14 @@
+# Cosmic codex source: 03-enchants-swords.md — swords/Paralyze.java
+# Exact runtime is implemented by CosmicWeaponListener.
+display: Paralyze
+description: Gives a lightning effect, Slowness, level-four Mining Fatigue, and direct damage on proc.
+trigger: [ATTACK]
+applies-to: [SWORD]
+group: elite
+tier: elite
+stacking: HIGHEST
+levels:
+  1: { effects: [] }
+  2: { effects: [] }
+  3: { effects: [] }
+  4: { effects: [] }

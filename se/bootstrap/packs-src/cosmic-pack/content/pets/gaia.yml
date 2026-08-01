@@ -1,0 +1,40 @@
+# Cosmic codex source: 12-pets.md
+display: Gaia
+color: '&e'
+type: ACTIVE
+head: eyJ0aW1lc3RhbXAiOjE1NjIwOTAxODY4OTYsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9jY2UzYTc0MjdiY2IwNTRlZjFhNzY0NGY2Y2EwZWQwZWRjOTY3NDdhYWJjZjJlMWQ1ZjVmNjc3YjhkZGY2NDA3In19fQ==
+material: PLAYER_HEAD
+descriptor:
+- '&7A Cosmic inventory pet.'
+description:
+- '&7Casts Nature''s Wrath at 50% movement-lock duration.'
+max-level: 4
+experience-to-level:
+  2: 2000
+  3: 2500
+  4: 3000
+levels:
+  1:
+    cooldown: 12000
+    experience-on-use: 5
+    description:
+    - '&7Nature''s Wrath 1: 13 block radius, 4s release/DoT, 8s potion package.'
+    effects: []
+  2:
+    cooldown: 12000
+    experience-on-use: 5
+    description:
+    - '&7Nature''s Wrath 2: 18 block radius, 4.5s release/DoT, 9s potion package.'
+    effects: []
+  3:
+    cooldown: 12000
+    experience-on-use: 5
+    description:
+    - '&7Nature''s Wrath 3: 23 block radius, 5s release/DoT, 10s potion package.'
+    effects: []
+  4:
+    cooldown: 12000
+    experience-on-use: 5
+    description:
+    - '&7Nature''s Wrath 4: 28 block radius, 5.5s release/DoT, 11s potion package.'
+    effects: []

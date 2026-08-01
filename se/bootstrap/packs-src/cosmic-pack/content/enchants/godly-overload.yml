@@ -1,24 +1,38 @@
-# Imported from EliteEnchantments (id: godly-overload). Review before shipping.
-display: "Godly Overload"
-description:
-  - "&eMythic upgrade for Overload."
-  - "&eGreatly increases your maximum"
-  - "&ehealth."
-  - "&c&l(!)&r &7Requires &6Overload"
-trigger: PASSIVE
-applies-to: [ARMOR]
-group: "mythic"
-tier: mythic
-suppress-immune: true  # permanent worn buff — unsilenceable (Silence/Solitude/Perfect-Solitude can't disable THIS enchant; other enchants still get silenced)
-requires: ["enchants/overload"]
-removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
+# Cosmic codex source: 06-enchants-tools-heroic.md — heroic/HeroicOverload.java
+display: Godly Overload
+description: Heroic Enchantment. A very large permanent increase in hearts. Requires Overload III enchant on item to apply.
+  Cannot be black-scrolled.
+trigger:
+- PASSIVE
+applies-to:
+- ARMOR
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: HIGHEST
 levels:
   1:
     effects:
-      - { POTION: { effect: "HEALTH_BOOST", level: 4, duration: 200, who: "@Self" } }
+    - POTION:
+        effect: HEALTH_BOOST
+        level: 4
+        duration: 2147483647
+        who: '@Self'
   2:
     effects:
-      - { POTION: { effect: "HEALTH_BOOST", level: 6, duration: 200, who: "@Self" } }
+    - POTION:
+        effect: HEALTH_BOOST
+        level: 5
+        duration: 2147483647
+        who: '@Self'
   3:
     effects:
-      - { POTION: { effect: "HEALTH_BOOST", level: 8, duration: 200, who: "@Self" } }
+    - POTION:
+        effect: HEALTH_BOOST
+        level: 6
+        duration: 2147483647
+        who: '@Self'
+requires:
+- enchants/overload
+removes-required: true
+suppress-immune: true

@@ -8,8 +8,11 @@ import engine.condition.Flow;
 import engine.interact.SoulSpender;
 import engine.stores.CooldownStore;
 import engine.stores.SuppressionStore;
+import engine.stores.VarStore;
 import engine.stores.WhyRecorder;
 import engine.stores.WhyRing;
+import engine.trigger.BuiltinTriggers;
+import engine.trigger.TriggerRegistry;
 import java.util.Objects;
 
 /**
@@ -33,6 +36,8 @@ import java.util.Objects;
  */
 public final class ActivationPipeline {
 
+    private static final TriggerRegistry BUILTIN_TRIGGERS = BuiltinTriggers.registry();
+
     /** A pluggable gate (protection at gate 2, {@code PreActivate} at gate 9). */
     @FunctionalInterface
     public interface Guard {
@@ -46,6 +51,7 @@ public final class ActivationPipeline {
     private final CooldownStore cooldowns;
     private final SoulSpender spender;
     private final SuppressionStore suppression;
+    private final VarStore vars;
     private final Guard protection;
     private final Guard preActivate;
     private final WhyRecorder recorder;
@@ -61,14 +67,20 @@ public final class ActivationPipeline {
 
     public ActivationPipeline(CooldownStore cooldowns, SoulSpender spender, SuppressionStore suppression,
                               Guard protection, Guard preActivate) {
-        this(cooldowns, spender, suppression, protection, preActivate, WhyRecorder.NONE);
+        this(cooldowns, spender, suppression, new VarStore(), protection, preActivate, WhyRecorder.NONE);
     }
 
     public ActivationPipeline(CooldownStore cooldowns, SoulSpender spender, SuppressionStore suppression,
                               Guard protection, Guard preActivate, WhyRecorder recorder) {
+        this(cooldowns, spender, suppression, new VarStore(), protection, preActivate, recorder);
+    }
+
+    public ActivationPipeline(CooldownStore cooldowns, SoulSpender spender, SuppressionStore suppression,
+                              VarStore vars, Guard protection, Guard preActivate, WhyRecorder recorder) {
         this.cooldowns = Objects.requireNonNull(cooldowns, "cooldowns");
         this.spender = Objects.requireNonNull(spender, "spender");
         this.suppression = Objects.requireNonNull(suppression, "suppression");
+        this.vars = Objects.requireNonNull(vars, "vars");
         this.protection = Objects.requireNonNull(protection, "protection");
         this.preActivate = Objects.requireNonNull(preActivate, "preActivate");
         this.recorder = Objects.requireNonNull(recorder, "recorder");
@@ -114,7 +126,8 @@ public final class ActivationPipeline {
                     WhyRing.packScope(0, 0, ability.suppressKey()), -1); // transient; id = suppress interner
         }
         if (suppressed(ability, act)) {
-            long d = suppression.blockedDetail(ability, act.actor(), act.nowTicks());
+            boolean defenseTrigger = BUILTIN_TRIGGERS.isDefense(act.triggerId());
+            long d = suppression.blockedDetail(ability, act.actor(), act.nowTicks(), defenseTrigger);
             // d==0 is the benign cross-region race: suppressesAny won, then the window evicted before
             // blockedDetail re-read it. No live window to attribute, so record unattributed (pB -1) — else
             // detailByDefId(0)=0 would render a spurious "from <defId 0's key>" clause in /se why.
@@ -194,7 +207,8 @@ public final class ActivationPipeline {
      * silences exactly the abilities whose scope lowered to that key.
      */
     private boolean suppressed(Ability ability, Activation act) {
-        return suppression.suppressesAny(ability, act.actor(), act.nowTicks());
+        return suppression.suppressesAny(ability, act.actor(), act.nowTicks(),
+                BUILTIN_TRIGGERS.isDefense(act.triggerId()));
     }
 
     /**
@@ -257,6 +271,10 @@ public final class ActivationPipeline {
     private int consumeSouls(Ability ability, Activation act) {
         if (ability.soulCost() <= 0) {
             return -1; // free — not a soul-cost ability
+        }
+        String soulFree = vars.get(act.actor(), "soul-free", act.nowTicks());
+        if (soulFree != null && !soulFree.isBlank() && !soulFree.equals("0")) {
+            return -1; // Cosmic Tesla pet: every soul debit is waived while its timed buff is live
         }
         if (act.activeGem() == null) {
             return 0; // §J a soul-cost ability NEVER fires outside soul mode (was: fired free — the bug)

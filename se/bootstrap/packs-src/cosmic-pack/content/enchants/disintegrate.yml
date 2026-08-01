@@ -1,0 +1,23 @@
+# Cosmic codex source: 03-enchants-swords.md — swords/Disintegrate.java
+display: Disintegrate
+description: Chance to deal double durability damage to all enemy armor with every attack.
+trigger:
+- ATTACK
+applies-to:
+- SWORD
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
+levels:
+  1:
+    abilities:
+      - { trigger: ATTACK, chance: 2, condition: &player '%victim.isplayer% >= 1', effects: &wear [{ SOUND: { sound: ANVIL_BREAK, volume: 0.3, pitch: 0.8, audience: target, at: activation, who: '@Self' } }, { DURABILITY: { amount: 1, target: armor, mode: damage, slot: helmet, who: '@Victim' } }, { DURABILITY: { amount: 2, target: armor, mode: damage, slot: chestplate, who: '@Victim' } }, { DURABILITY: { amount: 2, target: armor, mode: damage, slot: leggings, who: '@Victim' } }, { DURABILITY: { amount: 1, target: armor, mode: damage, slot: boots, who: '@Victim' } }] }
+  2:
+    abilities:
+      - { trigger: ATTACK, chance: 4, condition: *player, effects: *wear }
+  3:
+    abilities:
+      - { trigger: ATTACK, chance: 6, condition: *player, effects: *wear }
+  4:
+    abilities:
+      - { trigger: ATTACK, chance: 8, condition: *player, effects: *wear }

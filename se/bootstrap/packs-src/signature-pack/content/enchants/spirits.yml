@@ -1,0 +1,91 @@
+# Imported from EliteEnchantments (id: spirits). Review before shipping.
+display: "Spirits"
+description:
+  - "&eWhen hit, summons blazes that"
+  - "&efight for you and grants"
+  - "&eRegeneration."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "uncommon"
+tier: uncommon
+levels:
+  1:
+    chance: 0.25
+    cooldown: 300
+    effects:
+      - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.8, pitch: 1.1 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
+      - { GUARD: { type: "BLAZE", count: 1, ttl: 200 } }  # from SPAWN:BLAZE:10:1:10:&e&l%player%'s Spirits — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+      - { POTION: { effect: "REGENERATION", level: 1, duration: 60, who: "@Self" } }  # from POTION:REGENERATION:1:PLAYER:3 — EE seconds → ticks (x20)
+  2:
+    chance: 0.5
+    cooldown: 300
+    effects:
+      - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.8, pitch: 1.1 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
+      - { GUARD: { type: "BLAZE", count: 1, ttl: 200 } }  # from SPAWN:BLAZE:10:1:10:&e&l%player%'s Spirits — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+      - { POTION: { effect: "REGENERATION", level: 1, duration: 60, who: "@Self" } }  # from POTION:REGENERATION:1:PLAYER:3 — EE seconds → ticks (x20)
+  3:
+    chance: 0.75
+    cooldown: 300
+    effects:
+      - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.8, pitch: 1.1 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
+      - { GUARD: { type: "BLAZE", count: 1, ttl: 200 } }  # from SPAWN:BLAZE:10:1:10:&e&l%player%'s Spirits — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+      - { POTION: { effect: "REGENERATION", level: 1, duration: 60, who: "@Self" } }  # from POTION:REGENERATION:1:PLAYER:3 — EE seconds → ticks (x20)
+  4:
+    chance: 0.85
+    cooldown: 300
+    effects:
+      - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.8, pitch: 1.1 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
+      - { GUARD: { type: "BLAZE", count: 1, ttl: 200 } }  # from SPAWN:BLAZE:10:1:10:&e&l%player%'s Spirits — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+      - { POTION: { effect: "REGENERATION", level: 1, duration: 60, who: "@Self" } }  # from POTION:REGENERATION:1:PLAYER:3 — EE seconds → ticks (x20)
+  5:
+    chance: 1
+    cooldown: 300
+    effects:
+      - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.8, pitch: 1.1 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
+      - { GUARD: { type: "BLAZE", count: 1, ttl: 200 } }  # from SPAWN:BLAZE:10:1:10:&e&l%player%'s Spirits — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+      - { POTION: { effect: "REGENERATION", level: 1, duration: 60, who: "@Self" } }  # from POTION:REGENERATION:1:PLAYER:3 — EE seconds → ticks (x20)
+  6:
+    chance: 2
+    cooldown: 300
+    effects:
+      - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.8, pitch: 1.1 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
+      - { GUARD: { type: "BLAZE", count: 1, ttl: 200 } }  # from SPAWN:BLAZE:10:1:10:&e&l%player%'s Spirits — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+      - { POTION: { effect: "REGENERATION", level: 1, duration: 60, who: "@Self" } }  # from POTION:REGENERATION:1:PLAYER:3 — EE seconds → ticks (x20)
+  7:
+    chance: 3
+    cooldown: 300
+    effects:
+      - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.8, pitch: 1.1 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
+      - { GUARD: { type: "BLAZE", count: 1, ttl: 200 } }  # from SPAWN:BLAZE:10:1:10:&e&l%player%'s Spirits — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+      - { POTION: { effect: "REGENERATION", level: 1, duration: 60, who: "@Self" } }  # from POTION:REGENERATION:1:PLAYER:3 — EE seconds → ticks (x20)
+  8:
+    chance: 4
+    cooldown: 300
+    effects:
+      - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.8, pitch: 1.1 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
+      - { GUARD: { type: "BLAZE", count: 1, ttl: 200 } }  # from SPAWN:BLAZE:10:1:10:&e&l%player%'s Spirits — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+      - { POTION: { effect: "REGENERATION", level: 1, duration: 60, who: "@Self" } }  # from POTION:REGENERATION:1:PLAYER:3 — EE seconds → ticks (x20)
+  9:
+    chance: 5
+    cooldown: 300
+    effects:
+      - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.8, pitch: 1.1 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
+      - { GUARD: { type: "BLAZE", count: 1, ttl: 200 } }  # from SPAWN:BLAZE:10:1:10:&e&l%player%'s Spirits — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+      - { POTION: { effect: "REGENERATION", level: 1, duration: 60, who: "@Self" } }  # from POTION:REGENERATION:1:PLAYER:3 — EE seconds → ticks (x20)
+  10:
+    chance: 6
+    cooldown: 300
+    effects:
+      - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.8, pitch: 1.1 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
+      - { GUARD: { type: "BLAZE", count: 1, ttl: 200 } }  # from SPAWN:BLAZE:10:1:10:&e&l%player%'s Spirits — EE SPAWN → GUARD (targets the attacker + auto-binds ownership; spawn radius + custom name dropped)
+      - { POTION: { effect: "REGENERATION", level: 1, duration: 60, who: "@Self" } }  # from POTION:REGENERATION:1:PLAYER:3 — EE seconds → ticks (x20)

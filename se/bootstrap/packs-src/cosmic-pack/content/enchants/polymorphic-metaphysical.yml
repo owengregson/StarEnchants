@@ -1,0 +1,22 @@
+# Cosmic codex source: 06-enchants-tools-heroic.md — heroic/HeroicMetaphysical.java
+display: Polymorphic Metaphysical
+description: A chance to resist the slowness given by enemy Trap, Snare, Pummel, and Ice Aspect enchantments. At max level,
+  you will only be affected approx. 10% of the time.
+trigger:
+- DEFENSE
+- PASSIVE
+applies-to:
+- BOOTS
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    effects: []
+  2:
+    effects: []
+  3:
+    effects: []
+  4:
+    effects: []

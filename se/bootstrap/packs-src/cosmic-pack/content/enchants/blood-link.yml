@@ -1,45 +1,14 @@
-# Imported from EliteEnchantments (id: blood-link). Review before shipping.
-display: "Blood Link"
-description:
-  - "&eWhen your summoned guardians take"
-  - "&edamage, you recover health."
+# Cosmic codex: 01-enchants-armor-a-l.md — armor/BloodLink.java
+display: Blood Link
+description: Chance to heal when one of your Guardians is damaged.
 trigger: GUARDIAN_HURT
 applies-to: [ARMOR]
-group: "uncommon"
-tier: uncommon
+group: legendary
+tier: legendary
+stacking: HIGHEST
 levels:
-  1:
-    chance: 20
-    cooldown: 60
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 0.9, pitch: 0.8 } }
-      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 8 } }
-      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }
-  2:
-    chance: 30
-    cooldown: 60
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 0.9, pitch: 0.8 } }
-      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 8 } }
-      - { MODIFY_HEALTH: { amount: 3, mode: "give", who: "@Self" } }
-  3:
-    chance: 40
-    cooldown: 60
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 0.9, pitch: 0.8 } }
-      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 8 } }
-      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }
-  4:
-    chance: 50
-    cooldown: 60
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 0.9, pitch: 0.8 } }
-      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 8 } }
-      - { MODIFY_HEALTH: { amount: 5, mode: "give", who: "@Self" } }
-  5:
-    chance: 60
-    cooldown: 60
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 0.9, pitch: 0.8 } }
-      - { PARTICLE: { particle: "DAMAGE_INDICATOR", count: 8 } }
-      - { MODIFY_HEALTH: { amount: 6, mode: "give", who: "@Self" } }
+  1: { chance: 5, effects: &heal1 [{ MODIFY_HEALTH: { amount: 1, mode: give, who: "@Self" } }, { PARTICLE: { particle: HEART, count: 1, spread: 0, speed: 0.2, anchor: eye, who: "@Self" } }, { PARTICLE: { particle: HEART, count: 1, spread: 0, speed: 0.2, anchor: feet, y-offset: 3, who: "@Victim" } }] }
+  2: { chance: 10, effects: *heal1 }
+  3: { chance: 15, effects: *heal1 }
+  4: { chance: 20, effects: *heal1 }
+  5: { chance: 25, effects: [{ MODIFY_HEALTH: { amount: 2, mode: give, who: "@Self" } }, { PARTICLE: { particle: HEART, count: 1, spread: 0, speed: 0.2, anchor: eye, who: "@Self" } }, { PARTICLE: { particle: HEART, count: 1, spread: 0, speed: 0.2, anchor: feet, y-offset: 3, who: "@Victim" } }] }

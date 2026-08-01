@@ -1,0 +1,14 @@
+# Item Nametag — the Cosmic Pack likeness (docs/v3-directives.md §I). Drag onto gear to rename it: on
+# modern servers an anvil GUI opens to type the new name (legacy & colour codes are parsed); the 1.8.9 fork
+# falls back to chat. A name is rejected if it contains a blacklisted word. Only the name/lore differ from the
+# default item; the mechanic is global. reload with /se reload.
+type: nametag
+
+material: NAME_TAG
+name: "{#e6c78d}&lItem Nametag"
+# Authored lore lines auto-wrap at config lore.item-wrap.
+lore:
+  - "&eAllows you to rename and customize your equipment with customizable color and formatting codes."
+  - "&7Drag n' Drop on an item to apply."
+# Words a renamed item may not contain (case-insensitive substring match). Empty = allow any name.
+blacklist: []

@@ -1,0 +1,24 @@
+# Cosmic codex source: 07-enchants-mastery-soul.md — mastery/MasteryDemonicGateway.java
+display: Demonic Gateway
+description: Spawn Ender Crystals that target and shoot nearby enemies, with a chance to Silence them on hit for (level seconds).
+trigger:
+- DEFENSE
+applies-to:
+- ARMOR
+group: mastery
+tier: mastery
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    effects: []
+  2:
+    effects: []
+  3:
+    effects: []
+  4:
+    effects: []
+  5:
+    effects: []
+  6:
+    effects: []

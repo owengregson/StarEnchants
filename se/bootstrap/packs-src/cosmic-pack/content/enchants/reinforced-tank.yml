@@ -1,33 +1,24 @@
-# Imported from EliteEnchantments (id: reinforced-tank). Review before shipping.
-display: "Reinforced Tank"
-description:
-  - "&eMythic upgrade for Tank."
-  - "&eReduces more axe damage."
-  - "&c&l(!)&r &7Requires &eTank"
+# Cosmic codex source: 06-enchants-tools-heroic.md — heroic/HeroicTank.java
+display: Reinforced Tank
+description: Heroic Enchantment. Decreases damage from enemy axes by 2.25% per level, this enchantment is stackable.
 trigger: DEFENSE
 applies-to: [ARMOR]
-group: "mythic"
-tier: mythic
-requires: ["enchants/tank"]
-removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: EACH
 levels:
   1:
-    condition: "%victim.helditem% contains \"AXE\""
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1 } }
+    condition: '%victim.isplayer% == 1 && %victim.helditem% contains "_AXE" && %damage% * 0.9775 > 1'
+    effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.9775 } }, { BLOCK_BREAK_EFFECT: { block: IRON_BLOCK } }]
   2:
-    condition: "%victim.helditem% contains \"AXE\""
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1.5 } }
+    condition: '%victim.isplayer% == 1 && %victim.helditem% contains "_AXE" && %damage% * 0.955 > 1'
+    effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.955 } }, { BLOCK_BREAK_EFFECT: { block: IRON_BLOCK } }]
   3:
-    condition: "%victim.helditem% contains \"AXE\""
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2 } }
+    condition: '%victim.isplayer% == 1 && %victim.helditem% contains "_AXE" && %damage% * 0.9325 > 1'
+    effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.9325 } }, { BLOCK_BREAK_EFFECT: { block: IRON_BLOCK } }]
   4:
-    condition: "%victim.helditem% contains \"AXE\""
-    effects:
-      - { PARTICLE: { particle: "CRIT", count: 6 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2.5 } }
+    condition: '%victim.isplayer% == 1 && %victim.helditem% contains "_AXE" && %damage% * 0.91 > 1'
+    effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.91 } }, { BLOCK_BREAK_EFFECT: { block: IRON_BLOCK } }]
+requires: [enchants/tank]
+removes-required: true

@@ -1,0 +1,24 @@
+# Imported from EliteEnchantments (id: cactus). Review before shipping.
+display: "Cactus"
+description:
+  - "&eWhen hit, lashes the attacker with"
+  - "&ea spray of thorns."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "common"
+tier: common
+levels:
+  1:
+    chance: 12
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_BEE_STING", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CRIT", count: 7, who: "@Attacker" } }
+      - { DAMAGE: { amount: 1.5, who: "@Attacker" } }
+  2:
+    chance: 18
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_BEE_STING", volume: 0.9, pitch: 1.0 } }
+      - { PARTICLE: { particle: "CRIT", count: 7, who: "@Attacker" } }
+      - { DAMAGE: { amount: 2, who: "@Attacker" } }

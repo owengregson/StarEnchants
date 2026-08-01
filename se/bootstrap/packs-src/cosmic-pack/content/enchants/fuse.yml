@@ -1,0 +1,13 @@
+# Cosmic codex source: 06-enchants-tools-heroic.md — tools/Fuse.java
+display: Fuse
+description: Allows Auto Smelt to apply to blocks destroyed by the Detonate enchantment.
+trigger:
+- MINE
+applies-to:
+- PICKAXE
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
+levels:
+  1:
+    effects: []

@@ -6,6 +6,7 @@ import engine.interact.SoulPool;
 import engine.interact.SoulSpender;
 import engine.sink.SoulDebit;
 import engine.stores.SoulModeStore;
+import engine.stores.VarStore;
 import feature.compat.Hands;
 import feature.compat.Sounds;
 import item.codec.AppliedSlot;
@@ -20,6 +21,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -66,6 +68,8 @@ public final class SoulService implements SoulDebit, SoulSpender {
     // The applied-scroll PROTECTED lines from an item's marker state — the SAME function the LoreRenderer is wired
     // with (BootCore.protectionLinesFn), so a gem's holy line matches the gear path's. Default: no lines (tests).
     private final Function<ItemStack, List<String>> protectionLines;
+    private final VarStore vars; // Cosmic Tesla: the shared timed no-soul-cost authority
+    private final LongSupplier nowTicks;
     // §D per-player TOTAL souls across all carried gems, refreshed on the holder thread each maintain() tick;
     // read by the PAPI feed (in-memory, thread-safe — never a cross-region inventory read).
     private final ConcurrentHashMap<UUID, Integer> cachedTotal = new ConcurrentHashMap<>();
@@ -93,6 +97,15 @@ public final class SoulService implements SoulDebit, SoulSpender {
                        java.util.function.BooleanSupplier depositOnAnyKill, platform.lang.Messages messages,
                        feature.fx.ParticleFx particles, Hands hands, Sounds sounds,
                        AppliedSlot slot, Function<ItemStack, List<String>> protectionLines) {
+        this(pool, modes, codec, config, depositOnAnyKill, messages, particles, hands, sounds,
+                slot, protectionLines, null, () -> 0L);
+    }
+
+    public SoulService(SoulPool pool, SoulModeStore modes, SoulCodec codec, Supplier<SoulGemConfig> config,
+                       java.util.function.BooleanSupplier depositOnAnyKill, platform.lang.Messages messages,
+                       feature.fx.ParticleFx particles, Hands hands, Sounds sounds,
+                       AppliedSlot slot, Function<ItemStack, List<String>> protectionLines,
+                       VarStore vars, LongSupplier nowTicks) {
         this.pool = Objects.requireNonNull(pool, "pool");
         this.modes = Objects.requireNonNull(modes, "modes");
         this.codec = Objects.requireNonNull(codec, "codec");
@@ -104,6 +117,8 @@ public final class SoulService implements SoulDebit, SoulSpender {
         this.sounds = Objects.requireNonNull(sounds, "sounds");
         this.slot = slot; // nullable: null disables holy-marker carry (the pre-holy default)
         this.protectionLines = protectionLines == null ? stack -> List.of() : protectionLines;
+        this.vars = vars;
+        this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
     }
 
     /** {@code NO_GEM}: not holding a gem. {@code NO_SOULS}: held a zero gem — toggle already played the
@@ -350,7 +365,7 @@ public final class SoulService implements SoulDebit, SoulSpender {
      */
     @Override
     public boolean trySpend(UUID player, int cost) {
-        if (cost <= 0) {
+        if (cost <= 0 || costFree(player)) {
             return true;
         }
         if (!pool.trySpend(player, cost)) {
@@ -367,12 +382,50 @@ public final class SoulService implements SoulDebit, SoulSpender {
     }
 
     /**
+     * Atomically spends from the player's physically carried soul gems without requiring Soul Mode.
+     *
+     * <p>This is the holder-thread path used by Cosmic's passive armor enchants (Immortal, Paradox, and Nature's
+     * Wrath): the original mechanics checked and removed carried souls directly. Affordability is checked
+     * before mutation, so a failed spend never partially drains the player's gems. Unlike gate-10
+     * {@link #trySpend(UUID, int)}, this does not emit the generic soul-use feedback; each native enchant
+     * owns its source-accurate feedback.
+     */
+    public boolean trySpendCarried(Player player, int cost) {
+        if (player == null) {
+            return false;
+        }
+        UUID id = player.getUniqueId();
+        if (cost <= 0 || costFree(id)) {
+            return true;
+        }
+        boolean active = modes.active(id).isPresent();
+        if (active) {
+            flushPending(player);
+        }
+        int total = totalSouls(player);
+        if (total < cost) {
+            cachedTotal.put(id, total);
+            if (active) {
+                pool.resync(id, total);
+            }
+            return false;
+        }
+        int removed = drainLeastFirst(player, cost);
+        int remaining = totalSouls(player);
+        cachedTotal.put(id, remaining);
+        if (active) {
+            pool.resync(id, remaining);
+        }
+        return removed == cost;
+    }
+
+    /**
      * {@code REMOVE_SOULS} drain (§D, {@link SoulDebit}). Drains {@code amount} from {@code holder}'s gems
      * least-first; no-op when the holder is not in soul mode. MUST run on {@code holder}'s own thread.
      */
     @Override
     public void debit(Player holder, UUID gemId, int amount) {
-        if (amount <= 0 || modes.active(holder.getUniqueId()).isEmpty()) {
+        if (amount <= 0 || costFree(holder.getUniqueId()) || modes.active(holder.getUniqueId()).isEmpty()) {
             return;
         }
         flushPending(holder); // settle gate-10 spends first so this drain composes on the accurate physical total
@@ -389,6 +442,132 @@ public final class SoulService implements SoulDebit, SoulSpender {
         if (modes.active(target.getUniqueId()).isPresent()) {
             debit(target, target.getUniqueId(), amount);
         }
+    }
+
+    @Override
+    public boolean active(Player player) {
+        return player != null && modes.active(player.getUniqueId()).isPresent();
+    }
+
+    @Override
+    public int currentTotal(Player player) {
+        if (player == null) {
+            return 0;
+        }
+        UUID id = player.getUniqueId();
+        return modes.active(id).isPresent() ? pool.total(id) : soulTotal(id);
+    }
+
+    @Override
+    public int total(Player player) {
+        return player == null ? 0 : soulTotal(player.getUniqueId());
+    }
+
+    @Override
+    public int drainUpTo(Player player, int amount) {
+        if (player == null || amount <= 0) {
+            return 0;
+        }
+        if (costFree(player.getUniqueId())) {
+            return amount;
+        }
+        UUID id = player.getUniqueId();
+        if (modes.active(id).isPresent()) {
+            flushPending(player);
+        }
+        int removed = drainLeastFirst(player, amount);
+        int remaining = totalSouls(player);
+        cachedTotal.put(id, remaining);
+        if (modes.active(id).isPresent()) {
+            pool.resync(id, remaining);
+        }
+        return removed;
+    }
+
+    /** Result of one Cosmic Soul Siphon inventory transaction. */
+    public record SiphonResult(int stolen, int credited, boolean createdGem) {
+    }
+
+    /** Exact carried total read on the holder's region, settling any pending soul-mode debit first. */
+    public int carriedTotal(Player player) {
+        if (player == null) {
+            return 0;
+        }
+        if (modes.active(player.getUniqueId()).isPresent()) {
+            flushPending(player);
+        }
+        int total = totalSouls(player);
+        cachedTotal.put(player.getUniqueId(), total);
+        if (modes.active(player.getUniqueId()).isPresent()) {
+            pool.resync(player.getUniqueId(), total);
+        }
+        return total;
+    }
+
+    /**
+     * Physically steal up to {@code cap} souls from {@code victim} and credit integer half to the receiver's
+     * first soul gem. When the receiver has no gem, mint one carrying that amount (SE's durable equivalent of
+     * Cosmic's soul shard). Both players are co-located by the firing PvP event, so this runs on that region.
+     */
+    public SiphonResult siphon(Player victim, Player receiver, int cap) {
+        if (victim == null || receiver == null || cap <= 0) {
+            return new SiphonResult(0, 0, false);
+        }
+        if (modes.active(victim.getUniqueId()).isPresent()) {
+            flushPending(victim);
+        }
+        if (modes.active(receiver.getUniqueId()).isPresent()) {
+            flushPending(receiver);
+        }
+        int stolen = Math.min(totalSouls(victim), cap);
+        if (stolen <= 0) {
+            cachedTotal.put(victim.getUniqueId(), totalSouls(victim));
+            return new SiphonResult(0, 0, false);
+        }
+        int removed = drainLeastFirst(victim, stolen);
+        int credited = removed / 2;
+        PlayerInventory receiverInventory = receiver.getInventory();
+        int receiverSlot = locateGemSlot(receiverInventory);
+        boolean created = receiverSlot < 0;
+        if (created) {
+            Inventories.giveOrDrop(receiver, mintGemStack(new SoulData(UUID.randomUUID(), credited)));
+        } else {
+            SoulData current = codec.read(receiverInventory.getItem(receiverSlot));
+            if (current != null) {
+                long sum = (long) current.souls() + credited;
+                writeGem(receiverInventory, receiverSlot,
+                        current.withSouls((int) Math.min(Integer.MAX_VALUE, sum)));
+            }
+        }
+        int victimTotal = totalSouls(victim);
+        int receiverTotal = totalSouls(receiver);
+        cachedTotal.put(victim.getUniqueId(), victimTotal);
+        cachedTotal.put(receiver.getUniqueId(), receiverTotal);
+        if (modes.active(victim.getUniqueId()).isPresent()) {
+            pool.resync(victim.getUniqueId(), victimTotal);
+        }
+        if (modes.active(receiver.getUniqueId()).isPresent()) {
+            pool.resync(receiver.getUniqueId(), receiverTotal);
+        }
+        return new SiphonResult(removed, credited, created);
+    }
+
+    @Override
+    public void disable(Player player) {
+        if (player == null) {
+            return;
+        }
+        UUID id = player.getUniqueId();
+        if (modes.active(id).isEmpty()) {
+            return;
+        }
+        flushPending(player);
+        modes.deactivate(id);
+        pool.disable(id);
+        SoulGemConfig cfg = config.get();
+        messages.sendLines(player, "soul.deactivate");
+        playSounds(player, cfg.sounds().toggleOff());
+        particles.spawn(player, cfg.particles().disable());
     }
 
     /** Forget a player's soul mode + pool on quit, flushing any owed drain to PDC first (else a spend refunds). */
@@ -429,15 +608,30 @@ public final class SoulService implements SoulDebit, SoulSpender {
             return;
         }
         if (total <= 0) {
-            modes.deactivate(id);
-            pool.disable(id);
-            SoulGemConfig cfg = config.get();
-            messages.sendLines(player, "soul.empty");
-            playSounds(player, cfg.sounds().toggleOff());
-            particles.spawn(player, cfg.particles().disable());
+            disableEmpty(player);
         } else {
             pool.resync(id, total);
         }
+    }
+
+    /**
+     * Auto-disable Soul Mode as exhausted, using the same empty feedback as the zero-balance maintenance path.
+     * The Cosmic periodic drain also calls this when its configured reserve is no longer met.
+     */
+    public void disableEmpty(Player player) {
+        if (player == null) {
+            return;
+        }
+        UUID id = player.getUniqueId();
+        if (modes.active(id).isEmpty()) {
+            return;
+        }
+        modes.deactivate(id);
+        pool.disable(id);
+        SoulGemConfig cfg = config.get();
+        messages.sendLines(player, "soul.empty");
+        playSounds(player, cfg.sounds().toggleOff());
+        particles.spawn(player, cfg.particles().disable());
     }
 
     /** The player's last-known TOTAL souls across all gems — the PAPI feed (in-memory, any thread). */
@@ -604,5 +798,18 @@ public final class SoulService implements SoulDebit, SoulSpender {
     static Optional<GemView> leastNonzero(List<GemView> gems) {
         return gems.stream().filter(g -> g.souls() > 0)
                 .min(Comparator.comparingInt(GemView::souls).thenComparingInt(GemView::slot));
+    }
+
+    @Override
+    public boolean costFree(Player player) {
+        return player != null && costFree(player.getUniqueId());
+    }
+
+    public boolean costFree(UUID player) {
+        if (vars == null || player == null) {
+            return false;
+        }
+        String value = vars.get(player, "soul-free", nowTicks.getAsLong());
+        return value != null && !value.isBlank() && !value.equals("0");
     }
 }

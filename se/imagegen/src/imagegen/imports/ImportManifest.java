@@ -18,7 +18,7 @@ import org.yaml.snakeyaml.Yaml;
  *
  * <pre>
  * sources:
- *   - root: se/bootstrap/packs-src/cosmic-pack/content   # a content/ tree (enchants/, sets/, tiers.yml)
+ *   - root: se/bootstrap/packs-src/signature-pack/content   # a content/ tree (enchants/, sets/, tiers.yml)
  *     sets: [spooky, clarity, koth]                       # explicit keys, or "*" for every set in the root
  * </pre>
  *

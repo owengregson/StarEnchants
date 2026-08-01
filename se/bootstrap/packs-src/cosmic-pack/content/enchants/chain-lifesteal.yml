@@ -1,45 +1,18 @@
-# Imported from EliteEnchantments (id: chain-lifesteal). Review before shipping.
-display: "Chain Lifesteal"
-description:
-  - "&eOn hit, restores health that scales"
-  - "&ewith the enemies near the fight."
-trigger: ATTACK
-applies-to: [ARMOR]
-group: "godly"
-tier: godly
+# Cosmic codex source: 07-enchants-mastery-soul.md — mastery/MasteryLifesteal.java
+# Exact intended runtime is implemented by CosmicMasteryListener.
+display: Chain Lifesteal
+description: A chance to regain health from multiple enemies near your damaged target based on level.
+trigger:
+- ATTACK
+applies-to:
+- ARMOR
+group: mastery
+tier: mastery
+disabled-environments: [THE_END]
+stacking: HIGHEST
 levels:
-  1:
-    chance: 15
-    cooldown: 120
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "HEART", count: 6, who: "@Self" } }
-      - { MODIFY_HEALTH: { amount: "1 + %nearbyenemies%", mode: "give", who: "@Self" } }
-  2:
-    chance: 18
-    cooldown: 120
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "HEART", count: 6, who: "@Self" } }
-      - { MODIFY_HEALTH: { amount: "1 + %nearbyenemies%", mode: "give", who: "@Self" } }
-  3:
-    chance: 21
-    cooldown: 120
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "HEART", count: 6, who: "@Self" } }
-      - { MODIFY_HEALTH: { amount: "1 + %nearbyenemies%", mode: "give", who: "@Self" } }
-  4:
-    chance: 24
-    cooldown: 120
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "HEART", count: 6, who: "@Self" } }
-      - { MODIFY_HEALTH: { amount: "2 + %nearbyenemies%", mode: "give", who: "@Self" } }
-  5:
-    chance: 27
-    cooldown: 120
-    effects:
-      - { SOUND: { sound: "ENTITY_WITCH_DRINK", volume: 1.0, pitch: 1.0 } }
-      - { PARTICLE: { particle: "HEART", count: 6, who: "@Self" } }
-      - { MODIFY_HEALTH: { amount: "2 + %nearbyenemies%", mode: "give", who: "@Self" } }
+  1: { effects: [] }
+  2: { effects: [] }
+  3: { effects: [] }
+  4: { effects: [] }
+  5: { effects: [] }

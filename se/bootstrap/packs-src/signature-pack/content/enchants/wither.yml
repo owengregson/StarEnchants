@@ -1,0 +1,45 @@
+# Imported from EliteEnchantments (id: wither). Review before shipping.
+display: "Wither"
+description:
+  - "&eWhen hit, applies Wither to the"
+  - "&eattacker."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "uncommon"
+tier: uncommon
+levels:
+  1:
+    chance: 8
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.9, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SOUL", count: 12, who: "@Attacker" } }
+      - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Attacker" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)
+  2:
+    chance: 11
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.9, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SOUL", count: 12, who: "@Attacker" } }
+      - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Attacker" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)
+  3:
+    chance: 14
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.9, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SOUL", count: 12, who: "@Attacker" } }
+      - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Attacker" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)
+  4:
+    chance: 17
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.9, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SOUL", count: 12, who: "@Attacker" } }
+      - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Attacker" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)
+  5:
+    chance: 20
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 0.9, pitch: 0.8 } }
+      - { PARTICLE: { particle: "SOUL", count: 12, who: "@Attacker" } }
+      - { POTION: { effect: "WITHER", level: 1, duration: 60, who: "@Attacker" } }  # from POTION:WITHER:1:TARGET:3 — EE seconds → ticks (x20)

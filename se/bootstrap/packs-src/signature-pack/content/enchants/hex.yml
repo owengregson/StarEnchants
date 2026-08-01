@@ -1,0 +1,46 @@
+# Imported from EliteEnchantments (id: hex). Review before shipping.
+display: "Hex"
+description:
+  - "&eCurses the target so a portion of"
+  - "&ethe damage they deal is turned back"
+  - "&eon them."
+trigger: ATTACK
+applies-to: [AXE]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    chance: 15
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.1 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
+      - { REFLECT: { percent: 10, duration: 80, who: "@Victim" } }
+  2:
+    chance: 18
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.1 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
+      - { REFLECT: { percent: 12, duration: 80, who: "@Victim" } }
+  3:
+    chance: 21
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.1 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
+      - { REFLECT: { percent: 15, duration: 80, who: "@Victim" } }
+  4:
+    chance: 24
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.1 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
+      - { REFLECT: { percent: 18, duration: 80, who: "@Victim" } }
+  5:
+    chance: 27
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_WITCH_AMBIENT", volume: 0.9, pitch: 1.1 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 12 } }
+      - { REFLECT: { percent: 20, duration: 80, who: "@Victim" } }

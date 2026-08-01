@@ -1,0 +1,16 @@
+# BlockTrak Gem — the Cosmic Pack likeness (docs/v3-directives.md §I). Drag onto a tool to reveal the
+# LIFETIME number of blocks broken with it (tracked in the background from first use). Applied items are not
+# exclusive — gear may carry several traks (blocktrak / mobtrak / soultrak) and a white/holy scroll at once.
+# The mechanic is global; reload with /se reload.
+type: blocktrak
+
+material: SLIME_BALL
+name: "{#84c874}&lBlockTrak Gem"
+# {KINDS} = the applies-to label; {COUNT} = the live count. Lore auto-wraps at config lore.item-wrap.
+lore:
+  - "&eDisplays the amount of blocks broken with the tool since it was forged."
+  - ""
+  - "&eApplies to: &r&f&n{KINDS}"
+  - "&7Drag n' Drop on an item to apply."
+applies-to: [TOOL]
+count-format: "&7Blocks Broken: &f{COUNT}"

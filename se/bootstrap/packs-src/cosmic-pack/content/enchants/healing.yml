@@ -1,0 +1,20 @@
+# Cosmic codex source: 05-enchants-bows.md — bow/Healing.java
+display: Healing
+description: Heals friendly players hit with arrow shot by this bow. Also has a chance to increase durability of armor and
+  give absorption/health boost.
+trigger:
+- BOW
+applies-to:
+- BOW
+group: simple
+tier: simple
+stacking: HIGHEST
+levels:
+  1:
+    effects: []
+  2:
+    effects: []
+  3:
+    effects: []
+  4:
+    effects: []

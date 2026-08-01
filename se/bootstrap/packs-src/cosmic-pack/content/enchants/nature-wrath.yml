@@ -1,0 +1,21 @@
+# Cosmic codex source: 02-enchants-armor-m-z.md — armor/NatureWrath.java
+display: Nature Wrath
+description: Passive Soul Enchantment. Temporarily freeze all enemies in a massive area around you, pushing them back and
+  dealing massive nature damage. Costs 75 souls per use.
+trigger:
+- DEFENSE
+applies-to:
+- ARMOR
+group: soul
+tier: soul
+disabled-environments: [THE_END]
+stacking: HIGHEST
+levels:
+  1:
+    effects: []
+  2:
+    effects: []
+  3:
+    effects: []
+  4:
+    effects: []

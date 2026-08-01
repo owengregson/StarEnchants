@@ -14,7 +14,9 @@ import item.worn.WornStateStore;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.LongSupplier;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -59,6 +61,7 @@ public final class EquipListener implements Listener {
     private final SetMessageDriver setMessages;
     private final EquipSource equipSource;
     private final ItemViewCache itemViews;
+    private final LongSupplier nowTicks;
     // F09 catchall: the durability-insensitive hand signature stamped on each refresh; the sweep re-derives it to
     // catch event-less hand mutations. MUST be value-hashed over CombatState (never ItemStack.hashCode) — a
     // durability tick must not read as a change, or every fighter's REPEATING abilities would restart every sweep.
@@ -67,6 +70,7 @@ public final class EquipListener implements Listener {
     // illusion) re-derives on the SAME player-thread {@link #refresh} — its exact contract. Instance-composed, so
     // no static state (G2-c); no-op until a module subscribes during enable, when no event has yet fired.
     private volatile Consumer<Player> postRefresh = player -> { };
+    private volatile BiConsumer<Player, ItemStack> unequip = (player, item) -> { };
 
     /** Equipment-array index where the hand slots begin; indices below it are the four armour slots. */
     private static final int HAND_SLOTS_FROM = 4;
@@ -74,6 +78,14 @@ public final class EquipListener implements Listener {
     public EquipListener(WornStateStore worn, ContentHolder content, RepeatingDriver repeating,
                          LifecycleDriver lifecycle, PassiveEffectDriver passiveEffects, MaxHealthDriver maxHealth,
                          SetMessageDriver setMessages, EquipSource equipSource, ItemViewCache itemViews) {
+        this(worn, content, repeating, lifecycle, passiveEffects, maxHealth, setMessages, equipSource,
+                itemViews, () -> 0L);
+    }
+
+    public EquipListener(WornStateStore worn, ContentHolder content, RepeatingDriver repeating,
+                         LifecycleDriver lifecycle, PassiveEffectDriver passiveEffects, MaxHealthDriver maxHealth,
+                         SetMessageDriver setMessages, EquipSource equipSource, ItemViewCache itemViews,
+                         LongSupplier nowTicks) {
         this.worn = worn;
         this.content = content;
         this.repeating = repeating;
@@ -83,6 +95,7 @@ public final class EquipListener implements Listener {
         this.setMessages = setMessages;
         this.equipSource = equipSource;
         this.itemViews = itemViews;
+        this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
     }
 
     /**
@@ -94,6 +107,17 @@ public final class EquipListener implements Listener {
         this.postRefresh = this.postRefresh.andThen(hook);
     }
 
+    /** Register a hook for an exact armour item leaving its slot (available on the modern Paper event path). */
+    public void onUnequip(BiConsumer<Player, ItemStack> hook) {
+        Objects.requireNonNull(hook, "hook");
+        this.unequip = this.unequip.andThen(hook);
+    }
+
+    /** Called by an era feeder before {@link #refresh} when it can identify the precise removed armour item. */
+    public void unequip(Player player, ItemStack removed) {
+        unequip.accept(player, removed);
+    }
+
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         refresh(event.getPlayer());
@@ -102,6 +126,7 @@ public final class EquipListener implements Listener {
     @EventHandler
     public void onHeldChange(PlayerItemHeldEvent event) {
         Player player = event.getPlayer();
+        engine.sink.HeldChanges.mark(player.getUniqueId(), nowTicks.getAsLong());
         // The new slot is current only after this event returns — refresh next tick on the player's thread.
         Scheduling.onEntityLater(player, 1L, () -> refresh(player));
     }
@@ -140,6 +165,7 @@ public final class EquipListener implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
+        engine.sink.HeldChanges.clear(event.getPlayer().getUniqueId());
         worn.remove(event.getPlayer().getUniqueId());
         repeating.disarm(event.getPlayer().getUniqueId());
         lifecycle.clear(event.getPlayer().getUniqueId());

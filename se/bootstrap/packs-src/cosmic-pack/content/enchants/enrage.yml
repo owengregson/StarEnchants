@@ -1,26 +1,17 @@
-# Imported from EliteEnchantments (id: enrage). Review before shipping.
-display: "Enrage"
-description:
-  - "&eOn hit at low health, deals"
-  - "&ebonus damage that grows as your"
-  - "&ehealth falls."
+# Cosmic codex source: 03-enchants-swords.md — swords/Enrage.java
+display: Enrage
+description: Multiplies outgoing damage by 1.15 below 75% health, 1.30 below 50%, and 1.45 below 25%; all levels are intentionally identical.
 trigger: ATTACK
 applies-to: [SWORD]
-group: "epic"
-tier: epic
+group: ultimate
+tier: ultimate
+stacking: HIGHEST
 levels:
   1:
-    condition: "%actor.healthpercent% < 50"
-    effects:
-      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "(100 - %actor.healthpercent%) / 130" } }  # comeback rider in raw hp — grows as your health falls (ADR-0050 R3 flat economy)
-  2:
-    condition: "%actor.healthpercent% < 50"
-    effects:
-      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "(100 - %actor.healthpercent%) / 110" } }  # comeback rider in raw hp — grows as your health falls (ADR-0050 R3 flat economy)
-  3:
-    condition: "%actor.healthpercent% < 50"
-    effects:
-      - { PARTICLE: { particle: "VILLAGER_ANGRY", count: 8, who: "@Self" } }
-      - { DAMAGE_MOD: { side: "attack", mode: "flat", amount: "(100 - %actor.healthpercent%) / 95" } }  # comeback rider in raw hp — grows as your health falls (ADR-0050 R3 flat economy)
+    abilities: &bands
+      - { trigger: ATTACK, condition: '%actor.healthpercent% > 75', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1 } }] }
+      - { trigger: ATTACK, condition: '%actor.healthpercent% > 50 && %actor.healthpercent% <= 75', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.15 } }] }
+      - { trigger: ATTACK, condition: '%actor.healthpercent% > 25 && %actor.healthpercent% <= 50', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.2999999999999998 } }] }
+      - { trigger: ATTACK, condition: '%actor.healthpercent% <= 25', effects: [{ DAMAGE_MOD: { side: attack, mode: multiply, amount: 1.4499999999999997 } }] }
+  2: { abilities: *bands }
+  3: { abilities: *bands }

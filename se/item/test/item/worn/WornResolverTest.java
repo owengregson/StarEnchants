@@ -50,6 +50,11 @@ class WornResolverTest {
         return new WornResolver(EQUIP, null, TRIGGERS, ATTACK, DEFENSE, () -> WornResolver.Features.ALL, () -> nonStackable);
     }
 
+    private static WornResolver resolverWithHighestOnlyEnchants(java.util.Set<String> highestOnly) {
+        return new WornResolver(EQUIP, null, TRIGGERS, ATTACK, DEFENSE,
+                () -> WornResolver.Features.ALL, java.util.Set::of, PetSource.NONE, () -> highestOnly);
+    }
+
     @Test
     void nonStackableCrystalContributesOncePerWearer() {
         // §ADR-0035: a NON-stackable crystal on two worn pieces contributes its ability ONCE; a stackable crystal
@@ -110,6 +115,24 @@ class WornResolverTest {
         assertEquals(2, worn.byTrigger(0).length); // lifesteal on two pieces → id 0 twice
     }
 
+    @Test
+    void highestOnlyEnchantRunsOneCopyAtTheHighestEquippedLevel() {
+        StableKeyIndex keys = new StableKeyIndex(List.of(
+                "enchants/aegis/2", "enchants/aegis/2/a1", "enchants/aegis/5", "enchants/aegis/5/a1"));
+        Ability[] abilities = {
+                ability(0, 1 << 1), ability(1, 1 << 0), ability(2, 1 << 1), ability(3, 1 << 0)
+        };
+        CombatState low = ench("enchants/aegis", 2);
+        CombatState highA = ench("enchants/aegis", 5);
+        CombatState highB = ench("enchants/aegis", 5);
+
+        WornState worn = resolverWithHighestOnlyEnchants(java.util.Set.of("enchants/aegis"))
+                .resolveFrom(List.of(low, highA, highB), keys, abilities, 1);
+
+        assertArrayEquals(new int[] {2}, worn.byTrigger(1), "only the level-five primary fires");
+        assertArrayEquals(new int[] {3}, worn.byTrigger(0), "its independent /a1 hook also fires once");
+    }
+
     // ── G01 hand attribution: an off-hand item never swings ──────────────────────────────────────
     // id 0 fires on ATTACK (trigger 0), id 1 fires on DEFENSE (trigger 1).
     private static final StableKeyIndex HAND_KEYS =
@@ -118,6 +141,21 @@ class WornResolverTest {
 
     private static CombatState ench(String key, int level) {
         return new CombatState(Map.of(key, level), List.of());
+    }
+
+    @Test
+    void heldEnchantIndexExcludesArmorAndHeldNonEnchantSources() {
+        StableKeyIndex keys = new StableKeyIndex(List.of(
+                "enchants/deathbringer/1", "enchants/lifesteal/1", "crystals/dark"));
+        Ability[] abilities = {ability(0, 1 << 0), ability(1, 1 << 0), ability(2, 1 << 0)};
+        CombatState armor = ench("enchants/deathbringer", 1);
+        CombatState weapon = new CombatState(Map.of("enchants/lifesteal", 1), List.of("crystals/dark"));
+
+        WornState worn = resolver().resolveFrom(List.of(armor, weapon), 1, 2, List.of(), keys, abilities, 1);
+
+        assertArrayEquals(new int[] {0, 1, 2}, worn.byTrigger(0), "all sources still fire normally");
+        assertArrayEquals(new int[] {1}, worn.heldEnchantByTrigger(0),
+                "Reflect sees main-hand enchant lore only");
     }
 
     @Test
@@ -335,6 +373,22 @@ class WornResolverTest {
         assertArrayEquals(new int[] {0, 1}, sorted(worn.byTrigger(0)), "mask primary + /a1 both fire");
         // A mask is not a crystal/set — it joins neither accounting view.
         assertEquals(0, worn.activeCrystalAbilityIds().length, "a mask is never tracked as a crystal");
+    }
+
+    @Test
+    void multiMaskExpandsEveryDistinctComponentAbilityChain() {
+        StableKeyIndex keys = new StableKeyIndex(List.of(
+                "masks/agent", "masks/agent/a1", "masks/santa", "masks/santa/a1"));
+        Ability[] abilities = {
+                ability(0, 1 << 0), ability(1, 1 << 0), ability(2, 1 << 0), ability(3, 1 << 0)
+        };
+        String multi = item.codec.MaskCodec.multiKey(List.of("masks/agent", "masks/santa", "masks/agent"));
+        CombatState helmet = new CombatState(Map.of(), List.of()).withMask(multi);
+
+        WornState worn = resolver().resolveFrom(List.of(helmet), keys, abilities, 1);
+
+        assertArrayEquals(new int[] {0, 1, 2, 3}, sorted(worn.byTrigger(0)),
+                "all child primaries and /aN chains fire once; duplicate children do not stack");
     }
 
     @Test

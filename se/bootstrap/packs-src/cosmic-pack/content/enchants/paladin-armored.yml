@@ -1,73 +1,47 @@
-# Imported from EliteEnchantments (id: paladin-armored). Review before shipping.
-display: "Paladin Armored"
-description:
-  - "&eMythic upgrade for Armored."
-  - "&eHeavily reduces sword damage and"
-  - "&eclears your debuffs."
-  - "&c&l(!)&r &7Requires &6Armored"
+# Cosmic codex source: 06-enchants-tools-heroic.md — heroic/HeroicArmored.java
+display: Paladin Armored
+description: Stackable Heroic Enchantment. Negates 150% more enemy sword damage than normal Armored per level. A chance to be Blessed every time you are struck by an enemy sword. Once applied, this enchantment can only be extracted from items with heroic black scrolls.
 trigger: DEFENSE
 applies-to: [ARMOR]
-group: "mythic"
-tier: mythic
-requires: ["enchants/armored"]
-removes-required: true  # the mythic upgrade supersedes its base counterpart (net-zero enchant slots)
+group: heroic
+tier: heroic
+disabled-environments: [THE_END]
+stacking: EACH
 levels:
   1:
-    condition: "%victim.helditem% contains \"SWORD\""
-    effects:
-      - { PARTICLE: { particle: "END_ROD", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1 } }
-      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW:true — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON:true — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING:true — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER:true — EE CURE → REMOVE_POTION (self)
+    abilities:
+      - trigger: DEFENSE
+        condition: '%victim.isplayer% == 1 && %victim.helditem% contains "_SWORD" && %damage% * 0.97 > 1'
+        effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.97 } }, { BLOCK_BREAK_EFFECT: { block: DIAMOND_BLOCK } }]
+      - trigger: DEFENSE
+        chance: 1
+        condition: '%victim.isplayer% == 1'
+        effects: &paladin-bless
+          - CURE_ONE_OF:
+              effect-1: BLINDNESS
+              effect-2: CONFUSION
+              effect-3: HARM
+              effect-4: HUNGER
+              effect-5: POISON
+              effect-6: SLOW
+              effect-7: SLOW_DIGGING
+              effect-8: WEAKNESS
+              effect-9: WITHER
+              success-message: '&e&l** BLESSED **'
+              message-throttle-set: sets/koth
+              message-throttle: 160
+              who: '@Self'
   2:
-    condition: "%victim.helditem% contains \"SWORD\""
-    effects:
-      - { PARTICLE: { particle: "END_ROD", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1.5 } }
-      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW:true — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON:true — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING:true — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER:true — EE CURE → REMOVE_POTION (self)
+    abilities:
+      - { trigger: DEFENSE, condition: '%victim.isplayer% == 1 && %victim.helditem% contains "_SWORD" && %damage% * 0.94 > 1', effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.94 } }, { BLOCK_BREAK_EFFECT: { block: DIAMOND_BLOCK } }] }
+      - { trigger: DEFENSE, chance: 2, condition: '%victim.isplayer% == 1', effects: *paladin-bless }
   3:
-    condition: "%victim.helditem% contains \"SWORD\""
-    effects:
-      - { PARTICLE: { particle: "END_ROD", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2 } }
-      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW:true — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON:true — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING:true — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER:true — EE CURE → REMOVE_POTION (self)
+    abilities:
+      - { trigger: DEFENSE, condition: '%victim.isplayer% == 1 && %victim.helditem% contains "_SWORD" && %damage% * 0.91 > 1', effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.91 } }, { BLOCK_BREAK_EFFECT: { block: DIAMOND_BLOCK } }] }
+      - { trigger: DEFENSE, chance: 3, condition: '%victim.isplayer% == 1', effects: *paladin-bless }
   4:
-    condition: "%victim.helditem% contains \"SWORD\""
-    effects:
-      - { PARTICLE: { particle: "END_ROD", count: 10 } }
-      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2.5 } }
-      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }  # from CURE:SLOW:true — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "POISON", who: "@Self" } }  # from CURE:POISON:true — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }  # from CURE:SLOW_DIGGING:true — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }  # from CURE:BLINDNESS:true — EE CURE → REMOVE_POTION (self)
-      - { REMOVE_POTION: { effect: "WITHER", who: "@Self" } }  # from CURE:WITHER:true — EE CURE → REMOVE_POTION (self)
+    abilities:
+      - { trigger: DEFENSE, condition: '%victim.isplayer% == 1 && %victim.helditem% contains "_SWORD" && %damage% * 0.88 > 1', effects: [{ DAMAGE_MOD: { side: defense, mode: multiply, amount: 0.88 } }, { BLOCK_BREAK_EFFECT: { block: DIAMOND_BLOCK } }] }
+      - { trigger: DEFENSE, chance: 4, condition: '%victim.isplayer% == 1', effects: *paladin-bless }
+requires: [enchants/armored]
+removes-required: true

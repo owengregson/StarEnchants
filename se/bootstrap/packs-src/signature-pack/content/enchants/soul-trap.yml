@@ -1,0 +1,28 @@
+# Imported from EliteEnchantments (id: soul-trap). Review before shipping.
+display: "Soul Trap"
+description:
+  - "&eDisables the target's entire soul"
+  - "&etier for a few seconds."
+trigger: ATTACK
+applies-to: [WEAPON]
+group: "soul"
+tier: soul
+levels:
+  1:
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.9, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
+      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 60, who: "@Victim" } }
+  2:
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.9, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
+      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 90, who: "@Victim" } }
+  3:
+    cooldown: 100
+    effects:
+      - { SOUND: { sound: "ENTITY_VEX_AMBIENT", volume: 0.9, pitch: 0.9 } }
+      - { PARTICLE: { particle: "SOUL", count: 12 } }
+      - { SUPPRESS: { scope: "GROUP", key: "soul", duration: 120, who: "@Victim" } }

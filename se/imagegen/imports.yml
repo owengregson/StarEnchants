@@ -11,7 +11,7 @@
 # Paths resolve against the repo root (the renderImages working dir). Override this
 # file with -Dse.imagegen.imports=<path>. Output PNGs land as set-<key>-<piece>.png.
 sources:
-  - root: se/bootstrap/packs-src/cosmic-pack/content
+  - root: se/bootstrap/packs-src/signature-pack/content
     sets: [spooky, clarity, koth]
 
 # Example — also pull every set from the shipped SE default pack:
