@@ -36,15 +36,18 @@ class LoaderFuzzTest {
     static final int VALID_FILES = 25;
 
     /** The corpus entries whose blocking code is deterministic for every server's SnakeYAML. */
-    private static final Map<String, DiagCode> PINS = Map.of(
-            "deep-nesting.yml", DiagCode.E_LOAD_YAML,
-            "alias-bomb.yml", DiagCode.E_LOAD_YAML,
-            "tabs-and-garbage.yml", DiagCode.E_LOAD_YAML,
-            "terse.yml", DiagCode.E_TERSE_EFFECT,
-            "scalar-root.yml", DiagCode.E_LOAD_ENCHANT,
-            "bad-level.yml", DiagCode.E_LOAD_ENCHANT_LEVEL,
-            "no-trigger.yml", DiagCode.E_LOAD_ENCHANT_TRIGGER,
-            "bad-chance.yml", DiagCode.E_LOAD_CHANCE);
+    private static final Map<String, DiagCode> PINS = Map.ofEntries(
+            Map.entry("deep-nesting.yml", DiagCode.E_LOAD_YAML),
+            Map.entry("alias-bomb.yml", DiagCode.E_LOAD_YAML),
+            Map.entry("tabs-and-garbage.yml", DiagCode.E_LOAD_YAML),
+            Map.entry("terse.yml", DiagCode.E_TERSE_EFFECT),
+            Map.entry("scalar-root.yml", DiagCode.E_LOAD_ENCHANT),
+            Map.entry("bad-level.yml", DiagCode.E_LOAD_ENCHANT_LEVEL),
+            Map.entry("no-trigger.yml", DiagCode.E_LOAD_ENCHANT_TRIGGER),
+            Map.entry("bad-chance.yml", DiagCode.E_LOAD_CHANCE),
+            Map.entry("fn-arity.yml", DiagCode.E_PARSE_FN_ARITY),
+            Map.entry("fn-unknown.yml", DiagCode.E_PARSE_UNKNOWN_FN),
+            Map.entry("fn-unterminated.yml", DiagCode.E_PARSE_UNCLOSED_GROUP));
 
     @TempDir
     Path root;
