@@ -83,6 +83,38 @@ class WornResolverTest {
     }
 
     @Test
+    void multiAbilityEnchantWalksItsDenseBlockChain() {
+        // A multi-ability enchant level keys its further blocks <base>/<level>/a1, /a2, … exactly like a
+        // crystal/mask/reforge/set. Without the walk the extra blocks compile, take ids, and never fire.
+        StableKeyIndex keys = new StableKeyIndex(
+                List.of("enchants/phoenix/2", "enchants/phoenix/2/a1", "enchants/phoenix/2/a2"));
+        Ability[] abilities = {ability(0, 1 << 0), ability(1, 1 << 0), ability(2, 1 << 0)};
+        WornState worn = resolver().resolveFrom(List.of(ench("enchants/phoenix", 2)), keys, abilities, 1);
+
+        assertArrayEquals(new int[] {0, 1, 2}, sorted(worn.byTrigger(0)));
+        // An enchant is not a crystal: the blocks fire, but never join crystal accounting.
+        assertEquals(0, worn.activeCrystalAbilityIds().length);
+    }
+
+    @Test
+    void aSingleBlockEnchantResolvesFromItsBareKeyAlone() {
+        // Back-compat: the overwhelmingly common shape has no /a1, so the walk must stop immediately and
+        // an item storing enchants/<name>/<level> must resolve exactly as before.
+        WornState worn = resolver().resolveFrom(
+                List.of(new CombatState(Map.of("enchants/lifesteal", 3), List.of())), KEYS, ABILITIES, 1);
+        assertArrayEquals(new int[] {0}, sorted(worn.byTrigger(0)));
+    }
+
+    @Test
+    void aGapInTheBlockChainStopsTheWalk() {
+        // The chain is dense by construction; a gap (a1 absent, a2 present) must not scan unboundedly.
+        StableKeyIndex keys = new StableKeyIndex(List.of("enchants/phoenix/2", "enchants/phoenix/2/a2"));
+        Ability[] abilities = {ability(0, 1 << 0), ability(1, 1 << 0)};
+        WornState worn = resolver().resolveFrom(List.of(ench("enchants/phoenix", 2)), keys, abilities, 1);
+        assertArrayEquals(new int[] {0}, sorted(worn.byTrigger(0)));
+    }
+
+    @Test
     void multiCrystalEntryResolvesBothComponents() {
         // A multi-crystal occupies ONE crystal-list entry "a+b" but contributes BOTH ability ids (§E);
         // the additive fold then sums overlapping effect magnitudes downstream.
