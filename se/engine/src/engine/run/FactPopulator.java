@@ -6,6 +6,7 @@ import compile.model.FactMask;
 import engine.condition.BuiltinVars;
 import engine.condition.FactBuffer;
 import engine.condition.VarVocabulary;
+import engine.selector.kind.Allies;
 import engine.stores.RageStackStore;
 import engine.stores.VarStore;
 import java.util.ArrayList;
@@ -104,6 +105,8 @@ public final class FactPopulator {
     private final int actorBehindVictimSlot; // actor behind the victim's facing (derived, Folia-guarded)
     private final int actorBelowVictimSlot;  // actor's feet below the victim's (derived, Folia-guarded, ADR-0052)
     private final int rageStacksSlot;        // %ragestacks% (actor-scoped store read, mask-gated)
+    private final int nearbyAlliesSlot;      // allied players within NEARBY_RADIUS (derived, shares the enemy scan)
+    private final int victimRelationSlot;    // ALLY/ENEMY/NEUTRAL vs the victim (derived, Folia-guarded)
 
     /** Search radius for {@code %nearbyenemies%}, in blocks. */
     private static final double NEARBY_RADIUS = 8.0;
@@ -188,6 +191,26 @@ public final class FactPopulator {
         this.actorBehindVictimSlot = slot(vocabulary, "actor.behindvictim", VarKind.BOOL);
         this.actorBelowVictimSlot = slot(vocabulary, "actor.belowvictim", VarKind.NUM);
         this.rageStacksSlot = slot(vocabulary, "ragestacks", VarKind.NUM);
+        this.nearbyAlliesSlot = slot(vocabulary, "nearbyallies", VarKind.NUM);
+        this.victimRelationSlot = slot(vocabulary, "victim.relation", VarKind.STR);
+    }
+
+    /**
+     * The actor's relation to {@code victim} through the ONE installed alliance predicate.
+     *
+     * <p>{@code MEMBER} is deliberately never produced: the installed bridge is a plain
+     * {@code BiPredicate<Player,Player>} (mcMMO party membership), which cannot distinguish a guild member
+     * from an ally. Inventing a second axis to fill the value would be exactly the fork this fact exists to
+     * avoid — when a bridge that distinguishes them is installed, this is the one place to widen.
+     */
+    private static String relationOf(org.bukkit.entity.Player actor, LivingEntity victim) {
+        if (victim == null) {
+            return "";
+        }
+        if (!(victim instanceof org.bukkit.entity.Player other)) {
+            return "NEUTRAL"; // a mob has no alliance axis; authors gate PvP behaviour on ALLY/ENEMY
+        }
+        return Allies.allied(actor, other) ? "ALLY" : "ENEMY";
     }
 
     /** A populator over the built-in vocabulary — the production default, paired with the compiler's resolver. */
@@ -388,7 +411,10 @@ public final class FactPopulator {
         boolean wantsNearby = nearbyEnemiesSlot >= 0 && mask.readsNum(nearbyEnemiesSlot);
         boolean wantsBehind = actorBehindVictimSlot >= 0 && mask.readsFlag(actorBehindVictimSlot);
         boolean wantsBelow = actorBelowVictimSlot >= 0 && mask.readsNum(actorBelowVictimSlot);
-        if (!wantsDistance && !wantsInZone && !wantsNearby && !wantsBehind && !wantsBelow) {
+        boolean wantsAllies = nearbyAlliesSlot >= 0 && mask.readsNum(nearbyAlliesSlot);
+        boolean wantsRelation = victimRelationSlot >= 0 && mask.readsStr(victimRelationSlot);
+        if (!wantsDistance && !wantsInZone && !wantsNearby && !wantsBehind && !wantsBelow
+                && !wantsAllies && !wantsRelation) {
             return;
         }
         org.bukkit.entity.Player actor = context.actor();
@@ -410,14 +436,30 @@ public final class FactPopulator {
                             engine.sink.OwnerZones.contains(actor.getUniqueId(), victim.getLocation()));
                 }
             }
-            if (wantsNearby) {
-                int count = 0;
+            if (wantsNearby || wantsAllies) {
+                int living = 0;
+                int allies = 0;
+                // ONE scan feeds both counts — the entity walk is the expensive part, and asking for allies
+                // must not double it for an ability that reads both.
                 for (org.bukkit.entity.Entity e : actor.getNearbyEntities(NEARBY_RADIUS, NEARBY_RADIUS, NEARBY_RADIUS)) {
-                    if (e instanceof LivingEntity && !e.equals(actor)) {
-                        count++;
+                    if (!(e instanceof LivingEntity) || e.equals(actor)) {
+                        continue;
+                    }
+                    living++;
+                    if (wantsAllies && e instanceof org.bukkit.entity.Player nearby && Allies.allied(actor, nearby)) {
+                        allies++;
                     }
                 }
-                facts.setNumber(nearbyEnemiesSlot, count);
+                if (wantsNearby) {
+                    facts.setNumber(nearbyEnemiesSlot, living);
+                }
+                if (wantsAllies) {
+                    facts.setNumber(nearbyAlliesSlot, allies);
+                }
+            }
+            if (wantsRelation) {
+                LivingEntity victim = context.victim();
+                facts.setString(victimRelationSlot, relationOf(actor, victim));
             }
             if (wantsBehind) {
                 LivingEntity victim = context.victim();

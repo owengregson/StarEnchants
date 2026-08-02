@@ -67,6 +67,11 @@ public final class BuiltinVars {
                 // ADR-0052 pet posture fact — appended (slots are append-only per §3.4).
                 .number("actor.belowvictim") // blocks the actor's feet sit BELOW the victim's (negative = above;
                                              // 0 with no victim) — Eagle authors its threshold: %actor.belowvictim% > 1.5
+                // Wave 1b.2 relation facts — appended (slots are append-only per §3.4). Both read the ONE
+                // installed alliance predicate (engine.selector.kind.Allies), the same one the ENEMIES/ALLIES
+                // area filters and the friendly-fire gate consult, so "ally" means one thing everywhere.
+                .number("nearbyallies")     // allied PLAYERS within the %nearbyenemies% radius (self excluded)
+                .string("victim.relation")  // ALLY | ENEMY | NEUTRAL (non-player victim); empty with no victim
                 .build();
     }
 }
