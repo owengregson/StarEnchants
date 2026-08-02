@@ -175,6 +175,27 @@ class MultiAbilityEnchantTest {
         assertEquals(GateOutcome.CHANCE_FAILED, gate(ability, facts, 51.0));
     }
 
+    @Test
+    void theRelationFactsSurviveTheWholeCompileAndReachTheMask() throws Exception {
+        // Every new fact gets end-to-end coverage through the FULL registry path, not just a populator pair:
+        // a stage that rebuilds a record can drop a field with no diagnostic (the chanceExpr bug), and only a
+        // compile-to-runtime walk sees it. A missing mask bit here means the populator would skip the scan.
+        Snapshot snap = load("""
+                display: "Phoenix"
+                trigger: "ATTACK"
+                levels:
+                  1:
+                    condition: "%victim.relation% == \\"ALLY\\" && %nearbyallies% > 1"
+                    effects: [{ IGNITE: { duration: 60, who: "@Victim" } }]
+                """);
+        Ability ability = snap.byStableKey("enchants/phoenix/1");
+        assertNotNull(ability.condition(), "the condition survives to the runtime record");
+
+        var vocab = BuiltinVars.vocabulary().bindings();
+        assertTrue(ability.factMask().readsStr(vocab.get("victim.relation").slot()));
+        assertTrue(ability.factMask().readsNum(vocab.get("nearbyallies").slot()));
+    }
+
     private GateOutcome gate(Ability ability, FactBuffer facts, double roll) {
         return new ActivationPipeline(new CooldownStore(), SoulSpender.NONE).evaluate(ability,
                 Activation.builder(ACTOR, 0, triggerId, 0L).facts(facts).chanceRoll(() -> roll).build());

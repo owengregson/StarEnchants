@@ -1305,6 +1305,7 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%gliding%` | BOOL |
 | `%isblock%` | BOOL |
 | `%itemdamage.armor%` | BOOL |
+| `%nearbyallies%` | NUM |
 | `%nearbyenemies%` | NUM |
 | `%onfire%` | BOOL |
 | `%onground%` | BOOL |
@@ -1323,6 +1324,7 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%victim.inzone%` | BOOL |
 | `%victim.maxhealth%` | NUM |
 | `%victim.mobtype%` | STR |
+| `%victim.relation%` | STR |
 | `%victim.sneaking%` | BOOL |
 | `%victim.sprinting%` | BOOL |
 | `%victim.swimming%` | BOOL |

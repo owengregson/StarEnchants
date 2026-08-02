@@ -462,6 +462,7 @@ var flying BOOL
 var gliding BOOL
 var isblock BOOL
 var itemdamage.armor BOOL
+var nearbyallies NUM
 var nearbyenemies NUM
 var onfire BOOL
 var onground BOOL
@@ -480,6 +481,7 @@ var victim.helditem STR
 var victim.inzone BOOL
 var victim.maxhealth NUM
 var victim.mobtype STR
+var victim.relation STR
 var victim.sneaking BOOL
 var victim.sprinting BOOL
 var victim.swimming BOOL

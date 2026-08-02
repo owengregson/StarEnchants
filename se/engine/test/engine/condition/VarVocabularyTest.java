@@ -42,10 +42,11 @@ class VarVocabularyTest {
         // v3.1 §A (numeric/flag base + exotic-effect port), v3.7 §N (victim.mobtype string), the Cosmic Pack
         // sets (victim.inzone flag — devil's hellfire zone), ADR-0035 (actor.groundblock string — Frost "on ice"),
         // ADR-0049 (recentattackers/attackerindex numbers, behindvictim/itemdamage.armor flags, damagecause string),
-        // §3 (ragestacks number — the rage-stack fact), and ADR-0052 (actor.belowvictim number — the Eagle posture).
-        assertEquals(19, v.numberSlots());
+        // §3 (ragestacks number — the rage-stack fact), ADR-0052 (actor.belowvictim number — the Eagle posture),
+        // and wave 1b.2 (nearbyallies number + victim.relation string, both off the one alliance predicate).
+        assertEquals(20, v.numberSlots());
         assertEquals(20, v.flagSlots());
-        assertEquals(10, v.stringSlots());
+        assertEquals(11, v.stringSlots());
         assertEquals(VarKind.NUM, v.lookup("victim", "health").orElseThrow().kind());
         assertEquals(VarKind.NUM, v.lookup("actor", "maxhealth").orElseThrow().kind());
         assertEquals(VarKind.NUM, v.lookup("world", "time").orElseThrow().kind());

@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import compile.cond.VarBinding;
 import compile.cond.VarKind;
 import compile.model.FactMask;
+import engine.selector.kind.Allies;
 import engine.condition.BuiltinVars;
 import engine.condition.FactBuffer;
 import engine.condition.VarVocabulary;
@@ -215,6 +216,68 @@ class FactPopulatorTest {
 
         assertEquals(15.0, f.number(healthSlot)); // referenced → same value the eager path produces
         assertEquals(0.0, f.number(maxSlot));      // unreferenced → default, never read from the entity
+    }
+
+    // ── Relation facts: both read the ONE installed alliance predicate, so "ally" means the same thing here,
+    // in @Aoe{filter=ALLIES}, and in the friendly-fire gate. The hook is static, so each test installs and resets.
+
+    @Test
+    void nearbyAlliesCountsOnlyAlliedPlayersAndSharesTheEnemyScan() {
+        int alliesSlot = num(null, "nearbyallies");
+        int enemiesSlot = num(null, "nearbyenemies");
+        Player friend = mock(Player.class);
+        Player foe = mock(Player.class);
+        LivingEntity mob = mock(LivingEntity.class);
+        Player a = actor();
+        lenient().when(a.getNearbyEntities(8.0, 8.0, 8.0)).thenReturn(java.util.List.of(friend, foe, mob));
+        Allies.resolver((self, other) -> other == friend);
+        try {
+            FactBuffer f = populator.populate(new ActivationContext(a, null, null, null), 0L,
+                    new FactMask((1L << alliesSlot) | (1L << enemiesSlot), 0L, 0L));
+            assertEquals(1.0, f.number(alliesSlot), "only the allied PLAYER counts");
+            assertEquals(3.0, f.number(enemiesSlot), "the enemy count keeps its existing living-entity meaning");
+            // One walk feeds both counts: asking for allies must not double the expensive entity scan.
+            verify(a).getNearbyEntities(8.0, 8.0, 8.0);
+        } finally {
+            Allies.resolver(null);
+        }
+    }
+
+    @Test
+    void nearbyAlliesIsSkippedWhenUnmasked() {
+        Player a = actor();
+        populator.populate(new ActivationContext(a, null, null, null), 0L, FactMask.NONE);
+        verify(a, org.mockito.Mockito.never()).getNearbyEntities(8.0, 8.0, 8.0);
+    }
+
+    @Test
+    void victimRelationReadsTheInstalledPredicate() {
+        int slot = str("victim", "relation");
+        FactMask mask = new FactMask(0L, 0L, 1L << slot);
+        Player ally = mock(Player.class);
+        Player enemy = mock(Player.class);
+        Allies.resolver((self, other) -> other == ally);
+        try {
+            assertEquals("ALLY", populator.populate(
+                    new ActivationContext(actor(), ally, null, null), 0L, mask).string(slot));
+            assertEquals("ENEMY", populator.populate(
+                    new ActivationContext(actor(), enemy, null, null), 0L, mask).string(slot));
+            // A mob has no alliance axis; NEUTRAL keeps ALLY/ENEMY meaning "another player".
+            assertEquals("NEUTRAL", populator.populate(
+                    new ActivationContext(actor(), mock(LivingEntity.class), null, null), 0L, mask).string(slot));
+            assertEquals("", populator.populate(
+                    new ActivationContext(actor(), null, null, null), 0L, mask).string(slot));
+        } finally {
+            Allies.resolver(null);
+        }
+    }
+
+    @Test
+    void victimRelationFallsBackToEnemyWithNoAlliancePluginInstalled() {
+        // The shipped default: no team plugin means free-for-all PvP, the safe assumption for an AoE strike.
+        int slot = str("victim", "relation");
+        assertEquals("ENEMY", populator.populate(new ActivationContext(actor(), mock(Player.class), null, null),
+                0L, new FactMask(0L, 0L, 1L << slot)).string(slot));
     }
 
     @Test
