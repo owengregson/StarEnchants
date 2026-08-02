@@ -152,7 +152,7 @@ public final class CombatDispatch {
         // Shared VarStore: a condition's %name% reads what an earlier SET_VAR wrote (write side: the per-event sink).
         // Shared RageStackStore too, so %ragestacks% reads the stacks the rage service maintains (§3).
         this.runner = new TriggerRunner(executor, worn, soulBinder, env.nowTicks(),
-                FactPopulator.builtin(env.stores().vars(), env.stores().rageStacks(), probe));
+                FactPopulator.builtin(env.stores(), probe));
         this.attackTriggerId = attackTriggerId;
         this.defenseTriggerId = defenseTriggerId;
         this.bowTriggerId = bowTriggerId;

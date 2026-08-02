@@ -92,7 +92,7 @@ public final class TriggerDispatch {
         // Conditions read through a VarStore-backed populator so a %name% can read an earlier SET_VAR write; the
         // shared RageStackStore sources %ragestacks% (§3) for any non-combat trigger that reads it.
         this.runner = new TriggerRunner(executor, worn, soulBinder, env.nowTicks(),
-                FactPopulator.builtin(env.stores().vars(), env.stores().rageStacks(), probe));
+                FactPopulator.builtin(env.stores(), probe));
         this.executor = Objects.requireNonNull(executor, "executor");
         this.attackTrigger = triggers.attackTriggers();
         this.mine = triggers.idOf("MINE").orElse(-1);

@@ -7,6 +7,8 @@ import engine.condition.BuiltinVars;
 import engine.condition.FactBuffer;
 import engine.condition.VarVocabulary;
 import engine.selector.kind.Allies;
+import engine.stores.EngineStores;
+import engine.stores.HeldSlotStore;
 import engine.stores.RageStackStore;
 import engine.stores.VarStore;
 import java.util.ArrayList;
@@ -66,6 +68,7 @@ public final class FactPopulator {
     private final ThreadLocal<FactBuffer> buffer;
     private final VarStore vars;
     private final RageStackStore rageStacks; // §3 %ragestacks% source — an actor-scoped read (mask-gated)
+    private final HeldSlotStore heldSlots;   // %heldticks% source — an actor-scoped read (mask-gated)
     private final UnaryOperator<String> papiDelegate;
     private final ActorProbe probe; // §3.3 era-specific entity/material reads (swim/glide/isAir/main-hand)
     // rand()'s draw, installed on each activation's buffer. Volatile: written once at boot wiring, read on
@@ -108,31 +111,37 @@ public final class FactPopulator {
     private final int nearbyAlliesSlot;      // allied players within NEARBY_RADIUS (derived, shares the enemy scan)
     private final int victimRelationSlot;    // ALLY/ENEMY/NEUTRAL vs the victim (derived, Folia-guarded)
     private final int postHitHealthSlot;     // actor health minus the context's vanilla-final damage (DEFENSE only)
+    private final int heldTicksSlot;         // ticks since the actor's last hotbar-slot change (store read, mask-gated)
 
     /** Search radius for {@code %nearbyenemies%}, in blocks. */
     private static final double NEARBY_RADIUS = 8.0;
 
     /** No dynamic-var store and no PAPI: unknown tokens resolve to null. */
     public FactPopulator(VarVocabulary vocabulary, ActorProbe probe) {
-        this(vocabulary, new VarStore(), t -> null, probe, new RageStackStore());
+        this(vocabulary, new VarStore(), t -> null, probe, EngineStores.fresh());
     }
 
-    /** Backed by a shared {@link VarStore} but no rage-stack source ({@code %ragestacks%} reads 0) — the pre-§3 form. */
+    /** Backed by a shared {@link VarStore} but its own store-backed facts ({@code %ragestacks%} et al. read 0). */
     public FactPopulator(VarVocabulary vocabulary, VarStore vars, UnaryOperator<String> papiDelegate, ActorProbe probe) {
-        this(vocabulary, vars, papiDelegate, probe, new RageStackStore());
+        this(vocabulary, vars, papiDelegate, probe, EngineStores.fresh());
     }
 
     /**
      * Backed by a shared {@link VarStore} ({@code SET_VAR}/{@code INVERT_VAR} write target), an optional PAPI
-     * delegate, and the {@link RageStackStore} that sources {@code %ragestacks%} (§3). Unknown {@code %name%}
-     * resolution order: built-in slot → player dynamic var → {@code papiDelegate} → null. {@code probe} is the
-     * era-specific entity/material read seam (§3.3).
+     * delegate, and the {@code stores} aggregate that sources the store-backed facts ({@code %ragestacks%},
+     * {@code %heldticks%}). Unknown {@code %name%} resolution order: built-in slot → player dynamic var →
+     * {@code papiDelegate} → null. {@code probe} is the era-specific entity/material read seam (§3.3).
+     *
+     * <p>{@code vars} is passed separately from {@code stores} so the pre-aggregate callers that share only a
+     * {@link VarStore} keep working; production passes {@code stores.vars()} for both.
      */
     public FactPopulator(VarVocabulary vocabulary, VarStore vars, UnaryOperator<String> papiDelegate, ActorProbe probe,
-                         RageStackStore rageStacks) {
+                         EngineStores stores) {
         Objects.requireNonNull(vocabulary, "vocabulary");
+        Objects.requireNonNull(stores, "stores");
         this.vars = Objects.requireNonNull(vars, "vars");
-        this.rageStacks = Objects.requireNonNull(rageStacks, "rageStacks");
+        this.rageStacks = stores.rageStacks();
+        this.heldSlots = stores.heldSlots();
         this.papiDelegate = papiDelegate == null ? t -> null : papiDelegate;
         this.probe = Objects.requireNonNull(probe, "probe");
         this.buffer = ThreadLocal.withInitial(vocabulary::newFactBuffer);
@@ -196,6 +205,7 @@ public final class FactPopulator {
         this.nearbyAlliesSlot = slot(vocabulary, "nearbyallies", VarKind.NUM);
         this.victimRelationSlot = slot(vocabulary, "victim.relation", VarKind.STR);
         this.postHitHealthSlot = slot(vocabulary, "posthit.health", VarKind.NUM);
+        this.heldTicksSlot = slot(vocabulary, "heldticks", VarKind.NUM);
     }
 
     /**
@@ -226,9 +236,10 @@ public final class FactPopulator {
         return new FactPopulator(BuiltinVars.vocabulary(), vars, t -> null, probe);
     }
 
-    /** As {@link #builtin(VarStore, ActorProbe)} but also sourcing {@code %ragestacks%} from {@code rageStacks} (§3). */
-    public static FactPopulator builtin(VarStore vars, RageStackStore rageStacks, ActorProbe probe) {
-        return new FactPopulator(BuiltinVars.vocabulary(), vars, t -> null, probe, rageStacks);
+    /** The production form: the built-in vocabulary over the SHARED store aggregate, so every store-backed fact
+     *  ({@code %ragestacks%}, {@code %heldticks%}) reads the same instance the writers hold. */
+    public static FactPopulator builtin(EngineStores stores, ActorProbe probe) {
+        return new FactPopulator(BuiltinVars.vocabulary(), stores.vars(), t -> null, probe, stores);
     }
 
     /** Install the {@code rand(lo,hi)} draw source (the composition root owns the RNG); returns {@code this} to chain. */
@@ -267,9 +278,13 @@ public final class FactPopulator {
             Player actor = context.actor();
             if (actor != null) {
                 UUID id = actor.getUniqueId();
-                // %ragestacks%: an actor-scoped store read, mask-gated (no entity access, so no Folia guard needed).
+                // %ragestacks% / %heldticks%: actor-scoped store reads, mask-gated (no entity access, so no
+                // Folia guard needed).
                 if (id != null && rageStacksSlot >= 0 && mask.readsNum(rageStacksSlot)) {
                     facts.setNumber(rageStacksSlot, rageStacks.current(id));
+                }
+                if (id != null && heldTicksSlot >= 0 && mask.readsNum(heldTicksSlot)) {
+                    facts.setNumber(heldTicksSlot, heldSlots.ticksSince(id, nowTicks));
                 }
                 facts.papiResolver(token -> {
                     String value = vars.get(id, token, nowTicks);
