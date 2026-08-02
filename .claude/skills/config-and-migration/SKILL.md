@@ -54,7 +54,7 @@ diagnostics, `/se reload`, catalog validation, `/se problems`, or the migrator.
   down. Clean → swap the `AtomicReference` on the global thread.
   `/se reload --dry-run` compiles + reports without swapping.
 - **Catalog validation runs inside `./gradlew build`** — `CatalogValidationTest`
-  / `CosmicPackValidationTest` (se-bootstrap) compile the whole bundled library
+  / `SignaturePackValidationTest` (se-bootstrap) compile the whole bundled library
   against a **permissive fake `PlatformResolvers`** and fail on any blocking
   diagnostic, so hundreds of enchants are audited as a reviewed diff, not a
   live-server gamble (§10). Version-specific handle-token existence is validated

@@ -1,11 +1,11 @@
-# StarEnchants — cosmic-pack message OVERLAY (docs/v3-directives.md §L; ADR-0023).
+# StarEnchants — signature-pack message OVERLAY (docs/v3-directives.md §L; ADR-0023).
 #
 # A pack's lang.yml is an OVERLAY, not a full copy: it lists ONLY the keys this pack re-themes, and every
 # other message falls back to the built-in default catalogue (se/compile/resources/lang.yml). Keeping this a
 # diff — rather than a full mirror — means a newly-shipped default message (a new command, a new item) is
 # inherited automatically instead of being silently dropped by a stale copy.
 #
-# cosmic-pack re-themes only the soul-gem strings as Cosmic-Enchants-style likenesses; everything else uses
+# signature-pack re-themes only the soul-gem strings as Cosmic-Enchants-style likenesses; everything else uses
 # the default English.
 
 # ── Soul gem (Cosmic-Enchants likeness) ────────────────────────────────────────────────────────────────

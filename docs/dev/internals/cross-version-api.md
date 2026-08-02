@@ -149,7 +149,7 @@ Two concrete implementations:
   The pure, server-free core the compiler uses in unit tests, so the whole
   bundled library can be compiled against a fake `PlatformResolvers` with
   realistic alias-aware behaviour (the bootstrap `CatalogValidationTest` /
-  `CosmicPackValidationTest`, run inside `./gradlew build`).
+  `SignaturePackValidationTest`, run inside `./gradlew build`).
 - **`RegistryResolvers`** — `exists` is a real, live-server lookup
   (`RegistrySupport.exists`). One instance is built at boot and injected into the
   compiler, so every interned handle is guaranteed to exist on this exact server.

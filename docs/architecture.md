@@ -215,7 +215,7 @@ starenchants/
 │                      content/…); `onEnable` folds the ordered `Modules` registry of 20
 │                      `FeatureModule`s through `ModuleFold` into the shipped listener/command/menu/
 │                      mint wiring; `onDisable` is `fold.stop()`. Its test/ tree holds
-│                      CatalogValidationTest + CosmicPackValidationTest (§10) plus the structural
+│                      CatalogValidationTest + SignaturePackValidationTest (§10) plus the structural
 │                      ModuleTreeGate and the semantic RegistryWiring gates.
 │
 ├── se/compat-folia/   Folia region/entity/global schedulers (probed by se/platform/sched).
@@ -763,7 +763,7 @@ final class SmiteEffect implements EffectKind {
   `engine/run/FactPopulator` (§3.4), not by registering a class.
 - **A new armor set / crystal / enchant / use-item is PURE YAML** — no code — compiled by the existing
   erasure into `Ability`s and validated inside `./gradlew build` (the bootstrap `CatalogValidationTest` /
-  `CosmicPackValidationTest` compile the whole shipped library against a fake resolver; §10) before it
+  `SignaturePackValidationTest` compile the whole shipped library against a fake resolver; §10) before it
   ships. 90% of "adding a feature" is data, and the compiler guarantees it is correct before deploy. A
   **use-item** (`content/use-items/*.yml`, ADR-0048) is the newest content family: a right-click item whose
   abilities lower to the same source-erased `Ability`s (implicit `USE` trigger) and run through the full gate
@@ -879,7 +879,7 @@ Optimal-by-construction; the hot path is an allocation-light array walk over pri
   **config-only**; the once-planned legacy item-NBT reader was descoped (§4.3, ADR-0005).
 - **Content is a CI-validated data artifact — inside `./gradlew build`, not a separate task.** The
   bundled library and the shipped config packs are compiled against a **fake** `PlatformResolvers` by the
-  bootstrap unit tests `CatalogValidationTest` and `CosmicPackValidationTest` (`se/bootstrap/test`),
+  bootstrap unit tests `CatalogValidationTest` and `SignaturePackValidationTest` (`se/bootstrap/test`),
   failing the build on fatal diagnostics. There is **no `./gradlew validateContent` task** — auditing
   hundreds of enchants is a reviewed diff run by ordinary `build`, not a live-server gamble.
 
