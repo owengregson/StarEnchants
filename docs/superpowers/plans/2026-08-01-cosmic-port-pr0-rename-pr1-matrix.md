@@ -45,6 +45,7 @@ wave 1. No engine code changes in either PR.
 **Files:** none (verification only)
 
 **Interfaces:**
+
 - Produces: a known-green baseline; all later failures are attributable to our changes.
 
 - [ ] **Step 1: Fetch and confirm branch state**
@@ -64,6 +65,7 @@ If it fails: STOP — report the failure; do not proceed on a dirty baseline.
 ### Task 2: Open the spec/plan PR (auto-merge)
 
 **Files:**
+
 - Commit: `docs/superpowers/plans/2026-08-01-cosmic-port-pr0-rename-pr1-matrix.md` (this file)
 
 - [ ] **Step 1: Commit the plan onto `docs/cosmic-port-spec`**
@@ -90,12 +92,14 @@ Expected: PR opens; auto-merge armed.
 ### Task 3: PR 0 — pack tree rename + build wiring
 
 **Files:**
+
 - Rename: `se/bootstrap/packs-src/cosmic-pack/` → `se/bootstrap/packs-src/signature-pack/`
 - Modify: `se/bootstrap/build.gradle.kts:46-48,116-119,130`
 - Modify: `se/bootstrap/resources/packs/index.txt`
 - Modify: `se/bootstrap/packs-src/signature-pack/pack.yml` (then regenerate)
 
 **Interfaces:**
+
 - Produces: Gradle task `packSignaturePack` producing `signature-pack.zip`; manifest
   property name `signaturePackManifest`. Tasks 4–5 rely on these exact names.
 
@@ -163,12 +167,14 @@ git commit -m "chore(packs): rename cosmic-pack to signature-pack (tree + build 
 ### Task 4: PR 0 — test renames
 
 **Files:**
+
 - Rename: `se/bootstrap/test/bootstrap/CosmicPackValidationTest.java` → `SignaturePackValidationTest.java`
 - Rename: `se/bootstrap/test/bootstrap/CosmicPackFingerprintDriftTest.java` → `SignaturePackFingerprintDriftTest.java`
 - Modify: `se/bootstrap/test/bootstrap/ModernHandleEraTest.java:41-42`
 - Modify: `se/bootstrap/test/bootstrap/SeCommandCompletionTest.java:16,143,146-147`
 
 **Interfaces:**
+
 - Consumes: task name `packSignaturePack` and path `packs-src/signature-pack` from Task 3.
 
 - [ ] **Step 1: Rename the two test files and their contents**
@@ -224,6 +230,7 @@ git commit -m "test(bootstrap): rename cosmic-pack tests to signature-pack"
 ### Task 5: PR 0 — tester, imagegen, migrate wiring
 
 **Files:**
+
 - Modify: `se/tester/build.gradle.kts:61-74`
 - Modify: `se/tester/src/tester/suite/CatalogSuite.java:24,39,42-43`
 - Modify: `se/imagegen/imports.yml:14`
@@ -231,6 +238,7 @@ git commit -m "test(bootstrap): rename cosmic-pack tests to signature-pack"
 - Modify: `se/migrate/test/migrate/EePortGenerator.java:26`
 
 **Interfaces:**
+
 - Produces: tester bundle root `pack-signature/` and expectation id
   `catalog.signaturePackCompilesCleanWithRealHandles` (the id is declared and guarded
   only inside CatalogSuite — verified by grep, no external manifest references it).
@@ -279,6 +287,7 @@ git commit -m "chore(tester,imagegen,migrate): follow the signature-pack rename"
 ### Task 6: PR 0 — living docs + straggler sweep
 
 **Files:**
+
 - Modify: `docs/dev/internals/config-packs.md` (1 mention)
 - Modify: `docs/dev/internals/the-migrator.md` (1 mention)
 
@@ -291,6 +300,7 @@ cosmic-pack in v1.13" for reader continuity).
 - [ ] **Step 2: Straggler grep — the safety net**
 
 Run:
+
 ```bash
 grep -rn 'cosmic-pack\|packCosmicPack\|pack-cosmic\|cosmicPack' \
   --include='*.java' --include='*.kts' --include='*.yml' --include='*.txt' \
@@ -298,6 +308,7 @@ grep -rn 'cosmic-pack\|packCosmicPack\|pack-cosmic\|cosmicPack' \
   se scripts tools .github docs website/docs website/src 2>/dev/null \
   | grep -v 'docs/decisions/' | grep -v 'docs/superpowers/' | grep -v 'build/'
 ```
+
 Expected: zero hits. Any hit is a missed reference — fix it the same way and re-run
 until clean. (ADRs and the spec/plan are intentionally excluded; `build/` dirs are
 stale outputs.)
@@ -335,10 +346,12 @@ Expected: PR opens, auto-merge armed; we proceed immediately (R4).
 ### Task 8: PR 1 — scaffold the matrix workspace
 
 **Files:**
+
 - Create: `docs/dev/cosmic-port/README.md`
 - Create: `docs/dev/cosmic-port/deviations.md`
 
 **Interfaces:**
+
 - Produces: the matrix item format and directory layout consumed by Tasks 9–10.
 
 - [ ] **Step 1: Cut the PR 1 branch**
@@ -421,9 +434,11 @@ git commit -m "docs(cosmic-port): scaffold the decomposition matrix + deviation 
 ### Task 9: PR 1 — enchant matrix docs (Workflow, 7 authors + verify)
 
 **Files:**
+
 - Create: `docs/dev/cosmic-port/matrix/01-enchants-armor-a-l.md` … `07-enchants-mastery-soul.md`
 
 **Interfaces:**
+
 - Consumes: entry format from Task 8; codex docs (read-only, absolute path);
   `docs/reference/authoring-surface.txt` (this worktree's copy at HEAD).
 - Produces: 7 matrix docs whose `gaps:` lines feed Task 10.
@@ -471,6 +486,7 @@ git commit -m "docs(cosmic-port): decomposition matrix for the seven enchant fam
 ### Task 10: PR 1 — sets/masks/pets matrix docs (Workflow, 3 authors + verify)
 
 **Files:**
+
 - Create: `docs/dev/cosmic-port/matrix/10-armor-sets.md`, `11-masks.md`, `12-pets.md`
 
 Same briefs as Task 9 with `<N>` ∈ {`10-armor-sets`, `11-masks`, `12-pets`}. Sets
@@ -495,10 +511,12 @@ git commit -m "docs(cosmic-port): decomposition matrix for sets, masks, and pets
 ### Task 11: PR 1 — gap clustering (main loop, no delegation)
 
 **Files:**
+
 - Create: `docs/dev/cosmic-port/proposed-primitives.md`
 - Modify: `docs/dev/cosmic-port/deviations.md` (rows discovered during the matrix)
 
 **Interfaces:**
+
 - Consumes: every `gaps:` line across the 10 matrix docs.
 - Produces: the wave-1/wave-2 primitive list — the direct input to the next plan.
 
