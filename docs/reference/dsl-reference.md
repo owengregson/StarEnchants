@@ -1246,6 +1246,20 @@ Boolean expressions over `%scope.name%` variables, combined with `&& || ! ( )` a
 | `contains` | contains |
 | `matchesregex` | matches_regex |
 
+### Numeric functions
+
+Callable anywhere a number is legal — inside a `condition:` and as an expression-valued numeric parameter (`{ DAMAGE: { amount: "min(%combo% * 2, 12)" } }`). Arguments are themselves expressions, so calls nest.
+
+| Function | Result |
+| --- | --- |
+| `min(a, b)` | the smaller of `a` and `b` |
+| `max(a, b)` | the larger of `a` and `b` |
+| `clamp(x, lo, hi)` | `x` confined to `[lo, hi]` |
+| `floor(x)` | `x` rounded down (toward negative infinity) |
+| `rand(lo, hi)` | a uniform random value in `[lo, hi)`, drawn once per evaluation |
+
+A parameter that declares a range clamps an expression to it at evaluation, so a `double[0..100]` parameter written as `"%combo% * 40"` can never exceed 100 however large the variable grows. A constant outside the range is still a load error.
+
 ### Flow / chance clauses
 
 A condition may end in a clause `<test> : <outcome>` whose outcome is applied when the test is true (a bare condition with no clause is a gate that stops the activation when false).

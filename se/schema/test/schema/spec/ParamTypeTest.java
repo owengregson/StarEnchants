@@ -165,8 +165,7 @@ class ParamTypeTest {
     @Test
     void rangeIsNotCheckedOnAnExpressionArgumentButIsAppliedAsAClamp() {
         // A bound can't be checked on an expression, so the value is confined at evaluation instead: the
-        // parsed tree comes back wrapped in the spec's own range. That is what keeps chance: "%x% * 10"
-        // inside [0,100] without the author restating the bound.
+        // parsed tree comes back wrapped in the spec's own range, without the author restating the bound.
         Diagnostics d = new Diagnostics();
         Expr.Call call = assertInstanceOf(Expr.Call.class,
                 D.DOUBLE.min(0).max(100).parse("%combo% * 1000", SRC, d).orElseThrow());

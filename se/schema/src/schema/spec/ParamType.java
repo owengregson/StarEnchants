@@ -204,9 +204,9 @@ public final class ParamType {
      *
      * <p>An expression's value is unknowable at compile time, so it skips the constant range check and is
      * instead <em>clamped to this spec's declared range at evaluation</em> — the parsed tree is wrapped in a
-     * synthetic {@code clamp}. That is the contract that keeps {@code chance: "%x% * 10"} inside {@code [0,100]}
-     * without the author restating the bound: a constant out of range is still a hard {@code E_RANGE}, an
-     * expression out of range is silently confined.
+     * synthetic {@code clamp}. So a {@code double[0..100]} param written {@code "%combo% * 40"} is confined to
+     * 100 however large the variable grows, without the author restating the bound: a constant out of range
+     * stays a hard {@code E_RANGE}, an expression out of range is silently confined.
      */
     private Optional<Object> numericExpression(String token, Source source, Diagnostics diags) {
         return ExprParser.parse(token, source, diags).map(this::clampToRange);
