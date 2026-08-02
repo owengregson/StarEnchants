@@ -97,16 +97,6 @@ public final class PassiveEffectDriver {
         }
     }
 
-    /**
-     * Whether this driver currently MAINTAINS {@code potionHandle} on {@code player} — i.e. the effect is a
-     * permanent-while-worn grant from their own gear, not something an opponent landed. The cleanse path
-     * (/bless) consults this so it never strips a debuff the wearer chose to carry: removing it would only be
-     * undone by the next refresh anyway.
-     */
-    public boolean maintains(UUID player, int potionHandle) {
-        return owned.getOrDefault(player, Map.of()).containsKey(potionHandle);
-    }
-
     /** Forget a player's owned set on quit (the entity is gone — no removal needed). */
     public void clear(UUID player) {
         owned.remove(player);

@@ -177,9 +177,10 @@ reload:
   re-resolve-players: true  # re-resolve every online player's worn state after a content swap
   auto-seconds: 0           # auto-/se-reload interval in seconds (0 = off; armed once at boot)
 
-# /bless — the player-facing cleanse. Strips every debuff an opponent landed: harmful potion effects, the
-# freeze DoT + its slow, damage already banked against the player, burning, and any Mark of the Reaper on
-# them. A PERMANENT debuff the player carries by choice (a helmet granting mining fatigue) is never stripped.
+# /bless — ONE application of the same cleanse the Clarity set's Bless passive runs on a timer (and the Cow
+# Pet on right-click): removes harmful potion effects and puts out fire. A PERMANENT debuff the player
+# carries by choice (a helmet granting mining fatigue) is never stripped, and a FREEZE is not broken —
+# that is confinement, not a debuff. Buffs are never touched.
 # Gated on starenchants.bless (default true); starenchants.bless.bypass skips both knobs below.
 # Both are read live on /se reload.
 bless:

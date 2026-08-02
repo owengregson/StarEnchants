@@ -73,29 +73,7 @@ public final class DamageMarks {
         return out;
     }
 
-    /**
-     * Whether ANY attacker holds a live mark on {@code victim} right now — the victim-side counterpart to
-     * {@link #marked}, so a cleanse can report whether it actually lifted a mark. Evicts expired entries as it
-     * passes them, so an elapsed window never reads as marked.
-     */
-    public static boolean anyOn(UUID victim) {
-        Map<UUID, Mark> byMarker = victim == null ? null : MARKS.get(victim);
-        if (byMarker == null) {
-            return false;
-        }
-        long now = System.currentTimeMillis();
-        boolean any = false;
-        for (Map.Entry<UUID, Mark> entry : byMarker.entrySet()) {
-            if (now >= entry.getValue().expiryMs()) {
-                byMarker.remove(entry.getKey(), entry.getValue());
-            } else {
-                any = true;
-            }
-        }
-        return any;
-    }
-
-    /** Forget one victim's marks (quit, or a cleanse lifting every mark at once). */
+    /** Forget one victim's marks (quit). */
     public static void clear(UUID victim) {
         MARKS.remove(victim);
     }

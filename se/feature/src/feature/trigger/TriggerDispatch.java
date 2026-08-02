@@ -346,6 +346,17 @@ public final class TriggerDispatch {
     }
 
     /**
+     * Run ONE cleanse on {@code player} — the same {@code CURE category: HARMFUL} sweep clarity's Bless fires on
+     * a timer and the Cow Pet fires on right-click, through the identical sink path so the three can never
+     * diverge (ADR-0072). {@code /bless} is exactly this, once. Runs on the player's own thread.
+     */
+    public void cleanse(Player player) {
+        SinkReadback sink = newSink();
+        sink.cureByCategory(player, engine.sink.PotionCategories.HARMFUL);
+        sink.flush();
+    }
+
+    /**
      * Reconcile the plugin-owned worn max-health modifier to {@code total} (the {@code HEALTH}-on-PASSIVE/HELD
      * channel). The sum is owned by {@link MaxHealthDriver}; this only executes it — SET-not-add, so repeated
      * refreshes are idempotent. Runs on the player's own thread.

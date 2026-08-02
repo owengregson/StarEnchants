@@ -20,42 +20,49 @@ Two unrelated player-facing gaps, decided together because both landed in one in
 
 ## Decision
 
+### The cleanse
+
+There is ONE cleanse in the plugin: `CURE { category: HARMFUL }`. Everything that cleanses runs it —
+clarity's Bless on a 5-tick `REPEATING` bonus, the Cow Pet's right-click, and `/bless` once on demand.
+`/bless` is defined as *one application of the set effect*, so it holds no cleanse logic of its own; it
+contributes only a permission and a cost/cooldown policy around the shared sweep.
+
+A HARMFUL sweep is therefore more than a filtered clear. It:
+
+- removes harmful potion effects, classified by `PotionCategories` so the SLOW/SLOWNESS-era renames
+  resolve alike across 1.8.9 → 26.x;
+- **extinguishes burning** — a damage-over-time the holder did not choose, and the only non-potion DoT
+  that is not itself a freeze;
+- **spares permanent effects** — see below.
+
+The other `CURE` categories (ALL, BENEFICIAL, NEUTRAL) stay a blunt clear and are untouched by this ADR:
+nothing lands a buff on you, so there is nothing there to protect, and no fire to put out.
+
+**What is deliberately NOT cleared.** Freezes — the `FREEZE` window's DoT chain and its slow — survive a
+cleanse. A freeze is confinement, thawed by `TRAP_BREAK`, not a debuff to shrug off. This is the one place
+"clear all DoTs" is knowingly not taken literally, and on this codebase the freeze chain is the *only*
+engine DoT, so the practical scope of the DoT clause is burning plus POISON/WITHER (already potions).
+Marks, combat maluses (WEAKEN/REFLECT/TELEBLOCK/DISARM), `DISABLE_*` suppression windows, potion LOCKS,
+and the combo-DoT park ledger are all likewise out of scope — a cleanse is not a combat-state reset.
+
+**Permanence.** A debuff the holder carries by their own choice — a helmet granting mining fatigue — is
+never stripped. Two independent tests, deliberately overlapping:
+
+- `PermanentPotions.maintains` — SE's own permanent-while-worn grants, **re-derived from live worn state +
+  live suppression** on each ask (`WornPotionGrants.fn`, the `LightningBoost` rule) rather than read from
+  `PassiveEffectDriver`'s cache, which can trail a gear change by a sweep. Both consult the same pure
+  `computeDesired`, so the two cannot disagree about what the gear implies. A suppressed passive grants
+  nothing and is therefore cleansable.
+- `PermanentPotions.permanentDuration` — an effectively infinite remaining duration: the 1.19.4+ infinite
+  marker, or past `PERMANENT_FLOOR_TICKS` (4 h). This catches another plugin's permanent grant SE knows
+  nothing about, and holds even where no bridge is wired. The floor sits above vanilla Bad Omen (100 min,
+  which stays cleansable) and below the 1 000 000 ticks the driver applies.
+
+`PermanentPotions` rides `SinkEnv` as **instance wiring**, not a mutable static installer — the
+`movementExemption` rule. A first attempt used an `Allies`-style static hook and was correctly rejected by
+the ADR-0047 G2-c frozen-installer gate.
+
 ### `/bless`
-
-A one-shot, on-demand cleanse, gated by permission and by a cost/cooldown policy.
-
-**What it strips.** Every debuff an opponent landed, across the four surfaces that carry one:
-
-| Surface | Cleared by |
-| --- | --- |
-| Harmful potion effects | `PotionCategories.HARMFUL`, so the SLOW/SLOWNESS-era renames classify alike |
-| Freeze windows (Ice Aspect DoT + slow) | `FrozenTargets.breakNow` — the window's own idempotent teardown |
-| Parked DoT damage | `DotParkLedger.clear` |
-| Marks against the player (Mark of the Reaper, …) | `DamageMarks.clear` |
-
-Burning is extinguished too: fire ticks are a damage-over-time the player did not choose, and no other
-surface owns them.
-
-**What it spares.** A PERMANENT debuff the player carries by their own choice — a helmet granting
-mining fatigue — is never stripped. Two independent rules protect it, deliberately overlapping:
-
-- the effect is a `PassiveEffectDriver`-maintained grant (exact, and the driver would re-apply it on its
-  next refresh regardless, so stripping it would only produce a flicker); **or**
-- its remaining duration is effectively permanent — `PERMANENT_FLOOR_TICKS` (4 h), or the 1.19.4+
-  infinite marker. This catches another plugin's permanent grant that SE knows nothing about.
-
-The floor sits well above the longest real debuff (vanilla Bad Omen, 100 min, stays cleansable) and well
-below the 1 000 000 ticks the passive driver applies, so a worn grant stays spared however long it has
-been since the driver last refreshed it.
-
-Marks are directional: `/bless` lifts marks held **on** the runner, never marks the runner holds on
-others — blessing yourself must not disarm your own offence.
-
-**Boundary.** Combat maluses an opponent armed (WEAKEN, REFLECT, TELEBLOCK, DISARM), `DISABLE_*`
-suppression windows, and potion LOCKS are explicitly **out of scope**. They are opponent-landed too, but
-folding them in would make `/bless` a general combat-state reset rather than a cleanse. A consequence
-worth naming: a harmful effect held by a live `POTION_LOCK` is removed and then immediately re-denied
-back on, so the lock outlives the bless.
 
 **Surface.** A standalone `/bless` registered dynamically on the command map (the `/enchants`,
 `/splitsouls` shape), plus `/se bless [player]` as the admin mirror — the identical cleanse with the gate
@@ -71,10 +78,12 @@ through the economy bridge). Both read live. Three rules the gate holds:
 - A cost with no economy provider installed **refuses** rather than running free — a missing Vault is an
   operator misconfiguration, not a discount.
 - Charging is the last gate and commits only once every other check passes, so a refused bless never
-  costs a player anything.
+  costs a player anything. `cooldown-seconds: 0` means no cooldown, including for a window armed before
+  the knob was turned down.
 
 `features.bless` gates the module at BOOT (a command name cannot be cleanly re-bound mid-run), matching
-`command-trigger`; the cost/cooldown knobs it reads are live.
+`command-trigger`; the cost/cooldown knobs it reads are live. The permanence bridge is wired at the
+composition root, NOT in this module — with `/bless` switched off the shipped `CURE` callers still need it.
 
 ### Holy white scroll corruption
 
@@ -102,12 +111,16 @@ outrun it rather than un-corrupting it back to a middle stage.
 
 ## Consequences
 
+- Clarity's set passive and the Cow Pet's right-click both gain the new cleanse semantics, because they
+  share the one definition. Two balance changes follow, and both are intended by the unification:
+  - **A full Clarity set now confers effective fire immunity** — its passive re-runs ~4×/sec, so a wearer
+    cannot burn. The Cow Pet becomes a fire-out button on a cooldown.
+  - Neither strips the wearer's own permanent gear debuff any more, so a deliberate
+    permanent-fatigue trade-off finally sticks while wearing them.
+- `SinkEnv` gains a `permanentPotions` component and a new `of(...)` overload; the prior overload delegates
+  with `PermanentPotions.NONE`, so every non-root construction site is unchanged.
 - One more feature module (`bless`) in the fold registry, between `traks` and `enchants`.
 - `ScrollsConfig.Holy` gains `maxProtections` + `corruptLines`; `HolyScrollService` gains a
   `HolyProtectionCodec` constructor parameter. Both are breaking for direct callers inside the repo only.
 - Existing items carry no `holyprotections` key and read 0 — uncorrupted, no line, no migration needed.
   Items that were saved by holy scrolls before this change do not retroactively count those saves.
-- `DamageMarks` gains `anyOn(victim)`, the victim-side counterpart to `marked(marker)`.
-- Clarity's set passive is deliberately **left as it is**: it still cures harmful potions ~4×/sec with no
-  permanent-grant exemption. It is continuous set-scoped immunity, a different mechanic from the on-demand
-  command, and changing it would alter shipped set balance. The inconsistency is recorded, not fixed.

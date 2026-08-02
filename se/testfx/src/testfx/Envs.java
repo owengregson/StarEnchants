@@ -64,6 +64,7 @@ public final class Envs {
         private RageStackStore rageStacks = new RageStackStore();
         private WardStore ward = new WardStore();
         private ToDoubleFunction<UUID> lightningBoost = id -> 0.0;
+        private engine.sink.PermanentPotions permanentPotions = engine.sink.PermanentPotions.NONE;
         private EngineStores storesOverride = null;
 
         public SinkEnvBuilder economy(EconomyService economy) {
@@ -157,6 +158,12 @@ public final class Envs {
         }
 
         /** The worn LIGHTNING_MOD channel read at bolt emit (ADR-0063); default no boost. */
+        /** ADR-0072: the wearer's own permanent-while-worn potions, which a HARMFUL cleanse must spare. */
+        public SinkEnvBuilder permanentPotions(engine.sink.PermanentPotions permanentPotions) {
+            this.permanentPotions = permanentPotions;
+            return this;
+        }
+
         public SinkEnvBuilder lightningBoost(ToDoubleFunction<UUID> lightningBoost) {
             this.lightningBoost = lightningBoost;
             return this;
@@ -177,7 +184,7 @@ public final class Envs {
                             new engine.stores.HeadTrophyStore(), new engine.stores.FoodWindowStore(),
                             new engine.stores.MessageThrottleStore());
             return SinkEnv.of(economy, souls, stores, nowTicks, player -> { }, () -> 0,
-                    GearProtection.NONE, lightningBoost);
+                    GearProtection.NONE, lightningBoost, permanentPotions);
         }
     }
 }

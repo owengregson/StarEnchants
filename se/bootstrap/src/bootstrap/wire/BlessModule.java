@@ -3,17 +3,18 @@ package bootstrap.wire;
 import compile.load.MasterConfig;
 import feature.bless.BlessCommand;
 import feature.bless.BlessGate;
-import feature.bless.CleanseService;
-import org.bukkit.potion.PotionEffectType;
 import platform.sched.Scheduling;
 
 /**
- * {@code /bless}, the player-facing debuff cleanse (ADR-0072). BOOT-gated on {@code features.bless} — the
- * command is registered on the command map at boot, so like {@code command-trigger} the toggle takes effect on
- * the next start rather than a {@code /se reload}; the cost/cooldown knobs it reads ARE live.
+ * {@code /bless}, the player-facing cleanse (ADR-0072). BOOT-gated on {@code features.bless} — the command is
+ * registered on the command map at boot, so like {@code command-trigger} the toggle takes effect on the next
+ * start rather than a {@code /se reload}; the cost/cooldown knobs it reads ARE live.
  *
- * <p>Depends on {@link EquipModule} for the passive-potion authority: the cleanse must not strip a
- * permanent-while-worn grant, and that driver is the only thing that knows which effects those are.
+ * <p>Deliberately thin. The command holds no cleanse logic of its own: it runs
+ * {@link feature.trigger.TriggerDispatch#cleanse}, the same {@code CURE category: HARMFUL} sweep clarity's Bless
+ * fires on a timer and the Cow Pet fires on right-click. All this module adds is the permission surface and the
+ * cost/cooldown policy around one application of it. The permanent-grant bridge that sweep consults is installed
+ * by {@link EquipModule}, which owns the driver answering it and is not boot-toggled.
  */
 final class BlessModule {
 
@@ -21,32 +22,19 @@ final class BlessModule {
     private static final long COOLDOWN_SWEEP_TICKS = 6000L; // 5 min
 
     private final BootCore core;
-    final CleanseService cleanse;
     final BlessGate gate;
     final BlessCommand command;
 
-    BlessModule(BootCore core, EquipModule equip) {
+    BlessModule(BootCore core) {
         this.core = core;
-        // A live potion type → its interned handle, so the driver's owned set (which is keyed by handle) can be
-        // asked about an effect the player is actually carrying. An unresolvable type is simply not a passive.
-        CleanseService.PassivePotions passives = (player, type) -> {
-            int handle = handleOf(type);
-            return handle >= 0 && equip.passiveEffects.maintains(player.getUniqueId(), handle);
-        };
-        this.cleanse = new CleanseService(passives, core.sinkEnv().dotPark());
         this.gate = new BlessGate(
                 () -> {
                     MasterConfig.BlessSection cfg = core.master().config().bless();
                     return new BlessGate.Settings(cfg.cooldownSeconds(), cfg.cost());
                 },
                 core.economy());
-        this.command = new BlessCommand("bless", cleanse, gate, core.messages(), System::currentTimeMillis);
-    }
-
-    /** The interned handle for a live potion type, or {@code -1} when this version does not resolve it. */
-    @SuppressWarnings("deprecation") // getName(): the one name accessor stable across 1.8.9 → 26.x (PotionCategories).
-    private int handleOf(PotionEffectType type) {
-        return type == null ? -1 : core.resolvers().potionEffect(type.getName()).orElse(-1);
+        this.command = new BlessCommand("bless", core.triggerDispatch()::cleanse, gate, core.messages(),
+                System::currentTimeMillis);
     }
 
     FeatureModule module() {
