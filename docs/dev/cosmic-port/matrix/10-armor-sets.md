@@ -31,8 +31,8 @@ Family-wide facts, recorded once (codex `10-armor-sets.md §A`):
   reduction — chest `10 %`, legs `8 %`, boots/helm `4.5 %` (full set 27 %); ability-set
   (M-Kit) tier is chest `16 %`, legs `13 %`, boots/helm `8 %` (full set 45 %). Decomposes
   as per-piece `DAMAGE_MOD(side=defense, mode=add, amount=…)` component stats. Heroic
-  pieces also negate Infinite Luck at `12.5 %` per piece (ledger: read from the wrong
-  player in the jar) and amplify incoming damage from outpost-holding attackers
+  pieces also negate Infinite Luck at `12.5 %` per piece (ledger D-10-1: read from the
+  wrong player in the jar) and amplify incoming damage from outpost-holding attackers
   (external server system; interaction-layer world/faction condition, off by default).
 - **Outpost world gates** (TRAINEE/VANILLA/HERO block set bonuses, §A.8) → interaction-
   layer world conditions on `actor.world`; off by default in the port.
@@ -102,10 +102,10 @@ Family-wide facts, recorded once (codex `10-armor-sets.md §A`):
      75 % per armor slot independently (expected strip 3/hit); engine expresses one
      whole-armor roll at the same expected value (distribution delta noted)
   4. `ATTACK` `[actor.helditem == armor-sets/yeti-maul && victim.type == PLAYER]` →
-     `DAMAGE_MOD(side=attack, mode=add, amount=7.5)` — intended value (ledger)
+     `DAMAGE_MOD(side=attack, mode=add, amount=7.5)` — intended value (ledger D-10-2)
   5. `ATTACK` `[actor.helditem == armor-sets/yeti-maul && victim.type == PLAYER]`
      `[chance 50]` → `IGNORE_HEROIC` — decomposition of the lore-intended
-     "Bypass 50% of Heroic Armor" (ledger)
+     "Bypass 50% of Heroic Armor" (ledger D-10-2)
 - **interactions:** victim Infinite Luck `>= 1` suppresses the outgoing bonus (lowest
   threshold, shared with Ranger); crystal grants `DAMAGE_MOD(side=attack, amount=2.5)`
   and `DAMAGE_MOD(side=defense, amount=2.5)` per crystal-bearing piece (4 → ×1.10 out /
@@ -134,7 +134,7 @@ Family-wide facts, recorded once (codex `10-armor-sets.md §A`):
 - **numbers:** set ×1.10 out / ×0.90 in; **Maul measured multiplier is
   `×(2.075 + 0.03 × victimHeroicPieces)` — codex-flagged bug** (a stray `+1.0` term more
   than doubles damage); as-intended ×1.075 (+7.5 % per lore) with 50 % heroic bypass —
-  ledger row; measured table i=0..4 → ×2.075/×2.105/×2.135/×2.165/×2.195; strip: 75 %
+  ledger D-10-2; measured table i=0..4 → ×2.075/×2.105/×2.135/×2.165/×2.195; strip: 75 %
   per slot, −1 durability, expected 3/hit; crystal ±2.5 %/piece; Infinite Luck
   threshold 1; helmet roster lists `Armored` twice (second roll wins — measured quirk);
   Maul: Sharpness V, Unbreaking III, Silence max, Lifesteal max, 25 % chance of Demonic
@@ -186,7 +186,7 @@ Family-wide facts, recorded once (codex `10-armor-sets.md §A`):
 - **interactions:** target filters are interaction-layer rules: victim Infinite Luck
   `>= 4` excluded; faction TRUCE-or-better excluded (engine `filter=ENEMIES`); PvP-deny
   regions excluded; victim Poltergeist level grants a `12.5 % × level` immunity roll per
-  strike (ledger: the jar rolls the CASTER's level — ship target-side); Phoenix on the
+  strike (ledger D-10-3: the jar rolls the CASTER's level — ship target-side); Phoenix on the
   victim can absorb the strike; victim's external faction-upgrade tier reduces the 16
   base to 15/14/13/12 (external system, interaction-layer hook); World Ender lore
   `§fImmune to Rot and Decay` → interaction rule suppressing the `rot-and-decay`
@@ -253,7 +253,7 @@ Family-wide facts, recorded once (codex `10-armor-sets.md §A`):
   `DAMAGE_MOD(side=defense, amount=5)` and `DAMAGE_MOD(side=attack, amount=6)` per
   piece, both projectile-conditioned (`[damagecause == PROJECTILE]` interaction
   condition); crystal-advertised `20% Immune to Teleblock` is absent from the jar —
-  ledger row, shipped as a 20 %-per-piece teleblock-immunity chance; jar bow identity
+  ledger D-10-4, shipped as a 20 %-per-piece teleblock-immunity chance; jar bow identity
   is a display-name prefix (any renamed bow qualifies — forgeable; port uses item
   identity, infrastructure-class fix); unequip strips the speed passive even when equip
   was world-blocked (jar quirk; engine WornState handles symmetric equip/unequip)
@@ -312,14 +312,14 @@ Family-wide facts, recorded once (codex `10-armor-sets.md §A`):
      `DAMAGE_MOD(side=defense, mode=add, amount=10)` — −10 % incoming while HOLDING the
      weapon as you are hit (measured: defender's held item)
   6. `ATTACK` `[actor.helditem == armor-sets/supreme-fanny-pack]` →
-     `DAMAGE_MOD(side=attack, mode=add, amount=20)` — intended value (ledger; measured
+     `DAMAGE_MOD(side=attack, mode=add, amount=20)` — intended value (ledger D-10-5; measured
      jar multiplies the wielder's own outgoing damage by ×0.9 instead)
   7. `ATTACK` → `DAMAGE_MOD(side=attack, mode=add, amount=15)`
 - **gaps:** `PROJECTILE_KIND_VAR — a comparison var discriminating the damaging
   projectile's kind (arrow | fireball | thrown | other); needed because damagecause
   exposes only PROJECTILE and cannot express arrow-only gates; consumers:
-  armor-sets/supreme (arrow-only drawback); candidate consumers in the bow family
-  (matrix/05) — consolidate at clustering, else record as an approximation + ledger row`
+  armor-sets/supreme (arrow-only drawback); confirmed at clustering with bow-family
+  consumers — see proposed-primitives.md (%projectilekind%, wave 1)`
 - **interactions:** victim Infinite Luck `>= 2` suppresses the outgoing bonus; crystal:
   `DAMAGE_MOD(side=attack, amount=3)` per piece (4 → ×1.12), no defensive half;
   `+200% Clout (Flight Enabled)` is implemented by an external economy plugin (codex
@@ -352,7 +352,7 @@ Family-wide facts, recorded once (codex `10-armor-sets.md §A`):
     `§4§l * §4+200% CLOUT (Flight Enabled)`
 - **numbers:** +15 % out; +10 % incoming arrows (drawback); −10 % incoming with weapon
   held; **weapon-held attack measured ×0.9 — codex-flagged copy-paste bug** (net
-  ×1.035 instead of the lore's ×1.38); as-intended ×1.2 — ledger row; crystal
+  ×1.035 instead of the lore's ×1.38); as-intended ×1.2 — ledger D-10-5; crystal
   +3.0 %/piece; Infinite Luck threshold 2; item rolls: helmet 10 % Phoenix else second
   Marksman; chest Enlighted max always + 10 % Divine Enlighted; legs 10 % Nature Wrath
   else Protection; boots Springs fixed level 2 (only fixed-level roll in the family),
@@ -376,7 +376,7 @@ Family-wide facts, recorded once (codex `10-armor-sets.md §A`):
      this set's defensive rules; world-substring gate, measured case-sensitive)
   3. `DEFENSE` → `REMOVE_POTION(effect=DAMAGE_RESISTANCE)`
   4. `DEFENSE` `[chance 1]` → Dimensional Shift (below); the jar also procs
-     unconditionally for one hard-coded sneaking developer name — removed (ledger)
+     unconditionally for one hard-coded sneaking developer name — removed (ledger D-10-6)
   5. Dimensional Shift, per target from `AOE(r=25, filter=ENEMIES)` (jar box 25/32/25):
      - `FREEZE(duration=80, slow=100, dot=0)` — full walk-speed immobilization, 4 s
      - `POTION(effect=BLINDNESS, level=1, duration=60)` — gated by the victim's
@@ -503,7 +503,7 @@ Family-wide facts, recorded once (codex `10-armor-sets.md §A`):
   chest 5 % Enchant Reflect max + Heroic Enchant Reflect, legs 7.5 % Nature Wrath max,
   boots 7.5 % Phoenix; **boots roster
   contains the misspelling `Gaurdians` — silently never applies (codex-flagged bug);
-  as-intended: Guardians rolls on boots** — ledger row; crystal −5 / +3 (PvP) %/piece,
+  as-intended: Guardians rolls on boots** — ledger D-10-7; crystal −5 / +3 (PvP) %/piece,
   10 %/piece Silence + Ice Aspect cancel; no weapon (help menu shows the external
   Dragon Mask in its slot — masks family, matrix/11)
 - **era:** none special; suppression flags are engine-level (era-agnostic)

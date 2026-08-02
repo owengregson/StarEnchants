@@ -2,8 +2,7 @@
 
 Source codex: `07-enchants-mastery-soul.md`. Behavioral authority is the local-only
 codex; entries never quote decompiled code. Values are the measured jar numbers;
-codex-marked bugs also state the as-intended value (ledger rows pending in
-`deviations.md`).
+codex-marked bugs also state the as-intended value with its `deviations.md` row id.
 
 ## Family-wide rules (recorded once, referenced by entries)
 
@@ -27,7 +26,7 @@ codex-marked bugs also state the as-intended value (ledger rows pending in
   effective on the generic-damage path. Port: one uniform `SUPPRESS` window
   (single-pass reading, `D-001` family).
 - **Geometry:** codex scan boxes are asymmetric `[−r, +r)` cubes; engine
-  selectors/shapes are symmetric. Recorded once (ledger note), not per entry.
+  selectors/shapes are symmetric. Recorded once (ledger D-07-1), not per entry.
 - **Presentation:** all 16 are tier-8; lore line renders `§4<Name> <Roman>`.
   Group "Default" (a mastery never conflicts with anything); not Heroic; immune
   to black-scroll extraction; applied to locked kit armor only via the Mastery
@@ -66,7 +65,7 @@ codex-marked bugs also state the as-intended value (ledger rows pending in
 - **strings:** none — completely silent (no message, sound, or particle).
 - **numbers:** level-independent (`max = 1`). Measured payout = first drop's
   unit price, **not** multiplied by stack size and ignoring further drops
-  (codex-marked bug) → intended Σ(price × amount) over all drops — ledger.
+  (codex-marked bug) → intended Σ(price × amount) over all drops — ledger D-07-2.
   Two impossible negative-drop-count guards and the duplicated drop lookup are
   non-behavioral.
 - **era:** none — all 1.8.9-era tools/materials (legacy GOLD_*/WOOD_* names via
@@ -108,10 +107,10 @@ codex-marked bugs also state the as-intended value (ledger rows pending in
 - **numbers:** per level 1–5 — chance 5/10/15/20/25%; chain radius
   `d0 = 1+⌊L/2⌋` = 1/2/2/3/3; chain cap measured `i` = 1/2/2/3/3
   (`ceil` over integer division is a no-op, codex-marked) → intended
-  `1+ceil(L/2)` = 2/2/3/3/4 — ledger; drain/heal per target
+  `1+ceil(L/2)` = 2/2/3/3/4 — ledger D-07-3; drain/heal per target
   `d1 ∈ [0.5, 0.5+L)` HP. Measured heal goes to the **hit victim**, not the
   wearer (bytecode-verified bug) → intended: heal the wearer (`transfer` does
-  exactly this) — ledger. Under the intended heal the victim's self-slot becomes
+  exactly this) — ledger D-07-4. Under the intended heal the victim's self-slot becomes
   a real drain instead of the measured net-zero.
 - **era:** REDSTONE_BLOCK and the block-crack effect exist in 1.8.9; sound
   handle needs the legacy name mapping (`dig.stone`).
@@ -128,7 +127,7 @@ codex-marked bugs also state the as-intended value (ledger rows pending in
   1. (offence) `DAMAGE_MOD(side=attack, mode=add, amount=+d3_off)` where
      `d3_off = clamp((2+2L)·10·(1−%actor.healthpercent%/100), 0, 25)` →
      VAR_SCALED_PARAM gap (intended sign: bonus; measured jar reduces own
-     damage — ledger).
+     damage — ledger D-07-5).
   2. (defence) `DAMAGE_MOD(side=defense, mode=add, amount=d3_def)` where
      `d3_def = clamp(2L·10·missing, 0, 50)` → VAR_SCALED_PARAM gap.
 - **gaps:** `VAR_SCALED_PARAM — author a numeric effect/flow param as
@@ -143,11 +142,11 @@ codex-marked bugs also state the as-intended value (ledger rows pending in
 - **strings:** none whatsoever (silent at both ends).
 - **numbers:** offence `d1` per level 1–3 = 4/6/8 (0.4/0.6/0.8 pp per 1%
   missing), cap 25% — measured multiplier `×(1−0.01·d3)` on the wearer's own
-  outgoing hit (codex-marked sign inversion) → intended `×(1+0.01·d3)` — ledger.
+  outgoing hit (codex-marked sign inversion) → intended `×(1+0.01·d3)` — ledger D-07-5.
   Defence `d1` = 2/4/6 (0.2/0.4/0.6 pp per 1% missing), cap 50% — cap
   unreachable at L1–2 (max 20%/40% at 100% missing). Measured defence fires on
   **every** damage cause (fall, fire, void…) — codex-marked → intended: combat
-  damage only (`DEFENSE`) — ledger. Full health = ×1.0 both halves.
+  damage only (`DEFENSE`) — ledger D-07-6. Full health = ×1.0 both halves.
 - **era:** none.
 
 ---
@@ -200,7 +199,7 @@ codex-marked bugs also state the as-intended value (ledger rows pending in
   `d7 = 5+L` = 6–11; skull speed mult 0.0525–0.0650; refire 8–13t; skull hit =
   5% max health (armour-bypassing); trap chance `0.06+0.03·L` = 9–24%; trap
   duration measured **1 s at every level** (`(int)` truncation, codex-marked
-  bug) → intended `min(5, 1+0.125·L)` s — ledger; knockback 1.1 within 4 blocks
+  bug) → intended `min(5, 1+0.125·L)` s — ledger D-07-7; knockback 1.1 within 4 blocks
   of the firing crystal.
 - **era:** ENDER_CRYSTAL + WITHER_SKULL exist in 1.8.9; sound handles need
   legacy mapping (GHAST_FIREBALL / WITHER_SHOOT); MOBSPAWNER_FLAMES effect and
@@ -284,7 +283,7 @@ codex-marked bugs also state the as-intended value (ledger rows pending in
   health (linear in missing-health fraction); vanish 1.5·L s = 1.5/3.0/4.5/6.0
   (30/60/90/120t); decoy destroyed at 30t; free hits measured `L−1` — at level
   1 the vanish ends on the **first** outgoing hit (codex-marked major) →
-  intended `L` free hits — ledger; lockout 10 s.
+  intended `L` free hits — ledger D-07-8; lockout 10 s.
 - **era:** decoy + hide are packet work — the 1.8.9 overlay uses era spawn/
   destroy/status packets (legacy hazard); title packets pre-1.8 protocol
   differences; sound legacy name.
@@ -321,7 +320,7 @@ codex-marked bugs also state the as-intended value (ledger rows pending in
   Ice Aspect) blocks a target with the
   `§8§l* DRAGON SLAYER [§7Horrify blocked!§8§l] *` message — measured: one
   immune target aborts the **entire** proc (codex-marked major) → intended:
-  skip that target only — ledger. The jar's ally-protection cancel/un-cancel
+  skip that target only — ledger D-07-9. The jar's ally-protection cancel/un-cancel
   listener pair nets to a no-op and is not ported (its only residue — cancels
   sticking on zero-damage or PvP-off hits — is engine-native gating).
 - **strings:** to each target
@@ -362,7 +361,7 @@ codex-marked bugs also state the as-intended value (ledger rows pending in
 - **activation:** trigger `DEFENSE`; condition `%victim.type% == PLAYER`;
   chance `1.5·L %`; per-target cooldown bucket = the mark duration (intended
   re-mark guard; the measured guard tests only for the key's presence, so it can
-  wedge permanently on a lost removal task — ledger).
+  wedge permanently on a lost removal task — ledger D-07-10).
 - **decomposition:**
   1. [gap] `VULNERABILITY(percent=100, duration=20·d0,
      hit-message="§c* MARK OF THE BEAST [-§c{damage}§c HP] *",
@@ -370,7 +369,7 @@ codex-marked bugs also state the as-intended value (ledger rows pending in
      player takes double damage from **every** source (fall, fire, void
      included — measured, kept: it is the point of the mark).
   2. `PARTICLE(particle=SPELL_WITCH, count=20)` `who=@Attacker` — intended
-     placement (measured plays at the defender's eyes — ledger).
+     placement (measured plays at the defender's eyes — ledger D-07-11).
   3. `MESSAGE(broadcast)` `who=@AOE{r=20+2·L, filter=PLAYERS}` — measured has
      no ally/vanish filter (everyone in range is told; kept).
   4. `MESSAGE(marked line)` `who=@Attacker`.
@@ -428,7 +427,7 @@ codex-marked bugs also state the as-intended value (ledger rows pending in
   expiry (measured — the gap restores the buff, vanilla then restores max
   health; current health stays down, matching the jar). Measured suppression
   persists until the next potion refresh (duration is a minimum — codex quirk)
-  → intended: exact window — ledger.
+  → intended: exact window — ledger D-07-12.
 - **era:** HEALTH_BOOST exists on 1.8.9; no hazards.
 
 ---
@@ -496,7 +495,7 @@ codex-marked bugs also state the as-intended value (ledger rows pending in
   `%mastery.poltergeist%`): Nature's Wrath freeze (doc 01 — measured treats any
   non-zero chance as 100% immunity), Dimensional Traveler (doc 10 — measured
   12/25/37%), Mother of Yijki (doc 10 — measured 11.5/24/36.5%). Codex-marked
-  inconsistency → intended: one uniform `12.5·L %` roll everywhere — ledger.
+  inconsistency → intended: one uniform `12.5·L %` roll everywhere — ledger D-07-13.
   The jar's fall-cancel is 50%-suppressible by the silence flag on the
   generic-damage path only — port: uniform SUPPRESS interaction (`D-001`
   family note).
@@ -644,7 +643,7 @@ codex-marked bugs also state the as-intended value (ledger rows pending in
   max, measured); repair `max(1, ⌊drain/3⌋)`. Measured: when the attacker
   lacks the matching slot the fallback repairs the confirmed-empty slot —
   i.e. nothing (codex-marked major) → intended: repair the attacker's first
-  worn slot — ledger.
+  worn slot — ledger D-07-14.
 - **era:** none notable; item-break sound legacy name via resolver.
 
 ---
@@ -705,7 +704,7 @@ codex-marked bugs also state the as-intended value (ledger rows pending in
   silence 80t (4 s) level-independent; anvil: 10% of max durability off **each**
   of the four armor slots per anvil, overlapping anvils stack (measured; kept).
   Measured `(int)` truncation zeroes the hit on items with max durability < 10
-  (codex-marked) → intended minimum 1 point — ledger.
+  (codex-marked) → intended minimum 1 point — ledger D-07-15.
 - **era:** falling ANVIL entity works on 1.8.9 (anvil-with-data falling block —
   legacy overlay hazard for block-state data); sounds ANVIL_LAND / WITHER_HURT /
   ZOMBIE_WOODBREAK / ZOMBIE_WOOD are legacy names via resolver; landing
@@ -721,8 +720,8 @@ consumers are the tier-6 soul enchants (Soul Trap, Hero Killer, Sabotage,
 Divine Immolation, Teleblock, Nature's Wrath, Paradox — docs 03/04/05/01),
 whose matrix entries carry the per-proc costs and guards. The engine already
 has the soul economy (SoulPool, `REMOVE_SOULS`); the `SOUL_COUNT_VAR` gap
-declared here serves those entries too. Known Soul Mode bugs for the ledger
-when those docs are written: the "per second" drain actually charges 4×/s
+declared here serves those entries too. The Soul Mode system's own bugs are
+ledgered corpus-wide as D-002: the "per second" drain actually charges 4×/s
 (5-tick task); the cost `ceil` operates on an already-truncated int (no-op);
 `HEROIC_SOUL_MASTERY` level 3+ maps to ×1.0 (worse than level 2); the
 Cosmonaut-outpost halving can drive the cost to a permanent 0.

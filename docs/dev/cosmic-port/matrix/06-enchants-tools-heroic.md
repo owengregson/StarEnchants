@@ -81,7 +81,7 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
 - **strings:** none.
 - **numbers:** max 3; table weight 6; item set = 5 pickaxes; base 10.0, interval
   10.0. Chance `L×0.34`: L1 34%, L2 68%, L3 1.02 → always (known bug, see
-  ledger; intended 100%). Ingots per proc = L (1/2/3). No durability cost, no
+  ledger D-06-1; intended 100%). Ingots per proc = L (1/2/3). No durability cost, no
   region check of its own.
 - **era:** legacy material names (`GOLD_INGOT` et al.) resolve via the boot-time
   alias resolver; no 1.8.9 hazard.
@@ -103,7 +103,7 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
     hopper/anvil/comparators; pickaxe-only 15-material list; spade-only 6-material
     list; comparator/diode-above guard) → `BLOCK_MATERIAL_FILTER` gap.
   - Volume orientation is the struck block face (jar caches the last interacted
-    block face; we orient from the mined face directly — ledger).
+    block face; we orient from the mined face directly — ledger D-06-2).
 - **gaps:**
   - `FACE_ORIENTED_BOX_SELECTOR` — block-volume selector: a w×h cross-section
     marched `depth` layers into the struck face from the activation block, with
@@ -134,9 +134,9 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   L6 always 2; L7 33%→3 else 2; L8 66%→3 else 2;
   L9 always 3. Layer = 9 blocks; max blocks touched 10/10/10/19/19/19/28/28/28
   (incl. origin). Durability: +1 per explosion (destroy at max-1 with
-  `ITEM_BREAK` 1.0/1.0). Known bugs (ledger): origin re-processed → duplicate
-  drop every swing; only `drops[0]` kept per block (rails voided); null cached
-  face NPEs.
+  `ITEM_BREAK` 1.0/1.0). Known bugs: origin re-processed → duplicate drop every swing
+  (ledger D-06-3); only `drops[0]` kept per block, rails voided (ledger D-06-4);
+  null cached face NPEs (ledger D-06-2).
 - **era:** legacy list names (`SMOOTH_BRICK`→STONE_BRICKS, `MYCEL`→MYCELIUM,
   `*_SPADE`→`*_SHOVEL`, comparator/diode splits collapse post-flattening) — alias
   sweep required; `LARGE_EXPLODE`→`EXPLOSION_LARGE` particle rename; 1.8 has no
@@ -201,7 +201,7 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   1. `POTION(effect=FAST_DIGGING, level=L, duration=40)`
 - **interactions:** jar force-applies (overwrites any stronger Haste from beacons/
   potions on every hit); engine potion tracking never downgrades a stronger
-  effect — ledger.
+  effect (ledger D-06-5).
 - **strings:** none.
 - **numbers:** max 3; table weight 2; item set = 21 tools; base 15.0, interval
   10.0. Haste I/II/III (amplifier `L-1`), duration constant 40t (2.0 s),
@@ -247,7 +247,7 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
 - **numbers:** max 1; table weight 6; item set = 21 tools; base 10.0, interval
   10.0. +20 air ticks (1.0 s; max 300t). Level is never read. Measured guard
   `remaining+20 <= max` skips the final 0–19 ticks entirely → intended clamped
-  top-up (ledger).
+  top-up (ledger D-06-6).
 - **era:** none.
 
 ### Skilling (`tools/skilling`)
@@ -299,8 +299,8 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   (EV 1.25), F II: 3 rolls @0.25 (EV 1.75), F ≥III: 4 rolls @0.20 (EV 1.80,
   max 5); silk-touch re-derivation; double-slab → 2 slabs; dead RAILS /
   never-true drop-count
-  guards) is replaced by full vanilla drops incl. vanilla Fortune/Silk Touch —
-  ledger.
+  guards) is replaced by full vanilla drops incl. vanilla Fortune/Silk Touch
+  (ledger D-06-7).
 - **era:** `QUARTZ_ORE`→`NETHER_QUARTZ_ORE` alias; 1.8.9 has no sweeping drop
   API differences for these ores.
 
@@ -331,10 +331,10 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
 - **numbers:** max 3; table weight 2; item set = 5 helmets; base 10.0, interval
   5.0. Heal +2.0 HP every second fire; food +1 every fire. Measured periods
   (integer division `40×(3/L)`): L1 120t, L2 40t, L3 40t → heal cadence
-  12.0 s / 4.0 s / 4.0 s, L3 a pure no-op over L2. Intended (ledger):
+  12.0 s / 4.0 s / 4.0 s, L3 a pure no-op over L2. Intended (ledger D-06-8):
   120/60/40t. Measured heal guard
   `health+2 < max` never tops off the last 2 HP → intended clamped heal
-  (ledger). Unequip leaves the phase toggle stale in the jar (off-phase first
+  (ledger D-06-9). Unequip leaves the phase toggle stale in the jar (off-phase first
   heal after re-equip) — engine var TTL/unequip teardown fixes structurally.
 - **era:** none.
 
@@ -371,9 +371,9 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   10.0, interval 10.0. Volume per level (before AIR/y filters): L1 depth 4,
   extents (1,2,1,2), 4×4 layer → 64; L2 depth 5, (2,2,2,2), 5×5 → 125;
   L3 depth 6, (2,3,2,3), 6×6 → 216; L4 depth 7,
-  (3,3,3,3), 7×7 → 343. Always 100%. Known bugs (ledger): Auto Sell payout drops
-  the `× amount` (stacks sell for one unit); origin block duplicated exactly as
-  Detonate; null cached face NPE.
+  (3,3,3,3), 7×7 → 343. Always 100%. Known bugs: Auto Sell payout drops the `× amount`, so stacks sell for one unit
+  (ledger D-06-10); origin block duplicated exactly as Detonate (ledger D-06-11);
+  null cached face NPE (ledger D-06-2).
 - **era:** as Detonate (legacy material aliases, particle rename).
 
 ### Bidirectional Teleportation (`heroic/bidirectional-teleportation`)
@@ -433,7 +433,7 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   6.6/13.2/19.8/26.4/33.0%. Grapple max range `10L` blocks (100…2500 dist²).
   Pull cap `6.0+0.5L`: 6.5…8.5. Trap freeze: measured 20t (1.0 s) at every
   level — `(int)(1.0+0.125L)` truncates to 1 —
-  intended `(1+0.125L)` s = 22.5/25/27.5/30/32.5t (ledger). Ally range flat 30
+  intended `(1+0.125L)` s = 22.5/25/27.5/30/32.5t (ledger D-06-12). Ally range flat 30
   blocks at every level. Enemy branch always does something (grapple or trap).
 - **era:** sounds `ZOMBIE_METAL`/`WITHER_SHOOT`/`ORB_PICKUP` are 1.8 names →
   modern `ENTITY_ZOMBIE_ATTACK_IRON_DOOR`/`ENTITY_WITHER_SHOOT`/
@@ -482,7 +482,7 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   9→0.1325, 10→0.1250 (−37.5%). Mob SLOW duration `i×20`t, amplifier
   `max(1, i/3)` (Slowness II at i≤5, III at 6–8, IV at 9–10). Measured: player
   slow persists until externally cleared → shipped bounded at `i×20`t, refreshed
-  per proc (mob parity; ledger). Blood Lust numbers above.
+  per proc (mob parity; ledger D-06-13). Blood Lust numbers above.
 - **era:** `BLOCK_CRACK` particle naming varies across the range (legacy world
   effect 2001 in the jar) — resolver alias; walk-speed mechanics identical.
 
@@ -502,7 +502,7 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   8.0. Chance 0.15 / 0.20 / 0.25. Heal-to bonus 8 / 12 / 15 half-hearts
   (4.0 / 6.0 / 7.5 hearts), clamped at max. Measured heal base is
   `(int)health` (fraction silently lost, up to −0.99 HP) → intended exact
-  current health + bonus, clamped (ledger). Unreachable ternary tails
+  current health + bonus, clamped (ledger D-06-14). Unreachable ternary tails
   (0.25 / 8) not ported.
 - **era:** none.
 
@@ -554,7 +554,7 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   the heroic is boots-only. Engine potion tracking reproduces the
   "stronger-tracked-SPEED wins" refusal.
 - **strings:** `§e*DODGE*` · `§e*FALL DODGED*`
-- **numbers:** measured max **1** (the jar never assigns `max`; ledger — intended
+- **numbers:** measured max **1** (the jar never assigns `max`; ledger D-06-15 — intended
   5, matching Dodge and the level-scaled formulas). Table weight 2; item set = 5
   boots; base 20.0, interval 5.0. Dodge chance standing `0.05×L` / sneaking
   `0.05×L+0.2`: L1 5%/25%, L2 10%/30%, L3 15%/35%, L4 20%/40%, L5 25%/45%.
@@ -931,7 +931,7 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   gates the reflect; `%blocking%` modulates both.
 - **decomposition:**
   - Ability A (chance: blocking `16×L`% / not blocking `70×L`% — measured
-    inverted ternary, see ledger; capped 100):
+    inverted ternary, see ledger D-06-16; capped 100):
     1. `DAMAGE_MOD(side=defense, mode=add, amount=25×L)` — 25/50/75% reduction
     2. `SET_VAR(name=rblock-armed, value=1, ttl=1)`
   - Ability B (ordered after A; condition `%rblock-armed% == 1 &&
@@ -957,7 +957,7 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
 - **numbers:** max 3; base 17.0; interval 4.0; **table weight 0**; item set = 5
   swords. Measured outer roll: blocking `0.16×L` (16/32/48%), NOT blocking
   `0.7×L` (70%/always/always) — inverted; intended blocking `0.7×L` capped
-  100 / not-blocking `0.16×L` (ledger). Reduction `0.25×L`: 25/50/75%. Reflect
+  100 / not-blocking `0.16×L` (ledger D-06-16). Reduction `0.25×L`: 25/50/75%. Reflect
   roll `0.08×L` +0.05 while blocking: 13/21/29% (blocking), 8/16/24% (not).
   Reflected share = `0.25×L` of the hit (from pre-reduction damage). Most
   successful blocks are silent (feedback only on the inner roll — measured,
@@ -1018,7 +1018,7 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
 - **codex:** `06-enchants-tools-heroic.md § Titan Trap`
 - **activation:** trigger `ATTACK`; conditions `%victim.type% == PLAYER` and
   victim-not-already-frozen (intended form of the jar's inverted guard — see
-  ledger); chance `4×L`%; no cooldown.
+  ledger D-06-17); chance `4×L`%; no cooldown.
 - **decomposition:**
   1. `FREEZE(duration=35+10×L, slow=99.5, dot=0, who=@Victim)` — walk-speed
      0.001 + jump lock (engine freeze-lock covers the jar's Jump-128 trick);
@@ -1049,7 +1049,7 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
 - **numbers:** max 3; table weight 2; item set = 5 swords; base 15.0, interval
   3.0. Proc `0.04×L`: 4 / 8 / 12%. Duration `35+10L`: 45 / 55 / 65t (2.25 /
   2.75 / 3.25 s). Resistance table at L3 (0.12 base): M1 10.75%, M2 9.5%,
-  M3 8.25%, M4 7%. Entry-guard bug (ledger): jar reads the ATTACKER's walk
+  M3 8.25%, M4 7%. Entry-guard bug (ledger D-06-17): jar reads the ATTACKER's walk
   speed — a slowed attacker can never proc; intended victim-side no-re-trap.
 - **era:** Jump-amplifier-128 lock is a 1.8-only overflow trick — FREEZE
   abstracts it (legacy overlay must implement freeze's jump lock era-specifically);
@@ -1080,6 +1080,6 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   Measured armed-state semantics (reflects the cap VALUE to any player attacker
   on EVERY hit, clears only when a hit's final damage exceeds the cap — chip
   damage reflects forever) → shipped as DAMAGE_CAP semantics: duration-bounded
-  (100t), overflow-above-cap reflect (ledger). No arming `finalDamage > 0`
+  (100t), overflow-above-cap reflect (ledger D-06-18). No arming `finalDamage > 0`
   gate in the heroic (measured, kept).
 - **era:** none.
