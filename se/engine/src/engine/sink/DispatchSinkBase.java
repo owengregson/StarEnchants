@@ -143,6 +143,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
      * the inert no-op default for tests and tester suites.
      */
     private final Consumer<Player> movementExemption;
+    /** ADR-0072: which of a cleanse target's harmful effects are permanent-while-worn grants to spare. */
+    private final PermanentPotions permanentPotions;
     private final DispatchPlan plan = new DispatchPlan();
     private final DamageFold fold;
 
@@ -231,6 +233,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.recentAttackers = env.stores().recentAttackers();
         this.nowTicks = env.nowTicks();
         this.movementExemption = env.movementExemption();
+        this.permanentPotions = env.permanentPotions();
         this.tempBlocks = env.tempBlocks();
         this.trails = env.trails();
         this.timedReverts = env.timedReverts();
@@ -1216,17 +1219,29 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void cureByCategory(LivingEntity target, int category, int count) {
+        boolean cleanse = category == PotionCategories.HARMFUL;
         // Snapshot first (removePotionEffect mutates the live collection); remove only the matching bucket.
         entityOp(target, () -> {
             int left = count <= 0 ? Integer.MAX_VALUE : count;
             for (PotionEffect active : List.copyOf(target.getActivePotionEffects())) {
                 if (left == 0) {
-                    return;
+                    break;
                 }
-                if (PotionCategories.matches(category, active.getType())) {
-                    target.removePotionEffect(active.getType());
-                    left--;
+                if (!PotionCategories.matches(category, active.getType())) {
+                    continue;
                 }
+                // A HARMFUL sweep is a CLEANSE (ADR-0072): it lifts what an opponent landed and spares what the
+                // holder carries by choice. The other categories stay a blunt clear — nothing lands a buff on you.
+                if (cleanse && permanentPotions.spares(target, active)) {
+                    continue;
+                }
+                target.removePotionEffect(active.getType());
+                left--;
+            }
+            // Fire belongs to the UNBOUNDED cleanse only: a count-limited cure removes exactly its count of
+            // debuffs and nothing else (the count param's contract), while a full sweep also puts the fire out.
+            if (cleanse && count <= 0) {
+                target.setFireTicks(0); // burning is a damage-over-time the holder did not choose
             }
         });
     }

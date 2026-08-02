@@ -39,7 +39,6 @@ command.menu.no-permission: "&cYou don't have permission to open that menu."
 # /bless — the debuff cleanse. {SECONDS} = cooldown left, {COST} = the configured charge, {PLAYER} = the other
 # party when an admin blesses someone else.
 command.bless.cleansed: "&b&l** BLESSED ** &7Every debuff on you has been lifted."
-command.bless.nothing: "&b&l** BLESSED ** &7You had nothing to cleanse."
 command.bless.cooldown: "&cYou can bless again in &f{SECONDS}s&c."
 command.bless.cannot-afford: "&cYou cannot afford that — a bless costs &f{COST}&c."
 command.bless.no-economy: "&cBless has a cost configured but no economy plugin is installed — tell an admin."

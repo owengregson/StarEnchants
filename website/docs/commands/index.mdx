@@ -67,17 +67,19 @@ its own **`starenchants.bless`** (default: **true**), with **`starenchants.bless
 
 ## Cleansing debuffs with `/bless`
 
-`/bless` lifts every debuff someone else put on you, in one go:
+`/bless` is **one application of the Clarity set's Bless** — the exact same cleanse, on demand, for any
+player. It is not a separate mechanic with its own rules; whatever a cleanse does in this plugin, `/bless`
+does once.
 
-- harmful potion effects
-- the **freeze** damage-over-time and its slow
-- damage already banked against you that would otherwise land a moment later
-- burning
-- **marks** on you, such as Mark of the Reaper
+A cleanse:
+
+- removes **harmful potion effects**
+- **puts out fire**
+- leaves **buffs and neutral effects** completely alone
 
 What it will **not** touch is a *permanent* debuff you are carrying by choice — a helmet that grants
-permanent mining fatigue stays exactly where it is. Buffs and neutral effects are never removed, and marks
-*you* hold on other players are left alone, so blessing yourself never disarms your own offence.
+permanent mining fatigue stays exactly where it is. Nor does it break a **freeze**: a freeze is
+confinement, not a debuff, and only Turnkey's `TRAP_BREAK` thaws one.
 
 Tune it in `config.yml`:
 
@@ -94,10 +96,11 @@ refused bless never charges you and never burns your cooldown.
 Admins can run the same cleanse with no cooldown and no cost via **`/se bless [player]`**, on themselves
 or on someone else.
 
-:::note This is not the Clarity set's Bless
-The Clarity armour set's *Bless Passive Ability* is continuous immunity — it re-cures harmful **potion
-effects** several times a second while you wear the full set. `/bless` is a one-shot, on-demand cleanse
-that covers considerably more than potions. They are separate mechanics and both can be in play at once.
+:::note One cleanse, three ways to reach it
+The Clarity set's *Bless Passive Ability*, the Cow Pet's right-click, and `/bless` all run the identical
+sweep — they differ only in what triggers it. Clarity re-runs it several times a second while you wear the
+full set (so you effectively cannot hold a debuff, or burn); the Cow Pet fires it on a cooldown; `/bless`
+fires it once on command. Change the cleanse and all three change together.
 :::
 
 ## Reloading
