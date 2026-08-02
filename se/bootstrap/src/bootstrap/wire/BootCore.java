@@ -509,7 +509,12 @@ public final class BootCore {
                 () -> master.config().pets().maxPercentMoneyCap(), gearProtection,
                 // ADR-0063: the worn LIGHTNING_MOD channel — live WornState + suppression, read per bolt emit.
                 feature.trigger.LightningBoost.fn(content, worn, stores.suppression(), tick::get,
-                        triggers.idOf("PASSIVE").orElse(-1)));
+                        triggers.idOf("PASSIVE").orElse(-1)),
+                // ADR-0072: which harmful effects a cleanse must spare — the wearer's own permanent grants,
+                // re-derived from live worn state on each ask (the LightningBoost rule).
+                feature.trigger.WornPotionGrants.fn(content, worn, stores.suppression(), tick::get,
+                        triggers.idOf("HELD").orElse(-1), triggers.idOf("PASSIVE").orElse(-1),
+                        this::potionHandle));
         // mcMMO friendly-fire gate,
         CombatDispatch.friendlyFire(bindings.mcmmoFriendlyFire(plugin, master.config().integrations()::enabled));
         // %victim.mobtype% from MythicMobs' internal name,
@@ -538,6 +543,12 @@ public final class BootCore {
     }
 
     // ── accessors (the substrate a module consumes) ──────────────────────────────────────────────
+    /** A live potion type → its interned handle, or {@code -1} when this version does not resolve it. */
+    @SuppressWarnings("deprecation") // getName(): the one name accessor stable across 1.8.9 → 26.x (PotionCategories).
+    private int potionHandle(org.bukkit.potion.PotionEffectType type) {
+        return resolvers.potionEffect(type.getName()).orElse(-1);
+    }
+
     public JavaPlugin plugin() { return plugin; }
 
     public Capabilities caps() { return caps; }

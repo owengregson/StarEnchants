@@ -138,6 +138,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
      * the inert no-op default for tests and tester suites.
      */
     private final Consumer<Player> movementExemption;
+    /** ADR-0072: which of a cleanse target's harmful effects are permanent-while-worn grants to spare. */
+    private final PermanentPotions permanentPotions;
     private final DispatchPlan plan = new DispatchPlan();
     private final DamageFold fold;
 
@@ -212,6 +214,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.recentAttackers = env.stores().recentAttackers();
         this.nowTicks = env.nowTicks();
         this.movementExemption = env.movementExemption();
+        this.permanentPotions = env.permanentPotions();
         this.tempBlocks = env.tempBlocks();
         this.trails = env.trails();
         this.timedReverts = env.timedReverts();
@@ -925,12 +928,22 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void cureByCategory(LivingEntity target, int category) {
+        boolean cleanse = category == PotionCategories.HARMFUL;
         // Snapshot first (removePotionEffect mutates the live collection); remove only the matching bucket.
         entityOp(target, () -> {
             for (PotionEffect active : List.copyOf(target.getActivePotionEffects())) {
-                if (PotionCategories.matches(category, active.getType())) {
-                    target.removePotionEffect(active.getType());
+                if (!PotionCategories.matches(category, active.getType())) {
+                    continue;
                 }
+                // A HARMFUL sweep is a CLEANSE (ADR-0072): it lifts what an opponent landed and spares what the
+                // holder carries by choice. The other categories stay a blunt clear — nothing lands a buff on you.
+                if (cleanse && permanentPotions.spares(target, active)) {
+                    continue;
+                }
+                target.removePotionEffect(active.getType());
+            }
+            if (cleanse) {
+                target.setFireTicks(0); // burning is a damage-over-time the holder did not choose
             }
         });
     }

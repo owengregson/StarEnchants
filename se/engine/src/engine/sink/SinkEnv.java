@@ -30,13 +30,16 @@ import platform.economy.EconomyService;
  * a player logs out mid-window (F07/F08). {@code dotPark} is the ONE per-boot combo-DoT park ledger (ADR-0069),
  * shared so a park and its flush (separate events) see the same buckets. {@code trapStructures} is the ONE
  * per-boot {@link TrapStructures} registry (ADR-0071), shared so a confining placement and its Turnkey break
- * (separate events) see the same structures. All shared via the env like the stores, never a mutable static.
+ * (separate events) see the same structures. {@code permanentPotions} is the ADR-0072 cleanse seam, riding the
+ * env for the same reason {@code movementExemption} does — instance wiring, not a mutable static installer.
+ * All shared via the env like the stores, never a mutable static.
  */
 public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
                       Consumer<Player> movementExemption, TempBlockLedger<BlockState> tempBlocks,
                       TrailWalker trails, TimedRevert timedReverts, DotParkLedger dotPark,
                       DoubleSupplier moneyInterestCap, GearProtection gearProtection,
-                      ToDoubleFunction<UUID> lightningBoost, TrapStructures trapStructures) {
+                      ToDoubleFunction<UUID> lightningBoost, TrapStructures trapStructures,
+                      PermanentPotions permanentPotions) {
 
     public SinkEnv {
         Objects.requireNonNull(economy, "economy");
@@ -52,6 +55,7 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
         Objects.requireNonNull(gearProtection, "gearProtection");
         Objects.requireNonNull(lightningBoost, "lightningBoost");
         Objects.requireNonNull(trapStructures, "trapStructures");
+        Objects.requireNonNull(permanentPotions, "permanentPotions");
     }
 
     /** The four-arg shape every non-root site used before the exemption rode the env — no-op movement hook. */
@@ -84,8 +88,21 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
     public static SinkEnv of(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
                              Consumer<Player> movementExemption, DoubleSupplier moneyInterestCap,
                              GearProtection gearProtection, ToDoubleFunction<UUID> lightningBoost) {
+        return of(economy, souls, stores, nowTicks, movementExemption, moneyInterestCap, gearProtection,
+                lightningBoost, PermanentPotions.NONE);
+    }
+
+    /**
+     * The ADR-0072 shape: {@code permanentPotions} tells a {@code CURE category: HARMFUL} cleanse which of the
+     * holder's harmful effects are permanent-while-worn grants it must spare ({@link PermanentPotions#NONE} =
+     * SE claims none, leaving only the duration test).
+     */
+    public static SinkEnv of(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
+                             Consumer<Player> movementExemption, DoubleSupplier moneyInterestCap,
+                             GearProtection gearProtection, ToDoubleFunction<UUID> lightningBoost,
+                             PermanentPotions permanentPotions) {
         return new SinkEnv(economy, souls, stores, nowTicks, movementExemption, BukkitBlockOps.ledger(),
                 new TrailWalker(), new TimedRevert(), new DotParkLedger(), moneyInterestCap, gearProtection,
-                lightningBoost, new TrapStructures());
+                lightningBoost, new TrapStructures(), permanentPotions);
     }
 }

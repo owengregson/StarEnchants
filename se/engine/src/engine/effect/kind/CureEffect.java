@@ -14,7 +14,12 @@ import schema.spec.D;
 /**
  * {@code CURE} — clear the target(s)' active potion effects, optionally only one {@code category}
  * (HARMFUL / BENEFICIAL / NEUTRAL); the default ALL is the broad counterpart of {@code REMOVE_POTION}.
- * {@code category: HARMFUL} is a "never hold a debuff" cleanse — clarity's Bless sweeps it on a timer.
+ *
+ * <p>{@code category: HARMFUL} is THE cleanse (ADR-0072), and is more than a filtered clear: it also
+ * extinguishes burning, and it spares any {@link engine.sink.PermanentPotions permanent} effect — one the
+ * holder carries by choice rather than one an opponent landed. Every cleanse in the game is this one
+ * definition: clarity's Bless sweeps it on a timer, the Cow Pet fires it on right-click, and {@code /bless}
+ * applies it once on demand.
  */
 public final class CureEffect implements EffectKind {
 
