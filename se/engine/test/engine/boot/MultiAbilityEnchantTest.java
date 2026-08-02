@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -13,10 +14,13 @@ import compile.load.LibraryLoader;
 import compile.model.Ability;
 import compile.model.Snapshot;
 import compile.model.StableKeyIndex;
+import engine.condition.BuiltinVars;
+import engine.condition.FactBuffer;
 import engine.effect.kind.BuiltinEffects;
 import engine.interact.SoulSpender;
 import engine.pipeline.Activation;
 import engine.pipeline.ActivationPipeline;
+import engine.pipeline.GateOutcome;
 import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
 import engine.run.AreaScan;
@@ -141,5 +145,38 @@ class MultiAbilityEnchantTest {
 
     private static List<String> keysOf(StableKeyIndex keys, int count) {
         return java.util.stream.IntStream.range(0, count).mapToObj(keys::keyOf).toList();
+    }
+
+    @Test
+    void anExpressionChanceCompilesAndGatesTheActivation() throws Exception {
+        // EXPR_CHANCE end to end on the production vocabulary: %recentattackers% is a real fact slot, so the
+        // erase stage must have unioned it into the ability's FactMask for the roll to see anything but 0.
+        Snapshot snap = load("""
+                display: "Phoenix"
+                trigger: "ATTACK"
+                levels:
+                  1:
+                    chance: "min(50, %recentattackers% * 10)"
+                    effects: [{ IGNITE: { duration: 60, who: "@Victim" } }]
+                """);
+        Ability ability = snap.byStableKey("enchants/phoenix/1");
+        assertNotNull(ability.chanceExpr(), "an expression chance survives to the runtime record");
+
+        FactBuffer facts = new FactBuffer(64, 0, 0);
+        int slot = BuiltinVars.vocabulary().bindings().get("recentattackers").slot();
+        assertTrue(ability.factMask().readsNum(slot), "the populator must be told to compute the roll's fact");
+
+        facts.setNumber(slot, 2.0); // → 20% chance
+        assertEquals(GateOutcome.ACTIVATED, gate(ability, facts, 19.0));
+        assertEquals(GateOutcome.CHANCE_FAILED, gate(ability, facts, 21.0));
+
+        facts.setNumber(slot, 8.0); // → 80 raw, held at 50 by the author's own min()
+        assertEquals(GateOutcome.ACTIVATED, gate(ability, facts, 49.0));
+        assertEquals(GateOutcome.CHANCE_FAILED, gate(ability, facts, 51.0));
+    }
+
+    private GateOutcome gate(Ability ability, FactBuffer facts, double roll) {
+        return new ActivationPipeline(new CooldownStore(), SoulSpender.NONE).evaluate(ability,
+                Activation.builder(ACTOR, 0, triggerId, 0L).facts(facts).chanceRoll(() -> roll).build());
     }
 }

@@ -190,7 +190,7 @@ final class PetDefReader {
         String trigger = resolveTrigger(key, active, stableKey, node, diags);
         boolean use = "USE".equals(trigger);
 
-        double chance = ContentParse.resolveChance(node, "chance", diags);
+        ContentParse.Chance chance = ContentParse.resolveChanceValue(node, "chance", diags);
         // A USE ability inherits the bracket cooldown unless it authors its own; worn abilities default to none.
         int cooldown = ContentParse.resolveInt(node, "cooldown", use ? bracketCooldown : 0, diags);
         int soulCost = ContentParse.resolveInt(node, "soul-cost", 0, diags);
@@ -213,9 +213,9 @@ final class PetDefReader {
         // bracket floor keeps the running cooldown; everything else scopes to its own stable key.
         String cdScope = use && useKeys.size() == 1 ? "pet:" + key : stableKey;
         AbilityDef ability = new AbilityDef(
-                SourceKind.PET, stableKey, nextDefId.getAsInt(), 0, chance, cooldown, soulCost,
+                SourceKind.PET, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, soulCost,
                 List.of(trigger), disabledWorlds, condition, effects, "pet:" + key, cdScope, null, null,
-                repeatTicks, node.source(), 0);
+                repeatTicks, node.source(), 0, false, chance.expr());
         out.add(ability);
         return ability;
     }

@@ -1,5 +1,7 @@
 package compile.model;
 
+import compile.model.cond.NumExpr;
+
 /**
  * The source-erased, compiled unit of behavior all five content sources lower to (docs/architecture.md §4.1);
  * the source is the {@link #sourceKind} tag, not a subtype. Hot-path fields are primitives/interned ids/bitsets
@@ -25,6 +27,7 @@ package compile.model;
  * @param setPieces      for a {@link SourceKind#SET} bonus, the worn-piece count that completes the set (§6.6); {@code 0} for every non-set source
  * @param suppressImmune when {@code true} this ability can never be suppressed (DISABLE_ENCHANT/GROUP/TYPE/KIND no-op against it), so a permanent buff survives Silence &amp; its derivatives while the wearer's OTHER enchants are still silenced (per-enchant {@code suppress-immune: true})
  * @param factMask       the {@code FactBuffer} slots this ability reads (ADR-0039), unioned per trigger in the {@code WornState} so the populator computes only referenced facts; {@link FactMask#ALL} for hand-built abilities (populate everything)
+ * @param chanceExpr     evaluated at the chance gate in place of {@link #baseChance} and clamped to {@code [0,100]}; {@code null} for a constant chance, so the hot path pays one null check
  */
 public record Ability(
         int id,
@@ -46,7 +49,19 @@ public record Ability(
         int suppressKey,
         int setPieces,
         boolean suppressImmune,
-        FactMask factMask) {
+        FactMask factMask,
+        NumExpr chanceExpr) {
+
+    /** Back-compat construction for a constant {@code chance:} — the hot-path fast case. */
+    public Ability(int id, int defId, SourceKind sourceKind, int triggerMask, int level, double baseChance,
+                   int cooldownTicks, int soulCost, long worldBlacklist, CompiledCondition condition,
+                   CompiledEffect[] effects, int repeatTicks, Affinity affinity, int cdScopeEnchant,
+                   int cdScopeGroup, int cdScopeType, int suppressKey, int setPieces, boolean suppressImmune,
+                   FactMask factMask) {
+        this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
+                condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
+                suppressKey, setPieces, suppressImmune, factMask, null);
+    }
 
     /** No derived fact mask — populate everything (the safe default for hand-built test abilities). */
     public Ability(int id, int defId, SourceKind sourceKind, int triggerMask, int level, double baseChance,
@@ -55,7 +70,7 @@ public record Ability(
                    int cdScopeGroup, int cdScopeType, int suppressKey, int setPieces) {
         this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
                 condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
-                suppressKey, setPieces, false, FactMask.ALL);
+                suppressKey, setPieces, false, FactMask.ALL, null);
     }
 
     public boolean firesOn(int triggerId) {

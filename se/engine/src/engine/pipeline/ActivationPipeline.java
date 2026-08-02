@@ -2,9 +2,11 @@ package engine.pipeline;
 
 import compile.model.Ability;
 import compile.model.ScopeKinds;
+import compile.model.cond.NumExpr;
 import engine.condition.ConditionEvaluator;
 import engine.condition.ConditionResult;
 import engine.condition.Flow;
+import engine.condition.NumExprEval;
 import engine.interact.SoulSpender;
 import engine.stores.CooldownStore;
 import engine.stores.SuppressionStore;
@@ -143,7 +145,7 @@ public final class ActivationPipeline {
         // 8. chance roll — roll [0,100) < (base + Δ); FORCE/ALLOW skip the roll. Basis points are captured for
         //    both the fail path and ACTIVATED (rollBp -1 = no roll: forced/allowed).
         int rollBp = -1;
-        double chance = ability.baseChance() + cond.chanceDelta();
+        double chance = chanceOf(ability, act) + cond.chanceDelta();
         int chanceBp = (int) Math.round(chance * 100.0);
         if (cond.flow() != Flow.FORCE && cond.flow() != Flow.ALLOW) {
             double roll = act.chanceRoll().getAsDouble();
@@ -183,6 +185,23 @@ public final class ActivationPipeline {
     }
 
     /** Report one attempt's verdict + per-gate payload to the recorder, then return the verdict (ADR-0045). */
+    /**
+     * The ability's chance for THIS activation: the primitive when {@code chance:} was a constant (one null
+     * check on the hot path), else the expression over the already-populated buffer, clamped to {@code [0,100]}
+     * so a runaway variable can neither guarantee nor forbid a proc.
+     */
+    private static double chanceOf(Ability ability, Activation act) {
+        NumExpr expr = ability.chanceExpr();
+        if (expr == null) {
+            return ability.baseChance();
+        }
+        double value = NumExprEval.eval(expr, act.facts());
+        if (!Double.isFinite(value)) {
+            return 0.0; // a missing variable degrades to "never", never to a NaN comparison
+        }
+        return Math.min(Math.max(value, 0.0), 100.0);
+    }
+
     private GateOutcome record(GateOutcome out, Ability ability, Activation act, int pA, int pB) {
         recorder.record(act.actor(), act.nowTicks(), act.triggerId(), ability.defId(), out.ordinal(), pA, pB);
         return out;

@@ -191,6 +191,14 @@ public final class ParamType {
     }
 
     /**
+     * Whether {@code token} is an expression rather than a plain number — the ONE place that question is
+     * answered, shared by argument parsing and the loaders' {@code chance:} knob.
+     */
+    public static boolean isExpression(String token) {
+        return token != null && looksLikeExpression(token);
+    }
+
+    /**
      * Whether a non-literal numeric token is an expression (a {@code %var%}, arithmetic, or a function call).
      * A leading sign alone never reaches here (a signed literal parses), so only an interior op marks arithmetic.
      */

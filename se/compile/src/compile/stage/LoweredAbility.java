@@ -4,6 +4,7 @@ import compile.model.Affinity;
 import compile.model.CompiledCondition;
 import compile.model.CompiledEffect;
 import compile.model.SourceKind;
+import compile.model.cond.NumExpr;
 import schema.diag.Source;
 import java.util.List;
 
@@ -21,6 +22,7 @@ import java.util.List;
  * @param repeatTicks    repeating-trigger period; {@code 0} = none
  * @param affinity       affinity folded MAX over {@link #effects} (CONTEXT_LOCAL if none)
  * @param setPieces      worn-piece count that completes a {@link SourceKind#SET} bonus; {@code 0} otherwise
+ * @param chanceExpr     evaluated at the chance gate instead of {@link #baseChance}; {@code null} = constant
  */
 public record LoweredAbility(
         SourceKind sourceKind,
@@ -42,12 +44,24 @@ public record LoweredAbility(
         Affinity affinity,
         Source source,
         int setPieces,
-        boolean suppressImmune) {
+        boolean suppressImmune,
+        NumExpr chanceExpr) {
 
     public LoweredAbility {
         triggers = List.copyOf(triggers);
         worldBlacklist = List.copyOf(worldBlacklist);
         effects = List.copyOf(effects);
+    }
+
+    /** Back-compat construction for a constant {@code chance:} — the overwhelmingly common case. */
+    public LoweredAbility(SourceKind sourceKind, String stableKey, int defId, int level, double baseChance,
+                          int cooldownTicks, int soulCost, List<String> triggers, List<String> worldBlacklist,
+                          CompiledCondition condition, List<CompiledEffect> effects, String suppressKey,
+                          String cdScopeEnchant, String cdScopeGroup, String cdScopeType, int repeatTicks,
+                          Affinity affinity, Source source, int setPieces, boolean suppressImmune) {
+        this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
+                condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks, affinity,
+                source, setPieces, suppressImmune, null);
     }
 
     /** Back-compat construction defaulting {@code suppressImmune=false} — most callers never set it. */
@@ -58,6 +72,6 @@ public record LoweredAbility(
                           Affinity affinity, Source source, int setPieces) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks, affinity,
-                source, setPieces, false);
+                source, setPieces, false, null);
     }
 }

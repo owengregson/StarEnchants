@@ -159,7 +159,8 @@ final class EnchantDefReader {
                                       String baseKey, List<String> triggers, List<String> disabledWorlds,
                                       String group, int rootRepeatTicks, boolean suppressImmune,
                                       IntSupplier nextDefId, Diagnostics diags) {
-        double chance = ContentParse.resolveChance(knobNode(block, lvl, root, "chance"), "chance", diags);
+        ContentParse.Chance chance =
+                ContentParse.resolveChanceValue(knobNode(block, lvl, root, "chance"), "chance", diags);
         int cooldown = ContentParse.resolveInt(knobNode(block, lvl, root, "cooldown"), "cooldown", 0, diags);
         int soulCost = ContentParse.resolveInt(knobNode(block, lvl, root, "soul-cost"), "soul-cost", 0, diags);
         String condition = ContentParse.blankToNull(
@@ -176,7 +177,7 @@ final class EnchantDefReader {
                 stableKey,
                 nextDefId.getAsInt(),
                 level,
-                chance,
+                chance.constant(),
                 cooldown,
                 soulCost,
                 blockTriggers,
@@ -190,7 +191,8 @@ final class EnchantDefReader {
                 repeatTicks,
                 effectsNode.source(),
                 0,
-                suppressImmune);
+                suppressImmune,
+                chance.expr());
     }
 
     /** The node a knob is read from: the innermost scope that declares it — block, then level, then file root. */

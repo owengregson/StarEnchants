@@ -10,6 +10,7 @@ import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Severity;
 import schema.diag.Source;
+import schema.spec.ParamType;
 import schema.grammar.EffectLine;
 import schema.spec.Ranges;
 
@@ -242,11 +243,30 @@ final class ContentParse {
         out.add(EffectLine.verbose(effectHead, 1, named, who, item.source()));
     }
 
-    /** A {@code [0,100]} chance knob (scalar); {@code 100} when absent. */
+    /**
+     * A chance knob: a constant clamped to {@code [0,100]}, or an expression carried as raw text for the
+     * lower stage to compile (evaluated and clamped per activation). {@code 100} when absent.
+     */
+    record Chance(double constant, String expr) {
+        static Chance of(double constant) {
+            return new Chance(constant, null);
+        }
+    }
+
+    /** A {@code [0,100]} chance knob (scalar); {@code 100} when absent. Constants only — see {@link #resolveChanceValue}. */
     static double resolveChance(YamlNode node, String key, Diagnostics diags) {
-        double chance = doubleOr(node.has(key) ? node.string(key) : null, 100.0, key, Severity.ERROR,
+        return resolveChanceValue(node, key, diags).constant();
+    }
+
+    static Chance resolveChanceValue(YamlNode node, String key, Diagnostics diags) {
+        String raw = node.has(key) ? node.string(key) : null;
+        // An expression can't be range-checked at load, so it skips the clamp here and is clamped at the gate.
+        if (raw != null && !raw.isBlank() && ParamType.isExpression(raw.trim())) {
+            return new Chance(100.0, raw.trim());
+        }
+        double chance = doubleOr(raw, 100.0, key, Severity.ERROR,
                 DiagCode.E_LOAD_DOUBLE, node.sourceOf(key), diags);
-        return clampChance(chance, node.sourceOf(key), diags);
+        return Chance.of(clampChance(chance, node.sourceOf(key), diags));
     }
 
     /** An integer knob (scalar); else {@code fallback}. */
