@@ -47,7 +47,10 @@ class LoaderFuzzTest {
             Map.entry("bad-chance.yml", DiagCode.E_LOAD_CHANCE),
             Map.entry("fn-arity.yml", DiagCode.E_PARSE_FN_ARITY),
             Map.entry("fn-unknown.yml", DiagCode.E_PARSE_UNKNOWN_FN),
-            Map.entry("fn-unterminated.yml", DiagCode.E_PARSE_UNCLOSED_GROUP));
+            Map.entry("fn-unterminated.yml", DiagCode.E_PARSE_UNCLOSED_GROUP),
+            Map.entry("multi-ability-ambiguous.yml", DiagCode.E_LOAD_ENCHANT_LEVEL),
+            Map.entry("multi-ability-empty.yml", DiagCode.E_LOAD_ENCHANT_LEVEL),
+            Map.entry("multi-ability-scalar-entry.yml", DiagCode.E_LOAD_ENCHANT_LEVEL));
 
     @TempDir
     Path root;

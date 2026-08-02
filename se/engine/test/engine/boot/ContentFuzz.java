@@ -649,6 +649,39 @@ final class ContentFuzz {
                     chance: "50"
                     effects: []
                 """));
+        out.add(Map.entry("multi-ability.yml", """
+                display: "multiability"
+                trigger: "ATTACK"
+                levels:
+                  1:
+                    abilities:
+                      - { chance: 50, effects: [{ CANCEL: {} }] }
+                      - { trigger: "DEFENSE", cooldown: 20, effects: [{ CANCEL: {} }] }
+                """));
+        out.add(Map.entry("multi-ability-ambiguous.yml", """
+                display: "ambiguous"
+                trigger: "ATTACK"
+                levels:
+                  1:
+                    effects: [{ CANCEL: {} }]
+                    abilities:
+                      - { effects: [{ CANCEL: {} }] }
+                """));
+        out.add(Map.entry("multi-ability-empty.yml", """
+                display: "emptyabilities"
+                trigger: "ATTACK"
+                levels:
+                  1: { abilities: [] }
+                """));
+        out.add(Map.entry("multi-ability-scalar-entry.yml", """
+                display: "scalarentry"
+                trigger: "ATTACK"
+                levels:
+                  1:
+                    abilities:
+                      - "not a mapping"
+                      - 42
+                """));
         out.add(Map.entry("fn-arity.yml", """
                 display: "fnarity"
                 trigger: "ATTACK"

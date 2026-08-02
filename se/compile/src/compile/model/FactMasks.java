@@ -3,7 +3,6 @@ package compile.model;
 import compile.model.cond.Cond;
 import compile.model.cond.NumExpr;
 import compile.model.cond.StrExpr;
-import schema.spec.Args;
 
 /**
  * Derives an ability's {@link FactMask} at compile time (ADR-0039): the union of every {@code FactBuffer}

@@ -170,6 +170,37 @@ Any per-level key may instead be set **once at the root** as the default for eve
 level shares a cooldown, write `cooldown: 100` at the top level instead of repeating it.
 :::
 
+### Several abilities on one level
+
+A level usually does one thing, so `effects:` sits directly under it. When one level needs **two
+independent behaviours** — different triggers, different chances, or separate cooldowns — replace
+`effects:` with an `abilities:` list. Each entry is a complete ability in its own right:
+
+```yaml
+levels:
+  3:
+    abilities:
+      - chance: 40                 # a proc on the swing
+        cooldown: 60
+        effects:
+          - { IGNITE: { duration: 60, who: "@Victim" } }
+      - trigger: DEFENSE           # …and a separate retaliation, on its own trigger
+        chance: 100
+        effects:
+          - { POTION: { effect: RESISTANCE, level: 1, duration: 40, who: "@Self" } }
+```
+
+Each block takes any per-level key plus its own `trigger` and `repeat`. Anything a block leaves out
+falls back to the level, then to the root — so the shared knobs stay written once.
+
+The blocks belong to the same enchant: they share its `group`, its cooldown bucket, and its
+suppression key, so a `DISABLE_ENCHANT` silences all of them together.
+
+:::caution One shape per level
+A level uses **either** `effects:` or `abilities:`, never both — declaring both is a load error rather
+than a silent guess about which one you meant. An empty `abilities: []` is an error too.
+:::
+
 ### Writing effects
 
 Each effect is a **block map** — `{ HEAD: { param: value } }`:
