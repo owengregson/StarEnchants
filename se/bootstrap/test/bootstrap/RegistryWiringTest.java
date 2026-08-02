@@ -94,6 +94,7 @@ class RegistryWiringTest {
             "pet summon registry", "bat swarms", "bat cloud targets", "pet armed windows", "pet shared-use gate", "pet home windows", "pet home visuals", // pets (0052/0059/0060/0061/0068/0070)
             "mask illusions", "mask provocations",                            // masks (ADR-0053)
             "gravity wells", "castling channels", "javelin flights", "control locks", // reforges (ADR-0070/0071 Plan B)
+            "bless cooldowns",                                                // bless (ADR-0072)
             "bStats");                                                        // coreStops
 
     private static final List<String> GOLDEN_MENUS = List.of("hub", "console", "mint", "apply", "enchants", "sets",
@@ -185,6 +186,7 @@ class RegistryWiringTest {
         when(core.appliedSlot()).thenReturn(mock(item.codec.AppliedSlot.class));
         when(core.carrierCodec()).thenReturn(mock(item.codec.CarrierCodec.class));
         when(core.trakCodec()).thenReturn(mock(item.codec.TrakCodec.class));
+        when(core.holyProtectionCodec()).thenReturn(mock(item.codec.HolyProtectionCodec.class));
         when(core.petCodec()).thenReturn(new item.codec.PetCodec(item.codec.ItemKeys.of(),
                 mock(item.codec.ItemStateStore.class)));
         when(core.petArmedStore()).thenReturn(new feature.pet.PetArmedStore());
@@ -203,6 +205,7 @@ class RegistryWiringTest {
         when(core.stores()).thenReturn(EngineStores.fresh());
         when(core.sinkEnv()).thenReturn(engine.sink.SinkEnv.of(platform.economy.EconomyService.NONE,
                 engine.sink.SoulDebit.NONE, EngineStores.fresh(), new AtomicLong()::get));
+        when(core.economy()).thenReturn(platform.economy.EconomyService.NONE); // ADR-0072 /bless cost gate
         when(core.executor()).thenReturn(mock(engine.run.AbilityExecutor.class));
         when(core.dispatch()).thenReturn(mock(feature.combat.CombatDispatch.class));
         when(core.triggerDispatch()).thenReturn(mock(feature.trigger.TriggerDispatch.class));

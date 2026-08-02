@@ -39,6 +39,7 @@ public final class ItemKeys {
     private final String maskItem;
     private final String illusion;
     private final String reforgeItem;
+    private final String holyProtections;
 
     private ItemKeys(String combat, String soul, String carrier, String guarded,
                      String crystalItem, String crystalExtractor, String heroicUpgrade,
@@ -47,7 +48,7 @@ public final class ItemKeys {
                      String trakGem, String trakBlocks, String trakMobs, String trakSouls, String trakFish,
                      String loreComposer, String useItem,
                      String pet, String petLevel, String petExp, String petExpFrac, String petFood,
-                     String maskItem, String illusion, String reforgeItem) {
+                     String maskItem, String illusion, String reforgeItem, String holyProtections) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
@@ -77,6 +78,7 @@ public final class ItemKeys {
         this.maskItem = maskItem;
         this.illusion = illusion;
         this.reforgeItem = reforgeItem;
+        this.holyProtections = holyProtections;
     }
 
     public static ItemKeys of() {
@@ -84,7 +86,7 @@ public final class ItemKeys {
                 "heroicupgrade", "slotitem", "slotsuccess", "scroll", "scrollconvert", "unopened",
                 "godlytransmog", "appliedslot", "trakgem", "trakblocks", "trakmobs", "traksouls", "trakfish",
                 "lorecomposer", "useitem", "pet", "petlevel", "petexp", "petexpfrac", "petfood", "maskitem",
-                "illusion", "reforgeitem");
+                "illusion", "reforgeitem", "holyprotections");
     }
 
     public String combat() {
@@ -227,5 +229,11 @@ public final class ItemKeys {
     /** A reforge catalogue item (ADR-0070): the PDC string under this key is the reforge's def key (pre-apply). */
     public String reforgeItem() {
         return reforgeItem;
+    }
+
+    /** Lifetime count of holy white scrolls this item has SPENT saving itself (§I corruption) — the trak-counter
+     *  rule: its own integer key, never the combat blob, so a death bump cannot thrash the ItemView cache. */
+    public String holyProtections() {
+        return holyProtections;
     }
 }

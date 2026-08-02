@@ -48,7 +48,9 @@ public final class ScrollPlayerSuite implements Harness.Scenario {
         ItemKeys keys = ItemKeys.of();
         ScrollCodec scrollCodec = new ScrollCodec(keys.scroll(), Stores.state());
         AppliedSlot slot = new AppliedSlot(keys.appliedSlot(), Stores.state());
-        HolyScrollService holy = new HolyScrollService(scrollCodec, slot, ScrollsConfig::defaults, new Random(1),
+        HolyScrollService holy = new HolyScrollService(scrollCodec, slot,
+                new item.codec.HolyProtectionCodec(keys.holyProtections(), Stores.state()),
+                ScrollsConfig::defaults, new Random(1),
                 platform.lang.Messages.defaults(), gear -> { }, platform.item.ItemGroups.standard()); // 100%
         NametagService nametags = new NametagService(scrollCodec, ScrollsConfig::defaults,
                 platform.lang.Messages.defaults(), null);

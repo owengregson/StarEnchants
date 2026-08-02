@@ -70,7 +70,35 @@ min-success: 100
 max-success: 100
 # Stamped onto the holy-protected item while the keep marker is present; removed when it is consumed.
 protected-line: "&e&l*&f&lHOLY&e&l* &f&lPROTECTED"
+
+# Corruption — how many holy scrolls this item may ever SPEND. 0 = unlimited.
+max-protections: 7
+corrupt-lines:
+  semi: "&c&lSEMI CORRUPT (&r&f&n{AMOUNT}&r&7 / {MAX} Holy Protections&r&c&l)"
+  very: "&c&lVERY CORRUPT (&r&f&n{AMOUNT}&r&7 / {MAX} Holy Protections&r&c&l)"
+  full: "&c&lCORRUPTED (&r&f&n{AMOUNT}&r&7 / {MAX} Holy Protections&r&c&l)"
 ```
+
+### Corruption
+
+An item can only be saved so many times. Every holy white scroll that **actually does its job** — the
+marker cashed in by a death — spends one of the item's `max-protections` (7 by default) and stamps a
+corruption line directly below the `PROTECTED` line.
+
+Applying a scroll costs the item nothing. Only the death that uses it counts, so a scroll you never
+cash in is free.
+
+| Spent | Line |
+| --- | --- |
+| 1–49% of the allowance | `SEMI CORRUPT (3 / 7 Holy Protections)` |
+| 50–99% | `VERY CORRUPT (4 / 7 Holy Protections)` |
+| 100% | `CORRUPTED (7 / 7 Holy Protections)` |
+
+The stage is a **percentage**, so these read the same whatever allowance you configure. Unlike the
+`PROTECTED` line — which vanishes with its marker — the corruption line is permanent once earned.
+
+At `CORRUPTED` the item takes no further holy white scrolls, and a scroll dragged onto it is **not**
+consumed. Set `max-protections: 0` to switch corruption off entirely.
 
 :::note The totem look is cosmetic
 `TOTEM_OF_UNDYING` is **display only** — the vanilla totem pop is suppressed, so the scroll keeps one

@@ -23,6 +23,7 @@ features:
   souls: true      # the soul gem system (deposit on kill, soul mode, gem inventory)
   scrolls: true    # scroll-family interactions (black/randomizer/transmog/holy/nametag/godly transmog)
   use-items: true  # right-click use-items fire their abilities (§3.6); false leaves a held use-item inert
+  bless: true      # register /bless, the player-facing debuff cleanse
 
 # Combat caps (cross-cutting). The additive damage fold (ADR-0012) sums every source's outgoing% and
 # reduction%; these ceil those sums. A negative value = no cap; outgoing defaults to +500% so a pre-charged
@@ -175,6 +176,16 @@ integrations:
 reload:
   re-resolve-players: true  # re-resolve every online player's worn state after a content swap
   auto-seconds: 0           # auto-/se-reload interval in seconds (0 = off; armed once at boot)
+
+# /bless — the player-facing cleanse. Strips every debuff an opponent landed: harmful potion effects, the
+# freeze DoT + its slow, damage already banked against the player, burning, and any Mark of the Reaper on
+# them. A PERMANENT debuff the player carries by choice (a helmet granting mining fatigue) is never stripped.
+# Gated on starenchants.bless (default true); starenchants.bless.bypass skips both knobs below.
+# Both are read live on /se reload.
+bless:
+  cooldown-seconds: 60  # seconds between one player's blesses (0 = no cooldown); survives a relog
+  cost: 0.0             # charged per bless via the economy bridge (0 = free). With a cost set but no economy
+                        # provider installed the command refuses rather than running free.
 
 # Command trigger (§B). The COMMAND trigger fires a player's worn COMMAND-trigger enchants when they run a
 # configured command. Registered ONCE at boot (a command name cannot be re-bound mid-run cleanly), so a

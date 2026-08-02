@@ -23,3 +23,14 @@ max-success: 100
 # The lore line stamped onto a holy-protected item — rendered from state while the keep marker is present (at
 # the bottom of the lore, above any trak lines) and removed when the marker is consumed on death.
 protected-line: "&e&l*&f&lHOLY&e&l* &f&lPROTECTED"
+
+# An item may only ever SPEND this many holy white scrolls; the count rises when a scroll actually saves the
+# item on death, not when one is applied. At the maximum the item is CORRUPTED and refuses further scrolls.
+max-protections: 7
+
+# Rendered from the spent count, directly below protected-line. Which line shows is a percentage of
+# max-protections: 1–49% semi, 50–99% very, 100% full.
+corrupt-lines:
+  semi: "&c&lSEMI CORRUPT (&r&f&n{AMOUNT}&r&7 / {MAX} Holy Protections&r&c&l)"
+  very: "&c&lVERY CORRUPT (&r&f&n{AMOUNT}&r&7 / {MAX} Holy Protections&r&c&l)"
+  full: "&c&lCORRUPTED (&r&f&n{AMOUNT}&r&7 / {MAX} Holy Protections&r&c&l)"

@@ -380,7 +380,16 @@ public final class ItemsLoader {
                 parseInt(root.string("min-success"), d.minSuccess(), root, diags),
                 parseInt(root.string("max-success"), d.maxSuccess(), root, diags),
                 orDefault(root.string("protected-line"), d.protectedLine()),
-                root.has("applies-to") ? root.stringList("applies-to") : d.appliesTo());
+                root.has("applies-to") ? root.stringList("applies-to") : d.appliesTo(),
+                parseInt(root.string("max-protections"), d.maxProtections(), root, diags),
+                readCorruptLines(root.child("corrupt-lines"), d.corruptLines()));
+    }
+
+    private static ScrollsConfig.CorruptLines readCorruptLines(YamlNode n, ScrollsConfig.CorruptLines d) {
+        return new ScrollsConfig.CorruptLines(
+                orDefault(n.string("semi"), d.semi()),
+                orDefault(n.string("very"), d.very()),
+                orDefault(n.string("full"), d.full()));
     }
 
     private static ScrollsConfig.Nametag readNametag(YamlNode root, Diagnostics diags) {
