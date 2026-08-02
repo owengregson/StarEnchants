@@ -103,8 +103,9 @@ public final class FactMasks {
                 for (NumExpr arg : f.args()) {
                     num(arg); // a function reads nothing itself — only whatever its arguments read
                 }
-            } else if (node instanceof NumExpr.Lit || node instanceof NumExpr.Papi) {
-                // Reference no fact slot.
+            } else if (node instanceof NumExpr.Lit || node instanceof NumExpr.Papi
+                    || node instanceof NumExpr.EntityVar) {
+                // Reference no fact slot (a PAPI token and an entity var both resolve through lazy readers).
             } else {
                 throw new IllegalStateException("unhandled node: " + node.getClass());
             }

@@ -252,6 +252,13 @@ public final class FactPopulator {
             } else {
                 facts.papiResolver(papiDelegate);
             }
+            // %victim.var.<name>%: same store, victim's UUID. No entity read beyond getUniqueId(), so no
+            // Folia guard is needed and a cross-region victim still resolves.
+            LivingEntity victim = context.victim();
+            if (victim != null) {
+                UUID victimId = victim.getUniqueId();
+                facts.victimVarResolver(name -> vars.get(victimId, name, nowTicks));
+            }
         }
         return facts;
     }

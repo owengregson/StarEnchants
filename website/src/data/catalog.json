@@ -3322,10 +3322,10 @@
     },
   {
     "head": "SET_VAR",
-    "doc": "Set a per-player variable readable in later conditions as %name% (ttl ticks, 0 = forever).",
+    "doc": "Set (or with op=increment, add to) a variable on the target, readable in later conditions as %name% on the activator or %victim.var.name% on the victim. ttl ticks, 0 = forever; cap 0 = uncapped. Any living entity can carry one, so a mob holds its own stacks.",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ SET_VAR: { name: <string>, value: <string=>, ttl: <ticks[0..]=0> } }",
-    "example": "{ SET_VAR: { name: rage, value: 1, ttl: 200, who: \"@Self\" } }",
+    "usage": "{ SET_VAR: { name: <string>, value: <string=>, ttl: <ticks[0..]=0>, op: <enum{set|increment}=set>, step: <int=1>, cap: <int[0..]=0> } }",
+    "example": "{ SET_VAR: { name: bleedstacks, op: increment, step: 1, cap: 20, ttl: 200, who: \"@Victim\" } }",
     "params": [
       {
         "name": "name",
@@ -3355,6 +3355,45 @@
         "name": "ttl",
         "kind": "TICKS",
         "label": "ticks[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "op",
+        "kind": "ENUM",
+        "label": "enum{set|increment}",
+        "required": false,
+        "default": "set",
+        "min": null,
+        "max": null,
+        "enum": [
+          "set",
+          "increment"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "step",
+        "kind": "INT",
+        "label": "int",
+        "required": false,
+        "default": "1",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "cap",
+        "kind": "INT",
+        "label": "int[0..]",
         "required": false,
         "default": "0",
         "min": 0,

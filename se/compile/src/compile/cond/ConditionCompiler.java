@@ -149,7 +149,30 @@ public final class ConditionCompiler {
         }
     }
 
+    /**
+     * {@code %victim.var.<name>%} — recognised by PREFIX before the PlaceholderAPI fallthrough, since
+     * author-named vars can't be enumerated in the vocabulary. Without this arm the token would lower to a
+     * PAPI passthrough and read null forever: a silent no-op instead of a working read.
+     */
+    private static NumExpr.EntityVar entityVar(Expr.VarRef v) {
+        if (!"victim".equalsIgnoreCase(v.scope()) || v.name() == null) {
+            return null;
+        }
+        String name = v.name();
+        if (name.length() <= VAR_PREFIX.length() || !name.regionMatches(true, 0, VAR_PREFIX, 0, VAR_PREFIX.length())) {
+            return null;
+        }
+        // The remainder is handed over whole — inner dots and all — so %victim.var.mark.beast% is one name.
+        return new NumExpr.EntityVar(NumExpr.Scope.VICTIM, name.substring(VAR_PREFIX.length()));
+    }
+
+    private static final String VAR_PREFIX = "var.";
+
     private Optional<NumExpr> numVar(Expr.VarRef v, Diagnostics diags) {
+        NumExpr.EntityVar entity = entityVar(v);
+        if (entity != null) {
+            return Optional.of(entity);
+        }
         Optional<VarBinding> b = vars.resolve(v.scope(), v.name());
         if (b.isEmpty()) {
             return Optional.of(new NumExpr.Papi(token(v))); // unknown → PlaceholderAPI passthrough, parsed at runtime
@@ -334,6 +357,10 @@ public final class ConditionCompiler {
     }
 
     private Operand varOperand(Expr.VarRef v) {
+        NumExpr.EntityVar entity = entityVar(v);
+        if (entity != null) {
+            return Operand.num(entity); // a counter is numeric: %victim.var.stacks% >= 3
+        }
         Optional<VarBinding> b = vars.resolve(v.scope(), v.name());
         if (b.isEmpty()) {
             return Operand.papi(token(v)); // unknown → PlaceholderAPI passthrough

@@ -2286,6 +2286,22 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
+    public void setVarOn(LivingEntity target, String name, String value, int ttlTicks) {
+        if (target == null || name == null) {
+            return;
+        }
+        vars.set(target.getUniqueId(), name, value, nowTicks.getAsLong(), ttlTicks);
+    }
+
+    @Override
+    public void incrementVar(LivingEntity target, String name, int step, int cap, int ttlTicks) {
+        if (target == null || name == null) {
+            return;
+        }
+        vars.increment(target.getUniqueId(), name, step, cap, nowTicks.getAsLong(), ttlTicks);
+    }
+
+    @Override
     public void invertVar(Player target, String name) {
         if (target == null || name == null) {
             return;

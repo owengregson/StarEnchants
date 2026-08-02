@@ -797,15 +797,18 @@ Set the target block(s) to a material (default @Here = the activation block).
 
 ### SET_VAR
 
-Set a per-player variable readable in later conditions as %name% (ttl ticks, 0 = forever).
+Set (or with op=increment, add to) a variable on the target, readable in later conditions as %name% on the activator or %victim.var.name% on the victim. ttl ticks, 0 = forever; cap 0 = uncapped. Any living entity can carry one, so a mob holds its own stacks.
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ SET_VAR: { name: <string>, value: <string=>, ttl: <ticks[0..]=0> } }`
+- _usage_: `{ SET_VAR: { name: <string>, value: <string=>, ttl: <ticks[0..]=0>, op: <enum{set|increment}=set>, step: <int=1>, cap: <int[0..]=0> } }`
 - _param_ `name` `string`
 - _param_ `value` `string`
 - _param_ `ttl` `ticks[0..]`
+- _param_ `op` `enum{set|increment}`
+- _param_ `step` `int`
+- _param_ `cap` `int[0..]`
 - _target_ `who`: selector `SELF`
-- _example_: `{ SET_VAR: { name: rage, value: 1, ttl: 200, who: "@Self" } }`
+- _example_: `{ SET_VAR: { name: bleedstacks, op: increment, step: 1, cap: 20, ttl: 200, who: "@Victim" } }`
 
 ### SMELT
 

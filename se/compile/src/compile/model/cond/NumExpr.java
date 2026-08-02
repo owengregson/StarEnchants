@@ -9,7 +9,8 @@ import java.util.List;
  * walks it over a primitive fact buffer with no parsing on the hot path (see the engine's {@code NumExprEval}).
  */
 public sealed interface NumExpr
-        permits NumExpr.Var, NumExpr.Lit, NumExpr.Papi, NumExpr.Bin, NumExpr.Neg, NumExpr.Fn {
+        permits NumExpr.Var, NumExpr.Lit, NumExpr.Papi, NumExpr.Bin, NumExpr.Neg, NumExpr.Fn,
+                NumExpr.EntityVar {
 
     /** A numeric variable resolved to its dense {@code FactBuffer} number slot. */
     record Var(int slot) implements NumExpr {}
@@ -28,6 +29,16 @@ public sealed interface NumExpr
     record Bin(NumExpr left, Op op, NumExpr right) implements NumExpr {}
 
     record Neg(NumExpr operand) implements NumExpr {}
+
+    /**
+     * A dynamic var read from a NAMED entity rather than the activator — {@code %victim.var.<name>%}.
+     * Author-named vars can't be enumerated at compile time, so this carries the name to a runtime
+     * {@code VarStore} lookup scoped to {@link Scope}; unset/absent reads {@code 0} (§5.4).
+     */
+    record EntityVar(Scope scope, String name) implements NumExpr {}
+
+    /** Which entity of the activation an {@link EntityVar} reads from. */
+    enum Scope { VICTIM }
 
     /** A function over nested operands; {@code args} arity is guaranteed by the parser's {@code ExprFn} check. */
     record Fn(FnKind kind, List<NumExpr> args) implements NumExpr {

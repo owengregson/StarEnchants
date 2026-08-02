@@ -6,9 +6,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Per-player writable variables (docs/architecture.md §5.4; v3.1 §A) — runtime home for the
- * {@code SET_VAR} / {@code INVERT_VAR} effects. A variable is a named string value, scoped to one player
- * and optionally time-limited.
+ * Per-entity writable variables (docs/architecture.md §5.4; v3.1 §A) — runtime home for the
+ * {@code SET_VAR} / {@code INVERT_VAR} effects. A variable is a named string value, scoped to one carrier
+ * and optionally time-limited. The carrier is any {@code LivingEntity}: keying was always by UUID, so a mob
+ * holding bleed stacks needs no separate map — only a death sweep, since mobs never "quit".
  *
  * <p>The <em>writable</em> companion to the built-in fact slots: author-named dynamic vars can't be
  * enumerated at compile time, so they live here and are read back through the {@code FactBuffer}'s
@@ -75,7 +76,36 @@ public final class VarStore implements PlayerScoped {
         vars.put(key, new Entry(value == 0.0 ? "1" : "0", expiry));
     }
 
-    /** Forget every variable for one player (call on quit). */
+    /**
+     * Add {@code step} to {@code carrier}'s var {@code name}, pinned at {@code cap} ({@code 0} = uncapped),
+     * preserving the remaining TTL exactly like {@link #invert} — a re-stack must never extend its own
+     * window, or a stack applied every hit would never decay. An unset, elapsed or non-numeric value counts
+     * from {@code 0}, so a hand-set string can't poison the counter.
+     */
+    public void increment(UUID carrier, String name, int step, int cap, long nowTicks, int ttlTicks) {
+        Map<String, Entry> vars = byPlayer.computeIfAbsent(carrier, k -> new ConcurrentHashMap<>());
+        String key = canonical(name);
+        Entry current = vars.get(key);
+        long expiry = ttlTicks <= 0 ? Long.MAX_VALUE : nowTicks + ttlTicks;
+        double value = 0.0;
+        if (current != null && nowTicks < current.expiry()) {
+            expiry = current.expiry(); // keep the window the first stack opened
+            value = parse(current.value());
+        }
+        double next = value + step;
+        if (cap > 0 && next > cap) {
+            next = cap;
+        }
+        vars.put(key, new Entry(format(next), expiry));
+    }
+
+    /** Whole numbers render without a trailing {@code .0} so a counter reads back as {@code "3"}, not {@code "3.0"}. */
+    private static String format(double value) {
+        return value == Math.rint(value) && !Double.isInfinite(value)
+                ? Long.toString((long) value) : Double.toString(value);
+    }
+
+    /** Forget every variable for one carrier (a player on quit, a mob on death). */
     public void clear(UUID player) {
         byPlayer.remove(player);
     }

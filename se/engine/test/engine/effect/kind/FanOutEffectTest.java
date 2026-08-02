@@ -161,6 +161,20 @@ class FanOutEffectTest {
                 }));
     }
 
+    /** TARGET_VAR: a var carrier is any living entity, so both modes fan out like any entity intent. */
+    @TestFactory
+    List<DynamicTest> entityVarIntents() {
+        return List.of(
+                entity("SET_VAR op=set → setVarOn(name, value, ttl)", new SetVarEffect(),
+                        c -> c.with("name", "rage").with("value", "1").with("ttl", 200)
+                                .with("op", "set").with("step", 1).with("cap", 0),
+                        (s, t) -> verify(s).setVarOn(t, "rage", "1", 200)),
+                entity("SET_VAR op=increment → incrementVar(name, step, cap, ttl)", new SetVarEffect(),
+                        c -> c.with("name", "bleedstacks").with("value", "").with("ttl", 200)
+                                .with("op", "increment").with("step", 2).with("cap", 20),
+                        (s, t) -> verify(s).incrementVar(t, "bleedstacks", 2, 20, 200)));
+    }
+
     @TestFactory
     List<DynamicTest> playerTargetIntents() {
         return List.of(
@@ -179,9 +193,6 @@ class FanOutEffectTest {
                         c -> c.with("material", 4).with("count", 2), (s, p) -> verify(s).giveItem(p, 4, 2)),
                 playerOnly("REMOVE_ITEM → removeItem(material, count)", new RemoveItemEffect(),
                         c -> c.with("material", 9).with("count", 5), (s, p) -> verify(s).removeItem(p, 9, 5)),
-                playerOnly("SET_VAR → setVar(name, value, ttl)", new SetVarEffect(),
-                        c -> c.with("name", "rage").with("value", "1").with("ttl", 200),
-                        (s, p) -> verify(s).setVar(p, "rage", "1", 200)),
                 playerOnly("INVERT_VAR → invertVar(name)", new InvertVarEffect(),
                         c -> c.with("name", "flag"), (s, p) -> verify(s).invertVar(p, "flag")),
                 playerOnly("SUPPRESS timed → suppress(scope, key, duration, sourceDefId, nextHit=false, charges)",

@@ -70,6 +70,7 @@ class RegistryWiringTest {
             "SoulListener", "SoulInteractListener", "SoulInventoryListener",
             "TriggerListeners", "PlacedBlockTracker", "ItemDamageSource", "FallingBlockListener",
             "GuardianHurtListener", "SummonTargetGuardListener", // ADR-0071 amendments: never target your summoner
+            "EntityVarCleanupListener", // TARGET_VAR: a mob carrier never quits, so its vars are dropped on death
             "TempEquipListener", "TimedRevertListener", "TempBlockGuardListener",
             "HellfireFloorListener", "KeepOnDeathListener",
             "TeleblockListener", "ImmuneListener", "PotionLockGuard", "FreezeDamageGuard",

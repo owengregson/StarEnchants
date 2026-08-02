@@ -39,6 +39,9 @@ final class TriggersModule {
                 // amendments) — registered here with its sibling reader, not in reforges: every family's
                 // GUARD/SPAWN_ENTITY summons feed the same registry.
                 .events(new feature.combat.SummonTargetGuardListener())
+                // A mob carrying TARGET_VAR stacks never "quits", so the quit sweep can't bound it — drop its
+                // vars when it dies (players keep theirs, exactly as before).
+                .events(new feature.trigger.EntityVarCleanupListener(core.stores().vars()))
                 .command(new DynCommand(name,
                         () -> core.master().config().commandTrigger().enabled(),
                         () -> {
