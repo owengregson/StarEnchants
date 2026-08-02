@@ -203,9 +203,23 @@ public final class WornResolver {
             }
             if (f.enchants()) {
                 for (Map.Entry<String, Integer> enchant : combat.enchants().entrySet()) {
-                    int id = keys.idOf(enchant.getKey() + "/" + enchant.getValue());
+                    // The item stores base key + level; the ability key is <base>/<level>, which is also the
+                    // FIRST block of a multi-ability level — so an item written before multi-ability existed
+                    // resolves byte-identically.
+                    String levelKey = enchant.getKey() + "/" + enchant.getValue();
+                    int id = keys.idOf(levelKey);
                     if (id >= 0) {
                         firing.add(id);
+                        // A multi-ability level keys its further blocks <base>/<level>/a1, /a2, … (dense, no
+                        // gaps), exactly like a crystal/mask/reforge/set. Walk them so every block fires;
+                        // without this they would compile, take dense ids, and never activate.
+                        for (int n = 1; ; n++) {
+                            int extra = keys.idOf(levelKey + "/a" + n);
+                            if (extra < 0) {
+                                break;
+                            }
+                            firing.add(extra);
+                        }
                     }
                 }
             }

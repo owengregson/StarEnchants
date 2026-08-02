@@ -13,17 +13,14 @@ import compile.load.LibraryLoader;
 import compile.model.Ability;
 import compile.model.Snapshot;
 import compile.model.StableKeyIndex;
-import engine.effect.EffectRegistry;
-import engine.effect.kind.IgniteEffect;
+import engine.effect.kind.BuiltinEffects;
 import engine.interact.SoulSpender;
 import engine.pipeline.Activation;
 import engine.pipeline.ActivationPipeline;
 import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
 import engine.run.AreaScan;
-import engine.selector.SelectorRegistry;
-import engine.selector.kind.SelfSelector;
-import engine.selector.kind.VictimSelector;
+import engine.selector.kind.BuiltinSelectors;
 import engine.sink.ModernDispatchSink;
 import engine.stores.CooldownStore;
 import engine.trigger.BuiltinTriggers;
@@ -77,9 +74,10 @@ class MultiAbilityEnchantTest {
     void setUp() {
         handles = new RuntimeHandles(new RegistryResolvers());
         Scheduling.install(new SyncSchedulerBackend());
-        executor = new AbilityExecutor(
-                EffectRegistry.builder().register(new IgniteEffect()).build(),
-                SelectorRegistry.builder().register(new VictimSelector()).register(new SelfSelector()).build(),
+        // The SAME registries ContentCompiler.production stamps dense effect/selector kind ids against
+        // (ADR-0039). A hand-built subset registry would renumber those ids and silently mis-dispatch —
+        // an end-to-end test has to run the production vocabulary for the stamps to mean anything.
+        executor = new AbilityExecutor(BuiltinEffects.registry(), BuiltinSelectors.registry(),
                 new ActivationPipeline(new CooldownStore(), SoulSpender.NONE), AreaScan.NONE);
         triggerId = BuiltinTriggers.registry().idOf("ATTACK").orElseThrow();
     }

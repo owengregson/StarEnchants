@@ -213,7 +213,7 @@ class EnchantDefReaderTest {
         levels:
           2:
             abilities:
-              - { chance: 40, cooldown: 60, condition: "%sneaking%",
+              - { chance: 40, cooldown: 60, condition: "%sneaking% == true",
                   effects: [{ HEAL: { amount: 2 } }] }
               - { trigger: DEFENSE, soul-cost: 3, repeat: 20,
                   effects: [{ HEAL: { amount: 9 } }] }
@@ -242,7 +242,7 @@ class EnchantDefReaderTest {
         assertFalse(diags.hasErrors(), () -> diags.all().toString());
         assertEquals(40.0, first.baseChance(), 1e-9);
         assertEquals(60, first.cooldownTicks());
-        assertEquals("%sneaking%", first.conditionExpr());
+        assertEquals("%sneaking% == true", first.conditionExpr());
         assertEquals(List.of("ATTACK"), first.triggers());
         assertEquals("HEAL", first.effects().get(0).head());
 
@@ -285,17 +285,24 @@ class EnchantDefReaderTest {
 
         assertFalse(diags.hasErrors(), () -> diags.all().toString());
         assertEquals("enchants/x/1", fromLegacy.stableKey());
-        // Whole-record equality (defId/source normalised — they track authoring position, not shape), so a
-        // field the fan-out forgets to carry over fails here rather than in a hand-listed subset.
+        // Whole-record equality, so a field the fan-out forgets to carry over fails here rather than slipping
+        // past a hand-listed subset. Position-derived parts (defId, Source) are normalised away — the two
+        // shapes legitimately sit at different lines; everything that decides BEHAVIOUR must match.
         assertEquals(normalise(fromLegacy), normalise(fromList));
+        assertEquals(effectShape(fromLegacy), effectShape(fromList));
     }
 
-    /** The same def with its position-derived fields zeroed, so two shapes of one ability compare whole. */
+    /** The def with its position-derived fields dropped, so two authoring shapes of one ability compare whole. */
     private static AbilityDef normalise(AbilityDef d) {
         return new AbilityDef(d.sourceKind(), d.stableKey(), 0, d.level(), d.baseChance(), d.cooldownTicks(),
-                d.soulCost(), d.triggers(), d.worldBlacklist(), d.conditionExpr(), d.effects(), d.suppressKey(),
+                d.soulCost(), d.triggers(), d.worldBlacklist(), d.conditionExpr(), List.of(), d.suppressKey(),
                 d.cdScopeEnchant(), d.cdScopeGroup(), d.cdScopeType(), d.repeatTicks(),
                 Source.ofFile("normalised.yml"), d.setPieces(), d.suppressImmune());
+    }
+
+    /** Effect lines by head + named args; their embedded Source tracks the line they were written on. */
+    private static List<String> effectShape(AbilityDef d) {
+        return d.effects().stream().map(e -> e.head() + e.named()).toList();
     }
 
     @Test
