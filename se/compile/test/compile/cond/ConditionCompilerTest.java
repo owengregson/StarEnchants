@@ -14,11 +14,13 @@ import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.expr.Cmp;
 import schema.grammar.expr.Expr;
+import schema.grammar.expr.ExprFn;
 import schema.grammar.expr.ExprParser;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class ConditionCompilerTest {
@@ -205,4 +207,46 @@ class ConditionCompilerTest {
         assertInstanceOf(Cond.And.class, or.right());
     }
 
+    /** Every {@link ExprFn} maps to its compile kind — a missing arm would silently mis-lower a function. */
+    @ParameterizedTest
+    @EnumSource(ExprFn.class)
+    void everyFunctionLowersToItsCompileKind(ExprFn fn) {
+        Diagnostics d = new Diagnostics();
+        StringBuilder args = new StringBuilder("%damage%");
+        for (int i = 1; i < fn.arity(); i++) {
+            args.append(", ").append(i);
+        }
+        Cond.NumCmp cmp = assertInstanceOf(Cond.NumCmp.class,
+                lower(fn.token() + "(" + args + ") > 1", d));
+        assertFalse(d.hasErrors());
+        NumExpr.Fn lowered = assertInstanceOf(NumExpr.Fn.class, cmp.left());
+        assertEquals(fn.name(), lowered.kind().name());
+        assertEquals(fn.arity(), lowered.args().size());
+        assertEquals(new NumExpr.Var(2), lowered.args().get(0)); // %damage% resolved to its dense slot
+    }
+
+    @Test
+    void functionArgumentsLowerRecursivelyAndNest() {
+        Diagnostics d = new Diagnostics();
+        Cond.NumCmp cmp = assertInstanceOf(Cond.NumCmp.class,
+                lower("clamp(min(%damage%, 2) + 1, 0, max(3, %actor.health%)) > 0", d));
+        assertFalse(d.hasErrors());
+        NumExpr.Fn clamp = assertInstanceOf(NumExpr.Fn.class, cmp.left());
+        NumExpr.Bin sum = assertInstanceOf(NumExpr.Bin.class, clamp.args().get(0));
+        assertEquals(NumExpr.FnKind.MIN, assertInstanceOf(NumExpr.Fn.class, sum.left()).kind());
+        assertEquals(NumExpr.FnKind.MAX, assertInstanceOf(NumExpr.Fn.class, clamp.args().get(2)).kind());
+    }
+
+    @Test
+    void aStringArgumentToAFunctionIsATypeError() {
+        // Functions are numeric-only; the fault must be a diagnostic, never a lowering exception.
+        Diagnostics d = lowerExpectingError("min(%name%, 2) > 1");
+        assertTrue(d.all().stream().anyMatch(x -> x.is(DiagCode.E_COND_TYPE)));
+    }
+
+    @Test
+    void aBareFunctionIsNotAConditionOnItsOwn() {
+        Diagnostics d = lowerExpectingError("min(1, 2)");
+        assertTrue(d.all().stream().anyMatch(x -> x.is(DiagCode.E_COND_TYPE)));
+    }
 }
