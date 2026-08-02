@@ -102,6 +102,45 @@ class LowerStageTest {
     }
 
     @Test
+    void aConstantChanceLowersToThePrimitiveWithNoExpression() {
+        // The fast path must stay byte-identical: a numeric chance: never grows a NumExpr to walk per hit.
+        Diagnostics d = new Diagnostics();
+        LoweredAbility lowered = new DefaultLowerStage(registry()).lower(def(null, line("DAMAGE:6")), d);
+
+        assertFalse(d.hasErrors());
+        assertEquals(25.0, lowered.baseChance(), 1e-9);
+        assertNull(lowered.chanceExpr(), "a constant chance carries no expression");
+    }
+
+    @Test
+    void anExpressionChanceLowersToANumExprBesideTheConstant() {
+        Diagnostics d = new Diagnostics();
+        AbilityDef def = Defs.ability()
+                .stableKey("test/ability").defId(1).triggers("ATTACK")
+                .chanceExpr("min(50, %damage% * 10)")
+                .effects(line("DAMAGE:6")).source(SRC).build();
+        LoweredAbility lowered = new DefaultLowerStage(registry(), head -> Affinity.CONTEXT_LOCAL,
+                MapSpecRegistry.of(), head -> null, VARS).lower(def, d);
+
+        assertFalse(d.hasErrors(), () -> d.all().toString());
+        NumExpr.Fn fn = assertInstanceOf(NumExpr.Fn.class, lowered.chanceExpr());
+        assertEquals(NumExpr.FnKind.MIN, fn.kind());
+    }
+
+    @Test
+    void aMalformedChanceExpressionIsADiagnosticNotAThrow() {
+        Diagnostics d = new Diagnostics();
+        AbilityDef def = Defs.ability()
+                .stableKey("test/ability").defId(1).triggers("ATTACK")
+                .chanceExpr("min(1)")   // wrong arity
+                .effects(line("DAMAGE:6")).source(SRC).build();
+        LoweredAbility lowered = new DefaultLowerStage(registry()).lower(def, d);
+
+        assertTrue(d.hasErrors());
+        assertNull(lowered.chanceExpr(), "a rejected expression falls back to the constant chance");
+    }
+
+    @Test
     void aConstantArgOutOfTheParamSpecRangeStaysAnError() {
         Diagnostics d = new Diagnostics();
         new DefaultLowerStage(registry()).lower(def(null, line("DAMAGE:-5")), d);

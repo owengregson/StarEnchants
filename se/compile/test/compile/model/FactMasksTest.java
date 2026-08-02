@@ -92,6 +92,22 @@ class FactMasksTest {
     }
 
     @Test
+    void anExpressionChanceContributesItsSlotsToTheMask() {
+        // The chance expression is evaluated at gate 8 against the same buffer, so the populator has to be
+        // told about its facts — an unmasked slot would read a stale 0 and silently mis-roll every activation.
+        NumExpr chance = new NumExpr.Fn(NumExpr.FnKind.MIN,
+                java.util.List.of(new NumExpr.Lit(50), new NumExpr.Var(9)));
+        FactMask mask = FactMasks.of(null, chance, NO_EFFECTS);
+
+        assertTrue(mask.readsNum(9));
+    }
+
+    @Test
+    void aNullChanceExpressionAddsNothing() {
+        assertEquals(FactMask.NONE, FactMasks.of(null, null, NO_EFFECTS));
+    }
+
+    @Test
     void literalAndPapiNodesReferenceNoSlot() {
         Cond papi = new Cond.NumCmp(new NumExpr.Papi("some_placeholder"), Cmp.GE, new NumExpr.Lit(1));
         assertEquals(FactMask.NONE, FactMasks.of(gate(papi), NO_EFFECTS));

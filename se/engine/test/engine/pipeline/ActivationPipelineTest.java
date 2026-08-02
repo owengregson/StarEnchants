@@ -7,11 +7,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import compile.model.Ability;
 import compile.model.CompiledCondition;
 import compile.model.cond.Cond;
+import compile.model.cond.NumExpr;
+import engine.condition.FactBuffer;
 import engine.interact.SoulSpender;
 import engine.interact.SuppressionSet;
 import engine.stores.CooldownStore;
 import engine.stores.SuppressionStore;
 import schema.diag.Source;
+import schema.grammar.expr.FlowKind;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -51,9 +55,11 @@ class ActivationPipelineTest {
         CompiledCondition condition = null;
         int cdEnchant = -1, cdGroup = -1, cdType = -1;
         int suppressKey = -1;
+        NumExpr chanceExpr = null;
 
         Ability build() {
             return Abilities.ability().triggerMask(triggerMask).level(level).chance(baseChance)
+                    .chanceExpr(chanceExpr)
                     .cooldown(cooldownTicks).soulCost(soulCost).worldBlacklist(worldBlacklist)
                     .condition(condition).cooldownScope(cdEnchant, cdGroup, cdType).suppressKey(suppressKey)
                     .build();
@@ -136,6 +142,71 @@ class ActivationPipelineTest {
         Ab a = new Ab();
         a.condition = CompiledCondition.gate(new Cond.BoolLit(false), Source.UNKNOWN);
         assertEquals(GateOutcome.CONDITION_FAILED, pipeline.evaluate(a.build(), act().build()));
+    }
+
+    /**
+     * EXPR_CHANCE: an expression-valued {@code chance:} is evaluated at the SAME gate against the already
+     * populated fact buffer — the gate order is untouched, only the value being compared changes.
+     */
+    @Test
+    void expressionChanceIsEvaluatedAgainstTheFactBuffer() {
+        FactBuffer facts = new FactBuffer(1, 0, 0);
+        facts.setNumber(0, 2.0);
+        Ab a = new Ab();
+        a.baseChance = 0.0; // ignored: the expression is the authority when present
+        // min(50, %recentattackers% * 10) -> 20 at 2 attackers
+        a.chanceExpr = new NumExpr.Fn(NumExpr.FnKind.MIN, List.of(new NumExpr.Lit(50),
+                new NumExpr.Bin(new NumExpr.Var(0), NumExpr.Op.MULTIPLY, new NumExpr.Lit(10))));
+
+        assertEquals(GateOutcome.ACTIVATED,
+                pipeline.evaluate(a.build(), act().facts(facts).chanceRoll(() -> 19.0).build()));
+        assertEquals(GateOutcome.CHANCE_FAILED,
+                pipeline.evaluate(a.build(), act().facts(facts).chanceRoll(() -> 21.0).build()));
+
+        facts.setNumber(0, 8.0); // 80 raw, capped by the author's own min() at 50
+        assertEquals(GateOutcome.ACTIVATED,
+                pipeline.evaluate(a.build(), act().facts(facts).chanceRoll(() -> 49.0).build()));
+        assertEquals(GateOutcome.CHANCE_FAILED,
+                pipeline.evaluate(a.build(), act().facts(facts).chanceRoll(() -> 51.0).build()));
+    }
+
+    @Test
+    void expressionChanceClampsToTheLegalPercentRange() {
+        FactBuffer facts = new FactBuffer(1, 0, 0);
+        Ab a = new Ab();
+        a.chanceExpr = new NumExpr.Var(0);
+
+        facts.setNumber(0, 900.0); // over 100 → always fires, never a roll above the range
+        assertEquals(GateOutcome.ACTIVATED,
+                pipeline.evaluate(a.build(), act().facts(facts).chanceRoll(() -> 99.999).build()));
+
+        facts.setNumber(0, -50.0); // under 0 → never fires
+        assertEquals(GateOutcome.CHANCE_FAILED,
+                pipeline.evaluate(a.build(), act().facts(facts).chanceRoll(() -> 0.0).build()));
+    }
+
+    @Test
+    void aConditionChanceDeltaStillAppliesOnTopOfAnExpression() {
+        FactBuffer facts = new FactBuffer(1, 0, 0);
+        facts.setNumber(0, 10.0);
+        Ab a = new Ab();
+        a.chanceExpr = new NumExpr.Var(0);
+        a.condition = new CompiledCondition(new Cond.BoolLit(true), FlowKind.CONTINUE, FlowKind.CONTINUE,
+                25.0, Source.UNKNOWN);
+        // 10 from the expression + 25 from the clause = 35
+        assertEquals(GateOutcome.ACTIVATED,
+                pipeline.evaluate(a.build(), act().facts(facts).chanceRoll(() -> 34.0).build()));
+        assertEquals(GateOutcome.CHANCE_FAILED,
+                pipeline.evaluate(a.build(), act().facts(facts).chanceRoll(() -> 36.0).build()));
+    }
+
+    @Test
+    void aConstantChanceIsUnaffectedByTheExpressionPath() {
+        // The fast path: no expression means the primitive double is read exactly as before.
+        Ab a = new Ab();
+        a.baseChance = 50.0;
+        assertEquals(GateOutcome.CHANCE_FAILED, pipeline.evaluate(a.build(), act().chanceRoll(() -> 75.0).build()));
+        assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(a.build(), act().chanceRoll(() -> 25.0).build()));
     }
 
     @Test
