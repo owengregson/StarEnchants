@@ -72,6 +72,13 @@ public final class BuiltinVars {
                 // area filters and the friendly-fire gate consult, so "ally" means one thing everywhere.
                 .number("nearbyallies")     // allied PLAYERS within the %nearbyenemies% radius (self excluded)
                 .string("victim.relation")  // ALLY | ENEMY | NEUTRAL (non-player victim); empty with no victim
+                // Wave 1b.3 facts — appended (slots are append-only per §3.4).
+                // The actor's health once the incoming hit lands, priced as the SERVER prices it: current health
+                // minus the event's vanilla-final damage (post-armor/protection/resistance) but BEFORE the SE
+                // damage fold. Excluding the fold is deliberate — the fold's contributions come largely from the
+                // death-save abilities this fact gates, so folding it in would make the fact depend on its own
+                // consumers. DEFENSE-side only; 0 elsewhere.
+                .number("posthit.health")
                 .build();
     }
 }

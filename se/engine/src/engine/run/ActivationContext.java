@@ -25,13 +25,25 @@ import org.bukkit.entity.Player;
  * @param recentAttackers distinct attackers that hit the actor in the recent gank window ({@code %recentattackers%})
  * @param attackerIndex   on a DEFENSE-side hit, the 1-based first-seen order of this attacker among the actor's
  *                        recent attackers ({@code %attackerindex%}); 0 when absent
+ * @param vanillaFinalDamage the damage the actor is ABOUT to take, as the server priced it — post-armor,
+ *                        post-protection, post-resistance, but PRE-SE-fold ({@code %posthit.health%}). Set only
+ *                        on the DEFENSE context; {@link Double#NaN} everywhere else, where the fact stays 0
  */
 public record ActivationContext(Player actor, LivingEntity victim, LivingEntity attacker, Location location,
                                 double damage, Block block, int combo, String damageCauseName,
-                                boolean itemDamageArmor, int recentAttackers, int attackerIndex) {
+                                boolean itemDamageArmor, int recentAttackers, int attackerIndex,
+                                double vanillaFinalDamage) {
 
     public ActivationContext {
         damageCauseName = damageCauseName == null ? "" : damageCauseName;
+    }
+
+    /** Combat payload with the ADR-0049 gank/cause/item-damage facts but no pending damage (non-DEFENSE sides). */
+    public ActivationContext(Player actor, LivingEntity victim, LivingEntity attacker, Location location,
+                             double damage, Block block, int combo, String damageCauseName,
+                             boolean itemDamageArmor, int recentAttackers, int attackerIndex) {
+        this(actor, victim, attacker, location, damage, block, combo, damageCauseName, itemDamageArmor,
+                recentAttackers, attackerIndex, Double.NaN);
     }
 
     /** Combat/positional payload with a hit streak but no ADR-0049 gank/cause/item-damage facts. */
@@ -54,6 +66,6 @@ public record ActivationContext(Player actor, LivingEntity victim, LivingEntity 
     /** This context with the ADR-0049 gank/cause facts populated, preserving everything else (combat dispatch). */
     public ActivationContext withCombatFacts(String damageCauseName, int recentAttackers, int attackerIndex) {
         return new ActivationContext(actor, victim, attacker, location, damage, block, combo,
-                damageCauseName, itemDamageArmor, recentAttackers, attackerIndex);
+                damageCauseName, itemDamageArmor, recentAttackers, attackerIndex, vanillaFinalDamage);
     }
 }

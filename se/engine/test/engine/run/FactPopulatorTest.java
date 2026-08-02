@@ -280,6 +280,34 @@ class FactPopulatorTest {
                 0L, new FactMask(0L, 0L, 1L << slot)).string(slot));
     }
 
+    // ── posthit.health: the actor's health once the pending hit lands, priced at the server's vanilla-final
+    // damage and NOT the SE fold (whose contributions come from the death-save abilities this fact gates).
+
+    @Test
+    void postHitHealthSubtractsTheContextsVanillaFinalDamage() {
+        int slot = num("posthit", "health");
+        FactBuffer f = populator.populate(new ActivationContext(actor(), null, null, null, 0.0, null, 0,
+                "ENTITY_ATTACK", false, 0, 0, 6.0), 0L, new FactMask(1L << slot, 0L, 0L));
+        assertEquals(9.0, f.number(slot)); // actor() is at 15 health
+    }
+
+    @Test
+    void postHitHealthStaysZeroWithNoPendingHit() {
+        // Every non-DEFENSE context leaves the pending damage absent, and "absent" must not read as
+        // "full health survives" — an Ender Shift gate would then fire on every mining swing.
+        int slot = num("posthit", "health");
+        assertEquals(0.0, populator.populate(new ActivationContext(actor(), null, null, null), 0L,
+                new FactMask(1L << slot, 0L, 0L)).number(slot));
+    }
+
+    @Test
+    void postHitHealthIsSkippedWhenUnmasked() {
+        Player a = actor();
+        populator.populate(new ActivationContext(a, null, null, null, 0.0, null, 0, "", false, 0, 0, 6.0),
+                0L, FactMask.NONE);
+        verify(a, never()).getHealth();
+    }
+
     @Test
     void comboStaysUnsourcedAtZero() {
         // combo is declared so conditions referencing it compile, but no combat-streak tracker exists.
