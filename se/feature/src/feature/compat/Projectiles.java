@@ -11,8 +11,24 @@ import org.bukkit.entity.Entity;
  */
 public interface Projectiles {
 
+    /** The {@code %projectilekind%} vocabulary — declared here so both era impls and their tests share one spelling. */
+    String ARROW = "ARROW";
+
+    String FIREBALL = "FIREBALL";
+
+    String THROWN = "THROWN";
+
+    String OTHER = "OTHER";
+
     boolean isTrident(Entity entity);
 
     /** Any arrow-family projectile (tipped/spectral/normal) — the BOW-trigger family. */
     boolean isArrowLike(Entity entity);
+
+    /**
+     * The {@code %projectilekind%} bucket for a projectile damager: {@link #ARROW}, {@link #FIREBALL},
+     * {@link #THROWN} (snowball/egg/pearl/potion/xp bottle) or {@link #OTHER}. Callers pass a projectile;
+     * anything else is {@link #OTHER}.
+     */
+    String kindOf(Entity entity);
 }

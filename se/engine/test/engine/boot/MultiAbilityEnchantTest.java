@@ -204,7 +204,8 @@ class MultiAbilityEnchantTest {
                 levels:
                   1:
                     condition: "%posthit.health% <= 0 && !%victim.fromspawner% && %heldticks% > 20 \
-                                && %actor.souls% > 0 && %victim.souls% > 0"
+                                && %actor.souls% > 0 && %victim.souls% > 0 \
+                                && %impactheight% > 1 && %projectilekind% == \\"ARROW\\""
                     effects: [{ IGNITE: { duration: 60, who: "@Victim" } }]
                 """);
         Ability ability = snap.byStableKey("enchants/phoenix/1");
@@ -216,6 +217,8 @@ class MultiAbilityEnchantTest {
         assertTrue(ability.factMask().readsNum(vocab.get("heldticks").slot()));
         assertTrue(ability.factMask().readsNum(vocab.get("actor.souls").slot()));
         assertTrue(ability.factMask().readsNum(vocab.get("victim.souls").slot()));
+        assertTrue(ability.factMask().readsNum(vocab.get("impactheight").slot()));
+        assertTrue(ability.factMask().readsStr(vocab.get("projectilekind").slot()));
     }
 
     private GateOutcome gate(Ability ability, FactBuffer facts, double roll) {

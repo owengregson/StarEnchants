@@ -88,6 +88,10 @@ public final class BuiltinVars {
                 // maintains on the holder's own thread — never a cross-region inventory walk (§5.5).
                 .number("actor.souls")
                 .number("victim.souls")   // 0 for a mob victim (only players carry gems)
+                // Projectile geometry, differenced at the hit site: how far above the struck entity's feet the
+                // projectile was, and which family it belongs to. 0/empty for a non-projectile activation.
+                .number("impactheight")
+                .string("projectilekind") // ARROW | FIREBALL | THROWN | OTHER
                 .build();
     }
 }

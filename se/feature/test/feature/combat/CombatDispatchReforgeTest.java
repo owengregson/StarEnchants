@@ -135,6 +135,7 @@ class CombatDispatchReforgeTest {
         Player shooter = attacker();
         Arrow arrow = mock(Arrow.class);
         when(arrow.getShooter()).thenReturn(shooter);
+        when(arrow.getLocation()).thenReturn(mock(Location.class)); // %impactheight% differences the arrow's Y
         double[] committed = {Double.NaN};
         EntityDamageByEntityEvent event = hit(arrow, victimPlayer(), 9.0, committed);
 
