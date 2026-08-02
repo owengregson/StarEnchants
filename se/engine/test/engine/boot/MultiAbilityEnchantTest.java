@@ -196,6 +196,21 @@ class MultiAbilityEnchantTest {
         assertTrue(ability.factMask().readsNum(vocab.get("nearbyallies").slot()));
     }
 
+    @Test
+    void thePostHitHealthFactSurvivesTheWholeCompileAndReachesTheMask() throws Exception {
+        Snapshot snap = load("""
+                display: "Phoenix"
+                trigger: "DEFENSE"
+                levels:
+                  1:
+                    condition: "%posthit.health% <= 0"
+                    effects: [{ IGNITE: { duration: 60, who: "@Victim" } }]
+                """);
+        Ability ability = snap.byStableKey("enchants/phoenix/1");
+        assertNotNull(ability.condition(), "the condition survives to the runtime record");
+        assertTrue(ability.factMask().readsNum(BuiltinVars.vocabulary().bindings().get("posthit.health").slot()));
+    }
+
     private GateOutcome gate(Ability ability, FactBuffer facts, double roll) {
         return new ActivationPipeline(new CooldownStore(), SoulSpender.NONE).evaluate(ability,
                 Activation.builder(ACTOR, 0, triggerId, 0L).facts(facts).chanceRoll(() -> roll).build());

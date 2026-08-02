@@ -348,8 +348,13 @@ public final class CombatDispatch {
         if (victimEntity instanceof Player defenderPlayer && contextEnabled(damager instanceof Player) && !friendly) {
             int defenderRecent = recent.distinctCount(defenderPlayer.getUniqueId(), now);   // distinct attackers on me (Aegis)
             int attackerIndex = recent.indexOf(defenderPlayer.getUniqueId(), attackerId, now); // 1-based order of THIS attacker
+            // %posthit.health% reads the hit as the SERVER prices it — getFinalDamage() is the post-armor /
+            // protection / resistance value, and nothing has folded onto the event yet, so this is the
+            // vanilla-final figure BEFORE any SE contribution. Only this side supplies it; every other context
+            // leaves it NaN, so the fact stays 0 where there is no pending hit.
             ActivationContext defenseCtx = new ActivationContext(defenderPlayer, attacker, attacker, at,
-                    incomingDamage, null, 0, causeName, false, defenderRecent, attackerIndex);
+                    incomingDamage, null, 0, causeName, false, defenderRecent, attackerIndex,
+                    event.getFinalDamage());
             runner.run(abilities, snapshot.generation(), worldId, defenseTriggerId, false, defenderPlayer, defenseCtx,
                     sink, snapshot.stableKeys());
             // §7 one-shot SUPPRESS consume (Neutralize): burn the victim's armed one-shots after their defense walk.

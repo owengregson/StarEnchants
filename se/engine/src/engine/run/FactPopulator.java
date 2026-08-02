@@ -107,6 +107,7 @@ public final class FactPopulator {
     private final int rageStacksSlot;        // %ragestacks% (actor-scoped store read, mask-gated)
     private final int nearbyAlliesSlot;      // allied players within NEARBY_RADIUS (derived, shares the enemy scan)
     private final int victimRelationSlot;    // ALLY/ENEMY/NEUTRAL vs the victim (derived, Folia-guarded)
+    private final int postHitHealthSlot;     // actor health minus the context's vanilla-final damage (DEFENSE only)
 
     /** Search radius for {@code %nearbyenemies%}, in blocks. */
     private static final double NEARBY_RADIUS = 8.0;
@@ -193,6 +194,7 @@ public final class FactPopulator {
         this.rageStacksSlot = slot(vocabulary, "ragestacks", VarKind.NUM);
         this.nearbyAlliesSlot = slot(vocabulary, "nearbyallies", VarKind.NUM);
         this.victimRelationSlot = slot(vocabulary, "victim.relation", VarKind.STR);
+        this.postHitHealthSlot = slot(vocabulary, "posthit.health", VarKind.NUM);
     }
 
     /**
@@ -413,8 +415,9 @@ public final class FactPopulator {
         boolean wantsBelow = actorBelowVictimSlot >= 0 && mask.readsNum(actorBelowVictimSlot);
         boolean wantsAllies = nearbyAlliesSlot >= 0 && mask.readsNum(nearbyAlliesSlot);
         boolean wantsRelation = victimRelationSlot >= 0 && mask.readsStr(victimRelationSlot);
+        boolean wantsPostHit = postHitHealthSlot >= 0 && mask.readsNum(postHitHealthSlot);
         if (!wantsDistance && !wantsInZone && !wantsNearby && !wantsBehind && !wantsBelow
-                && !wantsAllies && !wantsRelation) {
+                && !wantsAllies && !wantsRelation && !wantsPostHit) {
             return;
         }
         org.bukkit.entity.Player actor = context.actor();
@@ -460,6 +463,11 @@ public final class FactPopulator {
             if (wantsRelation) {
                 LivingEntity victim = context.victim();
                 facts.setString(victimRelationSlot, relationOf(actor, victim));
+            }
+            if (wantsPostHit && !Double.isNaN(context.vanillaFinalDamage())) {
+                // NaN means "no hit is pending on this activation" (every non-DEFENSE context), and the slot
+                // keeps its cleared 0 — distinct from a real 0-damage hit, which prices at full health.
+                facts.setNumber(postHitHealthSlot, actor.getHealth() - context.vanillaFinalDamage());
             }
             if (wantsBehind) {
                 LivingEntity victim = context.victim();

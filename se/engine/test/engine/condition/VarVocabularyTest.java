@@ -43,8 +43,9 @@ class VarVocabularyTest {
         // sets (victim.inzone flag — devil's hellfire zone), ADR-0035 (actor.groundblock string — Frost "on ice"),
         // ADR-0049 (recentattackers/attackerindex numbers, behindvictim/itemdamage.armor flags, damagecause string),
         // §3 (ragestacks number — the rage-stack fact), ADR-0052 (actor.belowvictim number — the Eagle posture),
-        // and wave 1b.2 (nearbyallies number + victim.relation string, both off the one alliance predicate).
-        assertEquals(20, v.numberSlots());
+        // wave 1b.2 (nearbyallies number + victim.relation string, both off the one alliance predicate), and
+        // wave 1b.3 (posthit.health number — the pending hit's survivor arithmetic).
+        assertEquals(21, v.numberSlots());
         assertEquals(20, v.flagSlots());
         assertEquals(11, v.stringSlots());
         assertEquals(VarKind.NUM, v.lookup("victim", "health").orElseThrow().kind());
