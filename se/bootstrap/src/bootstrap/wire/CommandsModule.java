@@ -22,7 +22,8 @@ final class CommandsModule {
 
     CommandsModule(BootCore core, ReloadModule reload, MenusModule menus, CrystalsModule crystals,
                    HeroicModule heroic, SlotsModule slots, BooksModule books, ScrollsModule scrolls,
-                   TraksModule traks, List<Mintable> mintables, Supplier<ModuleFold.Report> foldReport) {
+                   TraksModule traks, BlessModule bless, List<Mintable> mintables,
+                   Supplier<ModuleFold.Report> foldReport) {
         this.core = core;
         // Config packs (ADR-0023). /se pack apply pairs the on-disk swap with the transactional reloader; the
         // ADR-0046 gate pre-flights a pack against the live authoring surface first.
@@ -41,7 +42,7 @@ final class CommandsModule {
                 core.hands(), packGate, core.stores().why(), core.dispatch().damageDebug(),
                 core.executor()::quarantinedKeys, core.worn(),
                 core.tick()::get, mintables, Give.io(core.messages()),
-                foldReport); // ADR-0047 derived mint dispatch + /se modules report
+                foldReport, bless.command); // ADR-0047 derived mint dispatch + /se modules report; ADR-0072 /se bless
     }
 
     FeatureModule module() {

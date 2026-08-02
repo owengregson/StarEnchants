@@ -72,16 +72,34 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
     public record Holy(String material, String name, List<String> lore, int minSuccess, int maxSuccess,
                        String protectedLine,
                        /** Item-group kinds the scroll may protect; {@code ALL} (the default) = any item. */
-                       List<String> appliesTo) {
+                       List<String> appliesTo,
+                       /** Holy protections one item may ever SPEND before it is corrupt; {@code <= 0} = unlimited. */
+                       int maxProtections,
+                       CorruptLines corruptLines) {
         public Holy {
             Objects.requireNonNull(material, "material");
             Objects.requireNonNull(name, "name");
             Objects.requireNonNull(protectedLine, "protectedLine");
+            Objects.requireNonNull(corruptLines, "corruptLines");
             lore = List.copyOf(lore);
             appliesTo = List.copyOf(appliesTo);
             Ranges.IntRange success = Ranges.percentRange(minSuccess, maxSuccess);
             minSuccess = success.min();
             maxSuccess = success.max();
+            maxProtections = Math.max(0, maxProtections); // a negative allowance reads the same as "unlimited"
+        }
+    }
+
+    /**
+     * The three CORRUPTION lore lines an item shows as it burns through its holy-protection allowance; the
+     * renderer picks one by percentage spent (1–49% semi, 50–99% very, 100% full). Each carries
+     * {@code {AMOUNT}} (protections spent) and {@code {MAX}} (the allowance); a blank template hides that stage.
+     */
+    public record CorruptLines(String semi, String very, String full) {
+        public CorruptLines {
+            Objects.requireNonNull(semi, "semi");
+            Objects.requireNonNull(very, "very");
+            Objects.requireNonNull(full, "full");
         }
     }
 
@@ -136,7 +154,12 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
                         100,
                         100,
                         "&e&l*&f&lHOLY&e&l* &f&lPROTECTED",
-                        List.of("ALL")),
+                        List.of("ALL"),
+                        7,
+                        new CorruptLines(
+                                "&c&lSEMI CORRUPT (&r&f&n{AMOUNT}&r&7 / {MAX} Holy Protections&r&c&l)",
+                                "&c&lVERY CORRUPT (&r&f&n{AMOUNT}&r&7 / {MAX} Holy Protections&r&c&l)",
+                                "&c&lCORRUPTED (&r&f&n{AMOUNT}&r&7 / {MAX} Holy Protections&r&c&l)")),
                 new Nametag(
                         "NAME_TAG",
                         "&bItem Nametag",

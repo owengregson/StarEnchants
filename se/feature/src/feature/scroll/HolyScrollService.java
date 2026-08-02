@@ -5,8 +5,10 @@ import feature.apply.Rolls;
 import feature.apply.GestureOutcome;
 import feature.compat.Mats;
 import item.codec.AppliedSlot;
+import item.codec.HolyProtectionCodec;
 import item.codec.ScrollCodec;
 import item.mint.ItemFactory;
+import item.render.CorruptionLore;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -28,6 +30,11 @@ import platform.text.Tokens;
  *
  * <p>The apply rolls a success in the configured {@code [min, max]} range; a failed roll spends the scroll
  * without protecting and never destroys the gear (only enchant books destroy). The roll is injected for tests.
+ *
+ * <p><strong>Corruption.</strong> An item may only ever SPEND {@code max-protections} holy scrolls. Each
+ * protection actually delivered — the marker consumed by a death — bumps the item's lifetime count
+ * ({@link HolyProtectionCodec}) and advances its corruption stage; at the maximum the item is CORRUPTED and
+ * refuses further holy scrolls. An apply that never gets cashed in costs the item nothing.
  */
 public final class HolyScrollService {
 
@@ -35,6 +42,7 @@ public final class HolyScrollService {
 
     private final ScrollCodec scrolls;
     private final AppliedSlot slot;
+    private final HolyProtectionCodec protections; // §I lifetime protections SPENT — drives corruption
     private final Supplier<ScrollsConfig> config;
     private final Random random;
     private final platform.lang.Messages messages;
@@ -42,10 +50,12 @@ public final class HolyScrollService {
     private final ItemGroups groups; // §I applies-to gate — the holy scroll only protects the configured item kinds
 
     /** {@code reRender} recomposes gear lore after a guard toggle (ADR-0040). */
-    public HolyScrollService(ScrollCodec scrolls, AppliedSlot slot, Supplier<ScrollsConfig> config, Random random,
+    public HolyScrollService(ScrollCodec scrolls, AppliedSlot slot, HolyProtectionCodec protections,
+                             Supplier<ScrollsConfig> config, Random random,
                              platform.lang.Messages messages, Consumer<ItemStack> reRender, ItemGroups groups) {
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");
         this.slot = Objects.requireNonNull(slot, "slot");
+        this.protections = Objects.requireNonNull(protections, "protections");
         this.config = Objects.requireNonNull(config, "config");
         this.random = Objects.requireNonNull(random, "random");
         this.messages = Objects.requireNonNull(messages, "messages");
@@ -71,7 +81,8 @@ public final class HolyScrollService {
     /**
      * Apply the holy scroll {@code cursor} onto {@code gear}: roll the configured success; on success add the
      * keep marker to the gear's applied-utility set and consume the scroll; on a failed roll consume the scroll
-     * without protecting. Refused (nothing consumed) if the target is invalid or already holy-protected.
+     * without protecting. Refused (nothing consumed) if the target is invalid, already holy-protected, or
+     * CORRUPTED — its holy-protection allowance spent.
      */
     public GestureOutcome applyTo(ItemStack cursor, ItemStack gear) {
         if (gear == null || gear.getType() == Material.AIR) {
@@ -84,6 +95,11 @@ public final class HolyScrollService {
             return GestureOutcome.noop(messages.format("scroll.holy.already"));
         }
         ScrollsConfig.Holy cfg = config.get().holy();
+        int spent = protections.count(gear);
+        if (CorruptionLore.stageOf(spent, cfg.maxProtections()) == CorruptionLore.Stage.FULL) {
+            return GestureOutcome.noop(messages.format("scroll.holy.corrupted",
+                    "AMOUNT", spent, "MAX", cfg.maxProtections()));
+        }
         if (!groups.matches(gear.getType(), cfg.appliesTo())) {
             return GestureOutcome.noop(messages.format("common.wrong-applies", "KINDS", ItemGroups.kindsLabel(cfg.appliesTo())));
         }
@@ -100,6 +116,10 @@ public final class HolyScrollService {
     /**
      * Remove every holy-protected item from {@code drops}, clearing each one's keep marker (consumed on death),
      * and return them so the caller can stash them for re-grant on respawn. Mutates {@code drops}.
+     *
+     * <p>This is the ONE site that bumps an item's corruption count: the protection is only spent here, where the
+     * scroll actually does its job. The re-render then swaps the now-stale HOLY PROTECTED line for the item's new
+     * corruption line in a single pass.
      */
     public List<ItemStack> keepFromDrops(List<ItemStack> drops) {
         List<ItemStack> kept = new ArrayList<>();
@@ -108,6 +128,7 @@ public final class HolyScrollService {
             ItemStack drop = it.next();
             if (drop != null && slot.holds(drop, AppliedSlot.HOLY)) {
                 slot.release(drop, AppliedSlot.HOLY); // the marker is consumed on this death
+                protections.increment(drop);          // …and THAT is one protection spent off the allowance
                 reRender.accept(drop); // drop the now-stale HOLY PROTECTED line before the item is re-granted
                 kept.add(drop);
                 it.remove();

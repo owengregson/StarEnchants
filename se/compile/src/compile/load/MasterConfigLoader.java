@@ -44,7 +44,7 @@ public final class MasterConfigLoader {
                     MasterConfig.ReloadSection.defaults(), MasterConfig.CommandTriggerSection.defaults(),
                     MasterConfig.MessageOnActivateSection.defaults(), MasterConfig.SetsSection.defaults(),
                     MasterConfig.EngineSection.defaults(), MasterConfig.StationsSection.defaults(),
-                    MasterConfig.ApplyCuesSection.defaults(),
+                    MasterConfig.ApplyCuesSection.defaults(), MasterConfig.BlessSection.defaults(),
                     diags.all());
         }
         YamlNode root = YamlNode.compose("config.yml", yaml, diags);
@@ -73,6 +73,7 @@ public final class MasterConfigLoader {
                 readEngine(root.child("engine"), diags),
                 readStations(root.child("stations"), diags),
                 readApplyCues(root.child("apply-cues"), diags),
+                readBless(root.child("bless"), diags),
                 diags.all());
     }
 
@@ -126,7 +127,8 @@ public final class MasterConfigLoader {
                 parseBool(n.string("use-items"), d.useItems(), n, diags),
                 parseBool(n.string("pets"), d.pets(), n, diags),
                 parseBool(n.string("masks"), d.masks(), n, diags),
-                parseBool(n.string("reforges"), d.reforges(), n, diags));
+                parseBool(n.string("reforges"), d.reforges(), n, diags),
+                parseBool(n.string("bless"), d.bless(), n, diags));
     }
 
     /** The weapon-reforge knobs (ADR-0070): the WEAPON groups + the pets-convention message templates. */
@@ -281,6 +283,14 @@ public final class MasterConfigLoader {
                 parseBool(n.string("protection"), d.protection(), n, diags),
                 parseBool(n.string("economy"), d.economy(), n, diags),
                 named);
+    }
+
+    /** What /bless costs (ADR-0072) — both knobs live, both clamped non-negative by the record. */
+    private static MasterConfig.BlessSection readBless(YamlNode n, Diagnostics diags) {
+        MasterConfig.BlessSection d = MasterConfig.BlessSection.defaults();
+        return new MasterConfig.BlessSection(
+                parseInt(n.string("cooldown-seconds"), d.cooldownSeconds(), n, diags),
+                parseDouble(n.string("cost"), d.cost(), n, diags));
     }
 
     private static MasterConfig.ReloadSection readReload(YamlNode n, Diagnostics diags) {
