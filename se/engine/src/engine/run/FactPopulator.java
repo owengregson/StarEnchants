@@ -10,6 +10,7 @@ import engine.selector.kind.Allies;
 import engine.stores.EngineStores;
 import engine.stores.HeldSlotStore;
 import engine.stores.RageStackStore;
+import engine.stores.SoulTotalStore;
 import engine.stores.VarStore;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +70,7 @@ public final class FactPopulator {
     private final VarStore vars;
     private final RageStackStore rageStacks; // §3 %ragestacks% source — an actor-scoped read (mask-gated)
     private final HeldSlotStore heldSlots;   // %heldticks% source — an actor-scoped read (mask-gated)
+    private final SoulTotalStore soulTotals; // %actor.souls%/%victim.souls% source — cached totals, never an inventory walk
     private final UnaryOperator<String> papiDelegate;
     private final ActorProbe probe; // §3.3 era-specific entity/material reads (swim/glide/isAir/main-hand)
     // rand()'s draw, installed on each activation's buffer. Volatile: written once at boot wiring, read on
@@ -112,6 +114,8 @@ public final class FactPopulator {
     private final int victimRelationSlot;    // ALLY/ENEMY/NEUTRAL vs the victim (derived, Folia-guarded)
     private final int postHitHealthSlot;     // actor health minus the context's vanilla-final damage (DEFENSE only)
     private final int heldTicksSlot;         // ticks since the actor's last hotbar-slot change (store read, mask-gated)
+    private final int actorSoulsSlot;        // the actor's cached cross-gem soul total (store read, mask-gated)
+    private final int victimSoulsSlot;       // the victim's cached cross-gem soul total (store read, mask-gated)
 
     /** Search radius for {@code %nearbyenemies%}, in blocks. */
     private static final double NEARBY_RADIUS = 8.0;
@@ -142,6 +146,7 @@ public final class FactPopulator {
         this.vars = Objects.requireNonNull(vars, "vars");
         this.rageStacks = stores.rageStacks();
         this.heldSlots = stores.heldSlots();
+        this.soulTotals = stores.soulTotals();
         this.papiDelegate = papiDelegate == null ? t -> null : papiDelegate;
         this.probe = Objects.requireNonNull(probe, "probe");
         this.buffer = ThreadLocal.withInitial(vocabulary::newFactBuffer);
@@ -206,6 +211,8 @@ public final class FactPopulator {
         this.victimRelationSlot = slot(vocabulary, "victim.relation", VarKind.STR);
         this.postHitHealthSlot = slot(vocabulary, "posthit.health", VarKind.NUM);
         this.heldTicksSlot = slot(vocabulary, "heldticks", VarKind.NUM);
+        this.actorSoulsSlot = slot(vocabulary, "actor.souls", VarKind.NUM);
+        this.victimSoulsSlot = slot(vocabulary, "victim.souls", VarKind.NUM);
     }
 
     /**
@@ -278,13 +285,16 @@ public final class FactPopulator {
             Player actor = context.actor();
             if (actor != null) {
                 UUID id = actor.getUniqueId();
-                // %ragestacks% / %heldticks%: actor-scoped store reads, mask-gated (no entity access, so no
-                // Folia guard needed).
+                // %ragestacks% / %heldticks% / %actor.souls%: actor-scoped store reads, mask-gated (no entity
+                // access, so no Folia guard needed).
                 if (id != null && rageStacksSlot >= 0 && mask.readsNum(rageStacksSlot)) {
                     facts.setNumber(rageStacksSlot, rageStacks.current(id));
                 }
                 if (id != null && heldTicksSlot >= 0 && mask.readsNum(heldTicksSlot)) {
                     facts.setNumber(heldTicksSlot, heldSlots.ticksSince(id, nowTicks));
+                }
+                if (id != null && actorSoulsSlot >= 0 && mask.readsNum(actorSoulsSlot)) {
+                    facts.setNumber(actorSoulsSlot, soulTotals.current(id));
                 }
                 facts.papiResolver(token -> {
                     String value = vars.get(id, token, nowTicks);
@@ -299,6 +309,11 @@ public final class FactPopulator {
             if (victim != null) {
                 UUID victimId = victim.getUniqueId();
                 facts.victimVarResolver(name -> vars.get(victimId, name, nowTicks));
+                // %victim.souls%: the cached total by UUID — a mob has no entry and reads 0. Same rule as the
+                // victim vars above: no entity read beyond getUniqueId(), so a cross-region victim still resolves.
+                if (victimId != null && victimSoulsSlot >= 0 && mask.readsNum(victimSoulsSlot)) {
+                    facts.setNumber(victimSoulsSlot, soulTotals.current(victimId));
+                }
             }
         }
         return facts;

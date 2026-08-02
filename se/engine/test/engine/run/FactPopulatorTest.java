@@ -304,6 +304,33 @@ class FactPopulatorTest {
     }
 
     @Test
+    void soulTotalsComeFromTheCachedStoreOnBothSides() {
+        int actorSlot = num("actor", "souls");
+        int victimSlot = num("victim", "souls");
+        FactMask mask = new FactMask((1L << actorSlot) | (1L << victimSlot), 0L, 0L);
+        UUID actorId = UUID.randomUUID();
+        UUID victimId = UUID.randomUUID();
+        Player a = actor();
+        when(a.getUniqueId()).thenReturn(actorId);
+        Player v = mock(Player.class);
+        when(v.getUniqueId()).thenReturn(victimId);
+        EngineStores stores = EngineStores.fresh();
+        stores.soulTotals().set(actorId, 42);
+        stores.soulTotals().set(victimId, 7);
+        FactPopulator pop = new FactPopulator(BuiltinVars.vocabulary(), stores.vars(), t -> null,
+                new ModernActorProbe(), stores);
+
+        FactBuffer f = pop.populate(new ActivationContext(a, v, null, null), 0L, mask);
+        assertEquals(42.0, f.number(actorSlot));
+        assertEquals(7.0, f.number(victimSlot));
+
+        // A mob carries no gems and has no entry — 0, and no inventory is ever walked to find that out.
+        LivingEntity mob = mock(LivingEntity.class);
+        when(mob.getUniqueId()).thenReturn(UUID.randomUUID());
+        assertEquals(0.0, pop.populate(new ActivationContext(a, mob, null, null), 0L, mask).number(victimSlot));
+    }
+
+    @Test
     void victimFromSpawnerReadsTheEraProbe() {
         int slot = flag("victim.fromspawner");
         FactMask mask = new FactMask(0L, 1L << slot, 0L);
