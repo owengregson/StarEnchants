@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import schema.grammar.expr.Cmp;
+import schema.grammar.expr.ExprFn;
 import schema.grammar.expr.FlowKind;
 import schema.grammar.expr.StrOp;
 import schema.spec.Param;
@@ -130,6 +131,18 @@ public final class ReferenceDoc {
         for (StrOp op : StrOp.values()) {
             out.append("| `").append(op.symbol()).append("` | ").append(op.name().toLowerCase()).append(" |\n");
         }
+        out.append("\n### Numeric functions\n\n");
+        out.append("Callable anywhere a number is legal — inside a `condition:` and as an expression-valued "
+                + "numeric parameter (`{ DAMAGE: { amount: \"min(%combo% * 2, 12)\" } }`). Arguments are "
+                + "themselves expressions, so calls nest.\n\n");
+        out.append("| Function | Result |\n| --- | --- |\n");
+        for (ExprFn fn : ExprFn.values()) {
+            out.append("| `").append(fn.token()).append('(').append(fnArgs(fn)).append(")` | ")
+                    .append(fnDoc(fn)).append(" |\n");
+        }
+        out.append("\nA parameter that declares a range clamps an expression to it at evaluation, so a "
+                + "`double[0..100]` parameter written as `\"%combo% * 40\"` can never exceed 100 however "
+                + "large the variable grows. A constant outside the range is still a load error.\n");
         out.append("\n### Flow / chance clauses\n\n");
         out.append("A condition may end in a clause `<test> : <outcome>` whose outcome is applied when the test "
                 + "is true (a bare condition with no clause is a gate that stops the activation when false).\n\n");
@@ -139,6 +152,25 @@ public final class ReferenceDoc {
         }
         out.append("| `±N %chance%` | add N percentage points to the chance roll |\n");
         out.append('\n');
+    }
+
+    private static String fnArgs(ExprFn fn) {
+        return switch (fn) {
+            case MIN, MAX -> "a, b";
+            case CLAMP -> "x, lo, hi";
+            case FLOOR -> "x";
+            case RAND -> "lo, hi";
+        };
+    }
+
+    private static String fnDoc(ExprFn fn) {
+        return switch (fn) {
+            case MIN -> "the smaller of `a` and `b`";
+            case MAX -> "the larger of `a` and `b`";
+            case CLAMP -> "`x` confined to `[lo, hi]`";
+            case FLOOR -> "`x` rounded down (toward negative infinity)";
+            case RAND -> "a uniform random value in `[lo, hi)`, drawn once per evaluation";
+        };
     }
 
     private static String flowDoc(FlowKind flow) {

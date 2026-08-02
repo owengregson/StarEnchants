@@ -16,8 +16,8 @@ import java.util.Objects;
  *
  * <p><b>A declared numeric range binds twice.</b> A CONSTANT outside it is a blocking {@code E_RANGE} at
  * load. An EXPRESSION cannot be checked statically, so it is instead <em>clamped to the same range at
- * evaluation</em> ({@link ParamType#parse} wraps it). Declaring {@code .max(100)} on a chance-like param is
- * therefore a real runtime guarantee, not just author documentation.
+ * evaluation</em> ({@link ParamType#parse} wraps it). A declared {@code .max(100)} is therefore a real
+ * runtime guarantee, not just author documentation.
  */
 public final class ParamSpec {
 
