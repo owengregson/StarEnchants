@@ -9,8 +9,11 @@ import schema.diag.Source;
 import schema.grammar.expr.ArithOp;
 import schema.grammar.expr.Cmp;
 import schema.grammar.expr.Expr;
+import schema.grammar.expr.ExprFn;
 import schema.grammar.expr.StrOp;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
@@ -99,6 +102,10 @@ public final class ConditionCompiler {
             return typeError(diags, n.source(), "a negated value is not a condition on its own",
                     "compare it, e.g. -%damage% < 0");
         }
+        if (e instanceof Expr.Call c) {
+            return typeError(diags, c.source(), "a function value is not a condition on its own",
+                    "compare it, e.g. " + c.fn().token() + "(…) > 0");
+        }
         throw new IllegalStateException("unknown expression: " + e);
     }
 
@@ -118,6 +125,9 @@ public final class ConditionCompiler {
             return l.isPresent() && r.isPresent()
                     ? Optional.of(new NumExpr.Bin(l.get(), op(a.op()), r.get()))
                     : Optional.empty();
+        }
+        if (e instanceof Expr.Call c) {
+            return call(c, diags);
         }
         Source src = e.source();
         if (e instanceof Expr.StringLit) {
@@ -148,6 +158,31 @@ public final class ConditionCompiler {
             case NUM -> Optional.of(new NumExpr.Var(b.get().slot()));
             case STR -> numError(diags, v.source(), "string variable '" + token(v) + "' is not a number");
             case BOOL -> numError(diags, v.source(), "boolean variable '" + token(v) + "' is not a number");
+        };
+    }
+
+    /** Every argument lowers (so one bad argument still reports the rest); any failure drops the whole call. */
+    private Optional<NumExpr> call(Expr.Call c, Diagnostics diags) {
+        List<NumExpr> args = new ArrayList<>(c.args().size());
+        boolean ok = true;
+        for (Expr arg : c.args()) {
+            Optional<NumExpr> lowered = num(arg, diags);
+            if (lowered.isPresent()) {
+                args.add(lowered.get());
+            } else {
+                ok = false;
+            }
+        }
+        return ok ? Optional.of(new NumExpr.Fn(fn(c.fn()), args)) : Optional.empty();
+    }
+
+    private static NumExpr.FnKind fn(ExprFn fn) {
+        return switch (fn) {
+            case MIN -> NumExpr.FnKind.MIN;
+            case MAX -> NumExpr.FnKind.MAX;
+            case CLAMP -> NumExpr.FnKind.CLAMP;
+            case FLOOR -> NumExpr.FnKind.FLOOR;
+            case RAND -> NumExpr.FnKind.RAND;
         };
     }
 
@@ -282,8 +317,8 @@ public final class ConditionCompiler {
         if (e instanceof Expr.VarRef v) {
             return varOperand(v);
         }
-        if (e instanceof Expr.Arith || e instanceof Expr.Neg) {
-            // An arithmetic operand of a comparison, e.g. %actor.health% < %actor.maxhealth% / 2.
+        if (e instanceof Expr.Arith || e instanceof Expr.Neg || e instanceof Expr.Call) {
+            // A numeric operand of a comparison, e.g. %actor.health% < max(%actor.maxhealth% / 2, 5).
             return num(e, diags).map(Operand::num).orElse(null);
         }
         // And / Or / Not / Compare → a (possibly parenthesised) boolean operand.

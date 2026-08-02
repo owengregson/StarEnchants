@@ -44,6 +44,9 @@ public final class TriggerRunner {
         this.soulBinder = Objects.requireNonNull(soulBinder, "soulBinder");
         this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
         this.factPopulator = Objects.requireNonNull(factPopulator, "factPopulator");
+        // The composition root owns every RNG the pipeline draws from: the same class that supplies the chance
+        // roll supplies rand()'s draw, so an expression is never seeded by a hidden ThreadLocalRandom in the engine.
+        this.factPopulator.randomSource(() -> ThreadLocalRandom.current().nextDouble());
     }
 
     /**

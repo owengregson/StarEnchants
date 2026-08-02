@@ -1,6 +1,7 @@
 package schema.grammar.expr;
 
 import schema.diag.Source;
+import java.util.List;
 
 /**
  * The untyped condition-expression AST: an immutable, data-only tree of flyweight
@@ -10,7 +11,7 @@ import schema.diag.Source;
  */
 public sealed interface Expr
         permits Expr.Or, Expr.And, Expr.Not, Expr.Compare, Expr.StringMatch,
-                Expr.Arith, Expr.Neg,
+                Expr.Arith, Expr.Neg, Expr.Call,
                 Expr.VarRef, Expr.NumberLit, Expr.BoolLit, Expr.StringLit, Expr.Clause {
 
     Source source();
@@ -43,6 +44,13 @@ public sealed interface Expr
 
     /** Numeric negation ({@code -operand}), unary, binding tighter than binary arithmetic. */
     record Neg(Expr operand, Source source) implements Expr {}
+
+    /** A numeric function call; {@code args} always matches {@link ExprFn#arity} (the parser rejects others). */
+    record Call(ExprFn fn, List<Expr> args, Source source) implements Expr {
+        public Call {
+            args = List.copyOf(args);
+        }
+    }
 
     /**
      * A {@code %scope.name%} variable; bare {@code %name%} has a {@code null} scope. Only the first dot

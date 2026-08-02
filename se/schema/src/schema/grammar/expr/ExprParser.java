@@ -3,6 +3,7 @@ package schema.grammar.expr;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,7 +18,7 @@ import java.util.Optional;
  *   +  -  (left-assoc)            — arithmetic, operands of a comparison
  *   *  /  (left-assoc)
  *   !  -  (unary prefix)
- *   primary:  ( expr )  |  literal  |  %variable%
+ *   primary:  ( expr )  |  literal  |  %variable%  |  fn( arg, … )
  * </pre>
  */
 public final class ExprParser {
@@ -277,6 +278,9 @@ public final class ExprParser {
                 return variable(t);
             }
             case IDENT -> {
+                if (peekAt(1).kind() == ExprTok.Kind.LPAREN) {
+                    return call(t);
+                }
                 advance();
                 return identifier(t);
             }
@@ -291,6 +295,66 @@ public final class ExprParser {
                 return placeholder(t.col());
             }
         }
+    }
+
+    /**
+     * {@code call := ident "(" ( or ("," or)* )? ")"} — an unknown name or a wrong argument count is ONE
+     * finding anchored at the name; the argument list is consumed either way so the caller resumes cleanly,
+     * and a rejected call lowers as the numeric placeholder {@code 0} rather than a type-error cascade.
+     */
+    private Expr call(ExprTok name) {
+        Source at = lineSource.atColumn(name.col());
+        advance(); // the identifier
+        advance(); // '('
+        List<Expr> args = new ArrayList<>();
+        if (!check(ExprTok.Kind.RPAREN)) {
+            args.add(parseOr());
+            while (check(ExprTok.Kind.COMMA)) {
+                advance();
+                args.add(parseOr());
+            }
+        }
+        if (check(ExprTok.Kind.RPAREN)) {
+            advance();
+        } else {
+            ExprTok end = peek();
+            diags.error(DiagCode.E_PARSE_UNCLOSED_GROUP, "missing closing ')'",
+                    lineSource.atColumn(end.col()), "add a ')' to close the call");
+        }
+        ExprFn fn = ExprFn.lookup(name.text());
+        if (fn == null) {
+            diags.error(DiagCode.E_PARSE_UNKNOWN_FN, "unknown function '" + name.text() + "'", at,
+                    "known functions: " + knownFunctions());
+            return zero(at);
+        }
+        if (args.size() != fn.arity()) {
+            diags.error(DiagCode.E_PARSE_FN_ARITY,
+                    fn.token() + " takes " + fn.arity() + " argument(s) but got " + args.size(), at,
+                    "write " + fn.token() + "(" + placeholders(fn.arity()) + ")");
+            return zero(at);
+        }
+        return new Expr.Call(fn, args, at);
+    }
+
+    private static String knownFunctions() {
+        StringBuilder sb = new StringBuilder();
+        for (ExprFn fn : ExprFn.values()) {
+            sb.append(sb.length() == 0 ? "" : ", ").append(fn.token());
+        }
+        return sb.toString();
+    }
+
+    private static String placeholders(int arity) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < arity; i++) {
+            sb.append(i == 0 ? "" : ", ").append('x');
+        }
+        return sb.toString();
+    }
+
+    /** A numeric recovery node, so a rejected call stays type-compatible with the numeric slot it sat in. */
+    private static Expr zero(Source at) {
+        return new Expr.NumberLit("0", at);
     }
 
     /** Build a {@link Expr.VarRef}; only the first dot splits scope from name (see {@link Expr.VarRef}). */
@@ -361,6 +425,11 @@ public final class ExprParser {
 
     private ExprTok peek() {
         return toks.get(idx);
+    }
+
+    /** Lookahead clamped to the EOF sentinel — the call production needs to see the {@code (} before committing. */
+    private ExprTok peekAt(int ahead) {
+        return toks.get(Math.min(idx + ahead, toks.size() - 1));
     }
 
     private boolean check(ExprTok.Kind kind) {
