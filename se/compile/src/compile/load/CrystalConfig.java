@@ -17,11 +17,11 @@ import java.util.Objects;
  * </ul>
  *
  * <p>{@code loreWhileOnItem} is the single line shown on crystal-bearing GEAR (§E), rendered from the same
- * {@code {CRYSTAL}} token — for the cosmic pack it is identical to the item name ({@code Armor Crystal (Flame)}).
+ * {@code {CRYSTAL}} token — for the signature pack it is identical to the item name ({@code Armor Crystal (Flame)}).
  * Application is unconditional (ADR-0034): there is NO success roll here, so a crystal always lands.
  *
  * <p>{@code nameMulti} / {@code loreWhileOnItemMulti} are the item-name and on-gear-line templates used once a
- * crystal carries MORE than one component (a merged multi-crystal, ADR-0035) — the cosmic pack renames it from
+ * crystal carries MORE than one component (a merged multi-crystal, ADR-0035) — the signature pack renames it from
  * {@code Armor Crystal (…)} to {@code Multi Crystal (…)}. Each defaults to its single-crystal counterpart, so a
  * pack that doesn't distinguish keeps one uniform name.
  *

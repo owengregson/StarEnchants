@@ -75,7 +75,7 @@ class DispatchSinkDamageFoldTest {
 
     @Test
     void aRiderDeliversItsAuthoredAmountUnderTheAttackScale() {
-        // The pre-1.8.2 meta restoration (ADR-0055): with the cosmic pack's combat.attack-scale 5.0 staged
+        // The pre-1.8.2 meta restoration (ADR-0055): with the signature pack's combat.attack-scale 5.0 staged
         // on the fold, a rider authored 6 still moves the committed result by exactly 6 pre-armor — the
         // 1.8.2 flat-bucket routing delivered 30 here (the ~5x regression this pins shut).
         LivingEntity victim = aliveEntity();

@@ -50,7 +50,7 @@ public final class DamageFold {
     private double maxBonusReduction = Double.POSITIVE_INFINITY;
     // Attack-side throughput compensation (config.yml combat.attack-scale): content stays on a
     // normalized human scale; ONE multiplier adapts it to the server's armor pipeline (a 1.8-era
-    // flat armor+Prot stack passes only ~5% of a hit, so the cosmic pack ships 5.0 there).
+    // flat armor+Prot stack passes only ~5% of a hit, so the signature pack ships 5.0 there).
     private double attackScale = 1.0;
     // ADR-0071 self-malus channel: a reforge downside prices the attacker's OWN committed hit.
     // Multiplicative and applied to the WHOLE result (base + scaled economy + riders) by design:

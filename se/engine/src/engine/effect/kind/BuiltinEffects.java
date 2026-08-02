@@ -92,7 +92,7 @@ public final class BuiltinEffects {
                 .register(new SmeltEffect())
                 .register(new TeleportDropsEffect())
                 .register(new SeekEffect())
-                // Cosmic Pack set-ability primitives. Order here is only for reading — a kind's head is its
+                // Signature pack set-ability primitives. Order here is only for reading — a kind's head is its
                 // identity (lookup is by head), so registration order carries no meaning; grouped for the reader.
                 .register(new PotionLockEffect()) // strip + continuously deny a potion (druid/fantasy Speed lock)
                 .register(new MarkZoneEffect()) // actor-owned area zone read by %victim.inzone% (devil hellfire)
