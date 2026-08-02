@@ -28,22 +28,28 @@ import org.bukkit.entity.Player;
  * @param vanillaFinalDamage the damage the actor is ABOUT to take, as the server priced it — post-armor,
  *                        post-protection, post-resistance, but PRE-SE-fold ({@code %posthit.health%}). Set only
  *                        on the DEFENSE context; {@link Double#NaN} everywhere else, where the fact stays 0
+ * @param impactHeight    on a projectile hit, how far ABOVE the struck entity's feet the projectile was
+ *                        ({@code %impactheight%}); 0 for every other activation. Differenced at the hit site so
+ *                        both combat sides read the same geometry and no live projectile rides the context
+ * @param projectileKind  the {@code %projectilekind%} bucket of the projectile that landed the hit
+ *                        (ARROW/FIREBALL/THROWN/OTHER); empty for a non-projectile activation
  */
 public record ActivationContext(Player actor, LivingEntity victim, LivingEntity attacker, Location location,
                                 double damage, Block block, int combo, String damageCauseName,
                                 boolean itemDamageArmor, int recentAttackers, int attackerIndex,
-                                double vanillaFinalDamage) {
+                                double vanillaFinalDamage, double impactHeight, String projectileKind) {
 
     public ActivationContext {
         damageCauseName = damageCauseName == null ? "" : damageCauseName;
+        projectileKind = projectileKind == null ? "" : projectileKind;
     }
 
-    /** Combat payload with the ADR-0049 gank/cause/item-damage facts but no pending damage (non-DEFENSE sides). */
+    /** Combat payload with the ADR-0049 gank/cause/item-damage facts but no pending damage or projectile. */
     public ActivationContext(Player actor, LivingEntity victim, LivingEntity attacker, Location location,
                              double damage, Block block, int combo, String damageCauseName,
                              boolean itemDamageArmor, int recentAttackers, int attackerIndex) {
         this(actor, victim, attacker, location, damage, block, combo, damageCauseName, itemDamageArmor,
-                recentAttackers, attackerIndex, Double.NaN);
+                recentAttackers, attackerIndex, Double.NaN, 0.0, "");
     }
 
     /** Combat/positional payload with a hit streak but no ADR-0049 gank/cause/item-damage facts. */
@@ -66,6 +72,7 @@ public record ActivationContext(Player actor, LivingEntity victim, LivingEntity 
     /** This context with the ADR-0049 gank/cause facts populated, preserving everything else (combat dispatch). */
     public ActivationContext withCombatFacts(String damageCauseName, int recentAttackers, int attackerIndex) {
         return new ActivationContext(actor, victim, attacker, location, damage, block, combo,
-                damageCauseName, itemDamageArmor, recentAttackers, attackerIndex, vanillaFinalDamage);
+                damageCauseName, itemDamageArmor, recentAttackers, attackerIndex, vanillaFinalDamage,
+                impactHeight, projectileKind);
     }
 }

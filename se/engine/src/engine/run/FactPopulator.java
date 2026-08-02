@@ -116,6 +116,8 @@ public final class FactPopulator {
     private final int heldTicksSlot;         // ticks since the actor's last hotbar-slot change (store read, mask-gated)
     private final int actorSoulsSlot;        // the actor's cached cross-gem soul total (store read, mask-gated)
     private final int victimSoulsSlot;       // the victim's cached cross-gem soul total (store read, mask-gated)
+    private final int impactHeightSlot;      // projectile height above the struck entity's feet (from the context)
+    private final int projectileKindSlot;    // ARROW/FIREBALL/THROWN/OTHER (from the context)
 
     /** Search radius for {@code %nearbyenemies%}, in blocks. */
     private static final double NEARBY_RADIUS = 8.0;
@@ -213,6 +215,8 @@ public final class FactPopulator {
         this.heldTicksSlot = slot(vocabulary, "heldticks", VarKind.NUM);
         this.actorSoulsSlot = slot(vocabulary, "actor.souls", VarKind.NUM);
         this.victimSoulsSlot = slot(vocabulary, "victim.souls", VarKind.NUM);
+        this.impactHeightSlot = slot(vocabulary, "impactheight", VarKind.NUM);
+        this.projectileKindSlot = slot(vocabulary, "projectilekind", VarKind.STR);
     }
 
     /**
@@ -392,6 +396,14 @@ public final class FactPopulator {
         }
         if (itemDamageArmorSlot >= 0 && mask.readsFlag(itemDamageArmorSlot)) {
             facts.setFlag(itemDamageArmorSlot, context.itemDamageArmor());
+        }
+        // Projectile geometry is likewise differenced by the dispatcher on the firing thread, so no live
+        // projectile is read here and no Folia guard is needed.
+        if (impactHeightSlot >= 0 && mask.readsNum(impactHeightSlot)) {
+            facts.setNumber(impactHeightSlot, context.impactHeight());
+        }
+        if (projectileKindSlot >= 0 && mask.readsStr(projectileKindSlot)) {
+            facts.setString(projectileKindSlot, context.projectileKind());
         }
         boolean wantsBlockType = blockTypeSlot >= 0 && mask.readsStr(blockTypeSlot);
         boolean wantsIsBlock = isBlockSlot >= 0 && mask.readsFlag(isBlockSlot);

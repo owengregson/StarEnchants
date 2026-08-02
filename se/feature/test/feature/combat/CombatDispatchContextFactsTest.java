@@ -17,10 +17,13 @@ import engine.sink.ModernDispatchSink;
 import engine.sink.SinkEnv;
 import engine.sink.SinkFactory;
 import feature.compat.ModernProjectiles;
+import feature.compat.Projectiles;
 import item.worn.WornStateStore;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.bukkit.Location;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -94,29 +97,74 @@ class CombatDispatchContextFactsTest {
         return p;
     }
 
-    @Test
-    void onlyTheDefenceContextCarriesThePendingVanillaFinalDamage() {
-        CombatDispatch dispatch = dispatch();
-        Player attacker = player(attackerId);
+    private Player victim() {
         Player victim = player(victimId);
         when(victim.getNoDamageTicks()).thenReturn(0);
         when(victim.getMaximumNoDamageTicks()).thenReturn(20);
+        return victim;
+    }
+
+    private EntityDamageByEntityEvent hit(org.bukkit.entity.Entity damager, Player victim) {
         EntityDamageByEntityEvent event = mock(EntityDamageByEntityEvent.class);
-        when(event.getDamager()).thenReturn(attacker);
+        when(event.getDamager()).thenReturn(damager);
         when(event.getEntity()).thenReturn(victim);
         when(event.getDamage()).thenReturn(9.0);
-        when(event.getFinalDamage()).thenReturn(6.5); // what the server prices after armour/protection
         when(event.getCause()).thenReturn(EntityDamageEvent.DamageCause.ENTITY_ATTACK);
+        return event;
+    }
+
+    /** Both walks' contexts, attack first — the order {@code onDamage} runs them in. */
+    private List<ActivationContext> capture() {
+        ArgumentCaptor<ActivationContext> contexts = ArgumentCaptor.forClass(ActivationContext.class);
+        verify(executor, times(2)).run(any(), any(), any(), contexts.capture(), any(), any());
+        return contexts.getAllValues();
+    }
+
+    @Test
+    void onlyTheDefenceContextCarriesThePendingVanillaFinalDamage() {
+        CombatDispatch dispatch = dispatch();
+        EntityDamageByEntityEvent event = hit(player(attackerId), victim());
+        when(event.getFinalDamage()).thenReturn(6.5); // what the server prices after armour/protection
 
         dispatch.onDamage(event);
 
-        ArgumentCaptor<ActivationContext> contexts = ArgumentCaptor.forClass(ActivationContext.class);
-        verify(executor, times(2)).run(any(), any(), any(), contexts.capture(), any(), any());
-        ActivationContext attackCtx = contexts.getAllValues().get(0);
-        ActivationContext defenseCtx = contexts.getAllValues().get(1);
-        assertEquals(6.5, defenseCtx.vanillaFinalDamage(),
+        List<ActivationContext> contexts = capture();
+        assertEquals(6.5, contexts.get(1).vanillaFinalDamage(),
                 "the defender's walk prices %posthit.health% off the server's own figure");
-        assertTrue(Double.isNaN(attackCtx.vanillaFinalDamage()),
+        assertTrue(Double.isNaN(contexts.get(0).vanillaFinalDamage()),
                 "the attacker takes no damage here — a value would make %posthit.health% read the wrong side");
+    }
+
+    @Test
+    void bothSidesSeeTheSameProjectileGeometryMeasuredAgainstTheStruckEntity() {
+        CombatDispatch dispatch = dispatch();
+        Player shooter = player(attackerId);
+        Player victim = victim();
+        when(victim.getLocation()).thenReturn(new Location(null, 0.0, 64.0, 0.0));
+        Arrow arrow = mock(Arrow.class);
+        when(arrow.getShooter()).thenReturn(shooter);
+        when(arrow.getLocation()).thenReturn(new Location(null, 0.0, 65.6, 0.0));
+
+        dispatch.onDamage(hit(arrow, victim));
+
+        List<ActivationContext> contexts = capture();
+        for (ActivationContext context : contexts) {
+            // Measured against the VICTIM on both sides: the defense context's `victim` is the shooter, so a
+            // populator-side subtraction would price the arrow against the person who fired it.
+            assertEquals(1.6, context.impactHeight(), 1e-9);
+            assertEquals(Projectiles.ARROW, context.projectileKind());
+        }
+    }
+
+    @Test
+    void aMeleeHitCarriesNoProjectileGeometry() {
+        CombatDispatch dispatch = dispatch();
+
+        dispatch.onDamage(hit(player(attackerId), victim()));
+
+        for (ActivationContext context : capture()) {
+            assertEquals(0.0, context.impactHeight());
+            assertEquals("", context.projectileKind(), "a sword swing must not satisfy a %projectilekind% gate");
+        }
     }
 }

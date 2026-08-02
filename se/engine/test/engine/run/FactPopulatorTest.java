@@ -352,7 +352,7 @@ class FactPopulatorTest {
     void postHitHealthSubtractsTheContextsVanillaFinalDamage() {
         int slot = num("posthit", "health");
         FactBuffer f = populator.populate(new ActivationContext(actor(), null, null, null, 0.0, null, 0,
-                "ENTITY_ATTACK", false, 0, 0, 6.0), 0L, new FactMask(1L << slot, 0L, 0L));
+                "ENTITY_ATTACK", false, 0, 0, 6.0, 0.0, ""), 0L, new FactMask(1L << slot, 0L, 0L));
         assertEquals(9.0, f.number(slot)); // actor() is at 15 health
     }
 
@@ -368,7 +368,7 @@ class FactPopulatorTest {
     @Test
     void postHitHealthIsSkippedWhenUnmasked() {
         Player a = actor();
-        populator.populate(new ActivationContext(a, null, null, null, 0.0, null, 0, "", false, 0, 0, 6.0),
+        populator.populate(new ActivationContext(a, null, null, null, 0.0, null, 0, "", false, 0, 0, 6.0, 0.0, ""),
                 0L, FactMask.NONE);
         verify(a, never()).getHealth();
     }
@@ -423,6 +423,23 @@ class FactPopulatorTest {
         assertTrue(f.flag(flag("world.raining")));
         assertFalse(f.flag(flag("world.thundering")));
         assertEquals(6000.0, f.number(num("world", "time")));
+    }
+
+    @Test
+    void projectileGeometryComesStraightOffTheContext() {
+        int heightSlot = num(null, "impactheight");
+        int kindSlot = str(null, "projectilekind");
+        FactMask mask = new FactMask(1L << heightSlot, 0L, 1L << kindSlot);
+
+        FactBuffer hit = populator.populate(new ActivationContext(actor(), null, null, null, 0.0, null, 0,
+                "PROJECTILE", false, 0, 0, Double.NaN, 1.75, "ARROW"), 0L, mask);
+        assertEquals(1.75, hit.number(heightSlot));
+        assertEquals("ARROW", hit.string(kindSlot));
+
+        // A melee swing carries no projectile: 0 and empty, so a headshot gate cannot fire off a sword hit.
+        FactBuffer melee = populator.populate(new ActivationContext(actor(), null, null, null), 0L, mask);
+        assertEquals(0.0, melee.number(heightSlot));
+        assertEquals("", melee.string(kindSlot));
     }
 
     @Test

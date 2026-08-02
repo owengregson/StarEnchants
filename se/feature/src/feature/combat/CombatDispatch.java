@@ -230,6 +230,16 @@ public final class CombatDispatch {
         // Capture BEFORE the fold mutates it, so the %damage% fact reads the hit's value at activation time.
         double incomingDamage = event.getDamage();
         String causeName = event.getCause().name(); // %damagecause% (e.g. ENTITY_ATTACK, PROJECTILE)
+        // %impactheight% / %projectilekind%: differenced HERE, on the firing thread, against the entity that was
+        // actually struck. Both combat sides then read the same geometry — the defense context's `victim` is the
+        // attacker, so leaving the subtraction to the populator would measure an arrow against its own shooter.
+        // Only projectile hits pay for it (one extra Location, alongside the `at` this method already takes).
+        double impactHeight = 0.0;
+        String projectileKind = "";
+        if (rawDamager instanceof Projectile) {
+            impactHeight = rawDamager.getLocation().getY() - at.getY();
+            projectileKind = projectiles.kindOf(rawDamager);
+        }
         int worldId = TriggerRunner.worldId(snapshot, victimEntity.getWorld());
 
         SinkReadback sink = sinkFactory.create(env);
@@ -334,7 +344,7 @@ public final class CombatDispatch {
             }
             int attackerRecent = recent.distinctCount(attackerPlayer.getUniqueId(), now); // how many are ganking the attacker (Anti Gank)
             ActivationContext attackCtx = new ActivationContext(attackerPlayer, victim, null, at, incomingDamage,
-                    null, streak, causeName, false, attackerRecent, 0);
+                    null, streak, causeName, false, attackerRecent, 0, Double.NaN, impactHeight, projectileKind);
             runner.run(abilities, snapshot.generation(), worldId, attackId, true, attackerPlayer, attackCtx, sink,
                     snapshot.stableKeys());
             // §8 ECHO_STRIKE (Double Strike): re-run the attacker walk EXACTLY once over the same event/sink/fold.
@@ -354,7 +364,7 @@ public final class CombatDispatch {
             // leaves it NaN, so the fact stays 0 where there is no pending hit.
             ActivationContext defenseCtx = new ActivationContext(defenderPlayer, attacker, attacker, at,
                     incomingDamage, null, 0, causeName, false, defenderRecent, attackerIndex,
-                    event.getFinalDamage());
+                    event.getFinalDamage(), impactHeight, projectileKind);
             runner.run(abilities, snapshot.generation(), worldId, defenseTriggerId, false, defenderPlayer, defenseCtx,
                     sink, snapshot.stableKeys());
             // §7 one-shot SUPPRESS consume (Neutralize): burn the victim's armed one-shots after their defense walk.
