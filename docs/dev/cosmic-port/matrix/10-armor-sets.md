@@ -323,8 +323,8 @@ Family-wide facts, recorded once (codex `10-armor-sets.md §A`):
 - **interactions:** victim Infinite Luck `>= 2` suppresses the outgoing bonus; crystal:
   `DAMAGE_MOD(side=attack, amount=3)` per piece (4 → ×1.12), no defensive half;
   `+200% Clout (Flight Enabled)` is implemented by an external economy plugin (codex
-  UNRESOLVED) — lore ships verbatim, flight/clout ruling deferred to the owner
-  (`FLY_MODE` exists if ruled in); the jar strips the speed passive from EVERY player
+  UNRESOLVED) — decided by owner ruling R9: lore ships verbatim with a YAML note,
+  no clout/flight economy behavior is implemented; the jar strips the speed passive from EVERY player
   crossing a world border regardless of set (measured infrastructure bug — engine
   WornState scopes unequip correctly, not replicated); fall/food immunities have no
   world gate in the jar (measured)

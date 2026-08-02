@@ -56,3 +56,8 @@ filename and never quote decompiled code.
   the alias resolver (modern or legacy names both resolve).
 - Every doc holds its `###` entries under a single `## Entries` section
   (markdownlint MD001 is enforced in CI).
+- **R9 (owner, 2026-08-02): economy is note-only.** Behaviors depending on the
+  cosmic suite's server economy (sell-price tables, clout/currency systems) get
+  NO effect surface — the content ships with verbatim identity plus an authored
+  YAML note that the behavior is unimplemented. Static `MODIFY_MONEY` is
+  unaffected. See `proposed-primitives.md` § Excluded.
