@@ -41,3 +41,18 @@ filename and never quote decompiled code.
 
 `proposed-primitives.md` clusters every gap into the minimal general primitive set
 (spec §4 bar) and assigns each to engine wave 1 or 2.
+
+## Doc conventions (rulings)
+
+- Jar **data keys** (metadata/NBT strings like `noDefenseProcs`) are allowed as
+  traceability handles — they are data, not code.
+- **Public Bukkit/JDK API names** and JVM jargon ("NPE") are allowed where they
+  carry porting signal; the identifier ban covers the studied plugin's own
+  classes, methods, and events. Codex §-heading citations are reworded
+  identifier-free with a disambiguator when a heading embeds a source path.
+- **Cosmetic values with no codex origin** (particle counts/spreads) are allowed,
+  marked "(port-chosen)".
+- **Handle names** may be quoted jar-era in the matrix; pack YAML authors against
+  the alias resolver (modern or legacy names both resolve).
+- Every doc holds its `###` entries under a single `## Entries` section
+  (markdownlint MD001 is enforced in CI).

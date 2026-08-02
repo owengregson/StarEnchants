@@ -518,7 +518,7 @@ local-only codex; no decompiled code is quoted here.
      `POTION(effect=WEAKNESS, level=3, duration=<(7 + level) × 20>)`,
      `FREEZE(duration=<(7 + level) × 10>, dot=<level>, dot-period=20, slow=100, neutralize-frost-slow=false)`
      (walk-lock released at half the potion window, exactly the jar's
-     `× 0.5` release; DoT ticks landed 4/4/5/5 match), 
+     `× 0.5` release; DoT ticks landed 4/4/5/5 match),
      `SOUND(sound=ENDERDRAGON_GROWL, volume=2.0, pitch=2.0)` at the victim,
      victim message `§c§l… (per-tick)` — see fidelity note below
   5. `MESSAGE(text="§a§lPET: ** NATURE'S WRATH **")`

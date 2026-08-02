@@ -40,6 +40,8 @@ Family-wide facts, recorded once (codex `10-armor-sets.md §A`):
 
 ---
 
+## Entries
+
 ### Phantom (`armor-sets/phantom`)
 
 - **codex:** `10-armor-sets.md § Phantom` (Part B), §A.6–A.7
