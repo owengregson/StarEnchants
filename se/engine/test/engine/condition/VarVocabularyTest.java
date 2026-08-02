@@ -39,7 +39,7 @@ class VarVocabularyTest {
     void builtinsHaveTheExpectedShape() {
         VarVocabulary v = BuiltinVars.vocabulary();
         // Slot counts are load-bearing: the FactBuffer is sized to them. Breakdown justifying 19/20/10 lives in
-        // v3.1 §A (numeric/flag base + exotic-effect port), v3.7 §N (victim.mobtype string), the Cosmic Pack
+        // v3.1 §A (numeric/flag base + exotic-effect port), v3.7 §N (victim.mobtype string), the signature pack
         // sets (victim.inzone flag — devil's hellfire zone), ADR-0035 (actor.groundblock string — Frost "on ice"),
         // ADR-0049 (recentattackers/attackerindex numbers, behindvictim/itemdamage.armor flags, damagecause string),
         // §3 (ragestacks number — the rage-stack fact), ADR-0052 (actor.belowvictim number — the Eagle posture),

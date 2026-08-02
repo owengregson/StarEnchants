@@ -238,7 +238,7 @@ class DamageFoldTest {
 
     @Test
     void aRiderContributesExactlyItsAuthoredAmountUnderAttackScale() {
-        // THE restoration pin (ADR-0055): under the cosmic pack's attack-scale 5.0, a rider authored 6
+        // THE restoration pin (ADR-0055): under the signature pack's attack-scale 5.0, a rider authored 6
         // moves the fold result by exactly 6 pre-armor — the pre-1.8.2 bare hurt's delivery — where the
         // 1.8.2 flat-bucket routing landed it as 6 × 5 = 30 (the ~5x regression this bucket removes).
         DamageFold f = new DamageFold();

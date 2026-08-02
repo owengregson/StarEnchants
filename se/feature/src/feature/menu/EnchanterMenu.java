@@ -31,7 +31,7 @@ public final class EnchanterMenu extends FormMenu {
     /**
      * Book-tile placement, in tier-declaration order: the first shelf (11–15), then the premium shelf centred
      * between the scroll tiles (21–23), then outward from those shelves for packs with more tiers. A pack
-     * with more tiers than cells shows the first sixteen (the cosmic pack ships eight).
+     * with more tiers than cells shows the first sixteen (the signature pack ships eight).
      */
     private static final int[] BOOK_TILE_SLOTS = {11, 12, 13, 14, 15, 21, 22, 23, 19, 25, 10, 16, 18, 26, 9, 17};
 

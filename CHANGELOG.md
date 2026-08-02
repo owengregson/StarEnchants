@@ -4,6 +4,14 @@ All notable changes to StarEnchants are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning: [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- **The bundled default pack is now `signature-pack`** (was `cosmic-pack`). Only the pack's name
+  changed — its content is untouched, and an on-disk copy you already have is never overwritten.
+  Apply the new one with `/se pack apply signature-pack`.
+
 ## [1.13.0-beta] — 2026-07-19
 
 A reforge + pet polish pass: the weapon reforges gain their intended feel, two pets are rebalanced,
