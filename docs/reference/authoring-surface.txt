@@ -266,6 +266,9 @@ effect SET_VAR
   param name STRING required min=- max=- enum=- handle=- default=-
   param value STRING optional min=- max=- enum=- handle=- default=
   param ttl TICKS optional min=0 max=- enum=- handle=- default=0
+  param op ENUM optional min=- max=- enum=increment,set handle=- default=set
+  param step INT optional min=- max=- enum=- handle=- default=1
+  param cap INT optional min=0 max=- enum=- handle=- default=0
 effect SMELT
 effect SOUND
   param sound HANDLE required min=- max=- enum=- handle=SOUND default=-

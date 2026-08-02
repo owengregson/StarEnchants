@@ -30,6 +30,11 @@ public final class NumExprEval {
         if (e instanceof NumExpr.Neg n) {
             return -eval(n.operand(), f);
         }
+        if (e instanceof NumExpr.EntityVar v) {
+            // Unset/no victim reads 0, not NaN: a counter that hasn't started is zero stacks, not "unknown".
+            double parsed = parseDouble(f.resolveVictimVar(v.name()));
+            return Double.isNaN(parsed) ? 0.0 : parsed;
+        }
         if (e instanceof NumExpr.Fn fn) {
             return function(fn, f);
         }

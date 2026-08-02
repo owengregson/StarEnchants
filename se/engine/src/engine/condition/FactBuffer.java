@@ -21,6 +21,7 @@ public final class FactBuffer {
     private long flags0; // flags 0..63
     private long flags1; // flags 64..127
     private UnaryOperator<String> papi = t -> null;
+    private UnaryOperator<String> victimVars = t -> null;
     // rand()'s draw. Defaults to 0 (never an inline ThreadLocalRandom) exactly like Activation's chanceRoll:
     // production installs the real source, so an unwired evaluation is reproducible instead of secretly random.
     private DoubleSupplier random = () -> 0.0;
@@ -76,6 +77,16 @@ public final class FactBuffer {
         return papi.apply(token);
     }
 
+    /** Install the per-activation victim-scoped var reader ({@code %victim.var.<name>%}); {@code null} = none. */
+    public void victimVarResolver(UnaryOperator<String> resolver) {
+        this.victimVars = resolver == null ? t -> null : resolver;
+    }
+
+    /** A victim-scoped dynamic var; {@code null} when there is no victim or the var is unset. */
+    public String resolveVictimVar(String name) {
+        return victimVars.apply(name);
+    }
+
     /** Install the random source {@code rand(lo,hi)} draws from; {@code null} (the default) draws {@code 0}. */
     public void randomSource(DoubleSupplier source) {
         this.random = source == null ? () -> 0.0 : source;
@@ -93,6 +104,7 @@ public final class FactBuffer {
         flags0 = 0L;
         flags1 = 0L;
         papi = t -> null;
+        victimVars = t -> null;
         random = () -> 0.0;
     }
 }

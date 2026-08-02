@@ -514,6 +514,18 @@ public interface Sink {
     /** Set {@code target}'s named variable to {@code value}; {@code ttlTicks <= 0} = no expiry (SET_VAR). */
     void setVar(Player target, String name, String value, int ttlTicks);
 
+    /**
+     * As {@link #setVar} for ANY living carrier — a mob can hold its own stacks, read back as
+     * {@code %victim.var.<name>%} (TARGET_VAR).
+     */
+    void setVarOn(LivingEntity target, String name, String value, int ttlTicks);
+
+    /**
+     * Add {@code step} to {@code target}'s named variable, pinned at {@code cap} ({@code 0} = uncapped) and
+     * preserving the remaining TTL, so a stack re-applied every hit cannot extend its own window (TARGET_VAR).
+     */
+    void incrementVar(LivingEntity target, String name, int step, int cap, int ttlTicks);
+
     /** Numerically invert {@code target}'s named variable (0↔1), preserving its remaining TTL (INVERT_VAR). */
     void invertVar(Player target, String name);
 

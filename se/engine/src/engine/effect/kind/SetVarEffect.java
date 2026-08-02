@@ -20,10 +20,15 @@ public final class SetVarEffect implements EffectKind {
             .param("name", D.STRING)
             .param("value", D.STRING.def(""))
             .param("ttl", D.TICKS.def(0))
+            .param("op", D.enumOf("set", "increment").def("set"))
+            .param("step", D.INT.def(1))
+            .param("cap", D.INT.min(0).def(0))
             .target("who", T.SELF)
             .affinity(Affinity.CONTEXT_LOCAL)
-            .doc("Set a per-player variable readable in later conditions as %name% (ttl ticks, 0 = forever).")
-            .example("{ SET_VAR: { name: rage, value: 1, ttl: 200, who: \"@Self\" } }")
+            .doc("Set (or with op=increment, add to) a variable on the target, readable in later conditions "
+                    + "as %name% on the activator or %victim.var.name% on the victim. ttl ticks, 0 = forever; "
+                    + "cap 0 = uncapped. Any living entity can carry one, so a mob holds its own stacks.")
+            .example("{ SET_VAR: { name: bleedstacks, op: increment, step: 1, cap: 20, ttl: 200, who: \"@Victim\" } }")
             .build();
 
     @Override
@@ -34,11 +39,13 @@ public final class SetVarEffect implements EffectKind {
     @Override
     public void run(EffectCtx ctx, Sink sink) {
         String name = ctx.str("name");
-        String value = ctx.str("value");
         int ttl = ctx.integer("ttl");
+        boolean increment = "increment".equalsIgnoreCase(ctx.str("op"));
         for (LivingEntity target : ctx.targets("who")) {
-            if (target instanceof Player p) {
-                sink.setVar(p, name, value, ttl);
+            if (increment) {
+                sink.incrementVar(target, name, ctx.integer("step"), ctx.integer("cap"), ttl);
+            } else {
+                sink.setVarOn(target, name, ctx.str("value"), ttl);
             }
         }
     }
