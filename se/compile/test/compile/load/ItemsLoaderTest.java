@@ -136,6 +136,37 @@ class ItemsLoaderTest {
     }
 
     @Test
+    void parsesTheHolyScrollCorruptionAllowanceAndItsThreeLines(@TempDir Path dir) throws Exception {
+        Files.writeString(dir.resolve("holy-white-scroll.yml"), """
+                type: holy-white-scroll
+                max-protections: 3
+                corrupt-lines:
+                  semi: "&7cracking {AMOUNT}/{MAX}"
+                  full: "&4spent {AMOUNT}/{MAX}"
+                """);
+
+        ScrollsConfig.Holy holy = ItemsLoader.load(dir).scrolls().orElseThrow().holy();
+        assertEquals(3, holy.maxProtections());
+        assertEquals("&7cracking {AMOUNT}/{MAX}", holy.corruptLines().semi());
+        assertEquals("&4spent {AMOUNT}/{MAX}", holy.corruptLines().full());
+        // an omitted stage falls back to its built-in template, like every other partial item file
+        assertEquals(ScrollsConfig.defaults().holy().corruptLines().very(), holy.corruptLines().very());
+    }
+
+    @Test
+    void anAbsentCorruptionBlockKeepsTheShippedAllowanceOfSeven(@TempDir Path dir) throws Exception {
+        Files.writeString(dir.resolve("holy-white-scroll.yml"), """
+                type: holy-white-scroll
+                material: MAP
+                """);
+
+        ScrollsConfig.Holy holy = ItemsLoader.load(dir).scrolls().orElseThrow().holy();
+        assertEquals("MAP", holy.material());
+        assertEquals(7, holy.maxProtections(), "the shipped default allowance");
+        assertEquals(ScrollsConfig.defaults().holy().corruptLines(), holy.corruptLines());
+    }
+
+    @Test
     void parsesADustRangeAndWhiteScrollConfig(@TempDir Path dir) throws Exception {
         Files.writeString(dir.resolve("dust.yml"), """
                 type: dust

@@ -20,7 +20,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
                            LoreSection lore, IntegrationsSection integrations,
                            ReloadSection reload, CommandTriggerSection commandTrigger,
                            MessageOnActivateSection messageOnActivate, SetsSection sets, EngineSection engine,
-                           StationsSection stations, ApplyCuesSection applyCues,
+                           StationsSection stations, ApplyCuesSection applyCues, BlessSection bless,
                            List<Diagnostic> diagnostics) {
 
     public MasterConfig {
@@ -44,6 +44,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
         Objects.requireNonNull(engine, "engine");
         Objects.requireNonNull(stations, "stations");
         Objects.requireNonNull(applyCues, "applyCues");
+        Objects.requireNonNull(bless, "bless");
         diagnostics = List.copyOf(diagnostics);
     }
 
@@ -56,7 +57,7 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
                 LoreSection.defaults(), IntegrationsSection.defaults(),
                 ReloadSection.defaults(), CommandTriggerSection.defaults(), MessageOnActivateSection.defaults(),
                 SetsSection.defaults(), EngineSection.defaults(), StationsSection.defaults(),
-                ApplyCuesSection.defaults(), List.of());
+                ApplyCuesSection.defaults(), BlessSection.defaults(), List.of());
     }
 
     /**
@@ -351,12 +352,33 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
      * @param pets     pets contribute to worn state and the pet gestures (use/food/leveling) are live (ADR-0052)
      * @param masks    masks contribute to worn state and the mask gestures (apply/remove) + illusion are live (ADR-0053)
      * @param reforges reforges contribute to worn state (held-gate) and the reforge gestures (apply/activate) are live (ADR-0070)
+     * @param bless    register {@code /bless}, the player-facing debuff cleanse (ADR-0072)
      */
     public record FeaturesSection(boolean enchants, boolean sets, boolean crystals, boolean heroic,
                                   boolean slots, boolean souls, boolean scrolls, boolean useItems,
-                                  boolean pets, boolean masks, boolean reforges) {
+                                  boolean pets, boolean masks, boolean reforges, boolean bless) {
         public static FeaturesSection defaults() {
-            return new FeaturesSection(true, true, true, true, true, true, true, true, true, true, true);
+            return new FeaturesSection(true, true, true, true, true, true, true, true, true, true, true, true);
+        }
+    }
+
+    /**
+     * What {@code /bless} costs (ADR-0072). Both knobs are read LIVE, so {@code /se reload} re-tunes them; a
+     * player with {@code starenchants.bless.bypass} skips both.
+     *
+     * @param cooldownSeconds seconds between one player's blesses; {@code <= 0} = no cooldown. The cooldown
+     *                        survives a relog — a reconnect must not shed it.
+     * @param cost            charged per bless through the economy bridge; {@code <= 0} = free. With a cost set
+     *                        but no economy provider installed the command refuses rather than running free.
+     */
+    public record BlessSection(int cooldownSeconds, double cost) {
+        public BlessSection {
+            cooldownSeconds = Math.max(0, cooldownSeconds);
+            cost = Math.max(0.0, cost);
+        }
+
+        public static BlessSection defaults() {
+            return new BlessSection(60, 0.0);
         }
     }
 

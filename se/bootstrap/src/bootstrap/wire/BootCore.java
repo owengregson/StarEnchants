@@ -151,6 +151,7 @@ public final class BootCore {
     private final AppliedSlot appliedSlot;
     private final CarrierCodec carrierCodec;
     private final TrakCodec trakCodec;
+    private final item.codec.HolyProtectionCodec holyProtectionCodec;
     private final item.codec.PetCodec petCodec;
     private final feature.pet.PetArmedStore petArmedStore;
     private final item.codec.MaskCodec maskCodec;
@@ -302,14 +303,27 @@ public final class BootCore {
         this.trakCodec = new TrakCodec(ItemKeys.of().trakGem(),
                 ItemKeys.of().trakBlocks(), ItemKeys.of().trakMobs(), ItemKeys.of().trakSouls(),
                 ItemKeys.of().trakFish(), store);
+        // §I holy-protection counter — likewise before the renderer: the corruption line renders off it.
+        this.holyProtectionCodec = new item.codec.HolyProtectionCodec(ItemKeys.of().holyProtections(), store);
 
         // ADR-0040 sectioned composition: protection + trak lines render from marker/counter STATE (never parsed
         // back), so the composer owns every section in one deterministic pass.
-        java.util.function.Function<ItemStack, java.util.List<String>> protectionLinesFn = stack ->
-                item.render.ProtectionLore.lines(carrierCodec.isGuarded(stack),
-                        appliedSlot.holds(stack, AppliedSlot.HOLY),
-                        items.config().whiteScrollOrDefault().protectedLine(),
-                        items.config().scrollsOrDefault().holy().protectedLine());
+        java.util.function.Function<ItemStack, java.util.List<String>> protectionLinesFn = stack -> {
+            compile.load.ScrollsConfig.Holy holy = items.config().scrollsOrDefault().holy();
+            java.util.List<String> lines = new java.util.ArrayList<>(
+                    item.render.ProtectionLore.lines(carrierCodec.isGuarded(stack),
+                            appliedSlot.holds(stack, AppliedSlot.HOLY),
+                            items.config().whiteScrollOrDefault().protectedLine(),
+                            holy.protectedLine()));
+            // §I directly BELOW the holy line: unlike the markers above it, this one is earned permanently.
+            String corruption = item.render.CorruptionLore.line(holyProtectionCodec.count(stack),
+                    holy.maxProtections(), holy.corruptLines().semi(), holy.corruptLines().very(),
+                    holy.corruptLines().full());
+            if (corruption != null) {
+                lines.add(corruption);
+            }
+            return lines;
+        };
         java.util.function.Function<ItemStack, java.util.List<String>> trakLinesFn = stack ->
                 feature.trak.TrakService.countLines(stack, trakCodec, appliedSlot, items.config().traksOrDefault());
         // MIGRATION-ONLY (ADR-0040): the visible-text classifiers survive to let the composer's one-time legacy
@@ -593,6 +607,8 @@ public final class BootCore {
     public CarrierCodec carrierCodec() { return carrierCodec; }
 
     public TrakCodec trakCodec() { return trakCodec; }
+
+    public item.codec.HolyProtectionCodec holyProtectionCodec() { return holyProtectionCodec; }
 
     public item.codec.PetCodec petCodec() { return petCodec; }
 

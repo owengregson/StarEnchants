@@ -73,6 +73,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                     "Explain a player's recent activation attempts — which gate stopped each one and why."),
             CommandInfo.of("damagedebug", "",
                     "Toggle a per-hit damage-fold readout (base, percents, flats, scale, result) for yourself."),
+            CommandInfo.of("bless", "[player]",
+                    "Cleanse every landed debuff from yourself or another player (admin; no cooldown or cost)."),
             CommandInfo.of("modules", "",
                     "Show every feature module — toggle state and depth, wired listeners, commands, mint types, stores."),
             CommandInfo.of("give", "<type> <player> [args]", "Give any mintable item (book, scroll, dust, gem, orb, crystal, set piece, heroic…) to a player."),
@@ -159,6 +161,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private final Map<String, Mintable> giveIndex;          // ADR-0047 canonical + alias → mintable (/se give dispatch)
     private final Map<String, Mintable> selfIndex;          // ADR-0047 type → mintable with a self() row (/se <type> dispatch)
     private final Supplier<ModuleFold.Report> modulesReport; // /se modules — the frozen fold report (ADR-0047)
+    private final feature.bless.BlessCommand bless;          // /se bless — the same cleanse, gate-free (ADR-0072)
 
     public SeCommand(ContentReloader reloader, ItemEnchanter enchanter, Consumer<Player> refreshWorn,
               SoulService souls, Path migrationTarget, MenuRegistry menus, ContentHolder content,
@@ -173,7 +176,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
               feature.combat.DamageDebug damageDebug,
               java.util.function.Supplier<java.util.List<String>> quarantined, item.worn.WornStateStore worn,
               java.util.function.LongSupplier nowTicks, List<Mintable> mintables, MintIo io,
-              Supplier<ModuleFold.Report> modulesReport) {
+              Supplier<ModuleFold.Report> modulesReport, feature.bless.BlessCommand bless) {
         this.reloader = reloader;
         this.enchanter = enchanter;
         this.refreshWorn = refreshWorn;
@@ -206,6 +209,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         this.nowTicks = nowTicks;
         this.io = io;
         this.modulesReport = modulesReport;
+        this.bless = bless;
         // ADR-0047: the three mint surfaces derive from the ONE declaration set — the give-type list, the give
         // dispatch (canonical + aliases), and the /se <type> self-mint dispatch (types with a self() row).
         List<String> types = new ArrayList<>();
@@ -240,6 +244,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             case "problems" -> problems(sender);
             case "why" -> why(sender, args);
             case "damagedebug" -> toggleDamageDebug(sender);
+            case "bless" -> bless(sender, args);
             case "modules" -> modules(sender);
             case "give" -> give(sender, args);
             case "item" -> itemDump(sender, args);
@@ -380,7 +385,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         if (args.length == 2) {
             return switch (sub) {
                 case "give" -> filter(giveTypes, args[1]);
-                case "why" -> filter(playerNames, args[1]);
+                case "why", "bless" -> filter(playerNames, args[1]);
                 case "enchant", "book", "removeenchant", "unenchant" -> filter(enchantKeys, args[1]);
                 case "crystal" -> filter(crystalKeys, args[1]);
                 case "unopened" -> filter(tierNames, args[1]);
@@ -479,6 +484,28 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                 messages.lines("soul.empty").forEach(player::sendMessage);
             }
         });
+    }
+
+    /**
+     * {@code /se bless [player]} — the admin mirror of {@code /bless} (ADR-0072): the identical cleanse with the
+     * cooldown/cost gate skipped entirely, on the sender or a named online player. Console must name a target.
+     */
+    private void bless(CommandSender sender, String[] args) {
+        Player target = args.length > 1 ? org.bukkit.Bukkit.getPlayerExact(args[1])
+                : (sender instanceof Player self ? self : null);
+        if (target == null) {
+            sender.sendMessage(args.length > 1
+                    ? messages.format("command.bless.no-such-player", "PLAYER", args[1])
+                    : messages.format("command.not-a-player"));
+            return;
+        }
+        // A console bless has no player to report back to, so the target hears about it and the sender gets the echo.
+        if (sender instanceof Player notify) {
+            bless.run(notify, target);
+        } else {
+            bless.run(target, target);
+            sender.sendMessage(messages.format("command.bless.cleansed-other", "PLAYER", target.getName()));
+        }
     }
 
     /** Toggle the per-hit damage-fold readout for the sender: {@code /se damagedebug} (ADR-0050 R3). */

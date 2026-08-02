@@ -46,7 +46,7 @@ final class ScrollsModule {
                 core.recompose().accept(gear);
             }
         };
-        this.holyScrolls = new HolyScrollService(scrollCodec, core.appliedSlot(),
+        this.holyScrolls = new HolyScrollService(scrollCodec, core.appliedSlot(), core.holyProtectionCodec(),
                 () -> core.items().config().scrollsOrDefault(), core.rolls(), core.messages(), holyReRender,
                 core.itemGroups());
         this.keptItems = new KeptItemsStore(); // §I holy death→respawn stash

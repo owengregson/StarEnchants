@@ -25,3 +25,9 @@ permissions:
   starenchants.use:
     description: Open the player-facing StarEnchants menu (/enchants).
     default: true
+  starenchants.bless:
+    description: Cleanse landed debuffs from yourself (/bless).
+    default: true
+  starenchants.bless.bypass:
+    description: Use /bless with no cooldown and no cost.
+    default: op

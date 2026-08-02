@@ -33,6 +33,7 @@ public final class Modules {
     final ReforgesModule reforges;
     final ScrollsModule scrolls;
     final TraksModule traks;
+    final BlessModule bless;
     final EnchantsModule enchants;
     final SetsModule sets;
     final MenusModule menus;
@@ -63,6 +64,7 @@ public final class Modules {
         this.useItems = new UseItemsModule(core);          // §3.6 right-click content items
         this.pets = new PetsModule(core, equip);           // ADR-0052 leveling head items (needs the refresher)
         this.masks = new MasksModule(core, equip);         // ADR-0053 helmet masks (subscribes the equip-refresh seam)
+        this.bless = new BlessModule(core, equip);   // ADR-0072 /bless (needs the passive-potion authority)
         this.traks = new TraksModule(core);
         this.enchants = new EnchantsModule(core);
         this.sets = new SetsModule(core);
@@ -90,14 +92,14 @@ public final class Modules {
         this.reload = new ReloadModule(core, equip);
         this.menus = new MenusModule(core, reload, scrolls, mintables);
         this.commands = new CommandsModule(core, reload, menus, crystals, heroic, slots, books, scrolls, traks,
-                mintables, foldReport);
+                bless, mintables, foldReport);
 
         this.registry = List.of(combat.module(), equip.module(), souls.module(), triggers.module(),
                 controls.module(), stores.module(), guard.module(), carriers.module(), crystals.module(),
                 heroic.module(), slots.module(), books.module(), useItems.module(), pets.module(),
                 masks.module(), // ADR-0053 directly after pets
                 reforges.module(), // ADR-0070 directly after masks
-                scrolls.module(), traks.module(), enchants.module(), sets.module(), menus.module(),
+                scrolls.module(), traks.module(), bless.module(), enchants.module(), sets.module(), menus.module(),
                 reload.module(), commands.module());
     }
 
