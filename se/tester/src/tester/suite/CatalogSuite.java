@@ -21,7 +21,7 @@ import tester.harness.Harness;
 /**
  * Compiles the shipped content live with the real {@link RegistryResolvers} (ADR-0014; §10) — the only place
  * a handle token that does not resolve on THIS server version is caught, run on every matrix target. TWO
- * libraries compile here: the default catalog AND the bundled cosmic pack — the pack is the bigger handle
+ * libraries compile here: the default catalog AND the bundled signature pack — the pack is the bigger handle
  * surface, and validating only the default once let the 1.20.5 particle rename wave ship 79 dead cue lines
  * that every matrix target greenlit.
  */
@@ -36,11 +36,11 @@ public final class CatalogSuite implements Harness.Scenario {
     @Override
     public void accept(Harness h) {
         h.expect("catalog.compilesCleanWithRealHandles");
-        h.expect("catalog.cosmicPackCompilesCleanWithRealHandles");
+        h.expect("catalog.signaturePackCompilesCleanWithRealHandles");
         h.guard("catalog.compilesCleanWithRealHandles",
                 () -> compileClean("content", 60, "default catalog"));
-        h.guard("catalog.cosmicPackCompilesCleanWithRealHandles",
-                () -> compileClean("pack-cosmic", 400, "cosmic pack"));
+        h.guard("catalog.signaturePackCompilesCleanWithRealHandles",
+                () -> compileClean("pack-signature", 400, "signature pack"));
     }
 
     private void compileClean(String bundleRoot, int minAbilities, String label) {
