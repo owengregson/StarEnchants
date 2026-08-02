@@ -34,7 +34,7 @@ import schema.diag.Diagnostic;
 import schema.spec.HandleCategory;
 
 /**
- * The shipped {@code cosmic-pack} config pack (ADR-0023) must compile clean through the real
+ * The shipped {@code signature-pack} config pack (ADR-0023) must compile clean through the real
  * registries, like {@link CatalogValidationTest} guards the default catalog — so a broken pack port can
  * never ship.
  *
@@ -47,7 +47,7 @@ import schema.spec.HandleCategory;
  * the floor too), and they are plain enums on 1.17.1 so resolution needs no server. Registry-backed handles
  * (potion effects, enchantments) stay permissive offline — their existence is owned by the live matrix.
  */
-class CosmicPackValidationTest {
+class SignaturePackValidationTest {
 
     private static final PlatformResolvers STRICT = new PlatformResolvers() {
         @Override public OptionalInt material(String t) { return strict(HandleCategory.MATERIAL, t, n -> enumExists(Material.class, n)); }
@@ -76,12 +76,12 @@ class CosmicPackValidationTest {
         }
     }
 
-    private static final Path PACK = Path.of("packs-src/cosmic-pack");
+    private static final Path PACK = Path.of("packs-src/signature-pack");
 
     @Test
-    void cosmicPackContentCompilesClean() {
+    void signaturePackContentCompilesClean() {
         Path content = PACK.resolve("content");
-        assertTrue(Files.isDirectory(content), "Cosmic pack content not found from " + Path.of("").toAbsolutePath());
+        assertTrue(Files.isDirectory(content), "Signature pack content not found from " + Path.of("").toAbsolutePath());
 
         Compiler compiler = ContentCompiler.production(STRICT);
         Library library = LibraryLoader.load(content, compiler, 0);
@@ -90,57 +90,57 @@ class CosmicPackValidationTest {
                 .filter(Diagnostic::blocking)
                 .map(Diagnostic::toString)
                 .collect(Collectors.joining("\n  "));
-        assertFalse(library.hasErrors(), () -> "Cosmic pack content has blocking diagnostics:\n  " + blocking);
+        assertFalse(library.hasErrors(), () -> "Signature pack content has blocking diagnostics:\n  " + blocking);
         // 122 enchants × multiple levels — guard against a silent empty/partial load.
         assertTrue(library.snapshot().abilityCount() > 400,
                 () -> "expected the full EE catalog, got " + library.snapshot().abilityCount() + " abilities");
     }
 
     @Test
-    void cosmicPackItemsLoadClean() {
+    void signaturePackItemsLoadClean() {
         Path items = PACK.resolve("items");
-        assertTrue(Files.isDirectory(items), "Cosmic pack items not found");
+        assertTrue(Files.isDirectory(items), "Signature pack items not found");
         ItemsConfig config = ItemsLoader.load(items);
         String errors = config.diagnostics().stream()
                 .filter(Diagnostic::blocking)
                 .map(Diagnostic::toString)
                 .collect(Collectors.joining("\n  "));
-        assertFalse(config.hasErrors(), () -> "Cosmic pack items have blocking diagnostics:\n  " + errors);
-        assertTrue(config.soulGem().isPresent(), "the Cosmic pack should carry a soul-gem likeness");
+        assertFalse(config.hasErrors(), () -> "Signature pack items have blocking diagnostics:\n  " + errors);
+        assertTrue(config.soulGem().isPresent(), "the Signature pack should carry a soul-gem likeness");
     }
 
     @Test
-    void cosmicPackMenusLoadClean() {
+    void signaturePackMenusLoadClean() {
         Path menus = PACK.resolve("menus");
-        assertTrue(Files.isDirectory(menus), "Cosmic pack menus not found");
+        assertTrue(Files.isDirectory(menus), "Signature pack menus not found");
         MenusConfig config = MenusLoader.load(menus);
         String errors = config.diagnostics().stream()
                 .filter(Diagnostic::blocking)
                 .map(Diagnostic::toString)
                 .collect(Collectors.joining("\n  "));
-        assertFalse(config.hasErrors(), () -> "Cosmic pack menus have blocking diagnostics:\n  " + errors);
+        assertFalse(config.hasErrors(), () -> "Signature pack menus have blocking diagnostics:\n  " + errors);
     }
 
     @Test
-    void cosmicPackMasterConfigLoadsClean() {
+    void signaturePackMasterConfigLoadsClean() {
         Path configFile = PACK.resolve("config.yml");
-        assertTrue(Files.isRegularFile(configFile), "Cosmic pack config.yml not found");
+        assertTrue(Files.isRegularFile(configFile), "Signature pack config.yml not found");
         MasterConfig master = MasterConfigLoader.load(configFile);
         String errors = master.diagnostics().stream()
                 .filter(Diagnostic::blocking)
                 .map(Diagnostic::toString)
                 .collect(Collectors.joining("\n  "));
-        assertFalse(master.hasErrors(), () -> "Cosmic pack config.yml has blocking diagnostics:\n  " + errors);
+        assertFalse(master.hasErrors(), () -> "Signature pack config.yml has blocking diagnostics:\n  " + errors);
     }
 
     // pack.yml is the ADR-0023 descriptor; the rest are the captured surface roots (pack.PackSurface FILES+DIRS).
-    // cosmic-pack.zip is a BUILD output (se/bootstrap/build.gradle.kts packCosmicPack), never a source entry.
+    // signature-pack.zip is a BUILD output (se/bootstrap/build.gradle.kts packSignaturePack), never a source entry.
     private static final Set<String> ALLOWED_TOP_LEVEL = Set.of(
             "pack.yml", "config.yml", "lang.yml", "content", "items", "menus");
 
     @Test
-    void cosmicPackHasOnlySurfaceRootsAtTopLevel() throws Exception {
-        assertTrue(Files.isDirectory(PACK), "Cosmic pack source tree not found from " + Path.of("").toAbsolutePath());
+    void signaturePackHasOnlySurfaceRootsAtTopLevel() throws Exception {
+        assertTrue(Files.isDirectory(PACK), "Signature pack source tree not found from " + Path.of("").toAbsolutePath());
         try (Stream<Path> top = Files.list(PACK)) {
             List<String> stray = top.map(p -> p.getFileName().toString())
                     .filter(name -> !name.startsWith("."))
@@ -148,7 +148,7 @@ class CosmicPackValidationTest {
                     .sorted()
                     .toList();
             assertTrue(stray.isEmpty(),
-                    () -> "cosmic-pack has top-level entries outside pack.yml + the surface roots: " + stray);
+                    () -> "signature-pack has top-level entries outside pack.yml + the surface roots: " + stray);
         }
     }
 }
