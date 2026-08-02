@@ -2,6 +2,7 @@ package compile.load;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import compile.Compiler;
@@ -16,6 +17,7 @@ import schema.spec.ParamSpec;
 import org.junit.jupiter.api.Test;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
+import schema.diag.Source;
 
 /** Unit tests for the enchant reader (ADR-0014): malformed input is a diagnostic, never an exception. */
 class EnchantDefReaderTest {
@@ -199,6 +201,154 @@ class EnchantDefReaderTest {
         assertTrue(snap.byStableKey("enchants/immune/1").suppressImmune(),
                 "suppress-immune: true must survive reader → lower → resolve → erase");
         assertFalse(snap.byStableKey("enchants/plain/1").suppressImmune());
+    }
+
+    // ── Multi-ability levels: a level may fan into N ability blocks, keyed like every other multi-ability
+    // source (crystal/mask/reforge/pet) — first block keeps the bare key, the rest take /a1, /a2, … dense.
+
+    private static final String TWO_BLOCK_YAML = """
+        trigger: ATTACK
+        group: combat
+        chance: 100
+        levels:
+          2:
+            abilities:
+              - { chance: 40, cooldown: 60, condition: "%sneaking%",
+                  effects: [{ HEAL: { amount: 2 } }] }
+              - { trigger: DEFENSE, soul-cost: 3, repeat: 20,
+                  effects: [{ HEAL: { amount: 9 } }] }
+        """;
+
+    @Test
+    void aTwoBlockLevelFansIntoTwoAbilitiesWithDenseKeys() {
+        Diagnostics diags = new Diagnostics();
+        List<AbilityDef> abilities =
+                EnchantDefReader.read("enchants/phoenix", root(TWO_BLOCK_YAML, diags), counter(), diags).abilities();
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        assertEquals(2, abilities.size());
+        assertEquals(List.of("enchants/phoenix/2", "enchants/phoenix/2/a1"),
+                abilities.stream().map(AbilityDef::stableKey).toList());
+    }
+
+    @Test
+    void eachBlockCarriesItsOwnKnobsAndInheritsTheRest() {
+        Diagnostics diags = new Diagnostics();
+        List<AbilityDef> abilities =
+                EnchantDefReader.read("enchants/phoenix", root(TWO_BLOCK_YAML, diags), counter(), diags).abilities();
+        AbilityDef first = abilities.get(0);
+        AbilityDef second = abilities.get(1);
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        assertEquals(40.0, first.baseChance(), 1e-9);
+        assertEquals(60, first.cooldownTicks());
+        assertEquals("%sneaking%", first.conditionExpr());
+        assertEquals(List.of("ATTACK"), first.triggers());
+        assertEquals("HEAL", first.effects().get(0).head());
+
+        assertEquals(List.of("DEFENSE"), second.triggers(), "a block may override the enchant's trigger");
+        assertEquals(3, second.soulCost());
+        assertEquals(20, second.repeatTicks());
+        assertEquals(100.0, second.baseChance(), 1e-9, "an undeclared knob still falls back to the root");
+        assertEquals(0, second.cooldownTicks(), "the sibling block's cooldown must not leak across");
+
+        // Both blocks are the SAME enchant: one suppression key, one cooldown scope, one level.
+        for (AbilityDef ability : abilities) {
+            assertEquals("enchants/phoenix", ability.suppressKey());
+            assertEquals("enchants/phoenix", ability.cdScopeEnchant());
+            assertEquals("combat", ability.cdScopeGroup());
+            assertEquals(2, ability.level());
+        }
+    }
+
+    @Test
+    void aSingleBlockLevelKeepsTheBareKeyAndMatchesTheLegacyShape() {
+        // Back-compat is byte-stable: existing items store enchants/<name>/<level>, so a one-block
+        // abilities: list must produce the same key the direct condition/effects shape does — no /a0.
+        Diagnostics diags = new Diagnostics();
+        String legacy = """
+            trigger: ATTACK
+            levels:
+              1: { chance: 25, cooldown: 40, condition: "%sneaking%", effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        String listed = """
+            trigger: ATTACK
+            levels:
+              1:
+                abilities:
+                  - { chance: 25, cooldown: 40, condition: "%sneaking%", effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        AbilityDef fromLegacy = EnchantDefReader.read("enchants/x", root(legacy, diags), counter(), diags)
+                .abilities().get(0);
+        AbilityDef fromList = EnchantDefReader.read("enchants/x", root(listed, diags), counter(), diags)
+                .abilities().get(0);
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        assertEquals("enchants/x/1", fromLegacy.stableKey());
+        // Whole-record equality (defId/source normalised — they track authoring position, not shape), so a
+        // field the fan-out forgets to carry over fails here rather than in a hand-listed subset.
+        assertEquals(normalise(fromLegacy), normalise(fromList));
+    }
+
+    /** The same def with its position-derived fields zeroed, so two shapes of one ability compare whole. */
+    private static AbilityDef normalise(AbilityDef d) {
+        return new AbilityDef(d.sourceKind(), d.stableKey(), 0, d.level(), d.baseChance(), d.cooldownTicks(),
+                d.soulCost(), d.triggers(), d.worldBlacklist(), d.conditionExpr(), d.effects(), d.suppressKey(),
+                d.cdScopeEnchant(), d.cdScopeGroup(), d.cdScopeType(), d.repeatTicks(),
+                Source.ofFile("normalised.yml"), d.setPieces(), d.suppressImmune());
+    }
+
+    @Test
+    void abilitiesBesideASiblingEffectsListIsAmbiguousAndBlocks() {
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            trigger: ATTACK
+            levels:
+              1:
+                effects: [{ HEAL: { amount: 1 } }]
+                abilities:
+                  - { effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        EnchantDefReader.read("enchants/x", root(yaml, diags), counter(), diags);
+        assertCode(diags, DiagCode.E_LOAD_ENCHANT_LEVEL);
+    }
+
+    @Test
+    void anEmptyAbilitiesListBlocks() {
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            trigger: ATTACK
+            levels:
+              1: { abilities: [] }
+            """;
+        EnchantDefReader.read("enchants/x", root(yaml, diags), counter(), diags);
+        assertCode(diags, DiagCode.E_LOAD_ENCHANT_LEVEL);
+    }
+
+    @Test
+    void aNonMappingAbilityEntryIsReportedNotThrown() {
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            trigger: ATTACK
+            levels:
+              1:
+                abilities:
+                  - "just a string"
+            """;
+        EnchantDefReader.read("enchants/x", root(yaml, diags), counter(), diags);
+        assertCode(diags, DiagCode.E_LOAD_ENCHANT_LEVEL);
+    }
+
+    @Test
+    void multiAbilityKeysSurviveTheWholeCompile() {
+        Diagnostics diags = new Diagnostics();
+        Snapshot snap = Compiler.of(MapSpecRegistry.of(heal())).compile(
+                EnchantDefReader.read("enchants/phoenix", root(TWO_BLOCK_YAML, diags), counter(), diags).abilities(),
+                1, diags);
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        assertNotNull(snap.byStableKey("enchants/phoenix/2"));
+        assertNotNull(snap.byStableKey("enchants/phoenix/2/a1"));
     }
 
     private static ParamSpec heal() {
