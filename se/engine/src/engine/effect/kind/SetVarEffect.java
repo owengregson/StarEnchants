@@ -7,7 +7,6 @@ import engine.sink.Sink;
 import engine.spec.EffectSpec;
 import engine.spec.T;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**

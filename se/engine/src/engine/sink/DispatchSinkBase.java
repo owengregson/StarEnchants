@@ -20,7 +20,6 @@ import engine.stores.WardStore;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -1646,7 +1645,6 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     /** Apply an optional custom name (with {@code &}-colour codes) to a freshly-summoned guard. */
-    @SuppressWarnings("deprecation") // setCustomName(String): deprecated-not-removed across the whole 1.17.1→26.1.x range.
     private static void applyGuardName(Entity entity, String name) {
         if (name != null && !name.isEmpty()) {
             entity.setCustomName(Colors.translate(name));
