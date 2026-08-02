@@ -237,6 +237,35 @@ class ConditionCompilerTest {
         assertEquals(NumExpr.FnKind.MAX, assertInstanceOf(NumExpr.Fn.class, clamp.args().get(2)).kind());
     }
 
+    // ── TARGET_VAR reads: %victim.var.<name>% is recognised by PREFIX at compile time and lowers to a
+    // victim-scoped dynamic read, so it never falls through to the PlaceholderAPI passthrough.
+
+    @Test
+    void victimVarPrefixLowersToAVictimScopedRead() {
+        Diagnostics d = new Diagnostics();
+        Cond.NumCmp cmp = assertInstanceOf(Cond.NumCmp.class, lower("%victim.var.bleedstacks% >= 3", d));
+        assertFalse(d.hasErrors(), () -> d.all().toString());
+        NumExpr.EntityVar read = assertInstanceOf(NumExpr.EntityVar.class, cmp.left());
+        assertEquals("bleedstacks", read.name());
+    }
+
+    @Test
+    void victimVarNamesAreCaseInsensitiveAndKeepInnerDots() {
+        Diagnostics d = new Diagnostics();
+        Cond.NumCmp cmp = assertInstanceOf(Cond.NumCmp.class, lower("%victim.var.Mark.Beast% > 0", d));
+        assertFalse(d.hasErrors(), () -> d.all().toString());
+        // The store canonicalises case; the compiler must hand it the whole remainder, dots and all.
+        assertEquals("Mark.Beast", assertInstanceOf(NumExpr.EntityVar.class, cmp.left()).name());
+    }
+
+    @Test
+    void aBareVictimVarIsNotSilentlyAPlaceholder() {
+        // Without the prefix arm this would lower to NumExpr.Papi and read null forever — a silent no-op.
+        Diagnostics d = new Diagnostics();
+        Cond.NumCmp cmp = assertInstanceOf(Cond.NumCmp.class, lower("%victim.var.x% == 0", d));
+        assertFalse(cmp.left() instanceof NumExpr.Papi, "a victim var must not fall through to PAPI");
+    }
+
     @Test
     void aStringArgumentToAFunctionIsATypeError() {
         // Functions are numeric-only; the fault must be a diagnostic, never a lowering exception.
