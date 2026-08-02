@@ -196,7 +196,7 @@ final class SetDefReader {
         List<String> disabledWorlds = node.stringList("disabled-worlds");
         String group = ContentParse.blankToNull(node.string("group"));
         int repeatTicks = ContentParse.optInt(node, "repeat", 0, diags);
-        double chance = ContentParse.resolveChance(node, "chance", diags);
+        ContentParse.Chance chance = ContentParse.resolveChanceValue(node, "chance", diags);
         int cooldown = ContentParse.resolveInt(node, "cooldown", 0, diags);
         int soulCost = ContentParse.resolveInt(node, "soul-cost", 0, diags);
         String condition = ContentParse.blankToNull(node.string("condition"));
@@ -206,8 +206,8 @@ final class SetDefReader {
                     node.sourceOf("effects"));
         }
         return new AbilityDef(
-                SourceKind.SET, stableKey, nextDefId.getAsInt(), 0, chance, cooldown, soulCost, triggers,
+                SourceKind.SET, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, soulCost, triggers,
                 disabledWorlds, condition, effects, stableKey, stableKey, group, null, repeatTicks, fileSource,
-                Math.max(0, setPieces));
+                Math.max(0, setPieces), false, chance.expr());
     }
 }

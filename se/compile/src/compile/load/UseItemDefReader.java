@@ -118,7 +118,7 @@ final class UseItemDefReader {
                     + "' declares a trigger; the USE trigger is implicit and the authored value is ignored",
                     node.sourceOf("trigger"));
         }
-        double chance = ContentParse.resolveChance(node, "chance", diags);
+        ContentParse.Chance chance = ContentParse.resolveChanceValue(node, "chance", diags);
         int cooldown = ContentParse.resolveInt(node, "cooldown", 0, diags);
         String condition = ContentParse.blankToNull(node.string("condition"));
         conditionSources.add(orEmpty(condition));
@@ -130,8 +130,9 @@ final class UseItemDefReader {
                     node.sourceOf("effects"));
         }
         return new AbilityDef(
-                SourceKind.USE_ITEM, stableKey, nextDefId.getAsInt(), 0, chance, cooldown, 0, List.of("USE"),
-                List.of(), condition, effects, stableKey, stableKey, null, null, 0, fileSource, 0);
+                SourceKind.USE_ITEM, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, 0, List.of("USE"),
+                List.of(), condition, effects, stableKey, stableKey, null, null, 0, fileSource, 0, false,
+                chance.expr());
     }
 
     /**

@@ -142,7 +142,30 @@ public final class DefaultLowerStage implements LowerStage {
                 ability,
                 def.source(),
                 def.setPieces(),
-                def.suppressImmune());
+                def.suppressImmune(),
+                lowerChance(def, diags));
+    }
+
+    /**
+     * The chance expression lowered to {@link NumExpr}, or {@code null} when {@code chance:} was a constant
+     * (the fast path) or the expression was rejected.
+     *
+     * <p>Lowered into a scratch {@link Diagnostics} so a FAULTY expression is dropped whole: the parser's
+     * recovery node is a numeric {@code 0}, which as a chance would silently mean "never fires". Falling back
+     * to the authored constant instead keeps a typo from disabling the ability outright — the diagnostic still
+     * rides out and blocks the load.
+     */
+    private NumExpr lowerChance(AbilityDef def, Diagnostics diags) {
+        String raw = def.chanceExpr();
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        Diagnostics scratch = new Diagnostics();
+        NumExpr lowered = ExprParser.parse(raw, def.source(), scratch)
+                .flatMap(expr -> conditionCompiler.numeric(expr, scratch))
+                .orElse(null);
+        diags.merge(scratch);
+        return scratch.hasErrors() ? null : lowered;
     }
 
     /**

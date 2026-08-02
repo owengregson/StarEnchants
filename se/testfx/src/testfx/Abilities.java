@@ -32,6 +32,7 @@ public final class Abilities {
         private int triggerMask = 0;
         private int level = 1;
         private double baseChance = 100.0;
+        private compile.model.cond.NumExpr chanceExpr = null;
         private int cooldownTicks = 0;
         private int soulCost = 0;
         private long worldBlacklist = 0L;
@@ -80,6 +81,12 @@ public final class Abilities {
 
         public Builder chance(double baseChance) {
             this.baseChance = baseChance;
+            return this;
+        }
+
+        /** An expression-valued {@code chance:}; {@code null} keeps the constant fast path. */
+        public Builder chanceExpr(compile.model.cond.NumExpr chanceExpr) {
+            this.chanceExpr = chanceExpr;
             return this;
         }
 
@@ -148,7 +155,7 @@ public final class Abilities {
         public Ability build() {
             return new Ability(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost,
                     worldBlacklist, condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup,
-                    cdScopeType, suppressKey, setPieces, suppressImmune, factMask);
+                    cdScopeType, suppressKey, setPieces, suppressImmune, factMask, chanceExpr);
         }
     }
 }

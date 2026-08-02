@@ -39,6 +39,7 @@ public final class Defs {
         private int defId = 1;
         private int level = 1;
         private double baseChance = 100.0;
+        private String chanceExpr = null;
         private int cooldownTicks = 0;
         private int soulCost = 0;
         private List<String> triggers = new ArrayList<>(List.of("ATTACK"));
@@ -77,6 +78,12 @@ public final class Defs {
 
         public AbilityBuilder chance(double baseChance) {
             this.baseChance = baseChance;
+            return this;
+        }
+
+        /** Raw expression text for {@code chance:}; {@code null} keeps the constant fast path. */
+        public AbilityBuilder chanceExpr(String chanceExpr) {
+            this.chanceExpr = chanceExpr;
             return this;
         }
 
@@ -177,7 +184,7 @@ public final class Defs {
             }
             return new AbilityDef(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost,
                     triggers, worldBlacklist, conditionExpr, lines, suppressKey, cdScopeEnchant, cdScopeGroup,
-                    cdScopeType, repeatTicks, source, setPieces, suppressImmune);
+                    cdScopeType, repeatTicks, source, setPieces, suppressImmune, chanceExpr);
         }
     }
 
@@ -188,6 +195,7 @@ public final class Defs {
         private int defId = 1;
         private int level = 0;
         private double baseChance = 0.0;
+        private compile.model.cond.NumExpr loweredChanceExpr = null;
         private int cooldownTicks = 0;
         private int soulCost = 0;
         private List<String> triggers = new ArrayList<>();
@@ -226,6 +234,12 @@ public final class Defs {
 
         public LoweredBuilder chance(double baseChance) {
             this.baseChance = baseChance;
+            return this;
+        }
+
+        /** The lowered expression evaluated at the chance gate; {@code null} keeps the constant fast path. */
+        public LoweredBuilder chanceExpr(compile.model.cond.NumExpr chanceExpr) {
+            this.loweredChanceExpr = chanceExpr;
             return this;
         }
 
@@ -314,7 +328,7 @@ public final class Defs {
         public LoweredAbility build() {
             return new LoweredAbility(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost,
                     triggers, worldBlacklist, condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup,
-                    cdScopeType, repeatTicks, affinity, source, setPieces, suppressImmune);
+                    cdScopeType, repeatTicks, affinity, source, setPieces, suppressImmune, loweredChanceExpr);
         }
     }
 }

@@ -24,6 +24,8 @@ import java.util.List;
  * @param repeatTicks     period for a repeating-trigger ability; {@code 0} = none
  * @param setPieces       for a {@link SourceKind#SET} bonus, the worn-piece count that completes the
  *                        set; {@code 0} for every non-set source
+ * @param chanceExpr      raw expression text when {@code chance:} was authored as an expression rather than
+ *                        a number, else {@code null}; lowered to a {@code NumExpr} like {@link #conditionExpr}
  */
 public record AbilityDef(
         SourceKind sourceKind,
@@ -44,12 +46,24 @@ public record AbilityDef(
         int repeatTicks,
         Source source,
         int setPieces,
-        boolean suppressImmune) {
+        boolean suppressImmune,
+        String chanceExpr) {
 
     public AbilityDef {
         triggers = List.copyOf(triggers);
         worldBlacklist = List.copyOf(worldBlacklist);
         effects = List.copyOf(effects);
+    }
+
+    /** Back-compat construction for a constant {@code chance:} — the overwhelmingly common case. */
+    public AbilityDef(SourceKind sourceKind, String stableKey, int defId, int level, double baseChance,
+                      int cooldownTicks, int soulCost, List<String> triggers, List<String> worldBlacklist,
+                      String conditionExpr, List<EffectLine> effects, String suppressKey, String cdScopeEnchant,
+                      String cdScopeGroup, String cdScopeType, int repeatTicks, Source source, int setPieces,
+                      boolean suppressImmune) {
+        this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
+                conditionExpr, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks,
+                source, setPieces, suppressImmune, null);
     }
 
     /** Back-compat construction defaulting {@code suppressImmune=false} — only enchants author it today. */
@@ -59,6 +73,6 @@ public record AbilityDef(
                       String cdScopeGroup, String cdScopeType, int repeatTicks, Source source, int setPieces) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 conditionExpr, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks,
-                source, setPieces, false);
+                source, setPieces, false, null);
     }
 }

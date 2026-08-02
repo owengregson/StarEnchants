@@ -139,7 +139,7 @@ final class ReforgeDefReader {
         List<String> disabledWorlds = node.stringList("disabled-worlds");
         String group = ContentParse.blankToNull(node.string("group"));
         int repeatTicks = ContentParse.optInt(node, "repeat", 0, diags);
-        double chance = ContentParse.resolveChance(node, "chance", diags);
+        ContentParse.Chance chance = ContentParse.resolveChanceValue(node, "chance", diags);
         int cooldown = ContentParse.resolveInt(node, "cooldown", 0, diags);
         int soulCost = ContentParse.resolveInt(node, "soul-cost", 0, diags);
         String condition = ContentParse.blankToNull(node.string("condition"));
@@ -154,8 +154,8 @@ final class ReforgeDefReader {
         // Cooldown-scopes to its OWN stable key (ENCHANT scope; gate 6 arms it on the USE path automatically),
         // an authored group overriding the cooldown group — the mask reader shape.
         return new AbilityDef(
-                SourceKind.REFORGE, stableKey, nextDefId.getAsInt(), 0, chance, cooldown, soulCost, triggers,
-                disabledWorlds, condition, effects, stableKey, stableKey, group, null, repeatTicks, fileSource, 0);
+                SourceKind.REFORGE, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, soulCost, triggers,
+                disabledWorlds, condition, effects, stableKey, stableKey, group, null, repeatTicks, fileSource, 0, false, chance.expr());
     }
 
     private static String orEmpty(String value) {

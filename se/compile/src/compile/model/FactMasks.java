@@ -15,11 +15,22 @@ public final class FactMasks {
     private FactMasks() {
     }
 
-    /** The union of {@code condition}'s slots and every effect arg's expression slots; {@link FactMask#ALL} if a slot overflows a 64-bit space. */
+    /** As {@link #of(CompiledCondition, NumExpr, CompiledEffect[])} for an ability with a constant chance. */
     public static FactMask of(CompiledCondition condition, CompiledEffect[] effects) {
+        return of(condition, null, effects);
+    }
+
+    /**
+     * The union of {@code condition}'s slots, the chance expression's, and every effect arg's expression
+     * slots; {@link FactMask#ALL} if a slot overflows a 64-bit space.
+     */
+    public static FactMask of(CompiledCondition condition, NumExpr chanceExpr, CompiledEffect[] effects) {
         Acc acc = new Acc();
         if (condition != null) {
             acc.cond(condition.root());
+        }
+        if (chanceExpr != null) {
+            acc.num(chanceExpr); // gate 8 reads it from the same buffer, so its facts must be populated too
         }
         for (CompiledEffect effect : effects) {
             for (Object value : effect.args().asMap().values()) {
