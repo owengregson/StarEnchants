@@ -62,7 +62,7 @@ replicated). Shared context applied throughout, recorded once here:
 - **numbers:** max 4, weight 4, thresholds 20/25/30/35, tier 4. **Known bug
   (fatal):** the jar hook is unreachable for player archers — the enchant applies
   to armor only, but offensive procs read the held item, so measured behavior is a
-  total no-op. Shipped: the intended values above (ledger row pending).
+  total no-op. Shipped: the intended values above (ledger D-02-1).
 - **era:** none.
 
 ### Metaphysical (`enchants/metaphysical`)
@@ -149,8 +149,8 @@ replicated). Shared context applied throughout, recorded once here:
   0.4/0.8/1.2/1.6 %; radius 13/18/23/28; root+DoT window 160/180/200/220 t; DoT
   L HP per 20 t (totals 8/18/30/44 HP); Weakness III for the window; break-free
   22.5/15/7.5/0 % (the exact-0 at max level is shipped as measured); soul cost 75
-  flat. Ledger rows pending: Poltergeist always-true immunity; mob clear drops
-  semantics (DESPAWN vs KILL).
+  flat. Ledger rows: Poltergeist always-true immunity (D-02-2); mob clear drop
+  semantics, DESPAWN vs KILL (D-02-3).
 - **era:** FREEZE's powder-snow visual is 1.17+ — the legacy overlay must fall
   back to the potion-root presentation; `GHAST_SCREAM2`/`ENDERDRAGON_GROWL`/
   `LEVEL_UP` are 1.8 sound ids (resolver-mapped).
@@ -249,8 +249,8 @@ replicated). Shared context applied throughout, recorded once here:
   soul cost 5 flat, no cooldown (sustained fire drains souls — measured).
   **Known bug (fatal):** heal `damage × (level/10)` uses integer division — always
   **0.0 HP** at every level while still charging souls and playing feedback.
-  Intended `damage × level/10` (10 %·L of the triggering hit) ships; ledger row
-  pending. The jar's "ally needs healing" gate degenerates to "any ally nearby"
+  Intended `damage × level/10` (10 %·L of the triggering hit) ships
+  (ledger D-02-4). The jar's "ally needs healing" gate degenerates to "any ally nearby"
   because of the same bug — the `%nearbyallies%` gate is the intended form.
 - **era:** `HAPPY_VILLAGER` particle and `EAT`/`LEVEL_UP` sounds are 1.8 ids
   (resolver-mapped).
@@ -361,7 +361,7 @@ replicated). Shared context applied throughout, recorded once here:
   **zero-tick no-ops** — known bug), L2 1–2 s, L3 1–4 s, L4 2–5 s. Shipped
   (random durations are not expressible): L1 chance 5 % duration 20 t (folds the
   zero-tick half into the roll), L2 20 % / 30 t, L3 30 % / 50 t, L4 30 % / 70 t —
-  distribution means; ledger row pending.
+  distribution means (ledger D-02-5).
 - **era:** none.
 
 ### Protection (`enchants/protection`)
@@ -438,7 +438,7 @@ replicated). Shared context applied throughout, recorded once here:
   division — 0 for any damaged piece — so it procs on unequipping **any** piece
   with ≥ 1 damage at every level, and the ratio is also inverted vs the
   description. Intended (shipped): proc only at ≤ 15/20/25 % remaining
-  durability; ledger row pending.
+  durability (ledger D-02-6).
 - **era:** durability API differs (legacy `getDurability` = damage taken) — the
   item layer's normalized durability fact absorbs it.
 
@@ -459,8 +459,8 @@ replicated). Shared context applied throughout, recorded once here:
   floor 9/8/7/6 (inverted ladder — higher level lowers the bar; measured,
   shipped); chance 5/10/15/20 %; halving flat 50 % at all levels. **Known bug:**
   the jar gates on final damage but halves base damage (the message overstates
-  the save) — the engine's single damage scalar halves the hit for real; ledger
-  row pending.
+  the save) — the engine's single damage scalar halves the hit for real
+  (ledger D-02-7).
 - **era:** none.
 
 ### Rocket Escape (`enchants/rocket-escape`)
@@ -525,8 +525,8 @@ replicated). Shared context applied throughout, recorded once here:
   fuse 100/80/60 t (5/4/3 s); payload flat: 16.0 damage, 40 t fire, push 1.7,
   no terrain damage, 10 s re-arm. **Known bug (bytecode-confirmed):** the jar's
   knockback pushes the **TNT entity** (arguments inverted) — victims take zero
-  knockback. Intended (shipped): victims pushed at 1.7 away from the blast;
-  ledger row pending.
+  knockback. Intended (shipped): victims pushed at 1.7 away from the blast
+  (ledger D-02-8).
 - **era:** legacy entity id `PRIMED_TNT` vs modern `TNT` — resolver handle;
   `EXPLODE` 1.8 sound id.
 
@@ -704,7 +704,7 @@ replicated). Shared context applied throughout, recorded once here:
   4.5/9/13.5/18 %; lightning + 10.0 flat damage; push 1.5 flat. **Known bug
   (bytecode-confirmed):** the jar's 10.0 damage lands on the **wearer** (5 hearts
   of self-damage per proc) while bolt and knockback correctly target the
-  attacker. Intended (shipped): all three on the attacker; ledger row pending.
+  attacker. Intended (shipped): all three on the attacker (ledger D-02-9).
 - **era:** real-lightning vs effect-lightning split exists on 1.8 identically;
   no hazard.
 
@@ -719,7 +719,7 @@ replicated). Shared context applied throughout, recorded once here:
   level. Jar composition is multiplicative per piece (full L4 set
   `0.925⁴` = 26.80 % — single-pass; Tank null-guards the attacker so pass 2 is a
   no-op, D-001 moot for it); the engine folds additively (full L4 set = 30 %) —
-  divergence recorded, ledger row pending. Player-attacker-with-axe-only:
+  divergence recorded (ledger D-02-10). Player-attacker-with-axe-only:
   mob/projectile/environmental damage unreduced (the held-item condition encodes
   it).
 - **strings:** none (block-break flourish below).
@@ -752,7 +752,7 @@ replicated). Shared context applied throughout, recorded once here:
   the jar teleports to the looked-at block only when it has two stacked air
   blocks (landing the wearer mid-air) and copies the **attacker's** facing;
   BLINK is ground-safe and keeps the wearer's own facing — behavior ships as
-  BLINK, ledger row pending. (The jar's "behind your opponent" description was
+  BLINK (ledger D-02-11). (The jar's "behind your opponent" description was
   never true — record strings/description honestly from behavior.)
 - **era:** `WITCH_MAGIC` 1.8 particle id; `PORTAL_TRIGGER` 1.8 sound id.
 
@@ -787,9 +787,9 @@ replicated). Shared context applied throughout, recorded once here:
 - **numbers:** max 10, weight 2, thresholds 20..65 step 5, tier 3. Chance
   1/2/3/4 % then clamped 4 % from L5 up (measured, shipped); zombie count jar
   random 1..⌈L/2⌉ — flattened to fixed 1/1/2/2/3/3/4/4/5/5 (static summon
-  count), ledger row pending; buffs per the self-buff table, permanent. **Known
+  count, ledger D-02-12); buffs per the self-buff table, permanent. **Known
   bug:** the vanish window is always 20 t — the jar reuses a loop counter already
-  decremented to 0; intended `(zombies × 20) + 20` t ships, ledger row pending.
+  decremented to 0; intended `(zombies × 20) + 20` t ships (ledger D-02-13).
 - **era:** `WITCH_MAGIC` 1.8 particle id; `INCREASE_DAMAGE`/`FAST_DIGGING`
   legacy potion ids; zombie ttl=0 (permanent) matches the jar on both eras.
 
@@ -805,7 +805,7 @@ replicated). Shared context applied throughout, recorded once here:
   the jar; Valor is victim-gated (never reads the attacker) so it **double-fires**
   in the jar — full max-set net `0.85⁸` = 72.75 %. Single-pass values ship
   (D-001): `0.85⁴` = 47.80 % measured single-pass vs 60 % under the engine's
-  additive fold — divergence recorded, ledger row pending.
+  additive fold — divergence recorded (ledger D-02-14).
 - **strings:** none (gold-block break flourish at the wearer's feet per proc per
   piece).
 - **numbers:** max 5, weight 2, thresholds 20/25/30/35/40, tier 4. Reduction

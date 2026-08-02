@@ -12,7 +12,7 @@ local-only codex; no decompiled code is quoted here.
 - **Engine mapping:** pets are use-items — trigger `USE` on the held pet item.
   The jar has **no action filter** (left-click and physical interactions fire
   too, codex §A.2 quirk); as intended this is right-click only → `USE`
-  (ledger: pending).
+  (ledger D-12-1).
 - **Spectator guard (all pets):** jar checks a spectator-mode flag on the
   player; engine mapping is `actor.gamemode == "SPECTATOR" → MESSAGE, stop`.
   String verbatim:
@@ -37,7 +37,7 @@ local-only codex; no decompiled code is quoted here.
   EXP lore bar
   is 50 segments but the jar's integer division renders it **always empty below
   the cap and overflowing green past 50 segments at the cap** (codex §A.5);
-  intended: proportional fill clamped at full (ledger: pending). This whole
+  intended: proportional fill clamped at full (ledger D-12-2). This whole
   track is the `ITEM_XP_TRACK` gap (declared once, consumed by every entry).
 - **Shared strings (verbatim, placeholders as brace tokens):**
   - XP gain (14 pets): `§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]`
@@ -155,10 +155,10 @@ local-only codex; no decompiled code is quoted here.
   fatFill = `level × 25` (25…225), **L10 = 256**; XP/use dynamic (buckets
   converted + weighted fat charges); curve `level × 1000` (L2 2000 … L10
   10000), cap 10, total 54 000. Cooldown: measured **0 s** (inverted-cooldown
-  bug) → intended **300 s** (6000 t) (ledger: pending). Known bug: the
+  bug) → intended **300 s** (6000 t) (ledger D-12-3). Known bug: the
   cap-straddling stack is inverted — the jar converts the *overflow* and hands
   back the *fitting* portion; intended: convert up to the cap, return the
-  overflow (ledger: pending).
+  overflow (ledger D-12-4).
 - **era:** `LAVA_POP`/`VILLAGER_NO` legacy sound names; buckets identical on
   both trees; player-head codec.
 
@@ -183,8 +183,8 @@ local-only codex; no decompiled code is quoted here.
 - **numbers:** maxFill identical to Lava (`level × 32`, L10 = 1152); XP/use =
   buckets converted; curve `level × 500` (L2 1000 … L10 5000), cap 10, total
   27 000 — exactly half Lava's for identical work. Cooldown: measured 0 s →
-  intended **300 s** (6000 t) (ledger: pending). Same inverted partial-fill
-  bug as Lava; intended: convert up to cap, return overflow (ledger: pending).
+  intended **300 s** (6000 t) (ledger D-12-5). Same inverted partial-fill
+  bug as Lava; intended: convert up to cap, return overflow (ledger D-12-6).
 - **era:** `SPLASH` legacy sound name.
 
 ### Feign Death Pet (`pets/feign-death`)
@@ -225,9 +225,9 @@ local-only codex; no decompiled code is quoted here.
   (out of combat) / 5 (in combat) / 50 (in combat + warzone — jar quirk: an
   out-of-combat warzone use still yields 1); the warzone tier depends on
   faction territory, which has no engine analogue → collapses to the
-  in-combat 5 (ledger: pending). Curve `level × 750` (1500/2250/3000), cap 4,
+  in-combat 5 (ledger D-12-7). Curve `level × 750` (1500/2250/3000), cap 4,
   total 6750. Cooldown: measured 0 s (only the 10 s window blocks) → intended
-  **600 s** (12 000 t) + the shared 10 s window (ledger: pending).
+  **600 s** (12 000 t) + the shared 10 s window (ledger D-12-8).
 - **era:** hide/show-player and packet decoy differ per era — VANISH_DECOY
   implementation hazard (1.8 datawatcher vs modern metadata); titles OK on
   1.8.9; legacy sound names.
@@ -266,10 +266,10 @@ local-only codex; no decompiled code is quoted here.
   `… Invalid player data!`; bonus-proc failure raw `No /vkit found to level up!`.
 - **numbers:** double-proc chance `0.01 × level` (1 %…10 %); XP 500/use;
   curve flat 1000, cap 10, total 9000 (18 uses to cap). Cooldown: measured
-  0 s → intended **172 800 s / 48 h** (3 456 000 t) (ledger: pending). Token:
+  0 s → intended **172 800 s / 48 h** (3 456 000 t) (ledger D-12-9). Token:
   measured once per server session (metadata, documented "per day") →
-  intended 24 h (ledger: pending); jar burns the token even when the primary
-  use fails → intended: burned only on success (ledger: pending).
+  intended 24 h (ledger D-12-10); jar burns the token even when the primary
+  use fails → intended: burned only on success (ledger D-12-11).
 - **era:** none beyond family notes.
 
 ### Anti Teleblock Pet (`pets/anti-teleblock`)
@@ -301,10 +301,10 @@ local-only codex; no decompiled code is quoted here.
   `1m 6s`); guard/success strings above.
 - **numbers:** cooldown `max(30, 120 − 6 × (level − 1))` s = 120/114/108/102/
   96/90/84/78/72/66 (floor 30 unreachable); measured 0 s → intended per-level
-  values (ledger: pending). XP 10/use; curve flat 1000, cap 10, total 9000.
+  values (ledger D-12-12). XP 10/use; curve flat 1000, cap 10, total 9000.
   Known bug: the jar fires on *lapsed* teleblock metadata for free XP →
   intended: requires an active teleblock window (the engine's expiring status
-  makes this automatic) (ledger: pending).
+  makes this automatic) (ledger D-12-13).
 - **era:** none beyond family notes.
 
 ### Banner Pet (`pets/banner`)
@@ -339,7 +339,7 @@ local-only codex; no decompiled code is quoted here.
   pet!` and `§cNo banner found!`; success string above.
 - **numbers:** cooldown `max(120, 720 − 60 × (level − 1))` s = 720/660/600/
   540/480/420/360/300/240/180 (floor 120 unreachable); measured 0 s →
-  intended per-level values (ledger: pending). XP 500 gated to once per
+  intended per-level values (ledger D-12-14). XP 500 gated to once per
   **86 400 000 ms** (24 h); curve flat 1000, cap 10, total 9000. A freshly
   minted pet has no gate timestamp and earns XP immediately.
 - **era:** none beyond family notes.
@@ -379,9 +379,9 @@ local-only codex; no decompiled code is quoted here.
   raw 3.05); duration `min(1200, 300 + (level − 1) × 90)` s → 300…1110 s
   (6000…22200 t; cap unreachable); XP 15/use; curve `level × 100` (200…1000),
   cap 10, total 5400. Cooldown: measured 0 s → intended **3600 s** (72 000 t)
-  (ledger: pending). Known bug: buff key cleared only by a kill made after
+  (ledger D-12-15). Known bug: buff key cleared only by a kill made after
   expiry, so the pet can be stranded for the session → intended: gate expires
-  with the buff (SET_VAR ttl gives this for free) (ledger: pending).
+  with the buff (SET_VAR ttl gives this for free) (ledger D-12-16).
 - **era:** legacy sound names; XP-orb mechanics identical on 1.8.9.
 
 ### Tesla Pet (`pets/tesla`)
@@ -415,11 +415,11 @@ local-only codex; no decompiled code is quoted here.
 - **numbers:** duration `(int) min(30.0, 5.0 + (level − 1) × 2.5)` s →
   5/7/10/12/15/17/20/22/25/27 (truncation loses 0.5 s on even levels; cap 30
   unreachable) = 100…540 t; XP 10 (in combat + warzone) / 4 (else) — warzone
-  needs faction territory, no engine analogue → collapses to 4 flat (ledger:
-  pending); curve `level × 1500` (3000…15000), cap 10, total 81 000 (the
+  needs faction territory, no engine analogue → collapses to 4 flat
+  (ledger D-12-17); curve `level × 1500` (3000…15000), cap 10, total 81 000 (the
   most expensive pet). Cooldown: measured 0 s → intended **300 s** (6000 t)
-  (ledger: pending). Known bug: the armed key is never removed — one use per
-  server boot → intended: re-usable once the buff expires (ledger: pending).
+  (ledger D-12-18). Known bug: the armed key is never removed — one use per
+  server boot → intended: re-usable once the buff expires (ledger D-12-19).
 - **era:** none beyond family notes.
 
 ### Blackscroll Pet (`pets/blackscroll`)
@@ -452,7 +452,7 @@ local-only codex; no decompiled code is quoted here.
   `§7` / `§7§f§lCooldown` / `§7§7 {cooldown}` (`15m`); guard/success above.
 - **numbers:** bonus `+level %` (1…10); XP 50/use; curve `250 + 1000 × level`
   (2250…10250), cap 10, total 56 250. Cooldown: measured 0 s → intended
-  **900 s** (18 000 t) (ledger: pending). Jar stamps its cooldown timestamp
+  **900 s** (18 000 t) (ledger D-12-20). Jar stamps its cooldown timestamp
   before the guard — inert (rebuild discarded on throw); not ported.
 - **era:** none beyond family notes.
 
@@ -487,10 +487,10 @@ local-only codex; no decompiled code is quoted here.
 - **numbers:** advertised item count = 3 (L1–4) / 4 (L5–10) with a
   **dead** `level == 10 → 5` arm (short-circuited by `>= 5`); delivered =
   advertised − 1 (off-by-one) → measured 2/2/2/2/3/3/3/3/3/3; intended:
-  advertised counts 3 (L1–4), 4 (L5–9), 5 (L10) (ledger: pending). Kit level
+  advertised counts 3 (L1–4), 4 (L5–9), 5 (L10) (ledger D-12-21). Kit level
   rolled `max(3, level)` — L1–3 identical in quality and count. XP 100/use;
   curve `1000 + level × 250` (1500…3500), cap 10, total 22 500. Cooldown:
-  measured 0 s → intended **43 200 s / 12 h** (864 000 t) (ledger: pending).
+  measured 0 s → intended **43 200 s / 12 h** (864 000 t) (ledger D-12-22).
 - **era:** none beyond family notes.
 
 ### Gaia Pet (`pets/gaia`)
@@ -506,7 +506,7 @@ local-only codex; no decompiled code is quoted here.
      `LIGHTNING(damage=0)`, `PARTICLE(particle=LARGE_EXPLODE, count=10, spread=0.6)`,
      `PARTICLE(particle=SPELL, count=35, spread=0.4)`, `KILL`
      (jar deletes via `remove()` — no drops/XP; KILL yields vanilla deaths →
-     ledger: pending)
+     ledger D-12-23)
   3. `when nearbyenemies == 0 → MESSAGE(text="§c§lPET: §cNo valid enemy players nearby!"), stop`
      (no XP, no cooldown stamp — matches the jar's post-proc throw)
   4. player package — `AOE(r=<8 + 5 × level>, filter=ENEMIES)`, skipping
@@ -554,9 +554,9 @@ local-only codex; no decompiled code is quoted here.
   (× 0.5) = 80/90/100/110 t; DoT `level`/s, ticks landed 4/4/5/5, totals
   4/8/15/20; JUMP/SLOW amplifier 128 (level 129, the no-jump wrap trick),
   WEAKNESS amplifier 2 (level 3); XP 50 (warzone) / 5 (else) → collapses to
-  5 flat, no faction territory in engine (ledger: pending); curve
+  5 flat, no faction territory in engine (ledger D-12-24); curve
   `1000 + level × 500` (2000/2500/3000), cap 4, total 7500. Cooldown:
-  measured 0 s → intended **600 s** (12 000 t) (ledger: pending).
+  measured 0 s → intended **600 s** (12 000 t) (ledger D-12-25).
 - **era:** amplifier-128 JUMP wrap is version-sensitive — FREEZE absorbs the
   walk-lock so the potion is cosmetic-redundant on modern; legacy particle
   names (`LARGE_EXPLODE`, `SPELL`); legacy sounds.
@@ -594,7 +594,7 @@ local-only codex; no decompiled code is quoted here.
   `§7Applying enchantment book... §e{rate}§6(+{bonus})§e% success chance...`.
 - **numbers:** bonus `+level %` (1…10); XP 50/use; curve `250 + 1000 × level`
   (identical to Blackscroll), cap 10, total 56 250. Cooldown: measured 0 s →
-  intended **3600 s** (72 000 t) (ledger: pending).
+  intended **3600 s** (72 000 t) (ledger D-12-26).
 - **era:** none beyond family notes.
 
 ### Stronghold Sell Pet (`pets/stronghold-sell`)
@@ -626,7 +626,7 @@ local-only codex; no decompiled code is quoted here.
   `§7§7 30 Minutes`; guard/enable/expired strings above.
 - **numbers:** duration `10 + 5 × level` s = 15…60 (300…1200 t); XP 5/use;
   curve flat 500, cap 10, total 4500 (cheapest cap in the family, 900 uses).
-  Cooldown: measured 0 s → intended **1800 s** (36 000 t) (ledger: pending).
+  Cooldown: measured 0 s → intended **1800 s** (36 000 t) (ledger D-12-27).
 - **era:** none beyond family notes.
 
 ### Raid Creeper Pet (`pets/raid-creeper`)
@@ -661,7 +661,7 @@ local-only codex; no decompiled code is quoted here.
 - **numbers:** cooldown `(10 − level − 1)` min = 8/7/6/5/4 min (480…240 s,
   9600…4800 t; no floor of its own — the cap of 5 prevents the negative
   values the formula would reach at L10); measured 0 s → intended per-level
-  values (ledger: pending). XP 10/use; curve `2500 × level`
+  values (ledger D-12-28). XP 10/use; curve `2500 × level`
   (5000/7500/10000/12500), cap 5, total 35 000 (3500 uses). Nothing about
   the creeper scales with level.
 - **era:** creeper spawning identical; custom stats are external either way.
@@ -690,7 +690,7 @@ local-only codex; no decompiled code is quoted here.
   `§7§7in, applying [§cRot and Decay V§7]` / `§7§7for a 5 second duration.` /
   `§7` / `§7§f§lCooldown` / `§7§7{cooldown} Minutes`; failure string above.
 - **numbers:** identical to Raid Creeper: cooldown 8/7/6/5/4 min measured
-  0 s → intended per-level values (ledger: pending); XP 10/use; curve
+  0 s → intended per-level values (ledger D-12-29); XP 10/use; curve
   `2500 × level`, cap 5, total 35 000. Rot and Decay level V / 5 s (100 t)
   fixed at all pet levels (lore literals).
 - **era:** as Raid Creeper.
@@ -736,7 +736,7 @@ local-only codex; no decompiled code is quoted here.
   (25/30/35/40/45 t); lightning = vanilla damaging strike (5.0 + fire),
   level-independent; XP 1/use; curve `1000 × level` (2000…5000), cap 5,
   total 14 000 — the slowest curve in the plugin (14 000 uses). Cooldown:
-  measured 0 s → intended **120 s** (2400 t) (ledger: pending).
+  measured 0 s → intended **120 s** (2400 t) (ledger D-12-30).
 - **era:** vanilla lightning sound/effect naming differs per era; walk-lock
   fine on 1.8.9.
 
@@ -751,7 +751,7 @@ local-only codex; no decompiled code is quoted here.
   1. `when var pet-cd-wd set → MESSAGE(cooldown), stop`
   2. `when nearbyenemies == 0 → MESSAGE(text="§c§nPET: No valid enemy players nearby! (30x30)"), stop`
   3. per victim — `AOE(r=30, filter=ENEMIES)`:
-     `CAGE(floor=OBSIDIAN, walls=<port pick — see ledger>, roof=OBSIDIAN, width=3, depth=3, height=3, rise=0, ticks=100)`
+     `CAGE(floor=OBSIDIAN, walls=<port pick — see ledger D-12-31>, roof=OBSIDIAN, width=3, depth=3, height=3, rise=0, ticks=100)`
      (3×3 footprint, walls 3 high at y…y+2, obsidian floor y−1 and roof y+3,
      up to 44 blocks; the engine's temp-block ledger restores originals
      exactly — the jar's two restore sweeps at 100 t and 101 t delete
@@ -763,7 +763,7 @@ local-only codex; no decompiled code is quoted here.
      `POTION(effect=WITHER, level=19, duration=100)`,
      `FREEZE(duration=55, dot=7, dot-period=5, slow=0, neutralize-frost-slow=false)`
      (11 DoT applications at 0.25 s period over 2.75 s; the jar rolls uniform
-     5–9 per application — flattened to the expected 7, see ledger; `slow=0`
+     5–9 per application — flattened to the expected 7, see ledger D-12-32; `slow=0`
      because the jar does not slow the victim)
   4. `ITEM_XP_TRACK(amount=5)` *(gap)* — the one pet with **no** XP-gain chat
      line (verbatim: silent)
@@ -788,15 +788,15 @@ local-only codex; no decompiled code is quoted here.
   100 t; potions BLINDNESS 200 t amp 100 (level 101), POISON 100 t amp 18
   (level 19), WITHER 100 t amp 18 (level 19); DoT 11 × uniform [5, 9] at 5 t
   period (min 55 / max 99 / expected 77 raw damage over 2.5 s) → flat 7 × 11
-  (ledger: pending); walls measured block id 417 (`IRON_BARDING`, an item,
+  (ledger D-12-32); walls measured block id 417 (`IRON_BARDING`, an item,
   not a block — renders invalid/air-like) → intended a solid wall material,
-  port pick (ledger: pending); restore grief bug → exact restore (ledger:
-  pending). XP 5/use; curve `1000 + level × 500` (2000/2500/3000), cap 4,
+  port pick (ledger D-12-31); restore grief bug → exact restore
+  (ledger D-12-33). XP 5/use; curve `1000 + level × 500` (2000/2500/3000), cap 4,
   total 7500 (1500 uses). Cooldown: measured 0 s — the only pet that never
   stamps a cooldown timestamp at all, so even a fixed formula would never block;
   lore
-  says 5 minutes, code says 10 → intended **600 s** (12 000 t) (ledger:
-  pending).
+  says 5 minutes, code says 10 → intended **600 s** (12 000 t)
+  (ledger D-12-34).
 - **era:** `IRON_BARDING` exists only pre-1.13 (and never as a block) — the
   wall material must be a real block on both trees; WITHER/BLINDNESS/POISON
   fine on 1.8.9; `ANVIL_LAND` legacy sound name.

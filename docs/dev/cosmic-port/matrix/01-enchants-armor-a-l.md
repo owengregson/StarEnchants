@@ -2,8 +2,8 @@
 
 36 entries, codex order. Behavioral authority: `01-enchants-armor-a-l.md` (local-only
 codex). Numbers are the codex's measured values; where the codex marks a bug the
-as-intended value is stated with a proposed `deviations.md` row id (`D-01-NN`,
-pending ledger merge — `D-001` already covers the defensive single-pass ruling).
+as-intended value is stated with its `deviations.md` row id (`D-01-NN`; `D-001`
+covers the corpus-wide defensive single-pass ruling).
 
 Shared rulings applied to every entry below:
 
@@ -498,22 +498,6 @@ Shared rulings applied to every entry below:
 | `VAR_SCALED_PARAM` | Blood Lust (bleed-stack scaled heal; gap defined in doc 07) |
 | `SOUL_COST_GATE` | Immortal |
 
-## Proposed deviation rows (for `deviations.md`)
+## Deviation rows
 
-| Proposed id | Item | Measured → intended |
-| --- | --- | --- |
-| D-01-01 | Aegis | reduction only for never-tracked attackers, set never seeded first window → reduce any attacker once unique count > 8−level |
-| D-01-02 | Angelic | L5 third pulse on 37.5% duration roll → deterministic third pulse |
-| D-01-03 | Avenging Angel | 20 s cooldown (map expiry; stored 10 s never read) → 10 s |
-| D-01-04 | Creeper Armor | L3 heal always 0.0 (reads zeroed damage) → min(6, 10% of raw damage) |
-| D-01-05 | Destruction | periods 300/120/60/60/60t (int div) → 300/150/100/75/60t |
-| D-01-06 | Destruction | vanished/spectator bystander aborts the whole pass → skip only that target |
-| D-01-07 | Diminish | cap persists forever; base←final over-delivery → bounded DAMAGE_CAP window at stored value |
-| D-01-08 | Frozen | random slow duration (level..2·level−1 s) → fixed 1/3/5 s |
-| D-01-09 | Guardians | summon chance flat 2% (0.02 clamp) → min(1+5·level, 20)% |
-| D-01-10 | Implants | periods 120/40/40t (int div, L2==L3) → 120/60/40t |
-| D-01-11 | Implants | heal stalls at maxHealth−1 → heal clamps to max |
-| D-01-12 | Leadership | ally buff survives unequip forever → worn-only |
-| D-01-13 | Lucky | save chance (level+1)/400 → level/400 |
-| D-01-14 | Ender Shift / Lifebloom / Lucky | home-grown lethality armor model (dead at armor ≥ 25) → true post-mitigation lethality |
-| D-01-15 | metadata-keyed family (Avenging Angel, Blood Link, Blood Lust, Clarity, Deathbringer, Ghost, Leadership) | last-equip-wins / unequip-any-disables → WornState highest-worn-level |
+`D-01-01` … `D-01-15` are consolidated in [`../deviations.md`](../deviations.md).

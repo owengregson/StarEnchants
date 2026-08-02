@@ -14,10 +14,7 @@ Family-wide notes:
   their measured values are already single-pass.
 - **Composition.** The jar composes same-swing multipliers multiplicatively at
   MONITOR, in lore order; the engine damage fold is additive. Divergence needs two
-  multipliers on one swing (rare for axes) and is accepted — ledger row pending.
-- **Ledger rows.** `deviations.md` currently holds only D-001; the rows referenced
-  below as "(ledger: pending)" are queued in this doc's ledgerNotes for the next
-  ledger update (this task writes only this file).
+  multipliers on one swing (rare for axes) and is accepted (ledger D-04-1).
 
 ---
 
@@ -52,7 +49,7 @@ Family-wide notes:
   branch `return`s so the first post-lapse hit gets no bonus; defence expiry wipes
   the set without refreshing the stamp, starving it until an offensive hit re-arms).
   As intended: a clean rolling unique-attacker window; engine store is rolling with
-  WINDOW_TICKS=200 (ledger: pending).
+  WINDOW_TICKS=200 (ledger D-04-2).
 - **era:** BLOCK_CRACK + PUMPKIN safe on 1.8.9.
 
 ### Arrow Break (`axes/arrow-break`)
@@ -78,7 +75,7 @@ Family-wide notes:
   27.8/31.1%. Codex marks the ÷2 as a quirk (the tuned expression `0.1+0.04*level`
   is never used alone) — the halving reads as hand-compensation for the double-fire.
   Single-pass intended (shipped): `0.1 + 0.04*level` = **14/18/22/26/30/34%**
-  (ledger: pending, extends D-001).
+  (ledger D-04-3, extends D-001).
 - **era:** `ITEM_BREAK` is the 1.8-era sound name (modern `ENTITY_ITEM_BREAK`) —
   sound resolver alias needed. CRIT particle safe.
 
@@ -96,7 +93,7 @@ Family-wide notes:
 - **strings:** none.
 - **numbers:** max 4; base 20.0, interval 5.0 (L1=20 … L4=35); weight 7; tier 5.
   Bonus +5/10/15/20%. Codex-marked gate bug: `contains("_AXE")` counts pickaxe
-  holders as axe holders → intended: axe materials only (ledger: pending).
+  holders as axe holders → intended: axe materials only (ledger D-04-4).
 - **era:** held-item material names differ per era (1.8.9 `WOOD_AXE`/`GOLD_AXE` vs
   modern `WOODEN_AXE`/`GOLDEN_AXE`); the `_AXE`-suffix regex holds on both, but any
   exact-name list would not.
@@ -189,9 +186,9 @@ Family-wide notes:
   cap = −25%), mob SLOW duration `i*20` t, amplifier `max(1, i/3)` (Slowness II–IV).
   Codex-marked bugs: (a) `i = stacks/2` unfloored → the first stack is a no-op
   (walkSpeed 0.2, SLOW 0 t); intended `max(1, …)` — the one-line divergence from
-  Deep Bleed (ledger: pending). (b) no decay and no death/quit cleanup — a bled
+  Deep Bleed (ledger D-04-5). (b) no decay and no death/quit cleanup — a bled
   player keeps the slow until Blessed procs or restart; shipped: stacks clear on
-  death, still no in-life decay (ledger: pending).
+  death, still no in-life decay (ledger D-04-6).
 - **era:** REDSTONE_BLOCK safe on 1.8.9; walk-speed writes safe. DRIP_LAVA / `EAT`
   sound (Blood Lust hook) are 1.8-era names — armor doc's sweep.
 
@@ -282,7 +279,7 @@ Family-wide notes:
 - **strings:** none.
 - **numbers:** max 5; base 10.0, interval 10.0 (L1=10 … L5=50); weight 2; tier 5.
   Bonus +7.5/15/22.5/30/37.5%. Measured-vs-shipped: inert in the jar (no boss-flag
-  producer) → active against configured bosses (ledger: pending). Held-item gate
+  producer) → active against configured bosses (ledger D-04-7). Held-item gate
   uses `endsWith("_AXE")` (pickaxes correctly excluded — inconsistent with
   Barbarian's `contains`, consistent with the intended-Barbarian fix).
 - **era:** axe-material era naming as Barbarian.
@@ -315,7 +312,7 @@ Family-wide notes:
   `level<=3 ? 1.0 : level<=6 ? 2.0 : 3.0` = 1/1/1/2/2/2/3. Jar splash is
   attacker-less generic damage (armour-reduced, **no kill credit**, defensive-only
   re-entry per `00-MECHANICS.md` §3.5 mode B); engine DAMAGE is
-  activator-attributed (ledger: pending).
+  activator-attributed (ledger D-04-8).
 - **era:** none (no sounds/particles).
 
 ### Confusion (`axes/confusion`)
@@ -367,7 +364,7 @@ Family-wide notes:
   **Codex-marked bug (major):** proc roll compares `Math.random()` to
   `5.0 + 0.02*level` — always true, **100% at every level**; as intended
   `0.05 + 0.02*level` = 7/9/11/13%, matching the activation envelope's
-  `chance: <5 + 2 * level>` and the package's pattern (ledger: pending).
+  `chance: <5 + 2 * level>` and the package's pattern (ledger D-04-9).
   Flag duration `level*2000` ms; DoT damage 1.0 (L1–2) / 2.0 (L3–4) per application;
   totals 2/3/8/10. Jar flag-vs-task lifetime mismatch (L1 flag 2 s > task 1 s; L4
   flag 8 s < task 16 s, so L2–4 can re-flag mid-DoT with no new DoT) is reproduced
@@ -412,7 +409,7 @@ Family-wide notes:
 - **numbers:** max 3; base 30.0, interval 10.0 (L1=30 L2=40 L3=50); weight 7;
   tier 1. Chance 3/6/9%; death handler level-independent. **Codex-marked bug:** the
   lore date comes from a static Calendar captured at class load — every head names
-  the server's start-up date; as intended: the date of the death (ledger: pending).
+  the server's start-up date; as intended: the date of the death (ledger D-04-10).
 - **era:** the head item is `SKULL_ITEM` durability 3 on 1.8.9 vs `PLAYER_HEAD` on
   modern — the biggest era hazard in this doc; skull-owner-by-name is 1.8-safe,
   modern profiles differ. `{month}` formatting locale-dependent.
@@ -467,15 +464,15 @@ Family-wide notes:
   - `HELD_SWAP_GATE` (defined at Boss Slayer).
 - **interactions:** disabled while the attacker is soul-trapped (Soul Trap's var);
   the jar's 1000 ms soul-removal throttle is shared with Soul Trap and two
-  sword enchants — replaced by the envelope's per-activation `soul-cost` (ledger:
-  pending). Heroic-armor detection is the item model's classification, not an NBT
+  sword enchants — replaced by the envelope's per-activation `soul-cost`
+  (ledger D-04-11). Heroic-armor detection is the item model's classification, not an NBT
   probe.
 - **strings:** none.
 - **numbers:** max 3; base 10.0, interval 10.0 (L1=10 L2=20 L3=30); weight 2;
   tier 6. Bonus +10/20/30%; cost 4 souls. **Codex-marked bugs:** the gate requires
   only souls > 0 then removes 4 (over-draw), and the shared 1000 ms limiter makes
   same-second procs free; as intended: 4 souls per activation, clamped/gated on
-  availability (ledger: pending).
+  availability (ledger D-04-11).
 - **era:** none (no sounds/particles; leather-material heroic check is the item
   model's concern).
 
@@ -564,9 +561,9 @@ Family-wide notes:
   tier 3. Chance 6/12/18%; radius `level` = 1/2/3 (jar box half-extent, AOE radius —
   shape delta noted); SLOW amplifier level−1. **Codex-marked bugs:** (a) duration
   `(int)(level * 1.5)` truncates → 20/60/80 t (1/3/4 s); as intended 1.5·level s =
-  30/60/90 t (ledger: pending). (b) the Metaphysical veto mutates the shared chance
+  30/60/90 t (ledger D-04-12). (b) the Metaphysical veto mutates the shared chance
   threshold inside the target loop, so one wearer shields later-iterated bystanders
-  with no Metaphysical; as intended: per-target veto only (ledger: pending).
+  with no Metaphysical; as intended: per-target veto only (ledger D-04-13).
 - **era:** none beyond legacy `SLOW` potion name (modern `SLOWNESS`).
 
 ### Ravenous (`axes/ravenous`)
@@ -642,7 +639,7 @@ Family-wide notes:
   `VICTIM_VAR_FACT` (defined earlier).
 - **interactions:** writes the `soultrap` var Hero Killer's self-gate reads; the
   jar's shared 1000 ms soul-cost limiter is replaced by per-activation `soul-cost`
-  (ledger: pending, with Hero Killer). The jar's console steal log (with its `form`
+  (ledger D-04-14, shared with D-04-11). The jar's console steal log (with its `form`
   typo) is not ported.
 - **strings:** `§9§l** SOUL TRAP §7[{seconds}s]§9§l**` — {seconds} = 4/8/12; note
   **no space** between `]` and the trailing `**`, verbatim. (The advertised seconds
@@ -653,7 +650,7 @@ Family-wide notes:
   damage 2/3/4; attacker cost 5 souls. A dead jar-side per-level value (`1.0*level`,
   computed and never read) is not ported. **Codex-marked bug:** gate requires only souls > 0 then removes 5
   (over-draw, behind the shared limiter); as intended: 5 per activation clamped to
-  held souls (ledger: pending).
+  held souls (ledger D-04-14).
 - **era:** sound `ENDERMAN_SCREAM` (1.8) vs modern `ENTITY_ENDERMAN_SCREAM`;
   particles `WITCH_MAGIC`/`SPELL` (1.8) vs modern `SPELL_WITCH`(`WITCH`)/`EFFECT` —
   resolver aliases.

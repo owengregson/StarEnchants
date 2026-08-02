@@ -26,8 +26,8 @@ Corpus-wide notes (apply to every entry unless the entry says otherwise):
 - **Handles.** Decompositions use modern authoring handles (`ENTITY_COW_AMBIENT`,
   `SPELL_WITCH`, …); the boot-time resolver owns legacy/modern aliasing. The **era**
   line flags only genuine 1.8.9 hazards.
-- **Deviation rows.** Ledgered bugs below use proposed ids `D-05-1` … `D-05-7` pending
-  assignment in `deviations.md`.
+- **Deviation rows.** Ledgered bugs below carry ids `D-05-1` … `D-05-7`, consolidated
+  in `deviations.md`.
 
 ---
 
@@ -884,12 +884,6 @@ Corpus-wide notes (apply to every entry unless the entry says otherwise):
 | `MARK_CONSUME_FEEDBACK` | Unfocus |
 | `DOT_AMPLIFY_MARK` | Virus |
 
-## Deviation rows queued (proposed ids, pending `deviations.md` assignment)
+## Deviation rows
 
-- `D-05-1` Arrow Lifesteal — int-truncated heal → flat `+level` heal
-- `D-05-2` Eagle Eye — dead distance curve → 1–4 durability by 10/20/32-block thresholds
-- `D-05-3` Farcast — inverted guard (inert) → health-scaled knockback chance
-- `D-05-4` Lightning — pipeline-re-entrant bonus hit → single non-re-entrant 5.0
-- `D-05-5` Piercing — immunity-window-swallowed bonus → in-event +2.5 %/level fold
-- `D-05-6` Teleblock — precedence-bug duration (3.005–15.005 s) → 8/11/14/17/20 s
-- `D-05-7` Venom — unreachable AoE → Poison II AoE at the landing
+`D-05-1` … `D-05-7` are consolidated in [`../deviations.md`](../deviations.md).

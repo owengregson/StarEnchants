@@ -23,8 +23,8 @@ primitives in `docs/reference/authoring-surface.txt` at HEAD appear in decomposi
 - **Multi-Mask routing split (family bug).** Abilities routed through `fromPlayer()`
   (Purge, Turkey, Monopoly −5%, Dragon +5%, Party Hat, Death Knight +2.5%) are dead
   inside a Multi-Mask; `hasEquipped()`-routed abilities work (`11-masks.md` §A.3).
-  Port intent: every folded child stays active (deviation ledger; see Multi-Mask
-  entry).
+  Port intent: every folded child stays active (deviation ledger D-11-1; see
+  Multi-Mask entry).
 - **Generator pools.** `Math.random() <= 0.1` picks the rare branch. Common pool
   (11): Pilgrim, Turkey, Scarecrow, Purge, Santa, Necromancer, Rift, Zeus, Glitch,
   Reindeer, Dungeon — 90%/11 = **8.1818%** each. Rare pool (9): Monopoly, Party Hat,
@@ -76,7 +76,7 @@ primitives in `docs/reference/authoring-surface.txt` at HEAD appear in decomposi
 - **decomposition:** `[ATTACK] DAMAGE_MOD(side=attack, mode=add, amount=2.5)`
 - **interactions:** contributes to the additive outgoing fold (preamble); jar-measured
   dead inside a Multi-Mask (`fromPlayer()` routing) — port keeps it active there
-  (ledger, Multi-Mask entry)
+  (ledger D-11-1, Multi-Mask entry)
 - **strings:** name `§c§lPurge Mask`; ability `§c+2.5% DMG`; lore `§c+2.5% DMG` /
   `§7A great evil is contained within this` / `§7horrifying mask. Who knows what inner` /
   `§7demons it will unleash.` / `§6§l * §6Halloween 2018`
@@ -123,7 +123,7 @@ primitives in `docs/reference/authoring-surface.txt` at HEAD appear in decomposi
   `§6§l * §6November 2018 CC`
 - **numbers:** measured: only food-level LOSSES cancelled (freeze at equip-time
   level); ported: hunger topped to 20 every 20 t — as-intended "Infinite Food"
-  (deviation ledger). Pool common (8.1818%); active: yes.
+  (deviation ledger D-11-2). Pool common (8.1818%); active: yes.
 - **era:** none beyond the head seam
 
 ### Turkey Mask (`masks/turkey`)
@@ -136,7 +136,7 @@ primitives in `docs/reference/authoring-surface.txt` at HEAD appear in decomposi
   `PARTICLE(particle=CLOUD, count=10, spread=0.2, who=@Self)`
 - **interactions:** CANCEL discards the whole hit (every fold contribution with it);
   jar-measured dead inside a Multi-Mask (`fromPlayer()` routing) — port keeps it
-  active (ledger, Multi-Mask entry)
+  active (ledger D-11-1, Multi-Mask entry)
 - **strings:** name `§e§lTurkey Mask`; ability `§c+2% Dodge`; dodge message verbatim
   `§e§l* DODGED [§7Turkey Mask§e§l]` (no trailing `*`, unlike Zeus); lore
   `§c+2% Dodge` / `§7Stay nimble and fast, or the` /
@@ -160,7 +160,7 @@ primitives in `docs/reference/authoring-surface.txt` at HEAD appear in decomposi
   wears mask = **+25%**. The lore's "/Drops" half is XP-only in the jar (item-drop
   multiplier UNRESOLVED/absent — not ported; lore stays verbatim). Ported scope shift:
   the jar boosts the mob's dropped orbs (any collector benefits); the port multiplies
-  the wearer's own EXP_GAIN (deviation ledger). Pool common (8.1818%); active: yes.
+  the wearer's own EXP_GAIN (deviation ledger D-11-3). Pool common (8.1818%); active: yes.
 - **era:** none beyond the head seam
 
 ### Monopoly Mask (`masks/monopoly`)
@@ -170,7 +170,7 @@ primitives in `docs/reference/authoring-surface.txt` at HEAD appear in decomposi
   negation, as-intended)
 - **decomposition:**
   1. `[DEFENSE] DAMAGE_MOD(side=defense, mode=add, amount=5)`
-  2. as-intended scroll line (absent in the jar — ships per deviation ledger):
+  2. as-intended scroll line (absent in the jar — ships per deviation ledger D-11-4):
      `[ATTACK condition="%victim.health% <= %damage%" chance=33]
      STRIP_SCROLL(scroll=HOLY, hand=true, who=@Victim)` — the lethal-hit gate makes
      the 33% roll fire once per kill, stripping one Holy White Scroll marker before
@@ -178,7 +178,7 @@ primitives in `docs/reference/authoring-surface.txt` at HEAD appear in decomposi
 - **interactions:** the strip must resolve before the death-drop keep check (apply
   order inside the kill event — interaction-layer ordering, same seam as the Anubis
   pet's STRIP_SCROLL); −5% joins the additive reduction bucket; jar-measured
-  −5% dead inside a Multi-Mask (`fromPlayer()`) — port keeps it active (ledger)
+  −5% dead inside a Multi-Mask (`fromPlayer()`) — port keeps it active (ledger D-11-1)
 - **strings:** name `§b§lMonopoly Mask`; ability `§c33% Holy White Scroll negation`;
   lore `§c33% Holy White Scroll negation` / `§c-5% ENEMY DMG` /
   `§7The mask of a man who has it all,` / `§7a truly powerful entity to contest with.`
@@ -186,7 +186,7 @@ primitives in `docs/reference/authoring-surface.txt` at HEAD appear in decomposi
 - **numbers:** measured `setDamage(damage * 0.95)` = **−5%** incoming (shared branch
   with Party Hat). Headline **33%** (`0.33`) scroll negation is NOT implemented
   anywhere in the jar (codex UNRESOLVED — advertised only); as-intended value 33% per
-  kill (deviation ledger). Pool rare (1.1111%); active: yes.
+  kill (deviation ledger D-11-4). Pool rare (1.1111%); active: yes.
 - **era:** none beyond the head seam (scrolls are engine features)
 
 ### Necromancer Mask (`masks/necromancer`)
@@ -232,7 +232,7 @@ primitives in `docs/reference/authoring-surface.txt` at HEAD appear in decomposi
   2. `[FIRE] CANCEL()` — the jar cancels and zeroes FIRE / FIRE_TICK / LAVA damage
 - **interactions:** the jar's two abilities use DIFFERENT lookups — +5% via
   `fromPlayer()` (dead in a Multi-Mask), fire immunity via `hasEquipped()` (works) —
-  port: both active in a Multi-Mask (ledger, Multi-Mask entry)
+  port: both active in a Multi-Mask (ledger D-11-1, Multi-Mask entry)
 - **strings:** name `§4§lDragon Mask`; ability `§c+5% DMG`; lore `§c+5% DMG` /
   `§cImmune to Fire and Lava damage` / `§7The decapitated skull of a slain` /
   `§7Timeless Dragon from the Ender Dimension.` / `§6§l * §6Timeless Dragon Update`
@@ -255,7 +255,7 @@ primitives in `docs/reference/authoring-surface.txt` at HEAD appear in decomposi
   mortal-coil's max-health attack and this maintained bonus reconcile through the ONE
   max-health driver (interaction-layer rule, authored on the mortal-coil side; see
   also Lover, which shields it). Jar quirk: an existing enchant HEALTH_BOOST is
-  UPGRADED +1 level instead of stacking — port stacks additively (ledger).
+  UPGRADED +1 level instead of stacking — port stacks additively (ledger D-11-5).
 - **strings:** name `§b§lSanta`; ability `§c+2 Max Hearts`; lore `§c+2 Max Hearts` /
   `§7An eerie mask imbued with` / `§7Christmas Joy that knows` /
   `§7who is naughty or nice.` / `§6§l* §6Christmas 2018` (credit line has NO leading
@@ -273,7 +273,7 @@ primitives in `docs/reference/authoring-surface.txt` at HEAD appear in decomposi
 - **decomposition:**
   1. `[PASSIVE] POTION(effect=SPEED, level=4, duration=200)` — Speed IV maintained
      (jar amplifier 3), re-applied while worn, removed on unequip (§B lifecycle)
-  2. as-intended flight line (absent in the jar — ships per deviation ledger):
+  2. as-intended flight line (absent in the jar — ships per deviation ledger D-11-6):
      `[REPEATING repeat=40] FLY_MODE(who=@Self)` — flight while not in combat,
      revoked in combat, lapses on unequip
 - **interactions:** jar disables the speed inside non-Cosmonaut outpost worlds
@@ -288,8 +288,8 @@ primitives in `docs/reference/authoring-surface.txt` at HEAD appear in decomposi
   `Integer.MAX_VALUE` ticks then the first heartbeat silently downgrades to a 200 t
   rolling refresh (and grants NOTHING until the first heartbeat when no tracked
   enchant speed exists) — as-intended: uniform maintained Speed IV while worn
-  (deviation ledger). "Flight regardless of rank" is advertised but absent in the jar
-  (deviation ledger). Pool common (8.1818%); active: yes.
+  (deviation ledger D-11-7). "Flight regardless of rank" is advertised but absent in the jar
+  (deviation ledger D-11-6). Pool common (8.1818%); active: yes.
 - **era:** SPEED potion and allow-flight API stable on 1.8.9 — no hazard beyond the
   head seam
 
@@ -302,7 +302,7 @@ primitives in `docs/reference/authoring-surface.txt` at HEAD appear in decomposi
   2. `[DEFENSE] DAMAGE_MOD(side=defense, mode=add, amount=5)`
 - **interactions:** the only mask with both an offensive and defensive multiplier;
   both jar-measured dead inside a Multi-Mask (`fromPlayer()`) — port keeps both
-  active (ledger, Multi-Mask entry); both join the additive fold buckets
+  active (ledger D-11-1, Multi-Mask entry); both join the additive fold buckets
 - **strings:** name `§f§lParty Hat`; ability `§c-5% ENEMY DMG`; lore
   `§c-5% ENEMY DMG` / `§c+4% DMG` / `§7Everywhere you are is a party.` /
   `§6§l* §6New Years 2018` (no leading space)
@@ -331,8 +331,8 @@ primitives in `docs/reference/authoring-surface.txt` at HEAD appear in decomposi
 - **interactions:** jar quirk — a BLOCKED Phoenix still stamps the victim's
   `last_phoenix` cooldown (the victim loses the proc AND the cooldown window);
   as-intended: a gate-5-suppressed proc leaves its cooldown unspent (deviation
-  ledger). +2.5% jar-measured dead inside a Multi-Mask, Phoenix block works there —
-  port: both active (ledger, Multi-Mask entry).
+  ledger D-11-8). +2.5% jar-measured dead inside a Multi-Mask, Phoenix block works there —
+  port: both active (ledger D-11-1, Multi-Mask entry).
 - **strings:** name `§9§lDeath Knight`; ability
   `§c50% chance to negate enemy's Phoenix`; block messages verbatim — victim:
   `§c§l* PHOENIX BLOCKED [§7{damager}§c§l] *`, wearer:
@@ -440,7 +440,7 @@ primitives in `docs/reference/authoring-surface.txt` at HEAD appear in decomposi
 - **numbers:** threshold **200.0** — jar uses strict `>` to disguise and strict `<`
   to undisguise, so `y == 200.0` exactly is a dead zone that freezes state
   (known bug); as-intended: disguise at `> 200`, undisguise at `<= 200` (deviation
-  ledger). Poll period 20 t (1.0 s). Pool: **none**; active: yes.
+  ledger D-11-9). Poll period 20 t (1.0 s). Pool: **none**; active: yes.
 - **era:** MAJOR — client-bound disguise packets diverge hard on 1.8.9 (spawn/
   metadata format, 1.8 datawatcher layout); the MOB_DISGUISE capability must sit
   behind a version resolver, and the legacy sweep owns the 1.8 packet shapes
@@ -515,12 +515,12 @@ primitives in `docs/reference/authoring-surface.txt` at HEAD appear in decomposi
   UNRESOLVED in the corpus; the port implements the advertised expectation directly
   (65% → one extra copy = 1.65x expected). Jar-measured 5 s per-chunk cache with the
   priming spawn granting nothing — as-intended: per-spawn wearer check (deviation
-  ledger). Works inside a Multi-Mask in the jar (`MaskUtils` routing).
+  ledger D-11-10). Works inside a Multi-Mask in the jar (`MaskUtils` routing).
 - **strings:** name `§d§lBunny Mask`; ability `§c1.65x Mobs from Spawners in Chunk`;
   lore `§c1.65x Mobs from Spawners in Chunk` / `§7And so the gods declared to all` /
   `§7the easter bunnies: be fruitful` / `§7and multiply.` / `§6§l * §6Easter 2019`
 - **numbers:** chance `0.65` = **65%** (strict `<`); metadata grant `2` (or existing
-  +2); marketing **1.65x** = 1×0.35 + 2×0.65; jar cache TTL 5 s (bug, ledger).
+  +2); marketing **1.65x** = 1×0.35 + 2×0.65; jar cache TTL 5 s (bug, ledger D-11-10).
   Pool rare (1.1111%); active: yes.
 - **era:** `CreatureSpawnEvent` + SpawnReason.SPAWNER exist on 1.8.9 — no hazard
   beyond the head seam
@@ -599,7 +599,7 @@ primitives in `docs/reference/authoring-surface.txt` at HEAD appear in decomposi
 - **interactions:** THE family bug — in the jar only `hasEquipped()`-routed child
   abilities work inside the compound; `fromPlayer()`-routed ones (Purge, Turkey,
   Monopoly −5%, Dragon +5%, Party Hat, Death Knight +2.5%) silently do nothing.
-  As-intended: every folded child stays active (deviation ledger). Jar NBT quirk:
+  As-intended: every folded child stays active (deviation ledger D-11-1). Jar NBT quirk:
   the child list survives detachment on the helmet forever — port state is
   item-data-model owned, cleaned on detach. Minted via the custom-item command with
   explicit child names; the codex-documented crash edges (empty child list, unknown
@@ -611,7 +611,7 @@ primitives in `docs/reference/authoring-surface.txt` at HEAD appear in decomposi
   `§7§lATTACHED: §f§lMulti-Mask§f ({child1}§f, {child2}§f)`; declared base lore is a
   single empty line + the shared trailing block. Jar bug: children with no ability
   line render the literal text `null` — as-intended: omit the ability parens for
-  ability-less children (deviation ledger).
+  ability-less children (deviation ledger D-11-11).
 - **numbers:** no numeric behavior of its own; active: **no** (hidden); pool: none
 - **era:** head seam only
 

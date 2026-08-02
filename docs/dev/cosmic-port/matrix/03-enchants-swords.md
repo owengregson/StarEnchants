@@ -4,8 +4,7 @@
 
 - Defensive entries record SINGLE-PASS intended values (`deviations.md` D-001);
   the jar's defensive double-fire (`00-MECHANICS.md` §3) is never replicated.
-- `D3-nn` are provisional ledger ids for this doc's deviations, to be renumbered
-  into `deviations.md` when the ledger is consolidated.
+- `D-03-n` ids reference this doc's rows in `deviations.md`.
 - Decompositions use only primitives in `docs/reference/authoring-surface.txt`
   at HEAD, written `KIND(param=value, …) @Selector wait=N`. Ability-level
   `chance:`/`cooldown:` knobs and `±N %chance%` condition clauses are part of
@@ -83,7 +82,7 @@
 - **strings:** none.
 - **numbers:** measured (integer division `0.5·(L/2)`): L1 ×1.0 (**no-op**),
   L2 ×0.5, L3 ×0.5 — as-intended (real division `0.5·(L/2.0)`): 25% / 50% /
-  75% reduction → ledger `D3-01`. Defensive double-fire member (left column,
+  75% reduction → ledger `D-03-1`. Defensive double-fire member (left column,
   00 §3.4) → single-pass values per D-001. Chance 10/20/~30%. Acquisition:
   max 3, base 17.0, interval 4.0, weight 2, tier 4.
 - **era:** sword right-click blocking is a 1.8-era mechanic; on modern Paper
@@ -142,7 +141,7 @@
 - **strings:** none.
 - **numbers:** chance 4/8/~12/16% (L3 measured `0.12000000000000001`); 1 point,
   uniform 25% per slot. Measured target is the **attacker's own** armor
-  (verified in bytecode) → as-intended the victim's armor → ledger `D3-02`.
+  (verified in bytecode) → as-intended the victim's armor → ledger `D-03-2`.
   `skip-undamaged` mirrors the jar's undamaged-piece guard (a fresh piece is
   never scratched) — kept as measured. Non-player wielder CCE in the jar is a crash
   bug, not behavior; engine is player-scoped. Acquisition: max 4, base 15.0,
@@ -174,7 +173,7 @@
 - **numbers:** chance 0.25/0.5/0.75/1.0/1.25/1.5/~1.75/2.0% (L7 measured
   `0.017500000000000002`). Measured slot draw: a 0–3 roll vs branches 1–4 →
   25% of procs remove **nothing** (messages+sound still fire) and boots are
-  unreachable; as-intended: uniform over all four slots → ledger `D3-03`.
+  unreachable; as-intended: uniform over all four slots → ledger `D-03-3`.
   `REMOVE_ARMOR` drops the piece; the jar tried inventory first and dropped at
   the victim's target block only on overflow — cosmetic placement delta, noted
   for the primitive's param review. Acquisition: max 8, base 15.0,
@@ -253,7 +252,7 @@
   `(4+L)` s, replacement damage `min(7, 4+L)` = 5/6/7/7 (capped); souls 20 per
   spend. Measured: the 1 s throttle guards ONLY the soul spend — the AoE burst
   fires free on every gated hit; as-intended: burst and spend share the 1 s
-  pace → ledger `D3-13`. Jar leaves the divine-fire mark forever (any later
+  pace → ledger `D-03-13`. Jar leaves the divine-fire mark forever (any later
   wither source inside the window converts) — the gap's window is owned and
   expires; recorded as the intended scoping. Acquisition: max 4, base 10.0,
   interval 10.0, weight 2, tier 6 (soul tier).
@@ -282,7 +281,7 @@
 - **numbers:** chance 4/8/~12/16%; duration 40/80/120/160 t. Measured debuff:
   `level·5/100` **integer division** → ×1.0 always, Dominate never reduces any
   damage (message + particles only); as-intended: −5·L% outgoing for 2·L s →
-  ledger `D3-04`. Jar cleans metadata lazily on the victim's next attack;
+  ledger `D-03-4`. Jar cleans metadata lazily on the victim's next attack;
   WEAKEN expires on schedule (intended scoping). Acquisition: max 4,
   base 15.0, interval 15.0, weight 2, tier 4.
 - **era:** `ENCHANTMENT_TABLE` particle (legacy) ↔ `ENCHANT` (1.20.5 registry
@@ -301,7 +300,7 @@
   key that is never written, so it never fires and measured Rage
   multiplies the follow-up AND double-increments the combo; intended
   behavior — echo hits excluded from Rage — is the engine default (Rage's
-  counter increments once per real swing) → ledger `D3-06`.
+  counter increments once per real swing) → ledger `D-03-6`.
 - **strings:** none.
 - **numbers:** chance 2/4/6%. Measured mechanism: a scheduled, attacker-
   attributed re-hit for the first hit's final damage, 2 t later, re-entering
@@ -309,7 +308,7 @@
   guard, feeds post-armor damage back in
   as raw, and can be swallowed by vanilla invulnerability; shipped: single
   same-event `ECHO_STRIKE` fold (one re-run, damage folds into the one event,
-  no recursion, no invuln interaction) → ledger `D3-05`. The liveness /
+  no recursion, no invuln interaction) → ledger `D-03-5`. The liveness /
   Phoenix-revival edge cases of the 2 t delay disappear with the fold.
   Acquisition: max 3, base 10.0, interval 10.0, weight 2, tier 5.
 - **era:** `RED_DUST` (legacy) ↔ `REDSTONE`/`DUST` particle via resolver.
@@ -466,7 +465,7 @@
   console `HEADLESS ENCH -- Dropping skull of {VICTIM}!`.
 - **numbers:** chance 3/6/9%; everything downstream level-independent.
   Measured: a static date stamp initialised at class load — every skull shows
-  the server BOOT date; as-intended: the kill date → ledger `D3-07`. Jar flag
+  the server BOOT date; as-intended: the kill date → ledger `D-03-7`. Jar flag
   is name-keyed, unbounded, survives relogs and is consumed by the next death
   from any cause (kept as the gap's semantics, minus the unbounded-static
   leak). Killer-less deaths drop the plain lore-less head (kept). Acquisition:
@@ -644,7 +643,7 @@
   ULP above L4–5's exact 0.3 — the ladder's authored values keep 30/30/30).
   Measured heal: health SET to `⌊health⌋ + L` — truncation eats up to
   0.999 HP of the nominal heal; as-intended: flat `+L` HP heal, clamped →
-  ledger `D3-08`. Heal is damage-independent (kept). Acquisition: max 5,
+  ledger `D-03-8`. Heal is damage-independent (kept). Acquisition: max 5,
   base 10.0, interval 8.0, weight 2, tier 5.
 - **era:** none.
 
@@ -688,7 +687,7 @@
 - **numbers:** chance 1.75/3.5/5 (special-cased DOWN from 5.25)/7%; Slowness
   I/I/II/II 100 t; Fatigue II 100 t at L4; extra damage 2/3/4/5. Measured:
   the bolt strikes at the **attacker's** location (verified bytecode);
-  as-intended: at the victim → ledger `D3-09`. No cooldown — each proc stacks
+  as-intended: at the victim → ledger `D-03-9`. No cooldown — each proc stacks
   another 5 s slow + flat hit (kept). `interval = 0.0`: the vanilla table
   always rolled max level — acquisition-model note (max 4, base 25.0,
   interval 0.0, weight 2, tier 3).
@@ -750,7 +749,7 @@
   `devour-suppresses-rage-multiplier`. Pacify (bow) → `SUPPRESS(scope=ENCHANT,
   key=rage, duration=15·L) @Victim`-equivalent authored on Pacify (05 doc;
   jar window `750·L` ms = 15·L t). Execute refuses to fire inside the `raged`
-  window (§Execute). Double Strike echo exclusion → ledger `D3-06` (guard typo
+  window (§Execute). Double Strike echo exclusion → ledger `D-03-6` (guard typo
   made the jar multiply echo hits and double-increment; intended exclusion is
   the engine default).
 - **strings:** none.
@@ -786,7 +785,7 @@
 - **numbers:** block chance 10/20/~30/40/50% by mark level (L3
   `0.30000000000000004`); souls 8 per spend, level-independent (vs Divine
   Immolation's 20); mark on every gated hit, spend at most 1/s (kept as
-  measured — the free-mark cadence is the mechanism, unlike D3-13's free
+  measured — the free-mark cadence is the mechanism, unlike D-03-13's free
   damage). Acquisition: max 5, base 10.0, interval 10.0, weight 2, tier 6
   (soul tier).
 - **era:** none.
@@ -813,7 +812,7 @@
 - **numbers:** no scaling beyond the two mob gates. Measured: the jar reads a
   Bukkit metadata key nothing ever writes (the real flag is an NMS field) —
   Shackle is **likely inert in the shipped jar**; as-intended: spawner-gated
-  anti-knockback as specified → ledger `D3-12`. Acquisition: max 3,
+  anti-knockback as specified → ledger `D-03-12`. Acquisition: max 3,
   base 15.0, interval 6.0, weight 2, tier 3.
 - **era:** none (BLAZE/MAGMA_CUBE exist on 1.8.9).
 
@@ -865,7 +864,7 @@
   suppression is unconditional for the window. Measured: the jar also gives
   the silenced victim ×0.75 INCOMING damage (a 25% reward for being
   silenced — likely an inverted sign); shipped: suppression only, no damage
-  modifier → ledger `D3-10`. Jar's overlapping-proc bug (first expiry task
+  modifier → ledger `D-03-10`. Jar's overlapping-proc bug (first expiry task
   ends a refreshed silence early) is replaced by SUPPRESS's timed-window
   refresh. Acquisition: max 4, base 20.0, interval 5.0, weight 2, tier 5.
 - **era:** `WITHER_HURT` ↔ `ENTITY_WITHER_HURT`; `ENCHANTMENT_TABLE` particle
@@ -992,7 +991,7 @@
   and full stop at every level. Measured: Metaphysical ≥ 2 vs Trap I gives a
   NEGATIVE chance (−1%) — can never land, yet the "blocked" message still
   shows on the would-be proc; as-intended: clamp the effective chance at a 1%
-  floor (Heroic Trap parity: a 0.01 chance floor) → ledger `D3-11`. Overlapping
+  floor (Heroic Trap parity: a 0.01 chance floor) → ledger `D-03-11`. Overlapping
   traps: jar's independent release tasks freed early; the timed modifier
   refreshes instead. Jar's quit-reset and op-exempt particle echo are
   plumbing artifacts, not ported. Acquisition: max 3, base 15.0,
@@ -1044,20 +1043,6 @@
 | `SPAWN_ORIGIN_FACT` | Shackle |
 | `HURT_TRIGGER` | Inversion |
 
-## Provisional deviation rows (→ `deviations.md`)
+## Deviation rows
 
-| Prov. id | Item | Measured → intended |
-| --- | --- | --- |
-| D3-01 | Block | L1 ×1.0 integer-division no-op; L2=L3 → 25/50/75% reduction (`0.5·L/2` real division) |
-| D3-02 | Demonforged | damages the attacker's own armor → the victim's armor |
-| D3-03 | Disarmor | 25% no-op procs, boots unreachable → uniform over all 4 slots |
-| D3-04 | Dominate | `level·5/100` integer division, ×1.0 always → −5·L% outgoing for 2·L s |
-| D3-05 | Double Strike | re-entrant scheduled second hit (re-procs, recursion, invuln absorption) → single-event ECHO_STRIKE fold |
-| D3-06 | Rage × Double Strike | misspelled-key exclusion guard never fires → echo hits excluded from Rage |
-| D3-07 | Headless | static date stamp: skull lore shows server boot date → kill date |
-| D3-08 | Lifesteal | integer-truncation set-heal loses up to 0.999 HP → flat +L HP heal |
-| D3-09 | Paralyze | lightning at the attacker's location → at the victim |
-| D3-10 | Silence | silenced victim takes ×0.75 incoming (inverted reward) → suppression only, no damage modifier |
-| D3-11 | Trap | Metaphysical ≥2 vs Trap I: negative chance, never lands, message still shows → 1% floor clamp (Heroic Trap parity) |
-| D3-12 | Shackle | gate reads never-written metadata; likely inert in the jar → spawner-gated anti-knockback as specified |
-| D3-13 | Divine Immolation | 1 s throttle guards only the soul spend; AoE fires free every gated hit → burst and spend share the 1 s pace |
+`D-03-1` … `D-03-13` are consolidated in [`../deviations.md`](../deviations.md).
