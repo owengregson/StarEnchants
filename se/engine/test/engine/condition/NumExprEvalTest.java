@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import compile.model.cond.NumExpr;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -53,5 +55,57 @@ class NumExprEvalTest {
         // A PAPI operand with no resolver parses to NaN — the fail-closed value for a numeric comparison.
         FactBuffer facts = new FactBuffer(0, 0, 0);
         assertTrue(Double.isNaN(NumExprEval.eval(new NumExpr.Papi("some_unknown_placeholder"), facts)));
+    }
+
+    private static NumExpr fn(NumExpr.FnKind kind, double... args) {
+        List<NumExpr> operands = new ArrayList<>();
+        for (double arg : args) {
+            operands.add(new NumExpr.Lit(arg));
+        }
+        return new NumExpr.Fn(kind, operands);
+    }
+
+    @Test
+    void functionsFoldTheirArguments() {
+        FactBuffer facts = new FactBuffer(0, 0, 0);
+        assertEquals(2.0, NumExprEval.eval(fn(NumExpr.FnKind.MIN, 2, 3), facts));
+        assertEquals(3.0, NumExprEval.eval(fn(NumExpr.FnKind.MAX, 2, 3), facts));
+        assertEquals(4.0, NumExprEval.eval(fn(NumExpr.FnKind.CLAMP, 5, 0, 4), facts));
+        assertEquals(0.0, NumExprEval.eval(fn(NumExpr.FnKind.CLAMP, -1, 0, 4), facts));
+        assertEquals(2.0, NumExprEval.eval(fn(NumExpr.FnKind.FLOOR, 2.9), facts));
+        assertEquals(-3.0, NumExprEval.eval(fn(NumExpr.FnKind.FLOOR, -2.1), facts));
+    }
+
+    @Test
+    void randScalesTheInjectedSupplierIntoTheHalfOpenSpan() {
+        // Randomness is an injected DoubleSupplier on the evaluation environment, never an inline
+        // ThreadLocalRandom — that is what makes a rand()-bearing ability reproducible under test.
+        FactBuffer facts = new FactBuffer(0, 0, 0);
+        facts.randomSource(() -> 0.5);
+        assertEquals(2.0, NumExprEval.eval(fn(NumExpr.FnKind.RAND, 1, 3), facts));
+        facts.randomSource(() -> 0.0);
+        assertEquals(1.0, NumExprEval.eval(fn(NumExpr.FnKind.RAND, 1, 3), facts)); // lo is inclusive
+        facts.randomSource(() -> 0.999);
+        assertTrue(NumExprEval.eval(fn(NumExpr.FnKind.RAND, 1, 3), facts) < 3.0); // hi is exclusive
+    }
+
+    @Test
+    void randWithoutAnInjectedSourceIsDeterministic() {
+        // The engine default draws nothing (mirrors Activation's chanceRoll default): production wires the
+        // real source, so an unwired evaluation can never silently invent a value.
+        FactBuffer facts = new FactBuffer(0, 0, 0);
+        assertEquals(1.0, NumExprEval.eval(fn(NumExpr.FnKind.RAND, 1, 3), facts));
+    }
+
+    @Test
+    void functionArgumentsAreThemselvesExpressions() {
+        FactBuffer facts = new FactBuffer(1, 0, 0);
+        facts.setNumber(0, 8.0);
+        // min(50, %recentattackers% * 10) -> 50 at 8 attackers, 20 at 2
+        NumExpr capped = new NumExpr.Fn(NumExpr.FnKind.MIN, List.of(new NumExpr.Lit(50),
+                new NumExpr.Bin(new NumExpr.Var(0), NumExpr.Op.MULTIPLY, new NumExpr.Lit(10))));
+        assertEquals(50.0, NumExprEval.eval(capped, facts));
+        facts.setNumber(0, 2.0);
+        assertEquals(20.0, NumExprEval.eval(capped, facts));
     }
 }
