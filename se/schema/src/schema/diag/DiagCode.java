@@ -33,6 +33,8 @@ public enum DiagCode {
     E_PARSE_HALF_OP,         // lexer: a single '&' / '|' / '=' where '&&' / '||' / '==' was meant
     E_PARSE_UNTERMINATED,    // lexer: an unterminated %variable% or "string"
     E_PARSE_EMPTY_VAR,       // lexer: '%%' with no variable name
+    E_PARSE_FN_ARITY,        // a known function called with the wrong number of arguments
+    E_PARSE_UNKNOWN_FN,      // an identifier called like a function but naming none
     E_SELECTOR_SYNTAX,
     E_TERSE_EFFECT,
 

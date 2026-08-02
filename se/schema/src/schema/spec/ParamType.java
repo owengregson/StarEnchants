@@ -4,6 +4,7 @@ import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.expr.Expr;
+import schema.grammar.expr.ExprFn;
 import schema.grammar.expr.ExprParser;
 import java.util.List;
 import java.util.Locale;
@@ -190,20 +191,36 @@ public final class ParamType {
     }
 
     /**
-     * Whether a non-literal numeric token is an expression (a {@code %var%} or arithmetic). A leading
-     * sign alone never reaches here (a signed literal parses), so only an interior op marks arithmetic.
+     * Whether a non-literal numeric token is an expression (a {@code %var%}, arithmetic, or a function call).
+     * A leading sign alone never reaches here (a signed literal parses), so only an interior op marks arithmetic.
      */
     private static boolean looksLikeExpression(String t) {
-        return t.indexOf('%') >= 0 || t.indexOf('*') >= 0 || t.indexOf('/') >= 0
+        return t.indexOf('%') >= 0 || t.indexOf('*') >= 0 || t.indexOf('/') >= 0 || t.indexOf('(') >= 0
                 || t.indexOf('+', 1) >= 0 || t.indexOf('-', 1) >= 0;
     }
 
     /**
      * Parse a numeric-argument token as an expression, producing the untyped {@link Expr} AST.
-     * Range bounds cannot be checked statically on an expression, so they are not — the author owns the value.
+     *
+     * <p>An expression's value is unknowable at compile time, so it skips the constant range check and is
+     * instead <em>clamped to this spec's declared range at evaluation</em> — the parsed tree is wrapped in a
+     * synthetic {@code clamp}. That is the contract that keeps {@code chance: "%x% * 10"} inside {@code [0,100]}
+     * without the author restating the bound: a constant out of range is still a hard {@code E_RANGE}, an
+     * expression out of range is silently confined.
      */
-    private static Optional<Object> numericExpression(String token, Source source, Diagnostics diags) {
-        return ExprParser.parse(token, source, diags).map(expr -> expr);
+    private Optional<Object> numericExpression(String token, Source source, Diagnostics diags) {
+        return ExprParser.parse(token, source, diags).map(this::clampToRange);
+    }
+
+    /** Wrap {@code expr} in the spec's range; an undeclared bound is infinite, so an unbounded param is untouched. */
+    private Object clampToRange(Expr expr) {
+        if (min == null && max == null) {
+            return expr;
+        }
+        Source at = expr.source();
+        return new Expr.Call(ExprFn.CLAMP, List.of(expr,
+                new Expr.NumberLit(String.valueOf(min != null ? min : Double.NEGATIVE_INFINITY), at),
+                new Expr.NumberLit(String.valueOf(max != null ? max : Double.POSITIVE_INFINITY), at)), at);
     }
 
     private boolean checkRange(double v, Source source, Diagnostics diags) {

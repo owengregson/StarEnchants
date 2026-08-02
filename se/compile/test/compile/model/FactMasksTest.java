@@ -194,6 +194,9 @@ class FactMasksTest {
         if (type == StrExpr.class) {
             return new StrExpr.Lit("");
         }
+        if (type == java.util.List.class) {
+            return java.util.List.of(new NumExpr.Lit(0)); // NumExpr.Fn's operands — the only list-valued component
+        }
         throw new IllegalStateException("no synthetic value for AST constructor parameter type " + type.getName()
                 + "; extend syntheticValue(...) when introducing a new node component shape");
     }

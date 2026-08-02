@@ -1,6 +1,7 @@
 package engine.condition;
 
 import compile.model.cond.NumExpr;
+import java.util.List;
 
 /**
  * Evaluates a compiled {@link NumExpr} to a {@code double} over a {@link FactBuffer} (docs/architecture.md
@@ -29,6 +30,9 @@ public final class NumExprEval {
         if (e instanceof NumExpr.Neg n) {
             return -eval(n.operand(), f);
         }
+        if (e instanceof NumExpr.Fn fn) {
+            return function(fn, f);
+        }
         if (e instanceof NumExpr.Bin b) {
             double l = eval(b.left(), f);
             double r = eval(b.right(), f);
@@ -40,6 +44,28 @@ public final class NumExprEval {
             };
         }
         throw new IllegalStateException("unknown numeric operand: " + e);
+    }
+
+    /** Arity is guaranteed by the parser, so each arm indexes its operands directly. */
+    private static double function(NumExpr.Fn fn, FactBuffer f) {
+        List<NumExpr> args = fn.args();
+        return switch (fn.kind()) {
+            case MIN -> Math.min(eval(args.get(0), f), eval(args.get(1), f));
+            case MAX -> Math.max(eval(args.get(0), f), eval(args.get(1), f));
+            case CLAMP -> clamp(eval(args.get(0), f), eval(args.get(1), f), eval(args.get(2), f));
+            case FLOOR -> Math.floor(eval(args.get(0), f));
+            // [lo,hi) from the buffer's injected source; a reversed span is empty and reads lo.
+            case RAND -> {
+                double lo = eval(args.get(0), f);
+                double hi = eval(args.get(1), f);
+                yield hi <= lo ? lo : lo + f.random() * (hi - lo);
+            }
+        };
+    }
+
+    /** A reversed span reads {@code lo} — the author's stated floor wins over a mistyped ceiling. */
+    private static double clamp(double v, double lo, double hi) {
+        return hi < lo ? lo : Math.min(Math.max(v, lo), hi);
     }
 
     /** Parse a placeholder result as a double; absent/unparseable is {@code NaN} (fail-closed comparisons). */

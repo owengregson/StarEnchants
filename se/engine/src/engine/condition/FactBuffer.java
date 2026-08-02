@@ -1,6 +1,7 @@
 package engine.condition;
 
 import java.util.Arrays;
+import java.util.function.DoubleSupplier;
 import java.util.function.UnaryOperator;
 
 /**
@@ -20,6 +21,9 @@ public final class FactBuffer {
     private long flags0; // flags 0..63
     private long flags1; // flags 64..127
     private UnaryOperator<String> papi = t -> null;
+    // rand()'s draw. Defaults to 0 (never an inline ThreadLocalRandom) exactly like Activation's chanceRoll:
+    // production installs the real source, so an unwired evaluation is reproducible instead of secretly random.
+    private DoubleSupplier random = () -> 0.0;
 
     public FactBuffer(int numberSlots, int flagSlots, int stringSlots) {
         if (numberSlots < 0 || flagSlots < 0 || stringSlots < 0) {
@@ -72,6 +76,16 @@ public final class FactBuffer {
         return papi.apply(token);
     }
 
+    /** Install the random source {@code rand(lo,hi)} draws from; {@code null} (the default) draws {@code 0}. */
+    public void randomSource(DoubleSupplier source) {
+        this.random = source == null ? () -> 0.0 : source;
+    }
+
+    /** One draw in {@code [0,1)} for {@code rand(lo,hi)}; {@code 0} when no source is installed. */
+    public double random() {
+        return random.getAsDouble();
+    }
+
     /** Reset all slots; called once per activation for thread-local reuse. */
     public void clear() {
         Arrays.fill(numbers, 0.0);
@@ -79,5 +93,6 @@ public final class FactBuffer {
         flags0 = 0L;
         flags1 = 0L;
         papi = t -> null;
+        random = () -> 0.0;
     }
 }

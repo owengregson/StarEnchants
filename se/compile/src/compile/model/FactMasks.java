@@ -89,6 +89,10 @@ public final class FactMasks {
                 num(b.right());
             } else if (node instanceof NumExpr.Neg n) {
                 num(n.operand());
+            } else if (node instanceof NumExpr.Fn f) {
+                for (NumExpr arg : f.args()) {
+                    num(arg); // a function reads nothing itself — only whatever its arguments read
+                }
             } else if (node instanceof NumExpr.Lit || node instanceof NumExpr.Papi) {
                 // Reference no fact slot.
             } else {

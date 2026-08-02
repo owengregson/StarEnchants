@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.DoubleSupplier;
 import java.util.function.UnaryOperator;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -66,6 +67,9 @@ public final class FactPopulator {
     private final RageStackStore rageStacks; // §3 %ragestacks% source — an actor-scoped read (mask-gated)
     private final UnaryOperator<String> papiDelegate;
     private final ActorProbe probe; // §3.3 era-specific entity/material reads (swim/glide/isAir/main-hand)
+    // rand()'s draw, installed on each activation's buffer. Volatile: written once at boot wiring, read on
+    // every firing thread. Defaults to 0 so the engine never invents randomness the composition root didn't give it.
+    private volatile DoubleSupplier random = () -> 0.0;
 
     /** {@code %victim.mobtype%} soft hook (ADR-0027): boot-installed so the engine never references the MythicMobs API. */
     private static volatile java.util.function.Function<org.bukkit.entity.Entity, String> entityTypeResolver =
@@ -201,6 +205,12 @@ public final class FactPopulator {
         return new FactPopulator(BuiltinVars.vocabulary(), vars, t -> null, probe, rageStacks);
     }
 
+    /** Install the {@code rand(lo,hi)} draw source (the composition root owns the RNG); returns {@code this} to chain. */
+    public FactPopulator randomSource(DoubleSupplier source) {
+        this.random = source == null ? () -> 0.0 : source;
+        return this;
+    }
+
     public FactBuffer populate(ActivationContext context) {
         return populate(context, 0L, FactMask.ALL);
     }
@@ -222,6 +232,7 @@ public final class FactPopulator {
     public FactBuffer populate(ActivationContext context, long nowTicks, FactMask mask) {
         FactBuffer facts = buffer.get();
         facts.clear();
+        facts.randomSource(random); // clear() resets it, so re-install before any expression can draw
         if (context != null) {
             populateActor(facts, context.actor(), mask);
             populateVictim(facts, context.victim(), mask);
