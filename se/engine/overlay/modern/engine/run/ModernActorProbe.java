@@ -31,4 +31,9 @@ public final class ModernActorProbe implements ActorProbe {
         return entity.getEquipment() == null ? null
                 : entity.getEquipment().getItemInMainHand().getType().name();
     }
+
+    @Override
+    public boolean fromSpawner(LivingEntity entity) {
+        return entity.fromMobSpawner(); // Paper carries the flag from 1.16 on, so the 1.17.1 floor has it
+    }
 }

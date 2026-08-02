@@ -170,6 +170,7 @@ public final class FactPopulator {
         addVictimFlag(vocabulary, "victim.sprinting", v -> v instanceof Player p && p.isSprinting());
         addVictimFlag(vocabulary, "victim.swimming", v -> v instanceof Player p && probe.isSwimming(p));
         addVictimFlag(vocabulary, "victim.gliding", v -> v instanceof Player p && probe.isGliding(p));
+        addVictimFlag(vocabulary, "victim.fromspawner", probe::fromSpawner);
         addVictimStr(vocabulary, "victim.type", v -> v.getType().name());
         addVictimStr(vocabulary, "victim.helditem", probe::mainHandTypeName);
         // §N MythicMob internal name via the soft hook; empty when not a MythicMob / integration absent.

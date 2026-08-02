@@ -39,4 +39,9 @@ public final class LegacyActorProbe implements ActorProbe {
         ItemStack held = entity.getEquipment().getItemInHand();
         return held == null ? Material.AIR.name() : held.getType().name();
     }
+
+    @Override
+    public boolean fromSpawner(LivingEntity entity) {
+        return false; // 1.8 records no spawn provenance — the server keeps no flag to read
+    }
 }

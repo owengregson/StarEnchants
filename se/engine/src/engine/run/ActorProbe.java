@@ -25,4 +25,10 @@ public interface ActorProbe {
 
     /** The entity's main-hand item type name, or {@code null} if it has no equipment (1.8: empty hand → {@code "AIR"}). */
     String mainHandTypeName(LivingEntity entity);
+
+    /**
+     * Whether {@code entity} came out of a mob spawner ({@code %victim.fromspawner%}) — the grinder test that keeps
+     * a spawner farm from paying loot/soul bonuses. Always false on 1.8, which tracks no spawn provenance at all.
+     */
+    boolean fromSpawner(LivingEntity entity);
 }
