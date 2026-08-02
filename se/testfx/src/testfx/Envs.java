@@ -9,6 +9,7 @@ import engine.stores.CooldownStore;
 import engine.stores.DamageCapStore;
 import engine.stores.DisarmWindowStore;
 import engine.stores.EngineStores;
+import engine.stores.HeldSlotStore;
 import engine.stores.HitTempoStore;
 import engine.stores.ImmuneStore;
 import engine.stores.KeepOnDeathStore;
@@ -170,7 +171,8 @@ public final class Envs {
             EngineStores stores = storesOverride != null ? storesOverride
                     : new EngineStores(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns,
                             combo, why, recentAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks, ward,
-                            new HitTempoStore(), new BatteryStore(), new DisarmWindowStore());
+                            new HitTempoStore(), new BatteryStore(), new DisarmWindowStore(),
+                            new HeldSlotStore());
             return SinkEnv.of(economy, souls, stores, nowTicks, player -> { }, () -> 0,
                     GearProtection.NONE, lightningBoost);
         }

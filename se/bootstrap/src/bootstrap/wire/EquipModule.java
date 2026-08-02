@@ -81,6 +81,10 @@ final class EquipModule {
                 .events(equipListener)
                 .events(core.bindings().armourChangeFeeder(equipListener))
                 .events(core.bindings().handChangeFeeder(equipListener))
+                // %heldticks%: the engine owns the store, the listener stamps it. Written on the slot change
+                // ONLY — refresh() also fires for chest closes and armour swaps, which are not weapon swaps.
+                .install("held-slot stamp", () -> equipListener.onHeldChange(
+                        player -> core.stores().heldSlots().changed(player.getUniqueId(), core.tick().get())))
                 // §B instant DISABLE: drop a suppressed player's passive buffs at once, restore at window end.
                 .install("suppression-refresh hook", () -> core.stores().suppression().onSuppress(
                         (playerId, durationTicks) -> {

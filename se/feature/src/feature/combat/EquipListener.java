@@ -67,6 +67,9 @@ public final class EquipListener implements Listener {
     // illusion) re-derives on the SAME player-thread {@link #refresh} — its exact contract. Instance-composed, so
     // no static state (G2-c); no-op until a module subscribes during enable, when no event has yet fired.
     private volatile Consumer<Player> postRefresh = player -> { };
+    // A hook on the hotbar-slot change ALONE, kept separate from postRefresh because refresh() also fires for a
+    // chest close, a drop and an armour swap — none of which is a weapon swap. %heldticks% needs the narrow one.
+    private volatile Consumer<Player> onHeldChange = player -> { };
 
     /** Equipment-array index where the hand slots begin; indices below it are the four armour slots. */
     private static final int HAND_SLOTS_FROM = 4;
@@ -99,9 +102,19 @@ public final class EquipListener implements Listener {
         refresh(event.getPlayer());
     }
 
+    /**
+     * Register a hook run on a hotbar-slot change ONLY, on the firing thread ({@code %heldticks%}'s stamp).
+     * Composes like {@link #onRefresh}; subscribed once during enable, before any event fires.
+     */
+    public void onHeldChange(Consumer<Player> hook) {
+        Objects.requireNonNull(hook, "hook");
+        this.onHeldChange = this.onHeldChange.andThen(hook);
+    }
+
     @EventHandler
     public void onHeldChange(PlayerItemHeldEvent event) {
         Player player = event.getPlayer();
+        onHeldChange.accept(player); // stamped NOW, not next tick — the swap happened at this event, not at the refresh
         // The new slot is current only after this event returns — refresh next tick on the player's thread.
         Scheduling.onEntityLater(player, 1L, () -> refresh(player));
     }

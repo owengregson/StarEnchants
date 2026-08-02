@@ -20,7 +20,7 @@ public record EngineStores(
         RecentAttackersStore recentAttackers, ReflectMarksStore reflectMarks,
         OutgoingDebuffStore outgoingDebuff, DamageCapStore damageCap, RageStackStore rageStacks,
         WardStore ward, HitTempoStore hitTempo, BatteryStore battery,
-        DisarmWindowStore disarmWindows) {
+        DisarmWindowStore disarmWindows, HeldSlotStore heldSlots) {
 
     public EngineStores {
         Objects.requireNonNull(vars, "vars");
@@ -41,6 +41,7 @@ public record EngineStores(
         Objects.requireNonNull(hitTempo, "hitTempo");
         Objects.requireNonNull(battery, "battery");
         Objects.requireNonNull(disarmWindows, "disarmWindows");
+        Objects.requireNonNull(heldSlots, "heldSlots");
     }
 
     /** A fresh aggregate with every store newly constructed (the composition-root default). */
@@ -50,27 +51,27 @@ public record EngineStores(
                 new CooldownStore(), new ComboStore(), new WhyStore(),
                 new RecentAttackersStore(), new ReflectMarksStore(), new OutgoingDebuffStore(), new DamageCapStore(),
                 new RageStackStore(), new WardStore(), new HitTempoStore(), new BatteryStore(),
-                new DisarmWindowStore());
+                new DisarmWindowStore(), new HeldSlotStore());
     }
 
     /** Every store as the {@link PlayerScoped} seam, in sweep order. */
     public List<PlayerScoped> all() {
         return List.of(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns, combo, why,
                 recentAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks, ward, hitTempo, battery,
-                disarmWindows);
+                disarmWindows, heldSlots);
     }
 
     /**
      * The stores forgotten WHOLESALE on quit: private/transient/diagnostic state that a relog should not carry
      * (writable vars, knockback control, keep-on-death, damage immunity, combo streak, the /se why ring, the
      * recent-attacker gank window, the self-armed Diminish cap, the rage stacks, the mask wards, and the
-     * self-armed reforge windows/charge — Quickening tempo, the Supernova core, and the Unhanding window). Clearing
-     * these on quit is the conservative direction — worn-derived buffs re-establish on rejoin and a self-armed
-     * cap only protects its owner.
+     * self-armed reforge windows/charge — Quickening tempo, the Supernova core, and the Unhanding window, and the
+     * held-slot stamp). Clearing these on quit is the conservative direction — worn-derived buffs re-establish on
+     * rejoin and a self-armed cap only protects its owner.
      */
     public List<PlayerScoped> quitVolatile() {
         return List.of(vars, knockback, keepOnDeath, immune, combo, why, recentAttackers, damageCap, rageStacks,
-                ward, hitTempo, battery, disarmWindows);
+                ward, hitTempo, battery, disarmWindows, heldSlots);
     }
 
     /**

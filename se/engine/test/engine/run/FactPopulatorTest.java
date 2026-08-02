@@ -19,6 +19,7 @@ import engine.condition.BuiltinVars;
 import engine.condition.FactBuffer;
 import engine.condition.VarVocabulary;
 import engine.sink.OwnerZones;
+import engine.stores.EngineStores;
 import engine.stores.VarStore;
 import java.util.UUID;
 import org.bukkit.GameMode;
@@ -279,6 +280,27 @@ class FactPopulatorTest {
         int slot = str("victim", "relation");
         assertEquals("ENEMY", populator.populate(new ActivationContext(actor(), mock(Player.class), null, null),
                 0L, new FactMask(0L, 0L, 1L << slot)).string(slot));
+    }
+
+    @Test
+    void heldTicksCountsFromTheStampedSlotChange() {
+        int slot = num(null, "heldticks");
+        FactMask mask = new FactMask(1L << slot, 0L, 0L);
+        UUID id = UUID.randomUUID();
+        Player p = actor();
+        when(p.getUniqueId()).thenReturn(id);
+        EngineStores stores = EngineStores.fresh();
+        FactPopulator pop = new FactPopulator(BuiltinVars.vocabulary(), stores.vars(), t -> null,
+                new ModernActorProbe(), stores);
+
+        // Never swapped this session: 0, the same default every absent fact reads.
+        assertEquals(0.0, pop.populate(new ActivationContext(p, null, null, null), 500L, mask).number(slot));
+
+        stores.heldSlots().changed(id, 100L);
+        assertEquals(60.0, pop.populate(new ActivationContext(p, null, null, null), 160L, mask).number(slot));
+        // A later swap restarts the count rather than extending it — the fact is "since the LAST change".
+        stores.heldSlots().changed(id, 150L);
+        assertEquals(10.0, pop.populate(new ActivationContext(p, null, null, null), 160L, mask).number(slot));
     }
 
     @Test

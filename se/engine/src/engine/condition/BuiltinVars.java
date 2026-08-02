@@ -82,6 +82,8 @@ public final class BuiltinVars {
                 // The victim came out of a mob spawner — the grinder test a loot/soul bonus gates on. Always
                 // false on 1.8, which keeps no spawn provenance (docs/legacy-1.8.9-codeshare-design.md §3.3).
                 .flag("victim.fromspawner")
+                // Ticks since the actor last changed hotbar slot; 0 until their first swap of the session.
+                .number("heldticks")
                 .build();
     }
 }

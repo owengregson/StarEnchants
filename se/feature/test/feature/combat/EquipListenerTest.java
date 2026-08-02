@@ -110,6 +110,26 @@ class EquipListenerTest {
     }
 
     @Test
+    void onlyTheHotbarSlotChangeFiresTheHeldChangeHook() {
+        // %heldticks% means "since you swapped weapons". refresh() also fires for a chest close, a drop and an
+        // armour swap, so the hook has to be the narrow one or closing a chest would read as a swap.
+        List<Player> stamped = new java.util.ArrayList<>();
+        listener.onHeldChange(stamped::add);
+
+        InventoryCloseEvent close = mock(InventoryCloseEvent.class);
+        when(close.getPlayer()).thenReturn(player);
+        listener.onInventoryClose(close);
+        assertTrue(stamped.isEmpty(), "closing a chest is not a weapon swap");
+
+        org.bukkit.event.player.PlayerItemHeldEvent held =
+                mock(org.bukkit.event.player.PlayerItemHeldEvent.class);
+        when(held.getPlayer()).thenReturn(player);
+        listener.onHeldChange(held);
+
+        assertEquals(List.of(player), stamped, "stamped on the event itself, not on the deferred refresh");
+    }
+
+    @Test
     void inventoryCloseSchedulesExactlyOneDeferredRefresh() {
         InventoryCloseEvent event = mock(InventoryCloseEvent.class);
         when(event.getPlayer()).thenReturn(player);
