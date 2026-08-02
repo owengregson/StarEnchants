@@ -70,6 +70,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import java.util.function.BiPredicate;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -496,8 +497,13 @@ public final class BootCore {
                 // ADR-0063: the worn LIGHTNING_MOD channel — live WornState + suppression, read per bolt emit.
                 feature.trigger.LightningBoost.fn(content, worn, stores.suppression(), tick::get,
                         triggers.idOf("PASSIVE").orElse(-1)));
-        // mcMMO friendly-fire gate,
-        CombatDispatch.friendlyFire(bindings.mcmmoFriendlyFire(plugin, master.config().integrations()::enabled));
+        // mcMMO friendly-fire gate — ONE alliance predicate feeding both consumers. Combat suppression has
+        // always used it; the targeting filters (@Aoe{filter=ENEMIES|ALLIES}) never had it installed, so they
+        // treated a party-mate as an enemy while the damage gate spared them. Same predicate, both sides.
+        BiPredicate<Player, Player> allied =
+                bindings.mcmmoFriendlyFire(plugin, master.config().integrations()::enabled);
+        CombatDispatch.friendlyFire(allied);
+        engine.selector.kind.Allies.resolver(allied);
         // %victim.mobtype% from MythicMobs' internal name,
         engine.run.FactPopulator.entityTypeResolver(
                 bindings.mythicMobType(plugin, master.config().integrations()::enabled));
