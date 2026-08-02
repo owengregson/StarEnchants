@@ -157,7 +157,9 @@ final class ContentFuzz {
             }
             case MALFORMED_CONDITION -> {
                 String[] rot = {"%% && ((", "%actor.health% <", "(%sneaking%",
-                        "%damage% contains \"x\"", "1 : %bogus% : %stop%", "%no.such.var% > 1"};
+                        "%damage% contains \"x\"", "1 : %bogus% : %stop%", "%no.such.var% > 1",
+                        "min(1) > 0", "clamp(1, 2) > 0", "unknownfn(1) > 0", "min(1, 2 > 0",
+                        "floor() > 0", "max(%damage%) > 0"};
                 p.condition = rot[rnd.nextInt(rot.length)];
                 yield null;
             }
@@ -451,7 +453,13 @@ final class ContentFuzz {
     }
 
     private static String conditionAtom(Random rnd, Vocab vocab) {
-        return switch (rnd.nextInt(3)) {
+        return switch (rnd.nextInt(4)) {
+            case 3 -> {
+                String var = vocab.numVars().get(rnd.nextInt(vocab.numVars().size()));
+                String[] calls = {"min(%" + var + "%, 5)", "max(%" + var + "%, 5)",
+                        "clamp(%" + var + "%, 0, 10)", "floor(%" + var + "% / 2)", "rand(0, 10)"};
+                yield calls[rnd.nextInt(calls.length)] + " > " + rnd.nextInt(20);
+            }
             case 0 -> {
                 String var = vocab.numVars().get(rnd.nextInt(vocab.numVars().size()));
                 String[] ops = {"==", "!=", "<", "<=", ">", ">="};
@@ -640,6 +648,42 @@ final class ContentFuzz {
                   1:
                     chance: "50"
                     effects: []
+                """));
+        out.add(Map.entry("fn-arity.yml", """
+                display: "fnarity"
+                trigger: "ATTACK"
+                levels:
+                  1:
+                    condition: "min(1) > 0"
+                    effects:
+                      - { CANCEL: {} }
+                """));
+        out.add(Map.entry("fn-unknown.yml", """
+                display: "fnunknown"
+                trigger: "ATTACK"
+                levels:
+                  1:
+                    condition: "unknownfn(1) > 0"
+                    effects:
+                      - { CANCEL: {} }
+                """));
+        out.add(Map.entry("fn-unterminated.yml", """
+                display: "fnunterminated"
+                trigger: "ATTACK"
+                levels:
+                  1:
+                    condition: "min(1, 2 > 0"
+                    effects:
+                      - { CANCEL: {} }
+                """));
+        out.add(Map.entry("fn-valid.yml", """
+                display: "fnvalid"
+                trigger: "ATTACK"
+                levels:
+                  1:
+                    condition: "clamp(%damage% * 2, 0, 10) > min(1, 2)"
+                    effects:
+                      - { DAMAGE: { amount: "max(%damage%, 3)" } }
                 """));
         out.add(Map.entry("tabs-and-garbage.yml", "\tdisplay: \"x\"\n{{{[[\n"));
         out.add(Map.entry("wrong-shapes.yml", """
