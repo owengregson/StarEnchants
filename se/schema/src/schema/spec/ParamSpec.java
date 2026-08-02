@@ -13,6 +13,11 @@ import java.util.Objects;
  * {@link CrossRule}s, a doc string, and an example. One declaration drives {@link #parse},
  * {@link #completions}, {@link #usage}, and {@link #toPositional}, so the four can't drift
  * (docs/architecture.md §7, §10). Immutable; build via {@link #of(String)}.
+ *
+ * <p><b>A declared numeric range binds twice.</b> A CONSTANT outside it is a blocking {@code E_RANGE} at
+ * load. An EXPRESSION cannot be checked statically, so it is instead <em>clamped to the same range at
+ * evaluation</em> ({@link ParamType#parse} wraps it). Declaring {@code .max(100)} on a chance-like param is
+ * therefore a real runtime guarantee, not just author documentation.
  */
 public final class ParamSpec {
 

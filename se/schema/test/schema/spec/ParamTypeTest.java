@@ -9,6 +9,7 @@ import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.grammar.expr.Expr;
+import schema.grammar.expr.ExprFn;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
@@ -162,10 +163,52 @@ class ParamTypeTest {
     }
 
     @Test
-    void rangeIsNotCheckedOnAnExpressionArgument() {
-        // %combo% * 1000 could exceed the [0..100] bound, but a bound can't be checked on an expression.
+    void rangeIsNotCheckedOnAnExpressionArgumentButIsAppliedAsAClamp() {
+        // A bound can't be checked on an expression, so the value is confined at evaluation instead: the
+        // parsed tree comes back wrapped in the spec's own range. That is what keeps chance: "%x% * 10"
+        // inside [0,100] without the author restating the bound.
         Diagnostics d = new Diagnostics();
-        assertInstanceOf(Expr.class, D.DOUBLE.min(0).max(100).parse("%combo% * 1000", SRC, d).orElseThrow());
+        Expr.Call call = assertInstanceOf(Expr.Call.class,
+                D.DOUBLE.min(0).max(100).parse("%combo% * 1000", SRC, d).orElseThrow());
+        assertFalse(d.hasErrors());
+        assertEquals(ExprFn.CLAMP, call.fn());
+        assertInstanceOf(Expr.Arith.class, call.args().get(0));
+        assertEquals("0.0", assertInstanceOf(Expr.NumberLit.class, call.args().get(1)).raw());
+        assertEquals("100.0", assertInstanceOf(Expr.NumberLit.class, call.args().get(2)).raw());
+    }
+
+    @Test
+    void aConstantOutOfRangeIsStillAHardError() {
+        // The clamp is for expressions only — a constant the author can see is wrong stays a diagnostic.
+        Diagnostics d = new Diagnostics();
+        assertTrue(D.DOUBLE.min(0).max(100).parse("250", SRC, d).isEmpty());
+        assertTrue(d.all().stream().anyMatch(x -> x.is(DiagCode.E_RANGE)));
+    }
+
+    @Test
+    void anUnboundedParamLeavesTheExpressionUnwrapped() {
+        // No declared bound = nothing to confine; the fast path must not grow a pointless clamp node.
+        Diagnostics d = new Diagnostics();
+        assertInstanceOf(Expr.Arith.class, D.DOUBLE.parse("%combo% * 1000", SRC, d).orElseThrow());
+        assertFalse(d.hasErrors());
+    }
+
+    @Test
+    void aHalfBoundedParamClampsOnlyTheDeclaredSide() {
+        Diagnostics d = new Diagnostics();
+        Expr.Call call = assertInstanceOf(Expr.Call.class, D.DOUBLE.min(0).parse("%combo% - 5", SRC, d).orElseThrow());
+        assertEquals(ExprFn.CLAMP, call.fn());
+        assertEquals("0.0", assertInstanceOf(Expr.NumberLit.class, call.args().get(1)).raw());
+        assertEquals("Infinity", assertInstanceOf(Expr.NumberLit.class, call.args().get(2)).raw());
+        assertFalse(d.hasErrors());
+    }
+
+    @Test
+    void aFunctionCallIsRecognisedAsAnExpressionArgument() {
+        // min(...) carries none of the % * / + - markers, so the expression sniff must key on the call itself.
+        Diagnostics d = new Diagnostics();
+        assertInstanceOf(Expr.Call.class, D.DOUBLE.parse("min(50, 20)", SRC, d).orElseThrow());
+        assertInstanceOf(Expr.Call.class, D.INT.parse("floor(7)", SRC, d).orElseThrow());
         assertFalse(d.hasErrors());
     }
 }

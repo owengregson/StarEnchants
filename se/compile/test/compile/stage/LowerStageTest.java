@@ -2,6 +2,7 @@ package compile.stage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -20,6 +21,7 @@ import compile.model.CompiledEffect;
 import compile.model.CompiledSelector;
 import compile.model.SourceKind;
 import compile.model.cond.Cond;
+import compile.model.cond.NumExpr;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
@@ -34,6 +36,10 @@ import org.junit.jupiter.api.Test;
 class LowerStageTest {
 
     private static final Source SRC = Source.of("enchants.yml", 7, 1);
+
+    private static final VarResolver VARS = (scope, name) ->
+            "damage".equals(scope == null ? name : scope + "." + name)
+                    ? Optional.of(new VarBinding(VarKind.NUM, 0)) : Optional.empty();
 
     private static ParamSpec damage() {
         return ParamSpec.of("DAMAGE")
@@ -77,6 +83,29 @@ class LowerStageTest {
         assertEquals(6.0, e.args().dbl("amount"));
         assertSame(CompiledSelector.SELF, e.target());
         assertEquals(0, e.cumulativeWaitTicks());
+    }
+
+    @Test
+    void anExpressionArgLowersUnderTheParamSpecRange() {
+        // The end-to-end range rule: a param declaring a bound wraps its expression so evaluation is confined,
+        // while the arithmetic the author wrote survives underneath. `amount` is DOUBLE.min(0).
+        Diagnostics d = new Diagnostics();
+        LoweredAbility lowered = new DefaultLowerStage(registry(), head -> Affinity.CONTEXT_LOCAL,
+                MapSpecRegistry.of(), head -> null, VARS)
+                .lower(def(null, line("DAMAGE:%damage% - 100")), d);
+
+        assertFalse(d.hasErrors());
+        NumExpr.Fn fn = assertInstanceOf(NumExpr.Fn.class, lowered.effects().get(0).args().opt("amount").orElseThrow());
+        assertEquals(NumExpr.FnKind.CLAMP, fn.kind());
+        assertInstanceOf(NumExpr.Bin.class, fn.args().get(0));
+        assertEquals(new NumExpr.Lit(0.0), fn.args().get(1));
+    }
+
+    @Test
+    void aConstantArgOutOfTheParamSpecRangeStaysAnError() {
+        Diagnostics d = new Diagnostics();
+        new DefaultLowerStage(registry()).lower(def(null, line("DAMAGE:-5")), d);
+        assertTrue(d.all().stream().anyMatch(x -> x.is(DiagCode.E_RANGE)));
     }
 
     @Test
