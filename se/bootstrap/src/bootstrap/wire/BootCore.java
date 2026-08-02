@@ -403,6 +403,9 @@ public final class BootCore {
         // ONE shared aggregate of every per-player engine store: an effect writes a store through the per-event
         // sink and a separate reader reads it back — so it must be the SAME instance everywhere.
         this.stores = EngineStores.fresh();
+        // The soul service keeps the per-player total; hand it the shared store so the PAPI feed and the
+        // %actor.souls%/%victim.souls% facts read ONE number instead of two caches that can drift.
+        this.soulService.soulTotals(stores.soulTotals());
 
         // §5.4 offline-state sweep (F03): the quit sweep RETAINS a leaving player's live combat windows against
         // the monotonic tick (so a relog can't skip a cooldown or shed a landed debuff); those entries are only

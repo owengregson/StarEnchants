@@ -18,6 +18,7 @@ import engine.stores.OutgoingDebuffStore;
 import engine.stores.RageStackStore;
 import engine.stores.RecentAttackersStore;
 import engine.stores.ReflectMarksStore;
+import engine.stores.SoulTotalStore;
 import engine.stores.SuppressionStore;
 import engine.stores.TeleblockStore;
 import engine.stores.VarStore;
@@ -172,7 +173,7 @@ public final class Envs {
                     : new EngineStores(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns,
                             combo, why, recentAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks, ward,
                             new HitTempoStore(), new BatteryStore(), new DisarmWindowStore(),
-                            new HeldSlotStore());
+                            new HeldSlotStore(), new SoulTotalStore());
             return SinkEnv.of(economy, souls, stores, nowTicks, player -> { }, () -> 0,
                     GearProtection.NONE, lightningBoost);
         }

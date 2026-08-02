@@ -6,6 +6,7 @@ import engine.interact.SoulPool;
 import engine.interact.SoulSpender;
 import engine.sink.SoulDebit;
 import engine.stores.SoulModeStore;
+import engine.stores.SoulTotalStore;
 import feature.compat.Hands;
 import feature.compat.Sounds;
 import item.codec.AppliedSlot;
@@ -67,8 +68,10 @@ public final class SoulService implements SoulDebit, SoulSpender {
     // with (BootCore.protectionLinesFn), so a gem's holy line matches the gear path's. Default: no lines (tests).
     private final Function<ItemStack, List<String>> protectionLines;
     // §D per-player TOTAL souls across all carried gems, refreshed on the holder thread each maintain() tick;
-    // read by the PAPI feed (in-memory, thread-safe — never a cross-region inventory read).
-    private final ConcurrentHashMap<UUID, Integer> cachedTotal = new ConcurrentHashMap<>();
+    // read by the PAPI feed AND by the %actor.souls%/%victim.souls% facts (in-memory, thread-safe — never a
+    // cross-region inventory read). Engine-owned so the fact populator reads it without reaching into :feature;
+    // its own instance until the composition root installs the shared one, so the unit suites need no wiring.
+    private volatile SoulTotalStore cachedTotal = new SoulTotalStore();
     // §D last MANUAL toggle (gem right-click / /se soulmode), monotonic nanos — rate-limits self-toggling so a
     // spammed right-click can't strobe soul mode. The auto-disable on running out (maintain) never records here,
     // so exhausting your souls exits instantly and re-enabling isn't blocked. Concurrent: keyed by UUID, hit
@@ -424,7 +427,7 @@ public final class SoulService implements SoulDebit, SoulSpender {
         }
         cleanup(player);
         int total = totalSouls(player);
-        cachedTotal.put(id, total);
+        cachedTotal.set(id, total);
         if (!active) {
             return;
         }
@@ -440,14 +443,23 @@ public final class SoulService implements SoulDebit, SoulSpender {
         }
     }
 
+    /**
+     * Install the shared {@link SoulTotalStore} the engine reads {@code %actor.souls%}/{@code %victim.souls%}
+     * from, so the facts and the PAPI feed see ONE total rather than two caches that can drift. Boot-time; a
+     * {@code null} restores this service's private store.
+     */
+    public void soulTotals(SoulTotalStore store) {
+        this.cachedTotal = store == null ? new SoulTotalStore() : store;
+    }
+
     /** The player's last-known TOTAL souls across all gems — the PAPI feed (in-memory, any thread). */
     public int soulTotal(UUID player) {
-        return cachedTotal.getOrDefault(player, 0);
+        return cachedTotal.current(player);
     }
 
     /** Drop the cached soul total on quit — the eviction the EngineStoreListener wires as the one quit authority (§5.4). */
     public void evictCache(UUID player) {
-        cachedTotal.remove(player);
+        cachedTotal.clear(player);
     }
 
     /**

@@ -84,6 +84,10 @@ public final class BuiltinVars {
                 .flag("victim.fromspawner")
                 // Ticks since the actor last changed hotbar slot; 0 until their first swap of the session.
                 .number("heldticks")
+                // Total souls across all carried gems, from the cached per-player total the soul service
+                // maintains on the holder's own thread — never a cross-region inventory walk (§5.5).
+                .number("actor.souls")
+                .number("victim.souls")   // 0 for a mob victim (only players carry gems)
                 .build();
     }
 }
