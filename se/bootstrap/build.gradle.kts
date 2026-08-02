@@ -43,9 +43,9 @@ sourceSets["main"].java.srcDir(if (legacyTarget) "overlay/legacy" else "overlay/
 // zip via packs/index.txt; /se pack apply swaps it over the live config. Add a pack by registering a
 // Zip task here and listing its archive in resources/packs/index.txt. Reproducible (sorted entries,
 // zeroed timestamps) so a given source tree yields a byte-identical archive.
-val packCosmicPack = tasks.register<Zip>("packCosmicPack") {
-    from(layout.projectDirectory.dir("packs-src/cosmic-pack"))
-    archiveFileName.set("cosmic-pack.zip")
+val packSignaturePack = tasks.register<Zip>("packSignaturePack") {
+    from(layout.projectDirectory.dir("packs-src/signature-pack"))
+    archiveFileName.set("signature-pack.zip")
     destinationDirectory.set(layout.buildDirectory.dir("generated-packs"))
     isPreserveFileTimestamps = false
     isReproducibleFileOrder = true
@@ -99,7 +99,7 @@ tasks.register<Test>("regenDocs") {
     filter {
         includeTestsMatching("*SurfaceCatalogDriftTest")
         includeTestsMatching("*ContentIndexDriftTest")
-        includeTestsMatching("*CosmicPackFingerprintDriftTest")
+        includeTestsMatching("*SignaturePackFingerprintDriftTest")
     }
     systemProperty("se.doc.regen", "true")
     systemProperty("se.index.regen", "true") // ContentIndexDriftTest's regen flag
@@ -113,10 +113,10 @@ tasks.register<Test>("regenDocs") {
 tasks.named<Test>("test") {
     inputs.files(rootProject.file("website/src/data/surface.json"))
         .withPropertyName("surfaceGolden").optional()
-    // The cosmic-pack manifest golden (ADR-0046): read via a repo-root walk, so declare it content-hashed or a
-    // hand-edited stamp is hidden FROM-CACHE by CosmicPackFingerprintDriftTest — the same §M drift hole.
-    inputs.files(layout.projectDirectory.file("packs-src/cosmic-pack/pack.yml"))
-        .withPropertyName("cosmicPackManifest").optional()
+    // The signature-pack manifest golden (ADR-0046): read via a repo-root walk, so declare it content-hashed or a
+    // hand-edited stamp is hidden FROM-CACHE by SignaturePackFingerprintDriftTest — the same §M drift hole.
+    inputs.files(layout.projectDirectory.file("packs-src/signature-pack/pack.yml"))
+        .withPropertyName("signaturePackManifest").optional()
 }
 
 // Stamp the build version into plugin.yml's ${version} placeholder, and fold the built config-pack
@@ -127,7 +127,7 @@ tasks.named<ProcessResources>("processResources") {
     filesMatching("plugin.yml") {
         expand("version" to pluginVersion)
     }
-    from(packCosmicPack) {
+    from(packSignaturePack) {
         into("packs")
     }
 }
