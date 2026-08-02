@@ -180,8 +180,6 @@ SuppressionStore).
 **Small effects:** `FACING_SET` (07 — irreducible in-place yaw/pitch set),
 `FALL_SHIELD` (07 — one-shot fall cancel on an arbitrary player),
 `STATUS_CLEAR` (12 — remove a named engine status window, TELEBLOCK first),
-`SHOP_SELL` (07 — needs a price-table config surface; flagged, Auto Sell is its
-only doc-07 consumer but the table is reusable by later economy work),
 `BOOK_RATE_MODIFIER` (12 — one-shot book success modifier; irreducible),
 `SPAWNER_YIELD` (11 — bunny; irreducible: no spawner event in the vocabulary),
 `WORN_COMPOSITE` (11 — multi-mask; irreducible core mask feature),
@@ -189,13 +187,26 @@ only doc-07 consumer but the table is reusable by later economy work),
 XP/level infrastructure; every pet entry consumes it), `%actor.y%` position fact
 (11).
 
+## Excluded by owner ruling R9 (2026-08-02): economy is note-only
+
+Cosmic behaviors that depend on the cosmic suite's server economy are NOT given
+effect surface — the affected content ships with verbatim identity plus an
+authored YAML note stating the behavior is unimplemented. No price tables, no
+currency crediting beyond the existing static `MODIFY_MONEY` (which is
+unaffected and remains available).
+
+- `SHOP_SELL` (07) — **withdrawn**. Auto Sell ships inert with a note; the doc
+  06 tool enchants' selling components (Auto Smelt / Detonate / Atomic Detonate
+  / Telepathy ordering rules) are moot; their non-economy behavior ships
+  normally. Ledger rows D-07-2 / D-06-10 annotated.
+- Supreme set `+200% Clout (Flight Enabled)` (10) — lore verbatim + note; no
+  clout/flight economy behavior.
+
 ## Provisional / dropped
 
 - `LETHAL_CANCEL` (07) — chain-kill cancels the source hit. Single consumer,
   author-flagged as a drop candidate; **provisional**: the doc 07 batch decides,
   and dropping it takes a deviation-ledger row (felt-unit review).
-- `SHOP_SELL` price-table scope creep is contained: the primitive ships with a
-  flat `material → price` YAML map only; anything richer waits for real demand.
 
 ## Self-review against the §4 bar
 

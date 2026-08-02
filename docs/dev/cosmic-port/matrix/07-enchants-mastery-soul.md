@@ -45,23 +45,21 @@ codex-marked bugs also state the as-intended value with its `deviations.md` row 
   and silently ignores it — not ported); interaction-layer yield conditions
   below; only fires when the first drop has a configured sell price > 0,
   otherwise the block breaks normally.
-- **decomposition:**
-  1. `BREAK_BLOCK(drops=false)` `at=@Here` — block cleared, nothing drops (the
-     jar sets the block to air and grants the vanilla break XP directly; the
-     engine keeps the break's own XP).
-  2. [gap] `SHOP_SELL(price-table=shop, first-drop-only=true, per-item=false)` —
-     credit the sell price (measured: unit price of the first drop, ×1).
-- **gaps:** `SHOP_SELL — credit the actor the configured sell price of the
-  trigger block's drops from a material(+data)-keyed price table, optionally
-  clearing the drops; params: price-table handle, first-drop-only BOOL, per-item
-  BOOL (multiply by drop count), grant-xp BOOL; consumers: block-sell tools
-  (Auto Smelt / Detonate / Atomic Detonate / Telepathy in doc 06 read the same
-  table). No existing primitive: MODIFY_MONEY is a static amount; nothing reads
-  a price table.`
-- **interactions:** yields to a held item carrying Detonate or Atomic Detonate
-  (those sell their own output); yields to Auto Smelt when the block is
-  IRON_ORE/GOLD_ORE (Auto Smelt sells the smelted output) — both authored as
-  interaction-layer conditions, not folded into the gap.
+- **decomposition:** **NOT PORTED — owner ruling R9 (economy note-only).** The
+  selling behavior IS this enchant; it requires a server-economy price table the
+  engine deliberately does not implement for an enchant. The enchant ships as a
+  definition with verbatim identity and this authored YAML note:
+  `# R9: Auto Sell's selling requires a server economy (price table); the`
+  `# behavior is not implemented — the enchant is obtainable but inert.`
+  The jar's mechanics stay recorded for reference: `BREAK_BLOCK(drops=false)`
+  at the mined block (jar grants vanilla break XP directly), then credit of the
+  first drop's unit price from the shop table.
+- **gaps:** none — the former `SHOP_SELL` capability request is withdrawn under
+  R9 (see `proposed-primitives.md` § Excluded).
+- **interactions:** the jar's ordering rules (yields to held Detonate / Atomic
+  Detonate; yields to Auto Smelt on IRON_ORE/GOLD_ORE) are moot while Auto Sell
+  is inert under R9; recorded here because doc 06's entries cross-reference
+  them.
 - **strings:** none — completely silent (no message, sound, or particle).
 - **numbers:** level-independent (`max = 1`). Measured payout = first drop's
   unit price, **not** multiplied by stack size and ignoring further drops
