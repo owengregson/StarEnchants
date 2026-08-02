@@ -197,18 +197,21 @@ class MultiAbilityEnchantTest {
     }
 
     @Test
-    void thePostHitHealthFactSurvivesTheWholeCompileAndReachesTheMask() throws Exception {
+    void theWave1b3FactsSurviveTheWholeCompileAndReachTheMask() throws Exception {
         Snapshot snap = load("""
                 display: "Phoenix"
                 trigger: "DEFENSE"
                 levels:
                   1:
-                    condition: "%posthit.health% <= 0"
+                    condition: "%posthit.health% <= 0 && !%victim.fromspawner%"
                     effects: [{ IGNITE: { duration: 60, who: "@Victim" } }]
                 """);
         Ability ability = snap.byStableKey("enchants/phoenix/1");
         assertNotNull(ability.condition(), "the condition survives to the runtime record");
-        assertTrue(ability.factMask().readsNum(BuiltinVars.vocabulary().bindings().get("posthit.health").slot()));
+
+        var vocab = BuiltinVars.vocabulary().bindings();
+        assertTrue(ability.factMask().readsNum(vocab.get("posthit.health").slot()));
+        assertTrue(ability.factMask().readsFlag(vocab.get("victim.fromspawner").slot()));
     }
 
     private GateOutcome gate(Ability ability, FactBuffer facts, double roll) {

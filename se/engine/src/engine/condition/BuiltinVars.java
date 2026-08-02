@@ -79,6 +79,9 @@ public final class BuiltinVars {
                 // death-save abilities this fact gates, so folding it in would make the fact depend on its own
                 // consumers. DEFENSE-side only; 0 elsewhere.
                 .number("posthit.health")
+                // The victim came out of a mob spawner — the grinder test a loot/soul bonus gates on. Always
+                // false on 1.8, which keeps no spawn provenance (docs/legacy-1.8.9-codeshare-design.md §3.3).
+                .flag("victim.fromspawner")
                 .build();
     }
 }

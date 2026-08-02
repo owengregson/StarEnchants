@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -278,6 +279,21 @@ class FactPopulatorTest {
         int slot = str("victim", "relation");
         assertEquals("ENEMY", populator.populate(new ActivationContext(actor(), mock(Player.class), null, null),
                 0L, new FactMask(0L, 0L, 1L << slot)).string(slot));
+    }
+
+    @Test
+    void victimFromSpawnerReadsTheEraProbe() {
+        int slot = flag("victim.fromspawner");
+        FactMask mask = new FactMask(0L, 1L << slot, 0L);
+        LivingEntity farmed = mock(LivingEntity.class);
+        when(farmed.fromMobSpawner()).thenReturn(true);
+        LivingEntity wild = mock(LivingEntity.class);
+
+        assertTrue(populator.populate(new ActivationContext(actor(), farmed, null, null), 0L, mask).flag(slot));
+        assertFalse(populator.populate(new ActivationContext(actor(), wild, null, null), 0L, mask).flag(slot));
+        // Unmasked: the probe is never consulted, so a spawner check costs a grinder-free server nothing.
+        populator.populate(new ActivationContext(actor(), farmed, null, null), 0L, FactMask.NONE);
+        verify(farmed, times(1)).fromMobSpawner();
     }
 
     // ── posthit.health: the actor's health once the pending hit lands, priced at the server's vanilla-final
