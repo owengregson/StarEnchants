@@ -1,6 +1,7 @@
 package bootstrap.wire;
 
 import engine.sink.TempBlockLedger;
+import feature.combat.HeadTrophyListener;
 import feature.combat.HellfireFloorListener;
 import feature.combat.ImmuneListener;
 import feature.combat.KeepOnDeathListener;
@@ -62,6 +63,10 @@ final class ControlsModule {
                 .events(new HellfireFloorListener())
                 // §C KEEP_ON_DEATH at NORMAL — earlier than HolyScrollListener (HIGH) — so a kept death spends no scroll.
                 .events(new KeepOnDeathListener(core.stores().keepOnDeath(), core.tick()::get))
+                // HEAD_TROPHY at MONITOR — after every keep/save decision above, so the head is added to the
+                // drops that actually survive and a kept death spends no trophy.
+                .events(new HeadTrophyListener(core.stores().headTrophies(), core.bindings().texturedHeads(),
+                        core.hands()))
                 // Cosmic Enchants exotic-effect ports: TELEBLOCK cancels teleport, IMMUNE cancels damage while flagged.
                 .events(new TeleblockListener(core.stores().teleblock(), core.tick()::get))
                 .events(new ImmuneListener(core.stores().immune(), core.tick()::get, core.hands()))

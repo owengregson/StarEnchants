@@ -34,4 +34,20 @@ public final class ModernTexturedHeads implements TexturedHeads {
         stack.setItemMeta(meta);
         return stack;
     }
+
+    @Override
+    public ItemStack playerHead(UUID owner, String ownerName) {
+        if (owner == null) {
+            return null;
+        }
+        ItemStack stack = new ItemStack(Material.PLAYER_HEAD);
+        if (!(stack.getItemMeta() instanceof SkullMeta meta)) {
+            return null;
+        }
+        // By UUID: getOfflinePlayer(UUID) is a local lookup, while the name overload can block on a Mojang
+        // profile fetch — never acceptable on a death event.
+        meta.setOwningPlayer(Bukkit.getOfflinePlayer(owner));
+        stack.setItemMeta(meta);
+        return stack;
+    }
 }

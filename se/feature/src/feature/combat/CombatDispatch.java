@@ -320,17 +320,25 @@ public final class CombatDispatch {
                     sink.fold().addOutgoing(markBonus);
                 }
             }
-            // §4 WEAKEN (Destruction): the attacker's active non-stacking outgoing-damage debuff, folded once.
-            double weaken = outgoingDebuff.active(attackerPlayer.getUniqueId(), now);
-            if (weaken != 0.0) {
-                sink.fold().addOutgoing(-weaken / 100.0);
+            // §4 WEAKEN / OUTGOING_DEBUFF: the attacker's active non-stacking outgoing-damage debuff, folded
+            // once. The cause filter is why the melee/projectile split is read here and not after the reforge
+            // block — a projectile-only nerf must leave this attacker's melee alone.
+            boolean meleeHit = rawDamager == damager; // a projectile makes damager the shooter, so identity ⇒ melee
+            OutgoingDebuffStore.Debuff nerf = outgoingDebuff.active(attackerPlayer.getUniqueId(), now);
+            if (nerf != null && nerf.covers(meleeHit
+                    ? OutgoingDebuffStore.CAUSE_MELEE : OutgoingDebuffStore.CAUSE_PROJECTILE)) {
+                sink.fold().addOutgoing(-nerf.percent() / 100.0);
+                if (!nerf.feedback().isEmpty()) {
+                    // Emitted at the hit the window actually prices, not when it was armed — the same rule
+                    // REFLECT's feedback follows, and the only way a lost swing reads as the debuff's doing.
+                    sink.message(attackerPlayer, nerf.feedback());
+                }
             }
             // ADR-0071 reforge armed-window consults. Melee-only (the reforge lives on a held melee weapon):
             // rawDamager must be the player, not a projectile. Contributions are optimistic; consumption commits
             // at MONITOR via ReforgeStrikeRelay iff the event survives (ReforgeStrikeListener), so a Dodge/negate
             // never eats a window or a charge. These consults inherit this branch's pvp/pve + friendly gate by
             // construction — reforge windows are SE combat economy and vanish wherever all other SE combat does.
-            boolean meleeHit = rawDamager == damager;
             ReforgeStrikeRelay.Pending reforgePending = null;
             if (meleeHit && victim != null) {
                 HitTempoStore.Window tempo = hitTempo.window(attackerPlayer.getUniqueId(), now);

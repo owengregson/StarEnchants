@@ -648,6 +648,20 @@
       ]
     },
   {
+    "head": "DESPAWN",
+    "doc": "Silently remove the target mob(s) — no drops, no experience, no death event, so nothing downstream (kill counters, other plugins' death hooks) sees a kill. Players are never removed. Pair with @Aoe{filter=MOBS} for an area mob-clear; use KILL when the drops and the death are the point.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ DESPAWN: {} }",
+    "example": "{ DESPAWN: { who: \"@Aoe{r=8, filter=MOBS}\" } }",
+    "params": [],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
     "head": "DIG_HOME",
     "doc": "Mark the activator's location as a temporary home for `window` ticks: the next right-click of the same pet within `range` blocks teleports the activator back and consumes the window. Pets only — the pets service owns the recall; this effect emits no intent of its own.",
     "affinity": "CONTEXT_LOCAL",
@@ -731,6 +745,61 @@
       {
         "name": "who",
         "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "DOT_AMPLIFY_MARK",
+    "doc": "Mark the target so their incoming wither and/or poison damage is multiplied by factor for duration ticks. Amplifies EVERY source of those causes, not just the marker's own. Re-marking refreshes the window outright, weaker factor included — a re-infection is a fresh infection. Player targets only.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ DOT_AMPLIFY_MARK: { causes: <enum{wither|poison|dot}=dot>, factor: <double[1..]=2>, duration: <ticks[0..]=100> } }",
+    "example": "{ DOT_AMPLIFY_MARK: { causes: dot, factor: 3, duration: 60, who: \"@Victim\" } }",
+    "params": [
+      {
+        "name": "causes",
+        "kind": "ENUM",
+        "label": "enum{wither|poison|dot}",
+        "required": false,
+        "default": "dot",
+        "min": null,
+        "max": null,
+        "enum": [
+          "wither",
+          "poison",
+          "dot"
+          ],
+        "handle": null,
+        "doc": "which damage-over-time causes are amplified; dot = both"
+        },
+      {
+        "name": "factor",
+        "kind": "DOUBLE",
+        "label": "double[1..]",
+        "required": false,
+        "default": "2",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "100",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
         }
       ]
     },
@@ -1772,6 +1841,45 @@
       ]
     },
   {
+    "head": "HEAD_TROPHY",
+    "doc": "Arm a head trophy on the target: on their next death from ANY cause a player head owned by them joins the drops, named and lored from these templates, and the mark clears. Tokens resolve at the death: {VICTIM}, {KILLER}, {MONTH}, {DAY}, {YEAR}, {X}, {Y}, {Z}, {ITEM} (the killer's held item, else Fists). Lore lines are separated by '|'. A killer-less death drops the bare head with no lore, since every lore token would be empty. Player targets only.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ HEAD_TROPHY: { name: <string=>, lore: <string=> } }",
+    "example": "{ HEAD_TROPHY: { name: \"&fSkull of {VICTIM}\", lore: \"&7Defeated by &f{KILLER}|&f{MONTH} {DAY}, {YEAR}\" } }",
+    "params": [
+      {
+        "name": "name",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "display-name template for the dropped skull"
+        },
+      {
+        "name": "lore",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "lore template; '|' separates lines"
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
     "head": "HEALTH",
     "doc": "Bonus maximum health. On PASSIVE/HELD @Self it is a maintained worn bonus (reconciled, additive across sources, removed on unequip); on event triggers it is a permanent base shift.",
     "affinity": "TARGET_ENTITY",
@@ -2789,6 +2897,73 @@
       ]
     },
   {
+    "head": "OUTGOING_DEBUFF",
+    "doc": "Debuff the target's outgoing damage by a percent for a duration in ticks, priced only on their melee hits, their projectile hits, or both (cause). feedback is sent to them on every hit the window actually prices. Non-stacking with itself and with WEAKEN: a re-debuff keeps the stronger window and the later expiry, never the sum. Player targets only.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ OUTGOING_DEBUFF: { percent: <double[0..]>, duration: <ticks[0..]=100>, cause: <enum{all|melee|projectile}=all>, feedback: <string=> } }",
+    "example": "{ OUTGOING_DEBUFF: { percent: 50, duration: 80, cause: projectile, feedback: \"&2** UNFOCUSED **\" } }",
+    "params": [
+      {
+        "name": "percent",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "100",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "cause",
+        "kind": "ENUM",
+        "label": "enum{all|melee|projectile}",
+        "required": false,
+        "default": "all",
+        "min": null,
+        "max": null,
+        "enum": [
+          "all",
+          "melee",
+          "projectile"
+          ],
+        "handle": null,
+        "doc": "which of the target's own hits the nerf prices"
+        },
+      {
+        "name": "feedback",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "line sent to the debuffed player on every hit it prices"
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
     "head": "PARTICLE",
     "doc": "Spawn particles at the activation location, or at each entity in `who` when given (centered on the body, not the feet). `block` carries a block material as crack/dust data. `spread` is the horizontal Gaussian offset (set 0 for a point burst); `spread-y` the vertical offset, where the -1 default means \"use `spread`\". No-op if there is no location.",
     "affinity": "REGION",
@@ -3074,6 +3249,81 @@
       ]
     },
   {
+    "head": "PERIODIC_DAMAGE",
+    "doc": "Burn the target for amount raw half-hearts every period ticks over duration ticks, attributed to the activator (kill credit, era-combat delivery). replace is a comma-separated set of potion effects the burn converts — each is stripped and held off the target for the whole window, so the converted DoT stops ticking on its own. feedback is sent to a player target on every pulse. Two burns on one victim both run: unlike FREEZE, this is not a refreshed window.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ PERIODIC_DAMAGE: { amount: <double[0..]>, period: <ticks[0..]=20>, duration: <ticks[0..]=100>, replace: <potion_effect list=>, feedback: <string=> } }",
+    "example": "{ PERIODIC_DAMAGE: { amount: 6, period: 20, duration: 120, replace: WITHER } }",
+    "params": [
+      {
+        "name": "amount",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "raw pre-armor half-hearts per pulse (never attack-scaled)"
+        },
+      {
+        "name": "period",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "20",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "100",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "replace",
+        "kind": "HANDLE",
+        "label": "potion_effect list",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": "vanilla potion DoTs this burn converts: stripped and denied for the window"
+        },
+      {
+        "name": "feedback",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "line sent to a player target on every pulse"
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
     "head": "POTION",
     "doc": "Apply a potion effect to the target(s) at the given LEVEL (1-based: level 1 = the I tier), for a duration in ticks. The effect name is resolved to a handle at compile time. On a HELD/PASSIVE source it is removed again when the item is unequipped (§B lifecycle).",
     "affinity": "TARGET_ENTITY",
@@ -3224,6 +3474,64 @@
         "label": "bool",
         "required": false,
         "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": []
+    },
+  {
+    "head": "PROJECTILE_DRESSING",
+    "doc": "Ride an entity of type on the projectile this BOW_FIRE activation is loosing — the rider is removed the moment the arrow lands, dies or unloads, and unconditionally after ttl ticks. invulnerable spares it from damage for that many ticks so its own flight cannot kill it; no-pickup stops it hoovering up items in mid-air. One rider per shot: a second PROJECTILE_DRESSING on the same shot replaces the first. Inert outside a bow shot.",
+    "affinity": "REGION",
+    "usage": "{ PROJECTILE_DRESSING: { type: <entity_type>, ttl: <ticks[0..]=200>, invulnerable: <ticks[0..]=200>, no-pickup: <bool=true> } }",
+    "example": "{ PROJECTILE_DRESSING: { type: COW, ttl: 200, invulnerable: 200 } }",
+    "params": [
+      {
+        "name": "type",
+        "kind": "HANDLE",
+        "label": "entity_type",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "ENTITY_TYPE",
+        "doc": ""
+        },
+      {
+        "name": "ttl",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "200",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "hard cap on the rider's life; the backstop when nothing reports a landing"
+        },
+      {
+        "name": "invulnerable",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "200",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "how long the rider ignores damage (0 = never)"
+        },
+      {
+        "name": "no-pickup",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "true",
         "min": null,
         "max": null,
         "enum": [],
@@ -3974,6 +4282,105 @@
       ]
     },
   {
+    "head": "SUMMON_REBIND",
+    "doc": "Replace each target summon the activator OWNS with a fresh one of type, rise blocks above it: the old body is removed silently (no death, no drops, no kill credit) and the replacement spawns at full health with a restarted ttl. health, speed, name and effects are GUARD's loadout params. A summon the activator does not own is skipped — pair with CONVERT_SUMMON to take ownership first.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ SUMMON_REBIND: { type: <entity_type>, ttl: <ticks[0..]=600>, name: <string=>, health: <double[0..]=0>, speed: <double[0..]=0>, effects: <potion_effect list=>, rise: <double[0..8]=2> } }",
+    "example": "{ SUMMON_REBIND: { type: IRON_GOLEM, ttl: 600, health: 90, name: \"&b&l{ATTACKER}'s Guardian\" } }",
+    "params": [
+      {
+        "name": "type",
+        "kind": "HANDLE",
+        "label": "entity_type",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "ENTITY_TYPE",
+        "doc": ""
+        },
+      {
+        "name": "ttl",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "600",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "name",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "health",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "starting (and maximum) health; 0 keeps the vanilla one"
+        },
+      {
+        "name": "speed",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "movement-speed multiplier; 0 keeps the vanilla one"
+        },
+      {
+        "name": "effects",
+        "kind": "HANDLE",
+        "label": "potion_effect list",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": "potion effects held for the replacement's whole life"
+        },
+      {
+        "name": "rise",
+        "kind": "DOUBLE",
+        "label": "double[0..8]",
+        "required": false,
+        "default": "2",
+        "min": 0,
+        "max": 8,
+        "enum": [],
+        "handle": null,
+        "doc": "blocks above the old body to place the replacement"
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
     "head": "SUPPRESS",
     "doc": "Disable a target's enchant/group/type (the key) for a duration in ticks (DISABLE_ENCHANT/GROUP/TYPE), or with scope KIND every ability carrying the keyed effect head (e.g. MODIFY_FOOD). mode: timed (the duration window) or next-hit (a one-shot that clears after the target's next `charges` incoming hits, Neutralize). Default target the combat victim.",
     "affinity": "CONTEXT_LOCAL",
@@ -4583,6 +4990,48 @@
       {
         "name": "who",
         "selector": "VICTIM"
+        }
+      ]
+    },
+  {
+    "head": "VIEWER_HIDE",
+    "doc": "Hide the target player from the attacker (viewer=attacker) or from every online player (viewer=all) for duration ticks, restoring them at the window's close. A packet-level hide: worn armour vanishes with the body, unlike an INVISIBILITY potion. A relog on either side ends it early. viewer=attacker with no attacker in scope hides nothing.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ VIEWER_HIDE: { duration: <ticks[0..]=20>, viewer: <enum{attacker|all}=attacker> } }",
+    "example": "{ VIEWER_HIDE: { duration: 60, viewer: attacker } }",
+    "params": [
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "20",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "viewer",
+        "kind": "ENUM",
+        "label": "enum{attacker|all}",
+        "required": false,
+        "default": "attacker",
+        "min": null,
+        "max": null,
+        "enum": [
+          "attacker",
+          "all"
+          ],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
         }
       ]
     },

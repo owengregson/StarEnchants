@@ -142,6 +142,15 @@ Contribute per resolved target in 'who' to the damage fold: total = per * count,
 - _target_ `who`: selector `AOE`
 - _example_: `{ DAMAGE_SCALE: { side: attack, mode: add, per: 10, cap: 100, who: "@AllPlayers{r=7}" } }`
 
+### DESPAWN
+
+Silently remove the target mob(s) — no drops, no experience, no death event, so nothing downstream (kill counters, other plugins' death hooks) sees a kill. Players are never removed. Pair with @Aoe{filter=MOBS} for an area mob-clear; use KILL when the drops and the death are the point.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ DESPAWN: {} }`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ DESPAWN: { who: "@Aoe{r=8, filter=MOBS}" } }`
+
 ### DIG_HOME
 
 Mark the activator's location as a temporary home for `window` ticks: the next right-click of the same pet within `range` blocks teleports the activator back and consumes the window. Pets only — the pets service owns the recall; this effect emits no intent of its own.
@@ -171,6 +180,18 @@ Arm an unhanding window on the wearer for `duration` ticks: their next landed me
 - _param_ `damage-malus` `double[0..100]`
 - _target_ `who`: selector `SELF`
 - _example_: `{ DISARM_SHUFFLE: { duration: 80, damage-malus: 20 } }`
+
+### DOT_AMPLIFY_MARK
+
+Mark the target so their incoming wither and/or poison damage is multiplied by factor for duration ticks. Amplifies EVERY source of those causes, not just the marker's own. Re-marking refreshes the window outright, weaker factor included — a re-infection is a fresh infection. Player targets only.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ DOT_AMPLIFY_MARK: { causes: <enum{wither|poison|dot}=dot>, factor: <double[1..]=2>, duration: <ticks[0..]=100> } }`
+- _param_ `causes` `enum{wither|poison|dot}` — which damage-over-time causes are amplified; dot = both
+- _param_ `factor` `double[1..]`
+- _param_ `duration` `ticks[0..]`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ DOT_AMPLIFY_MARK: { causes: dot, factor: 3, duration: 60, who: "@Victim" } }`
 
 ### DROP_ITEM
 
@@ -384,6 +405,17 @@ Summon count guardian mobs of type at the activation location, each targeting th
 - _param_ `effects` `potion_effect list` — potion effects held for the guard's whole life
 - _target_ `who`: selector `ATTACKER`
 - _example_: `{ GUARD: { type: IRON_GOLEM, count: 1, ttl: 200, name: "&bGuardian" } }`
+
+### HEAD_TROPHY
+
+Arm a head trophy on the target: on their next death from ANY cause a player head owned by them joins the drops, named and lored from these templates, and the mark clears. Tokens resolve at the death: {VICTIM}, {KILLER}, {MONTH}, {DAY}, {YEAR}, {X}, {Y}, {Z}, {ITEM} (the killer's held item, else Fists). Lore lines are separated by '|'. A killer-less death drops the bare head with no lore, since every lore token would be empty. Player targets only.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ HEAD_TROPHY: { name: <string=>, lore: <string=> } }`
+- _param_ `name` `string` — display-name template for the dropped skull
+- _param_ `lore` `string` — lore template; '|' separates lines
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ HEAD_TROPHY: { name: "&fSkull of {VICTIM}", lore: "&7Defeated by &f{KILLER}|&f{MONTH} {DAY}, {YEAR}" } }`
 
 ### HEALTH
 
@@ -643,6 +675,19 @@ Set the player target's walk speed for a span of ticks, then restore the default
 - _target_ `who`: selector `SELF`
 - _example_: `{ MOVEMENT_SPEED: { speed: 0.4, ticks: 200 } }`
 
+### OUTGOING_DEBUFF
+
+Debuff the target's outgoing damage by a percent for a duration in ticks, priced only on their melee hits, their projectile hits, or both (cause). feedback is sent to them on every hit the window actually prices. Non-stacking with itself and with WEAKEN: a re-debuff keeps the stronger window and the later expiry, never the sum. Player targets only.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ OUTGOING_DEBUFF: { percent: <double[0..]>, duration: <ticks[0..]=100>, cause: <enum{all|melee|projectile}=all>, feedback: <string=> } }`
+- _param_ `percent` `double[0..]`
+- _param_ `duration` `ticks[0..]`
+- _param_ `cause` `enum{all|melee|projectile}` — which of the target's own hits the nerf prices
+- _param_ `feedback` `string` — line sent to the debuffed player on every hit it prices
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ OUTGOING_DEBUFF: { percent: 50, duration: 80, cause: projectile, feedback: "&2** UNFOCUSED **" } }`
+
 ### PARTICLE
 
 Spawn particles at the activation location, or at each entity in `who` when given (centered on the body, not the feet). `block` carries a block material as crack/dust data. `spread` is the horizontal Gaussian offset (set 0 for a point burst); `spread-y` the vertical offset, where the -1 default means "use `spread`". No-op if there is no location.
@@ -690,6 +735,20 @@ Draw a horizontal ring of `count` coloured-dust motes of radius `radius` at `hei
 - _target_ `who`: selector `SELF`
 - _example_: `{ PARTICLE_RING: { particle: REDSTONE, r: 255, g: 255, b: 255, radius: 7, count: 60 } }`
 
+### PERIODIC_DAMAGE
+
+Burn the target for amount raw half-hearts every period ticks over duration ticks, attributed to the activator (kill credit, era-combat delivery). replace is a comma-separated set of potion effects the burn converts — each is stripped and held off the target for the whole window, so the converted DoT stops ticking on its own. feedback is sent to a player target on every pulse. Two burns on one victim both run: unlike FREEZE, this is not a refreshed window.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ PERIODIC_DAMAGE: { amount: <double[0..]>, period: <ticks[0..]=20>, duration: <ticks[0..]=100>, replace: <potion_effect list=>, feedback: <string=> } }`
+- _param_ `amount` `double[0..]` — raw pre-armor half-hearts per pulse (never attack-scaled)
+- _param_ `period` `ticks[0..]`
+- _param_ `duration` `ticks[0..]`
+- _param_ `replace` `potion_effect list` — vanilla potion DoTs this burn converts: stripped and denied for the window
+- _param_ `feedback` `string` — line sent to a player target on every pulse
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ PERIODIC_DAMAGE: { amount: 6, period: 20, duration: 120, replace: WITHER } }`
+
 ### POTION
 
 Apply a potion effect to the target(s) at the given LEVEL (1-based: level 1 = the I tier), for a duration in ticks. The effect name is resolved to a handle at compile time. On a HELD/PASSIVE source it is removed again when the item is unequipped (§B lifecycle).
@@ -725,6 +784,18 @@ Launch count projectiles of a type from the activator's eye (covers SPAWN_ARROWS
 - _param_ `yield` `double`
 - _param_ `incendiary` `bool`
 - _example_: `{ PROJECTILE: { type: FIREBALL, count: 1, speed: 1.5, yield: 2, incendiary: true } }`
+
+### PROJECTILE_DRESSING
+
+Ride an entity of type on the projectile this BOW_FIRE activation is loosing — the rider is removed the moment the arrow lands, dies or unloads, and unconditionally after ttl ticks. invulnerable spares it from damage for that many ticks so its own flight cannot kill it; no-pickup stops it hoovering up items in mid-air. One rider per shot: a second PROJECTILE_DRESSING on the same shot replaces the first. Inert outside a bow shot.
+
+- _affinity_: `REGION`
+- _usage_: `{ PROJECTILE_DRESSING: { type: <entity_type>, ttl: <ticks[0..]=200>, invulnerable: <ticks[0..]=200>, no-pickup: <bool=true> } }`
+- _param_ `type` `entity_type`
+- _param_ `ttl` `ticks[0..]` — hard cap on the rider's life; the backstop when nothing reports a landing
+- _param_ `invulnerable` `ticks[0..]` — how long the rider ignores damage (0 = never)
+- _param_ `no-pickup` `bool`
+- _example_: `{ PROJECTILE_DRESSING: { type: COW, ttl: 200, invulnerable: 200 } }`
 
 ### REFLECT
 
@@ -892,6 +963,22 @@ Remove one protection scroll marker from a random protected piece of the target'
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ STRIP_SCROLL: { scroll: HOLY, who: "@Victim" } }`
 
+### SUMMON_REBIND
+
+Replace each target summon the activator OWNS with a fresh one of type, rise blocks above it: the old body is removed silently (no death, no drops, no kill credit) and the replacement spawns at full health with a restarted ttl. health, speed, name and effects are GUARD's loadout params. A summon the activator does not own is skipped — pair with CONVERT_SUMMON to take ownership first.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ SUMMON_REBIND: { type: <entity_type>, ttl: <ticks[0..]=600>, name: <string=>, health: <double[0..]=0>, speed: <double[0..]=0>, effects: <potion_effect list=>, rise: <double[0..8]=2> } }`
+- _param_ `type` `entity_type`
+- _param_ `ttl` `ticks[0..]`
+- _param_ `name` `string`
+- _param_ `health` `double[0..]` — starting (and maximum) health; 0 keeps the vanilla one
+- _param_ `speed` `double[0..]` — movement-speed multiplier; 0 keeps the vanilla one
+- _param_ `effects` `potion_effect list` — potion effects held for the replacement's whole life
+- _param_ `rise` `double[0..8]` — blocks above the old body to place the replacement
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ SUMMON_REBIND: { type: IRON_GOLEM, ttl: 600, health: 90, name: "&b&l{ATTACKER}'s Guardian" } }`
+
 ### SUPPRESS
 
 Disable a target's enchant/group/type (the key) for a duration in ticks (DISABLE_ENCHANT/GROUP/TYPE), or with scope KIND every ability carrying the keyed effect head (e.g. MODIFY_FOOD). mode: timed (the duration window) or next-hit (a one-shot that clears after the target's next `charges` incoming hits, Neutralize). Default target the combat victim.
@@ -1016,6 +1103,17 @@ Apply velocity to the target(s): mode=add uses x/y/z; mode=away shoves them back
 - _param_ `anchor` `enum{activator|attacker|victim}` — the point away/toward is measured from
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ VELOCITY: { mode: add, x: 0, y: 1.2, z: 0 } }`
+
+### VIEWER_HIDE
+
+Hide the target player from the attacker (viewer=attacker) or from every online player (viewer=all) for duration ticks, restoring them at the window's close. A packet-level hide: worn armour vanishes with the body, unlike an INVISIBILITY potion. A relog on either side ends it early. viewer=attacker with no attacker in scope hides nothing.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ VIEWER_HIDE: { duration: <ticks[0..]=20>, viewer: <enum{attacker|all}=attacker> } }`
+- _param_ `duration` `ticks[0..]`
+- _param_ `viewer` `enum{attacker|all}`
+- _target_ `who`: selector `SELF`
+- _example_: `{ VIEWER_HIDE: { duration: 60, viewer: attacker } }`
 
 ### WALKER
 

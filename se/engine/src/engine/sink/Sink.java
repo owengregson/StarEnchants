@@ -831,4 +831,79 @@ public interface Sink {
      */
     void tempBox(Location center, int materialId, int width, int height, int depth, int durationTicks,
                  int replaceMode, UUID confined, double fillChance);
+
+    /**
+     * Remove {@code target} outright (DESPAWN): no drops, no experience, no {@code EntityDeathEvent} — the
+     * TTL-expiry despawn every summon already ends on, reachable from content. {@link #kill} is the opposite
+     * intent (a real death, so kill credit and loot land). An invincible summon (ADR-0052) is spared, exactly
+     * as {@link #kill} spares it.
+     */
+    void despawn(LivingEntity target);
+
+    /**
+     * Burn {@code target} for {@code amount} every {@code periodTicks} over {@code durationTicks}
+     * (PERIODIC_DAMAGE), attributed to {@code attacker}: raw pre-armor half-hearts on the ADR-0054 deferred
+     * path, never the fold and never attack-scaled, exactly as FREEZE's DoT. Each pulse is liveness-gated
+     * (the dead stay dead, ADR-0051) and sends {@code feedback} to a player target when non-empty. Every
+     * potion effect in {@code replaced} is stripped and denied for the window, which is what makes this a
+     * CONVERSION of a vanilla DoT rather than a second one stacked on top.
+     */
+    void periodicDamage(LivingEntity target, double amount, int periodTicks, int durationTicks,
+                        java.util.List<Integer> replaced, String feedback, LivingEntity attacker);
+
+    /**
+     * Mark {@code target} so their incoming damage from the {@code causeMask} damage-over-time causes is
+     * multiplied by {@code factor} for {@code durationTicks} (DOT_AMPLIFY_MARK) — read by the environmental
+     * damage path, where wither/poison ticks land. A store write, inline like {@link #mark}. Re-marking
+     * replaces the window outright.
+     */
+    void dotAmplify(Player target, double factor, int causeMask, int durationTicks);
+
+    /**
+     * {@link #weaken} with the two axes it lacks (OUTGOING_DEBUFF): {@code causeMask} restricts the nerf to
+     * melee and/or projectile hits, and {@code feedback} is sent to the debuffed player on every hit the
+     * window actually prices. Shares WEAKEN's store and its non-stacking merge, so the two can never
+     * double-count one victim.
+     */
+    void outgoingDebuff(Player target, double percent, int durationTicks, int causeMask, String feedback);
+
+    /**
+     * Arm a head trophy on {@code victim} (HEAD_TROPHY): their NEXT death from any cause adds a skull of
+     * themselves, named and lored from these templates, to the drops — then the mark is spent. The templates
+     * ride the mark because the arming enchant is out of scope by then: a death runs on the victim, and no
+     * trigger walks the killer's gear there. Brace tokens resolve against the death, not this call.
+     */
+    void armHeadTrophy(Player victim, String nameTemplate, String loreTemplate);
+
+    /**
+     * Hide {@code subject} from {@code viewer} — or from EVERY online player when {@code viewer} is
+     * {@code null} — for {@code durationTicks} (VIEWER_HIDE), restoring them at the window's close. A
+     * connection-level hide, so armor goes with the body, unlike an INVISIBILITY potion; a relog on either
+     * side ends it, because the server's hidden set is per-connection.
+     */
+    void viewerHide(Player subject, Player viewer, int durationTicks);
+
+    /**
+     * Ask the triggering bow shot (BOW_FIRE) to dress its projectile with a rider (PROJECTILE_DRESSING): an
+     * inline read-back the bow dispatcher applies through {@link #attachProjectileRider}, since the fired
+     * projectile exists only on the event. Inert outside a bow shot; one rider per shot (a second request
+     * replaces the first — the rider-priority rule is authored, not engine policy).
+     */
+    void dressProjectile(int entityTypeId, int ttlTicks, int invulnerableTicks, boolean noPickup);
+
+    /**
+     * Seat a fresh {@code dressing} rider on {@code projectile} — the bow dispatcher's half of
+     * {@link #dressProjectile}, called with the projectile in hand. The rider is removed when the projectile
+     * lands, dies or unloads, and unconditionally at its TTL; it never drops loot.
+     */
+    void attachProjectileRider(Entity projectile, ProjectileDressing dressing);
+
+    /**
+     * Replace {@code summon} — which must be one {@code owner} owns — with a fresh one of {@code entityTypeId}
+     * {@code rise} blocks above it (SUMMON_REBIND): the old body is removed silently (no death event, no
+     * drops) and the replacement spawns at full configured health with its self-destruct window restarted.
+     * The loadout params are {@link #guard}'s, so an upgraded summon and a summoned one are styled the same way.
+     */
+    void rebindSummon(LivingEntity summon, Player owner, int entityTypeId, int ttlTicks, String name,
+                      double health, double speed, java.util.List<Integer> effects, double rise);
 }

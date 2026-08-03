@@ -499,7 +499,8 @@ public final class BootCore {
                 () -> master.config().pets().maxPercentMoneyCap(), gearProtection,
                 // ADR-0063: the worn LIGHTNING_MOD channel — live WornState + suppression, read per bolt emit.
                 feature.trigger.LightningBoost.fn(content, worn, stores.suppression(), tick::get,
-                        triggers.idOf("PASSIVE").orElse(-1)));
+                        triggers.idOf("PASSIVE").orElse(-1)),
+                bindings.playerVisibility(plugin)); // VIEWER_HIDE: the era seam, since the engine holds no plugin
         // mcMMO friendly-fire gate — ONE alliance predicate feeding both consumers. Combat suppression has
         // always used it; the targeting filters (@Aoe{filter=ENEMIES|ALLIES}) never had it installed, so they
         // treated a party-mate as an enemy while the damage gate spared them. Same predicate, both sides.

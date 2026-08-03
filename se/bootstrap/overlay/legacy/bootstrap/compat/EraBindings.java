@@ -3,6 +3,7 @@ package bootstrap.compat;
 import engine.run.ActorProbe;
 import engine.run.LegacyActorProbe;
 import engine.sink.LegacyDispatchSink;
+import engine.sink.PlayerVisibility;
 import engine.sink.SinkFactory;
 import engine.run.ActivationContext;
 import engine.stores.KnockbackControlStore;
@@ -15,6 +16,7 @@ import feature.compat.Hands;
 import feature.compat.KeySoundFallback;
 import feature.compat.LegacyDropControl;
 import feature.compat.LegacyHands;
+import feature.compat.LegacyPlayerVisibility;
 import feature.compat.LegacyProjectiles;
 import feature.compat.Projectiles;
 import feature.compat.Sounds;
@@ -133,6 +135,12 @@ public final class EraBindings implements EraServices {
     @Override
     public Projectiles projectiles() {
         return new LegacyProjectiles();
+    }
+
+    /** Per-viewer visibility (VIEWER_HIDE): 1.8 has only the plugin-less form — an unload leaves it to relogs. */
+    @Override
+    public PlayerVisibility playerVisibility(Plugin plugin) {
+        return new LegacyPlayerVisibility();
     }
 
     /** Sound playback (§4): the shared resolver; 1.8 has no String overload, so key-form sounds are skipped. */
