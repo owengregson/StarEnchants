@@ -21,16 +21,15 @@ public final class MessageThrottleStore implements PlayerScoped {
         if (player == null) {
             return false;
         }
-        Long[] allowed = new Long[1];
+        boolean[] allowed = new boolean[1];
         nextAllowed.compute(player, (id, prev) -> {
             if (prev != null && nowTicks < prev) {
-                allowed[0] = null;
                 return prev;
             }
-            allowed[0] = nowTicks;
-            return nowTicks + Math.max(1, throttleTicks);
+            allowed[0] = true;
+            return nowTicks + Math.max(1, throttleTicks); // a zero throttle still costs a tick, never "unlimited"
         });
-        return allowed[0] != null;
+        return allowed[0];
     }
 
     @Override
