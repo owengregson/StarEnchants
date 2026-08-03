@@ -164,7 +164,10 @@ public final class DefaultEraseStage implements EraseStage {
                     la.noSoulsMessage(),
                     la.soulCostCarried(),
                     la.noSoulsSound(),
-                    la.noSoulsParticle());
+                    la.noSoulsParticle(),
+                    la.soulCostGrowth(),
+                    la.soulCostCap(),
+                    la.soulCostDecayPeriod());
 
             abilities.add(ability);
             keysByDenseId.add(la.stableKey());

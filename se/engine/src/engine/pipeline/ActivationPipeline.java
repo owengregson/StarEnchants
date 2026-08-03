@@ -9,6 +9,7 @@ import engine.condition.Flow;
 import engine.condition.NumExprEval;
 import engine.interact.SoulSpender;
 import engine.stores.CooldownStore;
+import engine.stores.SoulEscalationStore;
 import engine.stores.SuppressionStore;
 import engine.stores.WhyRecorder;
 import engine.stores.WhyRing;
@@ -45,12 +46,17 @@ public final class ActivationPipeline {
     }
 
 
+    /** Escalation-scope namespaces for the two fallbacks, kept clear of the {@link ScopeKinds} range. */
+    private static final int ESCALATION_BY_SUPPRESS_KEY = 8;
+    private static final int ESCALATION_BY_DEF_ID = 9;
+
     private final CooldownStore cooldowns;
     private final SoulSpender spender;
     private final SuppressionStore suppression;
     private final Guard protection;
     private final Guard preActivate;
     private final WhyRecorder recorder;
+    private final SoulEscalationStore escalation;
 
     public ActivationPipeline(CooldownStore cooldowns, SoulSpender spender) {
         this(cooldowns, spender, new SuppressionStore(), Guard.ALLOW, Guard.ALLOW, WhyRecorder.NONE);
@@ -68,12 +74,21 @@ public final class ActivationPipeline {
 
     public ActivationPipeline(CooldownStore cooldowns, SoulSpender spender, SuppressionStore suppression,
                               Guard protection, Guard preActivate, WhyRecorder recorder) {
+        this(cooldowns, spender, suppression, protection, preActivate, recorder, new SoulEscalationStore());
+    }
+
+    /** The production seam: {@code escalation} must be the aggregate's store, or gate 10's counters never
+     *  see the quit sweep. */
+    public ActivationPipeline(CooldownStore cooldowns, SoulSpender spender, SuppressionStore suppression,
+                              Guard protection, Guard preActivate, WhyRecorder recorder,
+                              SoulEscalationStore escalation) {
         this.cooldowns = Objects.requireNonNull(cooldowns, "cooldowns");
         this.spender = Objects.requireNonNull(spender, "spender");
         this.suppression = Objects.requireNonNull(suppression, "suppression");
         this.protection = Objects.requireNonNull(protection, "protection");
         this.preActivate = Objects.requireNonNull(preActivate, "preActivate");
         this.recorder = Objects.requireNonNull(recorder, "recorder");
+        this.escalation = Objects.requireNonNull(escalation, "escalation");
     }
 
     /** Run {@code ability} through every gate against {@code act}, returning where it stopped. Every path
@@ -163,11 +178,13 @@ public final class ActivationPipeline {
             releaseCooldowns(ability, act);
             return record(GateOutcome.CANCELLED, ability, act, 0, 0);
         }
-        // 10. soul cost — only if a gem is active (§3.3); single-authority debit. Fail code = pA (0 no gem, 1 pool short).
-        int soulFail = consumeSouls(ability, act);
+        // 10. soul cost — only if a gem is active (§3.3); single-authority debit. Fail code = pA (0 no gem, 1 pool
+        //     short). The ESCALATED price is what /se why renders as COST, so it is what the abort reports.
+        int cost = soulCostFor(ability, act);
+        int soulFail = consumeSouls(ability, act, cost);
         if (soulFail >= 0) {
             releaseCooldowns(ability, act);
-            return record(GateOutcome.NO_SOULS, ability, act, soulFail, ability.soulCost());
+            return record(GateOutcome.NO_SOULS, ability, act, soulFail, cost);
         }
         // 11. ACTIVATED — the gate-6 reservation IS the arm, so commit is implicit (zero-width pass-then-arm window).
         return record(GateOutcome.ACTIVATED, ability, act, rollBp, chanceBp);
@@ -286,18 +303,57 @@ public final class ActivationPipeline {
     }
 
     /** Gate 10: {@code -1} = paid (or free), else the NO_SOULS pA fail code (0 = no active gem, 1 = pool short). */
-    private int consumeSouls(Ability ability, Activation act) {
-        if (ability.soulCost() <= 0) {
+    private int consumeSouls(Ability ability, Activation act, int cost) {
+        if (cost <= 0) {
             return -1; // free — not a soul-cost ability
         }
+        boolean paid;
         if (act.activeGem() == null) {
             if (!ability.soulCostCarried()) {
                 return 0; // §J a soul-cost ability NEVER fires outside soul mode (was: fired free — the bug)
             }
             // soul-cost-carried: the gem is a wallet, not a switch — charge the carried gems directly.
-            return spender.trySpendCarried(act.actor(), ability.soulCost()) ? -1 : 1;
+            paid = spender.trySpendCarried(act.actor(), cost);
+        } else {
+            // In soul mode: fire only if the player's cross-gem pool can pay — all-or-nothing, no partial spend.
+            paid = spender.trySpend(act.actor(), cost);
         }
-        // In soul mode: fire only if the player's cross-gem pool can pay — all-or-nothing, no partial spend.
-        return spender.trySpend(act.actor(), ability.soulCost()) ? -1 : 1; // 1 = pool short
+        if (!paid) {
+            return 1; // wallet short — the abort must NOT advance the ladder, or the retry price runs away
+        }
+        if (ability.soulCostGrowth() != 1.0) {
+            escalation.step(act.actor(), escalationScope(ability), act.nowTicks(), ability.soulCostDecayPeriod());
+        }
+        return -1;
+    }
+
+    /**
+     * The price THIS activation is charged: the authored {@code soul-cost} compounded by the actor's escalation
+     * steps for this ability. A static price (growth 1.0 — nearly all content) reads no store at all.
+     */
+    private int soulCostFor(Ability ability, Activation act) {
+        int base = ability.soulCost();
+        if (base <= 0 || ability.soulCostGrowth() == 1.0) {
+            return SoulEscalationStore.escalatedCost(base, 1.0, ability.soulCostCap(), 0);
+        }
+        return SoulEscalationStore.escalatedCost(base, ability.soulCostGrowth(), ability.soulCostCap(),
+                escalation.steps(act.actor(), escalationScope(ability), act.nowTicks(),
+                        ability.soulCostDecayPeriod()));
+    }
+
+    /**
+     * The escalation counter's key: the ability's COOLDOWN scope, so "per ability" means exactly what it means
+     * for cooldowns (the four armour copies and every level of one enchant share one price ladder) and stays
+     * stable across reload and relog. Scope-less sources fall back to their suppression key, then their defId,
+     * each in its own namespace so two interners cannot collide into one ladder.
+     */
+    private static long escalationScope(Ability ability) {
+        if (ability.cdScopeEnchant() >= 0) {
+            return CooldownStore.key(ScopeKinds.ENCHANT, ability.cdScopeEnchant());
+        }
+        if (ability.suppressKey() >= 0) {
+            return CooldownStore.key(ESCALATION_BY_SUPPRESS_KEY, ability.suppressKey());
+        }
+        return CooldownStore.key(ESCALATION_BY_DEF_ID, ability.defId());
     }
 }

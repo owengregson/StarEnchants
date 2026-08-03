@@ -163,6 +163,9 @@ Inside each `levels:` entry:
 | `cooldown` | ticks before it can fire again (20 ticks = 1 second) |
 | `soul-cost` | souls spent per activation (requires the player be in soul mode) |
 | `soul-cost-carried` | charge `soul-cost` against the player's carried gems even with no gem active — the gem becomes a wallet rather than a switch |
+| `soul-cost-growth` | multiplier the price compounds by on each successful charge — `2` doubles it every proc. Default `1` (a flat price) |
+| `soul-cost-cap` | ceiling the escalating price stops at. Default `0` (no ceiling) |
+| `soul-cost-decay-period` | ticks of quiet that shed one step of escalation, down to the base `soul-cost`. Default `0` (the price never comes back down) |
 | `no-souls-message` | line shown when a `soul-cost` activation can't pay (at most once every 15s per player) |
 | `no-souls-sound` | sound played with `no-souls-message`, on the same 15s throttle |
 | `no-souls-particle` | particle spawned with `no-souls-message`, on the same 15s throttle |

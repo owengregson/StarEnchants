@@ -305,6 +305,12 @@ final class ContentParse {
                 node.sourceOf(key), diags);
     }
 
+    /** A double knob (scalar); else {@code fallback}. */
+    static double resolveDouble(YamlNode node, String key, double fallback, Diagnostics diags) {
+        return doubleOr(node.has(key) ? node.string(key) : null, fallback, key, Severity.ERROR,
+                DiagCode.E_LOAD_DOUBLE, node.sourceOf(key), diags);
+    }
+
     /** A string-valued knob (scalar); {@code null} when absent. */
     static String resolveString(YamlNode node, String key, Diagnostics diags) {
         return node.has(key) ? node.string(key) : null;
