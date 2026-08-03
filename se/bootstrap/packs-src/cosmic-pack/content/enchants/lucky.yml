@@ -1,0 +1,63 @@
+# Matrix: 01-enchants-armor-a-l.md § Lucky
+display: "Lucky"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA small chance that a killing blow is negated outright."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "epic"
+tier: epic
+condition: "%posthit.health% <= 0"  # true post-mitigation lethality (D-01-14); one defensive pass (D-001)
+levels:
+  # Chance is the as-intended level/400 (D-01-13). No cooldown — consecutive-hit saves are possible.
+  # The save is total negation and level-independent.
+  1:
+    chance: 0.25
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CLOUD", count: 30, who: "@Self" } }
+  2:
+    chance: 0.5
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CLOUD", count: 30, who: "@Self" } }
+  3:
+    chance: 0.75
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CLOUD", count: 30, who: "@Self" } }
+  4:
+    chance: 1.0
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CLOUD", count: 30, who: "@Self" } }
+  5:
+    chance: 1.25
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CLOUD", count: 30, who: "@Self" } }
+  6:
+    chance: 1.5
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CLOUD", count: 30, who: "@Self" } }
+  7:
+    chance: 1.75
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CLOUD", count: 30, who: "@Self" } }
+  8:
+    chance: 2.0
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CLOUD", count: 30, who: "@Self" } }
+  9:
+    chance: 2.25
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CLOUD", count: 30, who: "@Self" } }
+  10:
+    chance: 2.5
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CLOUD", count: 30, who: "@Self" } }

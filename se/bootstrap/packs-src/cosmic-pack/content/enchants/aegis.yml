@@ -1,0 +1,44 @@
+# Matrix: 01-enchants-armor-a-l.md § Aegis
+display: "Aegis"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eHalves incoming damage once enough attackers are on you at once."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "legendary"
+tier: legendary
+# era: CRIT_MAGIC is the classic-era particle name (modern ENCHANTED_HIT) — resolver alias; no other hazards.
+# D-01-01 (as-intended): reduce ANY attacker's hit once the unique-attacker count exceeds 8 - level; the
+# measured jar only reduced hits from attackers it had not yet tracked, never added them, and never seeded
+# the first window. %recentattackers% counts distinct attackers inside the engine's 100t window (level-independent).
+levels:
+  1:
+    condition: "%victim.type% == \"PLAYER\" && %recentattackers% > 7"
+    effects:
+      - { PARTICLE: { particle: "CRIT_MAGIC", count: 16, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }
+  2:
+    condition: "%victim.type% == \"PLAYER\" && %recentattackers% > 6"
+    effects:
+      - { PARTICLE: { particle: "CRIT_MAGIC", count: 16, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }
+  3:
+    condition: "%victim.type% == \"PLAYER\" && %recentattackers% > 5"
+    effects:
+      - { PARTICLE: { particle: "CRIT_MAGIC", count: 16, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }
+  4:
+    condition: "%victim.type% == \"PLAYER\" && %recentattackers% > 4"
+    effects:
+      - { PARTICLE: { particle: "CRIT_MAGIC", count: 16, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }
+  5:
+    condition: "%victim.type% == \"PLAYER\" && %recentattackers% > 3"
+    effects:
+      - { PARTICLE: { particle: "CRIT_MAGIC", count: 16, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }
+  6:
+    condition: "%victim.type% == \"PLAYER\" && %recentattackers% > 2"
+    effects:
+      - { PARTICLE: { particle: "CRIT_MAGIC", count: 16, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }

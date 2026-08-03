@@ -1,0 +1,96 @@
+# Matrix: 01-enchants-armor-a-l.md § Dodge
+# era: ENTITY_BAT_TAKEOFF → 1.8.9 mob.bat.takeoff (resolver alias).
+# Single-pass per D-001 — one roll per hit.
+display: "Dodge"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance to negate an incoming melee or arrow hit; crouching adds 15 points to it."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "epic"
+tier: epic
+# The matrix activation "(cause gate) && (%sneaking% : +15 %chance%)" splits into two mutually exclusive
+# blocks: a condition takes at most ONE ':' clause and a clause never gates, so the cause gate and the
+# crouch bonus cannot share one. Exactly one block is eligible per hit, so it is still a single roll —
+# standing rolls the base chance, crouching the base + 15 percentage points.
+levels:
+  1:
+    abilities:
+      - chance: 2.5
+        condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && !%sneaking%"
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§e*DODGE*", who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 10, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 0.75 } }
+      - chance: 17.5
+        condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && %sneaking%"
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§e*DODGE*", who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 10, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 0.75 } }
+  2:
+    abilities:
+      - chance: 5
+        condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && !%sneaking%"
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§e*DODGE*", who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 10, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 0.75 } }
+      - chance: 20
+        condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && %sneaking%"
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§e*DODGE*", who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 10, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 0.75 } }
+  3:
+    abilities:
+      - chance: 7.5
+        condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && !%sneaking%"
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§e*DODGE*", who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 10, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 0.75 } }
+      - chance: 22.5
+        condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && %sneaking%"
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§e*DODGE*", who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 10, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 0.75 } }
+  4:
+    abilities:
+      - chance: 10
+        condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && !%sneaking%"
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§e*DODGE*", who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 10, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 0.75 } }
+      - chance: 25
+        condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && %sneaking%"
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§e*DODGE*", who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 10, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 0.75 } }
+  5:
+    abilities:
+      - chance: 12.5
+        condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && !%sneaking%"
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§e*DODGE*", who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 10, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 0.75 } }
+      - chance: 27.5
+        condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && %sneaking%"
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§e*DODGE*", who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 10, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 0.75 } }

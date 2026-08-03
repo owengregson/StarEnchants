@@ -1,0 +1,31 @@
+# Matrix: 01-enchants-armor-a-l.md § Hardened
+display: "Hardened"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eTaking a hit can repair your armor"
+  - "&eby a durability point."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "rare"
+tier: rare
+# No cause filter and no cooldown (verbatim): near-immortal armour against chip damage, but 1 point a proc
+# cannot out-repair a real fight. Chance is 20 × level, as-intended for the single defensive pass (D-001).
+levels:
+  1:
+    chance: 20
+    effects:
+      # The original repaired the single most-damaged worn piece by 1; select: most-damaged pins that policy
+      # (the whole-set default would repair all four pieces a proc — 4x the codex's repair rate).
+      - { DURABILITY: { amount: 1, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      # Cue is at the wearer's feet in the original; the engine centres a @Self particle on the body.
+      - { PARTICLE: { particle: "SPELL", count: 4, who: "@Self" } }
+  2:
+    chance: 40
+    effects:
+      - { DURABILITY: { amount: 1, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL", count: 4, who: "@Self" } }
+  3:
+    chance: 60
+    effects:
+      - { DURABILITY: { amount: 1, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL", count: 4, who: "@Self" } }

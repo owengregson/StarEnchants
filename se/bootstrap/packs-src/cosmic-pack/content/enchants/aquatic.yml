@@ -1,0 +1,24 @@
+# Matrix: 01-enchants-armor-a-l.md § Aquatic
+display: "Aquatic"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eGrants permanent Water Breathing while the helmet is worn."
+trigger: PASSIVE
+applies-to: [HELMET]
+group: "common"
+tier: common
+# The matrix's shared suppression ruling maps the corpus's noDefenseProcs to SUPPRESS(scope=TYPE, key=defense),
+# which cannot reach a PASSIVE ability — cosmic silence never dropped worn passives, so this permanent worn
+# buff is unsilenceable (the wearer's other enchants still are).
+suppress-immune: true
+# strings: the shared potion-registry equip feedback, verbatim (roman-numeral levels) — emitted by the
+# registry for every maintained potion, not authored per enchant:
+#   §b§l[+] §b{enchant} {level}:§7 applying {effect} {level}
+#   §c§l[-] §c{enchant} {level}:§7 removing {effect} {level}
+# era: no hazards.
+# Permanent while worn: the maintained-potion driver (§B lifecycle) re-applies and removes it on the equip
+# edges, so the authored duration is only the stub it renews over.
+levels:
+  1:
+    effects:
+      - { POTION: { effect: "WATER_BREATHING", level: 1, duration: 200, who: "@Self" } }
