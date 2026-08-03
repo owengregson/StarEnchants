@@ -1959,12 +1959,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
     @Override
     public void tempBox(Location center, int materialId, int width, int height, int depth, int durationTicks,
                         int replaceMode) {
-        tempBox(center, materialId, width, height, depth, durationTicks, replaceMode, null);
+        tempBox(center, materialId, width, height, depth, durationTicks, replaceMode, null, 100);
     }
 
     @Override
     public void tempBox(Location center, int materialId, int width, int height, int depth, int durationTicks,
-                        int replaceMode, UUID confined) {
+                        int replaceMode, UUID confined, double fillChance) {
         Location origin = center.clone(); // own the centre: a WAIT tier can defer this to a later tick
         regionOp(origin, () -> {
             Material material = material(materialId);
@@ -1986,6 +1986,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
                     : trapStructures.open(worldId, Set.of(confined), now, durationTicks);
             for (int dx = -hx; dx < width - hx; dx++) {
                 for (int dz = -hz; dz < depth - hz; dz++) {
+                    if (!ScatterFill.fills(cx + dx, cz + dz, fillChance)) {
+                        continue; // fill-chance is per COLUMN, so a skipped column skips its whole height
+                    }
                     for (int dy = 0; dy < height; dy++) {
                         int bx = cx + dx;
                         int by = baseY + dy;

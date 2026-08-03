@@ -971,23 +971,24 @@ Send the block's drops straight to the breaker's inventory (this MINE activation
 
 ### TEMP_BLOCK
 
-Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / COLUMN (height, ahead in the target's facing) / BOX (width × height × depth filled volume horizontally centred on the target — the ADR-0052 Spider webs), at feet level + dy. airOnly only replaces air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet (never air, so a trail can't scaffold); other shapes replace anything and restore on revert. A radius-0 FOOTPRINT trails as a snake — consecutive stamps join into a gapless, 4-connected footprint path even at sprint speed and on diagonals. Give material2/3/4 to place a mixed palette: each block independently picks a material from a deterministic per-block hash of its coordinates — a noisy, random-looking scatter (re-placing the same block always picks the same material). A BOX is always single-material (palette[0]).
+Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / COLUMN (height, ahead in the target's facing) / BOX (width × height × depth filled volume horizontally centred on the target — the ADR-0052 Spider webs), at feet level + dy. airOnly only replaces air (safe placement); a non-airOnly FOOTPRINT replaces only the solid ground under the feet (never air, so a trail can't scaffold); other shapes replace anything and restore on revert. A radius-0 FOOTPRINT trails as a snake — consecutive stamps join into a gapless, 4-connected footprint path even at sprint speed and on diagonals. Give material2/3/4 to place a mixed palette: each block independently picks a material from a deterministic per-block hash of its coordinates — a noisy, random-looking scatter (re-placing the same block always picks the same material). A BOX is always single-material (palette[0]). fill-chance below 100 places only that percent of the shape's columns, for a ragged, partial field instead of a solid one; the choice is per column and stable for a given coordinate, so re-stamping the same ground extends the same field rather than filling in its holes. A radius-0 FOOTPRINT trail ignores it — a snake with gaps is not a path.
 
 - _affinity_: `REGION`
-- _usage_: `{ TEMP_BLOCK: { shape: <enum{POINT|FOOTPRINT|COLUMN|BOX}=POINT>, material: <material>, material2: <material>, material3: <material>, material4: <material>, ticks: <ticks[0..]=60>, radius: <int[0..4]=0>, width: <int[1..8]=3>, height: <int[1..8]=1>, depth: <int[1..8]=3>, ahead: <int[0..8]=0>, dy: <int[-4..4]=0>, airOnly: <bool=true> } }`
+- _usage_: `{ TEMP_BLOCK: { shape: <enum{POINT|FOOTPRINT|COLUMN|BOX}=POINT>, material: <material>, material2: <material>, material3: <material>, material4: <material>, ticks: <ticks[0..]=60>, radius: <int[0..5]=0>, width: <int[1..8]=3>, height: <int[1..8]=1>, depth: <int[1..8]=3>, ahead: <int[0..8]=0>, dy: <int[-4..4]=0>, airOnly: <bool=true>, fill-chance: <double[0..100]=100> } }`
 - _param_ `shape` `enum{POINT|FOOTPRINT|COLUMN|BOX}`
 - _param_ `material` `material`
 - _param_ `material2` `material`
 - _param_ `material3` `material`
 - _param_ `material4` `material`
 - _param_ `ticks` `ticks[0..]`
-- _param_ `radius` `int[0..4]`
+- _param_ `radius` `int[0..5]`
 - _param_ `width` `int[1..8]`
 - _param_ `height` `int[1..8]`
 - _param_ `depth` `int[1..8]`
 - _param_ `ahead` `int[0..8]`
 - _param_ `dy` `int[-4..4]`
 - _param_ `airOnly` `bool`
+- _param_ `fill-chance` `double[0..100]` — percent of columns actually placed — a partial, scattered field
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ TEMP_BLOCK: { shape: COLUMN, material: ICE, height: 2, ahead: 1, ticks: 60, who: "@Attacker" } }`
 

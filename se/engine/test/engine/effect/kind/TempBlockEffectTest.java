@@ -35,6 +35,7 @@ class TempBlockEffectTest {
         return FakeEffectCtx.create()
                 .with("shape", shape).with("material", 7).with("ticks", 60)
                 .with("radius", 1).with("height", 2).with("ahead", 0).with("dy", 0).with("airOnly", true)
+                .with("fill-chance", 100.0)
                 .targets("who", who);
     }
 
@@ -56,6 +57,7 @@ class TempBlockEffectTest {
         FakeEffectCtx ctx = FakeEffectCtx.create()
                 .with("shape", "POINT").with("material", 7).with("ticks", 40)
                 .with("radius", 0).with("height", 1).with("ahead", 0).with("dy", 0).with("airOnly", true)
+                .with("fill-chance", 100.0)
                 .targets("who", who);
         Sink sink = mock(Sink.class);
 
@@ -75,6 +77,7 @@ class TempBlockEffectTest {
         FakeEffectCtx ctx = FakeEffectCtx.create()
                 .with("shape", "POINT").with("material", 7).with("ticks", 40)
                 .with("radius", 0).with("height", 1).with("ahead", 0).with("dy", -1).with("airOnly", true)
+                .with("fill-chance", 100.0)
                 .targets("who", who);
         Sink sink = mock(Sink.class);
 
@@ -95,15 +98,16 @@ class TempBlockEffectTest {
         FakeEffectCtx ctx = FakeEffectCtx.create()
                 .with("shape", "BOX").with("material", 7).with("ticks", 80)
                 .with("radius", 0).with("width", 3).with("height", 4).with("depth", 3)
-                .with("ahead", 0).with("dy", 0).with("airOnly", true)
+                .with("ahead", 0).with("dy", 0).with("airOnly", true).with("fill-chance", 100.0)
                 .targets("who", who);
         Sink sink = mock(Sink.class);
 
         new TempBlockEffect().run(ctx, sink);
 
-        // BOX is always entity-centred (the Spider box) → the 8-arg tempBox overload carries the victim UUID.
+        // BOX is always entity-centred (the Spider box) → the confining tempBox overload carries the victim UUID,
+        // and the default fill-chance keeps the box solid.
         verify(sink, times(1)).tempBox(any(Location.class), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(),
-                anyInt(), eq(victim));
+                anyInt(), eq(victim), eq(100.0));
     }
 
     @Test
@@ -111,6 +115,36 @@ class TempBlockEffectTest {
         Sink sink = mock(Sink.class);
         new TempBlockEffect().run(ctx("FOOTPRINT"), sink); // radius 1 → 3x3 = 9
         verify(sink, times(9)).tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean());
+    }
+
+    // fill-chance thins the shape into a partial field, and the SAME ground always makes the same choice — a
+    // re-stamp must extend the field it laid, never gradually plug its holes into a solid slab.
+    @Test
+    void fillChanceThinsTheFootprintAndIsStableForTheSameGround() {
+        World world = mock(World.class);
+        LivingEntity who = mock(LivingEntity.class);
+        when(who.getLocation()).thenReturn(new Location(world, 10, 64, 20));
+
+        assertEquals(9, scatteredFootprint(who, 100.0), "the default keeps every column (byte-identical)");
+        assertEquals(0, scatteredFootprint(who, 0.0), "a zero chance lays nothing at all");
+        int partial = scatteredFootprint(who, 50.0);
+        assertTrue(partial > 0 && partial < 9, "a partial field is neither empty nor solid, was " + partial);
+        assertEquals(partial, scatteredFootprint(who, 50.0), "the same ground repeats the same choice");
+    }
+
+    /** Columns a radius-1 FOOTPRINT actually places at {@code fillChance}. */
+    private static int scatteredFootprint(LivingEntity who, double fillChance) {
+        FakeEffectCtx ctx = FakeEffectCtx.create()
+                .with("shape", "FOOTPRINT").with("material", 7).with("ticks", 60)
+                .with("radius", 1).with("height", 1).with("ahead", 0).with("dy", -1).with("airOnly", true)
+                .with("fill-chance", fillChance)
+                .targets("who", who);
+        Sink sink = mock(Sink.class);
+        new TempBlockEffect().run(ctx, sink);
+        ArgumentCaptor<Location> at = ArgumentCaptor.forClass(Location.class);
+        verify(sink, org.mockito.Mockito.atLeast(0))
+                .tempBlock(at.capture(), anyInt(), anyInt(), anyInt(), anyBoolean());
+        return at.getAllValues().size();
     }
 
     // A radius-0 FOOTPRINT is the snake: it routes to the trail intent (keyed by sourceDefId + the walker's
@@ -125,6 +159,7 @@ class TempBlockEffectTest {
         FakeEffectCtx ctx = FakeEffectCtx.create()
                 .with("shape", "FOOTPRINT").with("material", 7).with("ticks", 40)
                 .with("radius", 0).with("height", 1).with("ahead", 0).with("dy", -1).with("airOnly", false)
+                .with("fill-chance", 100.0)
                 .sourceDefId(88).targets("who", who);
         Sink sink = mock(Sink.class);
 
@@ -163,7 +198,7 @@ class TempBlockEffectTest {
                 .with("shape", "FOOTPRINT").with("material", 1)
                 .with("material2", 2).with("material3", 3).with("material4", 4)
                 .with("ticks", 60).with("radius", 4).with("height", 1)
-                .with("ahead", 0).with("dy", 0).with("airOnly", true)
+                .with("ahead", 0).with("dy", 0).with("airOnly", true).with("fill-chance", 100.0)
                 .targets("who", who);
         Sink sink = mock(Sink.class);
 
@@ -202,6 +237,7 @@ class TempBlockEffectTest {
         FakeEffectCtx ctx = FakeEffectCtx.create()
                 .with("shape", "POINT").with("material", 7).with("ticks", 60)
                 .with("radius", 0).with("height", 1).with("ahead", 0).with("dy", 0).with("airOnly", true)
+                .with("fill-chance", 100.0)
                 .targets("who", remote);
         Sink sink = mock(Sink.class);
 
