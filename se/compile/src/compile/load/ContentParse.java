@@ -218,12 +218,20 @@ final class ContentParse {
         Integer wait = null;
         for (YamlNode.Entry param : body.entries()) {
             String name = param.key();
-            if (!param.value().isScalar()) {
-                diags.error(DiagCode.E_EFFECT, "parameter '" + name + "' of '" + effectHead + "' must be a scalar",
-                        param.value().source());
-                continue;
+            String value;
+            if (param.value().isScalar()) {
+                value = param.value().scalar();
+            } else {
+                // A nested map is the authored form of an EXPR_MAP param ({ tokens: { souls: "%actor.souls%" } });
+                // it flattens to the equivalent flat scalar the param type also accepts. Any other non-scalar
+                // (a sequence, a map of maps) is still the plain shape error.
+                value = flattenBindings(param.value());
+                if (value == null) {
+                    diags.error(DiagCode.E_EFFECT, "parameter '" + name + "' of '" + effectHead
+                            + "' must be a scalar or a map of name: expression bindings", param.value().source());
+                    continue;
+                }
             }
-            String value = param.value().scalar();
             switch (name) {
                 case "who" -> who = value;
                 case "wait" -> {
@@ -241,6 +249,28 @@ final class ContentParse {
             out.add(EffectLine.waitLine(String.valueOf(wait), body.source()));
         }
         out.add(EffectLine.verbose(effectHead, 1, named, who, item.source()));
+    }
+
+    /**
+     * Flatten a {@code { name: expression, … }} block into the flat {@code name=expression; …} token an
+     * {@code EXPR_MAP} param also accepts, so the two authored forms are one value by the time typechecking
+     * sees them. {@code null} when the node is not a mapping of scalars — the caller reports that shape.
+     */
+    private static String flattenBindings(YamlNode node) {
+        if (!node.isMapping()) {
+            return null;
+        }
+        StringBuilder out = new StringBuilder();
+        for (YamlNode.Entry binding : node.entries()) {
+            if (!binding.value().isScalar()) {
+                return null;
+            }
+            if (out.length() > 0) {
+                out.append(ParamType.EXPR_MAP_ENTRY_SEPARATOR).append(' ');
+            }
+            out.append(binding.key()).append(ParamType.EXPR_MAP_BINDING_SEPARATOR).append(binding.value().scalar());
+        }
+        return out.toString();
     }
 
     /**

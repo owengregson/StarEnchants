@@ -31,6 +31,7 @@ class ContentFormatTest {
         return Compiler.of(MapSpecRegistry.of(
                 ParamSpec.of("HEAL").param("amount", D.DOUBLE.min(0)).build(),
                 ParamSpec.of("MESSAGE").param("text", D.STRING).build(),
+                ParamSpec.of("NOTE").param("marks", D.exprMap()).build(),
                 ParamSpec.of("POTION")
                         .param("effect", D.STRING)
                         .param("amplifier", D.INT.min(0))
@@ -61,6 +62,45 @@ class ContentFormatTest {
 
         assertTrue(lib.hasErrors(), () -> lib.diagnostics().toString());
         assertTrue(hasCode(lib.diagnostics(), DiagCode.E_TERSE_EFFECT), () -> lib.diagnostics().toString());
+    }
+
+    @Test
+    void aNestedBindingBlockAndItsFlatFormCompileToTheSameArg(@TempDir Path root) throws IOException {
+        // The two authored shapes of an EXPR_MAP param, the way an item sound field takes either a bare name
+        // or a bracket map. They must not merely both LOAD — they must produce the identical compiled arg,
+        // or the documented nested form is a second, subtly-different surface.
+        write(root, "enchants/nested.yml", """
+            trigger: ATTACK
+            levels:
+              1: { chance: 100, effects: [ { NOTE: { marks: { hit: "%damage%", twice: "%damage% * 2" } } } ] }
+            """);
+        write(root, "enchants/flat.yml", """
+            trigger: ATTACK
+            levels:
+              1: { chance: 100, effects: [ { NOTE: { marks: "hit=%damage%; twice=%damage% * 2" } } ] }
+            """);
+        Library lib = LibraryLoader.load(root, compiler(), 1);
+
+        assertFalse(lib.hasErrors(), () -> lib.diagnostics().toString());
+        assertEquals(arg(lib, "enchants/nested/1"), arg(lib, "enchants/flat/1"));
+    }
+
+    @Test
+    void anEffectParamThatIsNeitherScalarNorBindingsIsRejected(@TempDir Path root) throws IOException {
+        // Widening for bindings must not swallow every shape error: a SEQUENCE is still a shape fault.
+        write(root, "enchants/seq.yml", """
+            trigger: ATTACK
+            levels:
+              1: { chance: 100, effects: [ { NOTE: { marks: [ "a", "b" ] } } ] }
+            """);
+        Library lib = LibraryLoader.load(root, compiler(), 1);
+
+        assertTrue(hasCode(lib.diagnostics(), DiagCode.E_EFFECT), () -> lib.diagnostics().toString());
+    }
+
+    /** The single compiled {@code marks} arg of the named ability. */
+    private static Object arg(Library lib, String stableKey) {
+        return lib.snapshot().byStableKey(stableKey).effects()[0].args().opt("marks").orElseThrow();
     }
 
     @Test

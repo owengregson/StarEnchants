@@ -252,6 +252,9 @@ public final class AffinityAutogenSuite implements Harness.Scenario {
             // A version-volatile handle (or free-form string) has no safe generic literal; the kind's own
             // example carries a real, author-vetted token, so single-source it from there.
             case HANDLE, STRING -> exampleToken(example, name);
+            // Bindings are optional by construction (D.exprMap defaults to none), so this arm is only ever
+            // reached by a hypothetical required one — no bindings is the safe generic literal.
+            case EXPR_MAP -> "";
         };
     }
 

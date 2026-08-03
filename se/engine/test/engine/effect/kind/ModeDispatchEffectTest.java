@@ -12,6 +12,7 @@ import engine.effect.EffectKind;
 import engine.sink.ArmorSelect;
 import engine.sink.Sink;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import org.bukkit.Location;
@@ -429,6 +430,29 @@ class ModeDispatchEffectTest {
                     Sink sink = mock(Sink.class);
                     new MessageEffect().run(ctx, sink);
                     verify(sink).message(actor, "hit &fFoe");
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("MESSAGE fills each bound {token} with its evaluated number", () -> {
+                    Player who = mock(Player.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("channel", "chat").with("text", "&7You have &n{souls}&7 souls, &n{kills}&7 kills.")
+                            .with("tokens", Map.of("souls", 12.0, "kills", 2.5)).targets("who", who);
+                    Sink sink = mock(Sink.class);
+                    new MessageEffect().run(ctx, sink);
+                    // Rendered as chat numbers: a whole value loses its decimal point, a fractional one keeps it.
+                    verify(sink).message(who, "&7You have &n12&7 souls, &n2.5&7 kills.");
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("MESSAGE leaves an UNBOUND {token} literal", () -> {
+                    Player who = mock(Player.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("channel", "chat").with("text", "&7{souls} of {unbound}")
+                            .with("tokens", Map.of("souls", 3.0)).targets("who", who);
+                    Sink sink = mock(Sink.class);
+                    new MessageEffect().run(ctx, sink);
+                    // Today's behaviour for an unknown brace token, kept: a typo shows itself instead of
+                    // quietly reporting a zero the author never asked for.
+                    verify(sink).message(who, "&73 of {unbound}");
                     verifyNoMoreInteractions(sink);
                 }),
                 dynamicTest("MESSAGE fills {SELF} per RECIPIENT, not once for the line", () -> {

@@ -611,13 +611,14 @@ Temporarily remove `fraction` of the target's overhealth (max health above `base
 Send feedback on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade timings). Default recipient self; `who` can name any party (e.g. @Victim). The `{ATTACKER}`/`{VICTIM}` tokens expand to the activating player and the other combat party, and `{SELF}` to the name of whoever receives that copy. Replaces ACTIONBAR/TITLE.
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ MESSAGE: { text: <string>, channel: <enum{chat|actionbar|title}=chat>, subtitle: <string=>, fadeIn: <ticks[0..]=10>, stay: <ticks[0..]=70>, fadeOut: <ticks[0..]=20> } }`
+- _usage_: `{ MESSAGE: { text: <string>, channel: <enum{chat|actionbar|title}=chat>, subtitle: <string=>, fadeIn: <ticks[0..]=10>, stay: <ticks[0..]=70>, fadeOut: <ticks[0..]=20>, tokens: <expr map=> } }`
 - _param_ `text` `string`
 - _param_ `channel` `enum{chat|actionbar|title}`
 - _param_ `subtitle` `string` — title channel only
 - _param_ `fadeIn` `ticks[0..]` — title channel only
 - _param_ `stay` `ticks[0..]` — title channel only
 - _param_ `fadeOut` `ticks[0..]` — title channel only
+- _param_ `tokens` `expr map` — name=expression bindings; each {name} in the text becomes the evaluated number
 - _target_ `who`: selector `SELF`
 - _example_: `{ MESSAGE: { text: "&aCritical hit!" } }`
 

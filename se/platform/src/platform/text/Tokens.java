@@ -2,6 +2,7 @@ package platform.text;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /** {@code {TOKEN}} substitution for item/message likeness templates ({@code {SUCCESS}}, {@code {KINDS}},
  *  {@code {TIER_COLOR}}, ...). Canonical token spelling is UNDERSCORE; for any key containing {@code '_'} the
@@ -21,6 +22,20 @@ public final class Tokens {
             String value = String.valueOf(kv[i + 1]);
             out = out.replace("{" + key + "}", value);
             if (key.indexOf('_') >= 0) out = out.replace("{" + key.replace('_', '-') + "}", value);
+        }
+        return out;
+    }
+
+    /**
+     * {@link #sub} over a name&rarr;number map, each value rendered by {@link Numbers#chat} (the MESSAGE
+     * {@code tokens} bindings). An empty map, or a line with no brace at all, returns the line untouched — a
+     * template that binds nothing costs one scan.
+     */
+    public static String subNumbers(String line, Map<String, Double> values) {
+        if (line == null || line.indexOf('{') < 0 || values.isEmpty()) return line;
+        String out = line;
+        for (Map.Entry<String, Double> e : values.entrySet()) {
+            out = out.replace("{" + e.getKey() + "}", Numbers.chat(e.getValue()));
         }
         return out;
     }

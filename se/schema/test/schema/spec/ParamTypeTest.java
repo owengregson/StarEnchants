@@ -166,6 +166,44 @@ class ParamTypeTest {
     }
 
     @Test
+    void exprMapParsesEachBindingToItsOwnExpression() {
+        Diagnostics d = new Diagnostics();
+        ExprMap map = (ExprMap) D.exprMap().parse("souls=%actor.souls%; doubled=%kills% * 2", SRC, d).orElseThrow();
+        assertFalse(d.hasErrors());
+        assertEquals(java.util.List.of("souls", "doubled"), java.util.List.copyOf(map.entries().keySet()),
+                "authored order is kept — the bindings render in the order they were written");
+        assertInstanceOf(Expr.VarRef.class, map.entries().get("souls"));
+        assertInstanceOf(Expr.Arith.class, map.entries().get("doubled"));
+    }
+
+    @Test
+    void exprMapAcceptsNoBindingsAndStripsGroupingBrackets() {
+        Diagnostics d = new Diagnostics();
+        // Empty is a value, not a fault (the handle-set rule); brackets are grouping, so a binding set can
+        // survive the comma-splitting selector lexer the same way a material set does.
+        assertTrue(((ExprMap) D.exprMap().parse("", SRC, d).orElseThrow()).isEmpty());
+        assertEquals(1, ((ExprMap) D.exprMap().parse("[a=1]", SRC, d).orElseThrow()).entries().size());
+        assertFalse(d.hasErrors());
+    }
+
+    @Test
+    void exprMapRejectsAnEntryThatIsNotANameEqualsExpressionBinding() {
+        Diagnostics d = new Diagnostics();
+        assertTrue(D.exprMap().parse("%actor.souls%", SRC, d).isEmpty(), "a bare expression names nothing");
+        assertTrue(d.all().stream().anyMatch(x -> x.is(DiagCode.E_TYPE)));
+    }
+
+    @Test
+    void exprMapBindingsAreClampedToTheDeclaredRangeLikeAScalarExpression() {
+        Diagnostics d = new Diagnostics();
+        // The §3.4 range rule reaches INTO the map: a declared bound is a runtime guarantee for every
+        // binding, not only for a scalar expression argument.
+        ExprMap map = (ExprMap) D.exprMap().min(0).max(10).parse("v=%kills%", SRC, d).orElseThrow();
+        assertFalse(d.hasErrors());
+        assertEquals(ExprFn.CLAMP, assertInstanceOf(Expr.Call.class, map.entries().get("v")).fn());
+    }
+
+    @Test
     void handleLabelAndCategoryComeFromTheCategory() {
         assertEquals("material", D.material().label());
         assertEquals("potion_effect", D.potionEffect().label());

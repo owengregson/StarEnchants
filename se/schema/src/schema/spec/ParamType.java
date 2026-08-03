@@ -6,8 +6,10 @@ import schema.diag.Source;
 import schema.grammar.expr.Expr;
 import schema.grammar.expr.ExprFn;
 import schema.grammar.expr.ExprParser;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalDouble;
 
@@ -24,8 +26,21 @@ public final class ParamType {
         /** A non-negative integer count of ticks (a typed INT for durations). */
         TICKS,
         /** A version-volatile referent (material/sound/potion/…) resolved to an interned id. */
-        HANDLE
+        HANDLE,
+        /**
+         * A string-keyed set of numeric EXPRESSIONS — {@code name=expr} entries, {@code ;}-separated. The only
+         * shape whose value is a collection of expressions rather than one; authored as a nested YAML map
+         * ({@code tokens: { souls: "%actor.souls%" }}) and equivalently as the flat scalar the loader encodes
+         * it to ({@code tokens: "souls=%actor.souls%"}), the way an item sound field takes either form.
+         */
+        EXPR_MAP
     }
+
+    /** Separates {@code name=expr} entries in an {@link Kind#EXPR_MAP} value; not a token in the expression grammar. */
+    public static final char EXPR_MAP_ENTRY_SEPARATOR = ';';
+
+    /** Separates a binding's name from its expression; a lone {@code =} is likewise not an expression token. */
+    public static final char EXPR_MAP_BINDING_SEPARATOR = '=';
 
     private final Kind kind;
     private final boolean required;
@@ -160,7 +175,52 @@ public final class ParamType {
             case ENUM -> parseEnum(raw, source, diags);
             case STRING -> Optional.of(raw);
             case HANDLE -> parseHandle(raw, source, diags);
+            case EXPR_MAP -> parseExprMap(raw, source, diags);
         };
+    }
+
+    /**
+     * Parse {@code name=expr; name2=expr2} into an {@link ExprMap}. Empty is a legitimate value (no bindings),
+     * like an empty handle set. Each value goes through the ordinary expression parser, so a constant is simply
+     * a constant expression and the declared range clamps every binding the same way it clamps a scalar.
+     */
+    private Optional<Object> parseExprMap(String raw, Source source, Diagnostics diags) {
+        String t = unbracket(raw.trim());
+        if (t.isEmpty()) {
+            return Optional.of(ExprMap.empty());
+        }
+        Map<String, Expr> entries = new LinkedHashMap<>();
+        for (String entry : t.split(String.valueOf(EXPR_MAP_ENTRY_SEPARATOR))) {
+            String trimmed = entry.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            int split = trimmed.indexOf(EXPR_MAP_BINDING_SEPARATOR);
+            String name = split < 0 ? "" : trimmed.substring(0, split).trim();
+            if (name.isEmpty() || !isBindingName(name)) {
+                diags.error(DiagCode.E_TYPE, "expected a 'name" + EXPR_MAP_BINDING_SEPARATOR
+                                + "expression' binding but got '" + trimmed + "'", source,
+                        "write one binding per entry, e.g. souls=%actor.souls%");
+                return Optional.empty();
+            }
+            Optional<Expr> value = ExprParser.parse(trimmed.substring(split + 1).trim(), source, diags);
+            if (value.isEmpty()) {
+                return Optional.empty(); // the parser already reported why
+            }
+            entries.put(name, clampExpr(value.get()));
+        }
+        return Optional.of(new ExprMap(entries));
+    }
+
+    /** A binding name is a bare token — the same shape as the {@code {NAME}} placeholder it fills. */
+    private static boolean isBindingName(String name) {
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
+            if (!Character.isLetterOrDigit(c) && c != '_' && c != '-' && c != '.') {
+                return false;
+            }
+        }
+        return true;
     }
 
     private Optional<Object> parseHandle(String raw, Source source, Diagnostics diags) {
@@ -265,6 +325,11 @@ public final class ParamType {
 
     /** Wrap {@code expr} in the spec's range; an undeclared bound is infinite, so an unbounded param is untouched. */
     private Object clampToRange(Expr expr) {
+        return clampExpr(expr);
+    }
+
+    /** {@link #clampToRange} typed — the EXPR_MAP path clamps each binding and keeps it an {@link Expr}. */
+    private Expr clampExpr(Expr expr) {
         if (min == null && max == null) {
             return expr;
         }
@@ -367,6 +432,7 @@ public final class ParamType {
             case STRING -> "string";
             case ENUM -> list ? "enum set" : "enum";
             case HANDLE -> list ? handleCategory.label() + " list" : handleCategory.label();
+            case EXPR_MAP -> "expr map";
         });
         if (kind == Kind.ENUM) {
             sb.append('{').append(String.join("|", allowed())).append('}');
