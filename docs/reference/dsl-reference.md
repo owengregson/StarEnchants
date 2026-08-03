@@ -262,10 +262,11 @@ Spawn a (2*radius+1)² grid of falling blocks `height` blocks above each target 
 
 ### FILL_OXYGEN
 
-Refill the target's air supply.
+Refill the target's air supply. amount adds that many air ticks instead, clamped to the target's maximum air (0, the default, refills the bar outright).
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ FILL_OXYGEN: {} }`
+- _usage_: `{ FILL_OXYGEN: { amount: <ticks[0..]=0> } }`
+- _param_ `amount` `ticks[0..]` — air ticks to add; 0 refills the bar outright
 - _target_ `who`: selector `SELF`
 - _example_: `{ FILL_OXYGEN: {} }`
 
@@ -280,11 +281,12 @@ Spawn a cosmetic firework at the activation location. No-op if there is no locat
 
 ### FLY
 
-Grant the player temporary flight.
+Grant the player temporary flight. speed overrides their fly speed for the window and is restored with it (0, the default, leaves the server's own fly speed alone).
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ FLY: { ticks: <ticks[0..]=200> } }`
+- _usage_: `{ FLY: { ticks: <ticks[0..]=200>, speed: <double[0..1]=0> } }`
 - _param_ `ticks` `ticks[0..]`
+- _param_ `speed` `double[0..1]` — fly speed while the window holds; 0 keeps the server's
 - _target_ `who`: selector `SELF`
 - _example_: `{ FLY: { ticks: 200 } }`
 
@@ -299,15 +301,16 @@ Grant flight to the target(s) while NOT in combat, revoke it while in combat (su
 
 ### FREEZE
 
-Fully freeze the target for a span of ticks (vanilla powder-snow visual: blue hearts + full vignette, held even while the victim burns), dealing dot damage every dot-period ticks (attributed to the activator; raw pre-armor half-hearts) and slowing them by slow percent. Re-procs refresh the window instead of stacking. neutralize-frost-slow cancels vanilla's own ~50% fully-frozen slow so the authored percent is the real one.
+Fully freeze the target for a span of ticks (vanilla powder-snow visual: blue hearts + full vignette, held even while the victim burns), dealing dot damage every dot-period ticks (attributed to the activator; raw pre-armor half-hearts) and slowing them by slow percent. Re-procs refresh the window instead of stacking. neutralize-frost-slow cancels vanilla's own ~50% fully-frozen slow so the authored percent is the real one. breakout-chance rolls once per DoT pulse: on a hit the root shatters there and then, so a long freeze becomes a struggle the victim can win early instead of a fixed sentence.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ FREEZE: { duration: <ticks[0..]=60>, dot: <double[0..]=2>, dot-period: <ticks[0..]=20>, slow: <double[0..100]=5>, neutralize-frost-slow: <bool=true> } }`
+- _usage_: `{ FREEZE: { duration: <ticks[0..]=60>, dot: <double[0..]=2>, dot-period: <ticks[0..]=20>, slow: <double[0..100]=5>, neutralize-frost-slow: <bool=true>, breakout-chance: <double[0..100]=0> } }`
 - _param_ `duration` `ticks[0..]`
 - _param_ `dot` `double[0..]`
 - _param_ `dot-period` `ticks[0..]`
 - _param_ `slow` `double[0..100]`
 - _param_ `neutralize-frost-slow` `bool`
+- _param_ `breakout-chance` `double[0..100]` — percent chance per DoT pulse that the victim shatters the root early
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ FREEZE: { duration: 100, dot: 2, dot-period: 20, slow: 5 } }`
 
@@ -995,15 +998,16 @@ Break every confining trap currently on the wearer — encasing webs, web boxes,
 
 ### VELOCITY
 
-Apply velocity to the target(s): mode=add uses x/y/z; mode=away knocks them back from the activator with strength. Replaces THROW/LAUNCH/KNOCKBACK.
+Apply velocity to the target(s): mode=add uses x/y/z; mode=away shoves them back from the anchor with strength and mode=toward drags them to it. anchor picks the point — the activator (default), the attacker that hit them, or the combat victim — so a defensive proc can launch the wearer away from whoever struck. Replaces THROW/LAUNCH/KNOCKBACK.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ VELOCITY: { mode: <enum{add|away}=add>, x: <double=0>, y: <double=0>, z: <double=0>, strength: <double[0..]=0> } }`
-- _param_ `mode` `enum{add|away}`
+- _usage_: `{ VELOCITY: { mode: <enum{add|away|toward}=add>, x: <double=0>, y: <double=0>, z: <double=0>, strength: <double[0..]=0>, anchor: <enum{activator|attacker|victim}=activator> } }`
+- _param_ `mode` `enum{add|away|toward}`
 - _param_ `x` `double`
 - _param_ `y` `double`
 - _param_ `z` `double`
 - _param_ `strength` `double[0..]`
+- _param_ `anchor` `enum{activator|attacker|victim}` — the point away/toward is measured from
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ VELOCITY: { mode: add, x: 0, y: 1.2, z: 0 } }`
 

@@ -88,8 +88,11 @@ public interface Sink {
 
     void extinguish(LivingEntity target);
 
-    /** Restore the target's air/oxygen to full. */
-    void fillAir(LivingEntity target);
+    /**
+     * Restore the target's air/oxygen. {@code ticks > 0} ADDS that many air ticks, clamped to the target's own
+     * maximum air; {@code ticks <= 0} refills the bar outright.
+     */
+    void fillAir(LivingEntity target, int ticks);
 
     /** Restore food points to a player (clamped to the vanilla maximum). */
     void feed(Player target, int foodPoints);
@@ -124,11 +127,18 @@ public interface Sink {
     /** Drain food points from a player (clamped at zero); the give counterpart is {@link #feed}. */
     void takeFood(Player target, int foodPoints);
 
-    /** Knock {@code target} back, away from {@code from}, with the given strength. */
+    /**
+     * Knock {@code target} back, away from {@code from}, with the given strength. A NEGATIVE strength is the same
+     * impulse reversed — it drags the target TOWARD {@code from} ({@code VELOCITY mode: toward}).
+     */
     void knockback(Entity target, Location from, double strength);
 
-    /** Grant a player temporary flight for {@code durationTicks} ({@code < 0} = until cleared). */
-    void setFlight(Player target, int durationTicks);
+    /**
+     * Grant a player temporary flight for {@code durationTicks} ({@code < 0} = until cleared). A
+     * {@code flySpeed > 0} overrides their fly speed for the window and is restored when the flight is; {@code 0}
+     * leaves the server's own fly speed untouched.
+     */
+    void setFlight(Player target, int durationTicks, double flySpeed);
 
     /**
      * Allow or revoke a player's flight ability (FLY_MODE — supreme's out-of-combat fly), survival/adventure
@@ -219,9 +229,12 @@ public interface Sink {
      * REFRESHES the live window (deadline + attribution) — never a second DoT chain. Liveness-gated
      * (the dead stay dead, ADR-0051), quit-safe, disable-swept. Vanilla's own freeze self-damage is
      * cancelled for the window by the modern guard listener, so this DoT is the only damage source.
+     * {@code breakoutChancePercent > 0} rolls once per DoT pulse; a hit tears the window down there, turning a
+     * fixed root into one the victim can struggle out of early.
      */
     void freeze(LivingEntity target, int durationTicks, double dotPerTick, int dotPeriodTicks,
-                double slowPercent, boolean neutralizeFrostSlow, LivingEntity attacker);
+                double slowPercent, boolean neutralizeFrostSlow, double breakoutChancePercent,
+                LivingEntity attacker);
 
     /** Clear every active potion effect from the target. */
     void cure(LivingEntity target);

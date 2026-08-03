@@ -614,8 +614,13 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void fillAir(LivingEntity target) {
-        entityOp(target, () -> target.setRemainingAir(target.getMaximumAir()));
+    public void fillAir(LivingEntity target, int ticks) {
+        entityOp(target, () -> {
+            int max = target.getMaximumAir();
+            // The max read and the write share the target's own thread, so the clamp can never bank breath past
+            // the bar even under a per-tick repeating driver.
+            target.setRemainingAir(ticks <= 0 ? max : Math.min(max, target.getRemainingAir() + ticks));
+        });
     }
 
     @Override
@@ -709,14 +714,24 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void setFlight(Player target, int durationTicks) {
+    public void setFlight(Player target, int durationTicks, double flySpeed) {
         entityOp(target, () -> {
             target.setAllowFlight(true);
             target.setFlying(true);
+            if (flySpeed > 0) {
+                target.setFlySpeed((float) Math.min(1.0, flySpeed));
+            }
             if (durationTicks >= 0) {
                 // Revert-on-quit too (F08): a logout mid-window otherwise persists mayfly forever. The quit drain
                 // clears it before the save, costing an abuser only the tail of their own buff on a mid-window relog.
-                revertLater(target, durationTicks, () -> clearTemporaryFlight(target));
+                // The speed restores to the VANILLA default rather than a captured prior value, exactly as
+                // movementSpeed does: re-firing the buff before it elapses then cannot ratchet fly speed upward.
+                revertLater(target, durationTicks, () -> {
+                    if (flySpeed > 0) {
+                        target.setFlySpeed(VANILLA_FLY_SPEED);
+                    }
+                    clearTemporaryFlight(target);
+                });
             }
         });
     }
@@ -906,7 +921,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void freeze(LivingEntity target, int durationTicks, double dotPerTick, int dotPeriodTicks,
-                       double slowPercent, boolean neutralizeFrostSlow, LivingEntity attacker) {
+                       double slowPercent, boolean neutralizeFrostSlow, double breakoutChancePercent,
+                       LivingEntity attacker) {
         if (target == null || durationTicks <= 0) {
             return;
         }
@@ -967,7 +983,11 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 // in-budget slot lands its hurt and tears the window down in the SAME run, so the boundary
                 // tick always lands and teardown never races it — identical on every version and on Folia.
                 FrozenTargets.Window w = FrozenTargets.chainTick(victim, gen, period);
-                if (w != null && target.isValid() && !target.isDead()) {
+                // The struggle roll rides the pulse the victim just survived, so breaking out reads as winning
+                // against the root; a lost roll falls straight through to the ordinary budget check below.
+                boolean shattered = w != null && breakoutChancePercent > 0
+                        && ThreadLocalRandom.current().nextDouble(100.0) < breakoutChancePercent;
+                if (w != null && !shattered && target.isValid() && !target.isDead()) {
                     if (dotPerTick > 0) {
                         // ADR-0054 deferred attributed hurt (the bleed path): EngineDamage-framed, so the
                         // combat dispatch stands down (no proc walks, no ReHitGuard stamp, no rage advance)
@@ -2721,6 +2741,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     /** Strip temporarily-granted flight, but never from a player who can fly by game mode. */
+    /** Vanilla's own fly speed — what {@code FLY speed} restores to, so a re-fire cannot ratchet it upward. */
+    private static final float VANILLA_FLY_SPEED = 0.1f;
+
     private static void clearTemporaryFlight(Player player) {
         GameMode mode = player.getGameMode();
         if (mode == GameMode.SURVIVAL || mode == GameMode.ADVENTURE) {

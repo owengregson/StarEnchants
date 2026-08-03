@@ -135,7 +135,7 @@ public final class FreezeSuite implements Harness.Scenario {
                 cow.setNoDamageTicks(0);
                 cow.setFireTicks(200);
                 ModernDispatchSink sink = newSink(handles);
-                sink.freeze(cow, 100, 2.0, 20, 5.0, true, attacker);
+                sink.freeze(cow, 100, 2.0, 20, 5.0, true, 0, attacker);
                 sink.flush();
                 Scheduling.onEntityLater(cow, 8L, () -> {
                     boolean lockPath = FreezeLock.available();
@@ -219,7 +219,7 @@ public final class FreezeSuite implements Harness.Scenario {
                 ModernDispatchSink sink = newSink(handles);
                 // Duration 60 is a period-lattice multiple: the t+duration boundary slot is INCLUSIVE
                 // (ADR-0065 tick-space cadence), so the hits land at exactly t+20/40/60 — no more, no less.
-                sink.freeze(cow, 60, 2.0, 20, 0.0, true, attacker);
+                sink.freeze(cow, 60, 2.0, 20, 0.0, true, 0, attacker);
                 sink.flush();
                 // Tick-anchored: await the expected count, then hold one-period-plus so a straggler slot
                 // (the old wall-clock-drift bug landed one exactly a period late) would still be caught.
@@ -258,7 +258,7 @@ public final class FreezeSuite implements Harness.Scenario {
             // No damage is staged, so spawn-invulnerability is irrelevant; still settle per the tester-harness fact.
             Scheduling.onEntityLater(p, 70L, () -> {
                 ModernDispatchSink sink = newSink(handles);
-                sink.freeze(p, 40, 0.0, 20, 5.0, true, null);
+                sink.freeze(p, 40, 0.0, 20, 5.0, true, 0, null);
                 sink.flush();
                 Scheduling.onEntityLater(p, 10L, () -> {
                     boolean slowNow = hasModifierNamed(handles, p, "starenchants.frozen_slow");
@@ -328,7 +328,7 @@ public final class FreezeSuite implements Harness.Scenario {
                 cow.setAI(false); // a panicking wander off the entity-ticking arena chunk freezes its i-frames (class doc)
                 cow.setNoDamageTicks(0);
                 ModernDispatchSink sink1 = newSink(handles);
-                sink1.freeze(cow, 40, 2.0, 20, 0.0, true, attacker);
+                sink1.freeze(cow, 40, 2.0, 20, 0.0, true, 0, attacker);
                 sink1.flush();
                 // Re-proc MID-PERIOD (t+30): the refresh anchors at the chain's last completed slot (t+20),
                 // extending the tick budget to exactly t+80. A re-proc ON a lattice tick would race the
@@ -336,7 +336,7 @@ public final class FreezeSuite implements Harness.Scenario {
                 // deterministic staging point.
                 Scheduling.onEntityLater(cow, 30L, () -> {
                     ModernDispatchSink sink2 = newSink(handles);
-                    sink2.freeze(cow, 60, 2.0, 20, 0.0, true, attacker); // extends the window; must not stack a chain
+                    sink2.freeze(cow, 60, 2.0, 20, 0.0, true, 0, attacker); // extends the window; must not stack a chain
                     sink2.flush();
                     // Tick-anchored: await the expected count, then hold one-period-plus — a stacked second
                     // chain or a wall-drift straggler lands within one period of the last legitimate slot.
@@ -377,7 +377,7 @@ public final class FreezeSuite implements Harness.Scenario {
             }
             Scheduling.onEntity(frozen, () -> {
                 ModernDispatchSink sink = newSink(handles);
-                sink.freeze(frozen, 60, 0.0, 20, 0.0, true, null);
+                sink.freeze(frozen, 60, 0.0, 20, 0.0, true, 0, null);
                 sink.flush();
                 UUID frozenId = frozen.getUniqueId();
                 // Poll until the freeze WINDOW is actually registered (the guard cancels off the SAME

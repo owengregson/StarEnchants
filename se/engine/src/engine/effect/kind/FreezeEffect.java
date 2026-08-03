@@ -25,13 +25,17 @@ public final class FreezeEffect implements EffectKind {
             .param("dot-period", D.TICKS.def(20))
             .param("slow", D.DOUBLE.min(0).max(100).def(5))
             .param("neutralize-frost-slow", D.BOOL.def(true))
+            .param("breakout-chance", D.DOUBLE.range(0, 100).def(0),
+                    "percent chance per DoT pulse that the victim shatters the root early")
             .target("who", T.VICTIM)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Fully freeze the target for a span of ticks (vanilla powder-snow visual: blue hearts + "
                     + "full vignette, held even while the victim burns), dealing dot damage every dot-period "
                     + "ticks (attributed to the activator; raw pre-armor half-hearts) and slowing them by "
                     + "slow percent. Re-procs refresh the window instead of stacking. neutralize-frost-slow "
-                    + "cancels vanilla's own ~50% fully-frozen slow so the authored percent is the real one.")
+                    + "cancels vanilla's own ~50% fully-frozen slow so the authored percent is the real one. "
+                    + "breakout-chance rolls once per DoT pulse: on a hit the root shatters there and then, so "
+                    + "a long freeze becomes a struggle the victim can win early instead of a fixed sentence.")
             .example("{ FREEZE: { duration: 100, dot: 2, dot-period: 20, slow: 5 } }")
             .build();
 
@@ -47,9 +51,10 @@ public final class FreezeEffect implements EffectKind {
         int dotPeriod = ctx.integer("dot-period");
         double slow = ctx.dbl("slow");
         boolean neutralize = ctx.bool("neutralize-frost-slow");
+        double breakout = ctx.dbl("breakout-chance");
         for (LivingEntity target : ctx.targets("who")) {
             // The activator attributes the DoT ticks (ADR-0054) — kill credit, era-combat delivery.
-            sink.freeze(target, duration, dot, dotPeriod, slow, neutralize, ctx.actor());
+            sink.freeze(target, duration, dot, dotPeriod, slow, neutralize, breakout, ctx.actor());
         }
     }
 }

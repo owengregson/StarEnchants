@@ -1090,11 +1090,24 @@
     },
   {
     "head": "FILL_OXYGEN",
-    "doc": "Refill the target's air supply.",
+    "doc": "Refill the target's air supply. amount adds that many air ticks instead, clamped to the target's maximum air (0, the default, refills the bar outright).",
     "affinity": "TARGET_ENTITY",
-    "usage": "{ FILL_OXYGEN: {} }",
+    "usage": "{ FILL_OXYGEN: { amount: <ticks[0..]=0> } }",
     "example": "{ FILL_OXYGEN: {} }",
-    "params": [],
+    "params": [
+      {
+        "name": "amount",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "air ticks to add; 0 refills the bar outright"
+        }
+      ],
     "targets": [
       {
         "name": "who",
@@ -1126,9 +1139,9 @@
     },
   {
     "head": "FLY",
-    "doc": "Grant the player temporary flight.",
+    "doc": "Grant the player temporary flight. speed overrides their fly speed for the window and is restored with it (0, the default, leaves the server's own fly speed alone).",
     "affinity": "TARGET_ENTITY",
-    "usage": "{ FLY: { ticks: <ticks[0..]=200> } }",
+    "usage": "{ FLY: { ticks: <ticks[0..]=200>, speed: <double[0..1]=0> } }",
     "example": "{ FLY: { ticks: 200 } }",
     "params": [
       {
@@ -1142,6 +1155,18 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "speed",
+        "kind": "DOUBLE",
+        "label": "double[0..1]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": 1,
+        "enum": [],
+        "handle": null,
+        "doc": "fly speed while the window holds; 0 keeps the server's"
         }
       ],
     "targets": [
@@ -1167,9 +1192,9 @@
     },
   {
     "head": "FREEZE",
-    "doc": "Fully freeze the target for a span of ticks (vanilla powder-snow visual: blue hearts + full vignette, held even while the victim burns), dealing dot damage every dot-period ticks (attributed to the activator; raw pre-armor half-hearts) and slowing them by slow percent. Re-procs refresh the window instead of stacking. neutralize-frost-slow cancels vanilla's own ~50% fully-frozen slow so the authored percent is the real one.",
+    "doc": "Fully freeze the target for a span of ticks (vanilla powder-snow visual: blue hearts + full vignette, held even while the victim burns), dealing dot damage every dot-period ticks (attributed to the activator; raw pre-armor half-hearts) and slowing them by slow percent. Re-procs refresh the window instead of stacking. neutralize-frost-slow cancels vanilla's own ~50% fully-frozen slow so the authored percent is the real one. breakout-chance rolls once per DoT pulse: on a hit the root shatters there and then, so a long freeze becomes a struggle the victim can win early instead of a fixed sentence.",
     "affinity": "TARGET_ENTITY",
-    "usage": "{ FREEZE: { duration: <ticks[0..]=60>, dot: <double[0..]=2>, dot-period: <ticks[0..]=20>, slow: <double[0..100]=5>, neutralize-frost-slow: <bool=true> } }",
+    "usage": "{ FREEZE: { duration: <ticks[0..]=60>, dot: <double[0..]=2>, dot-period: <ticks[0..]=20>, slow: <double[0..100]=5>, neutralize-frost-slow: <bool=true>, breakout-chance: <double[0..100]=0> } }",
     "example": "{ FREEZE: { duration: 100, dot: 2, dot-period: 20, slow: 5 } }",
     "params": [
       {
@@ -1231,6 +1256,18 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "breakout-chance",
+        "kind": "DOUBLE",
+        "label": "double[0..100]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": 100,
+        "enum": [],
+        "handle": null,
+        "doc": "percent chance per DoT pulse that the victim shatters the root early"
         }
       ],
     "targets": [
@@ -4384,22 +4421,23 @@
     },
   {
     "head": "VELOCITY",
-    "doc": "Apply velocity to the target(s): mode=add uses x/y/z; mode=away knocks them back from the activator with strength. Replaces THROW/LAUNCH/KNOCKBACK.",
+    "doc": "Apply velocity to the target(s): mode=add uses x/y/z; mode=away shoves them back from the anchor with strength and mode=toward drags them to it. anchor picks the point — the activator (default), the attacker that hit them, or the combat victim — so a defensive proc can launch the wearer away from whoever struck. Replaces THROW/LAUNCH/KNOCKBACK.",
     "affinity": "TARGET_ENTITY",
-    "usage": "{ VELOCITY: { mode: <enum{add|away}=add>, x: <double=0>, y: <double=0>, z: <double=0>, strength: <double[0..]=0> } }",
+    "usage": "{ VELOCITY: { mode: <enum{add|away|toward}=add>, x: <double=0>, y: <double=0>, z: <double=0>, strength: <double[0..]=0>, anchor: <enum{activator|attacker|victim}=activator> } }",
     "example": "{ VELOCITY: { mode: add, x: 0, y: 1.2, z: 0 } }",
     "params": [
       {
         "name": "mode",
         "kind": "ENUM",
-        "label": "enum{add|away}",
+        "label": "enum{add|away|toward}",
         "required": false,
         "default": "add",
         "min": null,
         "max": null,
         "enum": [
           "add",
-          "away"
+          "away",
+          "toward"
           ],
         "handle": null,
         "doc": ""
@@ -4451,6 +4489,22 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "anchor",
+        "kind": "ENUM",
+        "label": "enum{activator|attacker|victim}",
+        "required": false,
+        "default": "activator",
+        "min": null,
+        "max": null,
+        "enum": [
+          "activator",
+          "attacker",
+          "victim"
+          ],
+        "handle": null,
+        "doc": "the point away/toward is measured from"
         }
       ],
     "targets": [
