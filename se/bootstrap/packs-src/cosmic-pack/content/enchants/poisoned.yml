@@ -1,0 +1,33 @@
+# Matrix: 02-enchants-armor-m-z.md § Poisoned
+display: "Poisoned"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA melee attacker has a chance to"
+  - "&ewalk away poisoned."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "rare"
+tier: rare
+# Melee only — the jar's ENTITY_ATTACK cause filter, so projectile and environmental hits never proc.
+condition: "%damagecause% == \"ENTITY_ATTACK\""
+# The jar draws a random whole-second duration ((int)(rand x L + 0.5 x L)); random durations are not
+# expressible, so each level ships its distribution mean, and L1's chance folds in the half of its rolls
+# that came out zero-tick no-ops (ledger D-02-5). Chance is flat 30 % from L3 — measured, shipped.
+# The potion is applied unforced: a stronger Poison already on the attacker shadows it (engine priority).
+levels:
+  1:
+    chance: 5
+    effects:
+      - { POTION: { effect: "POISON", level: 1, duration: 20, who: "@Attacker" } }
+  2:
+    chance: 20
+    effects:
+      - { POTION: { effect: "POISON", level: 1, duration: 30, who: "@Attacker" } }
+  3:
+    chance: 30
+    effects:
+      - { POTION: { effect: "POISON", level: 2, duration: 50, who: "@Attacker" } }  # Poison II from L3
+  4:
+    chance: 30
+    effects:
+      - { POTION: { effect: "POISON", level: 2, duration: 70, who: "@Attacker" } }

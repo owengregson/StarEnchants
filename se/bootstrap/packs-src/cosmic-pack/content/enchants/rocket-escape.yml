@@ -1,0 +1,87 @@
+# Matrix: 02-enchants-armor-m-z.md § Rocket Escape
+display: "Rocket Escape"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA killing blow is voided and launches you straight up,"
+  - "&eregenerating, with the landing on the house."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "rare"
+tier: rare
+chance: 100
+# The matrix records no slot gate — the proc line's "boots" is the jar's flavour, not a restriction.
+# Two abilities on one enchant (the matrix's MULTI_ABILITY_ENCHANT): the DEFENSE save writes the escape
+# window, the FALL block spends it. The window replaces the jar's external, never-cleared fall exemption, so
+# it closes with the SET_VAR ttl instead of following the player forever.
+# The window-end cloud puff carries the only `wait:` and so is written LAST: a wait tier accumulates down the
+# effect list, so anything after it would inherit the delay — the launch lines must land on the launch.
+# An attacker's Sabotage window (swords doc) blocks the escape at 10% x its level and the 600t cooldown still
+# burns (measured) — attacker-side, authored with Sabotage, whose line is
+# `§c§l ** §7Rocket Escape:§c§l SABOTAGED **` (leading space verbatim).
+# era: EXPLODE is the 1.8 sound id (ENTITY_GENERIC_EXPLODE here, resolver alias); raw Y velocities 6-10 cross
+# the client's velocity-warning threshold identically on both eras (jar-faithful).
+levels:
+  1:
+    abilities:
+      - cooldown: 600
+        condition: "%damage% >= %actor.health%"
+        effects:
+          - { CANCEL: {} }
+          - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 1.0, pitch: 0.54 } }
+          - { VELOCITY: { mode: "add", y: 6, who: "@Self" } }
+          - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }
+          - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }
+          - { POTION: { effect: "REGENERATION", level: 2, duration: 60, who: "@Self" } }
+          - { SET_VAR: { name: "rocketescaping", value: "1", ttl: 65, who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 69, who: "@Self" } }
+          - { MESSAGE: { text: "", who: "@Self" } }
+          - { MESSAGE: { text: "§a§l(!) §aYour Rocket Escape boots have activated, recover while they last!", who: "@Self" } }
+          - { MESSAGE: { text: "", who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 69, who: "@Self", wait: 65 } }  # repeated at the window's end
+      # No fall damage from the wearer's own launch, for exactly as long as the window holds.
+      - trigger: FALL
+        condition: "%rocketescaping% == 1"
+        effects:
+          - { CANCEL: {} }
+  2:
+    abilities:
+      - cooldown: 600
+        condition: "%damage% >= %actor.health%"
+        effects:
+          - { CANCEL: {} }
+          - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 1.0, pitch: 0.54 } }
+          - { VELOCITY: { mode: "add", y: 8, who: "@Self" } }
+          - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }
+          - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }
+          - { POTION: { effect: "REGENERATION", level: 3, duration: 80, who: "@Self" } }
+          - { SET_VAR: { name: "rocketescaping", value: "1", ttl: 85, who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 69, who: "@Self" } }
+          - { MESSAGE: { text: "", who: "@Self" } }
+          - { MESSAGE: { text: "§a§l(!) §aYour Rocket Escape boots have activated, recover while they last!", who: "@Self" } }
+          - { MESSAGE: { text: "", who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 69, who: "@Self", wait: 85 } }
+      - trigger: FALL
+        condition: "%rocketescaping% == 1"
+        effects:
+          - { CANCEL: {} }
+  3:
+    abilities:
+      - cooldown: 600
+        condition: "%damage% >= %actor.health%"
+        effects:
+          - { CANCEL: {} }
+          - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 1.0, pitch: 0.54 } }
+          - { VELOCITY: { mode: "add", y: 10, who: "@Self" } }
+          - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }
+          - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }
+          - { POTION: { effect: "REGENERATION", level: 4, duration: 100, who: "@Self" } }
+          - { SET_VAR: { name: "rocketescaping", value: "1", ttl: 105, who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 69, who: "@Self" } }
+          - { MESSAGE: { text: "", who: "@Self" } }
+          - { MESSAGE: { text: "§a§l(!) §aYour Rocket Escape boots have activated, recover while they last!", who: "@Self" } }
+          - { MESSAGE: { text: "", who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 69, who: "@Self", wait: 105 } }
+      - trigger: FALL
+        condition: "%rocketescaping% == 1"
+        effects:
+          - { CANCEL: {} }

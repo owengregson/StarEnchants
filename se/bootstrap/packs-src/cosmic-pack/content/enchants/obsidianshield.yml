@@ -1,0 +1,27 @@
+# Matrix: 02-enchants-armor-m-z.md § Obsidianshield
+display: "Obsidianshield"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eKeeps you fireproof for as long as the piece is worn."
+trigger: PASSIVE
+applies-to: [ARMOR]
+group: "epic"
+tier: epic
+# The matrix's shared suppression ruling maps the corpus's noDefenseProcs to SUPPRESS(scope=TYPE, key=defense),
+# which cannot reach a PASSIVE ability — cosmic silence never dropped worn passives, so this permanent worn
+# buff is unsilenceable (the wearer's other enchants still are).
+suppress-immune: true
+# Max 1, so the stackable whitelist it sits on can never grant a second copy in effect — duplicate pieces only
+# guarded the original against premature removal, and the engine's passive layer dedupes that on its own.
+# Any equal-or-higher Fire Resistance source outranks it (potion-registry priority), then this re-asserts.
+# Equip/removal feedback is the shared potion-registry [+]/[-] pair, one cross-cutting lang string for every
+# maintained potion — never per-enchant text. The recorded tracker lines it replaces:
+#   §b§l[+] §bObsidianshield I:§7 applying FIRE_RESISTANCE I
+#   §c§l[-] §cObsidianshield I:§7 removing FIRE_RESISTANCE I
+levels:
+  1:
+    effects:
+      # duration = maintained-while-worn: the passive driver holds the buff while the piece is worn and tears
+      # it down on unequip, so the authored tick count never governs — it replaces the jar's
+      # Integer.MAX_VALUE duration plus its own tracker.
+      - { POTION: { effect: "FIRE_RESISTANCE", level: 1, duration: 200, who: "@Self" } }

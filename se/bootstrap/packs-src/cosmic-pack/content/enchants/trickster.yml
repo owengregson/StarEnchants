@@ -1,0 +1,83 @@
+# Matrix: 02-enchants-armor-m-z.md § Trickster
+display: "Trickster"
+# description: not matrix-recorded (factual paraphrase); the original's "behind your opponent" line was never
+# true of its code, so this describes the shipped behaviour.
+description:
+  - "&eA player's hit can blink you"
+  - "&efour blocks along your facing."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "rare"
+tier: rare
+# The counterpart entity of a defence activation is the attacker, so this is the whole gate: attacker is a
+# player. No damage-cause narrowing — the dispatcher resolves a projectile's shooter as the attacker, so a
+# player-shot arrow procs it too.
+condition: '%victim.type% == "PLAYER"'
+# Non-stacking, no cooldown: one hit in ten blinks the wearer at L8 (measured).
+# D-02-11 (flattening): the original teleported to the looked-at block only when it carried two stacked air
+# blocks — landing the wearer mid-air — and copied the ATTACKER's facing. BLINK is ground-safe and keeps the
+# wearer's own facing; behaviour ships as BLINK.
+# BLINK's own dressing is muted (count 0, silent arrival cues) because the matrix records exactly three cues:
+# the portal sound and the cloud puff at the origin, the witch swirl at the destination. The origin puff rides
+# the activation location; the destination swirl rides the body two ticks after the hop, the same delay the
+# engine's own blink arrival cue uses, so it lands where the wearer does.
+# era: WITCH_MAGIC and CLOUD are the 1.8 particle spellings (SPELL_WITCH resolves both ways, CLOUD is
+# unchanged). PORTAL_TRIGGER is the 1.8 sound id and has no resolver alias row yet, so the modern
+# BLOCK_PORTAL_TRIGGER token resolves to nothing on the legacy lane until one is added.
+levels:
+  1:
+    chance: 1.25
+    effects:
+      - { SOUND: { sound: "BLOCK_PORTAL_TRIGGER", volume: 0.8, pitch: 1.4 } }
+      - { PARTICLE: { particle: "CLOUD", count: 20 } }
+      - { BLINK: { distance: 4, count: 0, arrival-volume: 0, accent-volume: 0 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self", wait: 2 } }
+  2:
+    chance: 2.5
+    effects:
+      - { SOUND: { sound: "BLOCK_PORTAL_TRIGGER", volume: 0.8, pitch: 1.4 } }
+      - { PARTICLE: { particle: "CLOUD", count: 20 } }
+      - { BLINK: { distance: 4, count: 0, arrival-volume: 0, accent-volume: 0 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self", wait: 2 } }
+  3:
+    chance: 3.75
+    effects:
+      - { SOUND: { sound: "BLOCK_PORTAL_TRIGGER", volume: 0.8, pitch: 1.4 } }
+      - { PARTICLE: { particle: "CLOUD", count: 20 } }
+      - { BLINK: { distance: 4, count: 0, arrival-volume: 0, accent-volume: 0 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self", wait: 2 } }
+  4:
+    chance: 5
+    effects:
+      - { SOUND: { sound: "BLOCK_PORTAL_TRIGGER", volume: 0.8, pitch: 1.4 } }
+      - { PARTICLE: { particle: "CLOUD", count: 20 } }
+      - { BLINK: { distance: 4, count: 0, arrival-volume: 0, accent-volume: 0 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self", wait: 2 } }
+  5:
+    chance: 6.25
+    effects:
+      - { SOUND: { sound: "BLOCK_PORTAL_TRIGGER", volume: 0.8, pitch: 1.4 } }
+      - { PARTICLE: { particle: "CLOUD", count: 20 } }
+      - { BLINK: { distance: 4, count: 0, arrival-volume: 0, accent-volume: 0 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self", wait: 2 } }
+  6:
+    chance: 7.5
+    effects:
+      - { SOUND: { sound: "BLOCK_PORTAL_TRIGGER", volume: 0.8, pitch: 1.4 } }
+      - { PARTICLE: { particle: "CLOUD", count: 20 } }
+      - { BLINK: { distance: 4, count: 0, arrival-volume: 0, accent-volume: 0 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self", wait: 2 } }
+  7:
+    chance: 8.75
+    effects:
+      - { SOUND: { sound: "BLOCK_PORTAL_TRIGGER", volume: 0.8, pitch: 1.4 } }
+      - { PARTICLE: { particle: "CLOUD", count: 20 } }
+      - { BLINK: { distance: 4, count: 0, arrival-volume: 0, accent-volume: 0 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self", wait: 2 } }
+  8:
+    chance: 10
+    effects:
+      - { SOUND: { sound: "BLOCK_PORTAL_TRIGGER", volume: 0.8, pitch: 1.4 } }
+      - { PARTICLE: { particle: "CLOUD", count: 20 } }
+      - { BLINK: { distance: 4, count: 0, arrival-volume: 0, accent-volume: 0 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self", wait: 2 } }

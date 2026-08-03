@@ -1,0 +1,31 @@
+# Matrix: 02-enchants-armor-m-z.md § Molten
+display: "Molten"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance to set whoever lands a melee hit on you on fire."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "uncommon"
+tier: uncommon
+condition: "%damagecause% == \"ENTITY_ATTACK\""
+# Non-stacking: the highest-level piece alone fires (the shared highest-only interaction rule).
+# The measured jar SETS the attacker's fire ticks absolutely, so a re-proc could SHORTEN a longer burn;
+# IGNITE refreshes instead — benign divergence, recorded and not replicated.
+# era: none.
+levels:
+  1:
+    chance: 10
+    effects:
+      - { IGNITE: { duration: 20, who: "@Attacker" } }  # 1 s
+  2:
+    chance: 20
+    effects:
+      - { IGNITE: { duration: 40, who: "@Attacker" } }  # 2 s
+  3:
+    chance: 30
+    effects:
+      - { IGNITE: { duration: 60, who: "@Attacker" } }  # 3 s
+  4:
+    chance: 40
+    effects:
+      - { IGNITE: { duration: 80, who: "@Attacker" } }  # 4 s

@@ -1,0 +1,34 @@
+# Matrix: 02-enchants-armor-m-z.md § Springs
+display: "Springs"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eGrants permanent Jump Boost while the boots are worn."
+trigger: PASSIVE
+applies-to: [BOOTS]
+group: "rare"
+tier: rare
+# The matrix's shared suppression ruling maps the corpus's noDefenseProcs to SUPPRESS(scope=TYPE, key=defense),
+# which cannot reach a PASSIVE ability — cosmic silence never dropped worn passives, so this permanent worn
+# buff is unsilenceable (the wearer's other enchants still are).
+suppress-immune: true
+# strings: the tracker-equivalents the matrix records are the shared potion-registry equip feedback, emitted
+# for every maintained potion rather than authored per enchant:
+#   §b§l[+] §bSprings III:§7 applying JUMP III
+#   §c§l[-] §cSprings III:§7 removing JUMP III
+# era: `JUMP` is the legacy potion id (modern JUMP_BOOST) — resolver alias; no other hazards.
+# On the stackable whitelist but boots-only, so the whitelist is inert: one worn copy, highest level wins.
+# The amplifier-128 freeze effects (Nature Wrath, Trap) strip the vanilla effect while worn; the passive
+# potion reconciliation re-applies once the freeze expires (the jar's stuck-until-retrigger gap is hygiene,
+# not replicated).
+levels:
+  1:
+    effects:
+      # duration = maintained-while-worn: the passive driver re-derives the buff for as long as the boots are
+      # worn and tears it down on unequip, so the authored tick count never governs.
+      - { POTION: { effect: "JUMP", level: 1, duration: 200, who: "@Self" } }
+  2:
+    effects:
+      - { POTION: { effect: "JUMP", level: 2, duration: 200, who: "@Self" } }
+  3:
+    effects:
+      - { POTION: { effect: "JUMP", level: 3, duration: 200, who: "@Self" } }

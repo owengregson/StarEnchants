@@ -1,0 +1,92 @@
+# Matrix: 02-enchants-armor-m-z.md § Paradox
+display: "Paradox"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA hit taken spends souls to heal every nearby ally for a share of the damage."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "soul"
+tier: soul
+# The ally gate is what keeps souls from burning on an empty ally set. %nearbyallies% counts allied PLAYERS
+# (self excluded) at the engine's fixed 8-block scan radius, so at every level the gate is TIGHTER than the
+# heal radius below (12-28): an ally standing at 10 blocks would be healed but does not arm the gate. The
+# matrix writes the condition in exactly this form; the radius-parameterised fact it sketched does not exist
+# on the frozen surface.
+condition: "(%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && %nearbyallies% >= 1"
+soul-cost: 5  # flat at every level, and no cooldown — sustained fire drains souls (measured)
+no-souls-message: "§c§l** OUT OF SOULS **"
+# era: HAPPY_VILLAGER carries its own cross-era spelling through the particle alias table; the recorded
+# LEVEL_UP and EAT sounds are the 1.8 enum constants, authored here as their modern flattened names
+# (ENTITY_PLAYER_LEVELUP is already in the alias table; ENTITY_GENERIC_EAT still needs its row for the
+# legacy lane).
+# Ledger D-02-4 (as-intended): the heal ships as damage x level/10. The measured jar computed
+# damage x (level/10) in integer division — always 0.0 HP at every level while still charging souls and
+# playing the full feedback. The same truncation collapsed its "ally needs healing" test into "any ally
+# nearby", so the %nearbyallies% gate above IS the intended form.
+# The jar's ally box was horizontal-only with a vertical reach of radius+128; @Aoe is spherical and does not
+# replicate that asymmetry (noted, no ledger row).
+# Ally = faction ally/member both ways with neither in a duel, spectators excluded — the engine relation
+# layer. Soul discounts (Outposts / faction upgrades, including the top-rank no-discount quirk) are
+# environment gates and are not ported.
+# The jar printed the two soul lines only when the balance was a multiple of 100 or below 10; that throttle
+# is a lang-layer choice, so the lines ship unconditionally with the activation.
+# Message tokens ({owner}, {heal}, {total}, {cost}, {souls}) are recorded verbatim and left unbound —
+# token binding lands with wave 1e.
+levels:
+  1:
+    chance: 10
+    effects:
+      - { MODIFY_HEALTH: { amount: "%damage% * 0.1", mode: "give", who: "@Aoe{r=12, filter=ALLIES}" } }
+      - { PARTICLE: { particle: "HAPPY_VILLAGER", count: 20, who: "@Aoe{r=12, filter=ALLIES}" } }
+      # SOUND has no per-target form, so the recorded per-ally cue rides one world-audible copy at the wearer,
+      # as does the wearer's own @Self cue.
+      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 1.0, pitch: 2.0 } }
+      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
+      - { MESSAGE: { text: "§a§l** PARADOX [{owner}] (+{heal}HP) **", who: "@Aoe{r=12, filter=ALLIES}" } }
+      - { MESSAGE: { text: "§2§l** PARADOX [{total} -> HP]  **", who: "@Self" } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", who: "@Self" } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", who: "@Self" } }
+  2:
+    chance: 20
+    effects:
+      - { MODIFY_HEALTH: { amount: "%damage% * 0.2", mode: "give", who: "@Aoe{r=16, filter=ALLIES}" } }
+      - { PARTICLE: { particle: "HAPPY_VILLAGER", count: 20, who: "@Aoe{r=16, filter=ALLIES}" } }
+      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 1.0, pitch: 2.0 } }
+      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
+      - { MESSAGE: { text: "§a§l** PARADOX [{owner}] (+{heal}HP) **", who: "@Aoe{r=16, filter=ALLIES}" } }
+      - { MESSAGE: { text: "§2§l** PARADOX [{total} -> HP]  **", who: "@Self" } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", who: "@Self" } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", who: "@Self" } }
+  3:
+    chance: 30
+    effects:
+      - { MODIFY_HEALTH: { amount: "%damage% * 0.3", mode: "give", who: "@Aoe{r=20, filter=ALLIES}" } }
+      - { PARTICLE: { particle: "HAPPY_VILLAGER", count: 20, who: "@Aoe{r=20, filter=ALLIES}" } }
+      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 1.0, pitch: 2.0 } }
+      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
+      - { MESSAGE: { text: "§a§l** PARADOX [{owner}] (+{heal}HP) **", who: "@Aoe{r=20, filter=ALLIES}" } }
+      - { MESSAGE: { text: "§2§l** PARADOX [{total} -> HP]  **", who: "@Self" } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", who: "@Self" } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", who: "@Self" } }
+  4:
+    chance: 40
+    effects:
+      - { MODIFY_HEALTH: { amount: "%damage% * 0.4", mode: "give", who: "@Aoe{r=24, filter=ALLIES}" } }
+      - { PARTICLE: { particle: "HAPPY_VILLAGER", count: 20, who: "@Aoe{r=24, filter=ALLIES}" } }
+      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 1.0, pitch: 2.0 } }
+      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
+      - { MESSAGE: { text: "§a§l** PARADOX [{owner}] (+{heal}HP) **", who: "@Aoe{r=24, filter=ALLIES}" } }
+      - { MESSAGE: { text: "§2§l** PARADOX [{total} -> HP]  **", who: "@Self" } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", who: "@Self" } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", who: "@Self" } }
+  5:
+    chance: 50
+    effects:
+      - { MODIFY_HEALTH: { amount: "%damage% * 0.5", mode: "give", who: "@Aoe{r=28, filter=ALLIES}" } }
+      - { PARTICLE: { particle: "HAPPY_VILLAGER", count: 20, who: "@Aoe{r=28, filter=ALLIES}" } }
+      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 1.0, pitch: 2.0 } }
+      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
+      - { MESSAGE: { text: "§a§l** PARADOX [{owner}] (+{heal}HP) **", who: "@Aoe{r=28, filter=ALLIES}" } }
+      - { MESSAGE: { text: "§2§l** PARADOX [{total} -> HP]  **", who: "@Self" } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", who: "@Self" } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", who: "@Self" } }
