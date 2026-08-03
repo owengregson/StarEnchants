@@ -78,6 +78,13 @@ class LocationEffectTest {
                     Sink sink = mock(Sink.class);
                     new GuardEffect().run(FakeEffectCtx.create(), sink);
                     verifyNoInteractions(sink);
+                }),
+                dynamicTest("SOUND with neither who nor a location → no-op", () -> {
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("sound", 3).with("volume", 1.0).with("pitch", 1.0); // read before the guard
+                    Sink sink = mock(Sink.class);
+                    new SoundEffect().run(ctx, sink);
+                    verifyNoInteractions(sink);
                 }));
     }
 
@@ -179,6 +186,28 @@ class LocationEffectTest {
                     new GuardEffect().run(ctx, sink);
                     verify(sink).guard(attacker, at, 42, 1, 600, "&bGuardian", null, 120.0, 1.4, List.of(7, 11));
                     verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("SOUND with who → one entity-anchored play per resolved target", () -> {
+                    LivingEntity a = mock(LivingEntity.class);
+                    LivingEntity b = mock(LivingEntity.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().targets("who", a, b)
+                            .with("sound", 3).with("volume", 0.5).with("pitch", 1.5);
+                    Sink sink = mock(Sink.class);
+                    new SoundEffect().run(ctx, sink);
+                    // Entity-anchored, not location-anchored: the Sink reads each body's position at dispatch,
+                    // so a target that moved (or sits in another region) still gets its cue where it actually is.
+                    verify(sink).sound(a, 3, 0.5f, 1.5f);
+                    verify(sink).sound(b, 3, 0.5f, 1.5f);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("SOUND with who wins over the activation location", () -> {
+                    LivingEntity target = mock(LivingEntity.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().location(mock(Location.class))
+                            .targets("who", target).with("sound", 3).with("volume", 1.0).with("pitch", 1.0);
+                    Sink sink = mock(Sink.class);
+                    new SoundEffect().run(ctx, sink);
+                    verify(sink).sound(target, 3, 1.0f, 1.0f);
+                    verifyNoMoreInteractions(sink); // never BOTH — the who slot replaces the anchor, it does not add one
                 }),
                 dynamicTest("PROJECTILE → launchProjectile(actor, type, count, speed, yield, incendiary)", () -> {
                     Player actor = mock(Player.class);

@@ -22,11 +22,13 @@ public final class DamageCapEffect implements EffectKind {
             .param("factor", D.DOUBLE.min(0).def(0.5))
             .param("reflect", D.BOOL.def(false))
             .param("duration", D.TICKS.def(100))
+            .param("feedback", D.STRING.def(""), "line sent on arming; {damage} = the cap value just committed")
             .target("who", T.SELF)
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Cap the wearer's next incoming hit at factor times the last damage they took, for a duration "
                     + "in ticks; with reflect, the overflow above the cap is dealt back to the attacker (Diminish). "
-                    + "Self-only; no cap is armed until at least one hit has been taken.")
+                    + "Self-only; no cap is armed until at least one hit has been taken. feedback is an optional "
+                    + "line sent when the cap arms, with {damage} filled in with the cap value.")
             .example("{ DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100 } }")
             .build();
 
@@ -40,9 +42,10 @@ public final class DamageCapEffect implements EffectKind {
         double factor = ctx.dbl("factor");
         boolean reflect = ctx.bool("reflect");
         int duration = ctx.integer("duration");
+        String feedback = ctx.str("feedback");
         for (LivingEntity target : ctx.targets("who")) {
             if (target instanceof Player p) {
-                sink.armDamageCap(p, factor, reflect, duration);
+                sink.armDamageCap(p, factor, reflect, duration, feedback);
             }
         }
     }

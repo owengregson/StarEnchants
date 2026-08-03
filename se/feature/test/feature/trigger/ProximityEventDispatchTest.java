@@ -133,6 +133,20 @@ class ProximityEventDispatchTest {
     }
 
     @Test
+    void theWalkScansTheDeclaredCeilingOnEveryAxis() {
+        Player dying = player(DYING);
+        nearby(dying);
+
+        listeners.onDeath(death(dying));
+
+        // The ceiling is the ONLY thing bounding which observers the walk can ever see: an ability's own
+        // %distance% condition can narrow the scan but never widen it, so a hard-coded literal here (or a
+        // transposed axis) silently caps every authored range at whatever number crept in.
+        double ceiling = TriggerDispatch.PROXIMITY_RADIUS;
+        verify(dying).getNearbyEntities(ceiling, ceiling, ceiling);
+    }
+
+    @Test
     void aDyingMobObservesNobody() {
         Zombie dead = mock(Zombie.class);
         EntityDeathEvent event = mock(EntityDeathEvent.class);

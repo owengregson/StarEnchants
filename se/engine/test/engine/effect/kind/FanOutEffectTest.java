@@ -260,10 +260,15 @@ class FanOutEffectTest {
                 playerOnly("WEAKEN → weaken(percent, duration) — Destruction, player-only", new WeakenEffect(),
                         c -> c.with("percent", 15.0).with("duration", 100),
                         (s, p) -> verify(s).weaken(p, 15.0, 100)),
+                playerOnly("DAMAGE_CAP with feedback → armDamageCap carries the arming line", new DamageCapEffect(),
+                        c -> c.with("factor", 0.5).with("reflect", false).with("duration", 100)
+                                .with("feedback", "capped at {damage}"),
+                        (s, p) -> verify(s).armDamageCap(p, 0.5, false, 100, "capped at {damage}")),
                 playerOnly("DAMAGE_CAP → armDamageCap(factor, reflect, duration) — Diminish, player-only",
                         new DamageCapEffect(),
-                        c -> c.with("factor", 0.5).with("reflect", true).with("duration", 100),
-                        (s, p) -> verify(s).armDamageCap(p, 0.5, true, 100)));
+                        c -> c.with("factor", 0.5).with("reflect", true).with("duration", 100)
+                                .with("feedback", ""),
+                        (s, p) -> verify(s).armDamageCap(p, 0.5, true, 100, "")));
     }
 
     /** The wave-1d.2 kinds whose fan-out shape is neither plain-entity nor plain-player. */

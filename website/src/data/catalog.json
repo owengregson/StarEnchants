@@ -477,9 +477,9 @@
     },
   {
     "head": "DAMAGE_CAP",
-    "doc": "Cap the wearer's next incoming hit at factor times the last damage they took, for a duration in ticks; with reflect, the overflow above the cap is dealt back to the attacker (Diminish). Self-only; no cap is armed until at least one hit has been taken.",
+    "doc": "Cap the wearer's next incoming hit at factor times the last damage they took, for a duration in ticks; with reflect, the overflow above the cap is dealt back to the attacker (Diminish). Self-only; no cap is armed until at least one hit has been taken. feedback is an optional line sent when the cap arms, with {damage} filled in with the cap value.",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ DAMAGE_CAP: { factor: <double[0..]=0.5>, reflect: <bool=false>, duration: <ticks[0..]=100> } }",
+    "usage": "{ DAMAGE_CAP: { factor: <double[0..]=0.5>, reflect: <bool=false>, duration: <ticks[0..]=100>, feedback: <string=> } }",
     "example": "{ DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100 } }",
     "params": [
       {
@@ -517,6 +517,18 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "feedback",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "line sent on arming; {damage} = the cap value just committed"
         }
       ],
     "targets": [
@@ -2594,7 +2606,7 @@
     },
   {
     "head": "MESSAGE",
-    "doc": "Send feedback on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade timings). Default recipient self; `who` can name any party (e.g. @Victim). The `{ATTACKER}`/`{VICTIM}` tokens expand to the activating player and the other combat party. Replaces ACTIONBAR/TITLE.",
+    "doc": "Send feedback on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade timings). Default recipient self; `who` can name any party (e.g. @Victim). The `{ATTACKER}`/`{VICTIM}` tokens expand to the activating player and the other combat party, and `{SELF}` to the name of whoever receives that copy. Replaces ACTIONBAR/TITLE.",
     "affinity": "CONTEXT_LOCAL",
     "usage": "{ MESSAGE: { text: <string>, channel: <enum{chat|actionbar|title}=chat>, subtitle: <string=>, fadeIn: <ticks[0..]=10>, stay: <ticks[0..]=70>, fadeOut: <ticks[0..]=20> } }",
     "example": "{ MESSAGE: { text: \"&aCritical hit!\" } }",
@@ -3911,7 +3923,7 @@
     },
   {
     "head": "SOUND",
-    "doc": "Play a sound at the activation location. No-op if the activation has no location.",
+    "doc": "Play a sound at the activation location, or at each entity in `who` when given — world-audible there at the same volume and pitch. No-op if `who` resolves nothing and the activation has no location.",
     "affinity": "REGION",
     "usage": "{ SOUND: { sound: <sound>, volume: <double[0..]=1>, pitch: <double[0..]=1> } }",
     "example": "{ SOUND: { sound: ENTITY_GENERIC_EXPLODE, volume: 1, pitch: 1 } }",
@@ -3953,7 +3965,12 @@
         "doc": ""
         }
       ],
-    "targets": []
+    "targets": [
+      {
+        "name": "who",
+        "selector": "HERE"
+        }
+      ]
     },
   {
     "head": "SPAWN_ENTITY",

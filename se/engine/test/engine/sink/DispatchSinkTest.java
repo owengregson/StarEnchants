@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -43,6 +44,7 @@ import platform.economy.EconomyService;
 import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
+import platform.text.Numbers;
 import testfx.Envs;
 import testfx.SyncSchedulerBackend;
 
@@ -254,7 +256,7 @@ class DispatchSinkTest {
         when(p.getUniqueId()).thenReturn(id);
         store.recordLastTaken(id, 10.0);
         ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().damageCap(store).nowTicks(() -> 0L).build());
-        sink.armDamageCap(p, 0.5, true, 100);
+        sink.armDamageCap(p, 0.5, true, 100, "");
         DamageCapStore.Cap cap = store.consumeArmed(id, 0L);
         assertEquals(5.0, cap.value(), "the cap is fixed at last-taken × factor at arm time");
         assertTrue(cap.reflectOverflow());
@@ -267,8 +269,39 @@ class DispatchSinkTest {
         UUID id = UUID.randomUUID();
         when(p.getUniqueId()).thenReturn(id);
         ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().damageCap(store).nowTicks(() -> 0L).build());
-        sink.armDamageCap(p, 0.5, false, 100); // no recorded hit → value 0 → nothing armed
+        sink.armDamageCap(p, 0.5, false, 100, ""); // no recorded hit → value 0 → nothing armed
         assertNull(store.consumeArmed(id, 0L));
+    }
+
+    @Test
+    void armDamageCapFeedbackReportsTheValueItJustArmed() {
+        DamageCapStore store = new DamageCapStore();
+        UUID id = UUID.randomUUID();
+        Player p = mock(Player.class);
+        when(p.getUniqueId()).thenReturn(id);
+        store.recordLastTaken(id, 10.0);
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().damageCap(store).nowTicks(() -> 0L).build());
+
+        sink.armDamageCap(p, 0.5, false, 100, "DMG: {damage}");
+        sink.flush(); // the notice is an ordinary entity-routed message intent, delivered at flush
+
+        // Reported at ARMING, carrying the fixed cap (last-taken × factor), not the factor and not a later hit:
+        // the line is the player's only view of the number the cap actually committed to.
+        verify(p).sendMessage("DMG: " + Numbers.chat(5.0));
+    }
+
+    @Test
+    void armDamageCapThatArmsNothingStaysSilent() {
+        DamageCapStore store = new DamageCapStore();
+        Player p = mock(Player.class);
+        when(p.getUniqueId()).thenReturn(UUID.randomUUID());
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().damageCap(store).nowTicks(() -> 0L).build());
+
+        sink.armDamageCap(p, 0.5, false, 100, "DMG: {damage}"); // no last-taken history → nothing armed
+        sink.flush();
+
+        // No cap, no claim: announcing a cap that was never armed is worse than silence.
+        verify(p, never()).sendMessage(anyString());
     }
 
     @Test

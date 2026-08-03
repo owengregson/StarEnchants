@@ -42,6 +42,7 @@ effect DAMAGE_CAP
   param factor DOUBLE optional min=0 max=- enum=- handle=- default=0.5
   param reflect BOOL optional min=- max=- enum=- handle=- default=false
   param duration TICKS optional min=0 max=- enum=- handle=- default=100
+  param feedback STRING optional min=- max=- enum=- handle=- default=
 effect DAMAGE_MOD
   param side ENUM required min=- max=- enum=attack,defense handle=- default=-
   param mode ENUM optional min=- max=- enum=add,flat handle=- default=add

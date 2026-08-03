@@ -452,8 +452,13 @@ public final class TriggerDispatch {
      * The hard ceiling on the PROXIMITY_EVENT observer walk, in blocks. It bounds the scan, it is not the
      * gameplay range: an ability picks that itself with {@code %distance%}, which on this activation is exactly
      * the observer-to-subject distance. Deaths are rare, so the walk is cold — but it still has to be bounded.
+     *
+     * <p>Sized to clear the widest range content actually authors (Avenging Angel reaches 98 blocks at L4) —
+     * a ceiling below an authored radius does not shorten that ability, it makes it silently never fire. One
+     * {@code getNearbyEntities} per death is affordable at this size precisely because deaths are rare; this
+     * is not a per-hit scan.
      */
-    public static final double PROXIMITY_RADIUS = 16.0;
+    public static final double PROXIMITY_RADIUS = 100.0;
 
     /**
      * Fire PROXIMITY_EVENT on {@code observer} because {@code subject} died nearby. The subject rides the
