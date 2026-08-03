@@ -6,19 +6,20 @@ import compile.model.Snapshot;
 import item.worn.WornState;
 import item.worn.WornStateStore;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.Map;
 import org.bukkit.entity.Player;
 
 /**
  * Fires {@code EQUIP_CHANGE} off the worn-ability diff each {@code EquipListener} refresh produces: abilities
- * that arrived walk with {@code %equipchange% == "EQUIP"}, ones that left with {@code "UNEQUIP"}. Rides the
- * post-refresh hook (ADR-0053), so it runs on the player's own region thread with the NEW worn state resolved.
+ * that arrived walk with {@code %equipchange% == "EQUIP"}, ones that left with {@code "UNEQUIP"}. Driven from
+ * the END of {@code EquipListener.refresh}, so it runs on the player's own region thread against the NEW state.
  *
  * <p>Keyed by STABLE key like {@link LifecycleDriver}, for the same reason: the set has to survive a reload,
  * which reassigns dense ids. That is also what lets the leaving piece fire — its ability is gone from the worn
@@ -60,21 +61,23 @@ public final class EquipChangeDriver {
         if (state == null || state.gen() != snapshot.generation()) {
             return;
         }
-        Set<String> current = new LinkedHashSet<>();
+        // Key → dense id, so multiplicity de-dups to one entry and the EQUIP side needs no id round-trip.
+        Map<String, Integer> current = new LinkedHashMap<>();
         for (int abilityId : state.byTrigger(dispatch.equipChange)) {
             String key = snapshot.stableKeys().keyOf(abilityId);
             if (key != null) {
-                current.add(key);
+                current.putIfAbsent(key, abilityId);
             }
         }
         Set<String> previous = equipped.getOrDefault(player.getUniqueId(), Set.of());
         // Stamp BEFORE dispatching: an effect that mutates equipment re-enters refresh, and an un-stamped
         // set would let the same transition fire twice.
-        equipped.put(player.getUniqueId(), current);
+        equipped.put(player.getUniqueId(), new LinkedHashSet<>(current.keySet()));
 
         List<Integer> removed = new ArrayList<>();
         for (String key : previous) {
-            if (!current.contains(key)) {
+            if (!current.containsKey(key)) {
+                // The departed ability is no longer in byTrigger, so its id comes back through the key it kept.
                 Ability ability = snapshot.byStableKey(key);
                 if (ability != null) {
                     removed.add(ability.id());
@@ -82,9 +85,9 @@ public final class EquipChangeDriver {
             }
         }
         List<Integer> added = new ArrayList<>();
-        for (String key : current) {
-            if (!previous.contains(key)) {
-                added.add(snapshot.stableKeys().idOf(key));
+        for (Map.Entry<String, Integer> entry : current.entrySet()) {
+            if (!previous.contains(entry.getKey())) {
+                added.add(entry.getValue());
             }
         }
         // UNEQUIP first, mirroring the HELD/PASSIVE STOP-before-START order: a level swap sheds the old piece's
