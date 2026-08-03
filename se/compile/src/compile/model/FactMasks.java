@@ -104,8 +104,9 @@ public final class FactMasks {
                     num(arg); // a function reads nothing itself — only whatever its arguments read
                 }
             } else if (node instanceof NumExpr.Lit || node instanceof NumExpr.Papi
-                    || node instanceof NumExpr.EntityVar) {
-                // Reference no fact slot (a PAPI token and an entity var both resolve through lazy readers).
+                    || node instanceof NumExpr.EntityVar || node instanceof NumExpr.PotionLevel) {
+                // Reference no fact slot (PAPI tokens, entity vars and potion levels all resolve through
+                // lazy readers, so they cost nothing until the node is actually reached).
             } else {
                 throw new IllegalStateException("unhandled node: " + node.getClass());
             }

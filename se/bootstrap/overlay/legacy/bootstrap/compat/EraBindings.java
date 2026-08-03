@@ -54,9 +54,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.potion.PotionEffectType;
 import platform.economy.EconomyProvider;
 import platform.protect.ProtectionProvider;
 import platform.resolve.RegistryResolvers;
+import schema.spec.HandleCategory;
 import platform.text.Colors;
 
 /**
@@ -105,10 +107,14 @@ public final class EraBindings implements EraServices {
         return new LegacyEquipSource();
     }
 
-    /** The entity/material fact reads (§3.3): 1.8-correct swim/glide/isAir/main-hand. Injected into {@code FactPopulator}. */
+    /** The entity/material fact reads (§3.3): 1.8-correct swim/glide/isAir/main-hand + the keyed potion read.
+     *  1.8 has no RuntimeHandles, so an interned id round-trips through the resolver's name (as the sink does). */
     @Override
     public ActorProbe actorProbe() {
-        return new LegacyActorProbe();
+        return new LegacyActorProbe(id -> {
+            String name = resolvers.nameOf(HandleCategory.POTION_EFFECT, id);
+            return name == null ? null : PotionEffectType.getByName(name);
+        });
     }
 
     /** Hand/equipment access (§4): the single 1.8 hand (no off-hand). Injected into the feature shells. */

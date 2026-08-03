@@ -10,7 +10,7 @@ import java.util.List;
  */
 public sealed interface NumExpr
         permits NumExpr.Var, NumExpr.Lit, NumExpr.Papi, NumExpr.Bin, NumExpr.Neg, NumExpr.Fn,
-                NumExpr.EntityVar {
+                NumExpr.EntityVar, NumExpr.PotionLevel {
 
     /** A numeric variable resolved to its dense {@code FactBuffer} number slot. */
     record Var(int slot) implements NumExpr {}
@@ -37,8 +37,17 @@ public sealed interface NumExpr
      */
     record EntityVar(Scope scope, String name) implements NumExpr {}
 
-    /** Which entity of the activation an {@link EntityVar} reads from. */
-    enum Scope { VICTIM }
+    /**
+     * An entity's active level of one potion effect — {@code %actor.potion.<effect>%} /
+     * {@code %victim.potion.<effect>%}. The {@code <effect>} token resolves to an interned handle at COMPILE
+     * time (§9), so the runtime never sees a name and never touches a renamed constant. The value is
+     * {@code amplifier + 1} (Strength I reads 1) and {@code 0} when the effect is absent, which makes
+     * {@code > 0} the boolean idiom.
+     */
+    record PotionLevel(Scope scope, int handleId) implements NumExpr {}
+
+    /** Which entity of the activation an entity-scoped operand reads from. */
+    enum Scope { ACTOR, VICTIM }
 
     /** A function over nested operands; {@code args} arity is guaranteed by the parser's {@code ExprFn} check. */
     record Fn(FnKind kind, List<NumExpr> args) implements NumExpr {

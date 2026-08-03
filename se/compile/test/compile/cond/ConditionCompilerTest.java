@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import compile.model.cond.Cond;
 import compile.model.cond.NumExpr;
 import compile.model.cond.StrExpr;
+import compile.resolve.PlatformResolvers;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
@@ -18,6 +19,7 @@ import schema.grammar.expr.ExprFn;
 import schema.grammar.expr.ExprParser;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -264,6 +266,63 @@ class ConditionCompilerTest {
         Diagnostics d = new Diagnostics();
         Cond.NumCmp cmp = assertInstanceOf(Cond.NumCmp.class, lower("%victim.var.x% == 0", d));
         assertFalse(cmp.left() instanceof NumExpr.Papi, "a victim var must not fall through to PAPI");
+    }
+
+    // ── Keyed potion families: %actor.potion.<effect>% / %victim.potion.<effect>% resolve their effect token
+    // to an interned handle AT COMPILE TIME through the same §9 facade the resolve stage uses, so the runtime
+    // never sees a potion name and never touches a constant that was renamed in the range.
+
+    /** A resolver that knows exactly one potion effect, interned as 7 — the test owns both ends. */
+    private static final PlatformResolvers ONE_POTION = new PlatformResolvers() {
+        @Override public OptionalInt material(String token) { return OptionalInt.empty(); }
+        @Override public OptionalInt sound(String token) { return OptionalInt.empty(); }
+        @Override public OptionalInt potionEffect(String token) {
+            return "SPEED".equals(token) ? OptionalInt.of(7) : OptionalInt.empty();
+        }
+        @Override public OptionalInt particle(String token) { return OptionalInt.empty(); }
+        @Override public OptionalInt enchantment(String token) { return OptionalInt.empty(); }
+        @Override public OptionalInt entityType(String token) { return OptionalInt.empty(); }
+        @Override public OptionalInt attribute(String token) { return OptionalInt.empty(); }
+    };
+
+    private static Cond lowerResolving(String expr, Diagnostics d) {
+        Expr ast = ExprParser.parse(expr, SRC, d).orElseThrow();
+        return new ConditionCompiler(VARS, ONE_POTION).compile(ast, d).orElseThrow();
+    }
+
+    @ValueSource(strings = {"%actor.potion.SPEED% > 0", "%victim.potion.SPEED% > 0"})
+    @ParameterizedTest
+    void bothPotionScopesLowerToAResolvedHandle(String expr) {
+        Diagnostics d = new Diagnostics();
+        Cond.NumCmp cmp = assertInstanceOf(Cond.NumCmp.class, lowerResolving(expr, d));
+        assertFalse(d.hasErrors(), () -> d.all().toString());
+        NumExpr.PotionLevel read = assertInstanceOf(NumExpr.PotionLevel.class, cmp.left());
+        assertEquals(7, read.handleId(), "the token resolved at compile, so no name reaches the runtime");
+        assertEquals(expr.startsWith("%victim") ? NumExpr.Scope.VICTIM : NumExpr.Scope.ACTOR, read.scope());
+    }
+
+    @Test
+    void aPotionTokenIsNotSilentlyAPlaceholder() {
+        // Without the prefix arm this lowers to NumExpr.Papi and reads null forever — a silent no-op.
+        Diagnostics d = new Diagnostics();
+        Cond.NumCmp cmp = assertInstanceOf(Cond.NumCmp.class, lowerResolving("%actor.potion.SPEED% == 2", d));
+        assertFalse(cmp.left() instanceof NumExpr.Papi, "a potion read must not fall through to PAPI");
+    }
+
+    @Test
+    void anEffectUnknownOnThisVersionIsADiagnosticNotAPassthrough() {
+        Diagnostics d = new Diagnostics();
+        Expr ast = ExprParser.parse("%actor.potion.NOSUCHEFFECT% > 0", SRC, d).orElseThrow();
+        assertTrue(new ConditionCompiler(VARS, ONE_POTION).compile(ast, d).isEmpty());
+        assertTrue(d.all().stream().anyMatch(x -> x.is(DiagCode.E_UNKNOWN_HANDLE)));
+    }
+
+    @Test
+    void aScopeThatNamesNeitherEntityKeepsItsPlaceholderFallthrough() {
+        // %world.potion.X% names no activation entity, so the prefix arm must not claim it.
+        Diagnostics d = new Diagnostics();
+        Cond.NumCmp cmp = assertInstanceOf(Cond.NumCmp.class, lowerResolving("%world.potion.SPEED% > 0", d));
+        assertInstanceOf(NumExpr.Papi.class, cmp.left());
     }
 
     @Test

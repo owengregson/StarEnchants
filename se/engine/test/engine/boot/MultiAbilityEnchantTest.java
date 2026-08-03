@@ -2,6 +2,7 @@ package engine.boot;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -14,6 +15,8 @@ import compile.load.LibraryLoader;
 import compile.model.Ability;
 import compile.model.Snapshot;
 import compile.model.StableKeyIndex;
+import compile.model.cond.Cond;
+import compile.model.cond.NumExpr;
 import engine.condition.BuiltinVars;
 import engine.condition.FactBuffer;
 import engine.effect.kind.BuiltinEffects;
@@ -219,6 +222,27 @@ class MultiAbilityEnchantTest {
         assertTrue(ability.factMask().readsNum(vocab.get("victim.souls").slot()));
         assertTrue(ability.factMask().readsNum(vocab.get("impactheight").slot()));
         assertTrue(ability.factMask().readsStr(vocab.get("projectilekind").slot()));
+    }
+
+    @Test
+    void theKeyedPotionFamiliesSurviveTheWholeCompileAsResolvedHandles() throws Exception {
+        // No fact slot to assert against — the families resolve their effect token to an interned handle at
+        // compile time — so the end-to-end contract is that the node reaches the runtime record as a handle,
+        // never as a PlaceholderAPI passthrough that would read null forever.
+        Snapshot snap = load("""
+                display: "Phoenix"
+                trigger: "ATTACK"
+                levels:
+                  1:
+                    condition: "%actor.potion.SPEED% > 1 && %victim.potion.SLOW% > 0"
+                    effects: [{ IGNITE: { duration: 60, who: "@Victim" } }]
+                """);
+        Ability ability = snap.byStableKey("enchants/phoenix/1");
+        Cond.And root = assertInstanceOf(Cond.And.class, ability.condition().root());
+        assertInstanceOf(NumExpr.PotionLevel.class, assertInstanceOf(Cond.NumCmp.class, root.left()).left());
+        NumExpr.PotionLevel victimSide =
+                assertInstanceOf(NumExpr.PotionLevel.class, assertInstanceOf(Cond.NumCmp.class, root.right()).left());
+        assertEquals(NumExpr.Scope.VICTIM, victimSide.scope());
     }
 
     private GateOutcome gate(Ability ability, FactBuffer facts, double roll) {

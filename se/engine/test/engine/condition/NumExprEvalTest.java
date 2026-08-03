@@ -32,6 +32,30 @@ class NumExprEvalTest {
     }
 
     @Test
+    void potionLevelReadsAmplifierPlusOnePerScopeAndZeroWhenAbsent() {
+        FactBuffer facts = new FactBuffer(0, 0, 0);
+        facts.potionLevels(new PotionLevels() {
+            @Override
+            public int actorLevel(int potionEffectId) {
+                return potionEffectId == 7 ? 2 : 0; // Speed II on the actor
+            }
+
+            @Override
+            public int victimLevel(int potionEffectId) {
+                return 0;
+            }
+        });
+        // amplifier+1, so `> 0` is the "is it active" idiom and `> 1` the "at least II" one.
+        assertEquals(2.0, NumExprEval.eval(new NumExpr.PotionLevel(NumExpr.Scope.ACTOR, 7), facts));
+        assertEquals(0.0, NumExprEval.eval(new NumExpr.PotionLevel(NumExpr.Scope.ACTOR, 8), facts));
+        // The scope is not decorative: reading the victim must not answer with the actor's effects.
+        assertEquals(0.0, NumExprEval.eval(new NumExpr.PotionLevel(NumExpr.Scope.VICTIM, 7), facts));
+        // With no reader installed (a synthetic run) every read is 0 rather than NaN.
+        facts.clear();
+        assertEquals(0.0, NumExprEval.eval(new NumExpr.PotionLevel(NumExpr.Scope.ACTOR, 7), facts));
+    }
+
+    @Test
     void negationAndDivision() {
         FactBuffer facts = new FactBuffer(1, 0, 0);
         facts.setNumber(0, 20.0);

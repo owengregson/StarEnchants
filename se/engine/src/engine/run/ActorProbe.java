@@ -31,4 +31,12 @@ public interface ActorProbe {
      * a spawner farm from paying loot/soul bonuses. Always false on 1.8, which tracks no spawn provenance at all.
      */
     boolean fromSpawner(LivingEntity entity);
+
+    /**
+     * {@code entity}'s active level of the potion effect interned as {@code potionEffectId} — {@code amplifier + 1},
+     * or {@code 0} when absent ({@code %actor.potion.<effect>%} / {@code %victim.potion.<effect>%}). The id is the
+     * handle the compiler already resolved (§9), so the era impl only turns it back into a live type. Modern asks
+     * the entity directly; 1.8 has no per-type getter and sweeps the active list.
+     */
+    int potionLevel(LivingEntity entity, int potionEffectId);
 }
