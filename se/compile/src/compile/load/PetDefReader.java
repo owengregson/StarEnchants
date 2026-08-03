@@ -40,7 +40,6 @@ final class PetDefReader {
             // single-ability shorthand (a bracket with exactly one ability authors these at the top level):
             "trigger", "disabled-worlds", "repeat", "chance", "soul-cost", "no-souls-message", "condition", "effects");
 
-
     private PetDefReader() {
     }
 

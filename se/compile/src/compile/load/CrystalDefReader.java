@@ -35,7 +35,6 @@ final class CrystalDefReader {
             "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "no-souls-message",
             "condition", "effects");
 
-
     private CrystalDefReader() {
     }
 

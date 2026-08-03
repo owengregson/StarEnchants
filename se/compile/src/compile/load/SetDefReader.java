@@ -34,7 +34,6 @@ final class SetDefReader {
             "no-souls-message", "condition", "effects");
     private static final Set<String> MEMBER_KEYS = Set.of("material", "name");
 
-
     private SetDefReader() {
     }
 
