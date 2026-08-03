@@ -26,4 +26,9 @@ public record CompiledSelector(String head, Args args, int kindId) {
     public CompiledSelector withKindId(int kindId) {
         return new CompiledSelector(head, args, kindId);
     }
+
+    /** A copy with {@code args} replaced but the stamped {@code kindId} kept — resolve's handle-intern rewrite. */
+    public CompiledSelector withArgs(Args args) {
+        return new CompiledSelector(head, args, kindId);
+    }
 }

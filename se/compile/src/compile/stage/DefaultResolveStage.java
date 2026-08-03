@@ -2,6 +2,7 @@ package compile.stage;
 
 import compile.SpecRegistry;
 import compile.model.CompiledEffect;
+import compile.model.CompiledSelector;
 import compile.resolve.PlatformResolvers;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
@@ -30,10 +31,17 @@ import java.util.OptionalInt;
 public final class DefaultResolveStage implements ResolveStage {
 
     private final SpecRegistry registry;
+    private final SpecRegistry selectors;
     private final PlatformResolvers resolvers;
 
+    /** No selector registry: a selector's own HANDLE args stay unresolved tokens (the head-fallback wiring). */
     public DefaultResolveStage(SpecRegistry registry, PlatformResolvers resolvers) {
+        this(registry, compile.MapSpecRegistry.of(), resolvers);
+    }
+
+    public DefaultResolveStage(SpecRegistry registry, SpecRegistry selectors, PlatformResolvers resolvers) {
         this.registry = Objects.requireNonNull(registry, "registry");
+        this.selectors = Objects.requireNonNull(selectors, "selectors");
         this.resolvers = Objects.requireNonNull(resolvers, "resolvers");
     }
 
@@ -55,14 +63,40 @@ public final class DefaultResolveStage implements ResolveStage {
                 ability.setPieces(), ability.suppressImmune(), ability.chanceExpr());
     }
 
-    /** @return the effect with handle args resolved, or {@code null} if a handle was unknown. */
+    /** @return the effect (and its selector) with handle args resolved, or {@code null} if a handle was unknown. */
     private CompiledEffect resolveEffect(CompiledEffect effect, LoweredAbility owner, Diagnostics diags) {
+        CompiledSelector target = resolveSelector(effect, owner, diags);
+        if (target == null) {
+            return null;
+        }
         Optional<ParamSpec> spec = registry.lookup(effect.head());
         if (spec.isEmpty()) {
-            return effect; // unknown head was already handled in lowering; leave untouched
+            return effect.withTarget(target); // unknown head was already handled in lowering; leave args untouched
         }
-        Args args = effect.args();
-        for (Param p : spec.get().params()) {
+        Args args = resolveHandles(spec.get(), effect.args(), effect.head(), owner, diags);
+        return args == null ? null : effect.withArgs(args).withTarget(target); // keep the stamped kindId (ADR-0039)
+    }
+
+    /**
+     * The effect's target selector with its own HANDLE args interned (a block selector's {@code materials}).
+     * Selector args reach the runtime through the same {@link Args} bag effect args do, so they need the same
+     * intern pass — without it a {@code materials} list would arrive as a raw token and filter nothing.
+     */
+    private CompiledSelector resolveSelector(CompiledEffect effect, LoweredAbility owner, Diagnostics diags) {
+        CompiledSelector target = effect.target();
+        Optional<ParamSpec> spec = selectors.lookup(target.head());
+        if (spec.isEmpty()) {
+            return target;
+        }
+        Args args = resolveHandles(spec.get(), target.args(), "@" + target.head(), owner, diags);
+        return args == null ? null : target.withArgs(args);
+    }
+
+    /** @return {@code args} with every HANDLE param interned, or {@code null} if one resolved on no version. */
+    private Args resolveHandles(ParamSpec spec, Args original, String head,
+                                LoweredAbility owner, Diagnostics diags) {
+        Args args = original;
+        for (Param p : spec.params()) {
             ParamType type = p.type();
             if (type.kind() != ParamType.Kind.HANDLE || !args.has(p.name())) {
                 continue;
@@ -72,7 +106,7 @@ public final class DefaultResolveStage implements ResolveStage {
                 continue; // already an int / id list (re-resolved) or otherwise not a token
             }
             if (type.isList()) {
-                List<Integer> ids = resolveList(type.handleCategory(), token, p, effect, owner, diags);
+                List<Integer> ids = resolveList(type.handleCategory(), token, p, head, owner, diags);
                 if (ids == null) {
                     return null; // an unknown entry warn-and-skips the whole op, as a single handle does
                 }
@@ -83,14 +117,14 @@ public final class DefaultResolveStage implements ResolveStage {
             if (id.isEmpty()) {
                 diags.error(DiagCode.E_UNKNOWN_HANDLE,
                         "unknown " + type.handleCategory().label() + " '" + token
-                                + "' for argument '" + p.name() + "' of '" + effect.head() + "'",
+                                + "' for argument '" + p.name() + "' of '" + head + "'",
                         owner.source(),
                         "use a name valid on the target version, or remove the effect");
                 return null; // warn-and-skip this one op (§9)
             }
             args = args.with(p.name(), id.getAsInt());
         }
-        return effect.withArgs(args); // keep the stamped kindId (ADR-0039)
+        return args;
     }
 
     /**
@@ -100,7 +134,7 @@ public final class DefaultResolveStage implements ResolveStage {
      * warn-and-skip an unknown single handle triggers, so a typo cannot silently ship a shorter loadout.
      */
     private List<Integer> resolveList(HandleCategory category, String token, Param p,
-                                      CompiledEffect effect, LoweredAbility owner, Diagnostics diags) {
+                                      String head, LoweredAbility owner, Diagnostics diags) {
         List<Integer> ids = new ArrayList<>();
         for (String entry : token.split(",")) {
             String trimmed = entry.trim();
@@ -111,7 +145,7 @@ public final class DefaultResolveStage implements ResolveStage {
             if (id.isEmpty()) {
                 diags.error(DiagCode.E_UNKNOWN_HANDLE,
                         "unknown " + category.label() + " '" + trimmed
-                                + "' in argument '" + p.name() + "' of '" + effect.head() + "'",
+                                + "' in argument '" + p.name() + "' of '" + head + "'",
                         owner.source(),
                         "use a name valid on the target version, or drop it from the list");
                 return null;

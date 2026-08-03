@@ -56,4 +56,13 @@ public interface SelectorCtx {
     default List<Location> vein(Location start, int limit) {
         return List.of();
     }
+
+    /**
+     * Whether the block at {@code at} is one of the interned {@code materialIds}. An EMPTY list is "no filter"
+     * and answers {@code true} without touching the world, so an unfiltered selector reads no blocks at all;
+     * a context with no world defaults to admitting everything rather than silently emptying the selection.
+     */
+    default boolean materialMatches(Location at, List<Integer> materialIds) {
+        return true;
+    }
 }

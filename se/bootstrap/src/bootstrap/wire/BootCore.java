@@ -701,6 +701,26 @@ public final class BootCore {
             }
 
             @Override
+            public boolean materialMatches(Location at, List<Integer> materialIds) {
+                if (materialIds.isEmpty() || at == null || at.getWorld() == null) {
+                    return true; // no filter: never touch the world, so an unfiltered shape reads no blocks
+                }
+                org.bukkit.Material type;
+                try {
+                    type = at.getWorld().getBlockAt(at).getType();
+                } catch (RuntimeException offRegion) {
+                    Regions.swallowed("AreaScan.materialMatches", offRegion);
+                    return false; // a cross-region/unloaded read on Folia — drop the block rather than crash
+                }
+                for (int i = 0; i < materialIds.size(); i++) {
+                    if (bindings.material(materialIds.get(i)) == type) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            @Override
             public List<Location> vein(Location start, int limit) {
                 if (start == null || start.getWorld() == null || limit <= 0) {
                     return List.of();

@@ -47,6 +47,15 @@ public interface AreaScan {
     }
 
     /**
+     * Whether the block at {@code at} is one of the interned {@code materialIds} (the block selectors'
+     * {@code materials} filter). An EMPTY list is "no filter" — {@code true}, no world read. Must run on
+     * {@code at}'s region thread.
+     */
+    default boolean materialMatches(Location at, List<Integer> materialIds) {
+        return true;
+    }
+
+    /**
      * No-op provider for synthetic/unit contexts: every world-access selector resolves to nothing. Direct
      * selectors (Self/Victim/Attacker) never call it, so combat using only those is unaffected.
      */

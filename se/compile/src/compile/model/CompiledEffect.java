@@ -30,4 +30,9 @@ public record CompiledEffect(
     public CompiledEffect withArgs(Args args) {
         return new CompiledEffect(head, args, target, cumulativeWaitTicks, affinity, kindId);
     }
+
+    /** A copy with the target selector replaced (resolve rewrites its interned handle args). */
+    public CompiledEffect withTarget(CompiledSelector target) {
+        return new CompiledEffect(head, args, target, cumulativeWaitTicks, affinity, kindId);
+    }
 }

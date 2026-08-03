@@ -29,10 +29,23 @@ public final class D {
         return ParamType.of(ParamType.Kind.ENUM).allowing(values);
     }
 
+    /**
+     * Like {@link #enumOf} but a value may also be a {@code A+B} CONJUNCTION of the allowed values
+     * ({@code ENEMIES+PLAYERS} = only what both admit).
+     */
+    public static ParamType enumSetOf(String... values) {
+        return ParamType.enumSet().allowing(values);
+    }
+
     // Version-volatile handles: authored as a token, resolved to an interned id so the runtime never sees a renamed constant (§9).
 
     public static ParamType material() {
         return ParamType.handle(HandleCategory.MATERIAL);
+    }
+
+    /** A comma-separated set of material tokens ({@code "[STONE,DIRT]"} inside a selector body), each interned at compile. */
+    public static ParamType materials() {
+        return ParamType.handleList(HandleCategory.MATERIAL);
     }
 
     public static ParamType sound() {

@@ -45,6 +45,66 @@ class SelectorBridgeTest {
     }
 
     @Test
+    void selectorHandleArgsAreInternedByTheResolveStage() {
+        // The resolve stage used to walk EFFECT params only, so a selector's own HANDLE list would reach the
+        // runtime as the raw token and filter nothing — a break tool that silently ate every block.
+        Diagnostics d = new Diagnostics();
+        Compiler compiler = Compiler.of(BuiltinEffects.registry().specRegistry(),
+                BuiltinEffects.registry().affinityOf(), BuiltinSelectors.registry().specRegistry(),
+                BuiltinEffects.registry().defaultSelectorOf(), FIXED_HANDLES);
+        Snapshot snap = compiler.compile(
+                List.of(ability("ench/bore", "BREAK_BLOCK:@Bore{depth=2, materials=[STONE,DIRT]}")), 1, d);
+
+        assertFalse(d.hasErrors(), () -> d.all().toString());
+        Ability a = snap.byStableKey("ench/bore");
+        assertEquals("BORE", a.effects()[0].target().head());
+        assertEquals(List.of(1, 2), a.effects()[0].target().args().ids("materials"));
+    }
+
+    /** Two distinct material ids, so a transposed or collapsed list is visible in the assertion. */
+    private static final compile.resolve.PlatformResolvers FIXED_HANDLES =
+            new compile.resolve.PlatformResolvers() {
+                @Override
+                public java.util.OptionalInt material(String token) {
+                    return switch (token) {
+                        case "STONE" -> java.util.OptionalInt.of(1);
+                        case "DIRT" -> java.util.OptionalInt.of(2);
+                        default -> java.util.OptionalInt.empty();
+                    };
+                }
+
+                @Override
+                public java.util.OptionalInt sound(String token) {
+                    return java.util.OptionalInt.empty();
+                }
+
+                @Override
+                public java.util.OptionalInt potionEffect(String token) {
+                    return java.util.OptionalInt.empty();
+                }
+
+                @Override
+                public java.util.OptionalInt particle(String token) {
+                    return java.util.OptionalInt.empty();
+                }
+
+                @Override
+                public java.util.OptionalInt entityType(String token) {
+                    return java.util.OptionalInt.empty();
+                }
+
+                @Override
+                public java.util.OptionalInt attribute(String token) {
+                    return java.util.OptionalInt.empty();
+                }
+
+                @Override
+                public java.util.OptionalInt enchantment(String token) {
+                    return java.util.OptionalInt.empty();
+                }
+            };
+
+    @Test
     void declaredDefaultTargetResolvesWhenNoInlineSelector() {
         // DAMAGE declares .target("who", T.VICTIM); with no inline selector that
         // declared default flows through the bridge into the compiled effect.
