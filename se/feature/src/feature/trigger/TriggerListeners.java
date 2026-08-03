@@ -4,6 +4,7 @@ import engine.run.ActivationContext;
 import engine.sink.EngineDamage;
 import feature.compat.Hands;
 import java.util.Objects;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -75,6 +76,26 @@ public final class TriggerListeners implements Listener {
         if (dead instanceof Player dying) {
             dispatch.fire(dying, dispatch.death,
                     new ActivationContext(dying, killer, killer, dying.getLocation()), null);
+            fireProximity(dying);
+        }
+    }
+
+    /**
+     * PROXIMITY_EVENT: ONE walk out from the body, firing every OTHER player in range on their own gear. Folia
+     * holds by construction — {@code getNearbyEntities} runs on the dying player's region and returns only
+     * co-region entities, so no observer is ever touched cross-region. Range and relation are the ability's
+     * own {@code %distance%} / {@code %victim.relation%} conditions, evaluated per observer inside the walk,
+     * so asking for a relation filter never costs a second scan (the {@code %nearbyallies%} rule).
+     */
+    private void fireProximity(Player dying) {
+        if (dispatch.proximityEvent < 0) {
+            return;
+        }
+        double r = TriggerDispatch.PROXIMITY_RADIUS;
+        for (Entity nearby : dying.getNearbyEntities(r, r, r)) {
+            if (nearby instanceof Player observer) {
+                dispatch.fireProximity(observer, dying);
+            }
         }
     }
 

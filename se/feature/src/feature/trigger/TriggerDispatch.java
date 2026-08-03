@@ -78,6 +78,7 @@ public final class TriggerDispatch {
     public final int hurt;    // every damage-taken event, any cause — rides the same two damage paths as FALL/FIRE and DEFENSE
     public final int equipChange; // fired by EquipChangeDriver on the worn-ability diff (%equipchange% = EQUIP|UNEQUIP)
     public final int projectileLand; // fired by ProjectileLandListener at a player projectile's landing point
+    public final int proximityEvent; // fired on nearby WEARERS by someone else's event (a player death)
 
     /**
      * Trigger dispatch over the shared per-boot {@link SinkEnv}. GIVE_MONEY/TAKE_MONEY on MINE/KILL/… and the
@@ -122,6 +123,7 @@ public final class TriggerDispatch {
         this.hurt = triggers.idOf("HURT").orElse(-1);
         this.equipChange = triggers.idOf("EQUIP_CHANGE").orElse(-1);
         this.projectileLand = triggers.idOf("PROJECTILE_LAND").orElse(-1);
+        this.proximityEvent = triggers.idOf("PROXIMITY_EVENT").orElse(-1);
     }
 
     /**
@@ -407,6 +409,29 @@ public final class TriggerDispatch {
                 worldId(snapshot, context), use, actor, context, sink, snapshot.stableKeys(), candidates);
         sink.flush();
         return attempt;
+    }
+
+    /**
+     * The hard ceiling on the PROXIMITY_EVENT observer walk, in blocks. It bounds the scan, it is not the
+     * gameplay range: an ability picks that itself with {@code %distance%}, which on this activation is exactly
+     * the observer-to-subject distance. Deaths are rare, so the walk is cold — but it still has to be bounded.
+     */
+    public static final double PROXIMITY_RADIUS = 16.0;
+
+    /**
+     * Fire PROXIMITY_EVENT on {@code observer} because {@code subject} died nearby. The subject rides the
+     * activation as the VICTIM, so {@code %victim.relation%} (the one installed alliance predicate),
+     * {@code %distance%} and every other victim fact price against them — which is how an ability authors its
+     * range and its ally/enemy filter, with no second parameterisation surface. Anchored at the death location
+     * like {@link #fireImpact}, so an {@code @Aoe} centres on the body. Runs on the subject's region thread,
+     * where every observer the walk found is co-region.
+     */
+    public void fireProximity(Player observer, Player subject) {
+        if (proximityEvent < 0 || observer == null || subject == null
+                || observer.getUniqueId().equals(subject.getUniqueId())) {
+            return;
+        }
+        fire(observer, proximityEvent, new ActivationContext(observer, subject, null, subject.getLocation()), null);
     }
 
     /**
