@@ -1,0 +1,35 @@
+# Matrix: 01-enchants-armor-a-l.md § Frozen
+# era: as Armored — the diamond-block break cue is the legacy dig.stone family on 1.8.9 (resolver-mapped);
+#      BLOCK_CRACK particle fine.
+display: "Frozen"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance to slow whoever lands a melee hit on you."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "rare"
+tier: rare
+condition: "%damagecause% == \"ENTITY_ATTACK\""
+levels:
+  1:
+    chance: 4
+    effects:
+      # D-01-08: measured duration is random (randInt[0, level-1] + level) x 20t; randomized effect durations
+      # are not expressible, so each level ships the fixed top of its range (L1 is exactly 20t either way).
+      - { POTION: { effect: "SLOW", level: 1, duration: 20, who: "@Attacker" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_BLOCK", count: 8, who: "@Self" } }  # verbatim diamond-block cue (not ice) — copy-paste in the original, kept
+      - { SOUND: { sound: "BLOCK_STONE_BREAK", volume: 1, pitch: 1 } }
+  2:
+    chance: 8
+    effects:
+      # D-01-08: fixed top of the measured 40–60t range.
+      - { POTION: { effect: "SLOW", level: 1, duration: 60, who: "@Attacker" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_BLOCK", count: 8, who: "@Self" } }  # verbatim diamond-block cue (not ice) — copy-paste in the original, kept
+      - { SOUND: { sound: "BLOCK_STONE_BREAK", volume: 1, pitch: 1 } }
+  3:
+    chance: 12
+    effects:
+      # D-01-08: fixed top of the measured 60–100t range.
+      - { POTION: { effect: "SLOW", level: 2, duration: 100, who: "@Attacker" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_BLOCK", count: 8, who: "@Self" } }  # verbatim diamond-block cue (not ice) — copy-paste in the original, kept
+      - { SOUND: { sound: "BLOCK_STONE_BREAK", volume: 1, pitch: 1 } }

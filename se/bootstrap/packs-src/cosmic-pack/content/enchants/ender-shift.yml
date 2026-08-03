@@ -1,0 +1,64 @@
+# Matrix: 01-enchants-armor-a-l.md § Ender Shift
+# era: ENTITY_ENDER_DRAGON_GROWL → 1.8.9 mob.enderdragon.growl (resolver alias); the helmets+boots
+#      item set is era-neutral.
+# Single-pass per D-001.
+display: "Ender Shift"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA killing blow is voided: you shift out with speed, jump and absorption, but deal no damage."
+trigger: DEFENSE
+applies-to: [HELMET, BOOTS]
+group: "uncommon"
+tier: uncommon
+# D-01-14: the measured jar predicted lethality with a home-grown armour model (4%/point, ignoring
+# Resistance/Protection, silently dead at armour >= 25); as-intended is true post-mitigation lethality.
+condition: "%posthit.health% <= 0"
+levels:
+  1:
+    chance: 100
+    cooldown: 600
+    effects:
+      - { CANCEL: {} }
+      - { POTION: { effect: "NIGHT_VISION", level: 1, duration: 160, who: "@Self" } }
+      - { POTION: { effect: "SPEED", level: 4, duration: 160, who: "@Self" } }
+      - { POTION: { effect: "JUMP", level: 1, duration: 160, who: "@Self" } }
+      - { POTION: { effect: "ABSORPTION", level: 4, duration: 160, who: "@Self" } }
+      - { WEAKEN: { percent: 100, duration: 160, who: "@Self" } }  # escape, don't fight — outgoing damage zeroed for the shift window
+      - { MESSAGE: { text: "", who: "@Self" } }
+      - { MESSAGE: { text: "§d§l(!) §dYou were about to die, so you have entered the Ender dimension, escape to safety!", who: "@Self" } }
+      - { MESSAGE: { text: "", who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 1.0, pitch: 0.54 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 100, spread: 2, who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 100, spread: 2, who: "@Self", wait: 160 } }  # repeated at expiry
+  2:
+    chance: 100
+    cooldown: 600
+    effects:
+      - { CANCEL: {} }
+      - { POTION: { effect: "NIGHT_VISION", level: 1, duration: 180, who: "@Self" } }
+      - { POTION: { effect: "SPEED", level: 5, duration: 180, who: "@Self" } }
+      - { POTION: { effect: "JUMP", level: 2, duration: 180, who: "@Self" } }
+      - { POTION: { effect: "ABSORPTION", level: 5, duration: 180, who: "@Self" } }
+      - { WEAKEN: { percent: 100, duration: 180, who: "@Self" } }  # escape, don't fight — outgoing damage zeroed for the shift window
+      - { MESSAGE: { text: "", who: "@Self" } }
+      - { MESSAGE: { text: "§d§l(!) §dYou were about to die, so you have entered the Ender dimension, escape to safety!", who: "@Self" } }
+      - { MESSAGE: { text: "", who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 1.0, pitch: 0.54 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 100, spread: 2, who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 100, spread: 2, who: "@Self", wait: 180 } }  # repeated at expiry
+  3:
+    chance: 100
+    cooldown: 600
+    effects:
+      - { CANCEL: {} }
+      - { POTION: { effect: "NIGHT_VISION", level: 1, duration: 200, who: "@Self" } }
+      - { POTION: { effect: "SPEED", level: 6, duration: 200, who: "@Self" } }
+      - { POTION: { effect: "JUMP", level: 3, duration: 200, who: "@Self" } }
+      - { POTION: { effect: "ABSORPTION", level: 6, duration: 200, who: "@Self" } }
+      - { WEAKEN: { percent: 100, duration: 200, who: "@Self" } }  # escape, don't fight — outgoing damage zeroed for the shift window
+      - { MESSAGE: { text: "", who: "@Self" } }
+      - { MESSAGE: { text: "§d§l(!) §dYou were about to die, so you have entered the Ender dimension, escape to safety!", who: "@Self" } }
+      - { MESSAGE: { text: "", who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 1.0, pitch: 0.54 } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 100, spread: 2, who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 100, spread: 2, who: "@Self", wait: 200 } }  # repeated at expiry

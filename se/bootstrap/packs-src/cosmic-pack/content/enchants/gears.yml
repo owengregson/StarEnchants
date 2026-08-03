@@ -1,0 +1,31 @@
+# Matrix: 01-enchants-armor-a-l.md § Gears
+display: "Gears"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eGrants Speed while the boots are worn."
+trigger: PASSIVE
+applies-to: [BOOTS]
+group: "legendary"
+tier: legendary
+# The matrix's shared suppression ruling maps the corpus's noDefenseProcs to SUPPRESS(scope=TYPE, key=defense),
+# which cannot reach a PASSIVE ability — cosmic silence never dropped worn passives, so this permanent worn
+# buff is unsilenceable (the wearer's other enchants still are).
+suppress-immune: true
+# Boots-only, so the stacking whitelist it sits on can never grant more than one copy; the highest worn level
+# wins and the potion registry reconciles against other Speed sources (an Ender Shift Speed IV-VI window
+# outranks it, then this re-asserts). Equip/removal feedback is the shared potion-registry [+]/[-] pair:
+#   §b§l[+] §b{enchant} {level}:§7 applying {effect} {level}
+#   §c§l[-] §c{enchant} {level}:§7 removing {effect} {level}
+# — one cross-cutting lang pair for every maintained potion, never per-enchant text.
+levels:
+  1:
+    effects:
+      # duration = maintained-while-worn: the passive driver re-derives the buff for as long as the boots are
+      # worn and tears it down on unequip, so the authored tick count never governs.
+      - { POTION: { effect: "SPEED", level: 1, duration: 200, who: "@Self" } }
+  2:
+    effects:
+      - { POTION: { effect: "SPEED", level: 2, duration: 200, who: "@Self" } }
+  3:
+    effects:
+      - { POTION: { effect: "SPEED", level: 3, duration: 200, who: "@Self" } }

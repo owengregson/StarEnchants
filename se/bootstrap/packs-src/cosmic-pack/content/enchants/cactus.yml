@@ -1,0 +1,24 @@
+# Matrix: 01-enchants-armor-a-l.md § Cactus
+display: "Cactus"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA player who strikes you takes a"
+  - "&esmall thorn of damage back."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "rare"
+tier: rare
+levels:
+  1:
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { DAMAGE: { amount: 0.5, who: "@Attacker" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "CACTUS", count: 8, who: "@Self" } }
+      # the 1.8.9 cactus break cue is the legacy cloth/dig.cloth sound family — resolver-mapped
+      - { SOUND: { sound: "BLOCK_WOOL_BREAK", volume: 1, pitch: 1 } }
+  2:
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { DAMAGE: { amount: 1.0, who: "@Attacker" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "CACTUS", count: 8, who: "@Self" } }
+      - { SOUND: { sound: "BLOCK_WOOL_BREAK", volume: 1, pitch: 1 } }

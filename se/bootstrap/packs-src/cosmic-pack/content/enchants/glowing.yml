@@ -1,0 +1,22 @@
+# Matrix: 01-enchants-armor-a-l.md § Glowing
+display: "Glowing"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eGrants Night Vision while the helmet is worn."
+trigger: PASSIVE
+applies-to: [HELMET]
+group: "common"
+tier: common
+# The matrix's shared suppression ruling maps the corpus's noDefenseProcs to SUPPRESS(scope=TYPE, key=defense),
+# which cannot reach a PASSIVE ability — cosmic silence never dropped worn passives, so this permanent worn
+# buff is unsilenceable (the wearer's other enchants still are).
+suppress-immune: true
+# Potion-registry reconciliation: Ender Shift's short Night Vision does not displace this permanent one.
+# Equip/removal feedback is the shared potion-registry [+]/[-] pair (see Gears), not per-enchant text.
+levels:
+  1:
+    effects:
+      # era: the name says "Glowing" but the effect is Night Vision — the 1.9+ GLOWING outline is NOT meant
+      # (the original targets 1.7); do not "modernize" it on any lane.
+      # duration = maintained-while-worn: the passive driver holds it while the helmet is worn.
+      - { POTION: { effect: "NIGHT_VISION", level: 1, duration: 200, who: "@Self" } }

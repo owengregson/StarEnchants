@@ -1,0 +1,41 @@
+# Matrix: 01-enchants-armor-a-l.md § Blood Link
+display: "Blood Link"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eEvery hit your guardian takes can"
+  - "&ebleed a little health back to you."
+trigger: GUARDIAN_HURT
+applies-to: [ARMOR]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    chance: 5
+    condition: "%actor.healthpercent% < 100"
+    effects:
+      - { MODIFY_HEALTH: { amount: 1.0, mode: "give", who: "@Self" } }
+      - { PARTICLE: { particle: "HEART", count: 1, who: "@Self" } }  # HEART is fine on 1.8.9 — no era hazards
+  2:
+    chance: 10
+    condition: "%actor.healthpercent% < 100"
+    effects:
+      - { MODIFY_HEALTH: { amount: 1.0, mode: "give", who: "@Self" } }
+      - { PARTICLE: { particle: "HEART", count: 1, who: "@Self" } }
+  3:
+    chance: 15
+    condition: "%actor.healthpercent% < 100"
+    effects:
+      - { MODIFY_HEALTH: { amount: 1.0, mode: "give", who: "@Self" } }
+      - { PARTICLE: { particle: "HEART", count: 1, who: "@Self" } }
+  4:
+    chance: 20
+    condition: "%actor.healthpercent% < 100"
+    effects:
+      - { MODIFY_HEALTH: { amount: 1.0, mode: "give", who: "@Self" } }
+      - { PARTICLE: { particle: "HEART", count: 1, who: "@Self" } }
+  5:
+    chance: 25
+    condition: "%actor.healthpercent% < 100"
+    effects:
+      - { MODIFY_HEALTH: { amount: 2.0, mode: "give", who: "@Self" } }
+      - { PARTICLE: { particle: "HEART", count: 1, who: "@Self" } }

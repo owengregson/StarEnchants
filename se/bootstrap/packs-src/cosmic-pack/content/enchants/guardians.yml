@@ -1,0 +1,80 @@
+# Matrix: 01-enchants-armor-a-l.md § Guardians
+display: "Guardians"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA melee hit from a player can summon an"
+  - "&eiron golem that turns on your attacker."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "epic"
+tier: epic
+# Direct player melee only — a projectile never summons.
+condition: "%damagecause% == \"ENTITY_ATTACK\" && %victim.type% == \"PLAYER\""
+cooldown: 200
+# Summon chance is the as-intended min(1 + 5 × level, 20)% ladder with the 0.2 cap: the measured jar fires a
+# flat 2% at every level because its `0.02` cap is evidently a mistyped `0.2` (D-01-09).
+# Golem HP is 50 + level × 10 and the buff ladder is FIRE_RESISTANCE always, REGENERATION L4+,
+# INCREASE_DAMAGE L6+, SPEED L8+, DAMAGE_RESISTANCE L10 — all level 1, held for the golem's whole life.
+# era: iron golems on 1.8 carry NoAI/targeting quirks (datawatcher 15) — GUARD must go through the era shim;
+# ENTITY_IRON_GOLEM_DEATH → 1.8.9 `mob.irongolem.death`.
+levels:
+  1:
+    chance: 6
+    effects:
+      - { GUARD: { type: "IRON_GOLEM", count: 1, ttl: 600, name: "§b§l{player}'s Guardian", health: 60, effects: "FIRE_RESISTANCE" } }
+      - { PARTICLE: { particle: "SPELL", count: 45, spread: 1, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+  2:
+    chance: 11
+    effects:
+      - { GUARD: { type: "IRON_GOLEM", count: 1, ttl: 600, name: "§b§l{player}'s Guardian", health: 70, effects: "FIRE_RESISTANCE" } }
+      - { PARTICLE: { particle: "SPELL", count: 45, spread: 1, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+  3:
+    chance: 16
+    effects:
+      - { GUARD: { type: "IRON_GOLEM", count: 1, ttl: 600, name: "§b§l{player}'s Guardian", health: 80, effects: "FIRE_RESISTANCE" } }
+      - { PARTICLE: { particle: "SPELL", count: 45, spread: 1, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+  4:
+    chance: 20
+    effects:
+      - { GUARD: { type: "IRON_GOLEM", count: 1, ttl: 600, name: "§b§l{player}'s Guardian", health: 90, effects: "FIRE_RESISTANCE,REGENERATION" } }
+      - { PARTICLE: { particle: "SPELL", count: 45, spread: 1, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+  5:
+    chance: 20
+    effects:
+      - { GUARD: { type: "IRON_GOLEM", count: 1, ttl: 600, name: "§b§l{player}'s Guardian", health: 100, effects: "FIRE_RESISTANCE,REGENERATION" } }
+      - { PARTICLE: { particle: "SPELL", count: 45, spread: 1, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+  6:
+    chance: 20
+    effects:
+      - { GUARD: { type: "IRON_GOLEM", count: 1, ttl: 600, name: "§b§l{player}'s Guardian", health: 110, effects: "FIRE_RESISTANCE,REGENERATION,INCREASE_DAMAGE" } }
+      - { PARTICLE: { particle: "SPELL", count: 45, spread: 1, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+  7:
+    chance: 20
+    effects:
+      - { GUARD: { type: "IRON_GOLEM", count: 1, ttl: 600, name: "§b§l{player}'s Guardian", health: 120, effects: "FIRE_RESISTANCE,REGENERATION,INCREASE_DAMAGE" } }
+      - { PARTICLE: { particle: "SPELL", count: 45, spread: 1, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+  8:
+    chance: 20
+    effects:
+      - { GUARD: { type: "IRON_GOLEM", count: 1, ttl: 600, name: "§b§l{player}'s Guardian", health: 130, effects: "FIRE_RESISTANCE,REGENERATION,INCREASE_DAMAGE,SPEED" } }
+      - { PARTICLE: { particle: "SPELL", count: 45, spread: 1, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+  9:
+    chance: 20
+    effects:
+      - { GUARD: { type: "IRON_GOLEM", count: 1, ttl: 600, name: "§b§l{player}'s Guardian", health: 140, effects: "FIRE_RESISTANCE,REGENERATION,INCREASE_DAMAGE,SPEED" } }
+      - { PARTICLE: { particle: "SPELL", count: 45, spread: 1, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+  10:
+    chance: 20
+    effects:
+      - { GUARD: { type: "IRON_GOLEM", count: 2, ttl: 600, name: "§b§l{player}'s Guardian", health: 150, effects: "FIRE_RESISTANCE,REGENERATION,INCREASE_DAMAGE,SPEED,DAMAGE_RESISTANCE" } }
+      - { PARTICLE: { particle: "SPELL", count: 45, spread: 1, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }

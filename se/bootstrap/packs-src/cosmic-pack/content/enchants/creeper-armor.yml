@@ -1,0 +1,28 @@
+# Matrix: 01-enchants-armor-a-l.md § Creeper Armor
+display: "Creeper Armor"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eNegates explosion damage and, from level II, its knockback."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "epic"
+tier: epic
+condition: "%damagecause% == \"BLOCK_EXPLOSION\" || %damagecause% == \"ENTITY_EXPLOSION\""
+levels:
+  1:
+    chance: 100
+    effects:
+      - { CANCEL: {} }
+  2:
+    chance: 100
+    effects:
+      - { CANCEL: {} }
+      - { KNOCKBACK_CONTROL: { multiplier: 0, duration: 2, who: "@Self" } }
+  3:
+    chance: 100
+    effects:
+      - { CANCEL: {} }
+      - { KNOCKBACK_CONTROL: { multiplier: 0, duration: 2, who: "@Self" } }
+      # The as-intended heal (D-01-04): the measured 0.0 is a read-after-write bug, so ship
+      # min(6.0, 0.1 x raw event damage) as an expression param over the DEFENSE %damage% fact.
+      - { MODIFY_HEALTH: { amount: "clamp(0.1 * %damage%, 0, 6)", mode: "give", who: "@Self" } }

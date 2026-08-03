@@ -1,0 +1,25 @@
+# Matrix: 01-enchants-armor-a-l.md § Enlighted
+# Single-pass per D-001.
+display: "Enlighted"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance to heal half a heart whenever anything hurts you."
+trigger: HURT
+applies-to: [ARMOR]
+group: "legendary"
+tier: legendary
+# No cause filter (verbatim — it heals on fall, fire and drowning too), so the walk is HURT: DEFENSE only
+# sees entity-on-entity damage. The 1-tick deferral lands the heal AFTER the damage, as measured.
+levels:
+  1:
+    chance: 7.5
+    effects:
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self", wait: 1 } }
+  2:
+    chance: 15
+    effects:
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self", wait: 1 } }
+  3:
+    chance: 22.5
+    effects:
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self", wait: 1 } }

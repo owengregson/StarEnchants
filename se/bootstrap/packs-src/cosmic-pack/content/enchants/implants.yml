@@ -1,0 +1,38 @@
+# Matrix: 01-enchants-armor-a-l.md § Implants
+display: "Implants"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eWhile the helmet is worn, tops up hunger on a timer and health half as often."
+trigger: REPEATING
+applies-to: [HELMET]
+group: "epic"
+tier: epic
+chance: 100
+levels:
+  1:
+    abilities:
+      - repeat: 120  # as-intended food cadence (D-01-10)
+        condition: "%actor.food% < 20"
+        effects:
+          - { MODIFY_FOOD: { amount: 1, mode: "give", who: "@Self" } }
+      - repeat: 240  # every other food tick (D-01-10)
+        effects:
+          - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }  # give clamps to max instead of skipping the last point (D-01-11)
+  2:
+    abilities:
+      - repeat: 60  # as-intended food cadence (D-01-10)
+        condition: "%actor.food% < 20"
+        effects:
+          - { MODIFY_FOOD: { amount: 1, mode: "give", who: "@Self" } }
+      - repeat: 120  # every other food tick (D-01-10)
+        effects:
+          - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }  # give clamps to max instead of skipping the last point (D-01-11)
+  3:
+    abilities:
+      - repeat: 40  # as-intended food cadence (D-01-10)
+        condition: "%actor.food% < 20"
+        effects:
+          - { MODIFY_FOOD: { amount: 1, mode: "give", who: "@Self" } }
+      - repeat: 80  # every other food tick (D-01-10)
+        effects:
+          - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }  # give clamps to max instead of skipping the last point (D-01-11)

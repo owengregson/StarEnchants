@@ -1,0 +1,73 @@
+# Matrix: 01-enchants-armor-a-l.md § Drunk
+# era: legacy effect names (INCREASE_DAMAGE / SLOW / SLOW_DIGGING / CONFUSION) — resolver aliases.
+display: "Drunk"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eStrength while worn, paid for with Slowness, Mining Fatigue and fits of nausea when you are hit."
+trigger: [PASSIVE, HURT]
+applies-to: [HELMET]
+group: "legendary"
+tier: legendary
+# The matrix's shared suppression ruling maps the corpus's noDefenseProcs to SUPPRESS(scope=TYPE, key=defense),
+# which cannot reach a PASSIVE ability — cosmic silence never dropped worn passives, so the maintained trio is
+# unsilenceable. The flag is per-enchant, so the HURT nausea block rides along; recorded, not a separate ruling.
+suppress-immune: true
+# strings: besides the nausea line below, the shared potion-registry equip feedback, verbatim
+# (roman-numeral levels) — emitted by the registry for every maintained potion, so three lines per
+# equip/unequip here, not authored per enchant:
+#   §b§l[+] §b{enchant} {level}:§7 applying {effect} {level}
+#   §c§l[-] §c{enchant} {level}:§7 removing {effect} {level}
+# The nausea block is the matrix's second DEFENSE block with NO cause filter (falls, fire and poison all
+# roll, verbatim). DEFENSE only walks entity-on-entity damage, so the all-cause defender walk is HURT.
+# Permanent while worn: the maintained-potion driver (§B lifecycle) re-applies and removes the trio on the
+# equip edges, so the authored duration is only the stub it renews over. Nausea rides HURT, so it is not
+# part of the maintained trio and survives unequip — matching measured.
+levels:
+  1:
+    abilities:
+      - trigger: PASSIVE
+        effects:
+          - { POTION: { effect: "INCREASE_DAMAGE", level: 1, duration: 200, who: "@Self" } }
+          - { POTION: { effect: "SLOW", level: 1, duration: 200, who: "@Self" } }
+          - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 200, who: "@Self" } }
+      - trigger: HURT
+        chance: 1
+        effects:
+          - { POTION: { effect: "CONFUSION", level: 1, duration: 40, who: "@Self" } }
+          - { MESSAGE: { text: "§eYou're starting to feel very dizzy...", who: "@Self" } }
+  2:
+    abilities:
+      - trigger: PASSIVE
+        effects:
+          - { POTION: { effect: "INCREASE_DAMAGE", level: 2, duration: 200, who: "@Self" } }
+          - { POTION: { effect: "SLOW", level: 1, duration: 200, who: "@Self" } }
+          - { POTION: { effect: "SLOW_DIGGING", level: 2, duration: 200, who: "@Self" } }
+      - trigger: HURT
+        chance: 2
+        effects:
+          - { POTION: { effect: "CONFUSION", level: 1, duration: 80, who: "@Self" } }
+          - { MESSAGE: { text: "§eYou're starting to feel very dizzy...", who: "@Self" } }
+  3:
+    abilities:
+      - trigger: PASSIVE
+        effects:
+          - { POTION: { effect: "INCREASE_DAMAGE", level: 2, duration: 200, who: "@Self" } }
+          - { POTION: { effect: "SLOW", level: 2, duration: 200, who: "@Self" } }
+          - { POTION: { effect: "SLOW_DIGGING", level: 2, duration: 200, who: "@Self" } }
+      - trigger: HURT
+        chance: 3
+        effects:
+          - { POTION: { effect: "CONFUSION", level: 1, duration: 120, who: "@Self" } }
+          - { MESSAGE: { text: "§eYou're starting to feel very dizzy...", who: "@Self" } }
+  4:
+    abilities:
+      - trigger: PASSIVE
+        effects:
+          - { POTION: { effect: "INCREASE_DAMAGE", level: 3, duration: 200, who: "@Self" } }
+          - { POTION: { effect: "SLOW", level: 3, duration: 200, who: "@Self" } }
+          - { POTION: { effect: "SLOW_DIGGING", level: 3, duration: 200, who: "@Self" } }
+      - trigger: HURT
+        chance: 4
+        effects:
+          - { POTION: { effect: "CONFUSION", level: 2, duration: 160, who: "@Self" } }
+          - { MESSAGE: { text: "§eYou're starting to feel very dizzy...", who: "@Self" } }

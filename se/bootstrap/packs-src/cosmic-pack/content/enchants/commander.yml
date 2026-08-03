@@ -1,0 +1,45 @@
+# Matrix: 01-enchants-armor-a-l.md § Commander
+display: "Commander"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eEvery few seconds your nearby allies"
+  - "&eare hasted and cleansed."
+trigger: REPEATING
+applies-to: [ARMOR]
+group: "uncommon"
+tier: uncommon
+repeat: 160  # 8 s cadence, level-independent; buffs refresh faster than they lapse
+levels:
+  1:
+    effects:
+      # FAST_DIGGING/CONFUSION are the legacy effect names — resolver aliases, no era hazards
+      - { POTION: { effect: "FAST_DIGGING", level: 1, duration: 300, who: "@Aoe{r=5,filter=ALLIES}" } }
+      # Rendered per buffed ally (same selector body as the buffs), so an empty ally set emits nothing —
+      # the matrix's "when allies were buffed" qualifier, no extra fact needed.
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_BLOCK", count: 8, who: "@Aoe{r=5,filter=ALLIES}" } }
+  2:
+    effects:
+      - { POTION: { effect: "FAST_DIGGING", level: 1, duration: 300, who: "@Aoe{r=7,filter=ALLIES}" } }
+      - { REMOVE_POTION: { effect: "WEAKNESS", who: "@Aoe{r=7,filter=ALLIES}" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_BLOCK", count: 8, who: "@Aoe{r=7,filter=ALLIES}" } }
+  3:
+    effects:
+      - { POTION: { effect: "FAST_DIGGING", level: 1, duration: 300, who: "@Aoe{r=9,filter=ALLIES}" } }
+      - { REMOVE_POTION: { effect: "WEAKNESS", who: "@Aoe{r=9,filter=ALLIES}" } }
+      - { REMOVE_POTION: { effect: "CONFUSION", who: "@Aoe{r=9,filter=ALLIES}" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_BLOCK", count: 8, who: "@Aoe{r=9,filter=ALLIES}" } }
+  4:
+    effects:
+      - { POTION: { effect: "FAST_DIGGING", level: 1, duration: 600, who: "@Aoe{r=11,filter=ALLIES}" } }
+      - { REMOVE_POTION: { effect: "WEAKNESS", who: "@Aoe{r=11,filter=ALLIES}" } }
+      - { REMOVE_POTION: { effect: "CONFUSION", who: "@Aoe{r=11,filter=ALLIES}" } }
+      - { POTION: { effect: "SPEED", level: 1, duration: 300, who: "@Aoe{r=11,filter=ALLIES}" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_BLOCK", count: 8, who: "@Aoe{r=11,filter=ALLIES}" } }
+  5:
+    effects:
+      - { POTION: { effect: "FAST_DIGGING", level: 2, duration: 600, who: "@Aoe{r=13,filter=ALLIES}" } }
+      - { REMOVE_POTION: { effect: "WEAKNESS", who: "@Aoe{r=13,filter=ALLIES}" } }
+      - { REMOVE_POTION: { effect: "CONFUSION", who: "@Aoe{r=13,filter=ALLIES}" } }
+      - { POTION: { effect: "SPEED", level: 2, duration: 300, who: "@Aoe{r=13,filter=ALLIES}" } }
+      - { REMOVE_POTION: { effect: "POISON", who: "@Aoe{r=13,filter=ALLIES}" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_BLOCK", count: 8, who: "@Aoe{r=13,filter=ALLIES}" } }
