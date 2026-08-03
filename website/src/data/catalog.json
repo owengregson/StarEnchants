@@ -2728,17 +2728,17 @@
     },
   {
     "head": "MODIFY_FOOD",
-    "doc": "Modify a player target's hunger: give food points (clamped to 20) or take them (clamped to 0). Replaces FEED.",
+    "doc": "Modify a player target's hunger. give/take move the bar now (clamped to 20 / to 0). scale-gain multiplies the next food GAIN by factor for duration ticks; cancel-drain cancels hunger LOSS for duration ticks. Author the window modes on REPEATING with duration at least the period for an always-on effect while worn — the engine has no unequip teardown, so the window lapses shortly after re-arming stops. Replaces FEED.",
     "affinity": "TARGET_ENTITY",
-    "usage": "{ MODIFY_FOOD: { amount: <int[0..]>, mode: <enum{give|take}=give> } }",
+    "usage": "{ MODIFY_FOOD: { amount: <int[0..]=0>, mode: <enum{give|take|scale-gain|cancel-drain}=give>, factor: <double[0..]=1>, duration: <ticks[0..]=100> } }",
     "example": "{ MODIFY_FOOD: { amount: 6, mode: give, who: \"@Self\" } }",
     "params": [
       {
         "name": "amount",
         "kind": "INT",
         "label": "int[0..]",
-        "required": true,
-        "default": null,
+        "required": false,
+        "default": "0",
         "min": 0,
         "max": null,
         "enum": [],
@@ -2748,17 +2748,43 @@
       {
         "name": "mode",
         "kind": "ENUM",
-        "label": "enum{give|take}",
+        "label": "enum{give|take|scale-gain|cancel-drain}",
         "required": false,
         "default": "give",
         "min": null,
         "max": null,
         "enum": [
           "give",
-          "take"
+          "take",
+          "scale-gain",
+          "cancel-drain"
           ],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "factor",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "scale-gain: what a food-level gain is multiplied by"
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "100",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "scale-gain/cancel-drain: ticks the armed window lasts"
         }
       ],
     "targets": [

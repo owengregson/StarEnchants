@@ -74,7 +74,7 @@ class RegistryWiringTest {
             "EntityVarCleanupListener", // TARGET_VAR: a mob carrier never quits, so its vars are dropped on death
             "TempEquipListener", "TimedRevertListener", "TempBlockGuardListener",
             "HellfireFloorListener", "KeepOnDeathListener", "HeadTrophyListener",
-            "TeleblockListener", "ImmuneListener", "PotionLockGuard", "FreezeDamageGuard",
+            "TeleblockListener", "ImmuneListener", "FoodWindowListener", "PotionLockGuard", "FreezeDamageGuard",
             "EngineStoreListener", "VanillaGuardListener", "HeadEquipGuard", "DispenseArmorGuard", "StationGuard",
             "CarrierListener", "CrystalListener",
             "HeroicListener", "HeroicDurabilitySave",

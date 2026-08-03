@@ -633,12 +633,14 @@ Modify a player target's experience: give to them, take from them, or transfer (
 
 ### MODIFY_FOOD
 
-Modify a player target's hunger: give food points (clamped to 20) or take them (clamped to 0). Replaces FEED.
+Modify a player target's hunger. give/take move the bar now (clamped to 20 / to 0). scale-gain multiplies the next food GAIN by factor for duration ticks; cancel-drain cancels hunger LOSS for duration ticks. Author the window modes on REPEATING with duration at least the period for an always-on effect while worn — the engine has no unequip teardown, so the window lapses shortly after re-arming stops. Replaces FEED.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ MODIFY_FOOD: { amount: <int[0..]>, mode: <enum{give|take}=give> } }`
+- _usage_: `{ MODIFY_FOOD: { amount: <int[0..]=0>, mode: <enum{give|take|scale-gain|cancel-drain}=give>, factor: <double[0..]=1>, duration: <ticks[0..]=100> } }`
 - _param_ `amount` `int[0..]`
-- _param_ `mode` `enum{give|take}`
+- _param_ `mode` `enum{give|take|scale-gain|cancel-drain}`
+- _param_ `factor` `double[0..]` — scale-gain: what a food-level gain is multiplied by
+- _param_ `duration` `ticks[0..]` — scale-gain/cancel-drain: ticks the armed window lasts
 - _target_ `who`: selector `SELF`
 - _example_: `{ MODIFY_FOOD: { amount: 6, mode: give, who: "@Self" } }`
 
