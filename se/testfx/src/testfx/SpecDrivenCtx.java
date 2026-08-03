@@ -1,6 +1,8 @@
 package testfx;
 
 import engine.spec.EffectSpec;
+import schema.diag.Diagnostics;
+import schema.diag.Source;
 import schema.spec.Param;
 import schema.spec.ParamType;
 
@@ -38,6 +40,28 @@ public final class SpecDrivenCtx {
                 case ENUM -> ctx.with(p.name(), type.allowed().isEmpty() ? "x" : type.allowed().get(0));
                 case STRING -> ctx.with(p.name(), "x");
             }
+        }
+        return ctx;
+    }
+
+    /**
+     * A ctx pre-filled with each param's DECLARED DEFAULT — the args an ability that never mentions the param
+     * compiles to. The back-compat instrument for a kind that gains a param: start here, override only what the
+     * row exercises, and a default that silently shifts fails the behaviour assertion instead of hiding behind a
+     * re-typed literal. Values go through the param's OWN {@link ParamType#parse}, so this cannot drift from the
+     * compiler. A param with no default (or a HANDLE, whose default is a token only the resolver can intern)
+     * keeps the {@link #scalars} stand-in.
+     */
+    public static FakeEffectCtx defaults(EffectSpec spec) {
+        FakeEffectCtx ctx = scalars(spec);
+        for (Param p : spec.paramSpec().params()) {
+            ParamType type = p.type();
+            if (type.kind() == ParamType.Kind.HANDLE) {
+                continue;
+            }
+            type.defaultRaw()
+                    .flatMap(raw -> type.parse(raw, Source.UNKNOWN, new Diagnostics()))
+                    .ifPresent(value -> ctx.with(p.name(), value));
         }
         return ctx;
     }

@@ -166,8 +166,8 @@ class DispatchSinkTest {
         Player p = mock(Player.class);
         UUID id = UUID.randomUUID();
         when(p.getUniqueId()).thenReturn(id);
-        sink.reflectMark(p, 20.0, 80); // inline (no flush) — a per-player window write, not a deferred intent
-        assertEquals(20.0, store.active(id, 0L));
+        sink.reflectMark(p, 20.0, 0, "", 80); // inline (no flush) — a per-player window write, not a deferred intent
+        assertEquals(20.0, store.active(id, 0L).fractionPercent());
     }
 
     @Test

@@ -453,63 +453,20 @@ public final class ModernDispatchSink extends DispatchSinkBase {
     }
 
     @Override
-    protected boolean applyRepair(ItemStack item, int amount) {
+    protected int itemDamage(ItemStack item) {
         if (item == null) {
-            return false;
+            return -1;
         }
         ItemMeta meta = item.getItemMeta();
-        if (meta instanceof Damageable damageable) {
-            int repaired = amount < 0 ? 0 : Math.max(0, damageable.getDamage() - amount);
-            damageable.setDamage(repaired);
-            item.setItemMeta(meta);
-            return true;
-        }
-        return false;
+        return meta instanceof Damageable damageable ? damageable.getDamage() : -1;
     }
 
     @Override
-    protected boolean applyDamage(ItemStack item, int amount) {
-        if (item == null || amount <= 0) {
-            return false;
-        }
+    protected void setItemDamage(ItemStack item, int damage) {
         ItemMeta meta = item.getItemMeta();
         if (meta instanceof Damageable damageable) {
-            int worn = Math.min(item.getType().getMaxDurability(), damageable.getDamage() + amount);
-            damageable.setDamage(worn);
+            damageable.setDamage(damage);
             item.setItemMeta(meta);
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    protected void adjustArmorDurability(LivingEntity entity, int amount, boolean repair) {
-        EntityEquipment equipment = entity.getEquipment();
-        if (equipment == null) {
-            return;
-        }
-        ItemStack[] armor = equipment.getArmorContents();
-        boolean changed = false;
-        for (ItemStack piece : armor) {
-            if (piece == null) {
-                continue;
-            }
-            ItemMeta meta = piece.getItemMeta();
-            if (meta instanceof Damageable damageable) {
-                int current = damageable.getDamage();
-                int next;
-                if (repair) {
-                    next = amount < 0 ? 0 : Math.max(0, current - amount);
-                } else {
-                    next = Math.min(piece.getType().getMaxDurability(), current + amount);
-                }
-                damageable.setDamage(next);
-                piece.setItemMeta(meta);
-                changed = true;
-            }
-        }
-        if (changed) {
-            equipment.setArmorContents(armor);
         }
     }
 

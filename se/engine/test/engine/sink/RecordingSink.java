@@ -171,17 +171,12 @@ final class RecordingSink extends DispatchSinkBase {
     }
 
     @Override
-    protected boolean applyRepair(ItemStack item, int amount) {
-        return false;
+    protected int itemDamage(ItemStack item) {
+        return -1;
     }
 
     @Override
-    protected boolean applyDamage(ItemStack item, int amount) {
-        return false;
-    }
-
-    @Override
-    protected void adjustArmorDurability(LivingEntity entity, int amount, boolean repair) {
+    protected void setItemDamage(ItemStack item, int damage) {
     }
 
     @Override

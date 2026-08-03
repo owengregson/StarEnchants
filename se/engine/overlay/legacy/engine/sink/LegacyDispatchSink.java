@@ -428,51 +428,13 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
     }
 
     @Override
-    protected boolean applyRepair(ItemStack item, int amount) {
-        if (item == null || !isDamageable(item)) {
-            return false;
-        }
-        short current = item.getDurability();
-        short repaired = amount < 0 ? 0 : (short) Math.max(0, current - amount);
-        item.setDurability(repaired);
-        return true;
+    protected int itemDamage(ItemStack item) {
+        return item == null || !isDamageable(item) ? -1 : item.getDurability();
     }
 
     @Override
-    protected boolean applyDamage(ItemStack item, int amount) {
-        if (item == null || amount <= 0 || !isDamageable(item)) {
-            return false;
-        }
-        short worn = (short) Math.min(item.getType().getMaxDurability(), item.getDurability() + amount);
-        item.setDurability(worn);
-        return true;
-    }
-
-    @Override
-    protected void adjustArmorDurability(LivingEntity entity, int amount, boolean repair) {
-        EntityEquipment equipment = entity.getEquipment();
-        if (equipment == null) {
-            return;
-        }
-        ItemStack[] armor = equipment.getArmorContents();
-        boolean changed = false;
-        for (ItemStack piece : armor) {
-            if (piece == null || !isDamageable(piece)) {
-                continue;
-            }
-            short current = piece.getDurability();
-            short next;
-            if (repair) {
-                next = amount < 0 ? 0 : (short) Math.max(0, current - amount);
-            } else {
-                next = (short) Math.min(piece.getType().getMaxDurability(), current + amount);
-            }
-            piece.setDurability(next);
-            changed = true;
-        }
-        if (changed) {
-            equipment.setArmorContents(armor);
-        }
+    protected void setItemDamage(ItemStack item, int damage) {
+        item.setDurability((short) damage);
     }
 
     /** 1.8: durability lives on the {@code ItemStack}; a positive max durability means the item wears. */

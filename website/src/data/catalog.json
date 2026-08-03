@@ -394,9 +394,9 @@
     },
   {
     "head": "CURE",
-    "doc": "Clear active potion effects of one category from the target(s): ALL (default), HARMFUL, BENEFICIAL, or NEUTRAL. category HARMFUL strips only debuffs (positive effects untouched).",
+    "doc": "Clear active potion effects of one category from the target(s): ALL (default), HARMFUL, BENEFICIAL, or NEUTRAL. category HARMFUL strips only debuffs (positive effects untouched). count bounds how many matching effects are removed (0 = all of them) in the server's own enumeration order — a count: 1 HARMFUL cure strips exactly one debuff, whichever the server lists first.",
     "affinity": "TARGET_ENTITY",
-    "usage": "{ CURE: { category: <enum{ALL|HARMFUL|BENEFICIAL|NEUTRAL}=ALL> } }",
+    "usage": "{ CURE: { category: <enum{ALL|HARMFUL|BENEFICIAL|NEUTRAL}=ALL>, count: <int[0..]=0> } }",
     "example": "{ CURE: { category: HARMFUL } }",
     "params": [
       {
@@ -415,6 +415,18 @@
           ],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "count",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "remove at most this many effects; 0 = every match"
         }
       ],
     "targets": [
@@ -758,9 +770,9 @@
     },
   {
     "head": "DURABILITY",
-    "doc": "Modify durability of the player's held item and/or worn armor: restore (amount<0 = full) or damage. Replaces ADD_DURABILITY/ADD_DURABILITY_ITEM/REPAIR/DAMAGE_ARMOR.",
+    "doc": "Modify durability of the player's held item and/or worn armor: restore (amount<0 = full) or damage, flat by amount or proportionally by percent of each item's max durability (percent-restore/percent-damage). select addresses ONE worn piece — a named slot, the most/least damaged, or a random one — instead of the whole set; skip-undamaged leaves pieces at full durability alone and out of that pick. Replaces ADD_DURABILITY/ADD_DURABILITY_ITEM/REPAIR/DAMAGE_ARMOR.",
     "affinity": "TARGET_ENTITY",
-    "usage": "{ DURABILITY: { amount: <int=-1>, target: <enum{item|armor|all}=item>, mode: <enum{restore|damage}=restore> } }",
+    "usage": "{ DURABILITY: { amount: <int=-1>, target: <enum{item|armor|all}=item>, mode: <enum{restore|damage|percent-restore|percent-damage}=restore>, percent: <double[0..]=0>, select: <enum{whole-set|slot:helmet|slot:chestplate|slot:leggings|slot:boots|most-damaged|least-damaged|random-piece}=whole-set>, skip-undamaged: <bool=false> } }",
     "example": "{ DURABILITY: { amount: -1, target: item } }",
     "params": [
       {
@@ -794,17 +806,64 @@
       {
         "name": "mode",
         "kind": "ENUM",
-        "label": "enum{restore|damage}",
+        "label": "enum{restore|damage|percent-restore|percent-damage}",
         "required": false,
         "default": "restore",
         "min": null,
         "max": null,
         "enum": [
           "restore",
-          "damage"
+          "damage",
+          "percent-restore",
+          "percent-damage"
           ],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "percent",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "percent-* modes only: how much of each item's MAX durability to move"
+        },
+      {
+        "name": "select",
+        "kind": "ENUM",
+        "label": "enum{whole-set|slot:helmet|slot:chestplate|slot:leggings|slot:boots|most-damaged|least-damaged|random-piece}",
+        "required": false,
+        "default": "whole-set",
+        "min": null,
+        "max": null,
+        "enum": [
+          "whole-set",
+          "slot:helmet",
+          "slot:chestplate",
+          "slot:leggings",
+          "slot:boots",
+          "most-damaged",
+          "least-damaged",
+          "random-piece"
+          ],
+        "handle": null,
+        "doc": "which worn piece target: armor addresses"
+        },
+      {
+        "name": "skip-undamaged",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "leave pieces already at full durability untouched"
         }
       ],
     "targets": [
@@ -3103,9 +3162,9 @@
     },
   {
     "head": "REFLECT",
-    "doc": "Mark the target so a percent of their own outgoing damage is reflected back onto them for a duration in ticks (Hex). Player targets only; default target the combat victim.",
+    "doc": "Mark the target so a percent of their own outgoing damage is reflected back onto them for a duration in ticks (Hex). Player targets only; default target the combat victim. cap is a flat per-hit ceiling on the health returned (0 = uncapped); feedback is an optional chat line sent to the afflicted on each reflected hit, with {damage} filled in.",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ REFLECT: { percent: <double[0..]>, duration: <ticks[0..]=80> } }",
+    "usage": "{ REFLECT: { percent: <double[0..]>, duration: <ticks[0..]=80>, cap: <double[0..]=0>, feedback: <string=> } }",
     "example": "{ REFLECT: { percent: 20, duration: 80, who: \"@Victim\" } }",
     "params": [
       {
@@ -3131,6 +3190,30 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "cap",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "flat per-hit ceiling on the health returned; 0 = uncapped"
+        },
+      {
+        "name": "feedback",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "per-hit line to the afflicted; {damage} = health returned"
         }
       ],
     "targets": [

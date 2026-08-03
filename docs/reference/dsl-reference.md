@@ -86,11 +86,12 @@ Convert EVERY mob within `radius` blocks of the wearer to the wearer's side, per
 
 ### CURE
 
-Clear active potion effects of one category from the target(s): ALL (default), HARMFUL, BENEFICIAL, or NEUTRAL. category HARMFUL strips only debuffs (positive effects untouched).
+Clear active potion effects of one category from the target(s): ALL (default), HARMFUL, BENEFICIAL, or NEUTRAL. category HARMFUL strips only debuffs (positive effects untouched). count bounds how many matching effects are removed (0 = all of them) in the server's own enumeration order — a count: 1 HARMFUL cure strips exactly one debuff, whichever the server lists first.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ CURE: { category: <enum{ALL|HARMFUL|BENEFICIAL|NEUTRAL}=ALL> } }`
+- _usage_: `{ CURE: { category: <enum{ALL|HARMFUL|BENEFICIAL|NEUTRAL}=ALL>, count: <int[0..]=0> } }`
 - _param_ `category` `enum{ALL|HARMFUL|BENEFICIAL|NEUTRAL}`
+- _param_ `count` `int[0..]` — remove at most this many effects; 0 = every match
 - _target_ `who`: selector `SELF`
 - _example_: `{ CURE: { category: HARMFUL } }`
 
@@ -183,13 +184,16 @@ Drop a material as an item at the activation location. No-op if there is no loca
 
 ### DURABILITY
 
-Modify durability of the player's held item and/or worn armor: restore (amount<0 = full) or damage. Replaces ADD_DURABILITY/ADD_DURABILITY_ITEM/REPAIR/DAMAGE_ARMOR.
+Modify durability of the player's held item and/or worn armor: restore (amount<0 = full) or damage, flat by amount or proportionally by percent of each item's max durability (percent-restore/percent-damage). select addresses ONE worn piece — a named slot, the most/least damaged, or a random one — instead of the whole set; skip-undamaged leaves pieces at full durability alone and out of that pick. Replaces ADD_DURABILITY/ADD_DURABILITY_ITEM/REPAIR/DAMAGE_ARMOR.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ DURABILITY: { amount: <int=-1>, target: <enum{item|armor|all}=item>, mode: <enum{restore|damage}=restore> } }`
+- _usage_: `{ DURABILITY: { amount: <int=-1>, target: <enum{item|armor|all}=item>, mode: <enum{restore|damage|percent-restore|percent-damage}=restore>, percent: <double[0..]=0>, select: <enum{whole-set|slot:helmet|slot:chestplate|slot:leggings|slot:boots|most-damaged|least-damaged|random-piece}=whole-set>, skip-undamaged: <bool=false> } }`
 - _param_ `amount` `int` — durability points; negative fully restores (restore mode)
 - _param_ `target` `enum{item|armor|all}`
-- _param_ `mode` `enum{restore|damage}`
+- _param_ `mode` `enum{restore|damage|percent-restore|percent-damage}`
+- _param_ `percent` `double[0..]` — percent-* modes only: how much of each item's MAX durability to move
+- _param_ `select` `enum{whole-set|slot:helmet|slot:chestplate|slot:leggings|slot:boots|most-damaged|least-damaged|random-piece}` — which worn piece target: armor addresses
+- _param_ `skip-undamaged` `bool` — leave pieces already at full durability untouched
 - _target_ `who`: selector `SELF`
 - _example_: `{ DURABILITY: { amount: -1, target: item } }`
 
@@ -718,12 +722,14 @@ Launch count projectiles of a type from the activator's eye (covers SPAWN_ARROWS
 
 ### REFLECT
 
-Mark the target so a percent of their own outgoing damage is reflected back onto them for a duration in ticks (Hex). Player targets only; default target the combat victim.
+Mark the target so a percent of their own outgoing damage is reflected back onto them for a duration in ticks (Hex). Player targets only; default target the combat victim. cap is a flat per-hit ceiling on the health returned (0 = uncapped); feedback is an optional chat line sent to the afflicted on each reflected hit, with {damage} filled in.
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ REFLECT: { percent: <double[0..]>, duration: <ticks[0..]=80> } }`
+- _usage_: `{ REFLECT: { percent: <double[0..]>, duration: <ticks[0..]=80>, cap: <double[0..]=0>, feedback: <string=> } }`
 - _param_ `percent` `double[0..]`
 - _param_ `duration` `ticks[0..]`
+- _param_ `cap` `double[0..]` — flat per-hit ceiling on the health returned; 0 = uncapped
+- _param_ `feedback` `string` — per-hit line to the afflicted; {damage} = health returned
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ REFLECT: { percent: 20, duration: 80, who: "@Victim" } }`
 
