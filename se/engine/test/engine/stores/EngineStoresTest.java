@@ -115,6 +115,7 @@ class EngineStoresTest {
         s.foodWindows().arm(id, FoodWindowStore.Type.SCALE_GAIN, 0L, 100, 2.0);
         s.foodWindows().arm(id, FoodWindowStore.Type.CANCEL_DRAIN, 0L, 100, 0.0);
         s.messageThrottle().tryEmit(id, 0L, 300);
+        s.soulEscalation().step(id, CooldownStore.key(0, 1), 0L, 0);
 
         assertEquals("1", s.vars().get(id, "x", 0L));
         assertTrue(s.suppression().isSuppressed(id, 1L, 0L));
@@ -129,6 +130,7 @@ class EngineStoresTest {
         assertEquals(2.0, s.foodWindows().gainFactor(id, 0L));
         assertTrue(s.foodWindows().cancelsDrain(id, 0L));
         assertFalse(s.messageThrottle().tryEmit(id, 0L, 300)); // armed by the emit above
+        assertEquals(1, s.soulEscalation().steps(id, CooldownStore.key(0, 1), 0L, 0));
 
         s.clearAll(id);
 
@@ -147,5 +149,6 @@ class EngineStoresTest {
         assertEquals(1.0, s.foodWindows().gainFactor(id, 0L)); // 1 = unarmed, the neutral multiplier
         assertFalse(s.foodWindows().cancelsDrain(id, 0L));
         assertTrue(s.messageThrottle().tryEmit(id, 0L, 300));
+        assertEquals(0, s.soulEscalation().steps(id, CooldownStore.key(0, 1), 0L, 0)); // back to the base price
     }
 }

@@ -10,6 +10,7 @@ import compile.model.cond.Cond;
 import engine.interact.SoulSpender;
 import engine.interact.SuppressionSet;
 import engine.stores.CooldownStore;
+import engine.stores.SoulEscalationStore;
 import engine.stores.SuppressionStore;
 import engine.stores.WhyRecorder;
 import engine.stores.WhyRing;
@@ -212,6 +213,28 @@ class ActivationPipelineWhyTest {
                 new SuppressionStore(), ActivationPipeline.Guard.ALLOW, ActivationPipeline.Guard.ALLOW, cap2);
         assertEquals(GateOutcome.NO_SOULS, p.evaluate(a, act(100L, 0).soulMode(ACTOR).build()));
         assertEquals(1, cap2.only().pA());
+    }
+
+    @Test
+    void noSoulsCapturesTheEscalatedCostNotTheAuthoredBase() {
+        // /se why renders pB as COST, so an escalating ability must report the price the player could not pay —
+        // reporting soulCost() would tell them 500 while the pool was actually asked for 1000.
+        Ability a = Abilities.ability().defId(77).trigger(0).soulCost(500).soulCostGrowth(2.0).build();
+        int[] balance = {500}; // affords the first charge only
+        ActivationPipeline p = new ActivationPipeline(new CooldownStore(), (player, cost) -> {
+            if (balance[0] < cost) {
+                return false;
+            }
+            balance[0] -= cost;
+            return true;
+        }, new SuppressionStore(), ActivationPipeline.Guard.ALLOW, ActivationPipeline.Guard.ALLOW, cap,
+                new SoulEscalationStore());
+
+        assertEquals(GateOutcome.ACTIVATED, p.evaluate(a, act(100L, 0).soulMode(ACTOR).build()));
+        assertEquals(GateOutcome.NO_SOULS, p.evaluate(a, act(101L, 0).soulMode(ACTOR).build()));
+        Capture.Rec r = cap.last();
+        assertEquals(1, r.pA());
+        assertEquals(1000, r.pB());
     }
 
     @Test
