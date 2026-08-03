@@ -62,6 +62,10 @@ public final class BuiltinTriggers {
                 // Fired by ProjectileLandListener where a player's projectile came down; the activation anchors at
                 // the landing point, so @Aoe centres there. Entity hits stay BOW's. Appended last.
                 .register(Trigger.neutral("PROJECTILE_LAND"))
+                // The observer trigger: something happened to SOMEONE ELSE nearby (a player death) and the
+                // wearer reacts. The subject rides the activation as the victim, so range and relation are
+                // authored as %distance% / %victim.relation% conditions. Appended last.
+                .register(new Trigger("PROXIMITY_EVENT", Direction.NEUTRAL, false, true, true))
                 .build();
     }
 }

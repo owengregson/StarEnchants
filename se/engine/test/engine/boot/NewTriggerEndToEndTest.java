@@ -55,7 +55,8 @@ class NewTriggerEndToEndTest {
     private static final UUID ACTOR = UUID.randomUUID();
 
     /** The four triggers this wave adds — each must survive the same compile-and-route walk. */
-    private static final List<String> WAVE_1C = List.of("HURT", "EQUIP_CHANGE", "PROJECTILE_LAND");
+    private static final List<String> WAVE_1C =
+            List.of("HURT", "EQUIP_CHANGE", "PROJECTILE_LAND", "PROXIMITY_EVENT");
 
     @TempDir
     Path root;
@@ -130,6 +131,26 @@ class NewTriggerEndToEndTest {
         Ability ability = snap.byStableKey("enchants/laststand/1");
         assertNotNull(ability.condition(), "the condition survives to the runtime record");
         assertTrue(ability.factMask().readsStr(BuiltinVars.vocabulary().bindings().get("equipchange").slot()));
+    }
+
+    @Test
+    void proximityEventAuthorsItsRangeAndRelationAsConditions() throws Exception {
+        // PROXIMITY_EVENT carries no trigger-scoped params: the subject binds victim-side, so the two knobs the
+        // contract calls for are already-shipped facts. This pins that both survive the compile onto the mask —
+        // a dropped bit means the populator skips the read and the filter passes for everyone.
+        Snapshot snap = load("avengingangel", """
+                display: "Avenging Angel"
+                trigger: "PROXIMITY_EVENT"
+                levels:
+                  1:
+                    condition: "%victim.relation% == \\"ALLY\\" && %distance% <= 10"
+                    effects: [{ IGNITE: { duration: 60, who: "@Self" } }]
+                """);
+        Ability ability = snap.byStableKey("enchants/avengingangel/1");
+        assertNotNull(ability.condition(), "the condition survives to the runtime record");
+        var vocab = BuiltinVars.vocabulary().bindings();
+        assertTrue(ability.factMask().readsStr(vocab.get("victim.relation").slot()));
+        assertTrue(ability.factMask().readsNum(vocab.get("distance").slot()));
     }
 
     private Snapshot load(String key, String yaml) throws Exception {
