@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import compile.load.ContentHolder;
+import feature.trigger.EquipChangeDriver;
 import feature.trigger.LifecycleDriver;
 import feature.trigger.MaxHealthDriver;
 import feature.trigger.PassiveEffectDriver;
@@ -86,7 +87,7 @@ class EquipListenerTest {
         equip = new ScriptedEquipSource();
 
         listener = new EquipListener(worn, content, repeating, lifecycle, passiveEffects, maxHealth,
-                setMessages, equip, itemViews);
+                setMessages, equip, itemViews, mock(EquipChangeDriver.class));
 
         uuid = UUID.randomUUID();
         player = mock(Player.class);

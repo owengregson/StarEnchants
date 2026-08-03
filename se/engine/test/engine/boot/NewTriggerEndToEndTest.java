@@ -55,7 +55,7 @@ class NewTriggerEndToEndTest {
     private static final UUID ACTOR = UUID.randomUUID();
 
     /** The four triggers this wave adds — each must survive the same compile-and-route walk. */
-    private static final List<String> WAVE_1C = List.of("HURT");
+    private static final List<String> WAVE_1C = List.of("HURT", "EQUIP_CHANGE");
 
     @TempDir
     Path root;
@@ -113,6 +113,23 @@ class NewTriggerEndToEndTest {
         Ability ability = snap.byStableKey("enchants/inversion/1");
         assertNotNull(ability.condition(), "the condition survives to the runtime record");
         assertTrue(ability.factMask().readsStr(BuiltinVars.vocabulary().bindings().get("damagecause").slot()));
+    }
+
+    @Test
+    void equipChangeBranchesOnItsDirectionThroughTheWholeCompile() throws Exception {
+        // One trigger fires both directions, so %equipchange% is the ONLY thing separating them — if the fact
+        // never reaches the mask an "on unequip" ability silently fires on equip too.
+        Snapshot snap = load("laststand", """
+                display: "Last Stand"
+                trigger: "EQUIP_CHANGE"
+                levels:
+                  1:
+                    condition: "%equipchange% == \\"UNEQUIP\\""
+                    effects: [{ IGNITE: { duration: 60, who: "@Self" } }]
+                """);
+        Ability ability = snap.byStableKey("enchants/laststand/1");
+        assertNotNull(ability.condition(), "the condition survives to the runtime record");
+        assertTrue(ability.factMask().readsStr(BuiltinVars.vocabulary().bindings().get("equipchange").slot()));
     }
 
     private Snapshot load(String key, String yaml) throws Exception {

@@ -154,6 +154,7 @@ public final class FactPopulator {
     private final int victimSoulsSlot;       // the victim's cached cross-gem soul total (store read, mask-gated)
     private final int impactHeightSlot;      // projectile height above the struck entity's feet (from the context)
     private final int projectileKindSlot;    // ARROW/FIREBALL/THROWN/OTHER (from the context)
+    private final int equipChangeSlot;       // EQUIP/UNEQUIP on an EQUIP_CHANGE activation (from the context)
 
     /** Search radius for {@code %nearbyenemies%}, in blocks. */
     private static final double NEARBY_RADIUS = 8.0;
@@ -253,6 +254,7 @@ public final class FactPopulator {
         this.victimSoulsSlot = slot(vocabulary, "victim.souls", VarKind.NUM);
         this.impactHeightSlot = slot(vocabulary, "impactheight", VarKind.NUM);
         this.projectileKindSlot = slot(vocabulary, "projectilekind", VarKind.STR);
+        this.equipChangeSlot = slot(vocabulary, "equipchange", VarKind.STR);
     }
 
     /**
@@ -445,6 +447,9 @@ public final class FactPopulator {
         }
         if (projectileKindSlot >= 0 && mask.readsStr(projectileKindSlot)) {
             facts.setString(projectileKindSlot, context.projectileKind());
+        }
+        if (equipChangeSlot >= 0 && mask.readsStr(equipChangeSlot)) {
+            facts.setString(equipChangeSlot, context.equipChange());
         }
         boolean wantsBlockType = blockTypeSlot >= 0 && mask.readsStr(blockTypeSlot);
         boolean wantsIsBlock = isBlockSlot >= 0 && mask.readsFlag(isBlockSlot);

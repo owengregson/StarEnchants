@@ -105,6 +105,29 @@ public final class TriggerRunner {
     }
 
     /**
+     * The COLD equipment-transition entry point: run an EXPLICIT candidate list that is NOT read from the worn
+     * state. An UNEQUIP walk's ability has already left that state and took its {@code FactMask} bits with it, so
+     * gating on the post-refresh mask would read every authored fact as its default; this resolves the FULL mask
+     * instead (a safe superset, and this path runs once per equipment change, never per hit). No worn lookup and
+     * no heroic fold — nothing here folds onto a damage event. The CALLER owns the sink lifecycle.
+     */
+    public void runDetached(Ability[] abilities, int generation, int worldId, int triggerId, Player actor,
+                            ActivationContext context, SinkReadback sink, StableKeyIndex stableKeys,
+                            int[] candidates) {
+        if (candidates.length == 0) {
+            return;
+        }
+        long now = nowTicks.getAsLong();
+        Activation.Builder builder = Activation.builder(actor.getUniqueId(), worldId, triggerId, now)
+                .chanceRoll(() -> ThreadLocalRandom.current().nextDouble() * 100.0)
+                .facts(factPopulator.populate(context, now, FactMask.ALL))
+                .location(context.location())
+                .targetBucket(context.victim() instanceof Player ? 1 : 0);
+        soulBinder.apply(actor).ifPresent(binding -> builder.soulMode(binding.marker()));
+        executor.run(abilities, candidates, builder.build(), context, sink, stableKeys);
+    }
+
+    /**
      * The COLD use-item entry point (§3.6): run a held use-item's EXPLICIT candidate abilities on {@code USE} and
      * report a compact {@link UseAttempt}. Unlike the trigger paths this does NOT read {@code byTrigger} or apply
      * the worn heroic fold — a use-item's abilities live on the held item, not worn gear — and it resolves the full

@@ -92,6 +92,9 @@ public final class BuiltinVars {
                 // projectile was, and which family it belongs to. 0/empty for a non-projectile activation.
                 .number("impactheight")
                 .string("projectilekind") // ARROW | FIREBALL | THROWN | OTHER
+                // Wave 1c fact — appended (slots are append-only per §3.4). EQUIP | UNEQUIP on an EQUIP_CHANGE
+                // activation, empty everywhere else: one trigger fires both directions, and the ability branches.
+                .string("equipchange")
                 .build();
     }
 }

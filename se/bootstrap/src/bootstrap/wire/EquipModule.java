@@ -2,6 +2,7 @@ package bootstrap.wire;
 
 import engine.stores.RepeatStore;
 import feature.combat.EquipListener;
+import feature.trigger.EquipChangeDriver;
 import feature.trigger.LifecycleDriver;
 import feature.trigger.MaxHealthDriver;
 import feature.trigger.PassiveEffectDriver;
@@ -29,6 +30,7 @@ final class EquipModule {
     final LifecycleDriver lifecycle;
     final PassiveEffectDriver passiveEffects;
     final MaxHealthDriver maxHealth;
+    final EquipChangeDriver equipChanges;
     private final SetMessageDriver setMessages;
     private final EquipListener equipListener;
 
@@ -62,8 +64,10 @@ final class EquipModule {
                 new SetEquipEffects(() -> core.master().config().sets(), core.particleFx(), core.sounds()));
         // The shared worn-state refresher (join/held/respawn/quit + hand-mutation feeders); the era armour-/hand-change
         // feeders drive its refresh. The EquipSource + ItemViewCache back the F09 hand-signature reconcile.
+        // EQUIP_CHANGE: the worn-ability diff each refresh already produces, exposed to abilities (wave 1c).
+        this.equipChanges = new EquipChangeDriver(triggerDispatch, core.content(), core.worn());
         this.equipListener = new EquipListener(core.worn(), core.content(), passives, lifecycle, passiveEffects,
-                maxHealth, setMessages, core.bindings().equipSource(), core.itemViews());
+                maxHealth, setMessages, core.bindings().equipSource(), core.itemViews(), equipChanges);
     }
 
     /** The one worn-state refresher, for features whose state feeds the resolve (ADR-0052 pets). */
@@ -109,6 +113,7 @@ final class EquipModule {
                             lifecycle.refresh(player, state);
                             passiveEffects.refresh(player);
                             maxHealth.refresh(player);
+                            equipChanges.refresh(player);
                         });
                     }
                 })
@@ -128,6 +133,7 @@ final class EquipModule {
                 .stop("REPEATING tasks", passives::disarmAll)
                 .stop("HELD/PASSIVE buffs", lifecycle::clearAll)
                 .stop("maintained passives", passiveEffects::clearAll)
+                .stop("EQUIP_CHANGE tracking", equipChanges::clearAll)
                 .lang("set")
                 .build();
     }

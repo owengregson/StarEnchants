@@ -56,6 +56,9 @@ public final class BuiltinTriggers {
                 // Every damage-taken event, ANY cause — the all-cause sibling DEFENSE (entity-only) and FALL/FIRE
                 // (one cause each) cannot express. Targetless: an environmental hit has no attacker. Appended last.
                 .register(new Trigger("HURT", Direction.DEFENSE, false, true, false))
+                // Fired by EquipChangeDriver on the worn-ability diff — the carrying piece being put on or taken
+                // off; %equipchange% says which. Appended last.
+                .register(Trigger.neutral("EQUIP_CHANGE"))
                 .build();
     }
 }
