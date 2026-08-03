@@ -1226,6 +1226,10 @@ The event that fires an ability (an enchant/set/crystal's `trigger:`). Triggers 
 | `EXP_GAIN` | NEUTRAL | false | true | false |
 | `USE` | NEUTRAL | true | false | false |
 | `GUARDIAN_HURT` | NEUTRAL | false | true | false |
+| `HURT` | DEFENSE | false | true | false |
+| `EQUIP_CHANGE` | NEUTRAL | false | true | false |
+| `PROJECTILE_LAND` | NEUTRAL | false | true | false |
+| `PROXIMITY_EVENT` | NEUTRAL | false | true | true |
 
 ## Conditions
 
@@ -1302,6 +1306,7 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%damage%` | NUM |
 | `%damagecause%` | STR |
 | `%distance%` | NUM |
+| `%equipchange%` | STR |
 | `%flying%` | BOOL |
 | `%gliding%` | BOOL |
 | `%heldticks%` | NUM |
