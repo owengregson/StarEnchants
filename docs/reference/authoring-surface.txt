@@ -406,12 +406,14 @@ trigger COMMAND
 trigger DEATH
 trigger DEFENSE
 trigger EAT
+trigger EQUIP_CHANGE
 trigger EXP_GAIN
 trigger FALL
 trigger FIRE
 trigger FISHING
 trigger GUARDIAN_HURT
 trigger HELD
+trigger HURT
 trigger IMPACT
 trigger INTERACT
 trigger INTERACT_LEFT
@@ -420,6 +422,8 @@ trigger ITEM_DAMAGE
 trigger KILL
 trigger MINE
 trigger PASSIVE
+trigger PROJECTILE_LAND
+trigger PROXIMITY_EVENT
 trigger REPEATING
 trigger TRIDENT
 trigger USE
@@ -459,6 +463,7 @@ var combo NUM
 var damage NUM
 var damagecause STR
 var distance NUM
+var equipchange STR
 var flying BOOL
 var gliding BOOL
 var heldticks NUM

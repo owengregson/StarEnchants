@@ -5123,6 +5123,34 @@
     "usesHeld": false,
     "scansEquipment": true,
     "needsTarget": false
+    },
+  {
+    "name": "HURT",
+    "direction": "DEFENSE",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": false
+    },
+  {
+    "name": "EQUIP_CHANGE",
+    "direction": "NEUTRAL",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": false
+    },
+  {
+    "name": "PROJECTILE_LAND",
+    "direction": "NEUTRAL",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": false
+    },
+  {
+    "name": "PROXIMITY_EVENT",
+    "direction": "NEUTRAL",
+    "usesHeld": false,
+    "scansEquipment": true,
+    "needsTarget": true
     }
   ],
 "conditions": {
@@ -5269,6 +5297,10 @@
   {
     "name": "distance",
     "type": "NUM"
+    },
+  {
+    "name": "equipchange",
+    "type": "STR"
     },
   {
     "name": "flying",
