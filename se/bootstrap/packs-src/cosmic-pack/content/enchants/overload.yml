@@ -1,0 +1,36 @@
+# Matrix: 02-enchants-armor-m-z.md § Overload
+display: "Overload"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eAdds bonus maximum health while the piece is worn."
+trigger: PASSIVE
+applies-to: [ARMOR]
+group: "legendary"
+tier: legendary
+# The matrix's shared suppression ruling maps the corpus's noDefenseProcs to SUPPRESS(scope=TYPE, key=defense),
+# which cannot reach a PASSIVE ability — cosmic silence never dropped worn passives, so this permanent worn
+# buff is unsilenceable (the wearer's other enchants still are).
+suppress-immune: true
+# Stackable in bookkeeping, never in effect: POTION's non-stacking amplifier semantics skip an equal-or-higher
+# amplifier, so pieces never sum and only the highest worn level expresses — exactly the measured behaviour,
+# with the highest-only interaction rule on top.
+# Progression interlock with the tier-7 heroic upgrade (the upgrade only applies over max-level Overload, and
+# Overload refuses to apply over the upgrade) is an anvil/progression rule, not runtime.
+# The mastery drain reduces the expressed HEALTH_BOOST amplifier by its own level + 1 and skips the effect
+# entirely at <= 0 — an interaction rule, not authored here.
+# Equip/removal feedback is the shared potion-registry [+]/[-] pair (see Obsidianshield); the recorded
+# tracker-equivalents it replaces read, e.g.:
+#   §b§l[+] §bOverload III:§7 applying HEALTH_BOOST III
+#   §c§l[-] §cOverload III:§7 removing HEALTH_BOOST III
+levels:
+  # Amplifier L-1 = +4 x L max health: +4/+8/+12 HP (+2/+4/+6 hearts).
+  # duration = maintained-while-worn: the passive driver holds the buff while the piece is worn.
+  1:
+    effects:
+      - { POTION: { effect: "HEALTH_BOOST", level: 1, duration: 200, who: "@Self" } }
+  2:
+    effects:
+      - { POTION: { effect: "HEALTH_BOOST", level: 2, duration: 200, who: "@Self" } }
+  3:
+    effects:
+      - { POTION: { effect: "HEALTH_BOOST", level: 3, duration: 200, who: "@Self" } }

@@ -1,0 +1,99 @@
+# Matrix: 02-enchants-armor-m-z.md § Nature Wrath
+display: "Nature Wrath"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eSpends souls to root, drain and weaken the hostile players"
+  - "&earound you, and wipes every mob in range."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "soul"
+tier: soul
+condition: "%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\""
+soul-cost: 75  # flat at every level, charge-or-abort (the KOTH doubled 150 and its short (7+L)x5t windows are environment gates, not shipped)
+no-souls-message: "§c§l** OUT OF SOULS **"
+# The player payload targets hostile PLAYERS: the entry's FILTER_COMPOSE gap records "player-only hostile
+# payloads here", and the wave-1 filter conjunction (ENEMIES+PLAYERS) now expresses exactly that — the mobs
+# inside the same radius take the DESPAWN sweep instead of the root.
+# The two mob-sweep bursts are authored BEFORE the sweep and carry the sweep's own selector body, so they
+# resolve the mob set while it still exists (the per-mob closing cue).
+# The recorded per-DoT-pulse cues — SOUND(GHAST_SCREAM2, 2.0, 2.0), PARTICLE(SPELL, 35) and the frozen
+# victim's "§2§l** NATURE'S WRATH **" line — have no home on the frozen surface: FREEZE carries no per-pulse
+# feedback hook (only PERIODIC_DAMAGE does, and re-homing the DoT there would move its attribution). Dropped
+# as cosmetics, recorded here. Same for the out-of-souls PARTICLE(LAVA, 20) at eye height and
+# SOUND(ITEM_BREAK, 0.7, 0.4): a failed soul gate runs no effects, so no-souls-message carries that branch.
+# {cost} and {souls} are recorded verbatim and stay unfilled — token binding lands with wave 1e.
+# Interactions carried by the OTHER side, nothing authored here: a live Soul Trap window (axes doc) blocks
+# this proc; Poltergeist (mastery doc) grants freeze immunity plus its own
+# "§4§l* POLTERGEIST [§7Immune: Nature's Wrath§4§l] *" line (D-02-2: jar always-true, intended a 12.5%-per-level
+# roll) and an immune victim still eats the bolt and the DoT. Frozen players cannot melee or shoot (engine
+# freeze-lock), FREEZE scopes its root per target (the jar's global walk-speed enforcement is not replicated),
+# and the jar's die-while-rooted speed leak is engine hygiene.
+# era: FREEZE's powder-snow presentation is 1.17+, so the legacy overlay falls back to the potion-root form;
+# LEVEL_UP / ENDERDRAGON_GROWL (and the dropped GHAST_SCREAM2) are 1.8 sound ids the resolver maps, and
+# EXPLOSION_LARGE / SPELL are the cross-era spellings of the jar's LARGE_EXPLODE / SPELL particles.
+levels:
+  # radius 8 + 5xL; window (7+L)x20 t; DoT L HP per 20 t (8/18/30/44 HP total); break-free 30 - 7.5xL %.
+  1:
+    chance: 0.4
+    effects:
+      - { LIGHTNING: { damage: 0, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS}" } }  # cosmetic bolt per victim
+      - { FREEZE: { duration: 160, dot: 1, dot-period: 20, slow: 100, breakout-chance: 22.5, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS}" } }
+      - { POTION: { effect: "WEAKNESS", level: 3, duration: 160, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS}" } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=13, filter=MOBS}" } }
+      - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=13, filter=MOBS}" } }
+      - { DESPAWN: { who: "@Aoe{r=13, filter=MOBS}" } }  # D-02-3: silent removal, no drops and no XP (KILL would fire a real death)
+      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
+      - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }  # recorded per frozen victim; ADR-0066 plays one sound id at most once per event, so the copies collapse into this single play
+      - { MESSAGE: { text: "" } }
+      - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems" } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+      - { MESSAGE: { text: "" } }
+  2:
+    chance: 0.8
+    effects:
+      - { LIGHTNING: { damage: 0, who: "@Aoe{r=18, filter=ENEMIES+PLAYERS}" } }
+      - { FREEZE: { duration: 180, dot: 2, dot-period: 20, slow: 100, breakout-chance: 15, who: "@Aoe{r=18, filter=ENEMIES+PLAYERS}" } }
+      - { POTION: { effect: "WEAKNESS", level: 3, duration: 180, who: "@Aoe{r=18, filter=ENEMIES+PLAYERS}" } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=18, filter=MOBS}" } }
+      - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=18, filter=MOBS}" } }
+      - { DESPAWN: { who: "@Aoe{r=18, filter=MOBS}" } }
+      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
+      - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
+      - { MESSAGE: { text: "" } }
+      - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems" } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+      - { MESSAGE: { text: "" } }
+  3:
+    chance: 1.2
+    effects:
+      - { LIGHTNING: { damage: 0, who: "@Aoe{r=23, filter=ENEMIES+PLAYERS}" } }
+      - { FREEZE: { duration: 200, dot: 3, dot-period: 20, slow: 100, breakout-chance: 7.5, who: "@Aoe{r=23, filter=ENEMIES+PLAYERS}" } }
+      - { POTION: { effect: "WEAKNESS", level: 3, duration: 200, who: "@Aoe{r=23, filter=ENEMIES+PLAYERS}" } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=23, filter=MOBS}" } }
+      - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=23, filter=MOBS}" } }
+      - { DESPAWN: { who: "@Aoe{r=23, filter=MOBS}" } }
+      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
+      - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
+      - { MESSAGE: { text: "" } }
+      - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems" } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+      - { MESSAGE: { text: "" } }
+  4:
+    chance: 1.6
+    effects:
+      - { LIGHTNING: { damage: 0, who: "@Aoe{r=28, filter=ENEMIES+PLAYERS}" } }
+      - { FREEZE: { duration: 220, dot: 4, dot-period: 20, slow: 100, breakout-chance: 0, who: "@Aoe{r=28, filter=ENEMIES+PLAYERS}" } }  # the exact-0 break-free at max level is measured, shipped
+      - { POTION: { effect: "WEAKNESS", level: 3, duration: 220, who: "@Aoe{r=28, filter=ENEMIES+PLAYERS}" } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=28, filter=MOBS}" } }
+      - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=28, filter=MOBS}" } }
+      - { DESPAWN: { who: "@Aoe{r=28, filter=MOBS}" } }
+      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
+      - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
+      - { MESSAGE: { text: "" } }
+      - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems" } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+      - { MESSAGE: { text: "" } }
