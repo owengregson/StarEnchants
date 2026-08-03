@@ -108,10 +108,11 @@ public final class TriggerRunner {
      * The COLD equipment-transition entry point: run an EXPLICIT candidate list that is NOT read from the worn
      * state. An UNEQUIP walk's ability has already left that state and took its {@code FactMask} bits with it, so
      * gating on the post-refresh mask would read every authored fact as its default; this resolves the FULL mask
-     * instead (a safe superset, and this path runs once per equipment change, never per hit). No worn lookup and
-     * no heroic fold — nothing here folds onto a damage event. The CALLER owns the sink lifecycle.
+     * instead (a safe superset, and this path runs once per equipment change, never per hit). No worn lookup at
+     * all — hence no generation, the caller having already rejected a stale state — and no heroic fold, since
+     * nothing here folds onto a damage event. The CALLER owns the sink lifecycle.
      */
-    public void runDetached(Ability[] abilities, int generation, int worldId, int triggerId, Player actor,
+    public void runDetached(Ability[] abilities, int worldId, int triggerId, Player actor,
                             ActivationContext context, SinkReadback sink, StableKeyIndex stableKeys,
                             int[] candidates) {
         if (candidates.length == 0) {
