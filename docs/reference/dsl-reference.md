@@ -1291,6 +1291,7 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%actor.helditem%` | STR |
 | `%actor.level%` | NUM |
 | `%actor.maxhealth%` | NUM |
+| `%actor.souls%` | NUM |
 | `%actor.totalexp%` | NUM |
 | `%actor.type%` | STR |
 | `%actor.world%` | STR |
@@ -1303,12 +1304,16 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%distance%` | NUM |
 | `%flying%` | BOOL |
 | `%gliding%` | BOOL |
+| `%heldticks%` | NUM |
+| `%impactheight%` | NUM |
 | `%isblock%` | BOOL |
 | `%itemdamage.armor%` | BOOL |
 | `%nearbyallies%` | NUM |
 | `%nearbyenemies%` | NUM |
 | `%onfire%` | BOOL |
 | `%onground%` | BOOL |
+| `%posthit.health%` | NUM |
+| `%projectilekind%` | STR |
 | `%ragestacks%` | NUM |
 | `%recentattackers%` | NUM |
 | `%sneaking%` | BOOL |
@@ -1317,6 +1322,7 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%victim.blocking%` | BOOL |
 | `%victim.flying%` | BOOL |
 | `%victim.food%` | NUM |
+| `%victim.fromspawner%` | BOOL |
 | `%victim.gliding%` | BOOL |
 | `%victim.health%` | NUM |
 | `%victim.healthpercent%` | NUM |
@@ -1326,9 +1332,15 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%victim.mobtype%` | STR |
 | `%victim.relation%` | STR |
 | `%victim.sneaking%` | BOOL |
+| `%victim.souls%` | NUM |
 | `%victim.sprinting%` | BOOL |
 | `%victim.swimming%` | BOOL |
 | `%victim.type%` | STR |
 | `%world.raining%` | BOOL |
 | `%world.thundering%` | BOOL |
 | `%world.time%` | NUM |
+
+Three families take a name rather than being fixed facts, and read as NUM:
+
+- `%victim.var.<name>%` — a counter `SET_VAR` wrote on the victim; `0` when unset.
+- `%actor.potion.<effect>%` / `%victim.potion.<effect>%` — the active level of one potion effect, as amplifier + 1, so `> 0` means "active" and `> 1` means "at least II"; `0` when absent. `<effect>` is resolved when the pack loads, so a name unknown on this version is a load error, not a condition that silently never matches.

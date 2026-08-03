@@ -5227,6 +5227,10 @@
     "type": "NUM"
     },
   {
+    "name": "actor.souls",
+    "type": "NUM"
+    },
+  {
     "name": "actor.totalexp",
     "type": "NUM"
     },
@@ -5275,6 +5279,14 @@
     "type": "BOOL"
     },
   {
+    "name": "heldticks",
+    "type": "NUM"
+    },
+  {
+    "name": "impactheight",
+    "type": "NUM"
+    },
+  {
     "name": "isblock",
     "type": "BOOL"
     },
@@ -5297,6 +5309,14 @@
   {
     "name": "onground",
     "type": "BOOL"
+    },
+  {
+    "name": "posthit.health",
+    "type": "NUM"
+    },
+  {
+    "name": "projectilekind",
+    "type": "STR"
     },
   {
     "name": "ragestacks",
@@ -5329,6 +5349,10 @@
   {
     "name": "victim.food",
     "type": "NUM"
+    },
+  {
+    "name": "victim.fromspawner",
+    "type": "BOOL"
     },
   {
     "name": "victim.gliding",
@@ -5365,6 +5389,10 @@
   {
     "name": "victim.sneaking",
     "type": "BOOL"
+    },
+  {
+    "name": "victim.souls",
+    "type": "NUM"
     },
   {
     "name": "victim.sprinting",

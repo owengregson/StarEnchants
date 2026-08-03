@@ -448,6 +448,7 @@ var actor.healthpercent NUM
 var actor.helditem STR
 var actor.level NUM
 var actor.maxhealth NUM
+var actor.souls NUM
 var actor.totalexp NUM
 var actor.type STR
 var actor.world STR
@@ -460,12 +461,16 @@ var damagecause STR
 var distance NUM
 var flying BOOL
 var gliding BOOL
+var heldticks NUM
+var impactheight NUM
 var isblock BOOL
 var itemdamage.armor BOOL
 var nearbyallies NUM
 var nearbyenemies NUM
 var onfire BOOL
 var onground BOOL
+var posthit.health NUM
+var projectilekind STR
 var ragestacks NUM
 var recentattackers NUM
 var sneaking BOOL
@@ -474,6 +479,7 @@ var swimming BOOL
 var victim.blocking BOOL
 var victim.flying BOOL
 var victim.food NUM
+var victim.fromspawner BOOL
 var victim.gliding BOOL
 var victim.health NUM
 var victim.healthpercent NUM
@@ -483,6 +489,7 @@ var victim.maxhealth NUM
 var victim.mobtype STR
 var victim.relation STR
 var victim.sneaking BOOL
+var victim.souls NUM
 var victim.sprinting BOOL
 var victim.swimming BOOL
 var victim.type STR
