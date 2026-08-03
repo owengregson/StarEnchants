@@ -110,6 +110,8 @@ class EngineStoresTest {
         s.cooldowns().arm(id, CooldownStore.key(0, 1), 0L, 100);
         s.combo().hit(id, UUID.randomUUID(), 0L);
         s.why().record(id, 0L, 0, 7, 10, 0, 0);
+        s.dotAmplify().amplify(id, 3.0, DotAmplifyStore.CAUSE_DOT, 0L, 100);
+        s.headTrophies().arm(id, "n", "l", 0L);
 
         assertEquals("1", s.vars().get(id, "x", 0L));
         assertTrue(s.suppression().isSuppressed(id, 1L, 0L));
@@ -120,6 +122,7 @@ class EngineStoresTest {
         assertFalse(s.cooldowns().ready(id, CooldownStore.key(0, 1), 0L));
         assertEquals(1, s.combo().current(id, 0L));
         assertEquals(1, s.why().attempts(id).size());
+        assertEquals(3.0, s.dotAmplify().factor(id, 0L, DotAmplifyStore.CAUSE_WITHER));
 
         s.clearAll(id);
 
@@ -132,5 +135,8 @@ class EngineStoresTest {
         assertTrue(s.cooldowns().ready(id, CooldownStore.key(0, 1), 0L));
         assertEquals(0, s.combo().current(id, 0L));
         assertTrue(s.why().attempts(id).isEmpty());
+        assertEquals(1.0, s.dotAmplify().factor(id, 0L, DotAmplifyStore.CAUSE_WITHER));
+        // An unexpiring store has no other way to be freed, so a missed clear here would leak forever.
+        assertNull(s.headTrophies().consume(id));
     }
 }
