@@ -64,7 +64,7 @@ public final class Modules {
         this.useItems = new UseItemsModule(core);          // §3.6 right-click content items
         this.pets = new PetsModule(core, equip);           // ADR-0052 leveling head items (needs the refresher)
         this.masks = new MasksModule(core, equip);         // ADR-0053 helmet masks (subscribes the equip-refresh seam)
-        this.bless = new BlessModule(core);          // ADR-0072 /bless (one application of the shared cleanse)
+        this.bless = new BlessModule(core);          // /bless (CosmicRenewed-compatible first debuff)
         this.traks = new TraksModule(core);
         this.enchants = new EnchantsModule(core);
         this.sets = new SetsModule(core);

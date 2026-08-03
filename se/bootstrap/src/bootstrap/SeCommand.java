@@ -74,7 +74,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             CommandInfo.of("damagedebug", "",
                     "Toggle a per-hit damage-fold readout (base, percents, flats, scale, result) for yourself."),
             CommandInfo.of("bless", "[player]",
-                    "Cleanse every landed debuff from yourself or another player (admin; no cooldown or cost)."),
+                    "Lift the first matching debuff from yourself or another player (admin; no cooldown or cost)."),
             CommandInfo.of("modules", "",
                     "Show every feature module — toggle state and depth, wired listeners, commands, mint types, stores."),
             CommandInfo.of("give", "<type> <player> [args]", "Give any mintable item (book, scroll, dust, gem, orb, crystal, set piece, heroic…) to a player."),
@@ -487,8 +487,8 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     }
 
     /**
-     * {@code /se bless [player]} — the admin mirror of {@code /bless} (ADR-0072): the identical cleanse with the
-     * cooldown/cost gate skipped entirely, on the sender or a named online player. Console must name a target.
+     * {@code /se bless [player]} — the admin mirror of {@code /bless}: the same splash and first-debuff removal
+     * with the cooldown/cost gate skipped entirely. Console must name a target.
      */
     private void bless(CommandSender sender, String[] args) {
         Player target = args.length > 1 ? org.bukkit.Bukkit.getPlayerExact(args[1])
@@ -499,12 +499,11 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
                     : messages.format("command.not-a-player"));
             return;
         }
-        // A console bless has no player to report back to, so the target hears about it and the sender gets the echo.
+        // The target receives the normal BLESSED proc only when a matching debuff was removed.
         if (sender instanceof Player notify) {
             bless.run(notify, target);
         } else {
             bless.run(target, target);
-            sender.sendMessage(messages.format("command.bless.cleansed-other", "PLAYER", target.getName()));
         }
     }
 

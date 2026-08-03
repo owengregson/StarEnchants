@@ -5,7 +5,7 @@
     { "name": "problems", "args": "", "description": "Show the errors and warnings from the last content load.", "alias": false },
     { "name": "why", "args": "<player> [key]", "description": "Explain a player's recent activation attempts — which gate stopped each one and why.", "alias": false },
     { "name": "damagedebug", "args": "", "description": "Toggle a per-hit damage-fold readout (base, percents, flats, scale, result) for yourself.", "alias": false },
-    { "name": "bless", "args": "[player]", "description": "Cleanse every landed debuff from yourself or another player (admin; no cooldown or cost).", "alias": false },
+    { "name": "bless", "args": "[player]", "description": "Lift the first matching debuff from yourself or another player (admin; no cooldown or cost).", "alias": false },
     { "name": "modules", "args": "", "description": "Show every feature module — toggle state and depth, wired listeners, commands, mint types, stores.", "alias": false },
     { "name": "give", "args": "<type> <player> [args]", "description": "Give any mintable item (book, scroll, dust, gem, orb, crystal, set piece, heroic…) to a player.", "alias": false },
     { "name": "item", "args": "dump", "description": "Print the decoded StarEnchants state of the held item.", "alias": false },

@@ -1,8 +1,8 @@
 package feature.bless;
 
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.function.LongSupplier;
+import java.util.function.Predicate;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -10,9 +10,9 @@ import platform.lang.Messages;
 import platform.sched.Scheduling;
 
 /**
- * {@code /bless} — the player-facing cleanse (ADR-0072). ONE application of the very same
- * {@code CURE category: HARMFUL} sweep clarity's Bless fires on a timer: the command owns no cleanse logic of
- * its own, only the permission and the cost/cooldown policy around it, so the two can never diverge.
+ * {@code /bless} — the player-facing CosmicRenewed-compatible cleanse: play its splash cue, then lift only the
+ * first matching debuff. The gameplay body lives in {@link BlessEffect}; this command owns only
+ * permissions, cost/cooldown policy, scheduling, and feedback.
  *
  * <p>Gated on {@code starenchants.bless} (default true, the {@code starenchants.use} precedent) with the policy
  * in {@link BlessGate}; a player holding {@code starenchants.bless.bypass} skips both, which is also how
@@ -27,19 +27,19 @@ public final class BlessCommand extends Command {
     public static final String PERMISSION = "starenchants.bless";
     public static final String BYPASS_PERMISSION = "starenchants.bless.bypass";
 
-    private final Consumer<Player> cleanse; // the shared CURE HARMFUL sweep, run on the target's own thread
+    private final Predicate<Player> bless; // splash + first-debuff removal, on the target thread
     private final BlessGate gate;
     private final Messages messages;
     private final LongSupplier nowMillis;
 
-    public BlessCommand(String label, Consumer<Player> cleanse, BlessGate gate, Messages messages,
+    public BlessCommand(String label, Predicate<Player> bless, BlessGate gate, Messages messages,
                         LongSupplier nowMillis) {
         super(label);
-        this.cleanse = Objects.requireNonNull(cleanse, "cleanse");
+        this.bless = Objects.requireNonNull(bless, "bless");
         this.gate = Objects.requireNonNull(gate, "gate");
         this.messages = Objects.requireNonNull(messages, "messages");
         this.nowMillis = Objects.requireNonNull(nowMillis, "nowMillis");
-        setDescription("Cleanse every debuff an opponent has landed on you.");
+        setDescription("Lift one debuff from yourself.");
         setUsage("/" + label);
         setPermission(PERMISSION);
     }
@@ -74,18 +74,14 @@ public final class BlessCommand extends Command {
     }
 
     /**
-     * Cleanse {@code target} on its own region thread and report to {@code notify}. Shared with {@code /se bless},
-     * where the two differ (an admin blessing someone else).
+     * Bless {@code target} on its own region thread. The retained {@code notify} parameter keeps the admin mirror's
+     * call shape stable; Renewed-style feedback is sent only to the target when a debuff was removed.
      */
     public void run(Player notify, Player target) {
         Scheduling.onEntity(target, () -> {
-            cleanse.accept(target);
-            if (notify.getUniqueId().equals(target.getUniqueId())) {
-                notify.sendMessage(messages.format("command.bless.cleansed"));
-                return;
+            if (bless.test(target)) {
+                target.sendMessage(messages.format("command.bless.cleansed"));
             }
-            target.sendMessage(messages.format("command.bless.cleansed-by", "PLAYER", notify.getName()));
-            notify.sendMessage(messages.format("command.bless.cleansed-other", "PLAYER", target.getName()));
         });
     }
 }

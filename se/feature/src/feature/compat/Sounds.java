@@ -43,6 +43,27 @@ public final class Sounds {
         }
     }
 
+    /**
+     * Play the first sound token that exists on this server. This is for the few hard-coded gameplay cues whose
+     * Bukkit constant was renamed across the supported range (for example modern
+     * {@code ENTITY_GENERIC_SPLASH} versus 1.8's {@code SPLASH}); exactly one matching constant is emitted.
+     */
+    public void playFirst(Player player, Location location, float volume, float pitch, String... soundNames) {
+        if (player == null || soundNames == null) {
+            return;
+        }
+        for (String soundName : soundNames) {
+            if (soundName == null || soundName.isBlank()) {
+                continue;
+            }
+            Sound sound = resolve(SoundCue.canonical(soundName));
+            if (sound != null) {
+                player.playSound(location, sound, volume, pitch);
+                return;
+            }
+        }
+    }
+
     /** The {@code Sound} constant named {@code constant}, or {@code null} if it is absent on this version. */
     private static Sound resolve(String constant) {
         if (constant.isEmpty()) {

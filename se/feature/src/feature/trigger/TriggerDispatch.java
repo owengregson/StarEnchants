@@ -346,9 +346,8 @@ public final class TriggerDispatch {
     }
 
     /**
-     * Run ONE cleanse on {@code player} — the same {@code CURE category: HARMFUL} sweep clarity's Bless fires on
-     * a timer and the Cow Pet fires on right-click, through the identical sink path so the three can never
-     * diverge (ADR-0072). {@code /bless} is exactly this, once. Runs on the player's own thread.
+     * Run ONE broad {@code CURE category: HARMFUL} sweep for clarity/Cow-style callers. The player-facing
+     * {@code /bless} command intentionally uses its CosmicRenewed-compatible first-debuff body instead.
      */
     public void cleanse(Player player) {
         SinkReadback sink = newSink();

@@ -36,14 +36,11 @@ command.reload.warning-line: "&6  {DIAGNOSTIC}"
 command.reload.warnings-more: "&7  … and {N} more — run &f/se problems&7 for the full list."
 command.menu.unknown: "&cUnknown menu '{NAME}'. &7Available: {AVAILABLE}"
 command.menu.no-permission: "&cYou don't have permission to open that menu."
-# /bless — the debuff cleanse. {SECONDS} = cooldown left, {COST} = the configured charge, {PLAYER} = the other
-# party when an admin blesses someone else.
-command.bless.cleansed: "&b&l** BLESSED ** &7Every debuff on you has been lifted."
+# /bless — the first-debuff cleanse. {SECONDS} = cooldown left and {COST} = the configured charge.
+command.bless.cleansed: "&e&l** BLESSED **"
 command.bless.cooldown: "&cYou can bless again in &f{SECONDS}s&c."
 command.bless.cannot-afford: "&cYou cannot afford that — a bless costs &f{COST}&c."
 command.bless.no-economy: "&cBless has a cost configured but no economy plugin is installed — tell an admin."
-command.bless.cleansed-by: "&b&l** BLESSED ** &7{PLAYER} lifted every debuff on you."
-command.bless.cleansed-other: "&aCleansed every debuff on &f{PLAYER}&a."
 command.bless.no-such-player: "&cNo player online named &f{PLAYER}&c."
 command.migrate.start: "&7StarEnchants: migrating {FORMAT} from &f{SOURCE}&7…"
 command.migrate.unknown-format: "&cUnknown format '{FORMAT}' — use &fee&c, &fea&c or &fae&c."

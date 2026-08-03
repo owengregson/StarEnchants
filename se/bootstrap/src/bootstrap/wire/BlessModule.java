@@ -2,6 +2,7 @@ package bootstrap.wire;
 
 import compile.load.MasterConfig;
 import feature.bless.BlessCommand;
+import feature.bless.BlessEffect;
 import feature.bless.BlessGate;
 import platform.sched.Scheduling;
 
@@ -10,11 +11,9 @@ import platform.sched.Scheduling;
  * registered on the command map at boot, so like {@code command-trigger} the toggle takes effect on the next
  * start rather than a {@code /se reload}; the cost/cooldown knobs it reads ARE live.
  *
- * <p>Deliberately thin. The command holds no cleanse logic of its own: it runs
- * {@link feature.trigger.TriggerDispatch#cleanse}, the same {@code CURE category: HARMFUL} sweep clarity's Bless
- * fires on a timer and the Cow Pet fires on right-click. All this module adds is the permission surface and the
- * cost/cooldown policy around one application of it. The permanent-grant bridge that sweep consults is installed
- * by {@link EquipModule}, which owns the driver answering it and is not boot-toggled.
+ * <p>Deliberately thin. The command delegates the gameplay body to {@link BlessEffect}; this module supplies the
+ * permanent-potion ownership bridge and cross-era sound player, then adds the permission and cost/cooldown policy
+ * around it.
  */
 final class BlessModule {
 
@@ -33,7 +32,8 @@ final class BlessModule {
                     return new BlessGate.Settings(cfg.cooldownSeconds(), cfg.cost());
                 },
                 core.economy());
-        this.command = new BlessCommand("bless", core.triggerDispatch()::cleanse, gate, core.messages(),
+        BlessEffect effect = new BlessEffect(core.sinkEnv().permanentPotions(), core.sounds());
+        this.command = new BlessCommand("bless", effect::apply, gate, core.messages(),
                 System::currentTimeMillis);
     }
 
