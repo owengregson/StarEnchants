@@ -3,6 +3,7 @@ package compile.cond;
 import compile.model.cond.Cond;
 import compile.model.cond.NumExpr;
 import compile.model.cond.StrExpr;
+import compile.resolve.PlatformResolvers;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -45,9 +47,21 @@ import java.util.regex.PatternSyntaxException;
 public final class ConditionCompiler {
 
     private final VarResolver vars;
+    private final PlatformResolvers resolvers;
 
+    /** No handle resolution: a {@code %scope.potion.<effect>%} token cannot resolve and is diagnosed. */
     public ConditionCompiler(VarResolver vars) {
+        this(vars, PlatformResolvers.none());
+    }
+
+    /**
+     * {@code resolvers} is the same Bukkit-free facade the resolve stage uses (§9): the keyed potion families
+     * resolve their {@code <effect>} token to an interned handle HERE, at compile time, so only the resolved
+     * id crosses into the runtime and this module stays Bukkit-free.
+     */
+    public ConditionCompiler(VarResolver vars, PlatformResolvers resolvers) {
         this.vars = Objects.requireNonNull(vars, "vars");
+        this.resolvers = Objects.requireNonNull(resolvers, "resolvers");
     }
 
     /** Lower into a boolean {@link Cond}, or empty on a type error. */
@@ -168,10 +182,48 @@ public final class ConditionCompiler {
 
     private static final String VAR_PREFIX = "var.";
 
+    private static final String POTION_PREFIX = "potion.";
+
+    /** The activation entity a {@code scope} names, or {@code null} if it names neither side. */
+    private static NumExpr.Scope entityScope(String scope) {
+        if ("victim".equalsIgnoreCase(scope)) {
+            return NumExpr.Scope.VICTIM;
+        }
+        return "actor".equalsIgnoreCase(scope) ? NumExpr.Scope.ACTOR : null;
+    }
+
+    /**
+     * Whether this token is a keyed potion read — {@code %actor.potion.<effect>%} /
+     * {@code %victim.potion.<effect>%}. Recognised by PREFIX for the same reason the {@code var.} family is:
+     * the effect vocabulary is the platform's, not the var vocabulary's, so it cannot be enumerated in the
+     * bindings, and without this arm the token would lower to a PAPI passthrough that reads null forever.
+     */
+    private static boolean isPotionRef(Expr.VarRef v) {
+        return entityScope(v.scope()) != null && v.name() != null
+                && v.name().length() > POTION_PREFIX.length()
+                && v.name().regionMatches(true, 0, POTION_PREFIX, 0, POTION_PREFIX.length());
+    }
+
+    /** Resolve a recognised potion token's effect to its interned handle; unknown → diagnostic + empty. */
+    private Optional<NumExpr> potionLevel(Expr.VarRef v, Diagnostics diags) {
+        String token = v.name().substring(POTION_PREFIX.length());
+        OptionalInt id = resolvers.potionEffect(token);
+        if (id.isEmpty()) {
+            diags.error(DiagCode.E_UNKNOWN_HANDLE,
+                    "unknown potion effect '" + token + "' in '%" + token(v) + "%'", v.source(),
+                    "use a potion effect name valid on the target version");
+            return Optional.empty();
+        }
+        return Optional.of(new NumExpr.PotionLevel(entityScope(v.scope()), id.getAsInt()));
+    }
+
     private Optional<NumExpr> numVar(Expr.VarRef v, Diagnostics diags) {
         NumExpr.EntityVar entity = entityVar(v);
         if (entity != null) {
             return Optional.of(entity);
+        }
+        if (isPotionRef(v)) {
+            return potionLevel(v, diags);
         }
         Optional<VarBinding> b = vars.resolve(v.scope(), v.name());
         if (b.isEmpty()) {
@@ -338,7 +390,7 @@ public final class ConditionCompiler {
             return Operand.bool(new Cond.BoolLit(b.value()));
         }
         if (e instanceof Expr.VarRef v) {
-            return varOperand(v);
+            return varOperand(v, diags);
         }
         if (e instanceof Expr.Arith || e instanceof Expr.Neg || e instanceof Expr.Call) {
             // A numeric operand of a comparison, e.g. %actor.health% < max(%actor.maxhealth% / 2, 5).
@@ -356,10 +408,14 @@ public final class ConditionCompiler {
         return literal(n, diags).map(Operand::num).orElse(null);
     }
 
-    private Operand varOperand(Expr.VarRef v) {
+    private Operand varOperand(Expr.VarRef v, Diagnostics diags) {
         NumExpr.EntityVar entity = entityVar(v);
         if (entity != null) {
             return Operand.num(entity); // a counter is numeric: %victim.var.stacks% >= 3
+        }
+        if (isPotionRef(v)) {
+            // Numeric too: %victim.potion.SLOW% > 0 is the "is it active" idiom, > 1 the "at least II" one.
+            return potionLevel(v, diags).map(Operand::num).orElse(null);
         }
         Optional<VarBinding> b = vars.resolve(v.scope(), v.name());
         if (b.isEmpty()) {

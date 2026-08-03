@@ -1,9 +1,13 @@
 package engine.run;
 
+import java.util.Objects;
+import java.util.function.IntFunction;
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 /**
  * Legacy (1.8.9) impl of {@link ActorProbe} — the era-exclusive {@code overlay/legacy} entity/material reads
@@ -12,6 +16,18 @@ import org.bukkit.entity.Player;
  * 1.8-correct constants.
  */
 public final class LegacyActorProbe implements ActorProbe {
+
+    /** Interned potion handle &rarr; live 1.8 type; {@code null} on a miss. */
+    private final IntFunction<PotionEffectType> potionHandles;
+
+    /** No handle lookup — {@code %scope.potion.<effect>%} reads 0 (the pre-potion-family form, and tests). */
+    public LegacyActorProbe() {
+        this(id -> null);
+    }
+
+    public LegacyActorProbe(IntFunction<PotionEffectType> potionHandles) {
+        this.potionHandles = Objects.requireNonNull(potionHandles, "potionHandles");
+    }
 
     @Override
     public boolean isSwimming(Player player) {
@@ -43,5 +59,21 @@ public final class LegacyActorProbe implements ActorProbe {
     @Override
     public boolean fromSpawner(LivingEntity entity) {
         return false; // 1.8 records no spawn provenance — the server keeps no flag to read
+    }
+
+    @Override
+    public int potionLevel(LivingEntity entity, int potionEffectId) {
+        PotionEffectType type = potionHandles.apply(potionEffectId);
+        if (type == null) {
+            return 0;
+        }
+        // 1.8 has no getPotionEffect(type) — only the bulk list — so this sweeps. It runs lazily, under the
+        // condition node, so an ability that never asks about potions never walks anything.
+        for (PotionEffect active : entity.getActivePotionEffects()) {
+            if (active.getType().equals(type)) {
+                return active.getAmplifier() + 1;
+            }
+        }
+        return 0;
     }
 }

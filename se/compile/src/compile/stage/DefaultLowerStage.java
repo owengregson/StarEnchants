@@ -13,6 +13,7 @@ import compile.model.CompiledEffect;
 import compile.model.CompiledSelector;
 import compile.model.cond.Cond;
 import compile.model.cond.NumExpr;
+import compile.resolve.PlatformResolvers;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.grammar.EffectLine;
@@ -52,23 +53,36 @@ public final class DefaultLowerStage implements LowerStage {
         this(registry, affinityOf, selectors, defaultSelectorOf, vars, head -> -1, head -> -1);
     }
 
+    /** Convenience: dense-id stamping but no handle resolution — a keyed potion condition cannot resolve. */
+    public DefaultLowerStage(SpecRegistry registry, Function<String, Affinity> affinityOf,
+                             SpecRegistry selectors, Function<String, String> defaultSelectorOf,
+                             VarResolver vars, ToIntFunction<String> effectIdOf,
+                             ToIntFunction<String> selectorIdOf) {
+        this(registry, affinityOf, selectors, defaultSelectorOf, vars, effectIdOf, selectorIdOf,
+                PlatformResolvers.none());
+    }
+
     /**
      * @param affinityOf        effect head &rarr; declared {@link Affinity}; {@code null} &rarr; {@link Affinity#CONTEXT_LOCAL}
      * @param defaultSelectorOf effect head &rarr; default selector head; {@code null} &rarr; {@code SELF}
      * @param vars              condition variable vocabulary; unknown variables become PlaceholderAPI tokens
      * @param effectIdOf        effect head &rarr; dense kind id stamped on each {@link CompiledEffect} (ADR-0039)
      * @param selectorIdOf      selector head &rarr; dense kind id stamped on each {@link CompiledSelector} (ADR-0039)
+     * @param resolvers         the §9 handle facade conditions resolve their keyed potion tokens through — the
+     *                          SAME one the resolve stage uses, so an effect and a condition agree on what a
+     *                          potion name means on this version
      */
     public DefaultLowerStage(SpecRegistry registry, Function<String, Affinity> affinityOf,
                              SpecRegistry selectors, Function<String, String> defaultSelectorOf,
                              VarResolver vars, ToIntFunction<String> effectIdOf,
-                             ToIntFunction<String> selectorIdOf) {
+                             ToIntFunction<String> selectorIdOf, PlatformResolvers resolvers) {
         Objects.requireNonNull(registry, "registry");
         this.affinityOf = Objects.requireNonNull(affinityOf, "affinityOf");
         this.selectorCompiler = new SelectorCompiler(Objects.requireNonNull(selectors, "selectors"),
                 Objects.requireNonNull(selectorIdOf, "selectorIdOf"));
         this.defaultSelectorOf = Objects.requireNonNull(defaultSelectorOf, "defaultSelectorOf");
-        this.conditionCompiler = new ConditionCompiler(Objects.requireNonNull(vars, "vars"));
+        this.conditionCompiler = new ConditionCompiler(Objects.requireNonNull(vars, "vars"),
+                Objects.requireNonNull(resolvers, "resolvers"));
         this.lineCompiler = new LineCompiler(registry);
         this.effectIdOf = Objects.requireNonNull(effectIdOf, "effectIdOf");
     }

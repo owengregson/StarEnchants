@@ -3,6 +3,7 @@ package engine.run;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -301,6 +302,29 @@ class FactPopulatorTest {
         // A later swap restarts the count rather than extending it — the fact is "since the LAST change".
         stores.heldSlots().changed(id, 150L);
         assertEquals(10.0, pop.populate(new ActivationContext(p, null, null, null), 160L, mask).number(slot));
+    }
+
+    @Test
+    void potionReadsAreBoundPerSideAndCostNothingUntilAsked() {
+        // The keyed families own no fact slot, so they are BOUND, not populated: the probe must not be
+        // consulted for an activation whose condition never mentions a potion.
+        ActorProbe probe = mock(ActorProbe.class);
+        Player a = actor();
+        LivingEntity v = mock(LivingEntity.class);
+        when(probe.potionLevel(a, 7)).thenReturn(3);
+        when(probe.potionLevel(v, 7)).thenReturn(1);
+        FactPopulator pop = new FactPopulator(BuiltinVars.vocabulary(), new VarStore(), t -> null, probe);
+
+        FactBuffer f = pop.populate(new ActivationContext(a, v, null, null), 0L, FactMask.NONE);
+        verify(probe, never()).potionLevel(any(), org.mockito.ArgumentMatchers.anyInt());
+
+        assertEquals(3, f.actorPotionLevel(7));
+        assertEquals(1, f.victimPotionLevel(7));
+        assertEquals(0, f.actorPotionLevel(8), "an effect the actor lacks reads 0");
+
+        // No victim on this activation: the victim side answers 0 rather than falling back to the actor's.
+        FactBuffer solo = pop.populate(new ActivationContext(a, null, null, null), 0L, FactMask.NONE);
+        assertEquals(0, solo.victimPotionLevel(7));
     }
 
     @Test

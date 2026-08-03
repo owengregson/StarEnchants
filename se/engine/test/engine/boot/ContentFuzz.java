@@ -718,6 +718,36 @@ final class ContentFuzz {
                     effects:
                       - { DAMAGE: { amount: "max(%damage%, 3)" } }
                 """));
+        // The keyed potion families are prefix-recognised in ConditionCompiler, so their near-misses are the
+        // interesting cases: a bare prefix and a scope that names no activation entity must both fall back to
+        // the PlaceholderAPI passthrough rather than claiming the token or throwing.
+        out.add(Map.entry("potion-condition.yml", """
+                display: "potioncond"
+                trigger: "ATTACK"
+                levels:
+                  1:
+                    condition: "%actor.potion.SPEED% > 1 && %victim.potion.SLOW% > 0"
+                    effects:
+                      - { CANCEL: {} }
+                """));
+        out.add(Map.entry("potion-condition-bare-prefix.yml", """
+                display: "potionbare"
+                trigger: "ATTACK"
+                levels:
+                  1:
+                    condition: "%actor.potion.% > 0"
+                    effects:
+                      - { CANCEL: {} }
+                """));
+        out.add(Map.entry("potion-condition-foreign-scope.yml", """
+                display: "potionscope"
+                trigger: "ATTACK"
+                levels:
+                  1:
+                    condition: "%world.potion.SPEED% > 0 && %potion.SPEED% > 0"
+                    effects:
+                      - { CANCEL: {} }
+                """));
         out.add(Map.entry("tabs-and-garbage.yml", "\tdisplay: \"x\"\n{{{[[\n"));
         out.add(Map.entry("wrong-shapes.yml", """
                 display: "wrongshapes"

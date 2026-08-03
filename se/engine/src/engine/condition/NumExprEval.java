@@ -35,6 +35,12 @@ public final class NumExprEval {
             double parsed = parseDouble(f.resolveVictimVar(v.name()));
             return Double.isNaN(parsed) ? 0.0 : parsed;
         }
+        if (e instanceof NumExpr.PotionLevel p) {
+            // amplifier+1, 0 when absent — so `> 0` reads "active" and `> 1` reads "at least II".
+            return p.scope() == NumExpr.Scope.VICTIM
+                    ? f.victimPotionLevel(p.handleId())
+                    : f.actorPotionLevel(p.handleId());
+        }
         if (e instanceof NumExpr.Fn fn) {
             return function(fn, f);
         }

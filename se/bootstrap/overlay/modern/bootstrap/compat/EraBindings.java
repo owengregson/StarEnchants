@@ -108,10 +108,11 @@ public final class EraBindings implements EraServices {
         return new ModernEquipSource();
     }
 
-    /** The entity/material fact reads (§3.3): modern swim/glide/isAir/main-hand. Injected into {@code FactPopulator}. */
+    /** The entity/material fact reads (§3.3): modern swim/glide/isAir/main-hand/spawner + the keyed potion read
+     *  (interned handle → live type). Injected into {@code FactPopulator}. */
     @Override
     public ActorProbe actorProbe() {
-        return new ModernActorProbe();
+        return new ModernActorProbe(handles::potionEffect);
     }
 
     /** Hand/equipment access (§4): modern off-hand-aware. Injected into the feature shells. */

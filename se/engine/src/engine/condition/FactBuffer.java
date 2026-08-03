@@ -22,6 +22,7 @@ public final class FactBuffer {
     private long flags1; // flags 64..127
     private UnaryOperator<String> papi = t -> null;
     private UnaryOperator<String> victimVars = t -> null;
+    private PotionLevels potions = PotionLevels.NONE;
     // rand()'s draw. Defaults to 0 (never an inline ThreadLocalRandom) exactly like Activation's chanceRoll:
     // production installs the real source, so an unwired evaluation is reproducible instead of secretly random.
     private DoubleSupplier random = () -> 0.0;
@@ -87,6 +88,21 @@ public final class FactBuffer {
         return victimVars.apply(name);
     }
 
+    /** Install the per-activation potion reader ({@code %scope.potion.<effect>%}); {@code null} = none. */
+    public void potionLevels(PotionLevels levels) {
+        this.potions = levels == null ? PotionLevels.NONE : levels;
+    }
+
+    /** The actor's level of the resolved potion handle ({@code amplifier + 1}); {@code 0} when absent. */
+    public int actorPotionLevel(int potionEffectId) {
+        return potions.actorLevel(potionEffectId);
+    }
+
+    /** The victim's level of the resolved potion handle ({@code amplifier + 1}); {@code 0} when absent. */
+    public int victimPotionLevel(int potionEffectId) {
+        return potions.victimLevel(potionEffectId);
+    }
+
     /** Install the random source {@code rand(lo,hi)} draws from; {@code null} (the default) draws {@code 0}. */
     public void randomSource(DoubleSupplier source) {
         this.random = source == null ? () -> 0.0 : source;
@@ -105,6 +121,7 @@ public final class FactBuffer {
         flags1 = 0L;
         papi = t -> null;
         victimVars = t -> null;
+        potions = PotionLevels.NONE;
         random = () -> 0.0;
     }
 }

@@ -5,6 +5,7 @@ import compile.cond.VarKind;
 import compile.model.FactMask;
 import engine.condition.BuiltinVars;
 import engine.condition.FactBuffer;
+import engine.condition.PotionLevels;
 import engine.condition.VarVocabulary;
 import engine.selector.kind.Allies;
 import engine.stores.EngineStores;
@@ -66,7 +67,42 @@ public final class FactPopulator {
 
     private record VictimStr(int slot, VictimS src) {}
 
+    /**
+     * The {@code %scope.potion.<effect>%} reader, rebound per activation. One instance per worker thread beside
+     * the buffer — a fresh capture per hit would allocate on the pipeline the JMH gate holds at zero.
+     */
+    private final class PotionBinding implements PotionLevels {
+        private Player actor;
+        private LivingEntity victim;
+
+        void bind(Player actor, LivingEntity victim) {
+            this.actor = actor;
+            this.victim = victim;
+        }
+
+        @Override
+        public int actorLevel(int potionEffectId) {
+            return actor == null ? 0 : level(actor, potionEffectId);
+        }
+
+        @Override
+        public int victimLevel(int potionEffectId) {
+            return victim == null ? 0 : level(victim, potionEffectId);
+        }
+
+        private int level(LivingEntity entity, int potionEffectId) {
+            try {
+                return probe.potionLevel(entity, potionEffectId);
+            } catch (RuntimeException unreadable) {
+                // Folia: the entity belongs to another region — read as "no effect", never abort the gate.
+                Regions.swallowed("FactPopulator.potionLevel", unreadable);
+                return 0;
+            }
+        }
+    }
+
     private final ThreadLocal<FactBuffer> buffer;
+    private final ThreadLocal<PotionBinding> potionBinding = ThreadLocal.withInitial(PotionBinding::new);
     private final VarStore vars;
     private final RageStackStore rageStacks; // §3 %ragestacks% source — an actor-scoped read (mask-gated)
     private final HeldSlotStore heldSlots;   // %heldticks% source — an actor-scoped read (mask-gated)
@@ -282,6 +318,11 @@ public final class FactPopulator {
         facts.clear();
         facts.randomSource(random); // clear() resets it, so re-install before any expression can draw
         if (context != null) {
+            // The keyed potion families own no fact slot, so they are bound (not populated) and cost nothing
+            // until a condition node actually reaches them. Rebinding a thread-local keeps the hit allocation-free.
+            PotionBinding potions = potionBinding.get();
+            potions.bind(context.actor(), context.victim());
+            facts.potionLevels(potions);
             populateActor(facts, context.actor(), mask);
             populateVictim(facts, context.victim(), mask);
             populateContext(facts, context, mask);
