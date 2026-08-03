@@ -51,7 +51,7 @@ public final class Compiler {
         return new Compiler(
                 new DefaultLowerStage(registry, affinityOf, selectors, defaultSelectorOf, VarResolver.none(),
                         head -> -1, head -> -1, resolvers),
-                new DefaultResolveStage(registry, resolvers),
+                new DefaultResolveStage(registry, selectors, resolvers),
                 new DefaultEraseStage(),
                 new DefaultSnapshotStage());
     }
@@ -69,7 +69,7 @@ public final class Compiler {
         return new Compiler(
                 new DefaultLowerStage(registry, affinityOf, selectors, defaultSelectorOf, vars,
                         head -> -1, head -> -1, resolvers),
-                new DefaultResolveStage(registry, resolvers),
+                new DefaultResolveStage(registry, selectors, resolvers),
                 new DefaultEraseStage(),
                 new DefaultSnapshotStage());
     }
@@ -91,7 +91,7 @@ public final class Compiler {
         return new Compiler(
                 new DefaultLowerStage(registry, affinityOf, selectors, defaultSelectorOf, vars,
                         head -> -1, head -> -1, resolvers),
-                new DefaultResolveStage(registry, resolvers),
+                new DefaultResolveStage(registry, selectors, resolvers),
                 new DefaultEraseStage(canonicalTriggers),
                 new DefaultSnapshotStage());
     }
@@ -109,7 +109,7 @@ public final class Compiler {
         return new Compiler(
                 new DefaultLowerStage(registry, affinityOf, selectors, defaultSelectorOf, vars,
                         effectIdOf, selectorIdOf, resolvers),
-                new DefaultResolveStage(registry, resolvers),
+                new DefaultResolveStage(registry, selectors, resolvers),
                 // effectIdOf threaded to erase too: SUPPRESS scope KIND keys resolve to dense kindIds (ADR-0053).
                 new DefaultEraseStage(canonicalTriggers, effectIdOf),
                 new DefaultSnapshotStage());
@@ -129,7 +129,7 @@ public final class Compiler {
         return new Compiler(
                 new DefaultLowerStage(registry, affinityOf, MapSpecRegistry.of(), head -> null,
                         VarResolver.none(), head -> -1, head -> -1, resolvers),
-                new DefaultResolveStage(registry, resolvers),
+                new DefaultResolveStage(registry, MapSpecRegistry.of(), resolvers),
                 new DefaultEraseStage(),
                 new DefaultSnapshotStage());
     }

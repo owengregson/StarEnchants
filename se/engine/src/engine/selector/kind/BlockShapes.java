@@ -5,8 +5,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 /**
- * Block-grid + facing math for the mining-shape selectors ({@link TrenchSelector}, {@link TunnelSelector}).
- * Pure computation, no world read — the consuming effect is what touches the world.
+ * Block-grid + facing math for the mining-shape selectors ({@link TrenchSelector}, {@link TunnelSelector},
+ * {@link BoreSelector}). Pure computation, no world read — the consuming effect is what touches the world.
  */
 final class BlockShapes {
 
@@ -48,6 +48,15 @@ final class BlockShapes {
             return new int[][] {{1, 0, 0}, {0, 1, 0}}; // forward = Z → fill the X,Y plane
         }
         return new int[][] {{1, 0, 0}, {0, 0, 1}};     // forward = Y → fill the X,Z plane
+    }
+
+    /**
+     * The two perpendicular axes ordered (width, height): the vertical one is HEIGHT whenever the forward axis
+     * is horizontal, so a bore's {@code half-height} always means "up and down" rather than an axis of chance.
+     */
+    static int[][] widthHeight(int[] forward) {
+        int[][] axes = perpendicular(forward);
+        return axes[0][1] != 0 ? new int[][] {axes[1], axes[0]} : axes;
     }
 
     private static int sign(double v) {

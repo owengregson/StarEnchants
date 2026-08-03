@@ -93,6 +93,23 @@ class ParamTypeTest {
     }
 
     @Test
+    void composedEnumAcceptsAConjunctionAndStillRejectsABadPart() {
+        ParamType shape = D.enumSetOf("CIRCLE", "SQUARE");
+        // Each part normalises independently, in authored order — the runtime splits on '+' and re-reads them.
+        assertEquals("SQUARE+CIRCLE", shape.parse("square+circle", SRC, new Diagnostics()).orElseThrow());
+        assertEquals("CIRCLE", shape.parse("circle", SRC, new Diagnostics()).orElseThrow());
+
+        Diagnostics d = new Diagnostics();
+        assertTrue(shape.parse("circle+triangle", SRC, d).isEmpty());
+        assertTrue(d.all().get(0).is(DiagCode.E_ENUM), () -> d.all().toString());
+
+        // A plain enum must NOT quietly admit the composed form.
+        Diagnostics plain = new Diagnostics();
+        assertTrue(D.enumOf("CIRCLE", "SQUARE").parse("circle+square", SRC, plain).isEmpty());
+        assertTrue(plain.all().get(0).is(DiagCode.E_ENUM), () -> plain.all().toString());
+    }
+
+    @Test
     void defaultMakesArgumentOptional() {
         ParamType t = D.INT.def(0);
         assertFalse(t.isRequired());
@@ -106,6 +123,7 @@ class ParamTypeTest {
         assertEquals("double[0..]", D.DOUBLE.min(0).label());
         assertEquals("int", D.INT.label());
         assertEquals("enum{CIRCLE|SQUARE}", D.enumOf("CIRCLE", "SQUARE").label());
+        assertEquals("enum set{CIRCLE|SQUARE}", D.enumSetOf("CIRCLE", "SQUARE").label());
     }
 
     @Test
@@ -113,6 +131,8 @@ class ParamTypeTest {
         assertEquals(java.util.List.of("CIRCLE"), D.enumOf("CIRCLE", "SQUARE").completions("ci"));
         assertEquals(java.util.List.of("true"), D.BOOL.completions("t"));
         assertTrue(D.DOUBLE.completions("").isEmpty());
+        // A composed enum completes the part after the last '+', keeping what is already typed.
+        assertEquals(java.util.List.of("CIRCLE+SQUARE"), D.enumSetOf("CIRCLE", "SQUARE").completions("CIRCLE+sq"));
     }
 
     // ── HANDLE: a version-volatile referent. parse() keeps the token verbatim (resolve interns it later
@@ -131,6 +151,18 @@ class ParamTypeTest {
         Diagnostics d = new Diagnostics();
         assertTrue(D.material().parse("   ", SRC, d).isEmpty());
         assertTrue(d.all().get(0).is(DiagCode.E_TYPE), () -> d.all().toString());
+    }
+
+    @Test
+    void handleSetStripsTheGroupingBracketsOrQuotes() {
+        Diagnostics d = new Diagnostics();
+        // A selector body is comma-split, so a multi-entry set has to be bracketed to survive the lexer; the
+        // brackets are grouping and must not reach resolve, which would then look up a material named "[STONE".
+        assertEquals("STONE,DIRT", D.materials().parse("[STONE,DIRT]", SRC, d).orElseThrow());
+        assertEquals("STONE,DIRT", D.materials().parse("\"STONE,DIRT\"", SRC, d).orElseThrow());
+        assertEquals("STONE", D.materials().parse("STONE", SRC, d).orElseThrow());
+        assertEquals("", D.materials().parse("[]", SRC, d).orElseThrow()); // an empty SET is a value, not a fault
+        assertFalse(d.hasErrors());
     }
 
     @Test

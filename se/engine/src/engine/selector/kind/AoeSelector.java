@@ -19,13 +19,14 @@ public final class AoeSelector implements SelectorKind {
 
     static final SelectorSpec SPEC = SelectorSpec.of("AOE")
             .param("r", D.DOUBLE.min(0).def(4), "radius in blocks")
-            .param("filter", D.enumOf("ALL", "PLAYERS", "MONSTERS", "MOBS", "ENEMIES", "ALLIES").def("ALL"),
-                    "which entities to include")
+            .param("filter", D.enumSetOf("ALL", "PLAYERS", "MONSTERS", "MOBS", "ENEMIES", "ALLIES").def("ALL"),
+                    "which entities to include; A+B keeps only what both admit")
             .param("limit", D.INT.min(0).def(0), "max targets, nearest first (0 = unlimited)")
             .param("exclude", D.enumOf("none", "victim").def("none"),
                     "remove the combat victim from the matches (Destruction hits everyone BUT the primary victim)")
             .doc("Living entities within r blocks of the target, except the activator; optionally filtered, capped, "
-                    + "and with the combat victim excluded.")
+                    + "and with the combat victim excluded. filter admits a + conjunction "
+                    + "(ENEMIES+PLAYERS = hostile players only).")
             .example("@Aoe{r=6, filter=MONSTERS, exclude=victim}")
             .build();
 
@@ -40,7 +41,7 @@ public final class AoeSelector implements SelectorKind {
         if (center == null) {
             return List.of();
         }
-        Targets.Filter filter = Targets.of(ctx);
+        Targets.Match filter = Targets.of(ctx);
         int limit = ctx.integer("limit");
         // exclude=victim removes the primary combat victim (Destruction hits everyone AROUND the victim, not it).
         boolean excludeVictim = "victim".equalsIgnoreCase(ctx.args().str("exclude"));

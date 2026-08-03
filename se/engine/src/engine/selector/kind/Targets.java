@@ -25,7 +25,12 @@ final class Targets {
     private Targets() {
     }
 
-    enum Filter {
+    /** A validated {@code filter}: one {@link Filter}, or a conjunction of several. */
+    interface Match {
+        boolean accepts(Player actor, LivingEntity entity);
+    }
+
+    enum Filter implements Match {
         ALL,
         PLAYERS,
         /** Every hostile mob (see {@link #isHostile}). */
@@ -37,7 +42,8 @@ final class Targets {
         /** Players the {@link Allies} hook considers allied to the actor (never the actor itself). */
         ALLIES;
 
-        boolean accepts(Player actor, LivingEntity entity) {
+        @Override
+        public boolean accepts(Player actor, LivingEntity entity) {
             return switch (this) {
                 case ALL -> true;
                 case PLAYERS -> entity instanceof Player;
@@ -71,8 +77,33 @@ final class Targets {
         return type != null && NEWER_HOSTILE_TYPES.contains(type.name());
     }
 
-    /** The validated {@code filter} argument (defaults to {@link Filter#ALL}). */
-    static Filter of(SelectorCtx ctx) {
-        return Filter.valueOf(ctx.args().str("filter").toUpperCase(Locale.ROOT));
+    /**
+     * The validated {@code filter} argument (defaults to {@link Filter#ALL}). A {@code A+B} value is a
+     * CONJUNCTION — {@code ENEMIES+PLAYERS} is the player-only hostile payload neither part expresses alone.
+     * The single-value path allocates nothing; only a composed filter builds an array, once per resolve.
+     */
+    static Match of(SelectorCtx ctx) {
+        String raw = ctx.args().str("filter");
+        return raw.indexOf('+') < 0 ? single(raw) : conjunction(raw);
+    }
+
+    private static Filter single(String value) {
+        return Filter.valueOf(value.toUpperCase(Locale.ROOT));
+    }
+
+    private static Match conjunction(String raw) {
+        String[] parts = raw.split("\\+");
+        Filter[] filters = new Filter[parts.length];
+        for (int i = 0; i < parts.length; i++) {
+            filters[i] = single(parts[i].trim());
+        }
+        return (actor, entity) -> {
+            for (Filter f : filters) {
+                if (!f.accepts(actor, entity)) {
+                    return false;
+                }
+            }
+            return true;
+        };
     }
 }

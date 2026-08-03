@@ -97,6 +97,13 @@ public final class EraBindings implements EraServices {
         return env -> new LegacyDispatchSink(resolvers, env); // RegistryResolvers is a RenameResolvers
     }
 
+    /** 1.8 has no handle cache: name via the interner, then the flat {@code Material} lookup, as the sink does. */
+    @Override
+    public org.bukkit.Material material(int id) {
+        String name = resolvers.nameOf(schema.spec.HandleCategory.MATERIAL, id);
+        return name == null ? null : org.bukkit.Material.getMaterial(name);
+    }
+
     /** The physical item-data layer (§4.2): 1.8 NMS tags. Injected into every codec + the lore renderer. */
     @Override
     public ItemStateStore itemStateStore() {

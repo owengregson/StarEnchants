@@ -79,4 +79,9 @@ final class RuntimeSelectorCtx implements SelectorCtx {
     public java.util.List<Location> vein(Location start, int limit) {
         return areaScan.vein(start, limit);
     }
+
+    @Override
+    public boolean materialMatches(Location at, java.util.List<Integer> materialIds) {
+        return areaScan.materialMatches(at, materialIds);
+    }
 }

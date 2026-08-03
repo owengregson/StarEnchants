@@ -34,6 +34,9 @@ public final class BuiltinSelectors {
                 .register(new TrenchSelector())
                 .register(new TunnelSelector())
                 .register(new VeinSelector())
+                // Cosmic-port wave 1d.3. APPENDED, never inserted: registration order fixes the dense selector
+                // ids the compiler stamps (ADR-0039), so an insertion silently re-targets shipped content.
+                .register(new BoreSelector()) // face-oriented box: TRENCH's cross-section marched TUNNEL's depth
                 .build();
     }
 }

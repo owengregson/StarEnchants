@@ -1184,11 +1184,11 @@ Every player within r blocks of the target, except the activator.
 
 ### AOE
 
-Living entities within r blocks of the target, except the activator; optionally filtered, capped, and with the combat victim excluded.
+Living entities within r blocks of the target, except the activator; optionally filtered, capped, and with the combat victim excluded. filter admits a + conjunction (ENEMIES+PLAYERS = hostile players only).
 
-- _usage_: `{ AOE: { r: <double[0..]=4>, filter: <enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}=ALL>, limit: <int[0..]=0>, exclude: <enum{none|victim}=none> } }`
+- _usage_: `{ AOE: { r: <double[0..]=4>, filter: <enum set{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}=ALL>, limit: <int[0..]=0>, exclude: <enum{none|victim}=none> } }`
 - _param_ `r` `double[0..]` — radius in blocks
-- _param_ `filter` `enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}` — which entities to include
+- _param_ `filter` `enum set{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}` — which entities to include; A+B keeps only what both admit
 - _param_ `limit` `int[0..]` — max targets, nearest first (0 = unlimited)
 - _param_ `exclude` `enum{none|victim}` — remove the combat victim from the matches (Destruction hits everyone BUT the primary victim)
 - _example_: `@Aoe{r=6, filter=MONSTERS, exclude=victim}`
@@ -1215,6 +1215,17 @@ The first solid block along the activator's line of sight, within distance.
 - _usage_: `{ BLOCKINDISTANCE: { distance: <double[0..]=30> } }`
 - _param_ `distance` `double[0..]` — max look distance in blocks
 - _example_: `@BlockInDistance{distance=50}`
+
+### BORE
+
+A half-width x half-height cross-section centred on the activation block, repeated depth layers into the mined face. depth=1 is a flat face; materials keeps only the listed block types, written [STONE,DIRT] so the comma survives the selector body.
+
+- _usage_: `{ BORE: { half-width: <int[0..]=1>, half-height: <int[0..]=1>, depth: <int[1..]=1>, materials: <material list=> } }`
+- _param_ `half-width` `int[0..]` — half the cross-section across (1 = 3 blocks wide)
+- _param_ `half-height` `int[0..]` — half the cross-section up and down (1 = 3 blocks tall)
+- _param_ `depth` `int[1..]` — layers into the face, counting the activation block's own
+- _param_ `materials` `material list` — keep only these block types (empty = every block)
+- _example_: `@Bore{half-width=1, half-height=1, depth=3, materials=[STONE,DEEPSLATE]}`
 
 ### ENTITYINSIGHT
 
@@ -1248,11 +1259,11 @@ Every nearby living entity the activator currently has an active MARK on.
 
 ### NEAREST
 
-The single nearest living entity within r blocks (optionally filtered), except the activator.
+The single nearest living entity within r blocks (optionally filtered), except the activator. filter admits a + conjunction (ENEMIES+PLAYERS = hostile players only).
 
-- _usage_: `{ NEAREST: { r: <double[0..]=5>, filter: <enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}=ALL> } }`
+- _usage_: `{ NEAREST: { r: <double[0..]=5>, filter: <enum set{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}=ALL> } }`
 - _param_ `r` `double[0..]` — search radius in blocks
-- _param_ `filter` `enum{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}` — which entities to consider
+- _param_ `filter` `enum set{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}` — which entities to consider; A+B keeps only what both admit
 - _example_: `@Nearest{r=5, filter=PLAYERS}`
 
 ### NEARESTPLAYER
@@ -1280,26 +1291,29 @@ The activating player themself.
 
 ### TRENCH
 
-The square of blocks perpendicular to the look direction, centred on the activation block.
+The square of blocks perpendicular to the look direction, centred on the activation block. materials keeps only the listed block types, written [STONE,DIRT] so the comma survives the selector body.
 
-- _usage_: `{ TRENCH: { radius: <int[0..]=1> } }`
+- _usage_: `{ TRENCH: { radius: <int[0..]=1>, materials: <material list=> } }`
 - _param_ `radius` `int[0..]` — half-width of the face (1 = 3x3)
+- _param_ `materials` `material list` — keep only these block types (empty = every block)
 - _example_: `@Trench{radius=1}`
 
 ### TUNNEL
 
-The blocks directly ahead of the activation block, along the look direction.
+The blocks directly ahead of the activation block, along the look direction. materials keeps only the listed block types, written [STONE,DIRT] so the comma survives the selector body.
 
-- _usage_: `{ TUNNEL: { depth: <int[1..]=3> } }`
+- _usage_: `{ TUNNEL: { depth: <int[1..]=3>, materials: <material list=> } }`
 - _param_ `depth` `int[1..]` — blocks ahead along the look direction
+- _param_ `materials` `material list` — keep only these block types (empty = every block)
 - _example_: `@Tunnel{depth=4}`
 
 ### VEIN
 
-Up to `limit` blocks contiguous with and matching the activation block (vein miner).
+Up to `limit` blocks contiguous with and matching the activation block (vein miner). materials restricts which struck blocks vein at all, written [IRON_ORE,GOLD_ORE] so the comma survives the selector body.
 
-- _usage_: `{ VEIN: { limit: <int[1..]=64> } }`
+- _usage_: `{ VEIN: { limit: <int[1..]=64>, materials: <material list=> } }`
 - _param_ `limit` `int[1..]` — max blocks in the vein
+- _param_ `materials` `material list` — only vein these block types (empty = whatever was struck)
 - _example_: `@Vein{limit=32}`
 
 ### VICTIM

@@ -98,6 +98,11 @@ public final class EraBindings implements EraServices {
         return env -> new ModernDispatchSink(handles, env);
     }
 
+    @Override
+    public org.bukkit.Material material(int id) {
+        return handles.material(id);
+    }
+
     /** The physical item-data layer (§4.2): modern PDC. Injected into every codec + the lore renderer. */
     @Override
     public ItemStateStore itemStateStore() {

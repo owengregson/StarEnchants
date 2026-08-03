@@ -56,6 +56,10 @@ public interface EraServices {
     // ── runtime resolver pieces (id → live object / NMS) ──
     SinkFactory sinkFactory();
 
+    /** The live block {@link org.bukkit.Material} for an interned material id, or {@code null} — the sink's
+     *  {@code material(int)} lookup, exposed for the block selectors' {@code materials} filter. */
+    org.bukkit.Material material(int id);
+
     ParticleFx particleFx();
 
     ItemStateStore itemStateStore();

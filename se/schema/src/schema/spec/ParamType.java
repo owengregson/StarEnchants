@@ -34,7 +34,8 @@ public final class ParamType {
     private final String defaultRaw;
     private final List<String> allowed; // ENUM only; canonical spellings
     private final HandleCategory handleCategory; // HANDLE only
-    private final boolean list; // HANDLE only: a comma-separated set of tokens, resolved to a list of ids
+    // HANDLE: a comma-separated set of tokens resolved to a list of ids. ENUM: a '+'-composed conjunction.
+    private final boolean list;
 
     private ParamType(Kind kind, boolean required, Double min, Double max, String defaultRaw,
                       List<String> allowed, HandleCategory handleCategory, boolean list) {
@@ -61,6 +62,15 @@ public final class ParamType {
     /** A COMMA-SEPARATED set of {@code category} handles, each resolved at compile time (§9). */
     static ParamType handleList(HandleCategory category) {
         return new ParamType(Kind.HANDLE, true, null, null, null, null, category, true);
+    }
+
+    /**
+     * An ENUM that also admits a {@code A+B} CONJUNCTION of its allowed values. {@code +} rather than a comma
+     * because a selector body is itself comma-separated ({@code @Aoe{r=6, filter=ENEMIES+PLAYERS}}), so a comma
+     * would need bracketing the author cannot be expected to remember.
+     */
+    static ParamType enumSet() {
+        return new ParamType(Kind.ENUM, true, null, null, null, null, null, true);
     }
 
     private ParamType with(Boolean req, Double mn, Double mx, String def, List<String> al) {
@@ -116,7 +126,7 @@ public final class ParamType {
         return handleCategory;
     }
 
-    /** Whether this {@code HANDLE} holds a comma-separated SET of tokens rather than a single one. */
+    /** Whether this holds a SET rather than one value: comma-separated tokens (HANDLE) or a {@code +} conjunction (ENUM). */
     public boolean isList() {
         return list;
     }
@@ -155,6 +165,9 @@ public final class ParamType {
 
     private Optional<Object> parseHandle(String raw, Source source, Diagnostics diags) {
         String t = raw.trim();
+        if (list) {
+            t = unbracket(t);
+        }
         if (t.isEmpty()) {
             if (list) {
                 return Optional.of(t); // an empty SET is a legitimate value (no entries), unlike a missing name
@@ -164,6 +177,21 @@ public final class ParamType {
         }
         // Token survives verbatim; resolve interns it (§9) and warns-and-skips unknowns, not here.
         return Optional.of(t);
+    }
+
+    /**
+     * Strip one surrounding {@code [...]} or quote pair from a handle-SET value. A selector body is split on
+     * commas, so a multi-entry set inside one has to be written {@code materials=[STONE,DIRT]} for
+     * {@link schema.grammar.Lexer} to keep it whole; the brackets are grouping, never part of a name.
+     */
+    private static String unbracket(String t) {
+        if (t.length() >= 2
+                && ((t.charAt(0) == '[' && t.charAt(t.length() - 1) == ']')
+                || (t.charAt(0) == '"' && t.charAt(t.length() - 1) == '"')
+                || (t.charAt(0) == '\'' && t.charAt(t.length() - 1) == '\''))) {
+            return t.substring(1, t.length() - 1).trim();
+        }
+        return t;
     }
 
     private Optional<Object> parseDouble(String raw, Source source, Diagnostics diags) {
@@ -272,24 +300,61 @@ public final class ParamType {
 
     private Optional<Object> parseEnum(String raw, Source source, Diagnostics diags) {
         String t = raw.trim();
+        if (!list || t.indexOf('+') < 0) {
+            return canonical(t, source, diags).map(v -> v);
+        }
+        // A+B is a CONJUNCTION: the value normalises to canonical spellings joined by '+', in authored order.
+        StringBuilder composed = new StringBuilder(t.length());
+        for (String part : t.split("\\+")) {
+            Optional<String> canon = canonical(part.trim(), source, diags);
+            if (canon.isEmpty()) {
+                return Optional.empty();
+            }
+            if (composed.length() > 0) {
+                composed.append('+');
+            }
+            composed.append(canon.get());
+        }
+        if (composed.length() == 0) {
+            diags.error(DiagCode.E_ENUM, "'" + raw + "' names no value", source,
+                    "allowed values: " + String.join(", ", allowed()));
+            return Optional.empty();
+        }
+        return Optional.of(composed.toString());
+    }
+
+    /** One token matched case-insensitively against {@link #allowed()}, normalised to the canonical spelling. */
+    private Optional<String> canonical(String token, Source source, Diagnostics diags) {
         for (String canon : allowed()) {
-            if (canon.equalsIgnoreCase(t)) {
-                return Optional.of(canon); // normalize to the canonical spelling
+            if (canon.equalsIgnoreCase(token)) {
+                return Optional.of(canon);
             }
         }
-        diags.error(DiagCode.E_ENUM, "'" + raw + "' is not one of " + allowed(), source,
+        diags.error(DiagCode.E_ENUM, "'" + token + "' is not one of " + allowed(), source,
                 "allowed values: " + String.join(", ", allowed()));
         return Optional.empty();
     }
 
     /** Tab-completion candidates for a partial token (enums + booleans only). */
     public List<String> completions(String prefix) {
-        String p = prefix == null ? "" : prefix.toLowerCase(Locale.ROOT);
+        String p = prefix == null ? "" : prefix;
         return switch (kind) {
-            case ENUM -> allowed().stream().filter(v -> v.toLowerCase(Locale.ROOT).startsWith(p)).toList();
-            case BOOL -> List.of("true", "false").stream().filter(v -> v.startsWith(p)).toList();
+            case ENUM -> enumCompletions(p);
+            case BOOL -> List.of("true", "false").stream()
+                    .filter(v -> v.startsWith(p.toLowerCase(Locale.ROOT))).toList();
             default -> List.of();
         };
+    }
+
+    /** Enum candidates; on a composed enum a trailing {@code A+} completes the NEXT part, keeping what is typed. */
+    private List<String> enumCompletions(String prefix) {
+        int plus = list ? prefix.lastIndexOf('+') : -1;
+        String head = plus < 0 ? "" : prefix.substring(0, plus + 1);
+        String tail = (plus < 0 ? prefix : prefix.substring(plus + 1)).toLowerCase(Locale.ROOT);
+        return allowed().stream()
+                .filter(v -> v.toLowerCase(Locale.ROOT).startsWith(tail))
+                .map(v -> head + v)
+                .toList();
     }
 
     /** A short type label for usage/doc strings, e.g. {@code double[0..100]}. */
@@ -300,7 +365,7 @@ public final class ParamType {
             case TICKS -> "ticks";
             case BOOL -> "bool";
             case STRING -> "string";
-            case ENUM -> "enum";
+            case ENUM -> list ? "enum set" : "enum";
             case HANDLE -> list ? handleCategory.label() + " list" : handleCategory.label();
         });
         if (kind == Kind.ENUM) {

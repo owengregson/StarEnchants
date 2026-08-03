@@ -121,6 +121,23 @@ class AreaSelectorsTest {
     }
 
     @Test
+    void aoeFilterConjunctionKeepsOnlyWhatEveryPartAdmits() {
+        // ENEMIES+PLAYERS is the player-only hostile payload: neither part alone can express it — ENEMIES
+        // sweeps in mobs, PLAYERS sweeps in allies.
+        Player actor = mock(Player.class);
+        Player ally = mock(Player.class);
+        Player foe = mock(Player.class);
+        Monster mob = mock(Monster.class);
+        Allies.resolver((a, b) -> a == actor && b == ally);
+        try {
+            assertEquals(List.of(foe),
+                    new AoeSelector().resolve(ctx(actor, 7.0, "ENEMIES+PLAYERS", 0, List.of(mob, ally, foe))));
+        } finally {
+            Allies.resolver(null);
+        }
+    }
+
+    @Test
     void aoeLimitKeepsTheNearestN() {
         LivingEntity far = at(100.0);
         LivingEntity near = at(1.0);
