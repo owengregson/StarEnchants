@@ -1,0 +1,42 @@
+# Matrix: 02-enchants-armor-m-z.md § Resilience
+display: "Resilience"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA killing blow that lands hard enough is halved instead."
+trigger: DEFENSE
+applies-to: [HELMET]
+group: "rare"
+tier: rare
+# D-02-7: the jar gated on final damage but halved BASE damage, so its line overstated the save; the engine's
+# single damage scalar halves the hit for real. The line is sent whether or not the halved hit still kills
+# (measured) — no post-save gate.
+# Non-stacking: the interaction layer's highest-piece-only rule covers it. The description's combat-log NPC
+# "+15% HP per level" lives in an external plugin (codex UNRESOLVED) and is not ported.
+# era: none.
+levels:
+  # Minimum-damage floor 10 - level (9/8/7/6): the inverted ladder is measured — a higher level takes the save
+  # on smaller hits. Reduction is a flat 50% at every level.
+  1:
+    chance: 5
+    condition: "%damage% >= %actor.health% && %damage% >= 9"
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }
+      - { MESSAGE: { text: "§2§l** RESILIENCE (§250% DMG TAKEN§l) **", who: "@Self" } }
+  2:
+    chance: 10
+    condition: "%damage% >= %actor.health% && %damage% >= 8"
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }
+      - { MESSAGE: { text: "§2§l** RESILIENCE (§250% DMG TAKEN§l) **", who: "@Self" } }
+  3:
+    chance: 15
+    condition: "%damage% >= %actor.health% && %damage% >= 7"
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }
+      - { MESSAGE: { text: "§2§l** RESILIENCE (§250% DMG TAKEN§l) **", who: "@Self" } }
+  4:
+    chance: 20
+    condition: "%damage% >= %actor.health% && %damage% >= 6"
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }
+      - { MESSAGE: { text: "§2§l** RESILIENCE (§250% DMG TAKEN§l) **", who: "@Self" } }

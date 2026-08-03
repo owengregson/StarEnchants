@@ -1,0 +1,44 @@
+# Matrix: 02-enchants-armor-m-z.md § Stormcaller
+display: "Stormcaller"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eWhoever damages you can be struck by"
+  - "&elightning and hurled back."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "rare"
+tier: rare
+# No cause, ally or region filter (verbatim): any entity-sourced damage can fire it — recorded for the
+# interaction layer. DEFENSE needs a target, so the jar's non-null-damager test is the trigger's own gate,
+# and the self-attack guard is the engine's.
+# D-02-9 (as-intended): the jar's 10.0 damage lands on the WEARER (bytecode-confirmed, 5 hearts of
+# self-damage a proc) while bolt and knockback correctly hit the attacker. All three ship on the attacker.
+# The engine bolt is safe — no block ignition, no mob conversion — so the jar's real-lightning side effects
+# are not replicated.
+# era: the real-lightning vs effect-lightning split exists on 1.8 identically; no hazard. Non-stacking, so
+# only the highest worn level fires.
+levels:
+  1:
+    chance: 4.5
+    effects:
+      - { LIGHTNING: { damage: 10, who: "@Attacker" } }
+      - { DAMAGE: { amount: 10.0, who: "@Attacker" } }
+      - { VELOCITY: { mode: "away", strength: 1.5, who: "@Attacker" } }
+  2:
+    chance: 9
+    effects:
+      - { LIGHTNING: { damage: 10, who: "@Attacker" } }
+      - { DAMAGE: { amount: 10.0, who: "@Attacker" } }
+      - { VELOCITY: { mode: "away", strength: 1.5, who: "@Attacker" } }
+  3:
+    chance: 13.5
+    effects:
+      - { LIGHTNING: { damage: 10, who: "@Attacker" } }
+      - { DAMAGE: { amount: 10.0, who: "@Attacker" } }
+      - { VELOCITY: { mode: "away", strength: 1.5, who: "@Attacker" } }
+  4:
+    chance: 18
+    effects:
+      - { LIGHTNING: { damage: 10, who: "@Attacker" } }
+      - { DAMAGE: { amount: 10.0, who: "@Attacker" } }
+      - { VELOCITY: { mode: "away", strength: 1.5, who: "@Attacker" } }

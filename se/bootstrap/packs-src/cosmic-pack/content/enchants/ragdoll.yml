@@ -1,0 +1,33 @@
+# Matrix: 02-enchants-armor-m-z.md § Ragdoll
+display: "Ragdoll"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA hit can fling you clear of"
+  - "&ewhoever landed it."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "epic"
+tier: epic
+# anchor=attacker is what makes mode=away launch the WEARER off the striker — the default activator anchor
+# measures from the wearer itself, which is the target here.
+# Any living damager fires it, allies and pets included (measured); the jar's iron-golem skip and its
+# End/KOTH world gates are cosmic-server environment policy and are not ported. No fall-damage exemption
+# on landing (measured, unlike Rocket Escape).
+levels:
+  # Chance 12.5 x level; push speed 1.5 + 0.5 x level.
+  1:
+    chance: 12.5
+    effects:
+      - { VELOCITY: { mode: "away", anchor: "attacker", strength: 2.0, who: "@Self" } }
+  2:
+    chance: 25
+    effects:
+      - { VELOCITY: { mode: "away", anchor: "attacker", strength: 2.5, who: "@Self" } }
+  3:
+    chance: 37.5
+    effects:
+      - { VELOCITY: { mode: "away", anchor: "attacker", strength: 3.0, who: "@Self" } }
+  4:
+    chance: 50
+    effects:
+      - { VELOCITY: { mode: "away", anchor: "attacker", strength: 3.5, who: "@Self" } }

@@ -1,0 +1,56 @@
+# Matrix: 02-enchants-armor-m-z.md § Valor
+display: "Valor"
+# description: not matrix-recorded (factual paraphrase); the original's config line ("up to 22.5%") was never
+# the code, which reduces 9-15%.
+description:
+  - "&eReduces damage taken while you are low on"
+  - "&ehealth and holding an iron or diamond sword."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "epic"
+tier: epic
+# Stackable (the original's whitelist), per-piece multiplicative there. Valor is victim-gated — it never reads
+# the attacker — so it also DOUBLE-fires in the original: a full max set nets 0.85^8 = 72.75%. Single-pass
+# values ship per D-001, i.e. 0.85^4 = 47.80% measured against 60% under the engine's additive fold
+# (ledger D-02-14).
+# The gate keeps the matrix's own multiplicative form, %damage% * (1 - (0.015 x level + 0.075)) > 1.0: small
+# hits are SKIPPED, not clamped. Health gate 2 x level + 6 = 8/10/12/14/16 HP; wooden, stone and gold swords
+# do not qualify (measured — the two material tests are the whole sword gate).
+# The block-break flourish is the Armored/Heavy pair (particle burst + break cue) at the wearer's feet per
+# proc per piece; count 8 is that pair's convention, not a matrix number, and the engine centres a @Self
+# burst on the body.
+# era: 1.8's IRON_SWORD / DIAMOND_SWORD spellings are identical to the modern ones — no hazard.
+# BLOCK_STONE_BREAK has no resolver alias row (1.8 spells it DIG_STONE; the table carries the sibling
+# DIG_GRASS row but not this one), so the break cue resolves to nothing on the legacy lane until one is
+# added — the BLOCK_CRACK burst still lands there.
+levels:
+  1:
+    condition: '%actor.health% <= 8 && (%actor.helditem% == "IRON_SWORD" || %actor.helditem% == "DIAMOND_SWORD") && %damage% * 0.91 > 1.0'
+    effects:
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "GOLD_BLOCK", count: 8, who: "@Self" } }
+      - { SOUND: { sound: "BLOCK_STONE_BREAK", volume: 1, pitch: 1 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 9 } }
+  2:
+    condition: '%actor.health% <= 10 && (%actor.helditem% == "IRON_SWORD" || %actor.helditem% == "DIAMOND_SWORD") && %damage% * 0.895 > 1.0'
+    effects:
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "GOLD_BLOCK", count: 8, who: "@Self" } }
+      - { SOUND: { sound: "BLOCK_STONE_BREAK", volume: 1, pitch: 1 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 10.5 } }
+  3:
+    condition: '%actor.health% <= 12 && (%actor.helditem% == "IRON_SWORD" || %actor.helditem% == "DIAMOND_SWORD") && %damage% * 0.88 > 1.0'
+    effects:
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "GOLD_BLOCK", count: 8, who: "@Self" } }
+      - { SOUND: { sound: "BLOCK_STONE_BREAK", volume: 1, pitch: 1 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 12 } }
+  4:
+    condition: '%actor.health% <= 14 && (%actor.helditem% == "IRON_SWORD" || %actor.helditem% == "DIAMOND_SWORD") && %damage% * 0.865 > 1.0'
+    effects:
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "GOLD_BLOCK", count: 8, who: "@Self" } }
+      - { SOUND: { sound: "BLOCK_STONE_BREAK", volume: 1, pitch: 1 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 13.5 } }
+  5:
+    condition: '%actor.health% <= 16 && (%actor.helditem% == "IRON_SWORD" || %actor.helditem% == "DIAMOND_SWORD") && %damage% * 0.85 > 1.0'
+    effects:
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "GOLD_BLOCK", count: 8, who: "@Self" } }
+      - { SOUND: { sound: "BLOCK_STONE_BREAK", volume: 1, pitch: 1 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 15 } }

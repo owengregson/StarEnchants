@@ -1,0 +1,52 @@
+# Matrix: 02-enchants-armor-m-z.md § Tank
+display: "Tank"
+# description: not matrix-recorded (factual paraphrase); the original's config line ("1.85%") never matched
+# its own code, which reduces 1.875% per level.
+description:
+  - "&eReduces damage taken from"
+  - "&eenemies holding an axe."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "epic"
+tier: epic
+# Stackable (the original's whitelist): every worn piece fires with its own level. The original composes the
+# per-piece factors multiplicatively — a full L4 set is 0.925^4 = 26.80% single-pass, and Tank null-guards the
+# attacker so D-001's double fire is moot for it — while the engine folds additively, so a full L4 set reduces
+# 30% (ledger D-02-10).
+# The gate keeps the matrix's own multiplicative form, %damage% * (1 - 0.01875 x level) > 1.0: small hits are
+# SKIPPED, not clamped, when the reduced value would land at or below 1.0. Armored/Heavy express the same
+# guard as a rounded %damage% floor; the multiplicative form keeps 0.01875 exact.
+# Player-attacker-with-axe-only: mob, projectile and environmental damage go unreduced — the held-item
+# condition encodes it, and %victim.helditem% on a defence activation is the attacker's hand.
+# The block-break flourish is the Armored/Heavy pair (particle burst + break cue) at the wearer's feet per
+# proc per piece; count 8 is that pair's convention, not a matrix number, and the engine centres a @Self
+# burst on the body.
+# era: the "_AXE" substring is version-safe (pickaxes never match, and 1.8's WOOD_AXE / GOLD_AXE match as
+# readily as the modern spellings). BLOCK_STONE_BREAK has no resolver alias row (1.8 spells it DIG_STONE; the
+# table carries the sibling DIG_GRASS row but not this one), so the break cue resolves to nothing on the
+# legacy lane until one is added — the BLOCK_CRACK burst still lands there.
+levels:
+  1:
+    condition: '%victim.helditem% contains "_AXE" && %damage% * 0.98125 > 1.0'
+    effects:
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "IRON_BLOCK", count: 8, who: "@Self" } }
+      - { SOUND: { sound: "BLOCK_STONE_BREAK", volume: 1, pitch: 1 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 1.875 } }
+  2:
+    condition: '%victim.helditem% contains "_AXE" && %damage% * 0.9625 > 1.0'
+    effects:
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "IRON_BLOCK", count: 8, who: "@Self" } }
+      - { SOUND: { sound: "BLOCK_STONE_BREAK", volume: 1, pitch: 1 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 3.75 } }
+  3:
+    condition: '%victim.helditem% contains "_AXE" && %damage% * 0.94375 > 1.0'
+    effects:
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "IRON_BLOCK", count: 8, who: "@Self" } }
+      - { SOUND: { sound: "BLOCK_STONE_BREAK", volume: 1, pitch: 1 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 5.625 } }
+  4:
+    condition: '%victim.helditem% contains "_AXE" && %damage% * 0.925 > 1.0'
+    effects:
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "IRON_BLOCK", count: 8, who: "@Self" } }
+      - { SOUND: { sound: "BLOCK_STONE_BREAK", volume: 1, pitch: 1 } }
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 7.5 } }

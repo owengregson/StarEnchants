@@ -1,0 +1,37 @@
+# Matrix: 02-enchants-armor-m-z.md § Wither
+display: "Wither"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eAny hit can leave your"
+  - "&eattacker withering."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "rare"
+tier: rare
+# No cause filter (verbatim): any damage carrying an attacker qualifies, projectile hits included — DEFENSE
+# only fires with a damager, so @Attacker is always there.
+# Non-stacking; the potion is not forced, so a stronger existing Wither shadows it (potion-priority rule).
+# POTION level is 1-based, so level 5 is amplifier 4 — far above vanilla Wither, shipped as measured.
+# era: Wither V's tick cadence differs by version (~every 2 ticks on 1.8-era servers), so the same config is
+# era-dependent DPS — flagged for the legacy sweep, not compensated here.
+levels:
+  1:
+    chance: 1.5
+    effects:
+      - { POTION: { effect: "WITHER", level: 1, duration: 20, who: "@Attacker" } }
+  2:
+    chance: 3
+    effects:
+      - { POTION: { effect: "WITHER", level: 2, duration: 40, who: "@Attacker" } }
+  3:
+    chance: 4.5
+    effects:
+      - { POTION: { effect: "WITHER", level: 3, duration: 60, who: "@Attacker" } }
+  4:
+    chance: 6
+    effects:
+      - { POTION: { effect: "WITHER", level: 4, duration: 80, who: "@Attacker" } }
+  5:
+    chance: 7.5
+    effects:
+      - { POTION: { effect: "WITHER", level: 5, duration: 100, who: "@Attacker" } }

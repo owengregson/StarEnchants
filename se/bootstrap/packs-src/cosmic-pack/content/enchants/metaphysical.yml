@@ -1,0 +1,26 @@
+# Matrix: 02-enchants-armor-m-z.md § Metaphysical
+# Roster marker (sticky.yml precedent): the enchant is rollable/applicable/displayed, but its whole
+# behavior is the -N pp clause inside Trap / Heroic Trap / Snare / Pummel (docs 03/05/06), which needs
+# a victim-side worn-enchant-level fact the surface does not carry yet (deferred-content.md). The
+# consumers author the reduction the moment that fact ships; nothing here changes then.
+# Reduction ladders (consumer-side, per Metaphysical level 1-4):
+#   Trap/Heroic Trap: -2.5 pp per level; Snare: -1.25 pp per level; Pummel: -7/-4 pp bands per the
+#   matrix consumer entries. No floor: high levels can reach absolute immunity (matrix-recorded).
+#   Heroic Metaphysical follows the highest-only rule (no stacking with this base form).
+# Blocked-proc feedback (attacker-side, verbatim; authored on the consumers when they land):
+#   "§8§l** METAPHYSICAL (§8Trap blocked!§l) **"
+#   "§8§l** METAPHYSICAL (§8Snare blocked!§l) **"
+#   "§8§l** METAPHYSICAL (§8Pummel blocked!§l) **"
+display: "Metaphysical"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eWhile on your boots, hostile traps and snares have a harder time holding you."
+trigger: PASSIVE
+applies-to: [BOOTS]
+group: "epic"
+tier: epic
+levels:
+  1: { effects: [] }
+  2: { effects: [] }
+  3: { effects: [] }
+  4: { effects: [] }

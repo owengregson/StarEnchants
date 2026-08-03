@@ -1,0 +1,114 @@
+# Matrix: 02-enchants-armor-m-z.md § Protection
+display: "Protection"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&ePulses healing to your nearby allies, with a"
+  - "&echance of regeneration, absorption or a"
+  - "&ehealth boost riding along."
+trigger: REPEATING
+applies-to: [ARMOR]
+group: "legendary"
+tier: legendary
+# Four sub-abilities share one pulse: each block carries the level's period, so they arm together and the
+# three buff rolls (15/10/8.5 %, level-independent) are independent of the heal and of each other.
+# Pulse period is the jar's 40 x (5 / L) integer division, which parks L3-5 at 40 t (measured, shipped).
+# Radius is 2 x level; the heal is 1 HP until L5's 2. The jar's strict `health + k < max` skip-at-the-brim
+# quirk is replaced by the engine's clamp (benign).
+# @Aoe excludes the activator, so the wearer is never buffed by their own pulse — matches the jar.
+# Allies are the relation layer's faction ally/member set (filter=ALLIES).
+# Mixed-level pieces genuinely multiply pulse streams in the jar; shipped highest-only per the standard
+# worn-state rule, recorded as a divergence candidate.
+# era: RED_DUST/SPELL are the 1.8 particle ids — authored as REDSTONE/SPELL, the cross-era spellings the
+# particle resolver maps in both directions.
+levels:
+  1:
+    abilities:
+      - repeat: 200
+        effects:
+          - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Aoe{r=2, filter=ALLIES}" } }
+          # Rendered per healed ally (same selector body), so an empty ally set emits nothing.
+          - { PARTICLE: { particle: "REDSTONE", count: 20, who: "@Aoe{r=2, filter=ALLIES}" } }
+      - repeat: 200
+        chance: 15
+        effects:
+          - { POTION: { effect: "REGENERATION", level: 1, duration: 20, who: "@Aoe{r=2, filter=ALLIES}" } }
+          - { PARTICLE: { particle: "SPELL", count: 10, who: "@Aoe{r=2, filter=ALLIES}" } }
+  2:
+    abilities:
+      - repeat: 80
+        effects:
+          - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Aoe{r=4, filter=ALLIES}" } }
+          - { PARTICLE: { particle: "REDSTONE", count: 20, who: "@Aoe{r=4, filter=ALLIES}" } }
+      - repeat: 80
+        chance: 15
+        effects:
+          - { POTION: { effect: "REGENERATION", level: 1, duration: 40, who: "@Aoe{r=4, filter=ALLIES}" } }
+          - { PARTICLE: { particle: "SPELL", count: 10, who: "@Aoe{r=4, filter=ALLIES}" } }
+      - repeat: 80  # absorption joins at L2
+        chance: 10
+        effects:
+          - { POTION: { effect: "ABSORPTION", level: 4, duration: 80, who: "@Aoe{r=4, filter=ALLIES}" } }  # level + 2
+          - { PARTICLE: { particle: "SPELL", count: 20, who: "@Aoe{r=4, filter=ALLIES}" } }
+  3:
+    abilities:
+      - repeat: 40
+        effects:
+          - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Aoe{r=6, filter=ALLIES}" } }
+          - { PARTICLE: { particle: "REDSTONE", count: 20, who: "@Aoe{r=6, filter=ALLIES}" } }
+      - repeat: 40
+        chance: 15
+        effects:
+          - { POTION: { effect: "REGENERATION", level: 2, duration: 60, who: "@Aoe{r=6, filter=ALLIES}" } }  # Regen II from L3
+          - { PARTICLE: { particle: "SPELL", count: 10, who: "@Aoe{r=6, filter=ALLIES}" } }
+      - repeat: 40
+        chance: 10
+        effects:
+          - { POTION: { effect: "ABSORPTION", level: 5, duration: 120, who: "@Aoe{r=6, filter=ALLIES}" } }
+          - { PARTICLE: { particle: "SPELL", count: 20, who: "@Aoe{r=6, filter=ALLIES}" } }
+      - repeat: 40  # health boost joins at L3
+        chance: 8.5
+        effects:
+          - { POTION: { effect: "HEALTH_BOOST", level: 5, duration: 120, who: "@Aoe{r=6, filter=ALLIES}" } }  # level + 2
+          - { PARTICLE: { particle: "SPELL", count: 30, who: "@Aoe{r=6, filter=ALLIES}" } }
+  4:
+    abilities:
+      - repeat: 40
+        effects:
+          - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Aoe{r=8, filter=ALLIES}" } }
+          - { PARTICLE: { particle: "REDSTONE", count: 20, who: "@Aoe{r=8, filter=ALLIES}" } }
+      - repeat: 40
+        chance: 15
+        effects:
+          - { POTION: { effect: "REGENERATION", level: 2, duration: 80, who: "@Aoe{r=8, filter=ALLIES}" } }
+          - { PARTICLE: { particle: "SPELL", count: 10, who: "@Aoe{r=8, filter=ALLIES}" } }
+      - repeat: 40
+        chance: 10
+        effects:
+          - { POTION: { effect: "ABSORPTION", level: 6, duration: 160, who: "@Aoe{r=8, filter=ALLIES}" } }
+          - { PARTICLE: { particle: "SPELL", count: 20, who: "@Aoe{r=8, filter=ALLIES}" } }
+      - repeat: 40
+        chance: 8.5
+        effects:
+          - { POTION: { effect: "HEALTH_BOOST", level: 6, duration: 160, who: "@Aoe{r=8, filter=ALLIES}" } }
+          - { PARTICLE: { particle: "SPELL", count: 30, who: "@Aoe{r=8, filter=ALLIES}" } }
+  5:
+    abilities:
+      - repeat: 40
+        effects:
+          - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Aoe{r=10, filter=ALLIES}" } }  # 2 HP from L5
+          - { PARTICLE: { particle: "REDSTONE", count: 20, who: "@Aoe{r=10, filter=ALLIES}" } }
+      - repeat: 40
+        chance: 15
+        effects:
+          - { POTION: { effect: "REGENERATION", level: 2, duration: 100, who: "@Aoe{r=10, filter=ALLIES}" } }
+          - { PARTICLE: { particle: "SPELL", count: 10, who: "@Aoe{r=10, filter=ALLIES}" } }
+      - repeat: 40
+        chance: 10
+        effects:
+          - { POTION: { effect: "ABSORPTION", level: 7, duration: 200, who: "@Aoe{r=10, filter=ALLIES}" } }
+          - { PARTICLE: { particle: "SPELL", count: 20, who: "@Aoe{r=10, filter=ALLIES}" } }
+      - repeat: 40
+        chance: 8.5
+        effects:
+          - { POTION: { effect: "HEALTH_BOOST", level: 7, duration: 200, who: "@Aoe{r=10, filter=ALLIES}" } }
+          - { PARTICLE: { particle: "SPELL", count: 30, who: "@Aoe{r=10, filter=ALLIES}" } }

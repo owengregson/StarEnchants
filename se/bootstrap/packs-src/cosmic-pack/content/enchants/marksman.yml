@@ -1,0 +1,29 @@
+# Matrix: 02-enchants-armor-m-z.md § Marksman
+display: "Marksman"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eYour bow hits land harder while the armor is worn."
+trigger: BOW
+applies-to: [ARMOR]
+group: "epic"
+tier: epic
+# D-02-1 (as-intended): the measured jar hook is unreachable for player archers — the enchant applies to armor
+# only while offensive procs read the held item, so in play it is a total no-op. The intended per-level values
+# below ship instead.
+# Stackable BY FORMULA: the jar summed the levels of all four pieces into one 1 + 0.015625 x Σlevels
+# multiplier, which is exactly this additive per-piece DAMAGE_MOD contribution (full level-4 set = +25%).
+# The weak-bow gate (draw force < 0.75 never procs) is the engine's own BOW force gate — nothing authored.
+# era: none.
+levels:
+  1:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 1.5625 } }
+  2:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 3.125 } }
+  3:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 4.6875 } }
+  4:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 6.25 } }

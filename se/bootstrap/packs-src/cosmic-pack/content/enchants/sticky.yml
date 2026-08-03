@@ -1,0 +1,41 @@
+# Matrix: 02-enchants-armor-m-z.md § Sticky
+display: "Sticky"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eYour armor clings on: Disarmor is less"
+  - "&elikely to strip a piece, and never at or"
+  - "&ebelow your Sticky level."
+trigger: PASSIVE
+applies-to: [ARMOR]
+group: "epic"
+tier: epic
+# Deliberately effect-less. The matrix decomposes Sticky as a PASSIVE marker with no body of its own: the
+# whole mechanic is the interaction layer's chance-delta on Disarmor (swords doc 03) — `-0.25 pp x Sticky
+# level` off Disarmor's `0.25 pp x its level` roll, with NO floor, so a negative chance simply never procs.
+# Sticky level N therefore cancels Disarmor level N and everything below it outright, which is absolute
+# immunity at equal-or-higher level (measured, and matching the jar's own description). The delta is
+# authored on Disarmor's chance expression when doc 03 lands; nothing about it belongs on this file, and the
+# frozen surface carries no worn-enchant-level fact to express it here.
+# Worn across all four slots but read last-writer-wins in the jar — the highest-only rule ships instead.
+# Disarmor is additionally gated on its target sitting at or below 10 HP (recorded in doc 03).
+# strings: none — Disarmor's success feedback lives in doc 03.
+# era: none.
+levels:
+  # Reduction is 0.25 pp per level (0.25-2.0 pp), i.e. 12.5 % of Disarmor's maximum roll per level. The
+  # level ladder exists so the marker carries a readable level; each rung's number lives in doc 03's clause.
+  1:
+    effects: []
+  2:
+    effects: []
+  3:
+    effects: []
+  4:
+    effects: []
+  5:
+    effects: []
+  6:
+    effects: []
+  7:
+    effects: []
+  8:
+    effects: []
