@@ -59,6 +59,9 @@ public final class BuiltinTriggers {
                 // Fired by EquipChangeDriver on the worn-ability diff — the carrying piece being put on or taken
                 // off; %equipchange% says which. Appended last.
                 .register(Trigger.neutral("EQUIP_CHANGE"))
+                // Fired by ProjectileLandListener where a player's projectile came down; the activation anchors at
+                // the landing point, so @Aoe centres there. Entity hits stay BOW's. Appended last.
+                .register(Trigger.neutral("PROJECTILE_LAND"))
                 .build();
     }
 }

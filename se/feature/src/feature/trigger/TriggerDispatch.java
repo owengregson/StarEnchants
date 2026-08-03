@@ -77,6 +77,7 @@ public final class TriggerDispatch {
     public final int guardianHurt; // fired by GuardianHurtListener when a summoned guardian is hurt (victim = the guardian)
     public final int hurt;    // every damage-taken event, any cause — rides the same two damage paths as FALL/FIRE and DEFENSE
     public final int equipChange; // fired by EquipChangeDriver on the worn-ability diff (%equipchange% = EQUIP|UNEQUIP)
+    public final int projectileLand; // fired by ProjectileLandListener at a player projectile's landing point
 
     /**
      * Trigger dispatch over the shared per-boot {@link SinkEnv}. GIVE_MONEY/TAKE_MONEY on MINE/KILL/… and the
@@ -120,6 +121,7 @@ public final class TriggerDispatch {
         this.guardianHurt = triggers.idOf("GUARDIAN_HURT").orElse(-1);
         this.hurt = triggers.idOf("HURT").orElse(-1);
         this.equipChange = triggers.idOf("EQUIP_CHANGE").orElse(-1);
+        this.projectileLand = triggers.idOf("PROJECTILE_LAND").orElse(-1);
     }
 
     /**
@@ -405,6 +407,20 @@ public final class TriggerDispatch {
                 worldId(snapshot, context), use, actor, context, sink, snapshot.stableKeys(), candidates);
         sink.flush();
         return attempt;
+    }
+
+    /**
+     * Fire PROJECTILE_LAND where {@code shooter}'s projectile came down. The activation ANCHORS at {@code at}
+     * rather than the shooter, so an {@code @Aoe} selector centres on the impact — the whole point of the
+     * trigger. No victim: an entity hit is BOW's, and this only ever runs for a world landing. Runs on the
+     * landing region's thread; the shooter's abilities resolve from the immutable WornState (a safe cross-region
+     * read) and every mutation routes through the sink, the {@link #fireImpact} pattern.
+     */
+    public void fireProjectileLand(Player shooter, Location at) {
+        if (projectileLand < 0 || shooter == null || at == null) {
+            return;
+        }
+        fire(shooter, projectileLand, new ActivationContext(shooter, null, null, at), null);
     }
 
     /**

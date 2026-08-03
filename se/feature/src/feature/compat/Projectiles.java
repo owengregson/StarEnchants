@@ -1,6 +1,8 @@
 package feature.compat;
 
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.bukkit.event.entity.ProjectileHitEvent;
 
 /**
  * The version edge for projectile-type predicates in combat trigger routing (ADR-0044;
@@ -31,4 +33,19 @@ public interface Projectiles {
      * anything else is {@link #OTHER}.
      */
     String kindOf(Entity entity);
+
+    /**
+     * Where a {@link ProjectileHitEvent}'s projectile came down, or {@code null} when this era cannot say it
+     * landed on the world — an entity hit (which BOW/ATTACK already dispatches, so PROJECTILE_LAND must not),
+     * or an era whose event carries no hit accessors at all.
+     *
+     * <p>Era split, both halves verified against the shipped jars: modern reads {@code getHitEntity} /
+     * {@code getHitBlock} (1.11+). 1.8.8's {@code ProjectileHitEvent} exposes ONLY the projectile (javap), is
+     * fired for entity hits as well as block hits ({@code EntityArrow} calls
+     * {@code CraftEventFactory.callProjectileHitEvent} BEFORE branching on the hit entity), and fires while the
+     * arrow still sits at its pre-move position — the hit point is only written afterwards. Neither the
+     * discrimination nor the landing point is derivable there, so the legacy leaf answers {@code null} and the
+     * trigger is inert on 1.8, exactly as ITEM_DAMAGE is inert without {@code PlayerItemDamageEvent} (§4).
+     */
+    Location landingOf(ProjectileHitEvent event);
 }
