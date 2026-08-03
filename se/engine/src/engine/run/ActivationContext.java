@@ -27,7 +27,8 @@ import org.bukkit.entity.Player;
  *                        recent attackers ({@code %attackerindex%}); 0 when absent
  * @param vanillaFinalDamage the damage the actor is ABOUT to take, as the server priced it — post-armor,
  *                        post-protection, post-resistance, but PRE-SE-fold ({@code %posthit.health%}). Set only
- *                        on the DEFENSE context; {@link Double#NaN} everywhere else, where the fact stays 0
+ *                        on a damage-taken context (DEFENSE/HURT/FALL/FIRE); {@link Double#NaN} everywhere else,
+ *                        where the fact stays 0
  * @param impactHeight    on a projectile hit, how far ABOVE the struck entity's feet the projectile was
  *                        ({@code %impactheight%}); 0 for every other activation. Differenced at the hit site so
  *                        both combat sides read the same geometry and no live projectile rides the context
