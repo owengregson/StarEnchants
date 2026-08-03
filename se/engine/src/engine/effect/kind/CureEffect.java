@@ -20,10 +20,14 @@ public final class CureEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("CURE")
             .param("category", D.enumOf("ALL", "HARMFUL", "BENEFICIAL", "NEUTRAL").def("ALL"))
+            .param("count", D.INT.min(0).def(0), "remove at most this many effects; 0 = every match")
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Clear active potion effects of one category from the target(s): ALL (default), HARMFUL, "
-                    + "BENEFICIAL, or NEUTRAL. category HARMFUL strips only debuffs (positive effects untouched).")
+                    + "BENEFICIAL, or NEUTRAL. category HARMFUL strips only debuffs (positive effects "
+                    + "untouched). count bounds how many matching effects are removed (0 = all of them) in the "
+                    + "server's own enumeration order — a count: 1 HARMFUL cure strips exactly one debuff, "
+                    + "whichever the server lists first.")
             .example("{ CURE: { category: HARMFUL } }")
             .build();
 
@@ -40,8 +44,9 @@ public final class CureEffect implements EffectKind {
             case "NEUTRAL" -> PotionCategories.NEUTRAL;
             default -> PotionCategories.ALL;
         };
+        int count = ctx.integer("count");
         for (LivingEntity target : ctx.targets("who")) {
-            sink.cureByCategory(target, category);
+            sink.cureByCategory(target, category, count);
         }
     }
 }

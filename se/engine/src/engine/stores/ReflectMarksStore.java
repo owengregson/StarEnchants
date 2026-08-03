@@ -16,37 +16,53 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class ReflectMarksStore implements RetainedStore {
 
-    /** One reflect window: the outgoing-damage percentage reflected back + the expiry tick. */
-    private record Mark(double fractionPercent, long expiry) {
+    /**
+     * One reflect window: the outgoing-damage percentage reflected back, the flat per-hit ceiling on the health
+     * returned ({@code 0} = uncapped), the per-hit line shown to the afflicted (empty = silent), and the expiry.
+     */
+    public record Mark(double fractionPercent, double cap, String feedback, long expiry) {
     }
 
     private final Map<UUID, Mark> marks = new ConcurrentHashMap<>();
 
     /**
      * Mark {@code afflicted} so {@code fractionPercent}% of their outgoing damage reflects back for
-     * {@code durationTicks}. A non-positive fraction or duration is a no-op; a re-mark maxes fraction and expiry
-     * component-wise.
+     * {@code durationTicks}, bounded by {@code cap} health per hit and announced by {@code feedback}. A
+     * non-positive fraction or duration is a no-op; a re-mark maxes fraction and expiry component-wise.
      */
-    public void mark(UUID afflicted, double fractionPercent, long nowTicks, int durationTicks) {
+    public void mark(UUID afflicted, double fractionPercent, double cap, String feedback,
+                     long nowTicks, int durationTicks) {
         if (afflicted == null || fractionPercent <= 0 || durationTicks <= 0) {
             return;
         }
         long expiry = nowTicks + durationTicks;
-        marks.merge(afflicted, new Mark(fractionPercent, expiry),
-                (a, b) -> new Mark(Math.max(a.fractionPercent(), b.fractionPercent()), Math.max(a.expiry(), b.expiry())));
+        marks.merge(afflicted, new Mark(fractionPercent, cap, feedback == null ? "" : feedback, expiry),
+                ReflectMarksStore::stronger);
     }
 
-    /** The reflected outgoing-damage percentage for {@code afflicted} at {@code nowTicks}, or {@code 0} if none/elapsed. */
-    public double active(UUID afflicted, long nowTicks) {
+    /**
+     * The component-wise stronger of an existing ({@code a}) and an incoming ({@code b}) window. Fraction and
+     * expiry take the max; an UNCAPPED side wins the cap (0 is the loosest ceiling, not the tightest), else the
+     * larger ceiling; and the newer feedback wins unless it is silent, so a bare re-mark cannot mute the line.
+     */
+    private static Mark stronger(Mark a, Mark b) {
+        double cap = a.cap() <= 0 || b.cap() <= 0 ? 0 : Math.max(a.cap(), b.cap());
+        return new Mark(Math.max(a.fractionPercent(), b.fractionPercent()), cap,
+                b.feedback().isEmpty() ? a.feedback() : b.feedback(),
+                Math.max(a.expiry(), b.expiry()));
+    }
+
+    /** The live reflect window for {@code afflicted} at {@code nowTicks}, or {@code null} if none/elapsed. */
+    public Mark active(UUID afflicted, long nowTicks) {
         Mark mark = marks.get(afflicted);
         if (mark == null) {
-            return 0.0;
+            return null;
         }
         if (nowTicks >= mark.expiry()) {
             marks.remove(afflicted, mark);
-            return 0.0;
+            return null;
         }
-        return mark.fractionPercent();
+        return mark;
     }
 
     @Override

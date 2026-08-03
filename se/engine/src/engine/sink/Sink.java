@@ -94,11 +94,18 @@ public interface Sink {
     /** Restore food points to a player (clamped to the vanilla maximum). */
     void feed(Player target, int foodPoints);
 
-    /** Repair the player's held item; {@code amount < 0} fully repairs it. */
-    void repairHand(Player target, int amount);
+    /**
+     * Repair the player's held item; {@code amount < 0} fully repairs it. A {@code percent > 0} supersedes
+     * {@code amount} and moves that percent of the item's OWN max durability instead; {@code skipUndamaged}
+     * spares an item already at full durability.
+     */
+    void repairHand(Player target, int amount, double percent, boolean skipUndamaged);
 
-    /** Wear down the durability of the player's held item by {@code amount} (clamped to its maximum). */
-    void damageHand(Player target, int amount);
+    /**
+     * Wear down the durability of the player's held item by {@code amount} (clamped to its maximum), or by
+     * {@code percent} of its max durability when {@code percent > 0}; {@code skipUndamaged} spares a pristine item.
+     */
+    void damageHand(Player target, int amount, double percent, boolean skipUndamaged);
 
     /** Grant experience points to a player. */
     void giveExp(Player target, int amount);
@@ -170,11 +177,19 @@ public interface Sink {
      */
     void drainMaxHealth(LivingEntity target, double fraction, double baseline, double flat, int durationTicks);
 
-    /** Damage the durability of the target's worn armor. */
-    void damageArmor(LivingEntity target, int amount);
+    /**
+     * Damage the durability of the target's worn armor. {@code percent > 0} supersedes {@code amount} and wears
+     * that percent of each addressed piece's OWN max durability; {@code select} is an {@link ArmorSelect} code
+     * naming which piece(s) are addressed; {@code skipUndamaged} keeps pristine pieces out of both the pick and
+     * the write.
+     */
+    void damageArmor(LivingEntity target, int amount, double percent, int select, boolean skipUndamaged);
 
-    /** Restore durability to the player's worn armor; {@code amount < 0} fully repairs it. */
-    void repairArmor(Player target, int amount);
+    /**
+     * Restore durability to the player's worn armor; {@code amount < 0} fully repairs it. {@code percent},
+     * {@code select} and {@code skipUndamaged} read exactly as in {@link #damageArmor}.
+     */
+    void repairArmor(Player target, int amount, double percent, int select, boolean skipUndamaged);
 
     void potion(LivingEntity target, int potionEffectId, int amplifier, int durationTicks);
 
@@ -215,8 +230,10 @@ public interface Sink {
      * Clear only the active potion effects in one {@link PotionCategories} bucket from the target —
      * {@code 0}=all, {@code 1}=harmful, {@code 2}=beneficial, {@code 3}=neutral ({@code CURE { category }}).
      * Classification is by canonical name, so it is version-stable; category {@code 0} equals {@link #cure}.
+     * {@code count} bounds how many matching effects are removed, in the server's own enumeration order;
+     * {@code count <= 0} removes every match.
      */
-    void cureByCategory(LivingEntity target, int category);
+    void cureByCategory(LivingEntity target, int category, int count);
 
     /** Drop the target's held (main-hand) item into the world, clearing the slot. */
     void disarm(LivingEntity target);
@@ -590,8 +607,10 @@ public interface Sink {
      * Mark {@code afflicted} so {@code percent}% of THEIR outgoing damage reflects back onto them for
      * {@code durationTicks} (REFLECT — Hex). A per-player window write, inline like {@link #mark} (the UUID is
      * captured on the firing thread, no entity hop); consulted when {@code afflicted} is the attacker on a later hit.
+     * {@code cap} is a flat per-hit ceiling on the health returned ({@code 0} = uncapped) and {@code feedback} an
+     * optional per-hit line to the afflicted (empty = silent), both carried on the window to its consume site.
      */
-    void reflectMark(Player afflicted, double percent, int durationTicks);
+    void reflectMark(Player afflicted, double percent, double cap, String feedback, int durationTicks);
 
     /**
      * Debuff {@code target}'s outgoing damage by {@code percent}% for {@code durationTicks} (WEAKEN — Destruction),

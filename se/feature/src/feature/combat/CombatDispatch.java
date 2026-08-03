@@ -416,9 +416,20 @@ public final class CombatDispatch {
                 event.getFinalDamage(), sink.cancelled());
         // §3 REFLECT (Hex): a marked attacker takes a fraction of the committed damage back onto themselves.
         if (damager instanceof Player reflectedAttacker && attacker != null) {
-            double reflectPercent = reflectMarks.active(reflectedAttacker.getUniqueId(), now);
-            if (reflectPercent > 0.0) {
-                sink.damage(attacker, committed * reflectPercent / 100.0, victim);
+            ReflectMarksStore.Mark hex = reflectMarks.active(reflectedAttacker.getUniqueId(), now);
+            if (hex != null) {
+                double back = committed * hex.fractionPercent() / 100.0;
+                if (hex.cap() > 0) {
+                    back = Math.min(back, hex.cap()); // flat per-hit ceiling: a 100% reflect cannot scale without limit
+                }
+                if (back > 0) {
+                    sink.damage(attacker, back, victim);
+                    if (!hex.feedback().isEmpty()) {
+                        // Emitted HERE, at the hit the reflect actually lands on — not when the window was armed —
+                        // so the line reports the health this swing cost its owner (post-cap).
+                        sink.message(reflectedAttacker, ReflectFeedback.fill(hex.feedback(), back));
+                    }
+                }
             }
         }
         if (sink.armorIgnored()) {

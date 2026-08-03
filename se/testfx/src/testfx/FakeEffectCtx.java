@@ -69,6 +69,12 @@ public final class FakeEffectCtx implements EffectCtx {
         return this;
     }
 
+    /** A pre-typed value straight from the compiler ({@code Long}/{@code Double}/{@code Boolean}/{@code String}). */
+    public FakeEffectCtx with(String name, Object value) {
+        scalars.put(name, value);
+        return this;
+    }
+
     public FakeEffectCtx targets(String slot, LivingEntity... entities) {
         this.targets.put(slot, new ArrayList<>(List.of(entities)));
         return this;

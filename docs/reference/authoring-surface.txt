@@ -34,6 +34,7 @@ effect CONVERT_SUMMON
   param whiff-sound HANDLE optional min=- max=- enum=- handle=SOUND default=BLOCK_ANVIL_LAND
 effect CURE
   param category ENUM optional min=- max=- enum=ALL,BENEFICIAL,HARMFUL,NEUTRAL handle=- default=ALL
+  param count INT optional min=0 max=- enum=- handle=- default=0
 effect DAMAGE
   param amount DOUBLE optional min=0 max=- enum=- handle=- default=0
   param percent-of-max DOUBLE optional min=0 max=100 enum=- handle=- default=0
@@ -63,7 +64,10 @@ effect DROP_ITEM
 effect DURABILITY
   param amount INT optional min=- max=- enum=- handle=- default=-1
   param target ENUM optional min=- max=- enum=all,armor,item handle=- default=item
-  param mode ENUM optional min=- max=- enum=damage,restore handle=- default=restore
+  param mode ENUM optional min=- max=- enum=damage,percent-damage,percent-restore,restore handle=- default=restore
+  param percent DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param select ENUM optional min=- max=- enum=least-damaged,most-damaged,random-piece,slot:boots,slot:chestplate,slot:helmet,slot:leggings,whole-set handle=- default=whole-set
+  param skip-undamaged BOOL optional min=- max=- enum=- handle=- default=false
 effect ECHO_STRIKE
 effect EQUIP_SWAP
   param slot ENUM optional min=- max=- enum=boots,chestplate,helmet,leggings handle=- default=helmet
@@ -248,6 +252,8 @@ effect PROJECTILE
 effect REFLECT
   param percent DOUBLE required min=0 max=- enum=- handle=- default=-
   param duration TICKS optional min=0 max=- enum=- handle=- default=80
+  param cap DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param feedback STRING optional min=- max=- enum=- handle=- default=
 effect REMOVE_ARMOR
 effect REMOVE_ITEM
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-

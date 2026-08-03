@@ -624,20 +624,20 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void repairHand(Player target, int amount) {
+    public void repairHand(Player target, int amount, double percent, boolean skipUndamaged) {
         entityOp(target, () -> {
             ItemStack item = mainHand(target);
-            if (applyRepair(item, amount)) {
+            if (adjustItem(item, amount, percent, true, skipUndamaged)) {
                 setMainHand(target, item);
             }
         });
     }
 
     @Override
-    public void damageHand(Player target, int amount) {
+    public void damageHand(Player target, int amount, double percent, boolean skipUndamaged) {
         entityOp(target, () -> {
             ItemStack item = mainHand(target);
-            if (applyDamage(item, amount)) {
+            if (adjustItem(item, amount, percent, false, skipUndamaged)) {
                 setMainHand(target, item);
             }
         });
@@ -760,13 +760,89 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void damageArmor(LivingEntity target, int amount) {
-        entityOp(target, () -> adjustArmorDurability(target, amount, false));
+    public void damageArmor(LivingEntity target, int amount, double percent, int select, boolean skipUndamaged) {
+        entityOp(target, () -> adjustArmorDurability(target, amount, percent, false, select, skipUndamaged));
     }
 
     @Override
-    public void repairArmor(Player target, int amount) {
-        entityOp(target, () -> adjustArmorDurability(target, amount, true));
+    public void repairArmor(Player target, int amount, double percent, int select, boolean skipUndamaged) {
+        entityOp(target, () -> adjustArmorDurability(target, amount, percent, true, select, skipUndamaged));
+    }
+
+    /**
+     * Move one item's durability. {@code percent > 0} reads as that percent of the item's OWN max durability, so
+     * one authored value wears a leather cap and a netherite chestplate proportionally; otherwise {@code amount}
+     * is a flat point count and a negative one fully restores. Returns whether the item was touched — the caller
+     * only writes the slot back when it was.
+     */
+    private boolean adjustItem(ItemStack item, int amount, double percent, boolean repair, boolean skipUndamaged) {
+        if (item == null) {
+            return false;
+        }
+        int current = itemDamage(item);
+        if (current < 0 || (skipUndamaged && current == 0)) {
+            return false; // does not wear, or pristine and spared
+        }
+        int max = item.getType().getMaxDurability();
+        int points = durabilityPoints(max, amount, percent);
+        int next;
+        if (repair) {
+            next = points < 0 ? 0 : Math.max(0, current - points);
+        } else {
+            if (points <= 0) {
+                return false; // a non-positive wear is a no-op, never an accidental repair
+            }
+            next = Math.min(max, current + points);
+        }
+        setItemDamage(item, next);
+        return true;
+    }
+
+    /**
+     * The durability points one item moves. {@code percent > 0} is the {@code percent-*} modes' fraction of that
+     * item's OWN max durability — rounded to the nearest point, so a small percent on small gear still bites;
+     * {@code percent == 0} is the flat-{@code amount} path, which keeps {@code amount < 0}'s full-restore
+     * sentinel intact.
+     */
+    static int durabilityPoints(int maxDurability, int amount, double percent) {
+        return percent > 0 ? (int) Math.round(maxDurability * percent / 100.0) : amount;
+    }
+
+    /**
+     * Adjust the worn armour {@code select} addresses (an {@link ArmorSelect} code) — repair when {@code repair},
+     * else wear. Reading each slot's damage up front lets the pick and the write share one eligibility rule, so
+     * {@code skipUndamaged} keeps pristine pieces out of BOTH.
+     */
+    private void adjustArmorDurability(LivingEntity entity, int amount, double percent, boolean repair,
+                                       int select, boolean skipUndamaged) {
+        EntityEquipment equipment = entity.getEquipment();
+        if (equipment == null) {
+            return;
+        }
+        ItemStack[] armor = equipment.getArmorContents();
+        int only = ArmorSelect.WHOLE_SET;
+        if (select != ArmorSelect.WHOLE_SET) {
+            int[] damage = new int[armor.length];
+            for (int i = 0; i < armor.length; i++) {
+                damage[i] = armor[i] == null ? -1 : itemDamage(armor[i]);
+            }
+            only = ArmorSelect.pick(select, damage, skipUndamaged, ThreadLocalRandom.current().nextDouble());
+            if (only == ArmorSelect.NONE) {
+                return;
+            }
+        }
+        boolean changed = false;
+        for (int i = 0; i < armor.length; i++) {
+            if (only != ArmorSelect.WHOLE_SET && i != only) {
+                continue;
+            }
+            if (adjustItem(armor[i], amount, percent, repair, skipUndamaged)) {
+                changed = true;
+            }
+        }
+        if (changed) {
+            equipment.setArmorContents(armor);
+        }
     }
 
     @Override
@@ -923,12 +999,17 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void cureByCategory(LivingEntity target, int category) {
+    public void cureByCategory(LivingEntity target, int category, int count) {
         // Snapshot first (removePotionEffect mutates the live collection); remove only the matching bucket.
         entityOp(target, () -> {
+            int left = count <= 0 ? Integer.MAX_VALUE : count;
             for (PotionEffect active : List.copyOf(target.getActivePotionEffects())) {
+                if (left == 0) {
+                    return;
+                }
                 if (PotionCategories.matches(category, active.getType())) {
                     target.removePotionEffect(active.getType());
+                    left--;
                 }
             }
         });
@@ -956,11 +1037,11 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void reflectMark(Player afflicted, double percent, int durationTicks) {
+    public void reflectMark(Player afflicted, double percent, double cap, String feedback, int durationTicks) {
         if (afflicted != null) {
             // Per-player window write, inline like mark() (the UUID is captured on the firing thread — no entity
             // hop, no cross-region read). Consulted by CombatDispatch when this player is a later attacker.
-            reflectMarks.mark(afflicted.getUniqueId(), percent, nowTicks.getAsLong(), durationTicks);
+            reflectMarks.mark(afflicted.getUniqueId(), percent, cap, feedback, nowTicks.getAsLong(), durationTicks);
         }
     }
 
@@ -2785,14 +2866,15 @@ public abstract class DispatchSinkBase implements SinkReadback {
     /** Write the main-hand item of an {@link EntityEquipment} (main-hand accessor differs by era). */
     protected abstract void setMainHand(EntityEquipment equipment, ItemStack item);
 
-    /** Repair one item by {@code amount} (negative = full); returns whether it changed (durability API differs by era). */
-    protected abstract boolean applyRepair(ItemStack item, int amount);
+    /**
+     * One item's current durability damage, or {@code -1} when the item does not wear. The era split is only
+     * this read and its {@link #setItemDamage} write — 1.8 keeps durability on the {@code ItemStack}, modern
+     * servers on a {@code Damageable} meta — so the select/percent/skip POLICY lives once, up here.
+     */
+    protected abstract int itemDamage(ItemStack item);
 
-    /** Wear one item down by {@code amount} (clamped to its max durability); returns whether it changed. */
-    protected abstract boolean applyDamage(ItemStack item, int amount);
-
-    /** Adjust every worn armour piece's durability — repair when {@code repair}, else damage it. */
-    protected abstract void adjustArmorDurability(LivingEntity entity, int amount, boolean repair);
+    /** Write {@code damage} durability points onto an item known to wear (the {@link #itemDamage} counterpart). */
+    protected abstract void setItemDamage(ItemStack item, int damage);
 
     /**
      * Make a freshly-summoned guard path to + attack {@code target}. Modern targets via {@code Mob#setTarget};

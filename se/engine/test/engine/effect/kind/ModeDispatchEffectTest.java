@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import engine.effect.EffectKind;
+import engine.sink.ArmorSelect;
 import engine.sink.Sink;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -19,6 +20,7 @@ import org.bukkit.entity.Player;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import testfx.FakeEffectCtx;
+import testfx.SpecDrivenCtx;
 
 /**
  * The effect kinds that branch on a {@code mode}/{@code channel}/{@code type}/{@code side} arg to different
@@ -255,28 +257,81 @@ class ModeDispatchEffectTest {
 
     @TestFactory
     List<DynamicTest> durability() {
-        // asymmetry: restore is player-only; armor damage hits any living target.
+        // asymmetry: restore is player-only; armor damage hits any living target. Every row starts from the
+        // kind's DECLARED DEFAULTS and overrides only what it exercises, so the percent/select/skip-undamaged
+        // extensions cannot silently shift the calls an ability authored before them still makes.
         return List.of(
-                player("DURABILITY item/restore → repairHand", new DurabilityEffect(),
+                durabilityPlayer("DURABILITY item/restore → repairHand (flat, whole set, nothing spared)",
                         c -> c.with("amount", -1).with("target", "item").with("mode", "restore"),
-                        (s, p) -> verify(s).repairHand(p, -1)),
-                player("DURABILITY armor/restore → repairArmor", new DurabilityEffect(),
+                        (s, p) -> verify(s).repairHand(p, -1, 0.0, false)),
+                durabilityPlayer("DURABILITY armor/restore → repairArmor",
                         c -> c.with("amount", 200).with("target", "armor").with("mode", "restore"),
-                        (s, p) -> verify(s).repairArmor(p, 200)),
-                living("DURABILITY armor/damage → damageArmor (any living)", new DurabilityEffect(),
+                        (s, p) -> verify(s).repairArmor(p, 200, 0.0, ArmorSelect.WHOLE_SET, false)),
+                durabilityLiving("DURABILITY armor/damage → damageArmor (any living)",
                         c -> c.with("amount", 50).with("target", "armor").with("mode", "damage"),
-                        (s, t) -> verify(s).damageArmor(t, 50)),
-                player("DURABILITY item/damage → damageHand", new DurabilityEffect(),
+                        (s, t) -> verify(s).damageArmor(t, 50, 0.0, ArmorSelect.WHOLE_SET, false)),
+                durabilityPlayer("DURABILITY item/damage → damageHand",
                         c -> c.with("amount", 10).with("target", "item").with("mode", "damage"),
-                        (s, p) -> verify(s).damageHand(p, 10)),
-                player("DURABILITY all/restore → repairHand + repairArmor", new DurabilityEffect(),
+                        (s, p) -> verify(s).damageHand(p, 10, 0.0, false)),
+                durabilityPlayer("DURABILITY all/restore → repairHand + repairArmor",
                         c -> c.with("amount", -1).with("target", "all").with("mode", "restore"),
                         (s, p) -> {
-                            verify(s).repairHand(p, -1);
-                            verify(s).repairArmor(p, -1);
+                            verify(s).repairHand(p, -1, 0.0, false);
+                            verify(s).repairArmor(p, -1, 0.0, ArmorSelect.WHOLE_SET, false);
                         }),
-                living("DURABILITY restore on a non-player → skipped", new DurabilityEffect(),
-                        c -> c.with("amount", -1).with("target", "item").with("mode", "restore"), (s, t) -> { }));
+                durabilityLiving("DURABILITY restore on a non-player → skipped",
+                        c -> c.with("amount", -1).with("target", "item").with("mode", "restore"), (s, t) -> { }),
+                durabilityLiving("DURABILITY select slot:helmet + skip-undamaged → slot code and filter ride",
+                        c -> c.with("amount", 1).with("target", "armor").with("mode", "damage")
+                                .with("select", "slot:helmet").with("skip-undamaged", true),
+                        (s, t) -> verify(s).damageArmor(t, 1, 0.0, ArmorSelect.HELMET, true)),
+                durabilityLiving("DURABILITY select random-piece → the scatter code, not a slot",
+                        c -> c.with("amount", 1).with("target", "armor").with("mode", "damage")
+                                .with("select", "random-piece"),
+                        (s, t) -> verify(s).damageArmor(t, 1, 0.0, ArmorSelect.RANDOM_PIECE, false)),
+                durabilityPlayer("DURABILITY select most-damaged/restore → the single-piece repair code",
+                        c -> c.with("amount", 1).with("target", "armor").with("mode", "restore")
+                                .with("select", "most-damaged"),
+                        (s, p) -> verify(s).repairArmor(p, 1, 0.0, ArmorSelect.MOST_DAMAGED, false)),
+                durabilityLiving("DURABILITY percent-damage → the fraction rides to the sink",
+                        c -> c.with("amount", -1).with("target", "armor").with("mode", "percent-damage")
+                                .with("percent", 2.5),
+                        (s, t) -> verify(s).damageArmor(t, -1, 2.5, ArmorSelect.WHOLE_SET, false)),
+                durabilityPlayer("DURABILITY percent-restore is a restore direction, not a wear",
+                        c -> c.with("amount", -1).with("target", "item").with("mode", "percent-restore")
+                                .with("percent", 10.0),
+                        (s, p) -> verify(s).repairHand(p, -1, 10.0, false)),
+                durabilityPlayer("DURABILITY flat mode never leaks a percent, even when one is authored",
+                        c -> c.with("amount", 3).with("target", "item").with("mode", "damage").with("percent", 40.0),
+                        (s, p) -> verify(s).damageHand(p, 3, 0.0, false)));
+    }
+
+    /** One player target under "who", ctx seeded from DURABILITY's own declared defaults. */
+    private static DynamicTest durabilityPlayer(String label, Consumer<FakeEffectCtx> args,
+            BiConsumer<Sink, Player> verify) {
+        return dynamicTest(label, () -> {
+            Player p = mock(Player.class);
+            FakeEffectCtx ctx = SpecDrivenCtx.defaults(DurabilityEffect.SPEC).targets("who", p);
+            args.accept(ctx);
+            Sink sink = mock(Sink.class);
+            new DurabilityEffect().run(ctx, sink);
+            verify.accept(sink, p);
+            verifyNoMoreInteractions(sink);
+        });
+    }
+
+    /** One living (non-player) target under "who", ctx seeded from DURABILITY's own declared defaults. */
+    private static DynamicTest durabilityLiving(String label, Consumer<FakeEffectCtx> args,
+            BiConsumer<Sink, LivingEntity> verify) {
+        return dynamicTest(label, () -> {
+            LivingEntity t = mock(LivingEntity.class);
+            FakeEffectCtx ctx = SpecDrivenCtx.defaults(DurabilityEffect.SPEC).targets("who", t);
+            args.accept(ctx);
+            Sink sink = mock(Sink.class);
+            new DurabilityEffect().run(ctx, sink);
+            verify.accept(sink, t);
+            verifyNoMoreInteractions(sink);
+        });
     }
 
     @TestFactory
