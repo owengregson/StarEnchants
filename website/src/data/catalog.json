@@ -2608,7 +2608,7 @@
     "head": "MESSAGE",
     "doc": "Send feedback on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade timings). Default recipient self; `who` can name any party (e.g. @Victim). The `{ATTACKER}`/`{VICTIM}` tokens expand to the activating player and the other combat party, and `{SELF}` to the name of whoever receives that copy. Replaces ACTIONBAR/TITLE.",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ MESSAGE: { text: <string>, channel: <enum{chat|actionbar|title}=chat>, subtitle: <string=>, fadeIn: <ticks[0..]=10>, stay: <ticks[0..]=70>, fadeOut: <ticks[0..]=20> } }",
+    "usage": "{ MESSAGE: { text: <string>, channel: <enum{chat|actionbar|title}=chat>, subtitle: <string=>, fadeIn: <ticks[0..]=10>, stay: <ticks[0..]=70>, fadeOut: <ticks[0..]=20>, tokens: <expr map=> } }",
     "example": "{ MESSAGE: { text: \"&aCritical hit!\" } }",
     "params": [
       {
@@ -2686,6 +2686,18 @@
         "enum": [],
         "handle": null,
         "doc": "title channel only"
+        },
+      {
+        "name": "tokens",
+        "kind": "EXPR_MAP",
+        "label": "expr map",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "name=expression bindings; each {name} in the text becomes the evaluated number"
         }
       ],
     "targets": [

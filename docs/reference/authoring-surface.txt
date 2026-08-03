@@ -213,6 +213,7 @@ effect MESSAGE
   param fadeIn TICKS optional min=0 max=- enum=- handle=- default=10
   param stay TICKS optional min=0 max=- enum=- handle=- default=70
   param fadeOut TICKS optional min=0 max=- enum=- handle=- default=20
+  param tokens EXPR_MAP optional min=- max=- enum=- handle=- default=
 effect MODIFY_EXP
   param amount INT required min=0 max=- enum=- handle=- default=-
   param mode ENUM optional min=- max=- enum=give,take,transfer handle=- default=give

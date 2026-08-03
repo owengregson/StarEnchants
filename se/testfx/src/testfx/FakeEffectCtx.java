@@ -157,6 +157,18 @@ public final class FakeEffectCtx implements EffectCtx {
         return String.valueOf(require(name));
     }
 
+    /**
+     * An EXPRESSION-MAP slot, given as the numbers it evaluates to. The compile-time lowering of the bindings
+     * is the compiler's contract, tested there; a kind's contract is what it does with the resulting numbers,
+     * so a row states those directly.
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public Map<String, Double> numbers(String name) {
+        Object value = scalars.get(name);
+        return value instanceof Map<?, ?> map ? (Map<String, Double>) map : Map.of();
+    }
+
     @Override
     public Args args() {
         Args args = Args.empty();

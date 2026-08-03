@@ -39,6 +39,7 @@ public final class SpecDrivenCtx {
                 case BOOL -> ctx.with(p.name(), true);
                 case ENUM -> ctx.with(p.name(), type.allowed().isEmpty() ? "x" : type.allowed().get(0));
                 case STRING -> ctx.with(p.name(), "x");
+                case EXPR_MAP -> ctx.with(p.name(), java.util.Map.<String, Double>of());
             }
         }
         return ctx;

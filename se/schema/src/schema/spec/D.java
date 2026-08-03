@@ -25,6 +25,14 @@ public final class D {
     public static final ParamType STRING = ParamType.of(ParamType.Kind.STRING);
 
     /** A closed, case-insensitive set of allowed values, normalized to the given spelling. */
+    /**
+     * A string-keyed set of numeric expressions, authored as a nested map ({@code tokens: { souls: "%actor.souls%" }})
+     * or the equivalent flat {@code "souls=%actor.souls%"} scalar. Optional, defaulting to no bindings.
+     */
+    public static ParamType exprMap() {
+        return ParamType.of(ParamType.Kind.EXPR_MAP).def("");
+    }
+
     public static ParamType enumOf(String... values) {
         return ParamType.of(ParamType.Kind.ENUM).allowing(values);
     }

@@ -1,9 +1,11 @@
 package engine.run;
 
 import compile.model.cond.NumExpr;
+import compile.model.cond.NumExprMap;
 import engine.condition.FactBuffer;
 import engine.condition.NumExprEval;
 import engine.effect.EffectCtx;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -63,6 +65,18 @@ final class RuntimeEffectCtx implements EffectCtx {
             return (int) Math.round(finite(facts == null ? 0.0 : NumExprEval.eval(expr, facts)));
         }
         return args.integer(name);
+    }
+
+    @Override
+    public Map<String, Double> numbers(String name) {
+        Object value = args.opt(name).orElse(null);
+        if (!(value instanceof NumExprMap map) || map.isEmpty()) {
+            return Map.of(); // absent or unbound: the shared empty map, so the common case allocates nothing
+        }
+        Map<String, Double> out = new LinkedHashMap<>();
+        map.entries().forEach((binding, expr) ->
+                out.put(binding, finite(facts == null ? 0.0 : NumExprEval.eval(expr, facts))));
+        return out;
     }
 
     @Override

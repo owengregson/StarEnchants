@@ -21,7 +21,10 @@ import compile.model.CompiledEffect;
 import compile.model.CompiledSelector;
 import compile.model.SourceKind;
 import compile.model.cond.Cond;
+import compile.model.FactMask;
+import compile.model.FactMasks;
 import compile.model.cond.NumExpr;
+import compile.model.cond.NumExprMap;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
@@ -30,7 +33,9 @@ import schema.spec.D;
 import schema.spec.ParamSpec;
 import testfx.Defs;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class LowerStageTest {
@@ -44,6 +49,13 @@ class LowerStageTest {
     private static ParamSpec damage() {
         return ParamSpec.of("DAMAGE")
                 .param("amount", D.DOUBLE.min(0))
+                .build();
+    }
+
+    /** A spec whose only param is an EXPR_MAP — the shape MESSAGE's {@code tokens} introduced. */
+    private static ParamSpec noted() {
+        return ParamSpec.of("NOTE")
+                .param("marks", D.exprMap())
                 .build();
     }
 
@@ -99,6 +111,53 @@ class LowerStageTest {
         assertEquals(NumExpr.FnKind.CLAMP, fn.kind());
         assertInstanceOf(NumExpr.Bin.class, fn.args().get(0));
         assertEquals(new NumExpr.Lit(0.0), fn.args().get(1));
+    }
+
+    @Test
+    void everyBindingOfAnExprMapArgLowersToItsOwnExpression() {
+        // The whole point of a dedicated map type: the lowering walk must descend INTO it. A map left opaque
+        // reaches the runtime as unlowered Expr trees, which evaluate to nothing at all.
+        Diagnostics d = new Diagnostics();
+        LoweredAbility lowered = new DefaultLowerStage(MapSpecRegistry.of(noted()),
+                head -> Affinity.CONTEXT_LOCAL, MapSpecRegistry.of(), head -> null, VARS)
+                .lower(def(null, EffectLine.verbose("NOTE", 1,
+                        Map.of("marks", "hit=%damage%; twice=%damage% * 2"), null, SRC)), d);
+
+        assertFalse(d.hasErrors());
+        NumExprMap marks = assertInstanceOf(NumExprMap.class,
+                lowered.effects().get(0).args().opt("marks").orElseThrow());
+        assertEquals(Set.of("hit", "twice"), marks.entries().keySet());
+        assertEquals(new NumExpr.Var(0), marks.entries().get("hit"));
+        assertInstanceOf(NumExpr.Bin.class, marks.entries().get("twice"));
+    }
+
+    @Test
+    void anExprMapArgsSlotsReachTheAbilitysFactMask() {
+        // A binding reads the fact buffer exactly as a scalar expression arg does, so its slots have to be in
+        // the mask — an unmasked slot is never populated and the binding silently renders 0.
+        Diagnostics d = new Diagnostics();
+        LoweredAbility lowered = new DefaultLowerStage(MapSpecRegistry.of(noted()),
+                head -> Affinity.CONTEXT_LOCAL, MapSpecRegistry.of(), head -> null, VARS)
+                .lower(def(null, EffectLine.verbose("NOTE", 1, Map.of("marks", "hit=%damage%"), null, SRC)), d);
+
+        assertFalse(d.hasErrors());
+        FactMask mask = FactMasks.of(lowered.condition(), null,
+                lowered.effects().toArray(new CompiledEffect[0]));
+        assertTrue(mask.readsNum(0), "the %damage% slot the binding reads must be marked");
+    }
+
+    @Test
+    void anAbsentExprMapArgLowersToNoBindings() {
+        // The back-compat path: content that never mentions the param must reach the runtime with an empty
+        // map, not a null the reader has to defend against.
+        Diagnostics d = new Diagnostics();
+        LoweredAbility lowered = new DefaultLowerStage(MapSpecRegistry.of(noted()),
+                head -> Affinity.CONTEXT_LOCAL, MapSpecRegistry.of(), head -> null, VARS)
+                .lower(def(null, EffectLine.verbose("NOTE", 1, Map.of(), null, SRC)), d);
+
+        assertFalse(d.hasErrors());
+        assertTrue(assertInstanceOf(NumExprMap.class,
+                lowered.effects().get(0).args().opt("marks").orElseThrow()).isEmpty());
     }
 
     @Test

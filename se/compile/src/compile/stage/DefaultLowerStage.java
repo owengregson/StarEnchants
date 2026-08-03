@@ -13,6 +13,7 @@ import compile.model.CompiledEffect;
 import compile.model.CompiledSelector;
 import compile.model.cond.Cond;
 import compile.model.cond.NumExpr;
+import compile.model.cond.NumExprMap;
 import compile.resolve.PlatformResolvers;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
@@ -21,7 +22,9 @@ import schema.grammar.expr.Expr;
 import schema.grammar.expr.ExprParser;
 import schema.grammar.expr.FlowKind;
 import schema.spec.Args;
+import schema.spec.ExprMap;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -195,9 +198,28 @@ public final class DefaultLowerStage implements LowerStage {
                 if (lowered.isPresent()) {
                     out = out.with(entry.getKey(), lowered.get());
                 }
+            } else if (entry.getValue() instanceof ExprMap map) {
+                out = out.with(entry.getKey(), lowerExprMap(map, diags));
             }
         }
         return out;
+    }
+
+    /**
+     * Lower every binding of an {@code EXPR_MAP} arg. A binding that fails to lower is DROPPED (with its own
+     * diagnostic already recorded), not defaulted to zero: the placeholder it fills then stays literal, which
+     * reads as "unbound" rather than quietly reporting a wrong number.
+     */
+    private NumExprMap lowerExprMap(ExprMap map, Diagnostics diags) {
+        if (map.isEmpty()) {
+            return NumExprMap.empty();
+        }
+        Map<String, NumExpr> lowered = new LinkedHashMap<>();
+        for (Map.Entry<String, Expr> binding : map.entries().entrySet()) {
+            conditionCompiler.numeric(binding.getValue(), diags)
+                    .ifPresent(expr -> lowered.put(binding.getKey(), expr));
+        }
+        return new NumExprMap(lowered);
     }
 
     /** A {@code WAIT} line's non-negative tick count, or {@code null} (with an {@code E_WAIT_ARG}) on any fault. */

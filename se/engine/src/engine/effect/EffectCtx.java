@@ -1,6 +1,7 @@
 package engine.effect;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
@@ -31,6 +32,15 @@ public interface EffectCtx {
      */
     default List<Integer> ids(String name) {
         return args().ids(name);
+    }
+
+    /**
+     * An EXPRESSION-MAP argument's bindings evaluated against this activation's facts: authored name → number,
+     * in authored order. EMPTY — and allocation-free — when the argument is absent or has no bindings, so a
+     * kind that offers the slot costs the content that never uses it nothing.
+     */
+    default Map<String, Double> numbers(String name) {
+        return Map.of();
     }
 
     /** The full typed argument bag, for effects that iterate or forward args. */

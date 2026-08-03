@@ -62,7 +62,7 @@ final class ContentFuzz {
         return BASE_SEED * 1_000_003L + head.hashCode() * 31L + caseIndex;
     }
 
-    enum ValueKind { NUM_LITERAL, NUM_EXPR, BOOL, ENUM, STRING, HANDLE }
+    enum ValueKind { NUM_LITERAL, NUM_EXPR, BOOL, ENUM, STRING, HANDLE, EXPR_MAP }
 
     /** One generated named-arg value plus how it should read back (drives {@code CompilerFuzzTest} round-trip checks). */
     record Authored(String raw, ValueKind kind) {
@@ -411,6 +411,8 @@ final class ContentFuzz {
                     ValueKind.ENUM);
             case STRING -> new Authored(randomString(rnd) + (unicode ? "é中" : ""), ValueKind.STRING);
             case HANDLE -> new Authored("FUZZ_TOKEN_" + rnd.nextInt(1_000_000), ValueKind.HANDLE);
+            case EXPR_MAP -> new Authored("t" + rnd.nextInt(1_000) + "=" + fmt3(rnd.nextDouble() * 10),
+                    ValueKind.EXPR_MAP);
         };
     }
 
@@ -423,6 +425,8 @@ final class ContentFuzz {
             case ENUM -> scramble(type.allowed().get(rnd.nextInt(type.allowed().size())), rnd);
             case STRING -> selectorString(rnd);
             case HANDLE -> "FUZZ_TOKEN_" + rnd.nextInt(1_000_000);
+            // A selector body is comma-split, so a binding set inside one must be bracketed to survive whole.
+            case EXPR_MAP -> "[t" + rnd.nextInt(1_000) + "=" + fmt3(rnd.nextDouble() * 10) + "]";
         };
     }
 

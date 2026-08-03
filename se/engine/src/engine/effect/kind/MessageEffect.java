@@ -6,6 +6,7 @@ import engine.effect.EffectKind;
 import engine.sink.Sink;
 import engine.spec.EffectSpec;
 import engine.spec.T;
+import java.util.Map;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import platform.text.Tokens;
@@ -20,6 +21,10 @@ import schema.spec.D;
  * same naming convention as the message-on-activate feature), so a recipient and a named party are independent.
  * {@code {SELF}} is the third: the name of whoever is RECEIVING this copy, which on a per-target send differs
  * per recipient — the one token that cannot be filled once for the whole line.
+ *
+ * <p>{@code tokens} binds any further {@code {name}} placeholder to an EXPRESSION over the activation's facts,
+ * evaluated per activation and rendered as a chat number. The bindings live in the parameter, never in the
+ * text, so an authored line stays byte-verbatim; a placeholder with no binding is left literal, as before.
  */
 public final class MessageEffect implements EffectKind {
 
@@ -34,6 +39,8 @@ public final class MessageEffect implements EffectKind {
             .param("fadeIn", D.TICKS.def(10), "title channel only")
             .param("stay", D.TICKS.def(70), "title channel only")
             .param("fadeOut", D.TICKS.def(20), "title channel only")
+            .param("tokens", D.exprMap(),
+                    "name=expression bindings; each {name} in the text becomes the evaluated number")
             .target("who", T.SELF)
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Send feedback on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade "
@@ -53,9 +60,12 @@ public final class MessageEffect implements EffectKind {
         String channel = ctx.str("channel");
         boolean title = "title".equalsIgnoreCase(channel);
         boolean actionbar = !title && "actionbar".equalsIgnoreCase(channel);
-        String text = fill(ctx, ctx.str("text"));
+        // Evaluated ONCE per activation, not per recipient: a binding prices against the actor's facts, which
+        // do not vary down the send loop. Empty (and allocation-free) for the lines that bind nothing.
+        Map<String, Double> tokens = ctx.numbers("tokens");
+        String text = fill(ctx, ctx.str("text"), tokens);
         // Read the title-only params lazily — a chat/actionbar line never declares them.
-        String subtitle = title ? fill(ctx, ctx.str("subtitle")) : null;
+        String subtitle = title ? fill(ctx, ctx.str("subtitle"), tokens) : null;
         int fadeIn = title ? ctx.integer("fadeIn") : 0;
         int stay = title ? ctx.integer("stay") : 0;
         int fadeOut = title ? ctx.integer("fadeOut") : 0;
@@ -89,16 +99,17 @@ public final class MessageEffect implements EffectKind {
     }
 
     /**
-     * Substitute the combat-party name tokens, leaving colour codes for the Sink to translate. Short-circuits
-     * when there is no token to fill so a plain line never touches the (possibly null) actor/victim.
+     * Substitute the combat-party name tokens and the authored expression bindings, leaving colour codes for
+     * the Sink to translate. Short-circuits when there is no token to fill so a plain line never touches the
+     * (possibly null) actor/victim.
      */
-    private static String fill(EffectCtx ctx, String s) {
+    private static String fill(EffectCtx ctx, String s, Map<String, Double> tokens) {
         if (s == null || s.indexOf('{') < 0) {
             return s;
         }
         String attacker = ctx.actor() == null ? "" : ctx.actor().getName();
         LivingEntity victim = ctx.victim();
         String victimName = victim == null ? "" : victim.getName();
-        return Tokens.sub(s, "ATTACKER", attacker, "VICTIM", victimName);
+        return Tokens.subNumbers(Tokens.sub(s, "ATTACKER", attacker, "VICTIM", victimName), tokens);
     }
 }

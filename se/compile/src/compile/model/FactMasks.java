@@ -2,6 +2,7 @@ package compile.model;
 
 import compile.model.cond.Cond;
 import compile.model.cond.NumExpr;
+import compile.model.cond.NumExprMap;
 import compile.model.cond.StrExpr;
 
 /**
@@ -36,6 +37,10 @@ public final class FactMasks {
             for (Object value : effect.args().asMap().values()) {
                 if (value instanceof NumExpr expr) {
                     acc.num(expr); // e.g. DAMAGE_MOD:...:%combo% reads the combo number slot at run time
+                } else if (value instanceof NumExprMap map) {
+                    // Every binding of an EXPR_MAP arg is read on the same activation (MESSAGE's tokens), so
+                    // each one's slots must be in the mask or the buffer hands it a never-populated 0.
+                    map.entries().values().forEach(acc::num);
                 }
             }
         }
