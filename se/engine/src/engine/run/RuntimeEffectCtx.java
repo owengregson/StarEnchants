@@ -105,6 +105,11 @@ final class RuntimeEffectCtx implements EffectCtx {
     }
 
     @Override
+    public LivingEntity attacker() {
+        return context.attacker();
+    }
+
+    @Override
     public Location location() {
         return context.location();
     }

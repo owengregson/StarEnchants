@@ -32,6 +32,7 @@ public final class FakeEffectCtx implements EffectCtx {
     private final Map<String, List<Location>> locations = new LinkedHashMap<>();
     private Player actor;
     private LivingEntity victim;
+    private LivingEntity attacker;
     private Location location;
     private Location actorOrigin;
     private Location actorOriginEye;
@@ -92,6 +93,11 @@ public final class FakeEffectCtx implements EffectCtx {
 
     public FakeEffectCtx victim(LivingEntity victim) {
         this.victim = victim;
+        return this;
+    }
+
+    public FakeEffectCtx attacker(LivingEntity attacker) {
+        this.attacker = attacker;
         return this;
     }
 
@@ -168,6 +174,11 @@ public final class FakeEffectCtx implements EffectCtx {
     @Override
     public LivingEntity victim() {
         return victim;
+    }
+
+    @Override
+    public LivingEntity attacker() {
+        return attacker;
     }
 
     @Override

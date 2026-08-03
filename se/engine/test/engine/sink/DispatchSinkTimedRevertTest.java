@@ -63,7 +63,7 @@ class DispatchSinkTimedRevertTest {
     @Test
     void flyGrantAppliesInlineAndRecordsOneRevert() {
         Player player = player();
-        sink.setFlight(player, 100);
+        sink.setFlight(player, 100, 0);
         sink.flush();
 
         verify(player).setAllowFlight(true);
@@ -75,7 +75,7 @@ class DispatchSinkTimedRevertTest {
     @Test
     void flyRevertOnQuitClearsFlightAndTheLateTimerNoOps() {
         Player player = player();
-        sink.setFlight(player, 100);
+        sink.setFlight(player, 100, 0);
         sink.flush();
 
         env.timedReverts().revertAll(uuid); // logout mid-window
@@ -91,7 +91,7 @@ class DispatchSinkTimedRevertTest {
     @Test
     void flyNormalExpiryClearsFlightAndAQuitAfterwardsNoOps() {
         Player player = player();
-        sink.setFlight(player, 100);
+        sink.setFlight(player, 100, 0);
         sink.flush();
 
         backend.runDelayed(); // normal expiry

@@ -459,7 +459,8 @@ class ModeDispatchEffectTest {
                     LivingEntity a = mock(LivingEntity.class);
                     Location loc = mock(Location.class);
                     FakeEffectCtx ctx = FakeEffectCtx.create()
-                            .with("mode", "away").with("strength", 1.5).actorOrigin(loc).targets("who", a);
+                            .with("mode", "away").with("strength", 1.5).with("anchor", "activator")
+                            .actorOrigin(loc).targets("who", a);
                     Sink sink = mock(Sink.class);
                     new VelocityEffect().run(ctx, sink);
                     verify(sink).knockback(a, loc, 1.5);
@@ -467,9 +468,55 @@ class ModeDispatchEffectTest {
                 }),
                 dynamicTest("VELOCITY away with no origin → no-op", () -> {
                     FakeEffectCtx ctx = FakeEffectCtx.create()
-                            .with("mode", "away").with("strength", 1.5).targets("who", mock(LivingEntity.class));
+                            .with("mode", "away").with("strength", 1.5).with("anchor", "activator")
+                            .targets("who", mock(LivingEntity.class));
                     Sink sink = mock(Sink.class);
                     new VelocityEffect().run(ctx, sink); // uncapturable actor origin → no shove (also no NPE)
+                    verifyNoInteractions(sink);
+                }),
+                dynamicTest("VELOCITY away anchor=attacker → the wearer is shoved off whoever hit them", () -> {
+                    LivingEntity self = mock(LivingEntity.class);
+                    LivingEntity attacker = mock(LivingEntity.class);
+                    Location attackerLoc = mock(Location.class);
+                    when(attacker.getLocation()).thenReturn(attackerLoc);
+                    Location origin = mock(Location.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().attacker(attacker)
+                            .with("mode", "away").with("strength", 2.0).with("anchor", "attacker")
+                            .actorOrigin(origin).targets("who", self);
+                    Sink sink = mock(Sink.class);
+                    new VelocityEffect().run(ctx, sink);
+                    verify(sink).knockback(self, attackerLoc, 2.0); // the anchor, not the activator's own origin
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("VELOCITY away anchor=attacker with no attacker → no-op", () -> {
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("mode", "away").with("strength", 2.0).with("anchor", "attacker")
+                            .actorOrigin(mock(Location.class)).targets("who", mock(LivingEntity.class));
+                    Sink sink = mock(Sink.class);
+                    new VelocityEffect().run(ctx, sink); // a non-combat activation resolves no anchor
+                    verifyNoInteractions(sink);
+                }),
+                dynamicTest("VELOCITY toward → the same impulse reversed (the harpoon pull)", () -> {
+                    LivingEntity a = mock(LivingEntity.class);
+                    LivingEntity victim = mock(LivingEntity.class);
+                    Location victimLoc = mock(Location.class);
+                    when(victim.getLocation()).thenReturn(victimLoc);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("mode", "toward").with("strength", 1.5).with("anchor", "victim")
+                            .victim(victim).targets("who", a);
+                    Sink sink = mock(Sink.class);
+                    new VelocityEffect().run(ctx, sink);
+                    verify(sink).knockback(a, victimLoc, -1.5);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("VELOCITY anchor whose getLocation faults → no-op (guarded cross-region read)", () -> {
+                    LivingEntity victim = mock(LivingEntity.class);
+                    when(victim.getLocation()).thenThrow(new IllegalStateException("wrong region"));
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("mode", "toward").with("strength", 1.5).with("anchor", "victim")
+                            .victim(victim).targets("who", mock(LivingEntity.class));
+                    Sink sink = mock(Sink.class);
+                    new VelocityEffect().run(ctx, sink);
                     verifyNoInteractions(sink);
                 }));
     }

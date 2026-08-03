@@ -86,10 +86,12 @@ effect FALLING_BLOCK
   param ttl TICKS optional min=0 max=- enum=- handle=- default=40
   param carry DOUBLE optional min=- max=- enum=- handle=- default=0
 effect FILL_OXYGEN
+  param amount TICKS optional min=0 max=- enum=- handle=- default=0
 effect FIREWORK
   param power INT optional min=0 max=3 enum=- handle=- default=1
 effect FLY
   param ticks TICKS optional min=0 max=- enum=- handle=- default=200
+  param speed DOUBLE optional min=0 max=1 enum=- handle=- default=0
 effect FLY_MODE
 effect FREEZE
   param duration TICKS optional min=0 max=- enum=- handle=- default=60
@@ -97,6 +99,7 @@ effect FREEZE
   param dot-period TICKS optional min=0 max=- enum=- handle=- default=20
   param slow DOUBLE optional min=0 max=100 enum=- handle=- default=5
   param neutralize-frost-slow BOOL optional min=- max=- enum=- handle=- default=true
+  param breakout-chance DOUBLE optional min=0 max=100 enum=- handle=- default=0
 effect GIVE_ITEM
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
   param count INT optional min=1 max=- enum=- handle=- default=1
@@ -346,11 +349,12 @@ effect TEMP_BLOCK
 effect TRAP_BREAK
   param whiff-sound HANDLE optional min=- max=- enum=- handle=SOUND default=BLOCK_ANVIL_LAND
 effect VELOCITY
-  param mode ENUM optional min=- max=- enum=add,away handle=- default=add
+  param mode ENUM optional min=- max=- enum=add,away,toward handle=- default=add
   param x DOUBLE optional min=- max=- enum=- handle=- default=0
   param y DOUBLE optional min=- max=- enum=- handle=- default=0
   param z DOUBLE optional min=- max=- enum=- handle=- default=0
   param strength DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param anchor ENUM optional min=- max=- enum=activator,attacker,victim handle=- default=activator
 effect WALKER
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
   param ticks TICKS optional min=0 max=- enum=- handle=- default=60

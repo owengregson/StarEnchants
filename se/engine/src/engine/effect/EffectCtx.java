@@ -33,6 +33,15 @@ public interface EffectCtx {
     /** The combat victim, or {@code null} for non-combat activations. */
     LivingEntity victim();
 
+    /**
+     * The entity that dealt damage to the activator on a DEFENSE-side pass, or {@code null} when this activation
+     * had no attacker. Like {@link #victim()} this handle may be cross-region (the resolved projectile shooter),
+     * so read POSITION from it only through a {@code Regions}-guarded read.
+     */
+    default LivingEntity attacker() {
+        return null;
+    }
+
     /** The relevant block/area location (e.g. an AoE centre), or {@code null}. */
     Location location();
 
