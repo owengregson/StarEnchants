@@ -431,6 +431,32 @@ class ModeDispatchEffectTest {
                     verify(sink).message(actor, "hit &fFoe");
                     verifyNoMoreInteractions(sink);
                 }),
+                dynamicTest("MESSAGE fills {SELF} per RECIPIENT, not once for the line", () -> {
+                    Player first = mock(Player.class);
+                    when(first.getName()).thenReturn("Ana");
+                    Player second = mock(Player.class);
+                    when(second.getName()).thenReturn("Bo");
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("channel", "chat").with("text", "&7{SELF} is warded").targets("who", first, second);
+                    Sink sink = mock(Sink.class);
+                    new MessageEffect().run(ctx, sink);
+                    // Two recipients, two DIFFERENT lines — a {SELF} filled once above the loop would send
+                    // whichever name won to both, which is exactly the bug this row exists to catch.
+                    verify(sink).message(first, "&7Ana is warded");
+                    verify(sink).message(second, "&7Bo is warded");
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("MESSAGE title fills {SELF} in the subtitle too", () -> {
+                    Player who = mock(Player.class);
+                    when(who.getName()).thenReturn("Ana");
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("channel", "title").with("text", "&cWARDED").with("subtitle", "&7{SELF}")
+                            .with("fadeIn", 10).with("stay", 70).with("fadeOut", 20).targets("who", who);
+                    Sink sink = mock(Sink.class);
+                    new MessageEffect().run(ctx, sink);
+                    verify(sink).title(who, "&cWARDED", "&7Ana", 10, 70, 20);
+                    verifyNoMoreInteractions(sink);
+                }),
                 dynamicTest("MESSAGE to a non-player who recipient is skipped", () -> {
                     LivingEntity mob = mock(LivingEntity.class); // titles/chat need a player
                     FakeEffectCtx ctx = FakeEffectCtx.create()

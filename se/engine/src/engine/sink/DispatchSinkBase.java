@@ -64,6 +64,8 @@ import platform.item.Inventories;
 import platform.sched.Scheduling;
 import platform.sched.TaskHandle;
 import platform.text.Colors;
+import platform.text.Numbers;
+import platform.text.Tokens;
 
 /**
  * The era-neutral core of the concrete {@link Sink} — the single mutation boundary and the only engine code
@@ -1291,11 +1293,18 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void armDamageCap(Player target, double factor, boolean reflectOverflow, int durationTicks) {
-        if (target != null) {
-            // Cap value fixed AT ARM time from the wearer's last-taken damage (no history → value 0 → arms nothing).
-            double value = damageCap.lastTaken(target.getUniqueId()) * factor;
-            damageCap.arm(target.getUniqueId(), value, reflectOverflow, nowTicks.getAsLong(), durationTicks);
+    public void armDamageCap(Player target, double factor, boolean reflectOverflow, int durationTicks,
+                             String feedback) {
+        if (target == null) {
+            return;
+        }
+        // Cap value fixed AT ARM time from the wearer's last-taken damage (no history → value 0 → arms nothing).
+        double value = damageCap.lastTaken(target.getUniqueId()) * factor;
+        damageCap.arm(target.getUniqueId(), value, reflectOverflow, nowTicks.getAsLong(), durationTicks);
+        if (value > 0 && durationTicks > 0 && feedback != null && !feedback.isEmpty()) {
+            // Announced only on an arm that actually took (the store's own guard), so the line can never claim
+            // a cap the next hit will not honour.
+            message(target, Tokens.sub(feedback, "damage", Numbers.chat(value)));
         }
     }
 
@@ -2434,6 +2443,21 @@ public abstract class DispatchSinkBase implements SinkReadback {
     public void sound(Location at, int soundId, float volume, float pitch) {
         regionOp(at, () -> {
             Sound resolved = sound(soundId);
+            World world = at.getWorld();
+            if (resolved != null && world != null) {
+                world.playSound(at, resolved, volume, pitch);
+            }
+        });
+    }
+
+    @Override
+    public void sound(LivingEntity target, int soundId, float volume, float pitch) {
+        // Entity-anchored (the SOUND who-slot): the position is read at DISPATCH on the target's own region
+        // thread, so a target that moved — or that was never co-region to begin with — still gets its cue
+        // where it actually is. World play, not a per-player packet: bystanders hear it too.
+        entityOp(target, () -> {
+            Sound resolved = sound(soundId);
+            Location at = target.getLocation();
             World world = at.getWorld();
             if (resolved != null && world != null) {
                 world.playSound(at, resolved, volume, pitch);

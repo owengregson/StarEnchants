@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 
 import engine.sink.Sink;
 import org.bukkit.Location;
+import org.bukkit.entity.LivingEntity;
 import org.junit.jupiter.api.Test;
 import testfx.FakeEffectCtx;
 
@@ -47,6 +48,22 @@ class SoundCueOnceTest {
         kind.run(ctx(loc, 8, 1.0), sink);
         verify(sink, times(1)).sound(eq(loc), eq(7), anyFloat(), anyFloat());
         verify(sink, times(1)).sound(eq(loc), eq(8), anyFloat(), anyFloat());
+    }
+
+    @Test
+    void theWhoSlotFanOutIsOneCue() {
+        SoundEffect kind = new SoundEffect();
+        LivingEntity first = mock(LivingEntity.class);
+        LivingEntity second = mock(LivingEntity.class);
+        Sink sink = mock(Sink.class);
+        // The dedupe brackets CO-ACTIVATIONS, not targets: one authored line still reaches every entity it
+        // resolved, while a sibling activation authoring the same cue on the same hit stays collapsed.
+        kind.run(FakeEffectCtx.create().targets("who", first, second)
+                .with("sound", 7).with("volume", 1.0).with("pitch", 1.0), sink);
+        kind.run(FakeEffectCtx.create().targets("who", first, second)
+                .with("sound", 7).with("volume", 1.0).with("pitch", 1.0), sink);
+        verify(sink, times(1)).sound(eq(first), eq(7), anyFloat(), anyFloat());
+        verify(sink, times(1)).sound(eq(second), eq(7), anyFloat(), anyFloat());
     }
 
     @Test

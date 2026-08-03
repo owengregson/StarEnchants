@@ -429,6 +429,14 @@ public interface Sink {
 
     void sound(Location at, int soundId, float volume, float pitch);
 
+    /**
+     * Play a sound at {@code target}'s own position, read AT DISPATCH time on the target's region thread
+     * (deferred-safe, like {@link #particle(LivingEntity, int, int, int, double, double, double)}). Still a
+     * world play, so it is audible to everyone around the target — the SOUND {@code who}-slot path, one play
+     * per resolved target.
+     */
+    void sound(LivingEntity target, int soundId, float volume, float pitch);
+
     void particle(Location at, int particleId, int count);
 
     /**
@@ -667,8 +675,11 @@ public interface Sink {
      * {@code durationTicks} is capped at {@code factor} × their LAST-taken damage, and if {@code reflectOverflow}
      * the excess is dealt back to the attacker. The cap value is computed AT ARM time from the last-taken history
      * (no history arms nothing). A per-player window write, inline like {@link #mark}.
+     * {@code feedback} is an optional line sent to {@code target} at ARMING (empty = silent), with
+     * {@code {damage}} filled with the cap value just committed — the only moment that number exists, and the
+     * only moment there is something to announce. An arm that computed nothing stays silent.
      */
-    void armDamageCap(Player target, double factor, boolean reflectOverflow, int durationTicks);
+    void armDamageCap(Player target, double factor, boolean reflectOverflow, int durationTicks, String feedback);
 
     /**
      * Request one extra pass of the attacker-side activation walk over the same hit (ECHO_STRIKE — Double Strike):

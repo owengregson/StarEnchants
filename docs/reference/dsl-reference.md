@@ -108,13 +108,14 @@ Deal extra damage to the target: a flat amount and/or percent-of-max of the targ
 
 ### DAMAGE_CAP
 
-Cap the wearer's next incoming hit at factor times the last damage they took, for a duration in ticks; with reflect, the overflow above the cap is dealt back to the attacker (Diminish). Self-only; no cap is armed until at least one hit has been taken.
+Cap the wearer's next incoming hit at factor times the last damage they took, for a duration in ticks; with reflect, the overflow above the cap is dealt back to the attacker (Diminish). Self-only; no cap is armed until at least one hit has been taken. feedback is an optional line sent when the cap arms, with {damage} filled in with the cap value.
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ DAMAGE_CAP: { factor: <double[0..]=0.5>, reflect: <bool=false>, duration: <ticks[0..]=100> } }`
+- _usage_: `{ DAMAGE_CAP: { factor: <double[0..]=0.5>, reflect: <bool=false>, duration: <ticks[0..]=100>, feedback: <string=> } }`
 - _param_ `factor` `double[0..]`
 - _param_ `reflect` `bool`
 - _param_ `duration` `ticks[0..]`
+- _param_ `feedback` `string` — line sent on arming; {damage} = the cap value just committed
 - _target_ `who`: selector `SELF`
 - _example_: `{ DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100 } }`
 
@@ -607,7 +608,7 @@ Temporarily remove `fraction` of the target's overhealth (max health above `base
 
 ### MESSAGE
 
-Send feedback on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade timings). Default recipient self; `who` can name any party (e.g. @Victim). The `{ATTACKER}`/`{VICTIM}` tokens expand to the activating player and the other combat party. Replaces ACTIONBAR/TITLE.
+Send feedback on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade timings). Default recipient self; `who` can name any party (e.g. @Victim). The `{ATTACKER}`/`{VICTIM}` tokens expand to the activating player and the other combat party, and `{SELF}` to the name of whoever receives that copy. Replaces ACTIONBAR/TITLE.
 
 - _affinity_: `CONTEXT_LOCAL`
 - _usage_: `{ MESSAGE: { text: <string>, channel: <enum{chat|actionbar|title}=chat>, subtitle: <string=>, fadeIn: <ticks[0..]=10>, stay: <ticks[0..]=70>, fadeOut: <ticks[0..]=20> } }`
@@ -905,13 +906,14 @@ Auto-smelt the block broken by this MINE activation (ore→ingot, sand→glass, 
 
 ### SOUND
 
-Play a sound at the activation location. No-op if the activation has no location.
+Play a sound at the activation location, or at each entity in `who` when given — world-audible there at the same volume and pitch. No-op if `who` resolves nothing and the activation has no location.
 
 - _affinity_: `REGION`
 - _usage_: `{ SOUND: { sound: <sound>, volume: <double[0..]=1>, pitch: <double[0..]=1> } }`
 - _param_ `sound` `sound`
 - _param_ `volume` `double[0..]`
 - _param_ `pitch` `double[0..]`
+- _target_ `who`: selector `HERE`
 - _example_: `{ SOUND: { sound: ENTITY_GENERIC_EXPLODE, volume: 1, pitch: 1 } }`
 
 ### SPAWN_ENTITY

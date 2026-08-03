@@ -18,8 +18,14 @@ import schema.spec.D;
  * player by default, but any party (e.g. {@code @Victim}) so a set proc can title the foe it hit. The
  * {@code {ATTACKER}}/{@code {VICTIM}} tokens expand to the activating player and the other combat party (the
  * same naming convention as the message-on-activate feature), so a recipient and a named party are independent.
+ * {@code {SELF}} is the third: the name of whoever is RECEIVING this copy, which on a per-target send differs
+ * per recipient — the one token that cannot be filled once for the whole line.
  */
 public final class MessageEffect implements EffectKind {
+
+    /** The recipient-name token — filled per copy, so it can only be substituted inside the send loop. */
+    private static final String SELF = "SELF";
+    private static final String SELF_TOKEN = "{" + SELF + "}";
 
     static final EffectSpec SPEC = EffectSpec.of("MESSAGE")
             .param("text", D.STRING)
@@ -32,8 +38,8 @@ public final class MessageEffect implements EffectKind {
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Send feedback on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade "
                     + "timings). Default recipient self; `who` can name any party (e.g. @Victim). The "
-                    + "`{ATTACKER}`/`{VICTIM}` tokens expand to the activating player and the other combat party. "
-                    + "Replaces ACTIONBAR/TITLE.")
+                    + "`{ATTACKER}`/`{VICTIM}` tokens expand to the activating player and the other combat party, "
+                    + "and `{SELF}` to the name of whoever receives that copy. Replaces ACTIONBAR/TITLE.")
             .example("{ MESSAGE: { text: \"&aCritical hit!\" } }")
             .build();
 
@@ -53,18 +59,33 @@ public final class MessageEffect implements EffectKind {
         int fadeIn = title ? ctx.integer("fadeIn") : 0;
         int stay = title ? ctx.integer("stay") : 0;
         int fadeOut = title ? ctx.integer("fadeOut") : 0;
+        // Decided ONCE, not per recipient: {SELF} is the only token whose value varies down the loop, so a
+        // line without it pays nothing for the check and re-substitutes nothing.
+        boolean perRecipient = hasSelf(text) || hasSelf(subtitle);
         for (LivingEntity who : ctx.targets("who")) {
             if (!(who instanceof Player recipient)) {
                 continue; // chat / actionbar / title all need a player recipient
             }
+            String line = text;
+            String sub = subtitle;
+            if (perRecipient) {
+                String name = recipient.getName();
+                line = Tokens.sub(line, SELF, name);
+                sub = Tokens.sub(sub, SELF, name);
+            }
             if (title) {
-                sink.title(recipient, text, subtitle, fadeIn, stay, fadeOut);
+                sink.title(recipient, line, sub, fadeIn, stay, fadeOut);
             } else if (actionbar) {
-                sink.actionBar(recipient, text);
+                sink.actionBar(recipient, line);
             } else {
-                sink.message(recipient, text);
+                sink.message(recipient, line);
             }
         }
+    }
+
+    /** Whether {@code s} carries the recipient token at all (a scan, never an allocation). */
+    private static boolean hasSelf(String s) {
+        return s != null && s.contains(SELF_TOKEN);
     }
 
     /**
