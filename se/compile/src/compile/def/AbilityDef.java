@@ -27,6 +27,10 @@ import java.util.List;
  * @param chanceExpr      raw expression text when {@code chance:} was authored as an expression rather than
  *                        a number, else {@code null}; lowered to a {@code NumExpr} like {@link #conditionExpr}
  * @param noSoulsMessage  line shown to the actor when {@link #soulCost} cannot be paid; {@code null}/blank = none
+ * @param soulCostCarried whether {@link #soulCost} may be charged against the actor's CARRIED gems with no gem
+ *                        active; {@code false} = the default active-gem-only rule
+ * @param noSoulsSound    sound token played alongside {@link #noSoulsMessage}; {@code null}/blank = none
+ * @param noSoulsParticle particle token spawned alongside {@link #noSoulsMessage}; {@code null}/blank = none
  */
 public record AbilityDef(
         SourceKind sourceKind,
@@ -49,7 +53,10 @@ public record AbilityDef(
         int setPieces,
         boolean suppressImmune,
         String chanceExpr,
-        String noSoulsMessage) {
+        String noSoulsMessage,
+        boolean soulCostCarried,
+        String noSoulsSound,
+        String noSoulsParticle) {
 
     public AbilityDef {
         triggers = List.copyOf(triggers);
@@ -65,7 +72,7 @@ public record AbilityDef(
                       boolean suppressImmune) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 conditionExpr, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks,
-                source, setPieces, suppressImmune, null, null);
+                source, setPieces, suppressImmune, null, null, false, null, null);
     }
 
     /** Back-compat construction defaulting {@code suppressImmune=false} — only enchants author it today. */
@@ -75,6 +82,6 @@ public record AbilityDef(
                       String cdScopeGroup, String cdScopeType, int repeatTicks, Source source, int setPieces) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 conditionExpr, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks,
-                source, setPieces, false, null, null);
+                source, setPieces, false, null, null, false, null, null);
     }
 }

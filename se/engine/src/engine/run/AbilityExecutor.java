@@ -154,8 +154,11 @@ public final class AbilityExecutor {
             }
         } else if (outcome == GateOutcome.NO_SOULS) {
             String notice = ability.noSoulsMessage();
-            if (notice != null && !notice.isEmpty()) {
-                sink.outOfSoulsNotice(actor, notice); // throttled in the sink: many abilities, one empty pool
+            int soundId = ability.noSoulsSound();
+            int particleId = ability.noSoulsParticle();
+            if ((notice != null && !notice.isEmpty()) || soundId >= 0 || particleId >= 0) {
+                // Throttled in the sink: many abilities, one empty pool — and one throttle for line + cue.
+                sink.outOfSoulsNotice(actor, notice, soundId, particleId);
             }
         }
     }

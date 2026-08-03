@@ -2538,15 +2538,29 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void outOfSoulsNotice(Player target, String message) {
-        if (target == null || message == null || message.isEmpty()) {
+    public void outOfSoulsNotice(Player target, String message, int soundId, int particleId) {
+        if (target == null || (isBlank(message) && soundId < 0 && particleId < 0)) {
             return;
         }
         // One hit walks many abilities and every soul-cost one aborts on the same empty pool, so the throttle
-        // has to sit here, below the per-ability walk, not at the call site.
-        if (messageThrottle.tryEmit(target.getUniqueId(), nowTicks.getAsLong(), OUT_OF_SOULS_THROTTLE_TICKS)) {
+        // has to sit here, below the per-ability walk, not at the call site. ONE throttle for the whole notice:
+        // the cue is part of the message, so it can never fire on a beat the line was suppressed for.
+        if (!messageThrottle.tryEmit(target.getUniqueId(), nowTicks.getAsLong(), OUT_OF_SOULS_THROTTLE_TICKS)) {
+            return;
+        }
+        if (!isBlank(message)) {
             message(target, message);
         }
+        if (soundId >= 0) {
+            sound(target, soundId, 1.0f, 1.0f);
+        }
+        if (particleId >= 0) {
+            particle(target, particleId, 8, -1, 0.4, 0.4, 0.4);
+        }
+    }
+
+    private static boolean isBlank(String s) {
+        return s == null || s.isEmpty();
     }
 
     @Override

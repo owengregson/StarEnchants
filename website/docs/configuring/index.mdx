@@ -162,7 +162,10 @@ Inside each `levels:` entry:
 | `chance` | percentage activation roll (0–100) |
 | `cooldown` | ticks before it can fire again (20 ticks = 1 second) |
 | `soul-cost` | souls spent per activation (requires the player be in soul mode) |
+| `soul-cost-carried` | charge `soul-cost` against the player's carried gems even with no gem active — the gem becomes a wallet rather than a switch |
 | `no-souls-message` | line shown when a `soul-cost` activation can't pay (at most once every 15s per player) |
+| `no-souls-sound` | sound played with `no-souls-message`, on the same 15s throttle |
+| `no-souls-particle` | particle spawned with `no-souls-message`, on the same 15s throttle |
 | `condition` | a [boolean test](/docs/reference/conditions) that gates the firing |
 | `effects` | the list of [effects](/docs/reference/effects) to run |
 

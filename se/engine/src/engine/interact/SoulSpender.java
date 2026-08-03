@@ -18,6 +18,16 @@ public interface SoulSpender {
      */
     boolean trySpend(UUID player, int cost);
 
+    /**
+     * Spend {@code cost} against {@code player}'s CARRIED gems whether or not a gem is active — the
+     * {@code soul-cost-carried: true} envelope. Default: fall back to {@link #trySpend}, so a spender that
+     * knows nothing of carried gems (the benches, {@link #NONE}) keeps the active-gem-only rule rather than
+     * silently granting free activations.
+     */
+    default boolean trySpendCarried(UUID player, int cost) {
+        return trySpend(player, cost);
+    }
+
     /** A spender that never affords anything (tests / not wired). */
     SoulSpender NONE = (player, cost) -> false;
 }

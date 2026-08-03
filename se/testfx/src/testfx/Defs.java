@@ -56,6 +56,9 @@ public final class Defs {
         private int setPieces = 0;
         private boolean suppressImmune = false;
         private String noSoulsMessage = null;
+        private boolean soulCostCarried = false;
+        private String noSoulsSound = null;
+        private String noSoulsParticle = null;
 
         public AbilityBuilder sourceKind(SourceKind sourceKind) {
             this.sourceKind = sourceKind;
@@ -175,6 +178,23 @@ public final class Defs {
             return this;
         }
 
+
+        /** Charge the soul cost against CARRIED gems with no gem active ({@code soul-cost-carried}). */
+        public AbilityBuilder soulCostCarried(boolean soulCostCarried) {
+            this.soulCostCarried = soulCostCarried;
+            return this;
+        }
+
+        public AbilityBuilder noSoulsSound(String noSoulsSound) {
+            this.noSoulsSound = noSoulsSound;
+            return this;
+        }
+
+        public AbilityBuilder noSoulsParticle(String noSoulsParticle) {
+            this.noSoulsParticle = noSoulsParticle;
+            return this;
+        }
+
         public AbilityBuilder noSoulsMessage(String noSoulsMessage) {
             this.noSoulsMessage = noSoulsMessage;
             return this;
@@ -190,7 +210,8 @@ public final class Defs {
             }
             return new AbilityDef(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost,
                     triggers, worldBlacklist, conditionExpr, lines, suppressKey, cdScopeEnchant, cdScopeGroup,
-                    cdScopeType, repeatTicks, source, setPieces, suppressImmune, chanceExpr, noSoulsMessage);
+                    cdScopeType, repeatTicks, source, setPieces, suppressImmune, chanceExpr, noSoulsMessage,
+                    soulCostCarried, noSoulsSound, noSoulsParticle);
         }
     }
 
@@ -218,6 +239,9 @@ public final class Defs {
         private int setPieces = 0;
         private boolean suppressImmune = false;
         private String noSoulsMessage = null;
+        private boolean soulCostCarried = false;
+        private int noSoulsSound = -1;
+        private int noSoulsParticle = -1;
 
         public LoweredBuilder sourceKind(SourceKind sourceKind) {
             this.sourceKind = sourceKind;
@@ -332,6 +356,23 @@ public final class Defs {
             return this;
         }
 
+
+        /** Charge the soul cost against CARRIED gems with no gem active ({@code soul-cost-carried}). */
+        public LoweredBuilder soulCostCarried(boolean soulCostCarried) {
+            this.soulCostCarried = soulCostCarried;
+            return this;
+        }
+
+        public LoweredBuilder noSoulsSound(int noSoulsSound) {
+            this.noSoulsSound = noSoulsSound;
+            return this;
+        }
+
+        public LoweredBuilder noSoulsParticle(int noSoulsParticle) {
+            this.noSoulsParticle = noSoulsParticle;
+            return this;
+        }
+
         public LoweredBuilder noSoulsMessage(String noSoulsMessage) {
             this.noSoulsMessage = noSoulsMessage;
             return this;
@@ -341,7 +382,7 @@ public final class Defs {
             return new LoweredAbility(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost,
                     triggers, worldBlacklist, condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup,
                     cdScopeType, repeatTicks, affinity, source, setPieces, suppressImmune, loweredChanceExpr,
-                    noSoulsMessage);
+                    noSoulsMessage, soulCostCarried, noSoulsSound, noSoulsParticle);
         }
     }
 }

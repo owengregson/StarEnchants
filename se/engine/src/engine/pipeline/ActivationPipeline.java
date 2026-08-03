@@ -291,7 +291,11 @@ public final class ActivationPipeline {
             return -1; // free — not a soul-cost ability
         }
         if (act.activeGem() == null) {
-            return 0; // §J a soul-cost ability NEVER fires outside soul mode (was: fired free — the bug)
+            if (!ability.soulCostCarried()) {
+                return 0; // §J a soul-cost ability NEVER fires outside soul mode (was: fired free — the bug)
+            }
+            // soul-cost-carried: the gem is a wallet, not a switch — charge the carried gems directly.
+            return spender.trySpendCarried(act.actor(), ability.soulCost()) ? -1 : 1;
         }
         // In soul mode: fire only if the player's cross-gem pool can pay — all-or-nothing, no partial spend.
         return spender.trySpend(act.actor(), ability.soulCost()) ? -1 : 1; // 1 = pool short

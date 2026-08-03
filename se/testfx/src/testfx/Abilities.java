@@ -48,6 +48,9 @@ public final class Abilities {
         private boolean suppressImmune = false;
         private FactMask factMask = FactMask.ALL;
         private String noSoulsMessage = null;
+        private boolean soulCostCarried = false;
+        private int noSoulsSound = -1;
+        private int noSoulsParticle = -1;
 
         public Builder id(int id) {
             this.id = id;
@@ -153,6 +156,23 @@ public final class Abilities {
             return this;
         }
 
+
+        /** Charge the soul cost against CARRIED gems with no gem active ({@code soul-cost-carried}). */
+        public Builder soulCostCarried(boolean soulCostCarried) {
+            this.soulCostCarried = soulCostCarried;
+            return this;
+        }
+
+        public Builder noSoulsSound(int noSoulsSound) {
+            this.noSoulsSound = noSoulsSound;
+            return this;
+        }
+
+        public Builder noSoulsParticle(int noSoulsParticle) {
+            this.noSoulsParticle = noSoulsParticle;
+            return this;
+        }
+
         public Builder noSoulsMessage(String noSoulsMessage) {
             this.noSoulsMessage = noSoulsMessage;
             return this;
@@ -161,7 +181,8 @@ public final class Abilities {
         public Ability build() {
             return new Ability(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost,
                     worldBlacklist, condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup,
-                    cdScopeType, suppressKey, setPieces, suppressImmune, factMask, chanceExpr, noSoulsMessage);
+                    cdScopeType, suppressKey, setPieces, suppressImmune, factMask, chanceExpr, noSoulsMessage,
+                    soulCostCarried, noSoulsSound, noSoulsParticle);
         }
     }
 }

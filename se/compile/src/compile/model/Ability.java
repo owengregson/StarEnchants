@@ -29,6 +29,9 @@ import compile.model.cond.NumExpr;
  * @param factMask       the {@code FactBuffer} slots this ability reads (ADR-0039), unioned per trigger in the {@code WornState} so the populator computes only referenced facts; {@link FactMask#ALL} for hand-built abilities (populate everything)
  * @param chanceExpr     evaluated at the chance gate in place of {@link #baseChance} and clamped to {@code [0,100]}; {@code null} for a constant chance, so the hot path pays one null check
  * @param noSoulsMessage line shown to the actor when gate 10 aborts because {@link #soulCost} cannot be paid; {@code null}/blank = none
+ * @param soulCostCarried whether gate 10 may charge {@link #soulCost} against the actor's CARRIED gems with no gem active ({@code soul-cost-carried: true}); {@code false} = the default rule, where a soul-cost ability never fires outside soul mode
+ * @param noSoulsSound   interned sound id played with {@link #noSoulsMessage} on that abort; {@code -1} = none
+ * @param noSoulsParticle interned particle id spawned with {@link #noSoulsMessage} on that abort; {@code -1} = none
  */
 public record Ability(
         int id,
@@ -52,7 +55,10 @@ public record Ability(
         boolean suppressImmune,
         FactMask factMask,
         NumExpr chanceExpr,
-        String noSoulsMessage) {
+        String noSoulsMessage,
+        boolean soulCostCarried,
+        int noSoulsSound,
+        int noSoulsParticle) {
 
     /** Back-compat construction for a constant {@code chance:} — the hot-path fast case. */
     public Ability(int id, int defId, SourceKind sourceKind, int triggerMask, int level, double baseChance,
@@ -62,7 +68,7 @@ public record Ability(
                    FactMask factMask) {
         this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
                 condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
-                suppressKey, setPieces, suppressImmune, factMask, null, null);
+                suppressKey, setPieces, suppressImmune, factMask, null, null, false, -1, -1);
     }
 
     /** No derived fact mask — populate everything (the safe default for hand-built test abilities). */
@@ -72,7 +78,7 @@ public record Ability(
                    int cdScopeGroup, int cdScopeType, int suppressKey, int setPieces) {
         this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
                 condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
-                suppressKey, setPieces, false, FactMask.ALL, null, null);
+                suppressKey, setPieces, false, FactMask.ALL, null, null, false, -1, -1);
     }
 
     public boolean firesOn(int triggerId) {

@@ -23,12 +23,14 @@ import schema.grammar.expr.ExprParser;
 import schema.grammar.expr.FlowKind;
 import schema.spec.Args;
 import schema.spec.ExprMap;
+import schema.spec.HandleCategory;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
@@ -48,6 +50,7 @@ public final class DefaultLowerStage implements LowerStage {
     private final Function<String, String> defaultSelectorOf;
     private final ConditionCompiler conditionCompiler;
     private final ToIntFunction<String> effectIdOf;
+    private final PlatformResolvers resolvers;
 
     /** Convenience: no dense-id stamping — every effect/selector {@code kindId} is {@code -1} (the head-fallback path). */
     public DefaultLowerStage(SpecRegistry registry, Function<String, Affinity> affinityOf,
@@ -84,8 +87,8 @@ public final class DefaultLowerStage implements LowerStage {
         this.selectorCompiler = new SelectorCompiler(Objects.requireNonNull(selectors, "selectors"),
                 Objects.requireNonNull(selectorIdOf, "selectorIdOf"));
         this.defaultSelectorOf = Objects.requireNonNull(defaultSelectorOf, "defaultSelectorOf");
-        this.conditionCompiler = new ConditionCompiler(Objects.requireNonNull(vars, "vars"),
-                Objects.requireNonNull(resolvers, "resolvers"));
+        this.resolvers = Objects.requireNonNull(resolvers, "resolvers");
+        this.conditionCompiler = new ConditionCompiler(Objects.requireNonNull(vars, "vars"), resolvers);
         this.lineCompiler = new LineCompiler(registry);
         this.effectIdOf = Objects.requireNonNull(effectIdOf, "effectIdOf");
     }
@@ -161,7 +164,33 @@ public final class DefaultLowerStage implements LowerStage {
                 def.setPieces(),
                 def.suppressImmune(),
                 lowerChance(def, diags),
-                def.noSoulsMessage());
+                def.noSoulsMessage(),
+                def.soulCostCarried(),
+                envelopeHandle(def.noSoulsSound(), HandleCategory.SOUND, "no-souls-sound", def, diags),
+                envelopeHandle(def.noSoulsParticle(), HandleCategory.PARTICLE, "no-souls-particle", def, diags));
+    }
+
+    /**
+     * Intern an ENVELOPE handle token to its id, {@code -1} for none. Resolved here rather than in the resolve
+     * stage because the envelope is not a {@code ParamSpec} surface, and resolve's walk is driven entirely by
+     * declared params. An unknown token is the same blocking {@code E_UNKNOWN_HANDLE} an effect arg raises, so
+     * a typo cannot ship as a silently missing cue.
+     */
+    private int envelopeHandle(String token, HandleCategory category, String key, AbilityDef def,
+                               Diagnostics diags) {
+        if (token == null || token.isBlank()) {
+            return -1;
+        }
+        String trimmed = token.trim();
+        OptionalInt id = category == HandleCategory.SOUND
+                ? resolvers.sound(trimmed)
+                : resolvers.particle(trimmed);
+        if (id.isEmpty()) {
+            diags.error(DiagCode.E_UNKNOWN_HANDLE, "unknown " + category.label() + " '" + trimmed
+                    + "' for '" + key + "'", def.source(), "use a name valid on the target version, or remove it");
+            return -1;
+        }
+        return id.getAsInt();
     }
 
     /**

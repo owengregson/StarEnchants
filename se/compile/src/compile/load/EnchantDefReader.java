@@ -23,14 +23,15 @@ import schema.grammar.EffectLine;
  */
 final class EnchantDefReader {
 
-    private static final Set<String> ROOT_KEYS = Set.of(
+    private static final Set<String> ROOT_KEYS = ContentParse.withSoulKnobs(
             "display", "description", "tier", "applies-to", "trigger", "disabled-worlds", "group",
             "repeat", "levels", "chance", "cooldown", "soul-cost", "no-souls-message", "condition",
             "requires", "blacklist", "removes-required", "suppress-immune");
-    private static final Set<String> LEVEL_KEYS = Set.of(
+    private static final Set<String> LEVEL_KEYS = ContentParse.withSoulKnobs(
             "chance", "cooldown", "soul-cost", "no-souls-message", "condition", "effects", "abilities");
-    private static final Set<String> ABILITY_KEYS = Set.of(
+    private static final Set<String> ABILITY_KEYS = ContentParse.withSoulKnobs(
             "trigger", "chance", "cooldown", "soul-cost", "no-souls-message", "condition", "repeat", "effects");
+
 
     private EnchantDefReader() {
     }
@@ -165,6 +166,11 @@ final class EnchantDefReader {
         int soulCost = ContentParse.resolveInt(knobNode(block, lvl, root, "soul-cost"), "soul-cost", 0, diags);
         String noSoulsMessage = ContentParse.blankToNull(ContentParse.resolveString(
                 knobNode(block, lvl, root, "no-souls-message"), "no-souls-message", diags));
+        // Each soul knob keeps its OWN innermost-declaring scope, so the three resolve off three nodes.
+        ContentParse.SoulKnobs soulKnobs = ContentParse.resolveSoulKnobs(
+                knobNode(block, lvl, root, "soul-cost-carried"),
+                knobNode(block, lvl, root, "no-souls-sound"),
+                knobNode(block, lvl, root, "no-souls-particle"), diags);
         String condition = ContentParse.blankToNull(
                 ContentParse.resolveString(knobNode(block, lvl, root, "condition"), "condition", diags));
         // A block may retarget itself (an ATTACK enchant whose second block rides DEFENSE); absent → the enchant's.
@@ -195,7 +201,10 @@ final class EnchantDefReader {
                 0,
                 suppressImmune,
                 chance.expr(),
-                noSoulsMessage);
+                noSoulsMessage,
+                soulKnobs.carried(),
+                soulKnobs.sound(),
+                soulKnobs.particle());
     }
 
     /** The node a knob is read from: the innermost scope that declares it — block, then level, then file root. */

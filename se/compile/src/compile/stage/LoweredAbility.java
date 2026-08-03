@@ -24,6 +24,9 @@ import java.util.List;
  * @param setPieces      worn-piece count that completes a {@link SourceKind#SET} bonus; {@code 0} otherwise
  * @param chanceExpr     evaluated at the chance gate instead of {@link #baseChance}; {@code null} = constant
  * @param noSoulsMessage line shown to the actor when {@link #soulCost} cannot be paid; {@code null}/blank = none
+ * @param soulCostCarried whether {@link #soulCost} may be charged against the actor's CARRIED gems with no gem active
+ * @param noSoulsSound    interned sound id played with {@link #noSoulsMessage}; {@code -1} = none
+ * @param noSoulsParticle interned particle id spawned with {@link #noSoulsMessage}; {@code -1} = none
  */
 public record LoweredAbility(
         SourceKind sourceKind,
@@ -47,7 +50,10 @@ public record LoweredAbility(
         int setPieces,
         boolean suppressImmune,
         NumExpr chanceExpr,
-        String noSoulsMessage) {
+        String noSoulsMessage,
+        boolean soulCostCarried,
+        int noSoulsSound,
+        int noSoulsParticle) {
 
     public LoweredAbility {
         triggers = List.copyOf(triggers);
@@ -63,7 +69,7 @@ public record LoweredAbility(
                           Affinity affinity, Source source, int setPieces, boolean suppressImmune) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks, affinity,
-                source, setPieces, suppressImmune, null, null);
+                source, setPieces, suppressImmune, null, null, false, -1, -1);
     }
 
     /** Back-compat construction defaulting {@code suppressImmune=false} — most callers never set it. */
@@ -74,6 +80,6 @@ public record LoweredAbility(
                           Affinity affinity, Source source, int setPieces) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks, affinity,
-                source, setPieces, false, null, null);
+                source, setPieces, false, null, null, false, -1, -1);
     }
 }

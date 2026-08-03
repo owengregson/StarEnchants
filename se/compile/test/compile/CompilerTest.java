@@ -19,6 +19,7 @@ import schema.grammar.EffectLine;
 import schema.spec.D;
 import schema.spec.ParamSpec;
 import testfx.Defs;
+import testfx.PermissiveResolvers;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -158,5 +159,32 @@ class CompilerTest {
         assertFalse(diags.hasErrors(), () -> diags.all().toString()); // staging sanity — the message asserts are the contract
         assertEquals(message, snap.byStableKey("ench/costly").noSoulsMessage());
         assertNull(snap.byStableKey("ench/plain").noSoulsMessage());
+    }
+
+    @Test
+    void theSoulEnvelopeKnobsSurviveTheLowerResolveEraseSeam() {
+        // The same def-level pin, for the three knobs added alongside no-souls-message. soul-cost-carried is
+        // the dangerous one: dropped, gate 10 silently reverts to active-gem-only and the ability just stops
+        // firing — no diagnostic, no exception, nothing to grep for.
+        Diagnostics diags = new Diagnostics();
+        Snapshot snap = Compiler.of(MapSpecRegistry.of(heal()), head -> compile.model.Affinity.CONTEXT_LOCAL,
+                        MapSpecRegistry.of(), head -> null, PermissiveResolvers.INSTANCE).compile(List.of(
+                        Defs.ability().stableKey("ench/carried").defId(1).soulCost(2).soulCostCarried(true)
+                                .noSoulsSound("ENTITY_VILLAGER_NO").noSoulsParticle("SMOKE")
+                                .effects(line("HEAL:1", "enchants.yml", 1)).build(),
+                        Defs.ability().stableKey("ench/plain").defId(2)
+                                .effects(line("HEAL:1", "enchants.yml", 2)).build()),
+                3, diags);
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        Ability carried = snap.byStableKey("ench/carried");
+        assertTrue(carried.soulCostCarried());
+        assertTrue(carried.noSoulsSound() >= 0, "the sound token is interned by the compiler, not the runtime");
+        assertTrue(carried.noSoulsParticle() >= 0);
+        // The default must stay today's behaviour on every axis.
+        Ability plain = snap.byStableKey("ench/plain");
+        assertFalse(plain.soulCostCarried());
+        assertEquals(-1, plain.noSoulsSound());
+        assertEquals(-1, plain.noSoulsParticle());
     }
 }

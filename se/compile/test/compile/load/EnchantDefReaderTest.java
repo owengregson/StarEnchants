@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import compile.Compiler;
 import compile.MapSpecRegistry;
 import compile.def.AbilityDef;
+import compile.model.Ability;
 import compile.model.Snapshot;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.diag.Source;
+import testfx.PermissiveResolvers;
 
 /** Unit tests for the enchant reader (ADR-0014): malformed input is a diagnostic, never an exception. */
 class EnchantDefReaderTest {
@@ -233,6 +235,38 @@ class EnchantDefReaderTest {
         assertNull(snap.byStableKey("enchants/silent/1").noSoulsMessage());
     }
 
+    @Test
+    void theSoulEnvelopeKnobsThreadFromYamlAndInheritPerKey() {
+        // The producer seam for the three knobs, plus the scope rule they share with soul-cost: a knob
+        // declared at the root is the level's default, and a level that declares it AGAIN wins. Reading the
+        // three off one node instead of three would quietly break that per-key override.
+        Diagnostics diags = new Diagnostics();
+        IntSupplier ids = counter();
+        String yaml = """
+            trigger: ATTACK
+            soul-cost: 2
+            soul-cost-carried: true
+            no-souls-sound: ENTITY_VILLAGER_NO
+            levels:
+              1: { effects: [{ HEAL: { amount: 2 } }] }
+              2: { soul-cost-carried: false, effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        List<AbilityDef> defs =
+                new ArrayList<>(EnchantDefReader.read("enchants/wallet", root(yaml, diags), ids, diags).abilities());
+
+        Snapshot snap = Compiler.of(MapSpecRegistry.of(heal()), head -> compile.model.Affinity.CONTEXT_LOCAL,
+                        MapSpecRegistry.of(), head -> null, PermissiveResolvers.INSTANCE).compile(defs, 1, diags);
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        Ability inherited = snap.byStableKey("enchants/wallet/1");
+        assertTrue(inherited.soulCostCarried(), "the root knob is the level's default");
+        assertTrue(inherited.noSoulsSound() >= 0, "the sound token survives to an interned id");
+        assertFalse(snap.byStableKey("enchants/wallet/2").soulCostCarried(),
+                "a level re-declaring the knob overrides the root — including back to false");
+        assertTrue(snap.byStableKey("enchants/wallet/2").noSoulsSound() >= 0,
+                "overriding ONE knob must not drop the siblings it never mentioned");
+    }
+
     // ── Multi-ability levels: a level may fan into N ability blocks, keyed like every other multi-ability
     // source (crystal/mask/reforge/pet) — first block keeps the bare key, the rest take /a1, /a2, … dense.
 
@@ -330,7 +364,7 @@ class EnchantDefReaderTest {
                 d.soulCost(), d.triggers(), d.worldBlacklist(), d.conditionExpr(), List.of(), d.suppressKey(),
                 d.cdScopeEnchant(), d.cdScopeGroup(), d.cdScopeType(), d.repeatTicks(),
                 Source.ofFile("normalised.yml"), d.setPieces(), d.suppressImmune(), d.chanceExpr(),
-                d.noSoulsMessage());
+                d.noSoulsMessage(), d.soulCostCarried(), d.noSoulsSound(), d.noSoulsParticle());
     }
 
     /** Effect lines by head + named args; their embedded Source tracks the line they were written on. */

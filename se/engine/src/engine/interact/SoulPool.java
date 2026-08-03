@@ -80,6 +80,38 @@ public final class SoulPool {
         }
     }
 
+    /**
+     * {@link #trySpend} for a {@code soul-cost-carried} ability: charge {@code player}'s CARRIED gems even
+     * with no gem active. When they are already in soul mode this IS {@link #trySpend} — one ledger, so a
+     * carried spend and a soul-mode spend can never double-spend the same souls. Otherwise the ledger is
+     * opened at {@code physicalTotal} (their carried total, which the holder thread keeps fresh) and the spend
+     * settles through the ordinary pending drain, so the physical gems are debited exactly once.
+     */
+    public boolean trySpendCarried(UUID player, int cost, int physicalTotal) {
+        if (cost <= 0) {
+            return true;
+        }
+        synchronized (stripeFor(player)) {
+            int[] s = state.get(player);
+            if (s == null) {
+                if (physicalTotal < cost) {
+                    return false;
+                }
+                // Opened OWED: available already excludes this spend and pending carries it, so the
+                // holder-thread drain settles it exactly as a soul-mode spend would. The entry is ephemeral —
+                // the settle retires it again, since nothing outside soul mode should hold a standing ledger.
+                state.put(player, new int[] {physicalTotal - cost, cost});
+                return true;
+            }
+            if (s[0] < cost) {
+                return false;
+            }
+            s[0] -= cost;
+            s[1] += cost;
+            return true;
+        }
+    }
+
     /** Hand the holder thread the souls spent-but-not-yet-drained (resets pending to 0); 0 if not in soul mode. */
     public int takePending(UUID player) {
         synchronized (stripeFor(player)) {
