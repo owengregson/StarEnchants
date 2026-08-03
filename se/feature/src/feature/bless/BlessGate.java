@@ -9,8 +9,8 @@ import platform.economy.EconomyService;
 
 /**
  * What it costs to run {@code /bless}: a per-player cooldown and an optional charge, both read live off the
- * master config so {@code /se reload} re-tunes them. Split from {@link CleanseService} because the cleanse is a
- * mechanic and this is a policy — an admin {@code /se bless} performs the same cleanse while skipping this
+ * master config so {@code /se reload} re-tunes them. The gameplay body is kept separate because this is policy —
+ * an admin {@code /se bless} performs the same bless while skipping this
  * entirely.
  *
  * <p>The cooldown is deliberately NOT swept on quit: a landed cooldown that a reconnect could shed would make

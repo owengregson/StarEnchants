@@ -21,8 +21,8 @@ import testfx.Envs;
 import testfx.RecordingSchedulerBackend;
 
 /**
- * {@code CURE category: HARMFUL} is THE cleanse (ADR-0072) — the single definition every caller shares:
- * clarity's Bless on a timer, the Cow Pet on right-click, and {@code /bless} once on demand. It differs from a
+ * {@code CURE category: HARMFUL} is the broad passive cleanse (ADR-0072) — clarity's Bless on a timer and the
+ * Cow Pet on right-click. It differs from a
  * plain filtered clear in two ways, both pinned here: it spares {@link PermanentPotions permanent} effects, and
  * it extinguishes burning. The other categories stay a blunt clear — nothing lands a buff on you, so there is
  * nothing there to protect.

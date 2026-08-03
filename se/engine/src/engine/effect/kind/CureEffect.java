@@ -18,8 +18,8 @@ import schema.spec.D;
  * <p>{@code category: HARMFUL} is THE cleanse (ADR-0072), and is more than a filtered clear: it also
  * extinguishes burning, and it spares any {@link engine.sink.PermanentPotions permanent} effect — one the
  * holder carries by choice rather than one an opponent landed. Every cleanse in the game is this one
- * definition: clarity's Bless sweeps it on a timer, the Cow Pet fires it on right-click, and {@code /bless}
- * applies it once on demand.
+ * definition: clarity's Bless sweeps it on a timer and the Cow Pet fires it on right-click. The player-facing
+ * {@code /bless} command has its own CosmicRenewed-compatible one-debuff cleanse.
  */
 public final class CureEffect implements EffectKind {
 
