@@ -13,6 +13,7 @@ import engine.selector.SelectorKind;
 import engine.selector.SelectorRegistry;
 import engine.sink.SinkReadback;
 import engine.spec.TargetSpec;
+import engine.stores.SuppressionStore;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 
 /**
  * The runtime execution path — gate 12 (docs/architecture.md §3.3): runs each candidate ability through
@@ -104,13 +106,16 @@ public final class AbilityExecutor {
             }
             Ability ability = abilities[id];
             try {
-                if (pipeline.evaluate(ability, activation).activated()) {
+                GateOutcome outcome = pipeline.evaluate(ability, activation);
+                if (outcome.activated()) {
                     boolean faulted = runEffects(ability, context, sink, activation.activeGem(), activation.facts(), quarantine);
                     activated++;
                     notifyActivation(ability, context, stableKeys);
                     if (faulted) {
                         quarantine.recordFailure(id, ability.defId());
                     }
+                } else {
+                    emitVerdictFeedback(outcome, ability, activation, context, sink);
                 }
             } catch (Throwable failed) {
                 LOG.log(Level.WARNING, "ability " + quarantine.describe(ability.defId()) + " failed during execution", failed);
@@ -118,6 +123,41 @@ public final class AbilityExecutor {
             }
         }
         return activated;
+    }
+
+    /**
+     * Emit the authored feedback for a BLOCKED verdict. This is the DISPATCH layer's job, not the pipeline's:
+     * the pipeline is deliberately Bukkit-free and holds only a UUID, and the verdict it returns here is the
+     * same one it recorded for {@code /se why}, so both read one decision rather than two. Costs two enum
+     * compares on an ordinary blocked verdict (wrong trigger, cooldown, chance); a silent suppression window
+     * reads back the {@code null} it stored, so the no-feedback case allocates nothing.
+     */
+    private void emitVerdictFeedback(GateOutcome outcome, Ability ability, Activation activation,
+                                     ActivationContext context, SinkReadback sink) {
+        Player actor = context.actor();
+        if (actor == null) {
+            return;
+        }
+        if (outcome == GateOutcome.SUPPRESSED) {
+            SuppressionStore.Feedback feedback = pipeline.suppressionFeedback(ability, activation);
+            if (feedback == null) {
+                return;
+            }
+            if (!feedback.actorMessage().isEmpty()) {
+                sink.messageTo(feedback.by(), feedback.actorMessage()); // whoever armed it; offline is a no-op
+            }
+            if (!feedback.victimMessage().isEmpty()) {
+                sink.message(actor, feedback.victimMessage()); // the SUPPRESS's victim IS the blocked activator
+            }
+            if (feedback.soundId() >= 0) {
+                sink.sound(actor.getLocation(), feedback.soundId(), 1.0f, 1.0f);
+            }
+        } else if (outcome == GateOutcome.NO_SOULS) {
+            String notice = ability.noSoulsMessage();
+            if (notice != null && !notice.isEmpty()) {
+                sink.outOfSoulsNotice(actor, notice); // throttled in the sink: many abilities, one empty pool
+            }
+        }
     }
 
     /**

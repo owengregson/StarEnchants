@@ -6,6 +6,7 @@ import engine.effect.EffectKind;
 import engine.sink.Sink;
 import engine.spec.EffectSpec;
 import engine.spec.T;
+import java.util.UUID;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import schema.spec.D;
@@ -25,12 +26,19 @@ public final class SuppressEffect implements EffectKind {
             .param("duration", D.TICKS.def(200))
             .param("mode", D.enumOf("timed", "next-hit").def("timed"))
             .param("charges", D.INT.min(1).def(1))
+            // Consume-time feedback: emitted when the window actually BLOCKS an activation at gate 5, not
+            // when it is armed. Timed windows only — a one-shot is burned blind and names nothing.
+            .param("consumed-message-actor", D.STRING.def(""), "line to whoever armed this, when it blocks")
+            .param("consumed-message-victim", D.STRING.def(""), "line to the suppressed player, when it blocks")
+            .param("consumed-sound", D.sound().optional(), "cue played at the block; omit for silence")
             .target("who", T.VICTIM)
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Disable a target's enchant/group/type (the key) for a duration in ticks "
                     + "(DISABLE_ENCHANT/GROUP/TYPE), or with scope KIND every ability carrying the keyed effect "
                     + "head (e.g. MODIFY_FOOD). mode: timed (the duration window) or next-hit (a one-shot that "
-                    + "clears after the target's next `charges` incoming hits, Neutralize). Default target the combat victim.")
+                    + "clears after the target's next `charges` incoming hits, Neutralize). The consumed-* "
+                    + "params are emitted at the moment the window blocks something, not when it is armed, "
+                    + "and only for mode: timed. Default target the combat victim.")
             .example("{ SUPPRESS: { scope: GROUP, key: lifesteal, duration: 200, who: \"@Victim\" } }")
             .build();
 
@@ -46,9 +54,15 @@ public final class SuppressEffect implements EffectKind {
         int duration = ctx.integer("duration");
         boolean nextHit = ctx.integer("mode") == 1; // enum erased to ordinal: 0=timed, 1=next-hit
         int charges = ctx.integer("charges");
+        String actorMessage = ctx.str("consumed-message-actor");
+        String victimMessage = ctx.str("consumed-message-victim");
+        // An absent HANDLE never interns, so -1 is unambiguously "no cue" — no id can collide with it.
+        int soundId = ctx.args().has("consumed-sound") ? ctx.integer("consumed-sound") : -1;
+        UUID by = ctx.actor() == null ? null : ctx.actor().getUniqueId();
         for (LivingEntity target : ctx.targets("who")) {
             if (target instanceof Player p) {
-                sink.suppress(p, scopeKind, keyId, duration, ctx.sourceDefId(), nextHit, charges);
+                sink.suppress(p, scopeKind, keyId, duration, ctx.sourceDefId(), nextHit, charges,
+                        by, actorMessage, victimMessage, soundId);
             }
         }
     }

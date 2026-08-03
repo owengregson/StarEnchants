@@ -47,6 +47,7 @@ public final class Abilities {
         private int setPieces = 0;
         private boolean suppressImmune = false;
         private FactMask factMask = FactMask.ALL;
+        private String noSoulsMessage = null;
 
         public Builder id(int id) {
             this.id = id;
@@ -152,10 +153,15 @@ public final class Abilities {
             return this;
         }
 
+        public Builder noSoulsMessage(String noSoulsMessage) {
+            this.noSoulsMessage = noSoulsMessage;
+            return this;
+        }
+
         public Ability build() {
             return new Ability(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost,
                     worldBlacklist, condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup,
-                    cdScopeType, suppressKey, setPieces, suppressImmune, factMask, chanceExpr);
+                    cdScopeType, suppressKey, setPieces, suppressImmune, factMask, chanceExpr, noSoulsMessage);
         }
     }
 }

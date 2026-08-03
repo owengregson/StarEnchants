@@ -31,7 +31,7 @@ final class SetDefReader {
     private static final Set<String> WEAPON_KEYS = Set.of("material", "name", "lore", "enchants");
     private static final Set<String> BONUS_KEYS = Set.of(
             "on", "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost",
-            "condition", "effects");
+            "no-souls-message", "condition", "effects");
     private static final Set<String> MEMBER_KEYS = Set.of("material", "name");
 
     private SetDefReader() {
@@ -199,6 +199,8 @@ final class SetDefReader {
         ContentParse.Chance chance = ContentParse.resolveChanceValue(node, "chance", diags);
         int cooldown = ContentParse.resolveInt(node, "cooldown", 0, diags);
         int soulCost = ContentParse.resolveInt(node, "soul-cost", 0, diags);
+        String noSoulsMessage = ContentParse.blankToNull(
+                ContentParse.resolveString(node, "no-souls-message", diags));
         String condition = ContentParse.blankToNull(node.string("condition"));
         List<EffectLine> effects = ContentParse.effectItems(node, "effects", diags);
         if (effects.isEmpty()) {
@@ -208,6 +210,6 @@ final class SetDefReader {
         return new AbilityDef(
                 SourceKind.SET, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, soulCost, triggers,
                 disabledWorlds, condition, effects, stableKey, stableKey, group, null, repeatTicks, fileSource,
-                Math.max(0, setPieces), false, chance.expr());
+                Math.max(0, setPieces), false, chance.expr(), noSoulsMessage);
     }
 }

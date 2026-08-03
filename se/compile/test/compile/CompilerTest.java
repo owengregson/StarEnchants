@@ -142,4 +142,21 @@ class CompilerTest {
         assertTrue(snap.byStableKey("ench/immune").suppressImmune());
         assertFalse(snap.byStableKey("ench/plain").suppressImmune());
     }
+
+    @Test
+    void noSoulsMessageSurvivesTheLowerResolveEraseSeam() {
+        // Same def-level pin as suppress-immune: a stage rebuilding the record field-by-field drops the
+        // message with no diagnostic, so gate 10 would abort silently.
+        Diagnostics diags = new Diagnostics();
+        String message = "&cNot enough souls, mortal.";
+        Snapshot snap = Compiler.of(MapSpecRegistry.of(heal())).compile(List.of(
+                        Defs.ability().stableKey("ench/costly").defId(1).soulCost(2).noSoulsMessage(message)
+                                .effects(line("HEAL:1", "enchants.yml", 1)).build(),
+                        Defs.ability().stableKey("ench/plain").defId(2)
+                                .effects(line("HEAL:1", "enchants.yml", 2)).build()),
+                3, diags);
+        assertFalse(diags.hasErrors(), () -> diags.all().toString()); // staging sanity — the message asserts are the contract
+        assertEquals(message, snap.byStableKey("ench/costly").noSoulsMessage());
+        assertNull(snap.byStableKey("ench/plain").noSoulsMessage());
+    }
 }

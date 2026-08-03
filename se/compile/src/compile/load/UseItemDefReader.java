@@ -132,7 +132,9 @@ final class UseItemDefReader {
         return new AbilityDef(
                 SourceKind.USE_ITEM, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, 0, List.of("USE"),
                 List.of(), condition, effects, stableKey, stableKey, null, null, 0, fileSource, 0, false,
-                chance.expr());
+                // no-souls-message is deliberately absent: a use-item's soul cost is hard-zero, so
+                // gate 10 can never abort one and the key would be a silently dead knob.
+                chance.expr(), null);
     }
 
     /**

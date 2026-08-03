@@ -55,6 +55,7 @@ public final class Defs {
         private Source source = Source.UNKNOWN;
         private int setPieces = 0;
         private boolean suppressImmune = false;
+        private String noSoulsMessage = null;
 
         public AbilityBuilder sourceKind(SourceKind sourceKind) {
             this.sourceKind = sourceKind;
@@ -174,6 +175,11 @@ public final class Defs {
             return this;
         }
 
+        public AbilityBuilder noSoulsMessage(String noSoulsMessage) {
+            this.noSoulsMessage = noSoulsMessage;
+            return this;
+        }
+
         public AbilityDef build() {
             List<EffectLine> lines = effects;
             if (rawEffects != null) {
@@ -184,7 +190,7 @@ public final class Defs {
             }
             return new AbilityDef(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost,
                     triggers, worldBlacklist, conditionExpr, lines, suppressKey, cdScopeEnchant, cdScopeGroup,
-                    cdScopeType, repeatTicks, source, setPieces, suppressImmune, chanceExpr);
+                    cdScopeType, repeatTicks, source, setPieces, suppressImmune, chanceExpr, noSoulsMessage);
         }
     }
 
@@ -211,6 +217,7 @@ public final class Defs {
         private Source source = Source.UNKNOWN;
         private int setPieces = 0;
         private boolean suppressImmune = false;
+        private String noSoulsMessage = null;
 
         public LoweredBuilder sourceKind(SourceKind sourceKind) {
             this.sourceKind = sourceKind;
@@ -325,10 +332,16 @@ public final class Defs {
             return this;
         }
 
+        public LoweredBuilder noSoulsMessage(String noSoulsMessage) {
+            this.noSoulsMessage = noSoulsMessage;
+            return this;
+        }
+
         public LoweredAbility build() {
             return new LoweredAbility(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost,
                     triggers, worldBlacklist, condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup,
-                    cdScopeType, repeatTicks, affinity, source, setPieces, suppressImmune, loweredChanceExpr);
+                    cdScopeType, repeatTicks, affinity, source, setPieces, suppressImmune, loweredChanceExpr,
+                    noSoulsMessage);
         }
     }
 }

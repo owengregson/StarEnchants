@@ -29,9 +29,11 @@ final class CrystalDefReader {
     private static final Set<String> ROOT_KEYS = Set.of(
             "display", "description", "tier", "applies-to", "stackable", "abilities",
             // single-ability shorthand (a crystal with exactly one bonus authors these at the top level):
-            "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "condition", "effects");
+            "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "no-souls-message",
+            "condition", "effects");
     private static final Set<String> ABILITY_KEYS = Set.of(
-            "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "condition", "effects");
+            "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "no-souls-message",
+            "condition", "effects");
 
     private CrystalDefReader() {
     }
@@ -104,6 +106,8 @@ final class CrystalDefReader {
         ContentParse.Chance chance = ContentParse.resolveChanceValue(node, "chance", diags);
         int cooldown = ContentParse.resolveInt(node, "cooldown", 0, diags);
         int soulCost = ContentParse.resolveInt(node, "soul-cost", 0, diags);
+        String noSoulsMessage = ContentParse.blankToNull(
+                ContentParse.resolveString(node, "no-souls-message", diags));
         String condition = ContentParse.blankToNull(node.string("condition"));
         List<EffectLine> effects = ContentParse.effectItems(node, "effects", diags);
         if (effects.isEmpty()) {
@@ -112,6 +116,7 @@ final class CrystalDefReader {
         }
         return new AbilityDef(
                 SourceKind.CRYSTAL, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, soulCost, triggers,
-                disabledWorlds, condition, effects, stableKey, stableKey, group, null, repeatTicks, fileSource, 0, false, chance.expr());
+                disabledWorlds, condition, effects, stableKey, stableKey, group, null, repeatTicks, fileSource, 0, false,
+                chance.expr(), noSoulsMessage);
     }
 }

@@ -19,6 +19,7 @@ import engine.stores.SuppressionStore;
 import engine.stores.TeleblockStore;
 import engine.stores.VarStore;
 import engine.stores.FoodWindowStore;
+import engine.stores.MessageThrottleStore;
 import engine.stores.WardStore;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -147,6 +148,10 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final ImmuneStore immune;
     private final WardStore ward; // ADR-0053 mask ward flags
     private final FoodWindowStore foodWindows; // MODIFY_FOOD armed hunger windows
+    private final MessageThrottleStore messageThrottle; // gate-verdict notices, rate-limited per player
+
+    /** The out-of-souls notice cadence — a fixed 15s, never an authored knob. */
+    private static final int OUT_OF_SOULS_THROTTLE_TICKS = 300;
     private final ReflectMarksStore reflectMarks;   // ADR-0049 Hex reflect windows
     private final OutgoingDebuffStore outgoingDebuff; // ADR-0049 Weaken/Destruction outgoing nerfs
     private final DamageCapStore damageCap;          // ADR-0049 Diminish last-taken + armed cap
@@ -217,6 +222,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.immune = env.stores().immune();
         this.ward = env.stores().ward();
         this.foodWindows = env.stores().foodWindows();
+        this.messageThrottle = env.stores().messageThrottle();
         this.reflectMarks = env.stores().reflectMarks();
         this.outgoingDebuff = env.stores().outgoingDebuff();
         this.damageCap = env.stores().damageCap();
@@ -2500,6 +2506,26 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
+    public void messageTo(UUID target, String message) {
+        Player online = target == null ? null : Bukkit.getPlayer(target);
+        if (online != null) {
+            message(online, message); // offline is a silent no-op: a gate verdict is not worth queueing
+        }
+    }
+
+    @Override
+    public void outOfSoulsNotice(Player target, String message) {
+        if (target == null || message == null || message.isEmpty()) {
+            return;
+        }
+        // One hit walks many abilities and every soul-cost one aborts on the same empty pool, so the throttle
+        // has to sit here, below the per-ability walk, not at the call site.
+        if (messageThrottle.tryEmit(target.getUniqueId(), nowTicks.getAsLong(), OUT_OF_SOULS_THROTTLE_TICKS)) {
+            message(target, message);
+        }
+    }
+
+    @Override
     public void consoleCommand(String command) {
         globalOp(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command));
     }
@@ -2664,9 +2690,20 @@ public abstract class DispatchSinkBase implements SinkReadback {
     @Override
     public void suppress(Player target, int scopeKind, int scopeId, int durationTicks, int byDefId,
                          boolean nextHit, int charges) {
+        suppress(target, scopeKind, scopeId, durationTicks, byDefId, nextHit, charges, null, "", "", -1);
+    }
+
+    @Override
+    public void suppress(Player target, int scopeKind, int scopeId, int durationTicks, int byDefId,
+                         boolean nextHit, int charges, UUID by, String actorMessage, String victimMessage,
+                         int soundId) {
         if (target == null || scopeId < 0) {
             return;
         }
+        // Only a TIMED window can carry feedback; a one-shot is burned blind by every armed key at once, so it
+        // cannot name the activation it actually spent itself on.
+        SuppressionStore.Feedback feedback = nextHit ? null
+                : suppressionFeedback(by, actorMessage, victimMessage, soundId);
         // Per-player in-memory state, so writing it on the firing thread is Folia-safe (only the target's
         // UUID is captured; no cross-region entity read). byDefId attributes the window to the emitting
         // DISABLE_* ability (ADR-0045: /se why names it).
@@ -2676,7 +2713,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
             if (nextHit) {
                 suppression.armOneShotKind(target.getUniqueId(), scopeId, charges, byDefId);
             } else {
-                suppression.suppressKind(target.getUniqueId(), scopeId, nowTicks.getAsLong(), durationTicks, byDefId);
+                suppression.suppressKind(target.getUniqueId(), scopeId, nowTicks.getAsLong(), durationTicks,
+                        byDefId, feedback);
             }
             return;
         }
@@ -2686,8 +2724,19 @@ public abstract class DispatchSinkBase implements SinkReadback {
             // ADR-0049 Neutralize: an event-scoped one-shot the combat dispatcher burns after each hit, not by time.
             suppression.armOneShot(target.getUniqueId(), key, charges, byDefId);
         } else {
-            suppression.suppress(target.getUniqueId(), key, nowTicks.getAsLong(), durationTicks, byDefId);
+            suppression.suppress(target.getUniqueId(), key, nowTicks.getAsLong(), durationTicks, byDefId, feedback);
         }
+    }
+
+    /** {@code null} unless the author wrote at least one cue — the ordinary window stores nothing to read back. */
+    private static SuppressionStore.Feedback suppressionFeedback(UUID by, String actorMessage,
+                                                                 String victimMessage, int soundId) {
+        boolean silent = (actorMessage == null || actorMessage.isEmpty())
+                && (victimMessage == null || victimMessage.isEmpty())
+                && soundId < 0;
+        return silent ? null
+                : new SuppressionStore.Feedback(by, actorMessage == null ? "" : actorMessage,
+                        victimMessage == null ? "" : victimMessage, soundId);
     }
 
     @Override

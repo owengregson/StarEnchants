@@ -4408,9 +4408,9 @@
     },
   {
     "head": "SUPPRESS",
-    "doc": "Disable a target's enchant/group/type (the key) for a duration in ticks (DISABLE_ENCHANT/GROUP/TYPE), or with scope KIND every ability carrying the keyed effect head (e.g. MODIFY_FOOD). mode: timed (the duration window) or next-hit (a one-shot that clears after the target's next `charges` incoming hits, Neutralize). Default target the combat victim.",
+    "doc": "Disable a target's enchant/group/type (the key) for a duration in ticks (DISABLE_ENCHANT/GROUP/TYPE), or with scope KIND every ability carrying the keyed effect head (e.g. MODIFY_FOOD). mode: timed (the duration window) or next-hit (a one-shot that clears after the target's next `charges` incoming hits, Neutralize). The consumed-* params are emitted at the moment the window blocks something, not when it is armed, and only for mode: timed. Default target the combat victim.",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ SUPPRESS: { scope: <enum{ENCHANT|GROUP|TYPE|KIND}>, key: <string>, duration: <ticks[0..]=200>, mode: <enum{timed|next-hit}=timed>, charges: <int[1..]=1> } }",
+    "usage": "{ SUPPRESS: { scope: <enum{ENCHANT|GROUP|TYPE|KIND}>, key: <string>, duration: <ticks[0..]=200>, mode: <enum{timed|next-hit}=timed>, charges: <int[1..]=1>, consumed-message-actor: <string=>, consumed-message-victim: <string=>, consumed-sound: <sound> } }",
     "example": "{ SUPPRESS: { scope: GROUP, key: lifesteal, duration: 200, who: \"@Victim\" } }",
     "params": [
       {
@@ -4480,6 +4480,42 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "consumed-message-actor",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "line to whoever armed this, when it blocks"
+        },
+      {
+        "name": "consumed-message-victim",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "line to the suppressed player, when it blocks"
+        },
+      {
+        "name": "consumed-sound",
+        "kind": "HANDLE",
+        "label": "sound",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "SOUND",
+        "doc": "cue played at the block; omit for silence"
         }
       ],
     "targets": [

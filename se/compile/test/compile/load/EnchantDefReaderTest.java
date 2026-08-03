@@ -3,6 +3,7 @@ package compile.load;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import compile.Compiler;
@@ -203,6 +204,35 @@ class EnchantDefReaderTest {
         assertFalse(snap.byStableKey("enchants/plain/1").suppressImmune());
     }
 
+    @Test
+    void noSoulsMessageThreadsFromYamlToTheCompiledAbility() {
+        // The same producer seam as suppress-immune: the gate-10 line is authored per ability, so a stage that
+        // rebuilds the record field-by-field drops it with no diagnostic and no other failing test.
+        Diagnostics diags = new Diagnostics();
+        IntSupplier ids = counter();
+        String message = "&cNot enough souls, mortal.";
+        String costlyYaml = """
+            trigger: ATTACK
+            levels:
+              1: { soul-cost: 2, no-souls-message: "%s", effects: [{ HEAL: { amount: 2 } }] }
+            """.formatted(message);
+        String silentYaml = """
+            trigger: ATTACK
+            levels:
+              1: { soul-cost: 2, effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        List<AbilityDef> defs = new ArrayList<>();
+        defs.addAll(EnchantDefReader.read("enchants/costly", root(costlyYaml, diags), ids, diags).abilities());
+        defs.addAll(EnchantDefReader.read("enchants/silent", root(silentYaml, diags), ids, diags).abilities());
+
+        Snapshot snap = Compiler.of(MapSpecRegistry.of(heal())).compile(defs, 1, diags);
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        assertEquals(message, snap.byStableKey("enchants/costly/1").noSoulsMessage(),
+                "no-souls-message must survive reader → lower → resolve → erase");
+        assertNull(snap.byStableKey("enchants/silent/1").noSoulsMessage());
+    }
+
     // ── Multi-ability levels: a level may fan into N ability blocks, keyed like every other multi-ability
     // source (crystal/mask/reforge/pet) — first block keeps the bare key, the rest take /a1, /a2, … dense.
 
@@ -294,10 +324,13 @@ class EnchantDefReaderTest {
 
     /** The def with its position-derived fields dropped, so two authoring shapes of one ability compare whole. */
     private static AbilityDef normalise(AbilityDef d) {
+        // Every behaviour-deciding field is carried explicitly: a back-compat ctor here would default the
+        // tail fields on BOTH sides and silently hide a fan-out that forgot to carry one.
         return new AbilityDef(d.sourceKind(), d.stableKey(), 0, d.level(), d.baseChance(), d.cooldownTicks(),
                 d.soulCost(), d.triggers(), d.worldBlacklist(), d.conditionExpr(), List.of(), d.suppressKey(),
                 d.cdScopeEnchant(), d.cdScopeGroup(), d.cdScopeType(), d.repeatTicks(),
-                Source.ofFile("normalised.yml"), d.setPieces(), d.suppressImmune());
+                Source.ofFile("normalised.yml"), d.setPieces(), d.suppressImmune(), d.chanceExpr(),
+                d.noSoulsMessage());
     }
 
     /** Effect lines by head + named args; their embedded Source tracks the line they were written on. */

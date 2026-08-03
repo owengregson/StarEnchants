@@ -184,6 +184,19 @@ public final class ActivationPipeline {
         return cd == 0 ? 0 : (cd >>> 32);
     }
 
+    /**
+     * The consume-time feedback carried by the TIMED suppression window that blocked {@code ability}, or
+     * {@code null} — the DISPATCH layer's read-back after a {@code SUPPRESSED} verdict, exactly as
+     * {@link #remainingCooldownTicks} is read back after {@code ON_COOLDOWN}. A pure re-read, so the pipeline
+     * stays Bukkit-free and free of any notion of who gets told; the emit belongs to whoever holds the
+     * player handles. {@code null} on the transient per-activation set and on one-shots, neither of which
+     * carries an authored window.
+     */
+    public SuppressionStore.Feedback suppressionFeedback(Ability ability, Activation act) {
+        return ability.suppressImmune() ? null
+                : suppression.blockedFeedback(ability, act.actor(), act.nowTicks());
+    }
+
     /** Report one attempt's verdict + per-gate payload to the recorder, then return the verdict (ADR-0045). */
     /**
      * The ability's chance for THIS activation: the primitive when {@code chance:} was a constant (one null

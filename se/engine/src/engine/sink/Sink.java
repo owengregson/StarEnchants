@@ -611,12 +611,38 @@ public interface Sink {
     }
 
     /**
+     * As above, carrying the window's consume-time feedback (SUPPRESS's {@code consumed-*} params): the lines
+     * and cue emitted when this window actually BLOCKS an activation at gate 5, by whoever armed it
+     * ({@code by}). Timed windows only — a one-shot is burned blind and cannot name what it spent itself on.
+     * A {@code soundId} of {@code -1} is no cue. The default drops the feedback for sinks that do not carry it.
+     */
+    default void suppress(Player target, int scopeKind, int scopeId, int durationTicks, int byDefId,
+                          boolean nextHit, int charges, UUID by, String actorMessage, String victimMessage,
+                          int soundId) {
+        suppress(target, scopeKind, scopeId, durationTicks, byDefId, nextHit, charges);
+    }
+
+    /**
      * Set {@code target}'s suppression-immunity CHANCE in {@code [0,100]} (SUPPRESS_IMMUNE — dragon's Dovahkiin;
      * {@code 0} lifts it): each {@link #suppress} aimed at them rolls it, so {@code 100} no-ops every suppression
      * and a lower value ignores that fraction (ADR-0034). A maintained PASSIVE flag — armed on equip, lifted on
      * unequip by the HELD/PASSIVE lifecycle — so it can never leak. Player-only.
      */
     void suppressImmune(Player target, int chance);
+
+    /**
+     * Send {@code message} to the player with this UUID, or nothing if they are offline. The by-UUID form
+     * exists because a gate-verdict emit reaches the party that armed a window, whose live handle the
+     * blocked activation does not hold.
+     */
+    void messageTo(UUID target, String message);
+
+    /**
+     * Tell {@code target} their activation could not pay its soul cost (gate 10), at most once per player per
+     * {@code OUT_OF_SOULS_THROTTLE_TICKS}. Throttled inside the sink rather than at the call site because a
+     * hit walks many abilities and every soul-cost one aborts on the same empty pool.
+     */
+    void outOfSoulsNotice(Player target, String message);
 
     // ── ADR-0049 combat marks (per-player windows read by the combat dispatcher at the fold-commit site) ──
 

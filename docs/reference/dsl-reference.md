@@ -983,15 +983,18 @@ Replace each target summon the activator OWNS with a fresh one of type, rise blo
 
 ### SUPPRESS
 
-Disable a target's enchant/group/type (the key) for a duration in ticks (DISABLE_ENCHANT/GROUP/TYPE), or with scope KIND every ability carrying the keyed effect head (e.g. MODIFY_FOOD). mode: timed (the duration window) or next-hit (a one-shot that clears after the target's next `charges` incoming hits, Neutralize). Default target the combat victim.
+Disable a target's enchant/group/type (the key) for a duration in ticks (DISABLE_ENCHANT/GROUP/TYPE), or with scope KIND every ability carrying the keyed effect head (e.g. MODIFY_FOOD). mode: timed (the duration window) or next-hit (a one-shot that clears after the target's next `charges` incoming hits, Neutralize). The consumed-* params are emitted at the moment the window blocks something, not when it is armed, and only for mode: timed. Default target the combat victim.
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ SUPPRESS: { scope: <enum{ENCHANT|GROUP|TYPE|KIND}>, key: <string>, duration: <ticks[0..]=200>, mode: <enum{timed|next-hit}=timed>, charges: <int[1..]=1> } }`
+- _usage_: `{ SUPPRESS: { scope: <enum{ENCHANT|GROUP|TYPE|KIND}>, key: <string>, duration: <ticks[0..]=200>, mode: <enum{timed|next-hit}=timed>, charges: <int[1..]=1>, consumed-message-actor: <string=>, consumed-message-victim: <string=>, consumed-sound: <sound> } }`
 - _param_ `scope` `enum{ENCHANT|GROUP|TYPE|KIND}`
 - _param_ `key` `string`
 - _param_ `duration` `ticks[0..]`
 - _param_ `mode` `enum{timed|next-hit}`
 - _param_ `charges` `int[1..]`
+- _param_ `consumed-message-actor` `string` — line to whoever armed this, when it blocks
+- _param_ `consumed-message-victim` `string` — line to the suppressed player, when it blocks
+- _param_ `consumed-sound` `sound` — cue played at the block; omit for silence
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ SUPPRESS: { scope: GROUP, key: lifesteal, duration: 200, who: "@Victim" } }`
 

@@ -29,9 +29,11 @@ final class MaskDefReader {
     private static final Set<String> ROOT_KEYS = Set.of(
             "display", "color", "head", "material", "description", "abilities",
             // single-ability shorthand (a mask with exactly one ability authors these at the top level):
-            "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "condition", "effects");
+            "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "no-souls-message",
+            "condition", "effects");
     private static final Set<String> ABILITY_KEYS = Set.of(
-            "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "condition", "effects");
+            "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "no-souls-message",
+            "condition", "effects");
 
     private MaskDefReader() {
     }
@@ -102,6 +104,8 @@ final class MaskDefReader {
         ContentParse.Chance chance = ContentParse.resolveChanceValue(node, "chance", diags);
         int cooldown = ContentParse.resolveInt(node, "cooldown", 0, diags);
         int soulCost = ContentParse.resolveInt(node, "soul-cost", 0, diags);
+        String noSoulsMessage = ContentParse.blankToNull(
+                ContentParse.resolveString(node, "no-souls-message", diags));
         String condition = ContentParse.blankToNull(node.string("condition"));
         List<EffectLine> effects = ContentParse.effectItems(node, "effects", diags);
         if (effects.isEmpty()) {
@@ -112,7 +116,8 @@ final class MaskDefReader {
         // mirroring the crystal reader; an authored group overrides the cooldown group.
         return new AbilityDef(
                 SourceKind.MASK, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, soulCost, triggers,
-                disabledWorlds, condition, effects, stableKey, stableKey, group, null, repeatTicks, fileSource, 0, false, chance.expr());
+                disabledWorlds, condition, effects, stableKey, stableKey, group, null, repeatTicks, fileSource, 0, false,
+                chance.expr(), noSoulsMessage);
     }
 
     private static String orEmpty(String value) {

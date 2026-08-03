@@ -26,6 +26,7 @@ import java.util.List;
  *                        set; {@code 0} for every non-set source
  * @param chanceExpr      raw expression text when {@code chance:} was authored as an expression rather than
  *                        a number, else {@code null}; lowered to a {@code NumExpr} like {@link #conditionExpr}
+ * @param noSoulsMessage  line shown to the actor when {@link #soulCost} cannot be paid; {@code null}/blank = none
  */
 public record AbilityDef(
         SourceKind sourceKind,
@@ -47,7 +48,8 @@ public record AbilityDef(
         Source source,
         int setPieces,
         boolean suppressImmune,
-        String chanceExpr) {
+        String chanceExpr,
+        String noSoulsMessage) {
 
     public AbilityDef {
         triggers = List.copyOf(triggers);
@@ -63,7 +65,7 @@ public record AbilityDef(
                       boolean suppressImmune) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 conditionExpr, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks,
-                source, setPieces, suppressImmune, null);
+                source, setPieces, suppressImmune, null, null);
     }
 
     /** Back-compat construction defaulting {@code suppressImmune=false} — only enchants author it today. */
@@ -73,6 +75,6 @@ public record AbilityDef(
                       String cdScopeGroup, String cdScopeType, int repeatTicks, Source source, int setPieces) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 conditionExpr, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks,
-                source, setPieces, false, null);
+                source, setPieces, false, null, null);
     }
 }

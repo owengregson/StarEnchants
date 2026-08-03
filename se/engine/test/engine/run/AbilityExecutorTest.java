@@ -6,11 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import compile.model.Ability;
 import compile.model.Affinity;
 import compile.model.CompiledEffect;
 import compile.model.CompiledSelector;
+import compile.model.ScopeKinds;
 import compile.model.StableKeyIndex;
 import engine.effect.EffectRegistry;
 import engine.effect.kind.IgniteEffect;
@@ -21,7 +23,9 @@ import engine.selector.SelectorRegistry;
 import engine.selector.kind.SelfSelector;
 import engine.selector.kind.VictimSelector;
 import engine.sink.ModernDispatchSink;
+import engine.sink.SinkReadback;
 import engine.stores.CooldownStore;
+import engine.stores.SuppressionStore;
 import java.util.UUID;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -271,6 +275,76 @@ class AbilityExecutorTest {
         assertTrue(attempt.chanceFailed());
         assertEquals(-1, attempt.conditionCandidateIndex());
         verifyNoInteractions(actor);
+    }
+
+    // ── Gate-verdict feedback: the dispatch layer emits off a BLOCKED verdict (wave 1d.3) ────────
+
+    @Test
+    void aBlockingTimedSuppressionWindowEmitsItsAuthoredFeedback() {
+        // The verdict is the pipeline's; the emit is the dispatch layer's, because the pipeline is Bukkit-free
+        // and holds no player handle. Both parties named on the SUPPRESS line get their own line.
+        UUID suppressor = UUID.randomUUID();
+        SuppressionStore suppression = new SuppressionStore();
+        suppression.suppress(ACTOR, CooldownStore.key(ScopeKinds.ENCHANT, 5), 0L, 100, 88,
+                new SuppressionStore.Feedback(suppressor, "you blocked it", "you are silenced", -1));
+        AbilityExecutor gated = executorWith(suppression, SoulSpender.NONE);
+
+        Player actor = mock(Player.class);
+        SinkReadback sink = mock(SinkReadback.class);
+        Ability suppressed = Abilities.ability().trigger(TRIGGER).cooldownScope(5, -1, -1)
+                .effects(igniteEffect("SELF", 60, Affinity.TARGET_ENTITY)).build();
+
+        assertEquals(0, gated.run(new Ability[] {suppressed}, new int[] {0}, activation(),
+                context(actor, null), sink, KEYS));
+
+        verify(sink).messageTo(suppressor, "you blocked it");
+        verify(sink).message(actor, "you are silenced");
+    }
+
+    @Test
+    void aSilentSuppressionWindowEmitsNothing() {
+        // The overwhelmingly common case: no cue authored, so the read-back finds the null it stored and the
+        // blocked walk stays as quiet as it was before this mechanism existed.
+        SuppressionStore suppression = new SuppressionStore();
+        suppression.suppress(ACTOR, CooldownStore.key(ScopeKinds.ENCHANT, 5), 0L, 100, 88);
+        AbilityExecutor gated = executorWith(suppression, SoulSpender.NONE);
+
+        SinkReadback sink = mock(SinkReadback.class);
+        Ability suppressed = Abilities.ability().trigger(TRIGGER).cooldownScope(5, -1, -1)
+                .effects(igniteEffect("SELF", 60, Affinity.TARGET_ENTITY)).build();
+
+        gated.run(new Ability[] {suppressed}, new int[] {0}, activation(), context(mock(Player.class), null),
+                sink, KEYS);
+
+        verifyNoInteractions(sink);
+    }
+
+    @Test
+    void anAbortedSoulSpendEmitsTheAbilitysOwnNoSoulsLine() {
+        AbilityExecutor gated = executorWith(new SuppressionStore(), (player, cost) -> false);
+        Player actor = mock(Player.class);
+        SinkReadback sink = mock(SinkReadback.class);
+        Ability costly = Abilities.ability().trigger(TRIGGER).soulCost(5).noSoulsMessage("out of souls")
+                .effects(igniteEffect("SELF", 60, Affinity.TARGET_ENTITY)).build();
+        Ability silent = Abilities.ability().trigger(TRIGGER).soulCost(5)
+                .effects(igniteEffect("SELF", 60, Affinity.TARGET_ENTITY)).build();
+        Activation inSoulMode = Activation.builder(ACTOR, 0, TRIGGER, 0L).soulMode(UUID.randomUUID()).build();
+
+        assertEquals(0, gated.run(new Ability[] {costly, silent}, new int[] {0, 1}, inSoulMode,
+                context(actor, null), sink, KEYS));
+
+        // The throttle lives in the sink, not here: only the ability that authored a line emits at all.
+        verify(sink).outOfSoulsNotice(actor, "out of souls");
+        verifyNoMoreInteractions(sink);
+    }
+
+    private AbilityExecutor executorWith(SuppressionStore suppression, SoulSpender spender) {
+        return new AbilityExecutor(
+                EffectRegistry.builder().register(new IgniteEffect()).build(),
+                SelectorRegistry.builder().register(new SelfSelector()).register(new VictimSelector()).build(),
+                new ActivationPipeline(new CooldownStore(), spender, suppression,
+                        ActivationPipeline.Guard.ALLOW, ActivationPipeline.Guard.ALLOW),
+                AreaScan.NONE);
     }
 
     private static Activation activation() {

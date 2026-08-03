@@ -28,7 +28,18 @@ public final class SuppressionStore implements RetainedStore {
     }
 
     /** One timed suppression window: expiry tick + the DISABLE_* ability that armed it ({@code -1} unattributed). */
-    private record Window(long expiry, int byDefId) {
+    /**
+     * The consume-time feedback a TIMED window carries (SUPPRESS's {@code consumed-*} params), emitted at the
+     * gate-5 block by the DISPATCH layer — the pipeline itself is Bukkit-free and holds no player handle.
+     * {@code by} is the player who armed it, so "actor"/"victim" mean what they meant on the SUPPRESS line.
+     */
+    public record Feedback(UUID by, String actorMessage, String victimMessage, int soundId) {
+
+        /** {@code soundId} sentinel for "no cue" — an absent HANDLE arg never interns to a real id. */
+        public static final int NO_SOUND = -1;
+    }
+
+    private record Window(long expiry, int byDefId, Feedback feedback) {
     }
 
     /** One armed one-shot (Neutralize, ADR-0049): remaining charges + the ability that armed it. Event-scoped, never timed. */
@@ -105,13 +116,18 @@ public final class SuppressionStore implements RetainedStore {
      * armed it, {@code -1} = unattributed), so {@code /se why} can name the suppressor (ADR-0045).
      */
     public void suppress(UUID player, long id, long nowTicks, int durationTicks, int byDefId) {
+        suppress(player, id, nowTicks, durationTicks, byDefId, null);
+    }
+
+    /** As above, carrying the window's consume-time {@link Feedback} ({@code null} = silent, the usual case). */
+    public void suppress(UUID player, long id, long nowTicks, int durationTicks, int byDefId, Feedback feedback) {
         if (durationTicks <= 0 || vetoedByImmunity(player)) {
             return;
         }
         long expiry = nowTicks + durationTicks;
         // Later expiry wins WITH its own defId; an earlier/equal re-suppress keeps the live window (and its defId).
         expiryByPlayer.computeIfAbsent(player, k -> new ConcurrentHashMap<>())
-                .merge(id, new Window(expiry, byDefId), (a, b) -> a.expiry() >= b.expiry() ? a : b);
+                .merge(id, new Window(expiry, byDefId, feedback), (a, b) -> a.expiry() >= b.expiry() ? a : b);
         onSuppress.onSuppress(player, durationTicks); // instant drop + scheduled restore of maintained buffs
     }
 
@@ -122,12 +138,18 @@ public final class SuppressionStore implements RetainedStore {
      * dense effect kindId in its own map so gate 5's fast-path stays an emptiness test.
      */
     public void suppressKind(UUID player, int kindId, long nowTicks, int durationTicks, int byDefId) {
+        suppressKind(player, kindId, nowTicks, durationTicks, byDefId, null);
+    }
+
+    /** As above, carrying the window's consume-time {@link Feedback} ({@code null} = silent, the usual case). */
+    public void suppressKind(UUID player, int kindId, long nowTicks, int durationTicks, int byDefId,
+                             Feedback feedback) {
         if (kindId < 0 || durationTicks <= 0 || vetoedByImmunity(player)) {
             return;
         }
         long expiry = nowTicks + durationTicks;
         kindExpiryByPlayer.computeIfAbsent(player, k -> new ConcurrentHashMap<>())
-                .merge(kindId, new Window(expiry, byDefId), (a, b) -> a.expiry() >= b.expiry() ? a : b);
+                .merge(kindId, new Window(expiry, byDefId, feedback), (a, b) -> a.expiry() >= b.expiry() ? a : b);
         onSuppress.onSuppress(player, durationTicks); // a KIND-suppressed maintained POTION must drop too
     }
 
@@ -362,6 +384,50 @@ public final class SuppressionStore implements RetainedStore {
             }
         }
         return 0;
+    }
+
+    /**
+     * The {@link Feedback} of the TIMED window blocking {@code ability}, or {@code null} — the dispatch layer's
+     * read-back after a {@code SUPPRESSED} verdict, the shape {@code remainingCooldownTicks} already sets for
+     * {@code ON_COOLDOWN}. Walks {@link #blockedDetail}'s exact order so the emitted line names the same
+     * suppressor {@code /se why} does. ONE-SHOTS ARE EXCLUDED: a one-shot is burned blind after the hit, by
+     * every armed key at once, so it cannot say which ability it actually spent itself on. Allocation-free
+     * when nothing is armed, and on the ordinary silent window it returns the stored {@code null}.
+     */
+    public Feedback blockedFeedback(Ability ability, UUID player, long nowTicks) {
+        Feedback f;
+        if ((f = scopeFeedback(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, player, nowTicks)) != null) {
+            return f;
+        }
+        if ((f = scopeFeedback(ability.cdScopeGroup(), ScopeKinds.GROUP, player, nowTicks)) != null) {
+            return f;
+        }
+        if ((f = scopeFeedback(ability.cdScopeType(), ScopeKinds.TYPE, player, nowTicks)) != null) {
+            return f;
+        }
+        Map<Integer, Window> windows = kindExpiryByPlayer.get(player);
+        if (windows == null) {
+            return null;
+        }
+        for (CompiledEffect effect : ability.effects()) {
+            int kid = effect.kindId();
+            if (kid < 0) {
+                continue;
+            }
+            Window w = kindWindow(windows, kid, nowTicks);
+            if (w != null && w.feedback() != null) {
+                return w.feedback();
+            }
+        }
+        return null;
+    }
+
+    private Feedback scopeFeedback(int scopeId, int scopeKind, UUID player, long nowTicks) {
+        if (scopeId < 0) {
+            return null;
+        }
+        Window w = window(player, CooldownStore.key(scopeKind, scopeId), nowTicks);
+        return w == null ? null : w.feedback();
     }
 
     /** Sentinel "no blocking window/one-shot" (a real byDefId can be {@code -1}, so {@code NONE} must differ). */

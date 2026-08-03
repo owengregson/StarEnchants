@@ -354,6 +354,9 @@ effect SUPPRESS
   param duration TICKS optional min=0 max=- enum=- handle=- default=200
   param mode ENUM optional min=- max=- enum=next-hit,timed handle=- default=timed
   param charges INT optional min=1 max=- enum=- handle=- default=1
+  param consumed-message-actor STRING optional min=- max=- enum=- handle=- default=
+  param consumed-message-victim STRING optional min=- max=- enum=- handle=- default=
+  param consumed-sound HANDLE optional min=- max=- enum=- handle=SOUND default=-
 effect SUPPRESS_IMMUNE
   param chance INT optional min=0 max=100 enum=- handle=- default=100
 effect SWAP_POSITION
