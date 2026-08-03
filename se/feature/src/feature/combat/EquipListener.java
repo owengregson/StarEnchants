@@ -1,6 +1,7 @@
 package feature.combat;
 
 import compile.load.ContentHolder;
+import feature.trigger.EquipChangeDriver;
 import feature.trigger.LifecycleDriver;
 import feature.trigger.MaxHealthDriver;
 import feature.trigger.PassiveEffectDriver;
@@ -54,6 +55,7 @@ public final class EquipListener implements Listener {
     private final ContentHolder content;
     private final RepeatingDriver repeating;
     private final LifecycleDriver lifecycle;
+    private final EquipChangeDriver equipChanges;
     private final PassiveEffectDriver passiveEffects;
     private final MaxHealthDriver maxHealth;
     private final SetMessageDriver setMessages;
@@ -76,11 +78,13 @@ public final class EquipListener implements Listener {
 
     public EquipListener(WornStateStore worn, ContentHolder content, RepeatingDriver repeating,
                          LifecycleDriver lifecycle, PassiveEffectDriver passiveEffects, MaxHealthDriver maxHealth,
-                         SetMessageDriver setMessages, EquipSource equipSource, ItemViewCache itemViews) {
+                         SetMessageDriver setMessages, EquipSource equipSource, ItemViewCache itemViews,
+                         EquipChangeDriver equipChanges) {
         this.worn = worn;
         this.content = content;
         this.repeating = repeating;
         this.lifecycle = lifecycle;
+        this.equipChanges = equipChanges;
         this.passiveEffects = passiveEffects;
         this.maxHealth = maxHealth;
         this.setMessages = setMessages;
@@ -158,6 +162,7 @@ public final class EquipListener implements Listener {
         lifecycle.clear(event.getPlayer().getUniqueId());
         passiveEffects.clear(event.getPlayer().getUniqueId());
         setMessages.clear(event.getPlayer().getUniqueId());
+        equipChanges.clear(event.getPlayer().getUniqueId());
         handSignatures.remove(event.getPlayer().getUniqueId());
     }
 
@@ -172,6 +177,10 @@ public final class EquipListener implements Listener {
         maxHealth.refresh(player);          // reconcile the worn max-health modifier (its own channel — same rule)
         handSignatures.put(player.getUniqueId(), handSignature(player)); // stamp the F09 catchall baseline
         postRefresh.accept(player); // ADR-0053: e.g. the mask illusion re-derive, on this player's own thread
+        // EQUIP_CHANGE fires LAST, off the same worn diff: its effects are authored one-shots, so they must see
+        // fully-settled state rather than race the maintained-buff reconciliation above. A refresh that changed
+        // no EQUIP_CHANGE ability (a chest close, a Q-drop, a durability tick) diffs to nothing and fires nothing.
+        equipChanges.refresh(player);
     }
 
     /**

@@ -76,6 +76,7 @@ public final class TriggerDispatch {
     public final int use;     // §3.6 USE — fired only by the use-item right-click flow (UseItemService)
     public final int guardianHurt; // fired by GuardianHurtListener when a summoned guardian is hurt (victim = the guardian)
     public final int hurt;    // every damage-taken event, any cause — rides the same two damage paths as FALL/FIRE and DEFENSE
+    public final int equipChange; // fired by EquipChangeDriver on the worn-ability diff (%equipchange% = EQUIP|UNEQUIP)
 
     /**
      * Trigger dispatch over the shared per-boot {@link SinkEnv}. GIVE_MONEY/TAKE_MONEY on MINE/KILL/… and the
@@ -118,6 +119,7 @@ public final class TriggerDispatch {
         this.use = triggers.idOf("USE").orElse(-1);
         this.guardianHurt = triggers.idOf("GUARDIAN_HURT").orElse(-1);
         this.hurt = triggers.idOf("HURT").orElse(-1);
+        this.equipChange = triggers.idOf("EQUIP_CHANGE").orElse(-1);
     }
 
     /**
@@ -403,6 +405,24 @@ public final class TriggerDispatch {
                 worldId(snapshot, context), use, actor, context, sink, snapshot.stableKeys(), candidates);
         sink.flush();
         return attempt;
+    }
+
+    /**
+     * Fire EQUIP_CHANGE for one direction's worth of abilities — the {@link EquipChangeDriver}'s diff, on the
+     * player's own thread, into ONE sink. Candidates are explicit dense ids because an UNEQUIP walk's ability is
+     * no longer in the worn state; they still run the full gate sequence (chance/cooldown/condition/souls), only
+     * the candidate source differs. No firing event, so nothing to cancel.
+     */
+    public void fireEquipChange(Player actor, int[] candidates, String direction) {
+        if (equipChange < 0 || candidates.length == 0) {
+            return;
+        }
+        Snapshot snapshot = content.snapshot();
+        ActivationContext context = ActivationContext.equipChange(actor, direction);
+        SinkReadback sink = newSink();
+        runner.runDetached(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), equipChange,
+                actor, context, sink, snapshot.stableKeys(), candidates);
+        sink.flush();
     }
 
     /**

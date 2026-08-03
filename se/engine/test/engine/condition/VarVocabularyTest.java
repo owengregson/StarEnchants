@@ -45,10 +45,11 @@ class VarVocabularyTest {
         // §3 (ragestacks number — the rage-stack fact), ADR-0052 (actor.belowvictim number — the Eagle posture),
         // wave 1b.2 (nearbyallies number + victim.relation string, both off the one alliance predicate), and
         // wave 1b.3 (posthit.health + heldticks + actor/victim.souls + impactheight numbers,
-        // victim.fromspawner flag, projectilekind string).
+        // victim.fromspawner flag, projectilekind string), and wave 1c (equipchange string — the EQUIP_CHANGE
+        // direction).
         assertEquals(25, v.numberSlots());
         assertEquals(21, v.flagSlots());
-        assertEquals(12, v.stringSlots());
+        assertEquals(13, v.stringSlots());
         assertEquals(VarKind.NUM, v.lookup("victim", "health").orElseThrow().kind());
         assertEquals(VarKind.NUM, v.lookup("actor", "maxhealth").orElseThrow().kind());
         assertEquals(VarKind.NUM, v.lookup("world", "time").orElseThrow().kind());

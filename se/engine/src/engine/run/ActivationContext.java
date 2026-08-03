@@ -33,15 +33,28 @@ import org.bukkit.entity.Player;
  *                        both combat sides read the same geometry and no live projectile rides the context
  * @param projectileKind  the {@code %projectilekind%} bucket of the projectile that landed the hit
  *                        (ARROW/FIREBALL/THROWN/OTHER); empty for a non-projectile activation
+ * @param equipChange     {@code EQUIP} or {@code UNEQUIP} on an EQUIP_CHANGE activation ({@code %equipchange%});
+ *                        empty everywhere else, so an unrelated trigger can never satisfy a direction gate
  */
 public record ActivationContext(Player actor, LivingEntity victim, LivingEntity attacker, Location location,
                                 double damage, Block block, int combo, String damageCauseName,
                                 boolean itemDamageArmor, int recentAttackers, int attackerIndex,
-                                double vanillaFinalDamage, double impactHeight, String projectileKind) {
+                                double vanillaFinalDamage, double impactHeight, String projectileKind,
+                                String equipChange) {
 
     public ActivationContext {
         damageCauseName = damageCauseName == null ? "" : damageCauseName;
         projectileKind = projectileKind == null ? "" : projectileKind;
+        equipChange = equipChange == null ? "" : equipChange;
+    }
+
+    /** Full combat payload with no equipment transition — every context but EQUIP_CHANGE's. */
+    public ActivationContext(Player actor, LivingEntity victim, LivingEntity attacker, Location location,
+                             double damage, Block block, int combo, String damageCauseName,
+                             boolean itemDamageArmor, int recentAttackers, int attackerIndex,
+                             double vanillaFinalDamage, double impactHeight, String projectileKind) {
+        this(actor, victim, attacker, location, damage, block, combo, damageCauseName, itemDamageArmor,
+                recentAttackers, attackerIndex, vanillaFinalDamage, impactHeight, projectileKind, "");
     }
 
     /** Combat payload with the ADR-0049 gank/cause/item-damage facts but no pending damage or projectile. */
@@ -73,6 +86,12 @@ public record ActivationContext(Player actor, LivingEntity victim, LivingEntity 
     public ActivationContext withCombatFacts(String damageCauseName, int recentAttackers, int attackerIndex) {
         return new ActivationContext(actor, victim, attacker, location, damage, block, combo,
                 damageCauseName, itemDamageArmor, recentAttackers, attackerIndex, vanillaFinalDamage,
-                impactHeight, projectileKind);
+                impactHeight, projectileKind, equipChange);
+    }
+
+    /** The EQUIP_CHANGE payload: an equipment transition on {@code actor}, no combat and no position of its own. */
+    public static ActivationContext equipChange(Player actor, String direction) {
+        return new ActivationContext(actor, null, null, actor.getLocation(), 0.0, null, 0, "", false, 0, 0,
+                Double.NaN, 0.0, "", direction);
     }
 }
