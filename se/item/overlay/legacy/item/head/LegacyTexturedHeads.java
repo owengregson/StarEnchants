@@ -49,6 +49,21 @@ public final class LegacyTexturedHeads implements TexturedHeads {
         return stack;
     }
 
+    @Override
+    @SuppressWarnings("deprecation") // (Material, int, short) + SkullMeta#setOwner: the 1.8 item + skull API.
+    public ItemStack playerHead(UUID owner, String ownerName) {
+        if (ownerName == null || ownerName.isEmpty()) {
+            return null; // 1.8 owns a skull by NAME only — no name, no skin
+        }
+        ItemStack stack = new ItemStack(Material.SKULL_ITEM, 1, PLAYER_SKULL_DATA);
+        if (!(stack.getItemMeta() instanceof org.bukkit.inventory.meta.SkullMeta meta)) {
+            return null;
+        }
+        meta.setOwner(ownerName);
+        stack.setItemMeta(meta);
+        return stack;
+    }
+
     private static Field profileField(ItemMeta meta) throws NoSuchFieldException {
         Field cached = profileField;
         if (cached != null) {

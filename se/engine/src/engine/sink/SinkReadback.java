@@ -42,6 +42,9 @@ public interface SinkReadback extends Sink {
     /** Whether an effect requested an extra attacker-side echo pass (ECHO_STRIKE). Read by the combat dispatcher. */
     boolean echoRequested();
 
+    /** The rider an effect asked to seat on the fired projectile (PROJECTILE_DRESSING), or {@code null} for none. */
+    ProjectileDressing projectileDressing();
+
     /**
      * Declare the entity whose pending damage the firing event itself will still apply (the combat victim):
      * zero-WAIT health writes to it run inline at {@link #flush()} — before the event's outcome — so a

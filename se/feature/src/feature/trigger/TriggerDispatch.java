@@ -9,6 +9,7 @@ import engine.run.ActorProbe;
 import engine.run.FactPopulator;
 import engine.run.UseAttempt;
 import engine.sink.SinkEnv;
+import engine.stores.DotAmplifyStore;
 import engine.sink.SinkReadback;
 import engine.trigger.TriggerRegistry;
 import feature.soul.SoulBinding;
@@ -180,8 +181,15 @@ public final class TriggerDispatch {
                 attackTrigger.test(bowFire), shooter, context, sink, snapshot.stableKeys());
         if (sink.cancelled()) {
             event.setCancelled(true);
-        } else if (sink.seekRequested() && event.getProjectile() instanceof Projectile projectile) {
-            ProjectileHoming.start(shooter, projectile);
+        } else {
+            if (sink.seekRequested() && event.getProjectile() instanceof Projectile projectile) {
+                ProjectileHoming.start(shooter, projectile);
+            }
+            if (sink.projectileDressing() != null && event.getProjectile() != null) {
+                // The projectile exists only here, so the sink's half of PROJECTILE_DRESSING is called with it
+                // in hand — before flush, so the spawn rides the plan like every other world intent.
+                sink.attachProjectileRider(event.getProjectile(), sink.projectileDressing());
+            }
         }
         sink.flush();
     }
@@ -225,6 +233,7 @@ public final class TriggerDispatch {
             runner.run(snapshot.abilities(), snapshot.generation(), worldId, alsoTriggerId,
                     attackTrigger.test(alsoTriggerId), actor, context, sink, snapshot.stableKeys(), heroic);
         }
+        amplifyDot(actor, event, sink);
         event.setDamage(sink.fold().apply(event.getDamage()));
         if (sink.cancelled()) {
             event.setCancelled(true);
@@ -240,8 +249,36 @@ public final class TriggerDispatch {
         Snapshot snapshot = content.snapshot();
         SinkReadback sink = newSink();
         runner.contributeHeroicReduction(snapshot.generation(), actor, sink);
+        amplifyDot(actor, event, sink);
         event.setDamage(sink.fold().apply(event.getDamage()));
         sink.flush();
+    }
+
+    /**
+     * Fold {@code actor}'s DOT_AMPLIFY_MARK multiplier onto a wither/poison tick. It rides the same fold and
+     * the same single {@code setDamage} as the trigger walks, so an amplified tick is still ONE priced hit —
+     * and it applies whether or not the bearer carries any ability for this trigger, because the mark is the
+     * attacker's, not theirs. Expressed as an outgoing bonus because this path sets no attack-scale, so the
+     * additive term is exactly the authored multiplier (§L attack-scale is CombatDispatch's alone).
+     */
+    private void amplifyDot(Player actor, org.bukkit.event.entity.EntityDamageEvent event, SinkReadback sink) {
+        int causeBit = dotCauseBit(event.getCause());
+        if (causeBit == 0) {
+            return;
+        }
+        double factor = env.stores().dotAmplify().factor(actor.getUniqueId(), env.nowTicks().getAsLong(), causeBit);
+        if (factor > 1.0) {
+            sink.fold().addOutgoing(factor - 1.0);
+        }
+    }
+
+    /** The {@link DotAmplifyStore} bit for a damage cause, or {@code 0} when the cause is not amplifiable. */
+    private static int dotCauseBit(org.bukkit.event.entity.EntityDamageEvent.DamageCause cause) {
+        return switch (cause) {
+            case WITHER -> DotAmplifyStore.CAUSE_WITHER;
+            case POISON -> DotAmplifyStore.CAUSE_POISON;
+            default -> 0;
+        };
     }
 
     /**

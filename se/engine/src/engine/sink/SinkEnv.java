@@ -36,7 +36,8 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
                       Consumer<Player> movementExemption, TempBlockLedger<BlockState> tempBlocks,
                       TrailWalker trails, TimedRevert timedReverts, DotParkLedger dotPark,
                       DoubleSupplier moneyInterestCap, GearProtection gearProtection,
-                      ToDoubleFunction<UUID> lightningBoost, TrapStructures trapStructures) {
+                      ToDoubleFunction<UUID> lightningBoost, TrapStructures trapStructures,
+                      PlayerVisibility visibility) {
 
     public SinkEnv {
         Objects.requireNonNull(economy, "economy");
@@ -52,6 +53,7 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
         Objects.requireNonNull(gearProtection, "gearProtection");
         Objects.requireNonNull(lightningBoost, "lightningBoost");
         Objects.requireNonNull(trapStructures, "trapStructures");
+        Objects.requireNonNull(visibility, "visibility");
     }
 
     /** The four-arg shape every non-root site used before the exemption rode the env — no-op movement hook. */
@@ -84,8 +86,21 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
     public static SinkEnv of(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
                              Consumer<Player> movementExemption, DoubleSupplier moneyInterestCap,
                              GearProtection gearProtection, ToDoubleFunction<UUID> lightningBoost) {
+        return of(economy, souls, stores, nowTicks, movementExemption, moneyInterestCap, gearProtection,
+                lightningBoost, PlayerVisibility.NONE);
+    }
+
+    /**
+     * The full shape: {@code visibility} is the {@code VIEWER_HIDE} seam — per-viewer hide/show, wired from the
+     * era bindings because the modern call needs the {@code Plugin} the engine may not hold
+     * ({@link PlayerVisibility#NONE} = nothing is ever hidden).
+     */
+    public static SinkEnv of(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
+                             Consumer<Player> movementExemption, DoubleSupplier moneyInterestCap,
+                             GearProtection gearProtection, ToDoubleFunction<UUID> lightningBoost,
+                             PlayerVisibility visibility) {
         return new SinkEnv(economy, souls, stores, nowTicks, movementExemption, BukkitBlockOps.ledger(),
                 new TrailWalker(), new TimedRevert(), new DotParkLedger(), moneyInterestCap, gearProtection,
-                lightningBoost, new TrapStructures());
+                lightningBoost, new TrapStructures(), visibility);
     }
 }

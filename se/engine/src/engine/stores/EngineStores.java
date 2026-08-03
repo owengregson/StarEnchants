@@ -20,7 +20,8 @@ public record EngineStores(
         RecentAttackersStore recentAttackers, ReflectMarksStore reflectMarks,
         OutgoingDebuffStore outgoingDebuff, DamageCapStore damageCap, RageStackStore rageStacks,
         WardStore ward, HitTempoStore hitTempo, BatteryStore battery,
-        DisarmWindowStore disarmWindows, HeldSlotStore heldSlots, SoulTotalStore soulTotals) {
+        DisarmWindowStore disarmWindows, HeldSlotStore heldSlots, SoulTotalStore soulTotals,
+        DotAmplifyStore dotAmplify, HeadTrophyStore headTrophies) {
 
     public EngineStores {
         Objects.requireNonNull(vars, "vars");
@@ -43,6 +44,8 @@ public record EngineStores(
         Objects.requireNonNull(disarmWindows, "disarmWindows");
         Objects.requireNonNull(heldSlots, "heldSlots");
         Objects.requireNonNull(soulTotals, "soulTotals");
+        Objects.requireNonNull(dotAmplify, "dotAmplify");
+        Objects.requireNonNull(headTrophies, "headTrophies");
     }
 
     /** A fresh aggregate with every store newly constructed (the composition-root default). */
@@ -52,14 +55,15 @@ public record EngineStores(
                 new CooldownStore(), new ComboStore(), new WhyStore(),
                 new RecentAttackersStore(), new ReflectMarksStore(), new OutgoingDebuffStore(), new DamageCapStore(),
                 new RageStackStore(), new WardStore(), new HitTempoStore(), new BatteryStore(),
-                new DisarmWindowStore(), new HeldSlotStore(), new SoulTotalStore());
+                new DisarmWindowStore(), new HeldSlotStore(), new SoulTotalStore(),
+                new DotAmplifyStore(), new HeadTrophyStore());
     }
 
     /** Every store as the {@link PlayerScoped} seam, in sweep order. */
     public List<PlayerScoped> all() {
         return List.of(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns, combo, why,
                 recentAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks, ward, hitTempo, battery,
-                disarmWindows, heldSlots, soulTotals);
+                disarmWindows, heldSlots, soulTotals, dotAmplify, headTrophies);
     }
 
     /**
@@ -77,12 +81,14 @@ public record EngineStores(
 
     /**
      * The combat-integrity stores RETAINED across a relog: cooldowns and victim-applied teleblock / suppression /
-     * reflect-mark / outgoing-debuff windows. Only their already-elapsed entries are shed on quit, so a ~5-10s
-     * disconnect+reconnect cannot skip a live cooldown or shed an opponent-landed window (the monotonic tick keeps a
-     * surviving absolute expiry valid on rejoin).
+     * reflect-mark / outgoing-debuff / DoT-amplify windows, plus the armed head trophies. Only their
+     * already-elapsed entries are shed on quit, so a ~5-10s disconnect+reconnect cannot skip a live cooldown or
+     * shed an opponent-landed window (the monotonic tick keeps a surviving absolute expiry valid on rejoin). A
+     * head trophy has no expiry at all — it waits for the death that spends it.
      */
     public List<RetainedStore> quitRetained() {
-        return List.of(cooldowns, teleblock, suppression, reflectMarks, outgoingDebuff);
+        return List.of(cooldowns, teleblock, suppression, reflectMarks, outgoingDebuff, dotAmplify,
+                headTrophies);
     }
 
     /**

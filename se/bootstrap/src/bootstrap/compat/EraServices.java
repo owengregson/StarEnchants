@@ -1,6 +1,7 @@
 package bootstrap.compat;
 
 import engine.run.ActorProbe;
+import engine.sink.PlayerVisibility;
 import engine.sink.SinkFactory;
 import engine.stores.KnockbackControlStore;
 import feature.combat.EquipListener;
@@ -140,6 +141,10 @@ public interface EraServices {
 
     /** §C KNOCKBACK_CONTROL: register the applier this server fires knockback through; returns the chosen path. */
     KnockbackListener.Path registerKnockback(Plugin plugin, KnockbackControlStore store, LongSupplier nowTicks);
+
+    /** Per-viewer player visibility (VIEWER_HIDE): modern needs the {@code Plugin} handle, 1.8 has only the
+     *  deprecated single-arg form. Threaded into the sink env, which the engine cannot supply a plugin to. */
+    PlayerVisibility playerVisibility(Plugin plugin);
 
     // ── third-party integration bridges (ADR-0027; :integrate is modern-only) ──
     BiFunction<Player, String, String> placeholderResolver(Plugin plugin, Predicate<String> enabled);

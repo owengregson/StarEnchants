@@ -6,6 +6,8 @@ import engine.stores.BatteryStore;
 import engine.stores.CooldownStore;
 import engine.stores.DamageCapStore;
 import engine.stores.DisarmWindowStore;
+import engine.stores.DotAmplifyStore;
+import engine.stores.HeadTrophyStore;
 import engine.stores.HitTempoStore;
 import engine.stores.ImmuneStore;
 import engine.stores.KeepOnDeathStore;
@@ -169,6 +171,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final DisarmWindowStore disarmWindowStore;
     /** The ONE per-boot confining-structure registry (via {@link SinkEnv}), so Turnkey can early-restore a trap. */
     private final TrapStructures trapStructures;
+    /** DOT_AMPLIFY_MARK windows, read by the environmental damage path where wither/poison ticks land. */
+    private final DotAmplifyStore dotAmplify;
+    /** HEAD_TROPHY arms, spent by the victim's next death. */
+    private final HeadTrophyStore headTrophies;
+    /** The VIEWER_HIDE seam (the modern call needs a {@code Plugin} the engine may not hold). */
+    private final PlayerVisibility visibility;
 
     /** The event's own entity (the combat victim), whose zero-WAIT health writes run inline at flush (ADR-0051). */
     private LivingEntity eventEntity;
@@ -182,6 +190,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private boolean teleportDropsRequested;
     private boolean seekRequested;
     private boolean echoRequested; // ADR-0049 ECHO_STRIKE: one extra attacker-side pass over this hit
+    private ProjectileDressing projectileDressing; // PROJECTILE_DRESSING: the rider the bow dispatcher seats
     private double expMultiplier = 1.0;
     private boolean flushed;
     private int delayTicks;
@@ -222,6 +231,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.batteryStore = env.stores().battery();
         this.disarmWindowStore = env.stores().disarmWindows();
         this.trapStructures = env.trapStructures();
+        this.dotAmplify = env.stores().dotAmplify();
+        this.headTrophies = env.stores().headTrophies();
+        this.visibility = env.visibility();
         this.fold = new DamageFold();
     }
 
@@ -273,6 +285,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
     @Override
     public boolean echoRequested() {
         return echoRequested;
+    }
+
+    /** The rider an effect asked to seat on the fired projectile (PROJECTILE_DRESSING). Read by the bow dispatcher. */
+    @Override
+    public ProjectileDressing projectileDressing() {
+        return projectileDressing;
     }
 
     /** Declare the event's own entity: its zero-WAIT health writes run inline at flush (ADR-0051). */
@@ -595,6 +613,129 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 return; // ADR-0052: KILL (slayer-style execute) may not end an invincible summon
             }
             target.setHealth(0.0);
+        });
+    }
+
+    @Override
+    public void viewerHide(Player subject, Player viewer, int durationTicks) {
+        if (subject == null || durationTicks <= 0) {
+            return;
+        }
+        UUID subjectId = subject.getUniqueId();
+        for (Player watcher : viewer != null ? List.of(viewer) : List.copyOf(Bukkit.getOnlinePlayers())) {
+            if (watcher.getUniqueId().equals(subjectId)) {
+                continue; // hiding someone from themselves blanks their own body for no gain
+            }
+            // Both halves run on the WATCHER's thread — the hidden set belongs to their connection — and the
+            // subject is re-resolved by id at the unhide, because a relog invalidates the handle captured here
+            // (and clears the hidden set anyway, which is why there is nothing to persist and restore).
+            entityOp(watcher, () -> {
+                visibility.setVisible(watcher, subject, false);
+                Scheduling.onEntityLater(watcher, durationTicks, () -> {
+                    Player live = Bukkit.getPlayer(subjectId);
+                    if (live != null) {
+                        visibility.setVisible(watcher, live, true);
+                    }
+                });
+            });
+        }
+    }
+
+    @Override
+    public void dressProjectile(int entityTypeId, int ttlTicks, int invulnerableTicks, boolean noPickup) {
+        // One rider per shot: a second request replaces the first, so rider priority is authored
+        // (condition/chance) rather than fought out by two entities riding one arrow.
+        this.projectileDressing = new ProjectileDressing(entityTypeId, ttlTicks, invulnerableTicks, noPickup);
+    }
+
+    @Override
+    public void attachProjectileRider(Entity projectile, ProjectileDressing dressing) {
+        if (projectile == null || dressing == null) {
+            return;
+        }
+        Location at = projectile.getLocation();
+        regionOp(at, () -> {
+            Entity rider = spawnTyped(at.getWorld(), at, dressing.entityTypeId());
+            if (rider == null) {
+                return;
+            }
+            if (rider instanceof LivingEntity living) {
+                if (dressing.noPickup()) {
+                    living.setCanPickupItems(false);
+                }
+                if (dressing.invulnerableTicks() > 0) {
+                    // A rider is scenery: unguarded, its own flight kills it before the arrow lands.
+                    applyInvulnerable(living, true);
+                }
+            }
+            try {
+                mountEntity(projectile, rider);
+            } catch (RuntimeException unreadable) {
+                Regions.swallowed("DispatchSinkBase.attachProjectileRider.mount", unreadable);
+                rider.remove();
+                return;
+            }
+            armRiderCleanup(projectile, rider, Math.max(1, dressing.ttlTicks()));
+        });
+    }
+
+    /**
+     * Remove {@code rider} the moment its {@code projectile} stops flying, with the TTL as the backstop. The
+     * landing trigger cannot own this: on 1.8.9 the era seam cannot tell a landing from an entity hit, so a
+     * rider hung off PROJECTILE_LAND would be immortal there. A per-tick liveness probe answers on every era
+     * and also covers chunk-unload, which no event reports.
+     */
+    private static void armRiderCleanup(Entity projectile, Entity rider, int ttlTicks) {
+        TaskHandle[] watch = new TaskHandle[1];
+        Runnable drop = () -> {
+            if (watch[0] != null) {
+                watch[0].cancel();
+            }
+            rider.remove();
+        };
+        watch[0] = Scheduling.repeatingEntity(projectile, 1L, 1L, () -> {
+            if (!projectile.isValid() || projectile.isOnGround()) {
+                drop.run();
+            }
+        });
+        Scheduling.onEntityLater(rider, ttlTicks, drop);
+    }
+
+    @Override
+    public void rebindSummon(LivingEntity summon, Player owner, int entityTypeId, int ttlTicks, String name,
+                             double health, double speed, List<Integer> effects, double rise) {
+        if (summon == null || owner == null) {
+            return;
+        }
+        UUID ownerId = owner.getUniqueId();
+        UUID summonId = summon.getUniqueId();
+        if (!ownerId.equals(GuardianCasts.owner(summonId))) {
+            return; // only the actor's OWN summon upgrades — an unowned mob is CONVERT_SUMMON's business
+        }
+        Location at = summon.getLocation().add(0.0, rise, 0.0);
+        entityOp(summon, () -> {
+            // Silent removal, registries first (bindSummonTtl's invariant): the replacement must not inherit
+            // the old body's ownership entry, and no death may fire — this is an upgrade, not a kill.
+            GuardianCasts.forget(summonId);
+            PetSummons.forget(summonId);
+            summon.remove();
+            // The replacement is a GUARD with no target: same loadout surface, fresh health, restarted TTL.
+            guard(null, at, entityTypeId, 1, ttlTicks, name, ownerId, health, speed, effects);
+        });
+    }
+
+    @Override
+    public void despawn(LivingEntity target) {
+        entityOp(target, () -> {
+            if (invincibleSummon(target)) {
+                return; // an invincible summon outlives DESPAWN exactly as it outlives KILL
+            }
+            // Registries first, then the removal — the TTL-expiry invariant: a forgotten entry can never
+            // outlive its entity, so an id reused by a later spawn cannot inherit a stale owner.
+            UUID id = target.getUniqueId();
+            GuardianCasts.forget(id);
+            PetSummons.forget(id);
+            target.remove();
         });
     }
 
@@ -1008,6 +1149,50 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
+    public void periodicDamage(LivingEntity target, double amount, int periodTicks, int durationTicks,
+                               List<Integer> replaced, String feedback, LivingEntity attacker) {
+        if (target == null || durationTicks <= 0) {
+            return;
+        }
+        // The conversion half: the vanilla DoT this burn replaces is stripped and denied for the whole window,
+        // so the two never tick side by side. potionLock owns the deny loop and its own teardown.
+        for (int effectId : replaced) {
+            potionLock(target, effectId, durationTicks);
+        }
+        int period = Math.max(1, periodTicks);
+        String line = feedback == null ? "" : Colors.translate(feedback);
+        entityOp(target, () -> {
+            // Pulses are COUNTED, not clocked, so lag never adds or drops one. No shared window registry
+            // (unlike FREEZE): a root is binary and must refresh, but two authored burns are two burns.
+            int[] left = {Math.max(1, durationTicks / period)};
+            TaskHandle[] task = new TaskHandle[1];
+            task[0] = Scheduling.repeatingEntity(target, period, period, () -> {
+                // isValid covers logout, death and chunk-unload; on Paper the fallback timer is not entity-tied,
+                // so without this guard a burn outlives its victim.
+                if (!target.isValid() || target.isDead()) {
+                    if (task[0] != null) {
+                        task[0].cancel();
+                    }
+                    return;
+                }
+                if (amount > 0) {
+                    // ADR-0054 deferred attributed hurt (FREEZE's DoT path): raw pre-armor half-hearts,
+                    // EngineDamage-framed so the combat dispatch stands down, kill credit intact.
+                    hurtOrPark(target, amount, attacker);
+                }
+                if (!line.isEmpty() && target instanceof Player burning) {
+                    // Sent inline, not through message(): the per-event plan was flushed long before this
+                    // pulse, and we are already on the victim's own thread here.
+                    burning.sendMessage(line);
+                }
+                if (--left[0] <= 0 && task[0] != null) {
+                    task[0].cancel();
+                }
+            });
+        });
+    }
+
+    @Override
     public void cure(LivingEntity target) {
         // Snapshot the active types first: removePotionEffect mutates the live collection, so
         // iterating it directly while removing would be a concurrent-modification hazard.
@@ -1070,6 +1255,29 @@ public abstract class DispatchSinkBase implements SinkReadback {
         if (target != null) {
             // Non-stacking outgoing-damage debuff; inline per-player write consulted on the target's later attack side.
             outgoingDebuff.weaken(target.getUniqueId(), percent, nowTicks.getAsLong(), durationTicks);
+        }
+    }
+
+    @Override
+    public void outgoingDebuff(Player target, double percent, int durationTicks, int causeMask, String feedback) {
+        if (target != null) {
+            outgoingDebuff.debuff(target.getUniqueId(), percent, causeMask, feedback, nowTicks.getAsLong(),
+                    durationTicks);
+        }
+    }
+
+    @Override
+    public void dotAmplify(Player target, double factor, int causeMask, int durationTicks) {
+        if (target != null) {
+            // Inline per-player window write (mark()'s shape); read by TriggerDispatch when a DoT tick lands.
+            dotAmplify.amplify(target.getUniqueId(), factor, causeMask, nowTicks.getAsLong(), durationTicks);
+        }
+    }
+
+    @Override
+    public void armHeadTrophy(Player victim, String nameTemplate, String loreTemplate) {
+        if (victim != null) {
+            headTrophies.arm(victim.getUniqueId(), nameTemplate, loreTemplate, nowTicks.getAsLong());
         }
     }
 

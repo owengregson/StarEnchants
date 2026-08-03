@@ -173,7 +173,8 @@ public final class Envs {
                     : new EngineStores(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns,
                             combo, why, recentAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks, ward,
                             new HitTempoStore(), new BatteryStore(), new DisarmWindowStore(),
-                            new HeldSlotStore(), new SoulTotalStore());
+                            new HeldSlotStore(), new SoulTotalStore(), new engine.stores.DotAmplifyStore(),
+                            new engine.stores.HeadTrophyStore());
             return SinkEnv.of(economy, souls, stores, nowTicks, player -> { }, () -> 0,
                     GearProtection.NONE, lightningBoost);
         }

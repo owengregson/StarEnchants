@@ -3,6 +3,7 @@ package bootstrap.compat;
 import engine.run.ActorProbe;
 import engine.run.ModernActorProbe;
 import engine.sink.ModernDispatchSink;
+import engine.sink.PlayerVisibility;
 import engine.sink.SinkFactory;
 import engine.stores.KnockbackControlStore;
 import feature.combat.EquipListener;
@@ -22,6 +23,7 @@ import feature.compat.DropControl;
 import feature.compat.Hands;
 import feature.compat.ModernDropControl;
 import feature.compat.ModernHands;
+import feature.compat.ModernPlayerVisibility;
 import feature.compat.ModernProjectiles;
 import feature.compat.Projectiles;
 import feature.compat.Sounds;
@@ -131,6 +133,12 @@ public final class EraBindings implements EraServices {
     @Override
     public Projectiles projectiles() {
         return new ModernProjectiles();
+    }
+
+    /** Per-viewer visibility (VIEWER_HIDE): the plugin-scoped hide, so a plugin unload restores everyone. */
+    @Override
+    public PlayerVisibility playerVisibility(Plugin plugin) {
+        return new ModernPlayerVisibility(plugin);
     }
 
     /** Sound playback (§4): the shared resolver + the modern String-overload key-form fallback (1.9.4+). */

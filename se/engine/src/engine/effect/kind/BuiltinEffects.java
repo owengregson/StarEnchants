@@ -121,6 +121,16 @@ public final class BuiltinEffects {
                 .register(new DisarmShuffleEffect()) // The Unhanding: armed-window hotbar shuffle + self-malus
                 .register(new ConvertSummonEffect()) // Summoner's Bell: flip enemy summons permanently
                 .register(new TrapBreakEffect())     // Turnkey: early-restore confining structures intact
+                // Cosmic-port wave 1d.2. APPENDED, never inserted: registration order fixes the dense kind
+                // ids the compiler stamps (ADR-0039), so an insertion silently re-dispatches shipped content.
+                .register(new PeriodicDamageEffect())    // actor-attributed burn, optionally converting a vanilla DoT
+                .register(new DotAmplifyMarkEffect())    // multiply the target's incoming wither/poison ticks
+                .register(new OutgoingDebuffEffect())    // WEAKEN + a cause filter + per-hit feedback
+                .register(new DespawnEffect())           // silent mob removal: no drops, no XP, no death event
+                .register(new ViewerHideEffect())        // per-viewer packet hide (armour included)
+                .register(new ProjectileDressingEffect()) // rider on the BOW_FIRE projectile (inline read-back)
+                .register(new HeadTrophyEffect())        // arm a templated player-head drop on the victim's next death
+                .register(new SummonRebindEffect())      // replace an owned summon with a fresh upgraded one
                 .build();
     }
 }

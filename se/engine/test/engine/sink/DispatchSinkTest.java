@@ -15,6 +15,9 @@ import static org.mockito.Mockito.when;
 
 import engine.stores.CooldownStore;
 import engine.stores.DamageCapStore;
+import engine.stores.DotAmplifyStore;
+import engine.stores.EngineStores;
+import engine.stores.HeadTrophyStore;
 import engine.stores.KeepOnDeathStore;
 import engine.stores.KnockbackControlStore;
 import engine.stores.OutgoingDebuffStore;
@@ -178,7 +181,69 @@ class DispatchSinkTest {
         UUID id = UUID.randomUUID();
         when(p.getUniqueId()).thenReturn(id);
         sink.weaken(p, 15.0, 100);
-        assertEquals(15.0, store.active(id, 0L));
+        assertEquals(15.0, store.active(id, 0L).percent());
+    }
+
+    @Test
+    void outgoingDebuffWritesTheFilterAndFeedbackInline() {
+        OutgoingDebuffStore store = new OutgoingDebuffStore();
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().outgoingDebuff(store).nowTicks(() -> 0L).build());
+        Player p = mock(Player.class);
+        UUID id = UUID.randomUUID();
+        when(p.getUniqueId()).thenReturn(id);
+        sink.outgoingDebuff(p, 50.0, 100, OutgoingDebuffStore.CAUSE_PROJECTILE, "unfocused");
+        OutgoingDebuffStore.Debuff debuff = store.active(id, 0L);
+        assertEquals(50.0, debuff.percent());
+        assertEquals("unfocused", debuff.feedback());
+        assertTrue(debuff.covers(OutgoingDebuffStore.CAUSE_PROJECTILE));
+        assertFalse(debuff.covers(OutgoingDebuffStore.CAUSE_MELEE));
+    }
+
+    @Test
+    void dotAmplifyWritesTheMarkInlineForItsCauseOnly() {
+        DotAmplifyStore store = new DotAmplifyStore();
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink()
+                .stores(storesWith(store)).nowTicks(() -> 0L).build());
+        Player p = mock(Player.class);
+        UUID id = UUID.randomUUID();
+        when(p.getUniqueId()).thenReturn(id);
+        sink.dotAmplify(p, 3.0, DotAmplifyStore.CAUSE_POISON, 100);
+        assertEquals(3.0, store.factor(id, 0L, DotAmplifyStore.CAUSE_POISON));
+        assertEquals(1.0, store.factor(id, 0L, DotAmplifyStore.CAUSE_WITHER));
+    }
+
+    @Test
+    void armHeadTrophyStoresTheTemplatesUnresolved() {
+        HeadTrophyStore store = new HeadTrophyStore();
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink()
+                .stores(storesWithTrophies(store)).nowTicks(() -> 0L).build());
+        Player p = mock(Player.class);
+        UUID id = UUID.randomUUID();
+        when(p.getUniqueId()).thenReturn(id);
+        sink.armHeadTrophy(p, "head of {VICTIM}", "line one|line two");
+        HeadTrophyStore.Trophy trophy = store.consume(id);
+        // Unresolved on purpose: the killer/date/place are facts of the DEATH, not of the arming hit.
+        assertEquals("head of {VICTIM}", trophy.name());
+        assertEquals("line one|line two", trophy.lore());
+        assertNull(store.consume(id), "the arm is spent once");
+    }
+
+    private static EngineStores storesWith(DotAmplifyStore dotAmplify) {
+        EngineStores fresh = EngineStores.fresh();
+        return new EngineStores(fresh.vars(), fresh.suppression(), fresh.knockback(), fresh.keepOnDeath(),
+                fresh.teleblock(), fresh.immune(), fresh.cooldowns(), fresh.combo(), fresh.why(),
+                fresh.recentAttackers(), fresh.reflectMarks(), fresh.outgoingDebuff(), fresh.damageCap(),
+                fresh.rageStacks(), fresh.ward(), fresh.hitTempo(), fresh.battery(), fresh.disarmWindows(),
+                fresh.heldSlots(), fresh.soulTotals(), dotAmplify, fresh.headTrophies());
+    }
+
+    private static EngineStores storesWithTrophies(HeadTrophyStore headTrophies) {
+        EngineStores fresh = EngineStores.fresh();
+        return new EngineStores(fresh.vars(), fresh.suppression(), fresh.knockback(), fresh.keepOnDeath(),
+                fresh.teleblock(), fresh.immune(), fresh.cooldowns(), fresh.combo(), fresh.why(),
+                fresh.recentAttackers(), fresh.reflectMarks(), fresh.outgoingDebuff(), fresh.damageCap(),
+                fresh.rageStacks(), fresh.ward(), fresh.hitTempo(), fresh.battery(), fresh.disarmWindows(),
+                fresh.heldSlots(), fresh.soulTotals(), fresh.dotAmplify(), headTrophies);
     }
 
     @Test
