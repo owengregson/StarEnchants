@@ -25,12 +25,12 @@ final class EnchantDefReader {
 
     private static final Set<String> ROOT_KEYS = Set.of(
             "display", "description", "tier", "applies-to", "trigger", "disabled-worlds", "group",
-            "repeat", "levels", "chance", "cooldown", "soul-cost", "condition",
+            "repeat", "levels", "chance", "cooldown", "soul-cost", "no-souls-message", "condition",
             "requires", "blacklist", "removes-required", "suppress-immune");
     private static final Set<String> LEVEL_KEYS = Set.of(
-            "chance", "cooldown", "soul-cost", "condition", "effects", "abilities");
+            "chance", "cooldown", "soul-cost", "no-souls-message", "condition", "effects", "abilities");
     private static final Set<String> ABILITY_KEYS = Set.of(
-            "trigger", "chance", "cooldown", "soul-cost", "condition", "repeat", "effects");
+            "trigger", "chance", "cooldown", "soul-cost", "no-souls-message", "condition", "repeat", "effects");
 
     private EnchantDefReader() {
     }
@@ -163,6 +163,8 @@ final class EnchantDefReader {
                 ContentParse.resolveChanceValue(knobNode(block, lvl, root, "chance"), "chance", diags);
         int cooldown = ContentParse.resolveInt(knobNode(block, lvl, root, "cooldown"), "cooldown", 0, diags);
         int soulCost = ContentParse.resolveInt(knobNode(block, lvl, root, "soul-cost"), "soul-cost", 0, diags);
+        String noSoulsMessage = ContentParse.blankToNull(ContentParse.resolveString(
+                knobNode(block, lvl, root, "no-souls-message"), "no-souls-message", diags));
         String condition = ContentParse.blankToNull(
                 ContentParse.resolveString(knobNode(block, lvl, root, "condition"), "condition", diags));
         // A block may retarget itself (an ATTACK enchant whose second block rides DEFENSE); absent → the enchant's.
@@ -192,7 +194,8 @@ final class EnchantDefReader {
                 effectsNode.source(),
                 0,
                 suppressImmune,
-                chance.expr());
+                chance.expr(),
+                noSoulsMessage);
     }
 
     /** The node a knob is read from: the innermost scope that declares it — block, then level, then file root. */

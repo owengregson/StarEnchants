@@ -23,6 +23,7 @@ import java.util.List;
  * @param affinity       affinity folded MAX over {@link #effects} (CONTEXT_LOCAL if none)
  * @param setPieces      worn-piece count that completes a {@link SourceKind#SET} bonus; {@code 0} otherwise
  * @param chanceExpr     evaluated at the chance gate instead of {@link #baseChance}; {@code null} = constant
+ * @param noSoulsMessage line shown to the actor when {@link #soulCost} cannot be paid; {@code null}/blank = none
  */
 public record LoweredAbility(
         SourceKind sourceKind,
@@ -45,7 +46,8 @@ public record LoweredAbility(
         Source source,
         int setPieces,
         boolean suppressImmune,
-        NumExpr chanceExpr) {
+        NumExpr chanceExpr,
+        String noSoulsMessage) {
 
     public LoweredAbility {
         triggers = List.copyOf(triggers);
@@ -61,7 +63,7 @@ public record LoweredAbility(
                           Affinity affinity, Source source, int setPieces, boolean suppressImmune) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks, affinity,
-                source, setPieces, suppressImmune, null);
+                source, setPieces, suppressImmune, null, null);
     }
 
     /** Back-compat construction defaulting {@code suppressImmune=false} — most callers never set it. */
@@ -72,6 +74,6 @@ public record LoweredAbility(
                           Affinity affinity, Source source, int setPieces) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks, affinity,
-                source, setPieces, false, null);
+                source, setPieces, false, null, null);
     }
 }

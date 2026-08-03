@@ -160,7 +160,8 @@ public final class DefaultEraseStage implements EraseStage {
                     // ADR-0039: only these slots get populated per hit — the chance expression reads the same
                     // buffer at gate 8, so its facts join the union or it would roll against a stale 0.
                     FactMasks.of(la.condition(), la.chanceExpr(), effects),
-                    la.chanceExpr());
+                    la.chanceExpr(),
+                    la.noSoulsMessage());
 
             abilities.add(ability);
             keysByDenseId.add(la.stableKey());

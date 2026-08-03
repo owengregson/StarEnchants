@@ -157,7 +157,8 @@ public final class DefaultLowerStage implements LowerStage {
                 def.source(),
                 def.setPieces(),
                 def.suppressImmune(),
-                lowerChance(def, diags));
+                lowerChance(def, diags),
+                def.noSoulsMessage());
     }
 
     /**

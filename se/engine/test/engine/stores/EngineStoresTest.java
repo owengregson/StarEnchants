@@ -114,6 +114,7 @@ class EngineStoresTest {
         s.headTrophies().arm(id, "n", "l", 0L);
         s.foodWindows().arm(id, FoodWindowStore.Type.SCALE_GAIN, 0L, 100, 2.0);
         s.foodWindows().arm(id, FoodWindowStore.Type.CANCEL_DRAIN, 0L, 100, 0.0);
+        s.messageThrottle().tryEmit(id, 0L, 300);
 
         assertEquals("1", s.vars().get(id, "x", 0L));
         assertTrue(s.suppression().isSuppressed(id, 1L, 0L));
@@ -127,6 +128,7 @@ class EngineStoresTest {
         assertEquals(3.0, s.dotAmplify().factor(id, 0L, DotAmplifyStore.CAUSE_WITHER));
         assertEquals(2.0, s.foodWindows().gainFactor(id, 0L));
         assertTrue(s.foodWindows().cancelsDrain(id, 0L));
+        assertFalse(s.messageThrottle().tryEmit(id, 0L, 300)); // armed by the emit above
 
         s.clearAll(id);
 
@@ -144,5 +146,6 @@ class EngineStoresTest {
         assertNull(s.headTrophies().consume(id));
         assertEquals(1.0, s.foodWindows().gainFactor(id, 0L)); // 1 = unarmed, the neutral multiplier
         assertFalse(s.foodWindows().cancelsDrain(id, 0L));
+        assertTrue(s.messageThrottle().tryEmit(id, 0L, 300));
     }
 }

@@ -233,13 +233,23 @@ class FanOutEffectTest {
                 playerOnly("SUPPRESS timed → suppress(scope, key, duration, sourceDefId, nextHit=false, charges)",
                         new SuppressEffect(),
                         c -> c.with("scope", 1).with("key", 7).with("duration", 200).with("mode", 0).with("charges", 1)
+                                .with("consumed-message-actor", "").with("consumed-message-victim", "")
                                 .sourceDefId(88),
-                        (s, p) -> verify(s).suppress(p, 1, 7, 200, 88, false, 1)),
+                        (s, p) -> verify(s).suppress(p, 1, 7, 200, 88, false, 1, null, "", "", -1)),
                 playerOnly("SUPPRESS next-hit → suppress(..., nextHit=true, charges) — Neutralize one-shot",
                         new SuppressEffect(),
                         c -> c.with("scope", 1).with("key", 7).with("duration", 200).with("mode", 1).with("charges", 2)
+                                .with("consumed-message-actor", "").with("consumed-message-victim", "")
                                 .sourceDefId(88),
-                        (s, p) -> verify(s).suppress(p, 1, 7, 200, 88, true, 2)),
+                        (s, p) -> verify(s).suppress(p, 1, 7, 200, 88, true, 2, null, "", "", -1)),
+                playerOnly("SUPPRESS carries its consume-time lines to the window",
+                        new SuppressEffect(),
+                        c -> c.with("scope", 1).with("key", 7).with("duration", 200).with("mode", 0).with("charges", 1)
+                                .with("consumed-message-actor", "blocked them")
+                                .with("consumed-message-victim", "you are silenced")
+                                .sourceDefId(88),
+                        (s, p) -> verify(s).suppress(p, 1, 7, 200, 88, false, 1, null,
+                                "blocked them", "you are silenced", -1)),
                 playerOnly("REFLECT → reflectMark(percent, duration) — Hex, player-only", new ReflectEffect(),
                         c -> c.with("percent", 20.0).with("duration", 80).with("cap", 0.0).with("feedback", ""),
                         (s, p) -> verify(s).reflectMark(p, 20.0, 0.0, "", 80)),

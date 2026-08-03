@@ -60,7 +60,7 @@ public final class DefaultResolveStage implements ResolveStage {
                 ability.triggers(), ability.worldBlacklist(), ability.condition(),
                 out, ability.suppressKey(), ability.cdScopeEnchant(), ability.cdScopeGroup(),
                 ability.cdScopeType(), ability.repeatTicks(), ability.affinity(), ability.source(),
-                ability.setPieces(), ability.suppressImmune(), ability.chanceExpr());
+                ability.setPieces(), ability.suppressImmune(), ability.chanceExpr(), ability.noSoulsMessage());
     }
 
     /** @return the effect (and its selector) with handle args resolved, or {@code null} if a handle was unknown. */

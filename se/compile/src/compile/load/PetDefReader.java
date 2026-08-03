@@ -33,11 +33,12 @@ final class PetDefReader {
             "display", "color", "type", "head", "material", "descriptor", "description", "permission",
             "message-on-no-home", "levels");
     private static final Set<String> ABILITY_KEYS = Set.of(
-            "trigger", "disabled-worlds", "repeat", "chance", "cooldown", "soul-cost", "condition", "effects");
+            "trigger", "disabled-worlds", "repeat", "chance", "cooldown", "soul-cost", "no-souls-message",
+            "condition", "effects");
     private static final Set<String> BRACKET_KEYS = Set.of(
             "cooldown", "duration", "abilities",
             // single-ability shorthand (a bracket with exactly one ability authors these at the top level):
-            "trigger", "disabled-worlds", "repeat", "chance", "soul-cost", "condition", "effects");
+            "trigger", "disabled-worlds", "repeat", "chance", "soul-cost", "no-souls-message", "condition", "effects");
 
     private PetDefReader() {
     }
@@ -194,6 +195,8 @@ final class PetDefReader {
         // A USE ability inherits the bracket cooldown unless it authors its own; worn abilities default to none.
         int cooldown = ContentParse.resolveInt(node, "cooldown", use ? bracketCooldown : 0, diags);
         int soulCost = ContentParse.resolveInt(node, "soul-cost", 0, diags);
+        String noSoulsMessage = ContentParse.blankToNull(
+                ContentParse.resolveString(node, "no-souls-message", diags));
         int repeatTicks = ContentParse.optInt(node, "repeat", 0, diags);
         List<String> disabledWorlds = node.stringList("disabled-worlds");
         String condition = ContentParse.blankToNull(node.string("condition"));
@@ -215,7 +218,7 @@ final class PetDefReader {
         AbilityDef ability = new AbilityDef(
                 SourceKind.PET, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, soulCost,
                 List.of(trigger), disabledWorlds, condition, effects, "pet:" + key, cdScope, null, null,
-                repeatTicks, node.source(), 0, false, chance.expr());
+                repeatTicks, node.source(), 0, false, chance.expr(), noSoulsMessage);
         out.add(ability);
         return ability;
     }

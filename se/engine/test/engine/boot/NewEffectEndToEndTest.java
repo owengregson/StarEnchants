@@ -29,6 +29,7 @@ import engine.stores.DotAmplifyStore;
 import engine.stores.EngineStores;
 import engine.stores.HeadTrophyStore;
 import engine.stores.OutgoingDebuffStore;
+import engine.stores.SuppressionStore;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,6 +46,7 @@ import org.junit.jupiter.api.io.TempDir;
 import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
+import testfx.Abilities;
 import testfx.Envs;
 import testfx.PermissiveResolvers;
 import testfx.SyncSchedulerBackend;
@@ -158,6 +160,44 @@ class NewEffectEndToEndTest {
         assertTrue(stores.foodWindows().cancelsDrain(ACTOR, 0L));
         assertEquals(2.5, stores.foodWindows().gainFactor(ACTOR, 0L), "the two windows are independent");
         assertFalse(stores.foodWindows().cancelsDrain(ACTOR, 40L), "half-open: the expiry tick is free");
+    }
+
+    @Test
+    void theSuppressConsumeFeedbackReachesTheWindowItArms() throws Exception {
+        // Wave 1d.3. The lines are authored on SUPPRESS but read at the BLOCK, so they have to survive the
+        // whole compile AND the sink's arm — a drop anywhere is a window that silently blocks in silence.
+        EngineStores stores = EngineStores.fresh();
+        Player actor = mock(Player.class);
+        Player victim = mock(Player.class);
+        UUID victimId = UUID.randomUUID();
+        when(actor.getUniqueId()).thenReturn(ACTOR);
+        when(victim.getUniqueId()).thenReturn(victimId);
+
+        run("silence", """
+                SUPPRESS: { scope: GROUP, key: lifesteal, duration: 200, \
+                consumed-message-actor: "silenced them", consumed-message-victim: "you are silenced", \
+                who: "@Victim" }""", stores, actor, victim);
+
+        SuppressionStore.Feedback feedback = feedbackFor(stores, victimId);
+        assertNotNull(feedback, "the authored lines reached the armed window");
+        assertEquals("silenced them", feedback.actorMessage());
+        assertEquals("you are silenced", feedback.victimMessage());
+        assertEquals(ACTOR, feedback.by(), "the window remembers who armed it, so 'actor' can be told");
+    }
+
+    /**
+     * The feedback on the group window {@code victim} now holds. The interned scope id is a compile-time
+     * detail, so probe the small id space rather than re-typing a number the interner chose.
+     */
+    private static SuppressionStore.Feedback feedbackFor(EngineStores stores, UUID victim) {
+        for (int id = 0; id < 64; id++) {
+            SuppressionStore.Feedback f = stores.suppression().blockedFeedback(
+                    Abilities.ability().trigger(0).cooldownScope(-1, id, -1).build(), victim, 0L);
+            if (f != null) {
+                return f;
+            }
+        }
+        return null;
     }
 
     @Test

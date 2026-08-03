@@ -28,6 +28,7 @@ import compile.model.cond.NumExpr;
  * @param suppressImmune when {@code true} this ability can never be suppressed (DISABLE_ENCHANT/GROUP/TYPE/KIND no-op against it), so a permanent buff survives Silence &amp; its derivatives while the wearer's OTHER enchants are still silenced (per-enchant {@code suppress-immune: true})
  * @param factMask       the {@code FactBuffer} slots this ability reads (ADR-0039), unioned per trigger in the {@code WornState} so the populator computes only referenced facts; {@link FactMask#ALL} for hand-built abilities (populate everything)
  * @param chanceExpr     evaluated at the chance gate in place of {@link #baseChance} and clamped to {@code [0,100]}; {@code null} for a constant chance, so the hot path pays one null check
+ * @param noSoulsMessage line shown to the actor when gate 10 aborts because {@link #soulCost} cannot be paid; {@code null}/blank = none
  */
 public record Ability(
         int id,
@@ -50,7 +51,8 @@ public record Ability(
         int setPieces,
         boolean suppressImmune,
         FactMask factMask,
-        NumExpr chanceExpr) {
+        NumExpr chanceExpr,
+        String noSoulsMessage) {
 
     /** Back-compat construction for a constant {@code chance:} — the hot-path fast case. */
     public Ability(int id, int defId, SourceKind sourceKind, int triggerMask, int level, double baseChance,
@@ -60,7 +62,7 @@ public record Ability(
                    FactMask factMask) {
         this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
                 condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
-                suppressKey, setPieces, suppressImmune, factMask, null);
+                suppressKey, setPieces, suppressImmune, factMask, null, null);
     }
 
     /** No derived fact mask — populate everything (the safe default for hand-built test abilities). */
@@ -70,7 +72,7 @@ public record Ability(
                    int cdScopeGroup, int cdScopeType, int suppressKey, int setPieces) {
         this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
                 condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
-                suppressKey, setPieces, false, FactMask.ALL, null);
+                suppressKey, setPieces, false, FactMask.ALL, null, null);
     }
 
     public boolean firesOn(int triggerId) {
