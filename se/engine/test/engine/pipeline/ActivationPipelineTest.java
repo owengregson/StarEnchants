@@ -62,6 +62,9 @@ class ActivationPipelineTest {
         double baseChance = 100.0;
         int cooldownTicks = 0;
         int soulCost = 0;
+        double soulCostGrowth = 1.0;
+        int soulCostCap = 0;
+        int soulCostDecayPeriod = 0;
         long worldBlacklist = 0L;
         CompiledCondition condition = null;
         int cdEnchant = -1, cdGroup = -1, cdType = -1;
@@ -73,6 +76,8 @@ class ActivationPipelineTest {
             return Abilities.ability().triggerMask(triggerMask).level(level).chance(baseChance)
                     .chanceExpr(chanceExpr)
                     .cooldown(cooldownTicks).soulCost(soulCost).worldBlacklist(worldBlacklist)
+                    .soulCostGrowth(soulCostGrowth).soulCostCap(soulCostCap)
+                    .soulCostDecayPeriod(soulCostDecayPeriod)
                     .condition(condition).cooldownScope(cdEnchant, cdGroup, cdType).suppressKey(suppressKey)
                     .soulCostCarried(soulCostCarried)
                     .build();
@@ -306,6 +311,61 @@ class ActivationPipelineTest {
                 pipeline.evaluate(a.build(), act().soulMode(UUID.randomUUID()).build()));
         assertFalse(spender.carriedPathUsed);
         assertEquals(2, spender.balance);
+    }
+
+    @Test
+    void anEscalatingSoulCostChargesTheLadderAndHoldsAtTheCap() {
+        // The shipped consumer (Phoenix): 500 → 1000 → 2000 → 4000 → 8000, capped. The counter advances only
+        // on a SUCCESSFUL charge, so the prices must come out of gate 10 in exactly that order.
+        Ab a = new Ab();
+        a.soulCost = 500;
+        a.soulCostGrowth = 2.0;
+        a.soulCostCap = 8000;
+        a.cdEnchant = 4;
+        spender.balance = 1_000_000;
+
+        assertEquals(List.of(500, 1000, 2000, 4000, 8000, 8000), charge(a, 6));
+    }
+
+    @Test
+    void aFailedSpendDoesNotAdvanceTheLadder() {
+        // A gate-10 abort must leave the price where it was: an unaffordable proc that still bumped the counter
+        // would price the ability further out of reach on every retry — an unpayable death spiral.
+        Ab a = new Ab();
+        a.soulCost = 500;
+        a.soulCostGrowth = 2.0;
+        a.cdEnchant = 4;
+
+        spender.balance = 0;
+        assertEquals(GateOutcome.NO_SOULS, pipeline.evaluate(a.build(), act().soulMode(ACTOR).build()));
+        assertEquals(GateOutcome.NO_SOULS, pipeline.evaluate(a.build(), act().soulMode(ACTOR).build()));
+
+        spender.balance = 500;
+        assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(a.build(), act().soulMode(ACTOR).build()));
+        assertEquals(0, spender.balance, "the first successful charge still pays the BASE price");
+    }
+
+    @Test
+    void aStaticSoulCostChargesTheBasePriceForever() {
+        // Back-compat: growth defaults to 1.0, so an ability authored before the knobs existed never escalates.
+        Ab a = new Ab();
+        a.soulCost = 25;
+        a.cdEnchant = 4;
+        spender.balance = 1000;
+
+        assertEquals(List.of(25, 25, 25, 25), charge(a, 4));
+    }
+
+    /** The souls actually debited by {@code charges} consecutive activations of {@code a}. */
+    private List<Integer> charge(Ab a, int charges) {
+        Ability built = a.build();
+        List<Integer> paid = new java.util.ArrayList<>();
+        for (int i = 0; i < charges; i++) {
+            int before = spender.balance;
+            assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(built, act().soulMode(ACTOR).build()));
+            paid.add(before - spender.balance);
+        }
+        return paid;
     }
 
     @Test

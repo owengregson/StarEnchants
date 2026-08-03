@@ -267,6 +267,55 @@ class EnchantDefReaderTest {
                 "overriding ONE knob must not drop the siblings it never mentioned");
     }
 
+    @Test
+    void escalatingSoulCostKnobsThreadFromYamlToTheCompiledAbility() {
+        // The same producer seam as no-souls-message, for the three knobs only gate 10 reads: a stage that
+        // rebuilds the record field-by-field drops them with no diagnostic. Three distinct non-default values
+        // so a transposition (growth read as cap, cap as period) fails here.
+        Diagnostics diags = new Diagnostics();
+        IntSupplier ids = counter();
+        String levelYaml = """
+            trigger: ATTACK
+            levels:
+              1: { soul-cost: 500, soul-cost-growth: 2.0, soul-cost-cap: 8000, soul-cost-decay-period: 12000,
+                   effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        // The knobs must ride the same block → level → root cascade every other per-level knob does.
+        String rootYaml = """
+            trigger: ATTACK
+            soul-cost: 500
+            soul-cost-growth: 2.0
+            soul-cost-cap: 8000
+            soul-cost-decay-period: 12000
+            levels:
+              1: { effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        String plainYaml = """
+            trigger: ATTACK
+            levels:
+              1: { soul-cost: 500, effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        List<AbilityDef> defs = new ArrayList<>();
+        defs.addAll(EnchantDefReader.read("enchants/escalating", root(levelYaml, diags), ids, diags).abilities());
+        defs.addAll(EnchantDefReader.read("enchants/inherited", root(rootYaml, diags), ids, diags).abilities());
+        defs.addAll(EnchantDefReader.read("enchants/static", root(plainYaml, diags), ids, diags).abilities());
+
+        Snapshot snap = Compiler.of(MapSpecRegistry.of(heal())).compile(defs, 1, diags);
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        for (String key : List.of("enchants/escalating/1", "enchants/inherited/1")) {
+            Ability escalating = snap.byStableKey(key);
+            assertEquals(2.0, escalating.soulCostGrowth(), 1e-9, key);
+            assertEquals(8000, escalating.soulCostCap(), key);
+            assertEquals(12000, escalating.soulCostDecayPeriod(), key);
+        }
+        // Unauthored = today's static price, uncapped, never decaying.
+        Ability plain = snap.byStableKey("enchants/static/1");
+        assertEquals(1.0, plain.soulCostGrowth(), 1e-9);
+        assertEquals(0, plain.soulCostCap());
+        assertEquals(0, plain.soulCostDecayPeriod());
+    }
+
     // ── Multi-ability levels: a level may fan into N ability blocks, keyed like every other multi-ability
     // source (crystal/mask/reforge/pet) — first block keeps the bare key, the rest take /a1, /a2, … dense.
 
@@ -364,7 +413,8 @@ class EnchantDefReaderTest {
                 d.soulCost(), d.triggers(), d.worldBlacklist(), d.conditionExpr(), List.of(), d.suppressKey(),
                 d.cdScopeEnchant(), d.cdScopeGroup(), d.cdScopeType(), d.repeatTicks(),
                 Source.ofFile("normalised.yml"), d.setPieces(), d.suppressImmune(), d.chanceExpr(),
-                d.noSoulsMessage(), d.soulCostCarried(), d.noSoulsSound(), d.noSoulsParticle());
+                d.noSoulsMessage(), d.soulCostCarried(), d.noSoulsSound(), d.noSoulsParticle(),
+                d.soulCostGrowth(), d.soulCostCap(), d.soulCostDecayPeriod());
     }
 
     /** Effect lines by head + named args; their embedded Source tracks the line they were written on. */
