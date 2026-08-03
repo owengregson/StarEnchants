@@ -3,6 +3,7 @@ package engine.effect.kind;
 import compile.model.Affinity;
 import engine.effect.EffectCtx;
 import engine.effect.EffectKind;
+import engine.sink.ScatterFill;
 import engine.sink.Sink;
 import engine.spec.EffectSpec;
 import engine.spec.T;
@@ -32,13 +33,15 @@ public final class TempBlockEffect implements EffectKind {
             .param("material3", D.material().optional())
             .param("material4", D.material().optional())
             .param("ticks", D.TICKS.def(60))
-            .param("radius", D.INT.range(0, 4).def(0))
+            .param("radius", D.INT.range(0, 5).def(0))
             .param("width", D.INT.range(1, 8).def(3))
             .param("height", D.INT.range(1, 8).def(1))
             .param("depth", D.INT.range(1, 8).def(3))
             .param("ahead", D.INT.range(0, 8).def(0))
             .param("dy", D.INT.range(-4, 4).def(0))
             .param("airOnly", D.BOOL.def(true))
+            .param("fill-chance", D.DOUBLE.range(0, 100).def(100),
+                    "percent of columns actually placed — a partial, scattered field")
             .target("who", T.VICTIM)
             .affinity(Affinity.REGION)
             .doc("Place a temporary block shape that reverts after `ticks`: shape POINT / FOOTPRINT (radius) / "
@@ -50,7 +53,11 @@ public final class TempBlockEffect implements EffectKind {
                     + "gapless, 4-connected footprint path even at sprint speed and on diagonals. Give material2/3/4 "
                     + "to place a mixed palette: each block independently picks a material from a deterministic "
                     + "per-block hash of its coordinates — a noisy, random-looking scatter (re-placing the same block "
-                    + "always picks the same material). A BOX is always single-material (palette[0]).")
+                    + "always picks the same material). A BOX is always single-material (palette[0]). "
+                    + "fill-chance below 100 places only that percent of the shape's columns, for a ragged, "
+                    + "partial field instead of a solid one; the choice is per column and stable for a given "
+                    + "coordinate, so re-stamping the same ground extends the same field rather than filling "
+                    + "in its holes. A radius-0 FOOTPRINT trail ignores it — a snake with gaps is not a path.")
             .example("{ TEMP_BLOCK: { shape: COLUMN, material: ICE, height: 2, ahead: 1, ticks: 60, who: \"@Attacker\" } }")
             .build();
 
@@ -69,6 +76,7 @@ public final class TempBlockEffect implements EffectKind {
         int ahead = ctx.integer("ahead");
         int dy = ctx.integer("dy");
         boolean airOnly = ctx.bool("airOnly");
+        double fillChance = ctx.dbl("fill-chance");
         boolean footprint = "FOOTPRINT".equals(shape);
         // 0 = air only (safe); a non-air-only FOOTPRINT replaces ONLY the solid ground beneath the feet (mode 3),
         // so a moving trail can never let a player scaffold up by jumping into freshly-placed blocks; other shapes
@@ -101,7 +109,7 @@ public final class TempBlockEffect implements EffectKind {
                     } else {
                         for (int dx = -radius; dx <= radius; dx++) {
                             for (int dz = -radius; dz <= radius; dz++) {
-                                place(sink, world, bx + dx, by, bz + dz, palette, ticks, mode);
+                                place(sink, world, bx + dx, by, bz + dz, palette, ticks, mode, fillChance);
                             }
                         }
                     }
@@ -109,7 +117,7 @@ public final class TempBlockEffect implements EffectKind {
                 case "COLUMN" -> {
                     int[] forward = forwardOffset(base, ahead);
                     for (int h = 0; h < height; h++) {
-                        place(sink, world, bx + forward[0], by + h, bz + forward[1], palette, ticks, mode);
+                        place(sink, world, bx + forward[0], by + h, bz + forward[1], palette, ticks, mode, fillChance);
                     }
                 }
                 case "BOX" ->
@@ -117,15 +125,18 @@ public final class TempBlockEffect implements EffectKind {
                     // A BOX is always entity-centred (the Spider box) → register it as a confining structure
                     // (ADR-0071 TRAP_BREAK) so Turnkey can early-restore it.
                     sink.tempBox(new Location(world, bx, by, bz), palette[0],
-                            ctx.integer("width"), height, ctx.integer("depth"), ticks, mode, who.getUniqueId());
+                            ctx.integer("width"), height, ctx.integer("depth"), ticks, mode, who.getUniqueId(),
+                            fillChance);
                 default -> {
                     // POINT: a block in the target's own cell (dy >= 0, the Fantasy web) is a confining trap —
                     // register it via the 6-arg overload; a POINT below the feet (dy < 0) is floor paint, plain.
                     if (dy >= 0) {
-                        sink.tempBlock(new Location(world, bx, by, bz), materialAt(palette, bx, bz), ticks, mode,
-                                false, who.getUniqueId());
+                        if (fills(bx, bz, fillChance)) {
+                            sink.tempBlock(new Location(world, bx, by, bz), materialAt(palette, bx, bz), ticks, mode,
+                                    false, who.getUniqueId());
+                        }
                     } else {
-                        place(sink, world, bx, by, bz, palette, ticks, mode);
+                        place(sink, world, bx, by, bz, palette, ticks, mode, fillChance);
                     }
                 }
             }
@@ -149,8 +160,16 @@ public final class TempBlockEffect implements EffectKind {
         return n == out.length ? out : java.util.Arrays.copyOf(out, n);
     }
 
-    private static void place(Sink sink, World world, int x, int y, int z, int[] palette, int ticks, int mode) {
-        sink.tempBlock(new Location(world, x, y, z), materialAt(palette, x, z), ticks, mode, false);
+    private static void place(Sink sink, World world, int x, int y, int z, int[] palette, int ticks, int mode,
+                              double fillChance) {
+        if (fills(x, z, fillChance)) {
+            sink.tempBlock(new Location(world, x, y, z), materialAt(palette, x, z), ticks, mode, false);
+        }
+    }
+
+    /** Whether the column at {@code (x, z)} is placed — the shared {@link ScatterFill} rule the sink's BOX uses. */
+    private static boolean fills(int x, int z, double fillChance) {
+        return ScatterFill.fills(x, z, fillChance);
     }
 
     /**
@@ -163,16 +182,7 @@ public final class TempBlockEffect implements EffectKind {
         if (palette.length == 1) {
             return palette[0];
         }
-        return palette[Math.floorMod(blockHash(x, z), palette.length)];
-    }
-
-    /** A cheap deterministic spatial mix of a block coordinate (the classic 73856093/19349663 hash, finalized). */
-    private static int blockHash(int x, int z) {
-        int h = x * 73856093 ^ z * 19349663;
-        h ^= h >>> 16;
-        h *= 0x7feb352d;
-        h ^= h >>> 15;
-        return h;
+        return palette[Math.floorMod(ScatterFill.hash(x, z), palette.length)];
     }
 
     /** The horizontal block offset {@code ahead} blocks along the target's facing (forward by default). */

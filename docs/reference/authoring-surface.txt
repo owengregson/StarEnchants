@@ -344,13 +344,14 @@ effect TEMP_BLOCK
   param material3 HANDLE optional min=- max=- enum=- handle=MATERIAL default=-
   param material4 HANDLE optional min=- max=- enum=- handle=MATERIAL default=-
   param ticks TICKS optional min=0 max=- enum=- handle=- default=60
-  param radius INT optional min=0 max=4 enum=- handle=- default=0
+  param radius INT optional min=0 max=5 enum=- handle=- default=0
   param width INT optional min=1 max=8 enum=- handle=- default=3
   param height INT optional min=1 max=8 enum=- handle=- default=1
   param depth INT optional min=1 max=8 enum=- handle=- default=3
   param ahead INT optional min=0 max=8 enum=- handle=- default=0
   param dy INT optional min=-4 max=4 enum=- handle=- default=0
   param airOnly BOOL optional min=- max=- enum=- handle=- default=true
+  param fill-chance DOUBLE optional min=0 max=100 enum=- handle=- default=100
 effect TRAP_BREAK
   param whiff-sound HANDLE optional min=- max=- enum=- handle=SOUND default=BLOCK_ANVIL_LAND
 effect VELOCITY

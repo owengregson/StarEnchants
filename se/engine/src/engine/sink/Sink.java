@@ -826,8 +826,9 @@ public interface Sink {
     /**
      * {@link #tempBox(Location, int, int, int, int, int, int)} that, when {@code confined != null},
      * registers the placed volume as a confining structure (ADR-0071 TRAP_BREAK) whose sole victim is
-     * {@code confined}. A {@code null} confined is byte-for-byte the 7-arg form.
+     * {@code confined}. A {@code null} confined is byte-for-byte the 7-arg form. A {@code fillChance} below 100
+     * places only that percent of the box's COLUMNS ({@link ScatterFill}) — a ragged web instead of a solid one.
      */
     void tempBox(Location center, int materialId, int width, int height, int depth, int durationTicks,
-                 int replaceMode, UUID confined);
+                 int replaceMode, UUID confined, double fillChance);
 }
