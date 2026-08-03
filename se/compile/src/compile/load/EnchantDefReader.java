@@ -32,7 +32,6 @@ final class EnchantDefReader {
     private static final Set<String> ABILITY_KEYS = ContentParse.withSoulKnobs(
             "trigger", "chance", "cooldown", "soul-cost", "no-souls-message", "condition", "repeat", "effects");
 
-
     private EnchantDefReader() {
     }
 
