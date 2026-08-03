@@ -1,0 +1,10 @@
+# StarEnchants — cosmic-pack message OVERLAY (docs/v3-directives.md §L; ADR-0023).
+#
+# A pack's lang.yml is an OVERLAY, not a full copy: it lists ONLY the keys this pack re-themes, and every
+# other message falls back to the built-in default catalogue (se/compile/resources/lang.yml). Keeping this a
+# diff — rather than a full mirror — means a newly-shipped default message (a new command, a new item) is
+# inherited automatically instead of being silently dropped by a stale copy.
+#
+# The cosmic port re-themes nothing yet: each verbatim string arrives with the batch that ports the feature
+# it belongs to (souls with the soul/mastery batch, use-items with theirs). Every key added here must exist
+# in the default catalogue, or it renders nowhere.
