@@ -69,7 +69,8 @@ class RegistryWiringTest {
             "CombatListener", "RageStacksListener", "ComboDotSyncListener", "EquipListener", "ArmourFeeder", "HandChangeFeeder",
             "SoulListener", "SoulInteractListener", "SoulInventoryListener",
             "TriggerListeners", "PlacedBlockTracker", "ItemDamageSource", "FallingBlockListener",
-            "GuardianHurtListener", "SummonTargetGuardListener", // ADR-0071 amendments: never target your summoner
+            "GuardianHurtListener", "ProjectileLandListener",
+            "SummonTargetGuardListener", // ADR-0071 amendments: never target your summoner
             "EntityVarCleanupListener", // TARGET_VAR: a mob carrier never quits, so its vars are dropped on death
             "TempEquipListener", "TimedRevertListener", "TempBlockGuardListener",
             "HellfireFloorListener", "KeepOnDeathListener",
@@ -86,7 +87,7 @@ class RegistryWiringTest {
             "MenuListener", "GodlyTransmogListener");
 
     private static final List<String> GOLDEN_STOPS = List.of(
-            "REPEATING tasks", "HELD/PASSIVE buffs", "maintained passives",   // equip
+            "REPEATING tasks", "HELD/PASSIVE buffs", "maintained passives", "EQUIP_CHANGE tracking", // equip
             "soul aura task",                                                 // souls
             "frozen windows",                                                 // controls (ADR-0065)
             "falling-block casts", "guardian casts", "combat tags", "damage marks", "owner zones", "temp equips", // stores
