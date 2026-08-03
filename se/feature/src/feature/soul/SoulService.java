@@ -396,7 +396,9 @@ public final class SoulService implements SoulDebit, SoulSpender {
             boolean active = modes.active(player).isPresent();
             soulUseFeedback(p, active ? pool.total(player) : totalSouls(p));
             if (carried && !active) {
-                pool.disable(player);
+                // Retire only when nothing is owed: a carried spend that landed while this drain was running
+                // still has to be charged, and dropping the ledger under it would make that one free.
+                pool.retireIfSettled(player);
             }
         });
     }
