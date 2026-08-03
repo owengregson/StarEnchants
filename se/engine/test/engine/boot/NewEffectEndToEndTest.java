@@ -50,7 +50,7 @@ import testfx.PermissiveResolvers;
 import testfx.SyncSchedulerBackend;
 
 /**
- * The wave-1d.2 effect kinds end to end: authored YAML → loader → compiler → snapshot → a real pipeline run on
+ * The wave-1d.2/1d.3 surface end to end: authored YAML → loader → compiler → snapshot → a real pipeline run on
  * the FULL production registries. Effect dispatch is by DENSE kind id stamped at compile (ADR-0039), so a kind
  * whose head the compiler cannot resolve, or whose id the executor indexes differently, lowers to an ability
  * that silently runs the wrong effect or none — with a green spec test at one end and a green sink test at the
@@ -137,6 +137,37 @@ class NewEffectEndToEndTest {
         assertNotNull(trophy, "the trophy reached the store through the real dispatch");
         assertEquals("Skull of {VICTIM}", trophy.name());
         assertNull(stores.headTrophies().consume(victimId));
+    }
+
+    @Test
+    void theFoodWindowModesReachTheirStoreOnARealRun() throws Exception {
+        // Wave 1d.3. MODIFY_FOOD's window modes emit nothing observable at activation — their whole contract
+        // is the flag a LATER FoodLevelChangeEvent reads, so a mis-wired mode is an enchant with no symptom
+        // until someone eats. Both modes on one head, so a swapped wire code shows up as the wrong window.
+        EngineStores stores = EngineStores.fresh();
+        Player actor = mock(Player.class);
+        when(actor.getUniqueId()).thenReturn(ACTOR);
+
+        run("scale", "MODIFY_FOOD: { mode: scale-gain, factor: 2.5, duration: 60, who: \"@Self\" }",
+                stores, actor, null);
+        assertEquals(2.5, stores.foodWindows().gainFactor(ACTOR, 0L));
+        assertFalse(stores.foodWindows().cancelsDrain(ACTOR, 0L), "scale-gain must not arm the drain window");
+
+        run("nodrain", "MODIFY_FOOD: { mode: cancel-drain, duration: 40, who: \"@Self\" }",
+                stores, actor, null);
+        assertTrue(stores.foodWindows().cancelsDrain(ACTOR, 0L));
+        assertEquals(2.5, stores.foodWindows().gainFactor(ACTOR, 0L), "the two windows are independent");
+        assertFalse(stores.foodWindows().cancelsDrain(ACTOR, 40L), "half-open: the expiry tick is free");
+    }
+
+    @Test
+    void theBoreSelectorCompilesToItsOwnSelectorRegistryId() throws Exception {
+        // Wave 1d.3. Selector dispatch is a dense id too, so a new selector can compile cleanly and still
+        // resolve through whichever kind happens to sit at that index.
+        Snapshot snap = load("bore", "BREAK_BLOCK: { who: \"@Bore{half-width=1, depth=2}\" }");
+        CompiledEffect effect = snap.byStableKey("enchants/bore/1").effects()[0];
+        assertEquals("BORE",
+                BuiltinSelectors.registry().selectorsById()[effect.target().kindId()].spec().head());
     }
 
     @Test

@@ -246,13 +246,51 @@ class ModeDispatchEffectTest {
 
     @TestFactory
     List<DynamicTest> food() {
+        // Every row starts from MODIFY_FOOD's DECLARED defaults, so the window modes' new params cannot
+        // silently shift what give/take already emit.
         return List.of(
-                player("FOOD give → feed", new FoodEffect(),
+                foodPlayer("FOOD give → feed",
                         c -> c.with("amount", 6).with("mode", "give"), (s, p) -> verify(s).feed(p, 6)),
-                player("FOOD take → takeFood", new FoodEffect(),
+                foodPlayer("FOOD take → takeFood",
                         c -> c.with("amount", 4).with("mode", "take"), (s, p) -> verify(s).takeFood(p, 4)),
-                living("FOOD on a non-player → skipped (no hunger bar)", new FoodEffect(),
-                        c -> c.with("amount", 6).with("mode", "give"), (s, t) -> { }));
+                foodPlayer("FOOD scale-gain → an armed window carrying the factor",
+                        c -> c.with("mode", "scale-gain").with("factor", 2.5).with("duration", 60L),
+                        (s, p) -> verify(s).foodWindow(p, 0, 60, 2.5)),
+                foodPlayer("FOOD cancel-drain → the other window type, factor unused",
+                        c -> c.with("mode", "cancel-drain").with("duration", 40L),
+                        (s, p) -> verify(s).foodWindow(p, 1, 40, 0.0)),
+                foodLiving("FOOD on a non-player → skipped (no hunger bar)",
+                        c -> c.with("amount", 6).with("mode", "give"), (s, t) -> { }),
+                foodLiving("FOOD scale-gain on a non-player → skipped",
+                        c -> c.with("mode", "scale-gain").with("factor", 2.0), (s, t) -> { }));
+    }
+
+    /** One player target under "who", ctx seeded from MODIFY_FOOD's own declared defaults. */
+    private static DynamicTest foodPlayer(String label, Consumer<FakeEffectCtx> args,
+            BiConsumer<Sink, Player> verify) {
+        return dynamicTest(label, () -> {
+            Player p = mock(Player.class);
+            FakeEffectCtx ctx = SpecDrivenCtx.defaults(FoodEffect.SPEC).targets("who", p);
+            args.accept(ctx);
+            Sink sink = mock(Sink.class);
+            new FoodEffect().run(ctx, sink);
+            verify.accept(sink, p);
+            verifyNoMoreInteractions(sink);
+        });
+    }
+
+    /** One living (non-player) target under "who", ctx seeded from MODIFY_FOOD's own declared defaults. */
+    private static DynamicTest foodLiving(String label, Consumer<FakeEffectCtx> args,
+            BiConsumer<Sink, LivingEntity> verify) {
+        return dynamicTest(label, () -> {
+            LivingEntity t = mock(LivingEntity.class);
+            FakeEffectCtx ctx = SpecDrivenCtx.defaults(FoodEffect.SPEC).targets("who", t);
+            args.accept(ctx);
+            Sink sink = mock(Sink.class);
+            new FoodEffect().run(ctx, sink);
+            verify.accept(sink, t);
+            verifyNoMoreInteractions(sink);
+        });
     }
 
     @TestFactory

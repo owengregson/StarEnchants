@@ -1,6 +1,7 @@
 package bootstrap.wire;
 
 import engine.sink.TempBlockLedger;
+import feature.combat.FoodWindowListener;
 import feature.combat.HeadTrophyListener;
 import feature.combat.HellfireFloorListener;
 import feature.combat.ImmuneListener;
@@ -70,6 +71,9 @@ final class ControlsModule {
                 // Cosmic Enchants exotic-effect ports: TELEBLOCK cancels teleport, IMMUNE cancels damage while flagged.
                 .events(new TeleblockListener(core.stores().teleblock(), core.tick()::get))
                 .events(new ImmuneListener(core.stores().immune(), core.tick()::get, core.hands()))
+                // MODIFY_FOOD's window modes: the one hunger bridge, reading FoodLevelChangeEvent — where a
+                // meal's nutrition and every exhaustion drain land, on a later tick than the activation.
+                .events(new FoodWindowListener(core.stores().foodWindows(), core.tick()::get))
                 // POTION_LOCK guard: modern cancels EntityPotionEffectEvent for a locked type (genuine denial, so a
                 // passive re-applier cannot make the buff flash back); 1.8 binding is inert (the Sink re-strip enforces).
                 .events(core.bindings().potionLockGuard())

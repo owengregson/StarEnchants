@@ -216,8 +216,10 @@ effect MODIFY_EXP
   param amount INT required min=0 max=- enum=- handle=- default=-
   param mode ENUM optional min=- max=- enum=give,take,transfer handle=- default=give
 effect MODIFY_FOOD
-  param amount INT required min=0 max=- enum=- handle=- default=-
-  param mode ENUM optional min=- max=- enum=give,take handle=- default=give
+  param amount INT optional min=0 max=- enum=- handle=- default=0
+  param mode ENUM optional min=- max=- enum=cancel-drain,give,scale-gain,take handle=- default=give
+  param factor DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param duration TICKS optional min=0 max=- enum=- handle=- default=100
 effect MODIFY_HEALTH
   param amount DOUBLE required min=0 max=- enum=- handle=- default=-
   param mode ENUM optional min=- max=- enum=give,set,take,transfer handle=- default=give

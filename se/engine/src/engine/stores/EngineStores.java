@@ -21,7 +21,7 @@ public record EngineStores(
         OutgoingDebuffStore outgoingDebuff, DamageCapStore damageCap, RageStackStore rageStacks,
         WardStore ward, HitTempoStore hitTempo, BatteryStore battery,
         DisarmWindowStore disarmWindows, HeldSlotStore heldSlots, SoulTotalStore soulTotals,
-        DotAmplifyStore dotAmplify, HeadTrophyStore headTrophies) {
+        DotAmplifyStore dotAmplify, HeadTrophyStore headTrophies, FoodWindowStore foodWindows) {
 
     public EngineStores {
         Objects.requireNonNull(vars, "vars");
@@ -46,6 +46,7 @@ public record EngineStores(
         Objects.requireNonNull(soulTotals, "soulTotals");
         Objects.requireNonNull(dotAmplify, "dotAmplify");
         Objects.requireNonNull(headTrophies, "headTrophies");
+        Objects.requireNonNull(foodWindows, "foodWindows");
     }
 
     /** A fresh aggregate with every store newly constructed (the composition-root default). */
@@ -56,14 +57,14 @@ public record EngineStores(
                 new RecentAttackersStore(), new ReflectMarksStore(), new OutgoingDebuffStore(), new DamageCapStore(),
                 new RageStackStore(), new WardStore(), new HitTempoStore(), new BatteryStore(),
                 new DisarmWindowStore(), new HeldSlotStore(), new SoulTotalStore(),
-                new DotAmplifyStore(), new HeadTrophyStore());
+                new DotAmplifyStore(), new HeadTrophyStore(), new FoodWindowStore());
     }
 
     /** Every store as the {@link PlayerScoped} seam, in sweep order. */
     public List<PlayerScoped> all() {
         return List.of(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns, combo, why,
                 recentAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks, ward, hitTempo, battery,
-                disarmWindows, heldSlots, soulTotals, dotAmplify, headTrophies);
+                disarmWindows, heldSlots, soulTotals, dotAmplify, headTrophies, foodWindows);
     }
 
     /**
@@ -71,12 +72,13 @@ public record EngineStores(
      * (writable vars, knockback control, keep-on-death, damage immunity, combo streak, the /se why ring, the
      * recent-attacker gank window, the self-armed Diminish cap, the rage stacks, the mask wards, and the
      * self-armed reforge windows/charge — Quickening tempo, the Supernova core, and the Unhanding window, the
-     * held-slot stamp, and the cached soul total). Clearing these on quit is the conservative direction —
-     * worn-derived buffs re-establish on rejoin and a self-armed cap only protects its owner.
+     * held-slot stamp, the cached soul total, and the self-armed hunger windows). Clearing these on quit is
+     * the conservative direction — worn-derived buffs re-establish on rejoin and a self-armed cap only
+     * protects its owner.
      */
     public List<PlayerScoped> quitVolatile() {
         return List.of(vars, knockback, keepOnDeath, immune, combo, why, recentAttackers, damageCap, rageStacks,
-                ward, hitTempo, battery, disarmWindows, heldSlots, soulTotals);
+                ward, hitTempo, battery, disarmWindows, heldSlots, soulTotals, foodWindows);
     }
 
     /**

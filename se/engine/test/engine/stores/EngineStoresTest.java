@@ -112,6 +112,8 @@ class EngineStoresTest {
         s.why().record(id, 0L, 0, 7, 10, 0, 0);
         s.dotAmplify().amplify(id, 3.0, DotAmplifyStore.CAUSE_DOT, 0L, 100);
         s.headTrophies().arm(id, "n", "l", 0L);
+        s.foodWindows().arm(id, FoodWindowStore.Type.SCALE_GAIN, 0L, 100, 2.0);
+        s.foodWindows().arm(id, FoodWindowStore.Type.CANCEL_DRAIN, 0L, 100, 0.0);
 
         assertEquals("1", s.vars().get(id, "x", 0L));
         assertTrue(s.suppression().isSuppressed(id, 1L, 0L));
@@ -123,6 +125,8 @@ class EngineStoresTest {
         assertEquals(1, s.combo().current(id, 0L));
         assertEquals(1, s.why().attempts(id).size());
         assertEquals(3.0, s.dotAmplify().factor(id, 0L, DotAmplifyStore.CAUSE_WITHER));
+        assertEquals(2.0, s.foodWindows().gainFactor(id, 0L));
+        assertTrue(s.foodWindows().cancelsDrain(id, 0L));
 
         s.clearAll(id);
 
@@ -138,5 +142,7 @@ class EngineStoresTest {
         assertEquals(1.0, s.dotAmplify().factor(id, 0L, DotAmplifyStore.CAUSE_WITHER));
         // An unexpiring store has no other way to be freed, so a missed clear here would leak forever.
         assertNull(s.headTrophies().consume(id));
+        assertEquals(1.0, s.foodWindows().gainFactor(id, 0L)); // 1 = unarmed, the neutral multiplier
+        assertFalse(s.foodWindows().cancelsDrain(id, 0L));
     }
 }

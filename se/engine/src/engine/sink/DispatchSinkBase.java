@@ -18,6 +18,7 @@ import engine.stores.ReflectMarksStore;
 import engine.stores.SuppressionStore;
 import engine.stores.TeleblockStore;
 import engine.stores.VarStore;
+import engine.stores.FoodWindowStore;
 import engine.stores.WardStore;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -145,6 +146,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final TeleblockStore teleblock;
     private final ImmuneStore immune;
     private final WardStore ward; // ADR-0053 mask ward flags
+    private final FoodWindowStore foodWindows; // MODIFY_FOOD armed hunger windows
     private final ReflectMarksStore reflectMarks;   // ADR-0049 Hex reflect windows
     private final OutgoingDebuffStore outgoingDebuff; // ADR-0049 Weaken/Destruction outgoing nerfs
     private final DamageCapStore damageCap;          // ADR-0049 Diminish last-taken + armed cap
@@ -214,6 +216,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.teleblock = env.stores().teleblock();
         this.immune = env.stores().immune();
         this.ward = env.stores().ward();
+        this.foodWindows = env.stores().foodWindows();
         this.reflectMarks = env.stores().reflectMarks();
         this.outgoingDebuff = env.stores().outgoingDebuff();
         this.damageCap = env.stores().damageCap();
@@ -2770,6 +2773,17 @@ public abstract class DispatchSinkBase implements SinkReadback {
         // Per-player timed flag read later by a feature guard (a separate Bukkit event from the arming
         // activation). Concurrent store, UUID captured here → Folia-safe on the firing thread (ADR-0053).
         ward.arm(target.getUniqueId(), WardStore.Type.of(wardType), nowTicks.getAsLong(), durationTicks, amount);
+    }
+
+    @Override
+    public void foodWindow(Player target, int windowType, int durationTicks, double factor) {
+        if (target == null) {
+            return;
+        }
+        // Per-player timed flag read later by the food listener (FoodLevelChangeEvent fires on its own tick,
+        // never inside this activation). Concurrent store, UUID captured here → Folia-safe on the firing thread.
+        foodWindows.arm(target.getUniqueId(), FoodWindowStore.Type.of(windowType),
+                nowTicks.getAsLong(), durationTicks, factor);
     }
 
     @Override
