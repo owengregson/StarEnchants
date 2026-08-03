@@ -51,6 +51,9 @@ public final class Abilities {
         private boolean soulCostCarried = false;
         private int noSoulsSound = -1;
         private int noSoulsParticle = -1;
+        private double soulCostGrowth = 1.0;
+        private int soulCostCap = 0;
+        private int soulCostDecayPeriod = 0;
 
         public Builder id(int id) {
             this.id = id;
@@ -178,11 +181,27 @@ public final class Abilities {
             return this;
         }
 
+        public Builder soulCostGrowth(double soulCostGrowth) {
+            this.soulCostGrowth = soulCostGrowth;
+            return this;
+        }
+
+        public Builder soulCostCap(int soulCostCap) {
+            this.soulCostCap = soulCostCap;
+            return this;
+        }
+
+        public Builder soulCostDecayPeriod(int soulCostDecayPeriod) {
+            this.soulCostDecayPeriod = soulCostDecayPeriod;
+            return this;
+        }
+
         public Ability build() {
             return new Ability(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost,
                     worldBlacklist, condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup,
                     cdScopeType, suppressKey, setPieces, suppressImmune, factMask, chanceExpr, noSoulsMessage,
-                    soulCostCarried, noSoulsSound, noSoulsParticle);
+                    soulCostCarried, noSoulsSound, noSoulsParticle,
+                    soulCostGrowth, soulCostCap, soulCostDecayPeriod);
         }
     }
 }

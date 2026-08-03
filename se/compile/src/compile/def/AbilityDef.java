@@ -31,6 +31,9 @@ import java.util.List;
  *                        active; {@code false} = the default active-gem-only rule
  * @param noSoulsSound    sound token played alongside {@link #noSoulsMessage}; {@code null}/blank = none
  * @param noSoulsParticle particle token spawned alongside {@link #noSoulsMessage}; {@code null}/blank = none
+ * @param soulCostGrowth  factor {@link #soulCost} is multiplied by per successful charge; {@code 1.0} = static
+ * @param soulCostCap     ceiling on the escalated cost; {@code 0} = uncapped
+ * @param soulCostDecayPeriod ticks per escalation step shed since the last charge; {@code 0} = never decays
  */
 public record AbilityDef(
         SourceKind sourceKind,
@@ -56,7 +59,10 @@ public record AbilityDef(
         String noSoulsMessage,
         boolean soulCostCarried,
         String noSoulsSound,
-        String noSoulsParticle) {
+        String noSoulsParticle,
+        double soulCostGrowth,
+        int soulCostCap,
+        int soulCostDecayPeriod) {
 
     public AbilityDef {
         triggers = List.copyOf(triggers);
@@ -72,7 +78,7 @@ public record AbilityDef(
                       boolean suppressImmune) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 conditionExpr, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks,
-                source, setPieces, suppressImmune, null, null, false, null, null);
+                source, setPieces, suppressImmune, null, null, false, null, null, 1.0, 0, 0);
     }
 
     /** Back-compat construction defaulting {@code suppressImmune=false} — only enchants author it today. */
@@ -82,6 +88,6 @@ public record AbilityDef(
                       String cdScopeGroup, String cdScopeType, int repeatTicks, Source source, int setPieces) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 conditionExpr, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks,
-                source, setPieces, false, null, null, false, null, null);
+                source, setPieces, false, null, null, false, null, null, 1.0, 0, 0);
     }
 }

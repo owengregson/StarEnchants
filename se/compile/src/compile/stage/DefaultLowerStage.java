@@ -167,7 +167,10 @@ public final class DefaultLowerStage implements LowerStage {
                 def.noSoulsMessage(),
                 def.soulCostCarried(),
                 envelopeHandle(def.noSoulsSound(), HandleCategory.SOUND, "no-souls-sound", def, diags),
-                envelopeHandle(def.noSoulsParticle(), HandleCategory.PARTICLE, "no-souls-particle", def, diags));
+                envelopeHandle(def.noSoulsParticle(), HandleCategory.PARTICLE, "no-souls-particle", def, diags),
+                def.soulCostGrowth(),
+                def.soulCostCap(),
+                def.soulCostDecayPeriod());
     }
 
     /**

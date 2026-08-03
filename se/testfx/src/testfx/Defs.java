@@ -59,6 +59,9 @@ public final class Defs {
         private boolean soulCostCarried = false;
         private String noSoulsSound = null;
         private String noSoulsParticle = null;
+        private double soulCostGrowth = 1.0;
+        private int soulCostCap = 0;
+        private int soulCostDecayPeriod = 0;
 
         public AbilityBuilder sourceKind(SourceKind sourceKind) {
             this.sourceKind = sourceKind;
@@ -200,6 +203,21 @@ public final class Defs {
             return this;
         }
 
+        public AbilityBuilder soulCostGrowth(double soulCostGrowth) {
+            this.soulCostGrowth = soulCostGrowth;
+            return this;
+        }
+
+        public AbilityBuilder soulCostCap(int soulCostCap) {
+            this.soulCostCap = soulCostCap;
+            return this;
+        }
+
+        public AbilityBuilder soulCostDecayPeriod(int soulCostDecayPeriod) {
+            this.soulCostDecayPeriod = soulCostDecayPeriod;
+            return this;
+        }
+
         public AbilityDef build() {
             List<EffectLine> lines = effects;
             if (rawEffects != null) {
@@ -211,7 +229,8 @@ public final class Defs {
             return new AbilityDef(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost,
                     triggers, worldBlacklist, conditionExpr, lines, suppressKey, cdScopeEnchant, cdScopeGroup,
                     cdScopeType, repeatTicks, source, setPieces, suppressImmune, chanceExpr, noSoulsMessage,
-                    soulCostCarried, noSoulsSound, noSoulsParticle);
+                    soulCostCarried, noSoulsSound, noSoulsParticle,
+                    soulCostGrowth, soulCostCap, soulCostDecayPeriod);
         }
     }
 
@@ -242,6 +261,9 @@ public final class Defs {
         private boolean soulCostCarried = false;
         private int noSoulsSound = -1;
         private int noSoulsParticle = -1;
+        private double soulCostGrowth = 1.0;
+        private int soulCostCap = 0;
+        private int soulCostDecayPeriod = 0;
 
         public LoweredBuilder sourceKind(SourceKind sourceKind) {
             this.sourceKind = sourceKind;
@@ -378,11 +400,27 @@ public final class Defs {
             return this;
         }
 
+        public LoweredBuilder soulCostGrowth(double soulCostGrowth) {
+            this.soulCostGrowth = soulCostGrowth;
+            return this;
+        }
+
+        public LoweredBuilder soulCostCap(int soulCostCap) {
+            this.soulCostCap = soulCostCap;
+            return this;
+        }
+
+        public LoweredBuilder soulCostDecayPeriod(int soulCostDecayPeriod) {
+            this.soulCostDecayPeriod = soulCostDecayPeriod;
+            return this;
+        }
+
         public LoweredAbility build() {
             return new LoweredAbility(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost,
                     triggers, worldBlacklist, condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup,
                     cdScopeType, repeatTicks, affinity, source, setPieces, suppressImmune, loweredChanceExpr,
-                    noSoulsMessage, soulCostCarried, noSoulsSound, noSoulsParticle);
+                    noSoulsMessage, soulCostCarried, noSoulsSound, noSoulsParticle,
+                    soulCostGrowth, soulCostCap, soulCostDecayPeriod);
         }
     }
 }

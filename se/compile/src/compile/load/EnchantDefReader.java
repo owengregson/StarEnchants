@@ -25,12 +25,15 @@ final class EnchantDefReader {
 
     private static final Set<String> ROOT_KEYS = ContentParse.withSoulKnobs(
             "display", "description", "tier", "applies-to", "trigger", "disabled-worlds", "group",
-            "repeat", "levels", "chance", "cooldown", "soul-cost", "no-souls-message", "condition",
+            "repeat", "levels", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap",
+            "soul-cost-decay-period", "no-souls-message", "condition",
             "requires", "blacklist", "removes-required", "suppress-immune");
     private static final Set<String> LEVEL_KEYS = ContentParse.withSoulKnobs(
-            "chance", "cooldown", "soul-cost", "no-souls-message", "condition", "effects", "abilities");
+            "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
+            "no-souls-message", "condition", "effects", "abilities");
     private static final Set<String> ABILITY_KEYS = ContentParse.withSoulKnobs(
-            "trigger", "chance", "cooldown", "soul-cost", "no-souls-message", "condition", "repeat", "effects");
+            "trigger", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap",
+            "soul-cost-decay-period", "no-souls-message", "condition", "repeat", "effects");
 
     private EnchantDefReader() {
     }
@@ -163,6 +166,12 @@ final class EnchantDefReader {
                 ContentParse.resolveChanceValue(knobNode(block, lvl, root, "chance"), "chance", diags);
         int cooldown = ContentParse.resolveInt(knobNode(block, lvl, root, "cooldown"), "cooldown", 0, diags);
         int soulCost = ContentParse.resolveInt(knobNode(block, lvl, root, "soul-cost"), "soul-cost", 0, diags);
+        double soulCostGrowth = ContentParse.resolveDouble(
+                knobNode(block, lvl, root, "soul-cost-growth"), "soul-cost-growth", 1.0, diags);
+        int soulCostCap = ContentParse.resolveInt(
+                knobNode(block, lvl, root, "soul-cost-cap"), "soul-cost-cap", 0, diags);
+        int soulCostDecayPeriod = ContentParse.resolveInt(
+                knobNode(block, lvl, root, "soul-cost-decay-period"), "soul-cost-decay-period", 0, diags);
         String noSoulsMessage = ContentParse.blankToNull(ContentParse.resolveString(
                 knobNode(block, lvl, root, "no-souls-message"), "no-souls-message", diags));
         // Each soul knob keeps its OWN innermost-declaring scope, so the three resolve off three nodes.
@@ -203,7 +212,10 @@ final class EnchantDefReader {
                 noSoulsMessage,
                 soulKnobs.carried(),
                 soulKnobs.sound(),
-                soulKnobs.particle());
+                soulKnobs.particle(),
+                soulCostGrowth,
+                soulCostCap,
+                soulCostDecayPeriod);
     }
 
     /** The node a knob is read from: the innermost scope that declares it — block, then level, then file root. */

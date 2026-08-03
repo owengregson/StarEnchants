@@ -29,10 +29,12 @@ final class MaskDefReader {
     private static final Set<String> ROOT_KEYS = ContentParse.withSoulKnobs(
             "display", "color", "head", "material", "description", "abilities",
             // single-ability shorthand (a mask with exactly one ability authors these at the top level):
-            "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "no-souls-message",
+            "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
+            "no-souls-message",
             "condition", "effects");
     private static final Set<String> ABILITY_KEYS = ContentParse.withSoulKnobs(
-            "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "no-souls-message",
+            "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
+            "no-souls-message",
             "condition", "effects");
 
     private MaskDefReader() {
@@ -104,6 +106,9 @@ final class MaskDefReader {
         ContentParse.Chance chance = ContentParse.resolveChanceValue(node, "chance", diags);
         int cooldown = ContentParse.resolveInt(node, "cooldown", 0, diags);
         int soulCost = ContentParse.resolveInt(node, "soul-cost", 0, diags);
+        double soulCostGrowth = ContentParse.resolveDouble(node, "soul-cost-growth", 1.0, diags);
+        int soulCostCap = ContentParse.resolveInt(node, "soul-cost-cap", 0, diags);
+        int soulCostDecayPeriod = ContentParse.resolveInt(node, "soul-cost-decay-period", 0, diags);
         String noSoulsMessage = ContentParse.blankToNull(
                 ContentParse.resolveString(node, "no-souls-message", diags));
         ContentParse.SoulKnobs soulKnobs = ContentParse.resolveSoulKnobs(node, diags);
@@ -118,7 +123,8 @@ final class MaskDefReader {
         return new AbilityDef(
                 SourceKind.MASK, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, soulCost, triggers,
                 disabledWorlds, condition, effects, stableKey, stableKey, group, null, repeatTicks, fileSource, 0, false,
-                chance.expr(), noSoulsMessage, soulKnobs.carried(), soulKnobs.sound(), soulKnobs.particle());
+                chance.expr(), noSoulsMessage, soulKnobs.carried(), soulKnobs.sound(), soulKnobs.particle(),
+                soulCostGrowth, soulCostCap, soulCostDecayPeriod);
     }
 
     private static String orEmpty(String value) {

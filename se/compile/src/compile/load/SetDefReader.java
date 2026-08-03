@@ -31,6 +31,7 @@ final class SetDefReader {
     private static final Set<String> WEAPON_KEYS = Set.of("material", "name", "lore", "enchants");
     private static final Set<String> BONUS_KEYS = ContentParse.withSoulKnobs(
             "on", "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost",
+            "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
             "no-souls-message", "condition", "effects");
     private static final Set<String> MEMBER_KEYS = Set.of("material", "name");
 
@@ -199,6 +200,9 @@ final class SetDefReader {
         ContentParse.Chance chance = ContentParse.resolveChanceValue(node, "chance", diags);
         int cooldown = ContentParse.resolveInt(node, "cooldown", 0, diags);
         int soulCost = ContentParse.resolveInt(node, "soul-cost", 0, diags);
+        double soulCostGrowth = ContentParse.resolveDouble(node, "soul-cost-growth", 1.0, diags);
+        int soulCostCap = ContentParse.resolveInt(node, "soul-cost-cap", 0, diags);
+        int soulCostDecayPeriod = ContentParse.resolveInt(node, "soul-cost-decay-period", 0, diags);
         String noSoulsMessage = ContentParse.blankToNull(
                 ContentParse.resolveString(node, "no-souls-message", diags));
         ContentParse.SoulKnobs soulKnobs = ContentParse.resolveSoulKnobs(node, diags);
@@ -212,6 +216,6 @@ final class SetDefReader {
                 SourceKind.SET, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, soulCost, triggers,
                 disabledWorlds, condition, effects, stableKey, stableKey, group, null, repeatTicks, fileSource,
                 Math.max(0, setPieces), false, chance.expr(), noSoulsMessage, soulKnobs.carried(), soulKnobs.sound(),
-                soulKnobs.particle());
+                soulKnobs.particle(), soulCostGrowth, soulCostCap, soulCostDecayPeriod);
     }
 }

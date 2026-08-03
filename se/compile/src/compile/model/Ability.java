@@ -32,6 +32,9 @@ import compile.model.cond.NumExpr;
  * @param soulCostCarried whether gate 10 may charge {@link #soulCost} against the actor's CARRIED gems with no gem active ({@code soul-cost-carried: true}); {@code false} = the default rule, where a soul-cost ability never fires outside soul mode
  * @param noSoulsSound   interned sound id played with {@link #noSoulsMessage} on that abort; {@code -1} = none
  * @param noSoulsParticle interned particle id spawned with {@link #noSoulsMessage} on that abort; {@code -1} = none
+ * @param soulCostGrowth factor {@link #soulCost} compounds by per successful charge; {@code 1.0} = static, and the hot path short-circuits on it
+ * @param soulCostCap    ceiling on the escalated cost; {@code 0} = uncapped
+ * @param soulCostDecayPeriod ticks per escalation step shed since the actor's last charge of THIS ability; {@code 0} = never decays
  */
 public record Ability(
         int id,
@@ -58,7 +61,10 @@ public record Ability(
         String noSoulsMessage,
         boolean soulCostCarried,
         int noSoulsSound,
-        int noSoulsParticle) {
+        int noSoulsParticle,
+        double soulCostGrowth,
+        int soulCostCap,
+        int soulCostDecayPeriod) {
 
     /** Back-compat construction for a constant {@code chance:} — the hot-path fast case. */
     public Ability(int id, int defId, SourceKind sourceKind, int triggerMask, int level, double baseChance,
@@ -68,7 +74,7 @@ public record Ability(
                    FactMask factMask) {
         this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
                 condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
-                suppressKey, setPieces, suppressImmune, factMask, null, null, false, -1, -1);
+                suppressKey, setPieces, suppressImmune, factMask, null, null, false, -1, -1, 1.0, 0, 0);
     }
 
     /** No derived fact mask — populate everything (the safe default for hand-built test abilities). */
@@ -78,7 +84,7 @@ public record Ability(
                    int cdScopeGroup, int cdScopeType, int suppressKey, int setPieces) {
         this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
                 condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
-                suppressKey, setPieces, false, FactMask.ALL, null, null, false, -1, -1);
+                suppressKey, setPieces, false, FactMask.ALL, null, null, false, -1, -1, 1.0, 0, 0);
     }
 
     public boolean firesOn(int triggerId) {

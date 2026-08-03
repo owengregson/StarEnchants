@@ -454,7 +454,8 @@ public final class BootCore {
                 () -> master.config().messageOnActivate(), () -> master.config().pets(), content);
         this.executor = new AbilityExecutor(effects, BuiltinSelectors.registry(),
                 new ActivationPipeline(stores.cooldowns(), soulService, stores.suppression(), protectionGuard,
-                        ActivationPipeline.Guard.ALLOW, stores.why()), // ADR-0045: record every gate walk
+                        ActivationPipeline.Guard.ALLOW, stores.why(), // ADR-0045: record every gate walk
+                        stores.soulEscalation()),
                 areaScan(bindings), (key, ability, context) -> {
                     if (key == null) {
                         return; // a null key is skipped, not faked
