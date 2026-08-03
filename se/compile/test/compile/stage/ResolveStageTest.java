@@ -66,6 +66,56 @@ class ResolveStageTest {
         assertEquals(100L, e.args().lng("duration"));
     }
 
+    /** A summon-loadout shaped spec: one handle LIST arg beside an ordinary one. */
+    private static ParamSpec loadout() {
+        return ParamSpec.of("LOADOUT")
+                .param("count", D.INT.min(0))
+                .param("effects", D.potionEffects().def(""))
+                .build();
+    }
+
+    @Test
+    void handleListResolvesEveryEntryInAuthoredOrder() {
+        SpecRegistry reg = MapSpecRegistry.of(loadout());
+        Diagnostics d = new Diagnostics();
+        LoweredAbility lowered = lower(reg, def("LOADOUT:2:STRENGTH, SPEED"), d);
+        assertFalse(d.hasErrors());
+
+        PlatformResolvers resolvers = FakeResolvers.builder()
+                .potionEffect("STRENGTH", 7).potionEffect("SPEED", 3).build();
+        LoweredAbility resolved = new DefaultResolveStage(reg, resolvers).resolve(lowered, d);
+
+        assertFalse(d.hasErrors());
+        assertEquals(List.of(7, 3), resolved.effects().get(0).args().ids("effects"),
+                "authored order survives, and surrounding whitespace does not become an entry");
+    }
+
+    @Test
+    void anEmptyHandleListIsAValueNotAFault() {
+        SpecRegistry reg = MapSpecRegistry.of(loadout());
+        Diagnostics d = new Diagnostics();
+        LoweredAbility lowered = lower(reg, def("LOADOUT:2"), d); // the default: no entries
+        assertFalse(d.hasErrors());
+
+        LoweredAbility resolved = new DefaultResolveStage(reg, FakeResolvers.builder().build()).resolve(lowered, d);
+
+        assertFalse(d.hasErrors(), "an absent loadout is the ordinary case, not a missing name");
+        assertEquals(List.of(), resolved.effects().get(0).args().ids("effects"));
+    }
+
+    @Test
+    void oneUnknownEntryDropsTheWholeOpRatherThanShippingAShorterLoadout() {
+        SpecRegistry reg = MapSpecRegistry.of(loadout());
+        Diagnostics d = new Diagnostics();
+        LoweredAbility lowered = lower(reg, def("LOADOUT:2:STRENGTH, NOT_A_POTION"), d);
+
+        PlatformResolvers resolvers = FakeResolvers.builder().potionEffect("STRENGTH", 7).build();
+        LoweredAbility resolved = new DefaultResolveStage(reg, resolvers).resolve(lowered, d);
+
+        assertTrue(d.all().stream().anyMatch(x -> x.is(DiagCode.E_UNKNOWN_HANDLE)));
+        assertTrue(resolved.effects().isEmpty(), "a typo cannot silently ship a summon with fewer buffs");
+    }
+
     @Test
     void unknownHandleIsReportedAndTheEffectDropped() {
         SpecRegistry reg = potionRegistry();

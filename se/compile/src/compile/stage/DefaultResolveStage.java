@@ -69,7 +69,15 @@ public final class DefaultResolveStage implements ResolveStage {
             }
             Object current = args.opt(p.name()).orElse(null);
             if (!(current instanceof String token)) {
-                continue; // already an int (re-resolved) or otherwise not a token
+                continue; // already an int / id list (re-resolved) or otherwise not a token
+            }
+            if (type.isList()) {
+                List<Integer> ids = resolveList(type.handleCategory(), token, p, effect, owner, diags);
+                if (ids == null) {
+                    return null; // an unknown entry warn-and-skips the whole op, as a single handle does
+                }
+                args = args.with(p.name(), ids);
+                continue;
             }
             OptionalInt id = resolveChain(type.handleCategory(), token);
             if (id.isEmpty()) {
@@ -83,6 +91,34 @@ public final class DefaultResolveStage implements ResolveStage {
             args = args.with(p.name(), id.getAsInt());
         }
         return effect.withArgs(args); // keep the stamped kindId (ADR-0039)
+    }
+
+    /**
+     * Resolve a COMMA-separated handle set to its interned ids, in authored order. Each entry is an ordinary
+     * token, so a {@code A|B} fallback chain still works per entry; an empty token list (the usual default) is an
+     * empty result, not a fault. Returns {@code null} when an entry resolves on no version — the same
+     * warn-and-skip an unknown single handle triggers, so a typo cannot silently ship a shorter loadout.
+     */
+    private List<Integer> resolveList(HandleCategory category, String token, Param p,
+                                      CompiledEffect effect, LoweredAbility owner, Diagnostics diags) {
+        List<Integer> ids = new ArrayList<>();
+        for (String entry : token.split(",")) {
+            String trimmed = entry.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            OptionalInt id = resolveChain(category, trimmed);
+            if (id.isEmpty()) {
+                diags.error(DiagCode.E_UNKNOWN_HANDLE,
+                        "unknown " + category.label() + " '" + trimmed
+                                + "' in argument '" + p.name() + "' of '" + effect.head() + "'",
+                        owner.source(),
+                        "use a name valid on the target version, or drop it from the list");
+                return null;
+            }
+            ids.add(id.getAsInt());
+        }
+        return List.copyOf(ids);
     }
 
     /**

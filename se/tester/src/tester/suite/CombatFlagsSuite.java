@@ -129,7 +129,7 @@ public final class CombatFlagsSuite implements Harness.Scenario {
                     Location guardAt = at.clone();
                     ModernDispatchSink guardSink = new ModernDispatchSink(handles, engine.sink.SinkEnv.of(
                             EconomyService.NONE, SoulDebit.NONE, engine.stores.EngineStores.fresh(), () -> 0L));
-                    guardSink.guard(attacker, guardAt, golemId, 1, 200, "&bGuard", null); // null owner: no GUARDIAN_HURT binding in this check
+                    guardSink.guard(attacker, guardAt, golemId, 1, 200, "&bGuard", null, 0, 0, java.util.List.of()); // null owner: no GUARDIAN_HURT binding in this check
                     guardSink.flush();
                     Scheduling.onRegionLater(guardAt, 2L, () -> {
                         h.guard("combatflags.guardSpawnsTargetingAttacker", () -> {

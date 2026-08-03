@@ -43,6 +43,11 @@ public final class D {
         return ParamType.handle(HandleCategory.POTION_EFFECT);
     }
 
+    /** A comma-separated set of potion-effect tokens ({@code "SPEED, REGENERATION"}), each interned at compile. */
+    public static ParamType potionEffects() {
+        return ParamType.handleList(HandleCategory.POTION_EFFECT);
+    }
+
     public static ParamType particle() {
         return ParamType.handle(HandleCategory.PARTICLE);
     }

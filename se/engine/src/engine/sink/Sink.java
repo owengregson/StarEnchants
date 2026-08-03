@@ -344,9 +344,13 @@ public interface Sink {
      * {@link #spawnEntity} — the spawn runs on {@code at}'s region and the target reference is captured on
      * the firing thread (only stored on the mob, never read cross-region). When {@code owner} is non-null each
      * guard is bound to it in {@code GuardianCasts}, so a hit on the guard fires the owner's {@code GUARDIAN_HURT}
-     * abilities (ADR-0049 Blood Link).
+     * abilities (ADR-0049 Blood Link). {@code health} sets each guard's starting AND maximum health, {@code speed}
+     * scales its vanilla movement-speed base, and {@code effects} are interned potion ids held for its whole life
+     * — the same styling {@link #spawnSummon} applies, so the two summon verbs differ only in targeting. Each is
+     * inert at its zero/empty value.
      */
-    void guard(LivingEntity target, Location at, int entityTypeId, int count, int ttlTicks, String name, UUID owner);
+    void guard(LivingEntity target, Location at, int entityTypeId, int count, int ttlTicks, String name, UUID owner,
+               double health, double speed, java.util.List<Integer> effects);
 
     /** Spawn an explosion at a location, optionally breaking blocks. */
     void explode(Location at, double power, boolean breakBlocks);

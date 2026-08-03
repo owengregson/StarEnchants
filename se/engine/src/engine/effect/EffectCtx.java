@@ -1,5 +1,6 @@
 package engine.effect;
 
+import java.util.List;
 import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
@@ -23,6 +24,14 @@ public interface EffectCtx {
     boolean bool(String name);
 
     String str(String name);
+
+    /**
+     * A HANDLE-LIST argument's interned ids, in authored order (a summon's potion loadout) — empty when the arg
+     * is absent. Resolved at compile time, so reading it never parses a token.
+     */
+    default List<Integer> ids(String name) {
+        return args().ids(name);
+    }
 
     /** The full typed argument bag, for effects that iterate or forward args. */
     Args args();
