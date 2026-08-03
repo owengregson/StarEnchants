@@ -112,6 +112,26 @@ public final class SoulPool {
         }
     }
 
+    /**
+     * Retire the ephemeral ledger a carried spend opened, but ONLY once nothing is owed on it. A spend that
+     * landed between the drain and this call leaves {@code pending} non-zero and keeps the ledger alive, so
+     * its own settle can still drain it — dropping it here would spend those souls logically and never charge
+     * them. {@code false} = kept because a spend is still owed.
+     */
+    public boolean retireIfSettled(UUID player) {
+        synchronized (stripeFor(player)) {
+            int[] s = state.get(player);
+            if (s == null) {
+                return true;
+            }
+            if (s[1] != 0) {
+                return false;
+            }
+            state.remove(player);
+            return true;
+        }
+    }
+
     /** Hand the holder thread the souls spent-but-not-yet-drained (resets pending to 0); 0 if not in soul mode. */
     public int takePending(UUID player) {
         synchronized (stripeFor(player)) {

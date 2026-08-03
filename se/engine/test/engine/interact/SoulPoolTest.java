@@ -47,6 +47,23 @@ class SoulPoolTest {
     }
 
     @Test
+    void retiringAnEphemeralLedgerNeverDropsAStillOwedSpend() {
+        SoulPool pool = new SoulPool();
+        UUID p = UUID.randomUUID();
+        assertTrue(pool.trySpendCarried(p, 5, 12));
+        pool.takePending(p); // the holder thread drains the first spend
+
+        // A second carried spend lands before the retire runs — the race that would otherwise hand out a free
+        // activation, because the drain has already taken its pending and would drop this one's with the ledger.
+        assertTrue(pool.trySpendCarried(p, 2, 999));
+        assertFalse(pool.retireIfSettled(p), "a ledger with souls still owed must survive the retire");
+        assertEquals(2, pool.takePending(p), "…so the second spend is still there to be charged");
+
+        assertTrue(pool.retireIfSettled(p), "settled and unowed → the ledger goes");
+        assertFalse(pool.isActive(p));
+    }
+
+    @Test
     void aCarriedSpendInSoulModeSharesTheOneLedger() {
         SoulPool pool = new SoulPool();
         UUID p = UUID.randomUUID();
