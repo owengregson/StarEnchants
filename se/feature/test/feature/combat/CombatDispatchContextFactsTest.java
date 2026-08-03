@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import compile.load.ContentHolder;
 import compile.model.Snapshot;
+import engine.pipeline.Activation;
 import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
 import engine.run.ActorProbe;
@@ -51,6 +52,7 @@ class CombatDispatchContextFactsTest {
 
     private static final int ATTACK_TRIGGER = 0;
     private static final int DEFENSE_TRIGGER = 1;
+    private static final int HURT_TRIGGER = 2;
 
     private final UUID attackerId = UUID.randomUUID();
     private final UUID victimId = UUID.randomUUID();
@@ -154,6 +156,43 @@ class CombatDispatchContextFactsTest {
             assertEquals(1.6, context.impactHeight(), 1e-9);
             assertEquals(Projectiles.ARROW, context.projectileKind());
         }
+    }
+
+    @Test
+    void theHurtWalkRidesTheDefenceContextOnAnEntityHit() {
+        // The other half of HURT's all-cause contract: an entity hit reaches it through the combat path, on the
+        // SAME context DEFENSE reads. Firing it from the environmental listener instead would bypass the
+        // pvp/pve, friendly-fire, engine-damage and re-hit gates this branch already passed.
+        RuntimeHandles handles = new RuntimeHandles(new RegistryResolvers());
+        SinkEnv env = Envs.sink().build();
+        SinkFactory sinkFactory = mock(SinkFactory.class);
+        when(sinkFactory.create(any())).thenReturn(new ModernDispatchSink(handles, env));
+        Snapshot snapshot = Snapshots.snapshot()
+                .abilities(Abilities.ability().id(0).build())
+                .stableKeys("enchants/probe/1")
+                .build();
+        ContentHolder content = mock(ContentHolder.class);
+        when(content.snapshot()).thenReturn(snapshot);
+        executor = mock(AbilityExecutor.class);
+        worn = mock(WornStateStore.class);
+        when(worn.get(victimId)).thenReturn(WornStates.worn().byTrigger(HURT_TRIGGER, 0).build());
+        CombatDispatch dispatch = new CombatDispatch(executor, sinkFactory, mock(ActorProbe.class), content, worn,
+                ATTACK_TRIGGER, DEFENSE_TRIGGER, -1, -1, HURT_TRIGGER, p -> Optional.empty(), env,
+                CombatDispatch.Caps.unlimited(), new ModernProjectiles());
+        Player attacker = player(attackerId);
+        Player victim = victim();
+        EntityDamageByEntityEvent event = hit(attacker, victim);
+        when(event.getFinalDamage()).thenReturn(6.5);
+
+        dispatch.onDamage(event);
+
+        ArgumentCaptor<Activation> activations = ArgumentCaptor.forClass(Activation.class);
+        ArgumentCaptor<ActivationContext> contexts = ArgumentCaptor.forClass(ActivationContext.class);
+        verify(executor, times(1)).run(any(), any(), activations.capture(), contexts.capture(), any(), any());
+        assertEquals(HURT_TRIGGER, activations.getValue().triggerId());
+        assertEquals(EntityDamageEvent.DamageCause.ENTITY_ATTACK.name(), contexts.getValue().damageCauseName());
+        assertEquals(6.5, contexts.getValue().vanillaFinalDamage());
+        assertEquals(attacker, contexts.getValue().attacker(), "a PvP hit binds the attacker HURT may read");
     }
 
     @Test

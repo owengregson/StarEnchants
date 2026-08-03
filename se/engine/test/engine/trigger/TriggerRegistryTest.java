@@ -51,6 +51,20 @@ class TriggerRegistryTest {
     }
 
     @Test
+    void hurtRoutesExactlyLikeFall() {
+        // HURT is FALL widened to every cause, so anything that would route it differently — a direction that
+        // feeds the wrong WornState array, a stray needs-target — is a bug. Compared against FALL rather than
+        // re-typed, so the pair can never drift apart silently.
+        TriggerRegistry r = BuiltinTriggers.registry();
+        TriggerKind fall = r.byId(r.idOf("FALL").orElseThrow());
+        TriggerKind hurt = r.byId(r.idOf("HURT").orElseThrow());
+        assertEquals(fall.direction(), hurt.direction());
+        assertEquals(fall.usesHeld(), hurt.usesHeld());
+        assertEquals(fall.scansEquipment(), hurt.scansEquipment());
+        assertEquals(fall.needsTarget(), hurt.needsTarget());
+    }
+
+    @Test
     void duplicateTriggerFailsFast() {
         TriggerRegistry.Builder b = TriggerRegistry.builder().register(Trigger.attack("ATTACK"));
         assertThrows(IllegalArgumentException.class, () -> b.register(Trigger.defense("attack")));

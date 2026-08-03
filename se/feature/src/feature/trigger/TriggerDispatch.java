@@ -75,6 +75,7 @@ public final class TriggerDispatch {
     public final int expGain; // fired by TriggerListeners.onExpChange; scales the PlayerExpChangeEvent's XP in place
     public final int use;     // §3.6 USE — fired only by the use-item right-click flow (UseItemService)
     public final int guardianHurt; // fired by GuardianHurtListener when a summoned guardian is hurt (victim = the guardian)
+    public final int hurt;    // every damage-taken event, any cause — rides the same two damage paths as FALL/FIRE and DEFENSE
 
     /**
      * Trigger dispatch over the shared per-boot {@link SinkEnv}. GIVE_MONEY/TAKE_MONEY on MINE/KILL/… and the
@@ -116,6 +117,7 @@ public final class TriggerDispatch {
         this.expGain = triggers.idOf("EXP_GAIN").orElse(-1);
         this.use = triggers.idOf("USE").orElse(-1);
         this.guardianHurt = triggers.idOf("GUARDIAN_HURT").orElse(-1);
+        this.hurt = triggers.idOf("HURT").orElse(-1);
     }
 
     /**
@@ -187,10 +189,36 @@ public final class TriggerDispatch {
         if (triggerId < 0) {
             return;
         }
+        fireDamage(actor, triggerId, -1, context, event, applyHeroic);
+    }
+
+    /**
+     * Fire a cause-specific damage trigger AND the all-cause {@code HURT} into ONE sink, so both walks share a
+     * single fold and a single {@code setDamage} — an ability authors one or the other, but a wearer may carry
+     * both. The worn heroic reduction is contributed by the FIRST present walk only: adding it per walk would
+     * double it. Either id may be {@code -1}; with both absent this degrades to the heroic-only fold.
+     */
+    public void fireDamage(Player actor, int triggerId, int alsoTriggerId, ActivationContext context,
+                           org.bukkit.event.entity.EntityDamageEvent event, boolean applyHeroic) {
+        if (triggerId < 0 && alsoTriggerId < 0) {
+            if (applyHeroic) {
+                fireEnvironmentalHeroic(actor, event);
+            }
+            return;
+        }
         Snapshot snapshot = content.snapshot();
         SinkReadback sink = newSink();
-        runner.run(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), triggerId,
-                attackTrigger.test(triggerId), actor, context, sink, snapshot.stableKeys(), applyHeroic);
+        int worldId = worldId(snapshot, context);
+        boolean heroic = applyHeroic;
+        if (triggerId >= 0) {
+            runner.run(snapshot.abilities(), snapshot.generation(), worldId, triggerId,
+                    attackTrigger.test(triggerId), actor, context, sink, snapshot.stableKeys(), heroic);
+            heroic = false;
+        }
+        if (alsoTriggerId >= 0) {
+            runner.run(snapshot.abilities(), snapshot.generation(), worldId, alsoTriggerId,
+                    attackTrigger.test(alsoTriggerId), actor, context, sink, snapshot.stableKeys(), heroic);
+        }
         event.setDamage(sink.fold().apply(event.getDamage()));
         if (sink.cancelled()) {
             event.setCancelled(true);

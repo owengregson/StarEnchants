@@ -1,6 +1,7 @@
 package feature.trigger;
 
 import engine.run.ActivationContext;
+import engine.sink.EngineDamage;
 import feature.compat.Hands;
 import java.util.Objects;
 import org.bukkit.entity.Player;
@@ -131,22 +132,38 @@ public final class TriggerListeners implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onEnvironmentalDamage(EntityDamageEvent event) {
         if (event instanceof EntityDamageByEntityEvent) {
-            return; // entity-on-entity combat is CombatListener's job (ATTACK/DEFENSE)
+            return; // entity-on-entity combat is CombatListener's job (ATTACK/DEFENSE/HURT)
+        }
+        if (EngineDamage.active()) {
+            // SE-issued unattributed damage (a DoT tick, a bare sink.damage) arrives here as its own
+            // EntityDamageEvent. HURT fires on every cause, so without this frame check an ability that deals
+            // damage from HURT would proc itself forever — the ADR-0054 re-entrancy contract CombatDispatch
+            // enforces on the entity path.
+            return;
         }
         if (!(event.getEntity() instanceof Player player)) {
             return;
         }
         // §F reduction-scope: heroic softens environmental damage only when scope == ALL (default ENTITY = PvP only)
         boolean heroic = heroicAllScope.getAsBoolean();
+        ActivationContext context = damaged(player, event);
         switch (event.getCause()) {
-            case FALL -> dispatch.fireDamage(player, dispatch.fall, self(player), event, heroic);
-            case FIRE, FIRE_TICK, LAVA -> dispatch.fireDamage(player, dispatch.fire, self(player), event, heroic);
-            default -> {
-                if (heroic) {
-                    dispatch.fireEnvironmentalHeroic(player, event); // other causes: heroic reduction only, under ALL
-                }
-            }
+            case FALL -> dispatch.fireDamage(player, dispatch.fall, dispatch.hurt, context, event, heroic);
+            case FIRE, FIRE_TICK, LAVA ->
+                    dispatch.fireDamage(player, dispatch.fire, dispatch.hurt, context, event, heroic);
+            // Every other cause: HURT alone, sharing one fold with the heroic-only reduction it subsumes here.
+            default -> dispatch.fireDamage(player, dispatch.hurt, -1, context, event, heroic);
         }
+    }
+
+    /**
+     * The payload for a damage-taken activation: the pending hit's cause ({@code %damagecause%}), its pre-fold
+     * amount ({@code %damage%}) and the vanilla-final figure {@code %posthit.health%} prices against — read
+     * here, before any SE fold, exactly as the DEFENSE side reads it (the wave 1b.3 ruling).
+     */
+    private static ActivationContext damaged(Player player, EntityDamageEvent event) {
+        return new ActivationContext(player, null, null, player.getLocation(), event.getDamage(), null, 0,
+                event.getCause().name(), false, 0, 0, event.getFinalDamage(), 0.0, "");
     }
 
     private static ActivationContext self(Player player) {
