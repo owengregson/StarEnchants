@@ -184,7 +184,7 @@ public final class Envs {
                             new engine.stores.HeadTrophyStore(), new engine.stores.FoodWindowStore(),
                             new engine.stores.MessageThrottleStore());
             return SinkEnv.of(economy, souls, stores, nowTicks, player -> { }, () -> 0,
-                    GearProtection.NONE, lightningBoost, permanentPotions);
+                    GearProtection.NONE, lightningBoost, engine.sink.PlayerVisibility.NONE, permanentPotions);
         }
     }
 }

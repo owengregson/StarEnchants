@@ -62,7 +62,7 @@ class DispatchSinkCleanseTest {
     /** As above, with {@code grants} standing in for the wearer's own permanent-while-worn potions. */
     private void cure(LivingEntity target, int category, PermanentPotions grants) {
         ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().permanentPotions(grants).build());
-        sink.cureByCategory(target, category);
+        sink.cureByCategory(target, category, 0);
         sink.flush();
     }
 

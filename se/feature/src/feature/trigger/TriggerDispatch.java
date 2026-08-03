@@ -351,7 +351,7 @@ public final class TriggerDispatch {
      */
     public void cleanse(Player player) {
         SinkReadback sink = newSink();
-        sink.cureByCategory(player, engine.sink.PotionCategories.HARMFUL);
+        sink.cureByCategory(player, engine.sink.PotionCategories.HARMFUL, 0);
         sink.flush();
     }
 
