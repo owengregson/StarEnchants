@@ -461,7 +461,7 @@ public final class TriggerDispatch {
         Snapshot snapshot = content.snapshot();
         ActivationContext context = ActivationContext.equipChange(actor, direction);
         SinkReadback sink = newSink();
-        runner.runDetached(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), equipChange,
+        runner.runDetached(snapshot.abilities(), worldId(snapshot, context), equipChange,
                 actor, context, sink, snapshot.stableKeys(), candidates);
         sink.flush();
     }
