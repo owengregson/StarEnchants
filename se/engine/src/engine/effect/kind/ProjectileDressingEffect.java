@@ -20,7 +20,9 @@ public final class ProjectileDressingEffect implements EffectKind {
             .param("ttl", D.TICKS.def(200), "hard cap on the rider's life; the backstop when nothing reports a landing")
             .param("invulnerable", D.TICKS.def(200), "how long the rider ignores damage (0 = never)")
             .param("no-pickup", D.BOOL.def(true))
-            .affinity(Affinity.REGION)
+            // AUTO_LOCK's affinity: run() only records a read-back. The rider's own spawn is a REGION op inside
+            // the sink, so declaring REGION here would upgrade the whole ability and buy a hop for nothing.
+            .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Ride an entity of type on the projectile this BOW_FIRE activation is loosing — the rider "
                     + "is removed the moment the arrow lands, dies or unloads, and unconditionally after ttl "
                     + "ticks. invulnerable spares it from damage for that many ticks so its own flight cannot "

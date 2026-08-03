@@ -789,7 +789,7 @@ Launch count projectiles of a type from the activator's eye (covers SPAWN_ARROWS
 
 Ride an entity of type on the projectile this BOW_FIRE activation is loosing — the rider is removed the moment the arrow lands, dies or unloads, and unconditionally after ttl ticks. invulnerable spares it from damage for that many ticks so its own flight cannot kill it; no-pickup stops it hoovering up items in mid-air. One rider per shot: a second PROJECTILE_DRESSING on the same shot replaces the first. Inert outside a bow shot.
 
-- _affinity_: `REGION`
+- _affinity_: `CONTEXT_LOCAL`
 - _usage_: `{ PROJECTILE_DRESSING: { type: <entity_type>, ttl: <ticks[0..]=200>, invulnerable: <ticks[0..]=200>, no-pickup: <bool=true> } }`
 - _param_ `type` `entity_type`
 - _param_ `ttl` `ticks[0..]` — hard cap on the rider's life; the backstop when nothing reports a landing

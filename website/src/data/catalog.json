@@ -3486,7 +3486,7 @@
   {
     "head": "PROJECTILE_DRESSING",
     "doc": "Ride an entity of type on the projectile this BOW_FIRE activation is loosing — the rider is removed the moment the arrow lands, dies or unloads, and unconditionally after ttl ticks. invulnerable spares it from damage for that many ticks so its own flight cannot kill it; no-pickup stops it hoovering up items in mid-air. One rider per shot: a second PROJECTILE_DRESSING on the same shot replaces the first. Inert outside a bow shot.",
-    "affinity": "REGION",
+    "affinity": "CONTEXT_LOCAL",
     "usage": "{ PROJECTILE_DRESSING: { type: <entity_type>, ttl: <ticks[0..]=200>, invulnerable: <ticks[0..]=200>, no-pickup: <bool=true> } }",
     "example": "{ PROJECTILE_DRESSING: { type: COW, ttl: 200, invulnerable: 200 } }",
     "params": [
