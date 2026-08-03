@@ -79,6 +79,7 @@ public final class CombatDispatch {
     private final int defenseTriggerId;
     private final int bowTriggerId;     // −1 ⇒ no distinct bow trigger; arrow hits fall back to ATTACK
     private final int tridentTriggerId; // −1 ⇒ no distinct trident trigger; trident hits fall back to ATTACK
+    private final int hurtTriggerId;    // −1 ⇒ absent; the all-cause defender walk that rides beside DEFENSE
     private final Projectiles projectiles; // trident/arrow-like typing for the attacker trigger (§4 era seam)
     // §3.7 hit identity: the last landed (victim ← attacker) stamp, discriminating a same-swing re-hit from a
     // distinct hit inside the victim's SHARED i-frame window (which fire/DoT/other attackers also arm).
@@ -129,6 +130,16 @@ public final class CombatDispatch {
                           int bowTriggerId, int tridentTriggerId,
                           Function<Player, Optional<SoulBinding>> soulBinder, SinkEnv env, Caps caps,
                           Projectiles projectiles) {
+        this(executor, sinkFactory, probe, content, worn, attackTriggerId, defenseTriggerId, bowTriggerId,
+                tridentTriggerId, -1, soulBinder, env, caps, projectiles);
+    }
+
+    /** As above, plus the all-cause {@code HURT} id ({@code -1} = absent) that walks beside the DEFENSE side. */
+    public CombatDispatch(AbilityExecutor executor, SinkFactory sinkFactory, ActorProbe probe, ContentHolder content,
+                          WornStateStore worn, int attackTriggerId, int defenseTriggerId,
+                          int bowTriggerId, int tridentTriggerId, int hurtTriggerId,
+                          Function<Player, Optional<SoulBinding>> soulBinder, SinkEnv env, Caps caps,
+                          Projectiles projectiles) {
         this.sinkFactory = Objects.requireNonNull(sinkFactory, "sinkFactory");
         this.content = Objects.requireNonNull(content, "content");
         this.env = Objects.requireNonNull(env, "env");
@@ -157,6 +168,7 @@ public final class CombatDispatch {
         this.defenseTriggerId = defenseTriggerId;
         this.bowTriggerId = bowTriggerId;
         this.tridentTriggerId = tridentTriggerId;
+        this.hurtTriggerId = hurtTriggerId;
         this.dotPark = env.dotPark();
         this.dotRelease = new ComboDotRelease(env.dotPark(), env.nowTicks());
     }
@@ -367,6 +379,14 @@ public final class CombatDispatch {
                     event.getFinalDamage(), impactHeight, projectileKind);
             runner.run(abilities, snapshot.generation(), worldId, defenseTriggerId, false, defenderPlayer, defenseCtx,
                     sink, snapshot.stableKeys());
+            // HURT: the all-cause defender walk, on the SAME context and sink as DEFENSE, so both fold once and
+            // read identical facts. applyHeroic=false — DEFENSE just contributed the worn heroic reduction, and a
+            // second contribution would double it. Every gate this branch already passed (pvp/pve, friendly-fire,
+            // the ADR-0054 engine-damage frame, the §3.7 re-hit skip) covers HURT by construction.
+            if (hurtTriggerId >= 0) {
+                runner.run(abilities, snapshot.generation(), worldId, hurtTriggerId, false, defenderPlayer,
+                        defenseCtx, sink, snapshot.stableKeys(), false);
+            }
             // §7 one-shot SUPPRESS consume (Neutralize): burn the victim's armed one-shots after their defense walk.
             suppression.consumeEventScoped(defenderPlayer.getUniqueId());
         }

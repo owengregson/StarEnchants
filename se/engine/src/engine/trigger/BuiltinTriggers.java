@@ -53,6 +53,9 @@ public final class BuiltinTriggers {
                 .register(Trigger.held("USE"))
                 // Fired by GuardianHurtListener when a summoned guardian takes damage; runs the OWNER's abilities (Blood Link). Appended last.
                 .register(Trigger.neutral("GUARDIAN_HURT"))
+                // Every damage-taken event, ANY cause — the all-cause sibling DEFENSE (entity-only) and FALL/FIRE
+                // (one cause each) cannot express. Targetless: an environmental hit has no attacker. Appended last.
+                .register(new Trigger("HURT", Direction.DEFENSE, false, true, false))
                 .build();
     }
 }

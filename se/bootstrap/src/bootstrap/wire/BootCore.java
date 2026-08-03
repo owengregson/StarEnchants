@@ -518,6 +518,7 @@ public final class BootCore {
         this.dispatch = new CombatDispatch(executor, bindings.sinkFactory(), bindings.actorProbe(), content, worn,
                 triggers.idOf("ATTACK").orElseThrow(), triggers.idOf("DEFENSE").orElseThrow(),
                 triggers.idOf("BOW").orElse(-1), triggers.idOf("TRIDENT").orElse(-1),
+                triggers.idOf("HURT").orElse(-1),
                 soulService::bindingFor, sinkEnv, new CombatDispatch.Caps(
                         () -> master.config().combat().maxBonusDamage(),          // §L combat.max-bonus-damage (live)
                         () -> master.config().combat().maxBonusReduction(),       // §L combat.max-bonus-reduction (live)
