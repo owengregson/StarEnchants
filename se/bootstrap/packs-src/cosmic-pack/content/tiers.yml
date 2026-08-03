@@ -1,0 +1,21 @@
+default-tier: common
+# The COSMIC rarity ladder (ascending weight), one rung per `tier N` recorded in the decomposition matrix's
+# acquisition rows (docs/dev/cosmic-port/matrix/): 1–5 are the ordinary book tiers, 6 is the soul tier, 7 the
+# heroic upgrades and 8 the masteries. Weight drives roll rarity and the least-weight-first menu sort; a rung
+# also names an optional content/enchants/<tier>/ subfolder, so a file's tier can come from its folder.
+#
+# Colours: tier 7 `&d` and tier 8 `&4` are the matrix-recorded lore colours (matrix/06 § heroic application
+# rules, matrix/07 § presentation); 1–6 carry the ladder this corpus already shipped under — the matrix does
+# not record their colours.
+#
+# No `cost:` rung: the Enchanter's per-book XP price derives from weight (max(1, weight/5)) until the
+# economy batch sets real prices.
+tiers:
+  common:    { color: "&7",   weight: 10, glint: false }
+  uncommon:  { color: "&a",   weight: 20, glint: false }
+  rare:      { color: "&b",   weight: 30, glint: false }
+  epic:      { color: "&e",   weight: 40, glint: true  }
+  legendary: { color: "&6",   weight: 50, glint: true  }
+  soul:      { color: "&c",   weight: 60, glint: true  }
+  heroic:    { color: "&d",   weight: 70, glint: true  }
+  mastery:   { color: "&4",   weight: 80, glint: true  }

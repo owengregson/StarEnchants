@@ -1,0 +1,7 @@
+# StarEnchants config pack (ADR-0023). Apply with /se pack apply cosmic-pack
+name: "cosmic-pack"
+description: "The Cosmic Pack — the classic Cosmic experience, ported number-exact."
+author: "StarEnchants"
+format: 1
+created: "2026-08-03T00:00:00"
+files: 0
