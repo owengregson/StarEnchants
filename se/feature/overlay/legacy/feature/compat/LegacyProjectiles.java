@@ -1,5 +1,6 @@
 package feature.compat;
 
+import org.bukkit.Location;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Egg;
 import org.bukkit.entity.EnderPearl;
@@ -8,6 +9,7 @@ import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Snowball;
 import org.bukkit.entity.ThrownExpBottle;
 import org.bukkit.entity.ThrownPotion;
+import org.bukkit.event.entity.ProjectileHitEvent;
 
 /**
  * Legacy (1.8.9) impl of {@link Projectiles} — the era-exclusive {@code overlay/legacy} projectile typing
@@ -24,6 +26,13 @@ public final class LegacyProjectiles implements Projectiles {
     @Override
     public boolean isArrowLike(Entity entity) {
         return entity instanceof Arrow; // the only arrow type on 1.8
+    }
+
+    @Override
+    public Location landingOf(ProjectileHitEvent event) {
+        // 1.8.8 cannot answer this — see Projectiles#landingOf for the javap/bytecode evidence. PROJECTILE_LAND
+        // is therefore inert on 1.8 rather than double-dispatching every entity hit BOW already handled.
+        return null;
     }
 
     @Override

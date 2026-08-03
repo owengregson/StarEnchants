@@ -4,6 +4,7 @@ import feature.combat.FallingBlockListener;
 import feature.combat.GuardianHurtListener;
 import feature.trigger.CommandTriggerCommand;
 import feature.trigger.PlacedBlockTracker;
+import feature.trigger.ProjectileLandListener;
 import feature.trigger.TriggerListeners;
 
 /**
@@ -35,6 +36,9 @@ final class TriggersModule {
                 .events(new FallingBlockListener(core.triggerDispatch()))
                 // A hit on a summoned guardian fires GUARDIAN_HURT on its owner (ADR-0049 Blood Link).
                 .events(new GuardianHurtListener(core.triggerDispatch()))
+                // A player's projectile coming down fires PROJECTILE_LAND at the impact (landing-AoE bows);
+                // the era seam decides what "landed" means and keeps entity hits BOW's.
+                .events(new ProjectileLandListener(core.triggerDispatch(), core.projectiles()))
                 // A GuardianCasts-owned summon never re-acquires its own summoner as a target (ADR-0071
                 // amendments) — registered here with its sibling reader, not in reforges: every family's
                 // GUARD/SPAWN_ENTITY summons feed the same registry.

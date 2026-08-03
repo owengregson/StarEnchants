@@ -55,7 +55,7 @@ class NewTriggerEndToEndTest {
     private static final UUID ACTOR = UUID.randomUUID();
 
     /** The four triggers this wave adds — each must survive the same compile-and-route walk. */
-    private static final List<String> WAVE_1C = List.of("HURT", "EQUIP_CHANGE");
+    private static final List<String> WAVE_1C = List.of("HURT", "EQUIP_CHANGE", "PROJECTILE_LAND");
 
     @TempDir
     Path root;
