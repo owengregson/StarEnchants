@@ -1,0 +1,33 @@
+# Matrix: 01-enchants-armor-a-l.md § Death God
+display: "Death God"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance to cancel a hit that would leave you at low health, and heal you."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    chance: 1.5
+    condition: "%posthit.health% <= 5"
+    effects:
+      - { CANCEL: {} }
+      - { MODIFY_HEALTH: { amount: 6, mode: "give", who: "@Self" } }
+      # {hp} = 5 + level, inlined per level: MESSAGE fills only {ATTACKER}/{VICTIM}, and the value is a
+      # per-level constant, so the rendered line is byte-identical to the matrix string.
+      - { MESSAGE: { text: "§6§l* DEATH GOD [§6+6HP§l] *", who: "@Self" } }
+  2:
+    chance: 3.0
+    condition: "%posthit.health% <= 6"
+    effects:
+      - { CANCEL: {} }
+      - { MODIFY_HEALTH: { amount: 7, mode: "give", who: "@Self" } }
+      - { MESSAGE: { text: "§6§l* DEATH GOD [§6+7HP§l] *", who: "@Self" } }
+  3:
+    chance: 4.5
+    condition: "%posthit.health% <= 7"
+    effects:
+      - { CANCEL: {} }
+      - { MODIFY_HEALTH: { amount: 8, mode: "give", who: "@Self" } }
+      - { MESSAGE: { text: "§6§l* DEATH GOD [§6+8HP§l] *", who: "@Self" } }

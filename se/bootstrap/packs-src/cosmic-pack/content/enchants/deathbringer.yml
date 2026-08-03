@@ -1,0 +1,22 @@
+# Matrix: 01-enchants-armor-a-l.md § Deathbringer
+display: "Deathbringer"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance to double the damage of a melee hit or an arrow."
+trigger: [ATTACK, BOW]
+applies-to: [ARMOR]
+group: "legendary"
+tier: legendary
+levels:
+  1:
+    abilities:
+      - { trigger: ATTACK, chance: 10, effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } } ] }  # x2.0 outgoing
+      - { trigger: BOW, chance: 10, effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } } ] }
+  2:
+    abilities:
+      - { trigger: ATTACK, chance: 20, effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } } ] }
+      - { trigger: BOW, chance: 20, effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } } ] }
+  3:
+    abilities:
+      - { trigger: ATTACK, chance: 30, effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } } ] }
+      - { trigger: BOW, chance: 30, effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } } ] }

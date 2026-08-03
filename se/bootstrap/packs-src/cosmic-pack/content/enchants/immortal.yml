@@ -1,0 +1,77 @@
+# Matrix: 01-enchants-armor-a-l.md § Immortal
+display: "Immortal"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eEvery hit you take spends souls to repair your armor and chip your attacker's."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "soul"
+tier: soul
+chance: 100
+# era: souls and gems are engine features on both lanes; ENTITY_PLAYER_LEVELUP carries the 1.8.9
+# `random.levelup` spelling through the LEVEL_UP resolver alias.
+levels:
+  1:
+    abilities:
+      # Funded branch. soul-cost is the charge-or-abort gate (5 - level, floored at 1); the out-of-souls
+      # branch reaches the wearer through no-souls-message, which the engine throttles at 300t — the
+      # recorded 15 s. The recorded out-of-souls PARTICLE(LAVA, count=20, @Self) and
+      # SOUND(ENTITY_ITEM_BREAK, 0.7, 0.4) have no home on the frozen surface: a gate failure runs no
+      # effects, and a %actor.souls%-gated sibling block would fire for players who carry no gem at all
+      # and would arm this enchant's shared cooldown bucket against the repair itself.
+      - soul-cost: 4
+        no-souls-message: "§c§l** OUT OF SOULS **"
+        effects:
+          - { DURABILITY: { amount: 2, target: "armor", mode: "restore", who: "@Self" } }
+          - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Attacker" } }  # a mob attacker carries no repairable set, so this lands on player attackers in practice
+      # Every-20-souls feedback. Condition facts are read at the gate, ahead of the charge above, so the
+      # test is whether paying the cost steps the total over a 20-boundary — the post-deduction crossing.
+      - condition: "%actor.souls% >= 4 && floor(%actor.souls% / 20) > floor((%actor.souls% - 4) / 20)"
+        effects:
+          - { MESSAGE: { text: "" } }
+          - { MESSAGE: { text: "§6§l** IMMORTAL **" } }
+          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+          - { MESSAGE: { text: "" } }
+          - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
+  2:
+    abilities:
+      - soul-cost: 3
+        no-souls-message: "§c§l** OUT OF SOULS **"
+        effects:
+          - { DURABILITY: { amount: 2, target: "armor", mode: "restore", who: "@Self" } }
+          - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Attacker" } }
+      - condition: "%actor.souls% >= 3 && floor(%actor.souls% / 20) > floor((%actor.souls% - 3) / 20)"
+        effects:
+          - { MESSAGE: { text: "" } }
+          - { MESSAGE: { text: "§6§l** IMMORTAL **" } }
+          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+          - { MESSAGE: { text: "" } }
+          - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
+  3:
+    abilities:
+      - soul-cost: 2
+        no-souls-message: "§c§l** OUT OF SOULS **"
+        effects:
+          - { DURABILITY: { amount: 2, target: "armor", mode: "restore", who: "@Self" } }
+          - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Attacker" } }
+      - condition: "%actor.souls% >= 2 && floor(%actor.souls% / 20) > floor((%actor.souls% - 2) / 20)"
+        effects:
+          - { MESSAGE: { text: "" } }
+          - { MESSAGE: { text: "§6§l** IMMORTAL **" } }
+          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+          - { MESSAGE: { text: "" } }
+          - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
+  4:
+    abilities:
+      - soul-cost: 1
+        no-souls-message: "§c§l** OUT OF SOULS **"
+        effects:
+          - { DURABILITY: { amount: 2, target: "armor", mode: "restore", who: "@Self" } }
+          - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Attacker" } }
+      - condition: "%actor.souls% >= 1 && floor(%actor.souls% / 20) > floor((%actor.souls% - 1) / 20)"
+        effects:
+          - { MESSAGE: { text: "" } }
+          - { MESSAGE: { text: "§6§l** IMMORTAL **" } }
+          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+          - { MESSAGE: { text: "" } }
+          - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }

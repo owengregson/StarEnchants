@@ -1,0 +1,42 @@
+# Matrix: 01-enchants-armor-a-l.md § Curse
+display: "Curse"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eWhen hit, may grant Strength II and Resistance II — with Slowness II as the price."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "uncommon"
+tier: uncommon
+condition: "%damagecause% == \"ENTITY_ATTACK\""
+# era: INCREASE_DAMAGE / DAMAGE_RESISTANCE / SLOW are the legacy effect names — resolver aliases.
+levels:
+  1:
+    chance: 3
+    effects:
+      - { POTION: { effect: "INCREASE_DAMAGE", level: 2, duration: 30, who: "@Self" } }
+      - { POTION: { effect: "DAMAGE_RESISTANCE", level: 2, duration: 30, who: "@Self" } }
+      - { POTION: { effect: "SLOW", level: 2, duration: 20, who: "@Self" } }  # the deliberate self-debuff
+  2:
+    chance: 6
+    effects:
+      - { POTION: { effect: "INCREASE_DAMAGE", level: 2, duration: 60, who: "@Self" } }
+      - { POTION: { effect: "DAMAGE_RESISTANCE", level: 2, duration: 60, who: "@Self" } }
+      - { POTION: { effect: "SLOW", level: 2, duration: 40, who: "@Self" } }  # the deliberate self-debuff
+  3:
+    chance: 9
+    effects:
+      - { POTION: { effect: "INCREASE_DAMAGE", level: 2, duration: 90, who: "@Self" } }
+      - { POTION: { effect: "DAMAGE_RESISTANCE", level: 2, duration: 90, who: "@Self" } }
+      - { POTION: { effect: "SLOW", level: 2, duration: 60, who: "@Self" } }  # the deliberate self-debuff
+  4:
+    chance: 12
+    effects:
+      - { POTION: { effect: "INCREASE_DAMAGE", level: 2, duration: 120, who: "@Self" } }
+      - { POTION: { effect: "DAMAGE_RESISTANCE", level: 2, duration: 120, who: "@Self" } }
+      - { POTION: { effect: "SLOW", level: 2, duration: 80, who: "@Self" } }  # the deliberate self-debuff
+  5:
+    chance: 15
+    effects:
+      - { POTION: { effect: "INCREASE_DAMAGE", level: 2, duration: 150, who: "@Self" } }
+      - { POTION: { effect: "DAMAGE_RESISTANCE", level: 2, duration: 150, who: "@Self" } }
+      - { POTION: { effect: "SLOW", level: 2, duration: 100, who: "@Self" } }  # the deliberate self-debuff

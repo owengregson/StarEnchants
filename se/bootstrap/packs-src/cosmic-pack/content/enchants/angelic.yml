@@ -1,0 +1,57 @@
+# Matrix: 01-enchants-armor-a-l.md § Angelic
+display: "Angelic"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance when hit to regenerate health over the next few seconds."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "epic"
+tier: epic
+condition: "%angelic.active% != 1"  # re-entry guard: a roll landing during a live regen is consumed, matching measured
+# era: SPELL particle exists on 1.8.9; no hazards.
+# `wait:` tiers accumulate down the effect list, so each pulse carries only the GAP since the previous one —
+# the pulses land at 0 / period (/ 2 x period at L5), which are the matrix's absolute waits.
+# The SET_VAR ttl spans the regen window (last pulse + 5t); the matrix records the value for L5 only.
+levels:
+  1:
+    chance: 3
+    effects:
+      - { SET_VAR: { name: "angelic.active", value: "1", ttl: 105, who: "@Self" } }
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL", count: 15, who: "@Self" } }
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self", wait: 100 } }
+      - { PARTICLE: { particle: "SPELL", count: 15, who: "@Self" } }
+  2:
+    chance: 6
+    effects:
+      - { SET_VAR: { name: "angelic.active", value: "1", ttl: 95, who: "@Self" } }
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL", count: 15, who: "@Self" } }
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self", wait: 90 } }
+      - { PARTICLE: { particle: "SPELL", count: 15, who: "@Self" } }
+  3:
+    chance: 9
+    effects:
+      - { SET_VAR: { name: "angelic.active", value: "1", ttl: 85, who: "@Self" } }
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL", count: 15, who: "@Self" } }
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self", wait: 80 } }
+      - { PARTICLE: { particle: "SPELL", count: 15, who: "@Self" } }
+  4:
+    chance: 12
+    effects:
+      - { SET_VAR: { name: "angelic.active", value: "1", ttl: 75, who: "@Self" } }
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL", count: 15, who: "@Self" } }
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self", wait: 70 } }
+      - { PARTICLE: { particle: "SPELL", count: 15, who: "@Self" } }
+  5:
+    chance: 15
+    effects:
+      - { SET_VAR: { name: "angelic.active", value: "1", ttl: 125, who: "@Self" } }  # D-01-02: deterministic third pulse at L5 (measured rolled it in at 37.5%)
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL", count: 15, who: "@Self" } }
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self", wait: 60 } }
+      - { PARTICLE: { particle: "SPELL", count: 15, who: "@Self" } }
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self", wait: 60 } }  # lands at 120t
+      - { PARTICLE: { particle: "SPELL", count: 15, who: "@Self" } }

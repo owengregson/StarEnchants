@@ -1,0 +1,28 @@
+# Matrix: 01-enchants-armor-a-l.md § Nimble
+display: "Nimble"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eBoots that multiply the experience you pick up."
+trigger: EXP_GAIN
+applies-to: [BOOTS]
+group: "uncommon"
+tier: uncommon
+chance: 100
+levels:
+  # Factor is 1.0 + 0.1 x level, read live from the worn boots. The original multiplied mcMMO Acrobatics
+  # XP only; mcMMO is outside the port, so the bonus rides vanilla XP gain instead.
+  1:
+    effects:
+      - { EXP_MULTIPLY: { factor: 1.1 } }
+  2:
+    effects:
+      - { EXP_MULTIPLY: { factor: 1.2 } }
+  3:
+    effects:
+      - { EXP_MULTIPLY: { factor: 1.3 } }
+  4:
+    effects:
+      - { EXP_MULTIPLY: { factor: 1.4 } }
+  5:
+    effects:
+      - { EXP_MULTIPLY: { factor: 1.5 } }

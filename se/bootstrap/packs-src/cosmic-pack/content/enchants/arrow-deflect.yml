@@ -1,0 +1,62 @@
+# Matrix: 01-enchants-armor-a-l.md § Arrow Deflect
+display: "Arrow Deflect"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eDeflects an arrow once the previous one has armed the guard."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "epic"
+tier: epic
+# era: ITEM_BREAK is the 1.8.9 spelling (random.break) — resolver alias; SPELL particle is fine.
+# The strict arm -> deflect alternation (at best every second arrow, <=50% steady-state) is the measured
+# mechanism and is reproduced, not treated as a bug: the arming window is level x 10t.
+# Residual: the measured jar deleted the arrow entity; CANCEL negates the damage and leaves the arrow flying
+# past — cosmetic only.
+# Alternation survives both blocks sharing one DEFENSE pass because SET_VAR rides the Sink: every write lands
+# at the single post-pass flush, so both conditions read the pre-hit flag and exactly one block fires — a
+# deflected hit cannot re-arm the guard on its way out, in whatever order the two are evaluated.
+levels:
+  1:
+    abilities:
+      - condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% == 1"
+        effects:
+          - { CANCEL: {} }
+          - { SET_VAR: { name: "arrowdeflect.armed", value: "", ttl: 1, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL", count: 20, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_ITEM_BREAK", volume: 0.7, pitch: 0.2 } }
+      - condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% != 1"
+        effects:
+          - { SET_VAR: { name: "arrowdeflect.armed", value: "1", ttl: 10, who: "@Self" } }
+  2:
+    abilities:
+      - condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% == 1"
+        effects:
+          - { CANCEL: {} }
+          - { SET_VAR: { name: "arrowdeflect.armed", value: "", ttl: 1, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL", count: 20, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_ITEM_BREAK", volume: 0.7, pitch: 0.2 } }
+      - condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% != 1"
+        effects:
+          - { SET_VAR: { name: "arrowdeflect.armed", value: "1", ttl: 20, who: "@Self" } }
+  3:
+    abilities:
+      - condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% == 1"
+        effects:
+          - { CANCEL: {} }
+          - { SET_VAR: { name: "arrowdeflect.armed", value: "", ttl: 1, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL", count: 20, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_ITEM_BREAK", volume: 0.7, pitch: 0.2 } }
+      - condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% != 1"
+        effects:
+          - { SET_VAR: { name: "arrowdeflect.armed", value: "1", ttl: 30, who: "@Self" } }
+  4:
+    abilities:
+      - condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% == 1"
+        effects:
+          - { CANCEL: {} }
+          - { SET_VAR: { name: "arrowdeflect.armed", value: "", ttl: 1, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL", count: 20, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_ITEM_BREAK", volume: 0.7, pitch: 0.2 } }
+      - condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% != 1"
+        effects:
+          - { SET_VAR: { name: "arrowdeflect.armed", value: "1", ttl: 40, who: "@Self" } }

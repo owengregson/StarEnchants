@@ -1,0 +1,28 @@
+# Matrix: 01-enchants-armor-a-l.md § Leadership
+display: "Leadership"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eDeal +10% damage per nearby ally, capped at +75%."
+trigger: ATTACK
+applies-to: [ARMOR]
+group: "legendary"
+tier: legendary
+chance: 100
+levels:
+  # Level sets only the ally radius (level x 2 + 3); the per-ally rate and the cap are level-independent.
+  # The count resolves live per hit, and the buff holds only while the enchant is worn (D-01-12).
+  1:
+    effects:
+      - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 10, cap: 75, who: "@Aoe{r=5, filter=ALLIES}" } }
+  2:
+    effects:
+      - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 10, cap: 75, who: "@Aoe{r=7, filter=ALLIES}" } }
+  3:
+    effects:
+      - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 10, cap: 75, who: "@Aoe{r=9, filter=ALLIES}" } }
+  4:
+    effects:
+      - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 10, cap: 75, who: "@Aoe{r=11, filter=ALLIES}" } }
+  5:
+    effects:
+      - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 10, cap: 75, who: "@Aoe{r=13, filter=ALLIES}" } }

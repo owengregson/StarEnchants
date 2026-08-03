@@ -1,0 +1,45 @@
+# Matrix: 01-enchants-armor-a-l.md § Diminish
+display: "Diminish"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance to cap your next incoming hit at the damage of the hit that armed it."
+trigger: DEFENSE
+applies-to: [CHESTPLATE]
+group: "legendary"
+tier: legendary
+condition: "%damage% > 0"
+# D-01-07: the charge is bounded by the DAMAGE_CAP window (100t default) and caps the next hit at exactly the
+# stored value, replacing the measured never-expiring charge and its armour-re-reduced over-delivery.
+# NOTE: {damage} is the matrix string verbatim; MESSAGE fills only {ATTACKER}/{VICTIM} and DAMAGE_CAP carries
+# no feedback param, so the token currently renders literally — needs an engine-side token before shipping.
+levels:
+  1:
+    chance: 1.5
+    effects:
+      - { DAMAGE_CAP: { factor: 1.0, reflect: false, duration: 100 } }
+      - { MESSAGE: { text: "§e§l* DIMINISH [§eDMG: {damage}§l] *", who: "@Self" } }
+  2:
+    chance: 3.0
+    effects:
+      - { DAMAGE_CAP: { factor: 1.0, reflect: false, duration: 100 } }
+      - { MESSAGE: { text: "§e§l* DIMINISH [§eDMG: {damage}§l] *", who: "@Self" } }
+  3:
+    chance: 4.5
+    effects:
+      - { DAMAGE_CAP: { factor: 1.0, reflect: false, duration: 100 } }
+      - { MESSAGE: { text: "§e§l* DIMINISH [§eDMG: {damage}§l] *", who: "@Self" } }
+  4:
+    chance: 6.0
+    effects:
+      - { DAMAGE_CAP: { factor: 1.0, reflect: false, duration: 100 } }
+      - { MESSAGE: { text: "§e§l* DIMINISH [§eDMG: {damage}§l] *", who: "@Self" } }
+  5:
+    chance: 7.5
+    effects:
+      - { DAMAGE_CAP: { factor: 1.0, reflect: false, duration: 100 } }
+      - { MESSAGE: { text: "§e§l* DIMINISH [§eDMG: {damage}§l] *", who: "@Self" } }
+  6:
+    chance: 9.0
+    effects:
+      - { DAMAGE_CAP: { factor: 1.0, reflect: false, duration: 100 } }
+      - { MESSAGE: { text: "§e§l* DIMINISH [§eDMG: {damage}§l] *", who: "@Self" } }
