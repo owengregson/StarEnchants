@@ -77,7 +77,7 @@ public final class SinkSuite implements Harness.Scenario {
                 sentry.setAI(false);
                 sentry.setGravity(false);
                 engine.sink.PetSummons.bind(sentry.getUniqueId(), new engine.sink.SummonFlags(
-                        false, false, false, false, false, false, true, 0.0));
+                        false, false, false, false, false, false, true, 0.0, "", java.util.List.of()));
 
                 // Emit + flush from GLOBAL — a different thread than the victim's region on Folia.
                 Scheduling.onGlobal(() -> {

@@ -34,9 +34,10 @@ public final class ParamType {
     private final String defaultRaw;
     private final List<String> allowed; // ENUM only; canonical spellings
     private final HandleCategory handleCategory; // HANDLE only
+    private final boolean list; // HANDLE only: a comma-separated set of tokens, resolved to a list of ids
 
-    private ParamType(Kind kind, boolean required, Double min, Double max,
-                      String defaultRaw, List<String> allowed, HandleCategory handleCategory) {
+    private ParamType(Kind kind, boolean required, Double min, Double max, String defaultRaw,
+                      List<String> allowed, HandleCategory handleCategory, boolean list) {
         this.kind = kind;
         this.required = required;
         this.min = min;
@@ -44,16 +45,22 @@ public final class ParamType {
         this.defaultRaw = defaultRaw;
         this.allowed = allowed;
         this.handleCategory = handleCategory;
+        this.list = list;
     }
 
     static ParamType of(Kind kind) {
         Double lo = kind == Kind.TICKS ? 0.0 : null; // TICKS implicitly floored at 0
-        return new ParamType(kind, true, lo, null, null, null, null);
+        return new ParamType(kind, true, lo, null, null, null, null, false);
     }
 
     /** A version-volatile {@code HANDLE} of the given category, resolved at compile time (§9). */
     static ParamType handle(HandleCategory category) {
-        return new ParamType(Kind.HANDLE, true, null, null, null, null, category);
+        return new ParamType(Kind.HANDLE, true, null, null, null, null, category, false);
+    }
+
+    /** A COMMA-SEPARATED set of {@code category} handles, each resolved at compile time (§9). */
+    static ParamType handleList(HandleCategory category) {
+        return new ParamType(Kind.HANDLE, true, null, null, null, null, category, true);
     }
 
     private ParamType with(Boolean req, Double mn, Double mx, String def, List<String> al) {
@@ -63,7 +70,7 @@ public final class ParamType {
                 mx != null ? mx : max,
                 def != null ? def : defaultRaw,
                 al != null ? al : allowed,
-                handleCategory);
+                handleCategory, list);
     }
 
     /** Lower bound (inclusive) for numeric kinds. */
@@ -109,6 +116,11 @@ public final class ParamType {
         return handleCategory;
     }
 
+    /** Whether this {@code HANDLE} holds a comma-separated SET of tokens rather than a single one. */
+    public boolean isList() {
+        return list;
+    }
+
     public boolean isRequired() {
         return required;
     }
@@ -144,6 +156,9 @@ public final class ParamType {
     private Optional<Object> parseHandle(String raw, Source source, Diagnostics diags) {
         String t = raw.trim();
         if (t.isEmpty()) {
+            if (list) {
+                return Optional.of(t); // an empty SET is a legitimate value (no entries), unlike a missing name
+            }
             diags.error(DiagCode.E_TYPE, "expected a " + handleCategory.label() + " name but got an empty token", source);
             return Optional.empty();
         }
@@ -286,7 +301,7 @@ public final class ParamType {
             case BOOL -> "bool";
             case STRING -> "string";
             case ENUM -> "enum";
-            case HANDLE -> handleCategory.label();
+            case HANDLE -> list ? handleCategory.label() + " list" : handleCategory.label();
         });
         if (kind == Kind.ENUM) {
             sb.append('{').append(String.join("|", allowed())).append('}');

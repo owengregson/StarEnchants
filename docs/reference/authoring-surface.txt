@@ -138,6 +138,9 @@ effect GUARD
   param count INT optional min=1 max=- enum=- handle=- default=1
   param ttl TICKS optional min=0 max=- enum=- handle=- default=200
   param name STRING optional min=- max=- enum=- handle=- default=
+  param health DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param speed DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param effects HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=
 effect HEALTH
   param amount DOUBLE required min=0 max=- enum=- handle=- default=-
 effect HIT_TEMPO
@@ -297,6 +300,8 @@ effect SPAWN_ENTITY
   param detonate ENUM optional min=- max=- enum=NONE,PLAYER_HIT handle=- default=NONE
   param invincible BOOL optional min=- max=- enum=- handle=- default=false
   param speed DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param name STRING optional min=- max=- enum=- handle=- default=
+  param effects HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=
 effect SPAWN_SWARM
   param type HANDLE required min=- max=- enum=- handle=ENTITY_TYPE default=-
   param count INT optional min=1 max=- enum=- handle=- default=1

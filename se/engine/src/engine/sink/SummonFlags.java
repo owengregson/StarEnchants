@@ -1,5 +1,7 @@
 package engine.sink;
 
+import java.util.List;
+
 /**
  * Per-summon behaviour flags for {@code SPAWN_ENTITY} (ADR-0052): resolved at spawn time inside the sink's
  * region op (spawns are fire-and-forget — an effect never sees the entity, so all customization happens
@@ -18,12 +20,15 @@ package engine.sink;
  * @param speedMultiplier     scale the summon's vanilla movement-speed attribute BASE by this factor (0 =
  *                            untouched); modern writes the GENERIC_MOVEMENT_SPEED base, 1.8 the NMS
  *                            {@code GenericAttributes.MOVEMENT_SPEED} instance
+ * @param name                custom name shown above the summon ({@code &}-colour codes); empty = unnamed
+ * @param effects             interned potion-effect ids held for the summon's whole life, all at level 1
  */
 public record SummonFlags(boolean powered, boolean noAi, boolean noTarget, boolean saddled,
                           boolean mountActivator, boolean detonateOnPlayerHit, boolean invincible,
-                          double speedMultiplier) {
+                          double speedMultiplier, String name, List<Integer> effects) {
 
-    public static final SummonFlags NONE = new SummonFlags(false, false, false, false, false, false, false, 0.0);
+    public static final SummonFlags NONE =
+            new SummonFlags(false, false, false, false, false, false, false, 0.0, "", List.of());
 
     /** Whether any flag needs the {@link PetSummons} registry + the summon-guard listener. */
     public boolean tracked() {

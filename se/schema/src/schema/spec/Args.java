@@ -2,6 +2,7 @@ package schema.spec;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -44,6 +45,16 @@ public final class Args {
 
     public String str(String name) {
         return String.valueOf(require(name));
+    }
+
+    /**
+     * A resolved HANDLE-LIST argument's interned ids, in authored order — empty when the arg is absent or was
+     * never resolved (a hand-built arg bag still holding the raw token).
+     */
+    @SuppressWarnings("unchecked") // the resolve stage is the sole writer and always stores a List<Integer>
+    public List<Integer> ids(String name) {
+        Object v = values.get(name);
+        return v instanceof List<?> list ? (List<Integer>) list : List.of();
     }
 
     public Optional<Object> opt(String name) {

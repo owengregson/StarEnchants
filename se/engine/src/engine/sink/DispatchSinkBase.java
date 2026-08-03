@@ -1566,6 +1566,10 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 if (flags.speedMultiplier() > 0 && spawned instanceof LivingEntity living) {
                     applySpawnSpeed(living, flags.speedMultiplier());
                 }
+                if (spawned instanceof LivingEntity living) {
+                    applySummonEffects(living, flags.effects());
+                }
+                applyGuardName(spawned, flags.name());
                 if (ownerId != null) {
                     GuardianCasts.bind(spawned.getUniqueId(), ownerId);
                     if (spawned instanceof Tameable tame) {
@@ -1712,7 +1716,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void guard(LivingEntity target, Location at, int entityTypeId, int count, int ttlTicks, String name, UUID owner) {
+    public void guard(LivingEntity target, Location at, int entityTypeId, int count, int ttlTicks, String name,
+                      UUID owner, double health, double speed, List<Integer> effects) {
         Location origin = at.clone(); // own the spawn point: a WAIT tier can defer this to a later tick
         regionOp(origin, () -> {
             EntityType type = entityType(entityTypeId);
@@ -1724,6 +1729,15 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 Entity spawned = world.spawnEntity(origin, type);
                 if (target != null) {
                     setGuardTarget(spawned, target); // path to + attack the attacker (era-specific targeting API)
+                }
+                if (spawned instanceof LivingEntity living) {
+                    if (health > 0) {
+                        applySpawnHealth(living, health);
+                    }
+                    if (speed > 0) {
+                        applySpawnSpeed(living, speed);
+                    }
+                    applySummonEffects(living, effects);
                 }
                 applyGuardName(spawned, name);
                 if (owner != null) {
@@ -1742,6 +1756,19 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 GuardianCasts.forget(spawnedId); // harmless no-op for an unbound spawn
                 spawned.remove();
             });
+        }
+    }
+
+    /**
+     * Hold {@code effects} on a fresh summon at level 1 for a duration no summon outlives — the loadout is part
+     * of what the summon IS, so it must not lapse mid-life and leave a weaker one behind.
+     */
+    private void applySummonEffects(LivingEntity living, List<Integer> effects) {
+        for (int i = 0; i < effects.size(); i++) {
+            PotionEffectType type = potionEffect(effects.get(i));
+            if (type != null) {
+                living.addPotionEffect(new PotionEffect(type, Integer.MAX_VALUE, 0));
+            }
         }
     }
 

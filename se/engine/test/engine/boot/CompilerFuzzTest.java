@@ -354,7 +354,10 @@ class CompilerFuzzTest {
                 case BOOL -> assertEquals(isTruthy(auth.raw()), args.bool(name));
                 case ENUM -> assertEquals(canonicalEnum(p.type(), auth.raw()), args.str(name));
                 case STRING -> assertEquals(auth.raw(), args.str(name));
-                case HANDLE -> assertTrue(args.opt(name).orElseThrow() instanceof Integer);
+                // A single handle resolves to one interned id; a handle LIST to the ids of its entries.
+                case HANDLE -> assertTrue(p.type().isList()
+                        ? args.opt(name).orElseThrow() instanceof List
+                        : args.opt(name).orElseThrow() instanceof Integer);
             }
         }
     }

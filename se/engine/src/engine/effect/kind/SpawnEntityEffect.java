@@ -34,6 +34,8 @@ public final class SpawnEntityEffect implements EffectKind {
             .param("detonate", D.enumOf("NONE", "PLAYER_HIT").def("NONE"))
             .param("invincible", D.BOOL.def(false))
             .param("speed", D.DOUBLE.min(0).def(0))
+            .param("name", D.STRING.def(""), "custom name shown above each summon")
+            .param("effects", D.potionEffects().def(""), "potion effects held for the summon's whole life")
             .target("who", T.SELF)
             .affinity(Affinity.REGION)
             .actorOrigin()
@@ -45,7 +47,10 @@ public final class SpawnEntityEffect implements EffectKind {
                     + "makes a creeper explode ONLY when a player hits it (it never self-detonates); "
                     + "invincible=true zeroes all damage to the summon (it cannot die but still takes hits "
                     + "and knockback); speed is a multiplier on the spawned entity's vanilla movement-speed "
-                    + "base (0 = untouched). Replaces SPAWN/TNT.")
+                    + "base (0 = untouched); name is shown above each summon and effects is a "
+                    + "comma-separated potion loadout held for its whole life (all at level 1) — the same "
+                    + "styling GUARD takes, so the choice between the two is only about targeting. "
+                    + "Replaces SPAWN/TNT.")
             .example("{ SPAWN_ENTITY: { type: WOLF, count: 1, ttl: 0, health: 0, owner: activator } }")
             .build();
 
@@ -71,7 +76,9 @@ public final class SpawnEntityEffect implements EffectKind {
                 "activator".equalsIgnoreCase(ctx.str("mount")),
                 "PLAYER_HIT".equalsIgnoreCase(ctx.str("detonate")),
                 ctx.bool("invincible"),
-                ctx.dbl("speed"));
+                ctx.dbl("speed"),
+                ctx.str("name"),
+                ctx.ids("effects"));
         Location origin = ctx.actorOrigin(); // hoisted: fresh instance per call (ADR-0043)
         boolean any = false;
         for (LivingEntity who : ctx.targets("who")) {
