@@ -108,6 +108,16 @@ class DamageFoldTest {
     }
 
     @Test
+    void anUnscaledOutgoingTermIsExactlyTheAuthoredMultiplier() {
+        // The contract DOT_AMPLIFY_MARK stands on: the environmental damage path sets no attack-scale, so
+        // addOutgoing(factor − 1) prices a wither tick at exactly base × factor. If that path ever gained an
+        // attack-scale, a ×3 mark would silently become ×(1 + 2·scale).
+        DamageFold f = new DamageFold();
+        f.addOutgoing(3.0 - 1.0);
+        assertEquals(30.0, f.apply(10.0), EPS);
+    }
+
+    @Test
     void flatReductionBeyondDamageClampsToZero() {
         DamageFold f = new DamageFold();
         f.addFlatReduction(100.0);

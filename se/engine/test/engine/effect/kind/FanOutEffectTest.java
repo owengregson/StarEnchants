@@ -204,6 +204,21 @@ class FanOutEffectTest {
                         (s, p) -> verify(s).setFlight(p, 60, 0.4)),
                 playerOnly("KEEP_ON_DEATH → keepOnDeath(duration)", new KeepOnDeathEffect(),
                         c -> c.with("duration", 200), (s, p) -> verify(s).keepOnDeath(p, 200)),
+                // Wave 1d.2: distinct non-default args pin the param→intent wiring (a transposition fails).
+                playerOnly("OUTGOING_DEBUFF → outgoingDebuff(percent, duration, causeMask, feedback)",
+                        new OutgoingDebuffEffect(),
+                        c -> c.with("percent", 50.0).with("duration", 80).with("cause", "projectile")
+                                .with("feedback", "unfocused"),
+                        (s, p) -> verify(s).outgoingDebuff(p, 50.0, 80,
+                                engine.stores.OutgoingDebuffStore.CAUSE_PROJECTILE, "unfocused")),
+                playerOnly("DOT_AMPLIFY_MARK → dotAmplify(factor, causeMask, duration)",
+                        new DotAmplifyMarkEffect(),
+                        c -> c.with("causes", "wither").with("factor", 3.0).with("duration", 60),
+                        (s, p) -> verify(s).dotAmplify(p, 3.0,
+                                engine.stores.DotAmplifyStore.CAUSE_WITHER, 60)),
+                playerOnly("HEAD_TROPHY → armHeadTrophy carries the templates unresolved", new HeadTrophyEffect(),
+                        c -> c.with("name", "Skull of {VICTIM}").with("lore", "one|two"),
+                        (s, p) -> verify(s).armHeadTrophy(p, "Skull of {VICTIM}", "one|two")),
                 playerOnly("TELEBLOCK → teleblock(duration)", new TeleblockEffect(),
                         c -> c.with("duration", 400), (s, p) -> verify(s).teleblock(p, 400)),
                 playerOnly("MOVEMENT_SPEED → movementSpeed(speed, ticks)", new MovementSpeedEffect(),
@@ -239,6 +254,96 @@ class FanOutEffectTest {
                         new DamageCapEffect(),
                         c -> c.with("factor", 0.5).with("reflect", true).with("duration", 100),
                         (s, p) -> verify(s).armDamageCap(p, 0.5, true, 100)));
+    }
+
+    /** The wave-1d.2 kinds whose fan-out shape is neither plain-entity nor plain-player. */
+    @TestFactory
+    List<DynamicTest> waveOneD2Intents() {
+        return List.of(
+                dynamicTest("PERIODIC_DAMAGE carries the activator + the replaced DoTs to every target", () -> {
+                    Player actor = mock(Player.class);
+                    LivingEntity a = mock(LivingEntity.class);
+                    LivingEntity b = mock(LivingEntity.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
+                            .with("amount", 6.0).with("period", 20).with("duration", 120)
+                            .with("replace", List.of(9)).with("feedback", "burning")
+                            .targets("who", a, b);
+                    Sink sink = mock(Sink.class);
+                    new PeriodicDamageEffect().run(ctx, sink);
+                    verify(sink).periodicDamage(a, 6.0, 20, 120, List.of(9), "burning", actor);
+                    verify(sink).periodicDamage(b, 6.0, 20, 120, List.of(9), "burning", actor);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("DESPAWN removes mobs and NEVER a player in the same target list", () -> {
+                    LivingEntity mob = mock(LivingEntity.class);
+                    LivingEntity other = mock(LivingEntity.class);
+                    Player player = mock(Player.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().targets("who", mob, player, other);
+                    Sink sink = mock(Sink.class);
+                    new DespawnEffect().run(ctx, sink);
+                    verify(sink).despawn(mob);
+                    verify(sink).despawn(other);
+                    verifyNoMoreInteractions(sink); // the player contributes no intent — an AoE clear spares them
+                }),
+                dynamicTest("SUMMON_REBIND carries the activator as the ownership gate", () -> {
+                    Player actor = mock(Player.class);
+                    LivingEntity a = mock(LivingEntity.class);
+                    LivingEntity b = mock(LivingEntity.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
+                            .with("type", 42).with("ttl", 600).with("name", "&bGuardian")
+                            .with("health", 90.0).with("speed", 1.2).with("effects", List.of(7))
+                            .with("rise", 2.0).targets("who", a, b);
+                    Sink sink = mock(Sink.class);
+                    new SummonRebindEffect().run(ctx, sink);
+                    verify(sink).rebindSummon(a, actor, 42, 600, "&bGuardian", 90.0, 1.2, List.of(7), 2.0);
+                    verify(sink).rebindSummon(b, actor, 42, 600, "&bGuardian", 90.0, 1.2, List.of(7), 2.0);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("SUMMON_REBIND with no activator emits nothing (ownership is the whole gate)", () -> {
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("type", 42).with("ttl", 600).with("name", "").with("health", 0.0)
+                            .with("speed", 0.0).with("effects", List.of()).with("rise", 2.0)
+                            .targets("who", mock(LivingEntity.class));
+                    Sink sink = mock(Sink.class);
+                    new SummonRebindEffect().run(ctx, sink);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("VIEWER_HIDE viewer=attacker scopes the hide to that one attacker", () -> {
+                    Player attacker = mock(Player.class);
+                    Player subject = mock(Player.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().attacker(attacker)
+                            .with("duration", 60).with("viewer", "attacker").targets("who", subject);
+                    Sink sink = mock(Sink.class);
+                    new ViewerHideEffect().run(ctx, sink);
+                    verify(sink).viewerHide(subject, attacker, 60);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("VIEWER_HIDE viewer=all passes a null viewer (everyone), attacker or not", () -> {
+                    Player subject = mock(Player.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("duration", 60).with("viewer", "all").targets("who", subject);
+                    Sink sink = mock(Sink.class);
+                    new ViewerHideEffect().run(ctx, sink);
+                    verify(sink).viewerHide(subject, null, 60);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("VIEWER_HIDE viewer=attacker with no attacker hides nobody (never falls back to all)",
+                        () -> {
+                            Player subject = mock(Player.class);
+                            FakeEffectCtx ctx = FakeEffectCtx.create()
+                                    .with("duration", 60).with("viewer", "attacker").targets("who", subject);
+                            Sink sink = mock(Sink.class);
+                            new ViewerHideEffect().run(ctx, sink);
+                            verifyNoMoreInteractions(sink);
+                        }),
+                dynamicTest("PROJECTILE_DRESSING → dressProjectile(type, ttl, invulnerable, no-pickup)", () -> {
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("type", 42).with("ttl", 150).with("invulnerable", 40).with("no-pickup", true);
+                    Sink sink = mock(Sink.class);
+                    new ProjectileDressingEffect().run(ctx, sink);
+                    verify(sink).dressProjectile(42, 150, 40, true);
+                    verifyNoMoreInteractions(sink);
+                }));
     }
 
     /** POTION's §B/ADR-0022 lifecycle teardown: on unequip, {@code stop} emits the exact inverse and nothing else. */
