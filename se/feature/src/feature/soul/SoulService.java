@@ -359,14 +359,46 @@ public final class SoulService implements SoulDebit, SoulSpender {
         if (!pool.trySpend(player, cost)) {
             return false;
         }
-        Player p = Bukkit.getPlayer(player);
-        if (p != null) {
-            Scheduling.onEntity(p, () -> {
-                flushPending(p);
-                soulUseFeedback(p);
-            });
-        }
+        settle(player, false);
         return true;
+    }
+
+    /**
+     * Gate-10 spend for a {@code soul-cost-carried} ability: the same atomic cross-gem charge, but affordable
+     * from the player's CARRIED gems with no gem active. Their carried total comes from the cached
+     * {@link #soulTotal} the holder thread keeps fresh — gate 10 runs on a foreign region thread and must not
+     * walk an inventory.
+     */
+    @Override
+    public boolean trySpendCarried(UUID player, int cost) {
+        if (cost <= 0) {
+            return true;
+        }
+        if (!pool.trySpendCarried(player, cost, soulTotal(player))) {
+            return false;
+        }
+        settle(player, true);
+        return true;
+    }
+
+    /**
+     * Hand a successful spend to the holder's own thread to drain the physical gems and report. A CARRIED
+     * spend outside soul mode also retires the ledger the spend opened, so the pool never holds standing
+     * state for a player who is not in soul mode.
+     */
+    private void settle(UUID player, boolean carried) {
+        Player p = Bukkit.getPlayer(player);
+        if (p == null) {
+            return;
+        }
+        Scheduling.onEntity(p, () -> {
+            flushPending(p);
+            boolean active = modes.active(player).isPresent();
+            soulUseFeedback(p, active ? pool.total(player) : totalSouls(p));
+            if (carried && !active) {
+                pool.disable(player);
+            }
+        });
     }
 
     /**
@@ -495,10 +527,10 @@ public final class SoulService implements SoulDebit, SoulSpender {
         }
     }
 
-    /** The per-spend feedback: the {@code soul.soul-use} line (the new TOTAL) + use sound + use particle. */
-    private void soulUseFeedback(Player player) {
+    /** The per-spend feedback: the {@code soul.soul-use} line ({@code total} = the new balance) + sound + particle. */
+    private void soulUseFeedback(Player player, int total) {
         SoulGemConfig cfg = config.get();
-        messages.sendText(player, messages.format("soul.soul-use", "AMOUNT", pool.total(player.getUniqueId())));
+        messages.sendText(player, messages.format("soul.soul-use", "AMOUNT", total));
         playSounds(player, cfg.sounds().use());
         particles.spawn(player, cfg.particles().use());
     }

@@ -334,7 +334,25 @@ class AbilityExecutorTest {
                 context(actor, null), sink, KEYS));
 
         // The throttle lives in the sink, not here: only the ability that authored a line emits at all.
-        verify(sink).outOfSoulsNotice(actor, "out of souls");
+        verify(sink).outOfSoulsNotice(actor, "out of souls", -1, -1);
+        verifyNoMoreInteractions(sink);
+    }
+
+    @Test
+    void anAbortedSoulSpendCarriesTheAbilitysOwnCueAlongsideItsLine() {
+        AbilityExecutor gated = executorWith(new SuppressionStore(), (player, cost) -> false);
+        Player actor = mock(Player.class);
+        SinkReadback sink = mock(SinkReadback.class);
+        // Cue-only, no line: the notice must still reach the dispatch layer, or a silent-by-design ability
+        // (a set bonus with no chat spam) would have no way to report an empty pool at all.
+        Ability cueOnly = Abilities.ability().trigger(TRIGGER).soulCost(5).noSoulsSound(7).noSoulsParticle(3)
+                .effects(igniteEffect("SELF", 60, Affinity.TARGET_ENTITY)).build();
+        Activation inSoulMode = Activation.builder(ACTOR, 0, TRIGGER, 0L).soulMode(UUID.randomUUID()).build();
+
+        assertEquals(0, gated.run(new Ability[] {cueOnly}, new int[] {0}, inSoulMode,
+                context(actor, null), sink, KEYS));
+
+        verify(sink).outOfSoulsNotice(actor, null, 7, 3);
         verifyNoMoreInteractions(sink);
     }
 

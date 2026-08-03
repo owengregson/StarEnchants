@@ -32,15 +32,26 @@ class ActivationPipelineTest {
     private final FakeSpender spender = new FakeSpender();
     private final ActivationPipeline pipeline = new ActivationPipeline(cooldowns, spender);
 
-    /** A stand-in for the player's cross-gem soul pool: spends from a single settable balance. */
+    /**
+     * A stand-in for the player's cross-gem soul pool: spends from a single settable balance. The carried
+     * path draws on the SAME balance, mirroring production's one-ledger rule, and records that it was the
+     * path taken so a row can tell the two apart.
+     */
     private static final class FakeSpender implements SoulSpender {
         private int balance;
+        private boolean carriedPathUsed;
+
         @Override public boolean trySpend(UUID player, int cost) {
             if (balance < cost) {
                 return false;
             }
             balance -= cost;
             return true;
+        }
+
+        @Override public boolean trySpendCarried(UUID player, int cost) {
+            carriedPathUsed = true;
+            return trySpend(player, cost);
         }
     }
 
@@ -56,12 +67,14 @@ class ActivationPipelineTest {
         int cdEnchant = -1, cdGroup = -1, cdType = -1;
         int suppressKey = -1;
         NumExpr chanceExpr = null;
+        boolean soulCostCarried = false;
 
         Ability build() {
             return Abilities.ability().triggerMask(triggerMask).level(level).chance(baseChance)
                     .chanceExpr(chanceExpr)
                     .cooldown(cooldownTicks).soulCost(soulCost).worldBlacklist(worldBlacklist)
                     .condition(condition).cooldownScope(cdEnchant, cdGroup, cdType).suppressKey(suppressKey)
+                    .soulCostCarried(soulCostCarried)
                     .build();
         }
     }
@@ -255,6 +268,44 @@ class ActivationPipelineTest {
         a.soulCost = 3;
         // §J no active gem → a soul-cost ability is BLOCKED (NO_SOULS), never fired for free (the fixed bug).
         assertEquals(GateOutcome.NO_SOULS, pipeline.evaluate(a.build(), act().build()));
+    }
+
+    @Test
+    void aCarriedSoulCostAbilityFiresOutsideSoulModeAndStillPays() {
+        Ab a = new Ab();
+        a.soulCost = 3;
+        a.soulCostCarried = true;
+        spender.balance = 5;
+
+        // The gem is a wallet, not a switch: no active gem, but the carried gems can pay, so it fires.
+        assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(a.build(), act().build()));
+        assertTrue(spender.carriedPathUsed, "the carried path is what paid, not the soul-mode one");
+        assertEquals(2, spender.balance, "the cost is really charged — it is not a free pass");
+    }
+
+    @Test
+    void aCarriedSoulCostAbilityStillBlocksWhenTheCarriedGemsCannotPay() {
+        Ab a = new Ab();
+        a.soulCost = 3;
+        a.soulCostCarried = true;
+        spender.balance = 2;
+
+        assertEquals(GateOutcome.NO_SOULS, pipeline.evaluate(a.build(), act().build()));
+        assertEquals(2, spender.balance, "a refused spend leaves the balance alone");
+    }
+
+    @Test
+    void aCarriedSoulCostAbilityInSoulModeTakesTheOrdinaryPath() {
+        Ab a = new Ab();
+        a.soulCost = 3;
+        a.soulCostCarried = true;
+        spender.balance = 5;
+
+        // With a gem active the flag changes nothing: one ledger, so the two paths can never double-spend.
+        assertEquals(GateOutcome.ACTIVATED,
+                pipeline.evaluate(a.build(), act().soulMode(UUID.randomUUID()).build()));
+        assertFalse(spender.carriedPathUsed);
+        assertEquals(2, spender.balance);
     }
 
     @Test

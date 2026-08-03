@@ -649,8 +649,10 @@ public interface Sink {
      * Tell {@code target} their activation could not pay its soul cost (gate 10), at most once per player per
      * {@code OUT_OF_SOULS_THROTTLE_TICKS}. Throttled inside the sink rather than at the call site because a
      * hit walks many abilities and every soul-cost one aborts on the same empty pool.
+     * {@code message} may be empty and {@code soundId}/{@code particleId} {@code -1}; the ability's whole
+     * notice shares ONE throttle, so a cue can never fire on a beat its line was suppressed for.
      */
-    void outOfSoulsNotice(Player target, String message);
+    void outOfSoulsNotice(Player target, String message, int soundId, int particleId);
 
     // ── ADR-0049 combat marks (per-player windows read by the combat dispatcher at the fold-commit site) ──
 

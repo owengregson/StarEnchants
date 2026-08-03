@@ -309,4 +309,41 @@ final class ContentParse {
     static String resolveString(YamlNode node, String key, Diagnostics diags) {
         return node.has(key) ? node.string(key) : null;
     }
+
+    /** The names of {@link SoulKnobs}' keys, for a reader's allowed-key set. */
+    static final Set<String> SOUL_KNOB_KEYS = Set.of("soul-cost-carried", "no-souls-sound", "no-souls-particle");
+
+    /**
+     * The soul-cost envelope knobs beyond {@code soul-cost}/{@code no-souls-message}: whether the cost may be
+     * charged against CARRIED gems outside soul mode, and the cue that rides the "out of souls" notice.
+     * Grouped so the seven def readers share one read, not twenty-one.
+     */
+    record SoulKnobs(boolean carried, String sound, String particle) {
+
+        static final SoulKnobs NONE = new SoulKnobs(false, null, null);
+    }
+
+    /** {@link SoulKnobs} read off one node; every knob absent is {@link SoulKnobs#NONE}. */
+    static SoulKnobs resolveSoulKnobs(YamlNode node, Diagnostics diags) {
+        return resolveSoulKnobs(node, node, node, diags);
+    }
+
+    /**
+     * {@link SoulKnobs} where each knob resolves against its OWN node — the shape a reader with scoped
+     * knob inheritance needs, so an inner {@code soul-cost-carried: false} still beats an outer {@code true}.
+     */
+    static SoulKnobs resolveSoulKnobs(YamlNode carried, YamlNode sound, YamlNode particle, Diagnostics diags) {
+        return new SoulKnobs(
+                boolOr(resolveString(carried, "soul-cost-carried", diags), false, "soul-cost-carried",
+                        DiagCode.W_LOAD_BOOL, carried.sourceOf("soul-cost-carried"), diags),
+                blankToNull(resolveString(sound, "no-souls-sound", diags)),
+                blankToNull(resolveString(particle, "no-souls-particle", diags)));
+    }
+
+    /** {@code keys} plus the soul-envelope knobs, which are accepted wherever {@code no-souls-message} is. */
+    static Set<String> withSoulKnobs(String... keys) {
+        List<String> all = new ArrayList<>(List.of(keys));
+        all.addAll(SOUL_KNOB_KEYS);
+        return Set.copyOf(all);
+    }
 }

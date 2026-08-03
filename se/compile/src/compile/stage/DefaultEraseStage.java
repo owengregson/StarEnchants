@@ -161,7 +161,10 @@ public final class DefaultEraseStage implements EraseStage {
                     // buffer at gate 8, so its facts join the union or it would roll against a stale 0.
                     FactMasks.of(la.condition(), la.chanceExpr(), effects),
                     la.chanceExpr(),
-                    la.noSoulsMessage());
+                    la.noSoulsMessage(),
+                    la.soulCostCarried(),
+                    la.noSoulsSound(),
+                    la.noSoulsParticle());
 
             abilities.add(ability);
             keysByDenseId.add(la.stableKey());

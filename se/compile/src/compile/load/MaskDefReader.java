@@ -26,14 +26,15 @@ import schema.grammar.EffectLine;
  */
 final class MaskDefReader {
 
-    private static final Set<String> ROOT_KEYS = Set.of(
+    private static final Set<String> ROOT_KEYS = ContentParse.withSoulKnobs(
             "display", "color", "head", "material", "description", "abilities",
             // single-ability shorthand (a mask with exactly one ability authors these at the top level):
             "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "no-souls-message",
             "condition", "effects");
-    private static final Set<String> ABILITY_KEYS = Set.of(
+    private static final Set<String> ABILITY_KEYS = ContentParse.withSoulKnobs(
             "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "no-souls-message",
             "condition", "effects");
+
 
     private MaskDefReader() {
     }
@@ -106,6 +107,7 @@ final class MaskDefReader {
         int soulCost = ContentParse.resolveInt(node, "soul-cost", 0, diags);
         String noSoulsMessage = ContentParse.blankToNull(
                 ContentParse.resolveString(node, "no-souls-message", diags));
+        ContentParse.SoulKnobs soulKnobs = ContentParse.resolveSoulKnobs(node, diags);
         String condition = ContentParse.blankToNull(node.string("condition"));
         List<EffectLine> effects = ContentParse.effectItems(node, "effects", diags);
         if (effects.isEmpty()) {
@@ -117,7 +119,7 @@ final class MaskDefReader {
         return new AbilityDef(
                 SourceKind.MASK, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, soulCost, triggers,
                 disabledWorlds, condition, effects, stableKey, stableKey, group, null, repeatTicks, fileSource, 0, false,
-                chance.expr(), noSoulsMessage);
+                chance.expr(), noSoulsMessage, soulKnobs.carried(), soulKnobs.sound(), soulKnobs.particle());
     }
 
     private static String orEmpty(String value) {

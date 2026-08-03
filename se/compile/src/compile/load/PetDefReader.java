@@ -32,13 +32,14 @@ final class PetDefReader {
     private static final Set<String> ROOT_KEYS = Set.of(
             "display", "color", "type", "head", "material", "descriptor", "description", "permission",
             "message-on-no-home", "levels");
-    private static final Set<String> ABILITY_KEYS = Set.of(
+    private static final Set<String> ABILITY_KEYS = ContentParse.withSoulKnobs(
             "trigger", "disabled-worlds", "repeat", "chance", "cooldown", "soul-cost", "no-souls-message",
             "condition", "effects");
-    private static final Set<String> BRACKET_KEYS = Set.of(
+    private static final Set<String> BRACKET_KEYS = ContentParse.withSoulKnobs(
             "cooldown", "duration", "abilities",
             // single-ability shorthand (a bracket with exactly one ability authors these at the top level):
             "trigger", "disabled-worlds", "repeat", "chance", "soul-cost", "no-souls-message", "condition", "effects");
+
 
     private PetDefReader() {
     }
@@ -197,6 +198,7 @@ final class PetDefReader {
         int soulCost = ContentParse.resolveInt(node, "soul-cost", 0, diags);
         String noSoulsMessage = ContentParse.blankToNull(
                 ContentParse.resolveString(node, "no-souls-message", diags));
+        ContentParse.SoulKnobs soulKnobs = ContentParse.resolveSoulKnobs(node, diags);
         int repeatTicks = ContentParse.optInt(node, "repeat", 0, diags);
         List<String> disabledWorlds = node.stringList("disabled-worlds");
         String condition = ContentParse.blankToNull(node.string("condition"));
@@ -218,7 +220,8 @@ final class PetDefReader {
         AbilityDef ability = new AbilityDef(
                 SourceKind.PET, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, soulCost,
                 List.of(trigger), disabledWorlds, condition, effects, "pet:" + key, cdScope, null, null,
-                repeatTicks, node.source(), 0, false, chance.expr(), noSoulsMessage);
+                repeatTicks, node.source(), 0, false, chance.expr(), noSoulsMessage, soulKnobs.carried(),
+                soulKnobs.sound(), soulKnobs.particle());
         out.add(ability);
         return ability;
     }

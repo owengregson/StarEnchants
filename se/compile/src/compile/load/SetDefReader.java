@@ -29,10 +29,11 @@ final class SetDefReader {
             "bonuses", "announce", "equip-message", "remove-message");
     private static final Set<String> ARMOR_KEYS = Set.of("lore", "enchants", "pieces");
     private static final Set<String> WEAPON_KEYS = Set.of("material", "name", "lore", "enchants");
-    private static final Set<String> BONUS_KEYS = Set.of(
+    private static final Set<String> BONUS_KEYS = ContentParse.withSoulKnobs(
             "on", "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost",
             "no-souls-message", "condition", "effects");
     private static final Set<String> MEMBER_KEYS = Set.of("material", "name");
+
 
     private SetDefReader() {
     }
@@ -201,6 +202,7 @@ final class SetDefReader {
         int soulCost = ContentParse.resolveInt(node, "soul-cost", 0, diags);
         String noSoulsMessage = ContentParse.blankToNull(
                 ContentParse.resolveString(node, "no-souls-message", diags));
+        ContentParse.SoulKnobs soulKnobs = ContentParse.resolveSoulKnobs(node, diags);
         String condition = ContentParse.blankToNull(node.string("condition"));
         List<EffectLine> effects = ContentParse.effectItems(node, "effects", diags);
         if (effects.isEmpty()) {
@@ -210,6 +212,7 @@ final class SetDefReader {
         return new AbilityDef(
                 SourceKind.SET, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, soulCost, triggers,
                 disabledWorlds, condition, effects, stableKey, stableKey, group, null, repeatTicks, fileSource,
-                Math.max(0, setPieces), false, chance.expr(), noSoulsMessage);
+                Math.max(0, setPieces), false, chance.expr(), noSoulsMessage, soulKnobs.carried(), soulKnobs.sound(),
+                soulKnobs.particle());
     }
 }

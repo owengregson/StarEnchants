@@ -34,6 +34,32 @@ class SoulPoolTest {
     }
 
     @Test
+    void aCarriedSpendOutsideSoulModeOpensAnOwedLedgerTheDrainCanSettle() {
+        SoulPool pool = new SoulPool();
+        UUID p = UUID.randomUUID();
+
+        assertFalse(pool.trySpendCarried(p, 5, 4), "a carried total short of the cost still cannot pay");
+        assertFalse(pool.isActive(p), "a REFUSED spend must not leave a ledger behind");
+
+        assertTrue(pool.trySpendCarried(p, 5, 12));
+        assertEquals(7, pool.total(p), "available already excludes the spend");
+        assertEquals(5, pool.takePending(p), "…and pending carries it, so the holder-thread drain settles it once");
+    }
+
+    @Test
+    void aCarriedSpendInSoulModeSharesTheOneLedger() {
+        SoulPool pool = new SoulPool();
+        UUID p = UUID.randomUUID();
+        pool.enable(p, 10);
+
+        // The physicalTotal argument is IGNORED once a ledger exists — otherwise a stale carried total could
+        // resurrect souls a soul-mode spend already committed, and the two paths would double-spend.
+        assertTrue(pool.trySpendCarried(p, 6, 999));
+        assertFalse(pool.trySpendCarried(p, 6, 999), "the second spend sees the debited balance, not the total");
+        assertEquals(4, pool.total(p));
+    }
+
+    @Test
     void trySpendDebitsAvailableAndRaisesPendingWhenAffordable() {
         SoulPool pool = new SoulPool();
         UUID p = UUID.randomUUID();
