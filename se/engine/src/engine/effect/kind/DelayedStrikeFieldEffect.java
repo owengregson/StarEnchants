@@ -63,10 +63,10 @@ public final class DelayedStrikeFieldEffect implements EffectKind {
             .affinity(Affinity.REGION)
             .doc("Mark `points` ground spots around each target, at an independent per-axis offset of "
                     + "offset-min..offset-max blocks (a spot over lower ground snaps down onto it, but never "
-                    + "rises above the origin), play the cue-* telegraph at each one and shout `warning` "
+                    + "rises above the origin), play the `cue-` telegraph at each one and shout `warning` "
                     + "({caster}) at everyone the `filter` admits within target-range. `delay` ticks later every "
                     + "spot detonates together: a damage-free lightning visual (unless lightning: false), the "
-                    + "strike-* cue, and `damage` raw half-hearts subtracted from every body within hit-radius "
+                    + "`strike-` cue, and `damage` raw half-hearts subtracted from every body within hit-radius "
                     + "of it — floored at health-floor, so the field cannot kill, and the filter is RE-CHECKED "
                     + "then, so walking into a spot during the delay gets you hit. Spots are independent: "
                     + "overlapping ones each land their own hit.")
