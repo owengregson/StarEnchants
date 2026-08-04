@@ -144,6 +144,7 @@ public final class BuiltinEffects {
                 // Cosmic-port wave 2d.2. APPENDED, never inserted (ADR-0039 dense kind ids).
                 .register(new StackingDotEffect())       // Rot and Decay: a ladder that burns only on the wearer's ground
                 .register(new DelayedStrikeFieldEffect()) // Revenge of Yijki: telegraphed ground spots, struck as one
+                .register(new SummonPurgeEffect())       // Rot and Decay: despawn foreign summons (CONVERT_SUMMON's inverse)
                 .build();
     }
 }

@@ -385,12 +385,14 @@ effect SPAWN_ENTITY
   param speed DOUBLE optional min=0 max=- enum=- handle=- default=0
   param name STRING optional min=- max=- enum=- handle=- default=
   param effects HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=
-  param payload-phase ENUM optional min=- max=- enum=death,detonate,none,periodic handle=- default=none
+  param payload-phase ENUM optional min=- max=- enum=death,detonate,none,periodic,strike handle=- default=none
   param payload-period TICKS optional min=0 max=- enum=- handle=- default=40
   param payload-radius DOUBLE optional min=0 max=- enum=- handle=- default=4
   param payload-height DOUBLE optional min=0 max=- enum=- handle=- default=0
   param payload-filter ENUM optional min=- max=- enum=ALL,ALLIES,ENEMIES,MOBS,MONSTERS,PLAYERS handle=- default=ALL
   param payload-max-targets INT optional min=0 max=- enum=- handle=- default=0
+  param payload-consume BOOL optional min=- max=- enum=- handle=- default=true
+  param payload-cancel BOOL optional min=- max=- enum=- handle=- default=true
   param scatter INT optional min=0 max=8 enum=- handle=- default=0
 effect SPAWN_SWARM
   param type HANDLE required min=- max=- enum=- handle=ENTITY_TYPE default=-
@@ -416,6 +418,15 @@ effect STATUS_CLEAR
 effect STRIP_SCROLL
   param scroll ENUM optional min=- max=- enum=HOLY,WHITE handle=- default=HOLY
   param hand BOOL optional min=- max=- enum=- handle=- default=true
+effect SUMMON_PURGE
+  param radius DOUBLE optional min=1 max=32 enum=- handle=- default=15
+  param filter ENUM optional min=- max=- enum=not-own,not-own-or-ally,not-own-or-ally-or-offline handle=- default=not-own-or-ally-or-offline
+  param particle HANDLE optional min=- max=- enum=- handle=PARTICLE default=-
+  param particle-count INT optional min=0 max=- enum=- handle=- default=1
+  param particle-spread DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param extra-particle HANDLE optional min=- max=- enum=- handle=PARTICLE default=-
+  param extra-particle-count INT optional min=0 max=- enum=- handle=- default=1
+  param extra-particle-spread DOUBLE optional min=0 max=- enum=- handle=- default=0
 effect SUMMON_REBIND
   param type HANDLE required min=- max=- enum=- handle=ENTITY_TYPE default=-
   param ttl TICKS optional min=0 max=- enum=- handle=- default=600

@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import engine.effect.EffectKind;
 import engine.sink.Sink;
+import engine.sink.SummonPurgeFilter;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -109,6 +110,15 @@ class FlagAndSoulEffectTest {
                 armed("CONVERT_SUMMON → convertSummons(player, 9.5, whiff 7)", new ConvertSummonEffect(),
                         c -> c.with("radius", 9.5).with("whiff-sound", 7),
                         (s, p) -> verify(s).convertSummons(p, 9.5, 7)),
+                // Both bursts carry distinct values so a transposed slot cannot pass; an absent HANDLE is -1.
+                armed("SUMMON_PURGE → purgeSummons(player, 15.0, filter, 2 x 10 @0.3, 3 x 12 @0.7)",
+                        new SummonPurgeEffect(),
+                        c -> c.with("radius", 15.0).with("filter", SummonPurgeFilter.NOT_OWN_OR_ALLY)
+                                .with("particle", 2).with("particle-count", 10).with("particle-spread", 0.3)
+                                .with("extra-particle", 3).with("extra-particle-count", 12)
+                                .with("extra-particle-spread", 0.7),
+                        (s, p) -> verify(s).purgeSummons(p, 15.0, SummonPurgeFilter.NOT_OWN_OR_ALLY,
+                                2, 10, 0.3, 3, 12, 0.7)),
                 armed("TRAP_BREAK → breakTraps(player, whiff 7)", new TrapBreakEffect(),
                         c -> c.with("whiff-sound", 7),
                         (s, p) -> verify(s).breakTraps(p, 7)),
