@@ -15,13 +15,15 @@ why the build won't let a stale artifact through.
 | `website/src/data/catalog.json` | the same five runtime registries (with full per-param schema) | `engine.doc.ReferenceCatalogJson` | `ReferenceCatalogDriftTest` |
 | `website/src/data/surface.json` | the `/se` command table + bundled `content/tiers.yml`, `items/*.yml`, `config.yml` | `bootstrap.SurfaceCatalogDriftTest#render` | `SurfaceCatalogDriftTest` |
 | `se/bootstrap/resources/content/index.txt` | the on-disk `se/bootstrap/resources/content/**/*.yml` files | `bootstrap.ContentIndexDriftTest` | `ContentIndexDriftTest` |
+| `se/bootstrap/packs-src/*/pack.yml` | each shipped pack's tree + the live registry fingerprint (ADR-0046) | `bootstrap.ShippedPackManifestDriftTest` | `ShippedPackManifestDriftTest` |
 
 The split is intentional: the **engine** half (`ReferenceDoc` /
 `ReferenceCatalogJson`) is driven purely by the runtime registries, so the moment
 you register a new effect/selector/trigger — or add a DSL operator or runtime
 variable — its docs and creator schema appear automatically. The **bootstrap**
-half (`SurfaceCatalogDriftTest` / `ContentIndexDriftTest`) is driven by the
-shipped commands and the bundled content tree.
+half (`SurfaceCatalogDriftTest` / `ContentIndexDriftTest` /
+`ShippedPackManifestDriftTest`) is driven by the shipped commands, the bundled
+content tree, and the shipped pack trees.
 
 ## How generation works
 
@@ -81,9 +83,9 @@ already covers doc staleness.
 The shared git hook (`.githooks/pre-commit`, enabled by `scripts/setup-hooks.sh` or
 `scripts/setup-dev.sh`) keeps the artifacts in step **before** the commit lands. If
 a staged file feeds the generated docs — the engine/schema/compile registries, the
-command catalog (`SeCommand`/`CommandInfo`), or the bundled `config.yml` /
-`content/` — it runs `./gradlew regenDocs` and re-stages the four generated files,
-so you never trip the drift gate in CI. (It also blocks committing the
+command catalog (`SeCommand`/`CommandInfo`), the bundled `config.yml` / `content/`,
+or a shipped pack tree — it runs `./gradlew regenDocs` and re-stages the generated
+files, so you never trip the drift gate in CI. (It also blocks committing the
 reverse-engineering workspace and large binaries.) Skip it with `git commit -n`
 only when you know the regen isn't needed.
 
