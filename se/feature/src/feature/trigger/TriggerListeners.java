@@ -4,6 +4,7 @@ import engine.run.ActivationContext;
 import engine.sink.EngineDamage;
 import feature.compat.Hands;
 import java.util.Objects;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -140,7 +141,7 @@ public final class TriggerListeners implements Listener {
             return; // one fire per interaction — the off-hand pass is a duplicate of the same click
         }
         Player player = event.getPlayer();
-        ActivationContext context = new ActivationContext(player, null, null, player.getLocation());
+        ActivationContext context = clicked(player, event);
         dispatch.fire(player, dispatch.interact, context, event);
         Action action = event.getAction();
         if (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) {
@@ -185,6 +186,19 @@ public final class TriggerListeners implements Listener {
     private static ActivationContext damaged(Player player, EntityDamageEvent event) {
         return new ActivationContext(player, null, null, player.getLocation(), event.getDamage(), null, 0,
                 event.getCause().name(), false, 0, 0, event.getFinalDamage(), 0.0, "");
+    }
+
+    /**
+     * The payload for a click. A click ON a block carries it, so {@code %block.type%}/{@code %isblock%} read the
+     * face the player actually hit and {@code @Here} anchors there rather than at their own feet — the difference
+     * between an ability that breaks the clicked block and one that breaks the ground under the clicker. A click at
+     * open air has no block, and stays the bare self-context it has always been.
+     */
+    private static ActivationContext clicked(Player player, PlayerInteractEvent event) {
+        Block block = event.getClickedBlock();
+        return block == null
+                ? self(player)
+                : new ActivationContext(player, null, null, block.getLocation(), 0.0, block);
     }
 
     private static ActivationContext self(Player player) {

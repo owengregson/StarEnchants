@@ -312,7 +312,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         return cancelled;
     }
 
-    /** The accumulated EXP_MULTIPLY factor for an EXP_GAIN activation (1.0 = unchanged). Read by the EXP_GAIN dispatcher. */
+    /** The accumulated EXP_MULTIPLY factor (1.0 = unchanged). Read by the EXP_GAIN and MINE dispatchers. */
     @Override
     public double expMultiplier() {
         return expMultiplier;
@@ -3021,7 +3021,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
     @Override
     public void multiplyExp(double factor) {
         if (factor >= 0) {
-            expMultiplier *= factor; // inline read-back: the EXP_GAIN dispatcher scales the event's amount, never grants new XP
+            expMultiplier *= factor; // inline read-back: the dispatcher scales the event's XP, never grants new XP
         }
     }
 
