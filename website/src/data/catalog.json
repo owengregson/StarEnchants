@@ -4680,6 +4680,37 @@
     "targets": []
     },
   {
+    "head": "STATUS_CLEAR",
+    "doc": "Remove an active engine status window from each target: TELEBLOCK (the teleport denial), POTION_LOCK (every potion denial held on them), or DISARM (the armed disarm window). Unlike CURE this touches no potion EFFECT — it lifts the plugin state that was denying one. Clearing a window nobody holds is a silent no-op, so the authored condition decides what a wasted use costs.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ STATUS_CLEAR: { status: <enum{TELEBLOCK|POTION_LOCK|DISARM}> } }",
+    "example": "{ STATUS_CLEAR: { status: TELEBLOCK, who: \"@Self\" } }",
+    "params": [
+      {
+        "name": "status",
+        "kind": "ENUM",
+        "label": "enum{TELEBLOCK|POTION_LOCK|DISARM}",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [
+          "TELEBLOCK",
+          "POTION_LOCK",
+          "DISARM"
+          ],
+        "handle": null,
+        "doc": "which engine window to lift"
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
     "head": "STRIP_SCROLL",
     "doc": "Remove one protection scroll marker from a random protected piece of the target's worn armour (+ held item unless hand: false): scroll HOLY strips a Holy White Scroll, WHITE a White Scroll (its guard flag included). A target with no protected piece is a no-op. Rate-limit with the ability's chance gate (the Anubis per-hit percent).",
     "affinity": "TARGET_ENTITY",
@@ -6872,6 +6903,10 @@
     },
   {
     "name": "sprinting",
+    "type": "BOOL"
+    },
+  {
+    "name": "status.teleblock",
     "type": "BOOL"
     },
   {

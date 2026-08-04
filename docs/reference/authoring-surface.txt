@@ -368,6 +368,8 @@ effect SPAWN_SWARM
   param cloud-range DOUBLE optional min=1 max=- enum=- handle=- default=16
   param name STRING optional min=- max=- enum=- handle=- default=
   param effects HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=
+effect STATUS_CLEAR
+  param status ENUM required min=- max=- enum=DISARM,POTION_LOCK,TELEBLOCK handle=- default=-
 effect STRIP_SCROLL
   param scroll ENUM optional min=- max=- enum=HOLY,WHITE handle=- default=HOLY
   param hand BOOL optional min=- max=- enum=- handle=- default=true
@@ -600,6 +602,7 @@ var ragestacks NUM
 var recentattackers NUM
 var sneaking BOOL
 var sprinting BOOL
+var status.teleblock BOOL
 var swimming BOOL
 var victim.blocking BOOL
 var victim.flying BOOL

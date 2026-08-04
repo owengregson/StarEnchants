@@ -1026,6 +1026,16 @@ Summon count entities of type evenly spaced on a radius-block ring around the ac
 - _param_ `effects` `potion_effect list` — potion effects held for each summon's whole life
 - _example_: `{ SPAWN_SWARM: { type: BAT, count: 10, radius: 0.5, ttl: 300, speed: 0.5 } }`
 
+### STATUS_CLEAR
+
+Remove an active engine status window from each target: TELEBLOCK (the teleport denial), POTION_LOCK (every potion denial held on them), or DISARM (the armed disarm window). Unlike CURE this touches no potion EFFECT — it lifts the plugin state that was denying one. Clearing a window nobody holds is a silent no-op, so the authored condition decides what a wasted use costs.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ STATUS_CLEAR: { status: <enum{TELEBLOCK|POTION_LOCK|DISARM}> } }`
+- _param_ `status` `enum{TELEBLOCK|POTION_LOCK|DISARM}` — which engine window to lift
+- _target_ `who`: selector `SELF`
+- _example_: `{ STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }`
+
 ### STRIP_SCROLL
 
 Remove one protection scroll marker from a random protected piece of the target's worn armour (+ held item unless hand: false): scroll HOLY strips a Holy White Scroll, WHITE a White Scroll (its guard flag included). A target with no protected piece is a no-op. Rate-limit with the ability's chance gate (the Anubis per-hit percent).
@@ -1569,6 +1579,7 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%recentattackers%` | NUM |
 | `%sneaking%` | BOOL |
 | `%sprinting%` | BOOL |
+| `%status.teleblock%` | BOOL |
 | `%swimming%` | BOOL |
 | `%victim.blocking%` | BOOL |
 | `%victim.flying%` | BOOL |

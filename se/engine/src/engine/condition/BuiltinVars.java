@@ -113,6 +113,9 @@ public final class BuiltinVars {
                 // The actor's feet Y in world coordinates. Absolute, not relative: the consumers gate on a
                 // build height ("only below y=40"), which no differencing fact (%actor.belowvictim%) reaches.
                 .number("actor.y")
+                // The paired guard for STATUS_CLEAR: an item whose whole purpose is lifting a window needs to
+                // refuse when the window is not there, and no engine status was queryable before this.
+                .flag("status.teleblock")
                 .build();
     }
 }

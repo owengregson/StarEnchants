@@ -3008,6 +3008,22 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 chance, byDefId, feedback);
     }
 
+    @Override
+    public void clearStatus(Player target, int statusOrdinal) {
+        if (target == null) {
+            return;
+        }
+        // Every branch is a per-player in-memory map write keyed on the UUID alone — no entity read, so this
+        // is Folia-safe inline on the firing thread, exactly like the arms that created these windows.
+        UUID id = target.getUniqueId();
+        switch (statusOrdinal) {
+            case StatusKinds.TELEBLOCK -> teleblock.clear(id);
+            case StatusKinds.POTION_LOCK -> LockedPotions.clear(id);
+            case StatusKinds.DISARM -> disarmWindowStore.clear(id);
+            default -> { } // an unknown ordinal cannot reach here: the enum is closed at compile
+        }
+    }
+
     /** {@code null} unless the author wrote at least one cue — the ordinary window stores nothing to read back. */
     private static SuppressionStore.Feedback suppressionFeedback(UUID by, String actorMessage,
                                                                  String victimMessage, int soundId) {
