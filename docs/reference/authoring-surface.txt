@@ -19,6 +19,7 @@ effect BLINK
   param accent-pitch DOUBLE optional min=0 max=- enum=- handle=- default=1.6
 effect BREAK_BLOCK
   param drops BOOL optional min=- max=- enum=- handle=- default=true
+  param void-materials HANDLE optional min=- max=- enum=- handle=MATERIAL default=
 effect CAGE
   param floor HANDLE required min=- max=- enum=- handle=MATERIAL default=-
   param walls HANDLE required min=- max=- enum=- handle=MATERIAL default=-
@@ -479,6 +480,10 @@ selector BORE
   param half-width INT optional min=0 max=- enum=- handle=- default=1
   param half-height INT optional min=0 max=- enum=- handle=- default=1
   param depth INT optional min=1 max=- enum=- handle=- default=1
+  param left INT optional min=-1 max=- enum=- handle=- default=-1
+  param right INT optional min=-1 max=- enum=- handle=- default=-1
+  param up INT optional min=-1 max=- enum=- handle=- default=-1
+  param down INT optional min=-1 max=- enum=- handle=- default=-1
   param materials HANDLE optional min=- max=- enum=- handle=MATERIAL default=
   param exclude-materials HANDLE optional min=- max=- enum=- handle=MATERIAL default=
 selector ENTITYINSIGHT

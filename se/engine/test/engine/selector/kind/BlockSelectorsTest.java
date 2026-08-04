@@ -112,7 +112,8 @@ class BlockSelectorsTest {
         // 3 wide x 1 tall, two layers deep, facing +X: 3*1*2 blocks, the first layer on the struck block's own
         // plane (so depth=1 is exactly @Trench) and the second one step along the face normal.
         List<Location> out = new BoreSelector().resolveLocations(shapeCtx(new Vector(1, 0, 0), true,
-                Map.of("half-width", 1, "half-height", 0, "depth", 2)));
+                Map.of("half-width", 1, "half-height", 0, "depth", 2,
+                        "left", -1, "right", -1, "up", -1, "down", -1)));
 
         assertEquals(6, out.size());
         assertTrue(out.contains(new Location(null, 10, 64, 20)), () -> out.toString());  // layer 0, centre
@@ -122,10 +123,34 @@ class BlockSelectorsTest {
     }
 
     @Test
+    void borePerSideExtentsReachTheEvenCrossSectionsTheHalfParamsCannot() {
+        // 4 wide (left 1 + centre + right 2) x 1 tall, one layer, facing +X. No half-width value produces an
+        // even span from a -half..+half loop, so this row is the whole reason the extents exist.
+        List<Location> out = new BoreSelector().resolveLocations(shapeCtx(new Vector(1, 0, 0), true,
+                Map.of("half-width", 1, "half-height", 0, "depth", 1,
+                        "left", 1, "right", 2, "up", 0, "down", 0)));
+
+        assertEquals(4, out.size(), () -> out.toString());
+        assertTrue(out.contains(new Location(null, 10, 64, 19)), () -> out.toString()); // one block left
+        assertTrue(out.contains(new Location(null, 10, 64, 22)), () -> out.toString()); // two blocks right
+        assertTrue(out.stream().noneMatch(l -> l.getBlockZ() < 19 || l.getBlockZ() > 22), () -> out.toString());
+    }
+
+    @Test
+    void aNegativeExtentFallsBackToItsAxisSymmetricHalf() {
+        // The -1 sentinel is what keeps every already-authored @Bore identical: an unset side means "as before".
+        List<Location> asymmetric = new BoreSelector().resolveLocations(shapeCtx(new Vector(1, 0, 0), true,
+                Map.of("half-width", 2, "half-height", 0, "depth", 1,
+                        "left", -1, "right", -1, "up", -1, "down", -1)));
+        assertEquals(5, asymmetric.size(), () -> asymmetric.toString()); // 2 + centre + 2, the symmetric span
+    }
+
+    @Test
     void blockShapesConsultTheMaterialFilterPerBlock() {
         // The filter is what makes a break tool selective; a shape that never asked would break everything.
         assertTrue(new BoreSelector().resolveLocations(shapeCtx(new Vector(1, 0, 0), false,
-                Map.of("half-width", 1, "half-height", 1, "depth", 2))).isEmpty());
+                Map.of("half-width", 1, "half-height", 1, "depth", 2,
+                        "left", -1, "right", -1, "up", -1, "down", -1))).isEmpty());
         assertTrue(new TrenchSelector().resolveLocations(shapeCtx(new Vector(1, 0, 0), false,
                 Map.of("radius", 1))).isEmpty());
         assertTrue(new TunnelSelector().resolveLocations(shapeCtx(new Vector(1, 0, 0), false,

@@ -208,9 +208,9 @@
     },
   {
     "head": "BREAK_BLOCK",
-    "doc": "Break the target block(s) (default @Here; drops=false clears). @Vein/@Tunnel/@Trench for shapes.",
+    "doc": "Break the target block(s) (default @Here; drops=false clears). @Vein/@Tunnel/@Trench/@Bore for shapes. void-materials is the per-block exception to `drops`: the listed types are destroyed dropless while everything else in the same volume still yields, which is how a bulk excavator keeps the ore and voids the stone.",
     "affinity": "REGION",
-    "usage": "{ BREAK_BLOCK: { drops: <bool=true> } }",
+    "usage": "{ BREAK_BLOCK: { drops: <bool=true>, void-materials: <material list=> } }",
     "example": "{ BREAK_BLOCK: { drops: true } }",
     "params": [
       {
@@ -224,6 +224,18 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "void-materials",
+        "kind": "HANDLE",
+        "label": "material list",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": "these block types break WITHOUT drops even when drops is true (empty = none)"
         }
       ],
     "targets": [
@@ -1060,7 +1072,7 @@
     },
   {
     "head": "EXP_MULTIPLY",
-    "doc": "Multiply the XP gained (EXP_GAIN trigger) by a factor.",
+    "doc": "Multiply the XP gained by a factor, on EXP_GAIN and on MINE. EXP_GAIN scales the amount already granted and ROUNDS to the nearest whole XP; MINE scales the broken block's own yield and TRUNCATES, because a block yields whole orbs.",
     "affinity": "CONTEXT_LOCAL",
     "usage": "{ EXP_MULTIPLY: { factor: <double[0..]=2.0> } }",
     "example": "{ EXP_MULTIPLY: { factor: 2 } }",
@@ -6031,8 +6043,8 @@
     },
   {
     "head": "BORE",
-    "doc": "A half-width x half-height cross-section centred on the activation block, repeated depth layers into the mined face. depth=1 is a flat face; materials keeps only the listed block types and exclude-materials drops them, both written [STONE,DIRT] so the comma survives the selector body. A type on both lists is dropped.",
-    "usage": "{ BORE: { half-width: <int[0..]=1>, half-height: <int[0..]=1>, depth: <int[1..]=1>, materials: <material list=>, exclude-materials: <material list=> } }",
+    "doc": "A half-width x half-height cross-section centred on the activation block, repeated depth layers into the mined face. depth=1 is a flat face; materials keeps only the listed block types and exclude-materials drops them, both written [STONE,DIRT] so the comma survives the selector body. A type on both lists is dropped. left/right/up/down override their axis's half-* for an ASYMMETRIC cross-section — the only way to reach an even width or height (left=1, right=2 is 4 blocks across).",
+    "usage": "{ BORE: { half-width: <int[0..]=1>, half-height: <int[0..]=1>, depth: <int[1..]=1>, left: <int[-1..]=-1>, right: <int[-1..]=-1>, up: <int[-1..]=-1>, down: <int[-1..]=-1>, materials: <material list=>, exclude-materials: <material list=> } }",
     "example": "@Bore{half-width=1, half-height=1, depth=3, exclude-materials=[BEDROCK,OBSIDIAN]}",
     "params": [
       {
@@ -6070,6 +6082,54 @@
         "enum": [],
         "handle": null,
         "doc": "layers into the face, counting the activation block's own"
+        },
+      {
+        "name": "left",
+        "kind": "INT",
+        "label": "int[-1..]",
+        "required": false,
+        "default": "-1",
+        "min": -1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "blocks left of centre; -1 = half-width"
+        },
+      {
+        "name": "right",
+        "kind": "INT",
+        "label": "int[-1..]",
+        "required": false,
+        "default": "-1",
+        "min": -1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "blocks right of centre; -1 = half-width"
+        },
+      {
+        "name": "up",
+        "kind": "INT",
+        "label": "int[-1..]",
+        "required": false,
+        "default": "-1",
+        "min": -1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "blocks above centre; -1 = half-height"
+        },
+      {
+        "name": "down",
+        "kind": "INT",
+        "label": "int[-1..]",
+        "required": false,
+        "default": "-1",
+        "min": -1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "blocks below centre; -1 = half-height"
         },
       {
         "name": "materials",
