@@ -159,21 +159,40 @@ fields. **Bar:** BOW fires at hit-entity; nothing observes ground impact.
 detonate/death/pulse), `SUMMON_PURGE` (07), `SUMMON_STRIKE_PAYLOAD` (07),
 `TURRET_RING` (07 — + `initial-delay`, the codex 30 t arming delay). Consumers
 span Necromancer/Ghost sets, mastery fields, ancestral summons (02 consumers get
-authored in the doc 07/sets batches; no earlier batch blocks on these).
+authored in the doc 07/sets batches; no earlier batch blocks on these). **The
+last three SHIPPED in wave 2d.2** — the family is drained.
+`SUMMON_STRIKE_PAYLOAD` is a 5th `PHASE_*` rung rather than a head, since it is
+the same payload concept observed at a different moment, and it fires the
+OWNER's `IMPACT` rather than `SUMMON_PAYLOAD`. `TURRET_RING` asks
+`ProtectionProvider.allows` per SITE (owner ruling R-iv) and re-arms each volley
+on the turret's own entity scheduler, because the period is jittered per volley
+and a region task anchored at the caster cannot reach a turret across a Folia
+boundary.
 
 **Soul family:** `ESCALATING_SOUL_COST` (02 — growth/decay params on
 `SOUL_COST`), `SOUL_TRANSFER` (07), `SOUL_MODE_DISABLE` (04), `SOUL_COST_EXEMPT`
 (12 — timed exemption window; check against the engine's existing cost-free
-concept before minting).
+concept before minting). **All four SHIPPED**, the last in wave 2d.2: the check
+confirmed no exemption concept existed, so it is a store consulted at gate 10 —
+the single choke point every debit passes — plus the effect-side `REMOVE_SOULS`
+path, which never reaches that gate and would otherwise have made "no soul
+costs" mean "except the ones authored as an effect".
 
 **Visibility family:** `VANISH` + decoy (`VANISH` 07, `VANISH_DECOY` 12 — shared
 state confirmed by both docs), `MOB_DISGUISE` (11 — spectral; irreducible: no
 primitive alters other-client rendering), `PHANTOM_BLOCKS` (07 — per-viewer block
-overlay). **Wave 2d STOPPED on all three** and the analysis is in
-`deferred-content.md` § Engine follow-up pool: the two rendering ones need a
-packet seam the modern lane does not have at all (`PlayerVisibility` is one
-boolean method), and the block overlay is reachable from the public API on both
-lanes but needs its own `BlockVisibility` seam minted first.
+overlay). **Wave 2d STOPPED on all three; wave 2d.2 drained two of them.**
+`PHANTOM_BLOCKS` shipped as the `BlockVisibility` seam minted on the
+`PlayerVisibility` chain (owner ruling R-ii) — material-token shaped, because 1.8
+has no `BlockData`, and carrying a captured APPEARANCE rather than a material for
+the revert, because granite reverted by material would come back as plain stone.
+`VANISH` shipped HIDE-ONLY (owner ruling R-i): the hide, the early break after N
+landed outgoing hits, the maintained var and the join re-sync, all on a
+store-backed window with one shared restore closure. What is left is the DECOY
+and `MOB_DISGUISE`, now one **polish decision — packet seam vs roster-marker** —
+recorded in `deferred-content.md` § Engine follow-up pool. Both need the same
+greenfield packet work the modern lane has no path to today, so they are one
+question, not two.
 
 **Field family:** `STACKING_DOT` (07), `OWNED_GROUND` fact (07),
 `DELAYED_STRIKE_FIELD` (10 — Yijki strike points), `BLOCK_FIELD_PROFILE` (10 —
@@ -206,7 +225,17 @@ effect,
 `WORN_COMPOSITE` (11 — multi-mask; irreducible core mask feature),
 `INVENTORY_CONVERT` (12 — lava + water pets), `ITEM_XP_TRACK` (12 — the pet
 XP/level infrastructure; every pet entry consumes it), `%actor.y%` position fact
-(11).
+(11). **All but `WORN_COMPOSITE` SHIPPED by wave 2d.2.** Three carry a design
+call worth reading before authoring against them. `SPAWNER_YIELD` is a worn
+CHANNEL, not an activation — nothing procs a spawner firing, and the intended
+per-spawn wearer test is precisely what an armed window would turn back into the
+cached check the ledger rejects. `ITEM_XP_TRACK`'s `window` is in MINUTES, not
+the recorded milliseconds, because the item store has no 64-bit surface and a
+seconds epoch overflows an int in 2038. `INVENTORY_CONVERT` ships the INTENDED
+cap-straddling direction, not the measured inversion. **`WORN_COMPOSITE` STOPPED
+in wave 2d.2** on a contradiction inside its own matrix entry — def-declared
+children versus per-item children — with three options and three attendant
+rulings recorded in `deferred-content.md` § Engine follow-up pool.
 
 ## Excluded by owner ruling R9 (2026-08-02): economy is note-only
 
