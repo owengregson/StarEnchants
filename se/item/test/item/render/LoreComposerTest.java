@@ -65,6 +65,55 @@ class LoreComposerTest {
     }
 
     @Test
+    void anArmourSetPieceRendersItsOwnSlotsLoreAndTheSlotlessReadStaysShared() {
+        // §6.6: the discriminator is the item's gear KIND, so nothing has to be stamped on the piece to say
+        // which member it is. A composer that ignored the kind would render every piece the shared block.
+        List<String> shared = List.of("&7SET BONUS");
+        List<String> bootsOnly = List.of("&7&oFlavour.");
+        LoreComposer composer = new LoreComposer(LoreRenderer.Config.of(LoreStyle.DEFAULT, NAMES)
+                .withSetLore(new LoreRenderer.SetLore() {
+                    @Override public List<String> armor(String setKey) {
+                        return shared;
+                    }
+
+                    @Override public List<String> armor(String setKey, String slotToken) {
+                        return "BOOTS".equals(slotToken)
+                                ? List.of(bootsOnly.get(0), shared.get(0)) : shared;
+                    }
+
+                    @Override public List<String> weapon(String setKey) {
+                        return List.of();
+                    }
+                }));
+        CombatState piece = new CombatState(Map.of(), List.of(), "sets/ghost", false);
+
+        assertEquals(List.of("§7§oFlavour.", "§7SET BONUS"), composer.body(piece, "BOOTS"));
+        assertEquals(List.of("§7SET BONUS"), composer.body(piece, "HELMET"));
+        // the slot-less read (menu previews, fixtures) keeps the pre-per-piece behaviour exactly
+        assertEquals(List.of("§7SET BONUS"), composer.body(piece));
+    }
+
+    @Test
+    void aSetLoreLookupThatOverridesNeitherArmorOverloadRendersTheSharedBlockForEverySlot() {
+        // The default method on the interface: an implementation written before per-piece lore existed keeps
+        // answering for every slot, so no wiring silently loses a set's lore when the kind is threaded in.
+        List<String> shared = List.of("&7SET BONUS");
+        LoreComposer composer = new LoreComposer(LoreRenderer.Config.of(LoreStyle.DEFAULT, NAMES)
+                .withSetLore(new LoreRenderer.SetLore() {
+                    @Override public List<String> armor(String setKey) {
+                        return shared;
+                    }
+
+                    @Override public List<String> weapon(String setKey) {
+                        return List.of();
+                    }
+                }));
+        CombatState piece = new CombatState(Map.of(), List.of(), "sets/ghost", false);
+
+        assertEquals(composer.body(piece), composer.body(piece, "BOOTS"));
+    }
+
+    @Test
     void maskLineLandsDirectlyBelowTheCrystalLineInTheBody() {
         // ADR-0053: a masked helmet's mask line is the LAST body line, immediately after the crystal line(s).
         LoreComposer composer = composer();

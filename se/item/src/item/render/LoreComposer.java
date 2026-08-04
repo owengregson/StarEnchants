@@ -36,6 +36,15 @@ public final class LoreComposer {
      * state the pure body does not see).
      */
     public List<String> body(CombatState state) {
+        return body(state, null);
+    }
+
+    /**
+     * {@link #body(CombatState)} with the gear kind known — the only difference is that an armour set piece
+     * renders ITS slot's lore (its own flavour lines above the shared block) instead of the shared block
+     * alone. A {@code null} kind is the slot-less read: shared lore only.
+     */
+    public List<String> body(CombatState state, String kind) {
         LoreStyle style = config.style().get(); // live style, once per render (reload-swappable)
         List<String> out = new ArrayList<>(state.enchants().size() + state.crystals().size());
         for (Map.Entry<String, Integer> enchant : state.enchants().entrySet()) {
@@ -51,7 +60,7 @@ public final class LoreComposer {
         if (state.setKey() != null) {
             // Armour member: the set's shared armour lore (§6.6), word-wrapped to the universal item-wrap width
             // via wrapAll (NOT a per-line wrap loop) so the author's blank separator lines survive.
-            for (String wrapped : TextWrap.wrapAll(config.setLore().armor(state.setKey()), item.mint.ItemFactory.itemWrapWidth())) {
+            for (String wrapped : TextWrap.wrapAll(config.setLore().armor(state.setKey(), kind), item.mint.ItemFactory.itemWrapWidth())) {
                 out.add(Colors.translate(wrapped));
             }
         }
@@ -119,7 +128,7 @@ public final class LoreComposer {
      * classifier. Pure: no Bukkit, so byte-for-byte testable against hand-built inputs.
      */
     public List<String> compose(CombatState state, String kind, List<String> protection, List<String> traks) {
-        List<String> lore = body(state);
+        List<String> lore = body(state, kind);
         String heroic = heroicBodyLine(state.heroic(), kind, config.heroicLine().get());
         if (heroic != null) {
             lore.add(heroic);

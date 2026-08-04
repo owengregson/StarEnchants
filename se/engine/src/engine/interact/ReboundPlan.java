@@ -47,8 +47,16 @@ public final class ReboundPlan {
             return false; // a source with no rarity tier (pets, reforges, masks) is outside the chain
         }
         ReboundStore.Rule rule = rebounds.strongestFor(reflector, tier);
-        if (rule == null || ability.level() > rule.level()) {
-            return false; // the matrix's level gate: rebound level must be >= the incoming enchant's level
+        if (rule == null) {
+            return false;
+        }
+        // The matrix's level gate: rebound level must be >= the incoming enchant's level. A rule armed at
+        // level 0 is LEVELLESS, not weakest — `AbilityDef.level` is an ENCHANT level and a set/crystal/mask
+        // source has none to state, so every one of them arms at 0. Read that as "no level bound": the gate
+        // is a comparison between two grades, and a source with no grade must not lose to every enchant on
+        // the server (which is what `1 > 0` did — the reflect a set contributed never claimed anything).
+        if (rule.level() > 0 && ability.level() > rule.level()) {
+            return false;
         }
         if (!(roll.getAsDouble() < rule.chancePercent())) {
             return false;

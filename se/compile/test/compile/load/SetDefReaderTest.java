@@ -274,10 +274,10 @@ class SetDefReaderTest {
         SetDefReader.Parsed parsed = SetDefReader.read("sets/frost", root(yaml, diags), counter(), diags);
 
         assertFalse(diags.hasErrors(), () -> diags.all().toString());
-        // ref→level, authored order preserved — it determines the minted piece's enchant lore order
+        // ref→roll, authored order preserved — it determines the minted piece's enchant lore order
         assertEquals(List.of("enchants/frost", "PROTECTION"), List.copyOf(parsed.def().armorEnchants().keySet()));
-        assertEquals(2, parsed.def().armorEnchants().get("enchants/frost"));
-        assertEquals(Map.of("SHARPNESS", 5), parsed.def().weaponEnchants());
+        assertEquals(EnchantRoll.fixed(2), parsed.def().armorEnchants().get("enchants/frost"));
+        assertEquals(Map.of("SHARPNESS", EnchantRoll.fixed(5)), parsed.def().weaponEnchants());
     }
 
     @Test
@@ -300,7 +300,137 @@ class SetDefReaderTest {
         assertFalse(diags.hasErrors(), "a non-numeric level is a warning, not a blocking error");
         assertCode(diags, DiagCode.W_SET_ENCHANT);
         // the unparseable entry is dropped; its valid sibling survives
-        assertEquals(Map.of("PROTECTION", 4), parsed.def().armorEnchants());
+        assertEquals(Map.of("PROTECTION", EnchantRoll.fixed(4)), parsed.def().armorEnchants());
+    }
+
+    @Test
+    void aPieceCarriesItsOwnLoreEnchantsDyeAndHeroicStamp() {
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            armor:
+              lore: ["&7SET BONUS"]
+              enchants:
+                PROTECTION: 4
+              pieces:
+                helmet: { material: DIAMOND_HELMET }
+                boots:
+                  material: LEATHER_BOOTS
+                  name: "&3Whisp"
+                  color: "#808080"
+                  heroic: true
+                  lore: ["&7&oNo feet."]
+                  enchants:
+                    enchants/gears: 3
+            bonuses:
+              - on: armor
+                trigger: DEFEND
+                effects: [{ DAMAGE: { amount: 1 } }]
+            """;
+        SetDefReader.Parsed parsed = SetDefReader.read("sets/ghost", root(yaml, diags), counter(), diags);
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        SetDef.Member boots = parsed.def().armorMember("boots");
+        assertEquals("#808080", boots.color());
+        assertTrue(boots.heroic());
+        assertEquals(List.of("&7&oNo feet."), boots.lore());
+        assertEquals(Map.of("enchants/gears", EnchantRoll.fixed(3)), boots.enchants());
+        // a slot that says nothing of its own keeps every default — the shape every pre-existing set has
+        SetDef.Member helmet = parsed.def().armorMember("helmet");
+        assertNull(helmet.color());
+        assertFalse(helmet.heroic());
+        assertTrue(helmet.lore().isEmpty());
+        assertTrue(helmet.enchants().isEmpty());
+    }
+
+    @Test
+    void perPieceLoreAndEnchantsRefineTheSharedOnesRatherThanReplacingThem() {
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            armor:
+              lore: ["&7SET BONUS", "&7* Something"]
+              enchants:
+                PROTECTION: 4
+                UNBREAKING: 3
+              pieces:
+                helmet: { material: DIAMOND_HELMET }
+                boots:
+                  material: LEATHER_BOOTS
+                  lore: ["&7&oFlavour."]
+                  enchants:
+                    PROTECTION: 5
+                    enchants/gears: 3
+            bonuses:
+              - on: armor
+                trigger: DEFEND
+                effects: [{ DAMAGE: { amount: 1 } }]
+            """;
+        SetDef def = SetDefReader.read("sets/ghost", root(yaml, diags), counter(), diags).def();
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        // the piece's own flavour prints ABOVE the shared block, never instead of it
+        assertEquals(List.of("&7&oFlavour.", "&7SET BONUS", "&7* Something"), def.armorLoreFor("boots"));
+        // a slot with nothing of its own, and an unknown token, both read exactly the shared block
+        assertEquals(def.armorLore(), def.armorLoreFor("helmet"));
+        assertEquals(def.armorLore(), def.armorLoreFor("ELYTRA"));
+        assertEquals(def.armorLore(), def.armorLoreFor(null));
+        // the shared roster first, in authored order, with the piece's own entries applied over it
+        assertEquals(List.of("PROTECTION", "UNBREAKING", "enchants/gears"),
+                List.copyOf(def.armorEnchantsFor("boots").keySet()));
+        assertEquals(EnchantRoll.fixed(5), def.armorEnchantsFor("boots").get("PROTECTION"));
+        assertEquals(def.armorEnchants(), def.armorEnchantsFor("helmet"));
+    }
+
+    @Test
+    void theSlotTokenIsMatchedCaseInsensitivelySoAGearKindResolvesIt() {
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            armor:
+              pieces:
+                boots: { material: LEATHER_BOOTS, lore: ["&7&oFlavour."] }
+            bonuses:
+              - on: armor
+                trigger: DEFEND
+                effects: [{ DAMAGE: { amount: 1 } }]
+            """;
+        SetDef def = SetDefReader.read("sets/ghost", root(yaml, diags), counter(), diags).def();
+
+        // LoreRenderer hands the composer a material kind (LEATHER_BOOTS -> "BOOTS"), not the authored token
+        assertEquals(List.of("&7&oFlavour."), def.armorLoreFor("BOOTS"));
+        assertEquals(def.armorMember("boots"), def.armorMember("BOOTS"));
+    }
+
+    @Test
+    void theRollFormsParseToTheirBandsAndAnUnreadableOneWarnsAndIsSkipped() {
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            armor:
+              enchants:
+                enchants/band: { min: 2, max: 5 }
+                enchants/near: { nearly-maxed: 4 }
+                enchants/gated: { chance: 25, min: 1, max: 4 }
+                enchants/one: { max: 3 }
+                enchants/levelless: { chance: 30 }
+              pieces:
+                boots: { material: DIAMOND_BOOTS }
+            bonuses:
+              - on: armor
+                trigger: DEFEND
+                effects: [{ DAMAGE: { amount: 1 } }]
+            """;
+        SetDef def = SetDefReader.read("sets/x", root(yaml, diags), counter(), diags).def();
+
+        assertFalse(diags.hasErrors(), "a malformed roll is a warning, not a blocking error");
+        assertCode(diags, DiagCode.W_SET_ENCHANT);
+        Map<String, EnchantRoll> roster = def.armorEnchants();
+        assertEquals(new EnchantRoll(2, 5, 100, EnchantRoll.Mode.UNIFORM), roster.get("enchants/band"));
+        // nearly-maxed fixes both bounds from M: max(1, M-2) .. M
+        assertEquals(new EnchantRoll(2, 4, 100, EnchantRoll.Mode.NEARLY_MAXED), roster.get("enchants/near"));
+        assertEquals(new EnchantRoll(1, 4, 25, EnchantRoll.Mode.UNIFORM), roster.get("enchants/gated"));
+        // a band of one is not a draw — it degrades to the fixed form so no RNG is consumed for it
+        assertEquals(EnchantRoll.Mode.FIXED, roster.get("enchants/one").mode());
+        assertEquals(3, roster.get("enchants/one").max());
+        // a roll naming no level at all is dropped rather than guessed
+        assertFalse(roster.containsKey("enchants/levelless"));
     }
 
     @Test

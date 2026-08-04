@@ -194,6 +194,51 @@ public final class ItemFactory {
         return decorate(stack, name, lore);
     }
 
+    /**
+     * Dye a leather piece in place (§6.6 set-piece colour). {@code token} is {@code #RRGGBB} (or bare hex) or
+     * one of {@link org.bukkit.Color}'s named constants, matched case-insensitively. A blank/unreadable token,
+     * or a stack that is not leather, leaves the item untouched — an unrecognised dye must never cost the
+     * piece its likeness. {@code LeatherArmorMeta} and {@code Color} are floor-stable across the whole range,
+     * so this needs no era seam; the named constants are read reflectively because they are static FIELDS on a
+     * class rather than an enum, and hard-coding the seventeen would drift the day Bukkit adds an eighteenth.
+     *
+     * @return whether a colour was applied
+     */
+    public static boolean dye(ItemStack stack, String token) {
+        if (stack == null || token == null || token.isBlank()) {
+            return false;
+        }
+        org.bukkit.Color color = color(token.trim());
+        if (color == null) {
+            return false;
+        }
+        ItemMeta meta = stack.getItemMeta();
+        if (!(meta instanceof org.bukkit.inventory.meta.LeatherArmorMeta leather)) {
+            return false;
+        }
+        leather.setColor(color);
+        stack.setItemMeta(leather);
+        return true;
+    }
+
+    /** {@code #RRGGBB} / bare hex / a {@link org.bukkit.Color} constant name, or {@code null} when neither. */
+    private static org.bukkit.Color color(String token) {
+        String hex = token.startsWith("#") ? token.substring(1) : token;
+        if (hex.length() == 6) {
+            try {
+                return org.bukkit.Color.fromRGB(Integer.parseInt(hex, 16));
+            } catch (IllegalArgumentException notHex) {
+                // fall through to the named constants — "ORANGE" is six characters too
+            }
+        }
+        try {
+            java.lang.reflect.Field field = org.bukkit.Color.class.getField(token.toUpperCase(Locale.ROOT));
+            return field.get(null) instanceof org.bukkit.Color named ? named : null;
+        } catch (ReflectiveOperationException unknown) {
+            return null;
+        }
+    }
+
     @SuppressWarnings("deprecation") // setDisplayName/setLore(String/List): the floor-stable item-meta path
     private static ItemStack decorate(ItemStack stack, String name, List<String> lore) {
         ItemMeta meta = stack.getItemMeta();

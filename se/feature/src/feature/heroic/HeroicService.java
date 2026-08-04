@@ -33,12 +33,20 @@ public final class HeroicService {
     private final Random random;
     private final platform.lang.Messages messages; // §L lang.yml
     private final ItemGroups groups; // §F: gate applyTo to armour/weapons
-    private final VanillaStats vanillaStats; // §F real vanilla diamond attrs (§4 era seam; NONE on 1.8)
+    private final HeroicStamp stamp; // §F the stats write, shared with a set piece minted heroic
 
     /** {@code groups} is the armour/weapon group table gating heroic's applies-to. */
     public HeroicService(HeroicUpgradeCodec upgrades, CombatCodec combat, LoreRenderer lore,
                          Supplier<HeroicConfig> config, Random random, platform.lang.Messages messages,
                          ItemGroups groups, VanillaStats vanillaStats) {
+        this(upgrades, combat, lore, config, random, messages, groups,
+                new HeroicStamp(config, vanillaStats, combat, lore));
+    }
+
+    /** Wiring form: the composition root builds ONE {@link HeroicStamp} and shares it with the set minter. */
+    public HeroicService(HeroicUpgradeCodec upgrades, CombatCodec combat, LoreRenderer lore,
+                         Supplier<HeroicConfig> config, Random random, platform.lang.Messages messages,
+                         ItemGroups groups, HeroicStamp stamp) {
         this.upgrades = Objects.requireNonNull(upgrades, "upgrades");
         this.combat = Objects.requireNonNull(combat, "combat");
         this.lore = Objects.requireNonNull(lore, "lore");
@@ -46,7 +54,7 @@ public final class HeroicService {
         this.random = Objects.requireNonNull(random, "random");
         this.messages = Objects.requireNonNull(messages, "messages");
         this.groups = Objects.requireNonNull(groups, "groups");
-        this.vanillaStats = Objects.requireNonNull(vanillaStats, "vanillaStats");
+        this.stamp = Objects.requireNonNull(stamp, "stamp");
     }
 
     public boolean isUpgrade(ItemStack stack) {
@@ -110,29 +118,10 @@ public final class HeroicService {
             return GestureOutcome.committed(result, messages.format("heroic.fail"));
         }
         ItemStack upgraded = withUpgradedMaterial(gear, cfg);
-        // §F diamond-equivalence (gold display, diamond function). When vanilla-stats is on (ADR-0031/0032), the
-        // writer stamps REAL vanilla modifiers — armour-point/toughness for armour, attack-damage for weapons —
-        // plus a diamond max durability and the neutral combat:effective_material marker, so combat plugins that
-        // recompute from vanilla values (e.g. Mental) see diamond, not gold. It returns whether it wrote real
-        // attributes for THIS piece, so we DROP the matching plugin-maths flat delta and never double-count. Off
-        // (or the 1.8 fork, which no-ops the writer): keep the HeroicDiamond flat fold + wear-cancel scaling —
-        // version-uniform, no item-attribute API. A diamond/netherite display → delta 0.
-        boolean realStats = cfg.diamondStats() && cfg.vanillaStats() && vanillaStats.apply(upgraded, weapon);
-        boolean realArmour = !weapon && realStats;
-        boolean realWeapon = weapon && realStats;
-        double flatDamage = cfg.diamondStats() && weapon && !realWeapon
-                ? HeroicDiamond.weaponFlatDamage(upgraded.getType()) : 0.0;
-        double flatReduction = cfg.diamondStats() && !weapon && !realArmour
-                ? HeroicDiamond.armourFlatReduction(upgraded.getType()) : 0.0;
-        // Stat separation (§F): a WEAPON carries the OUTGOING bonus, ARMOUR the INCOMING reduction — never both,
-        // so a heroic sword can't inflate defence nor heroic armour inflate attack.
-        HeroicStat stat = weapon
-                ? new HeroicStat(cfg.percentDamage(), 0.0, cfg.durability(), flatDamage, 0.0)
-                : new HeroicStat(0.0, cfg.percentReduction(), cfg.durability(), 0.0, flatReduction);
-        CombatState current = combat.read(upgraded);
-        CombatState next = current.withHeroic(stat); // preserves setWeaponKey (a heroic-upgraded set weapon stays one)
-        combat.write(upgraded, next);
-        lore.apply(upgraded, next); // re-render from state (enchants/crystals + HEROIC line)
+        // The stats themselves (and the vanilla-attribute write that decides them) are the shared stamp — the
+        // same one a set piece minted `heroic: true` takes. It preserves setWeaponKey, so a heroic-upgraded
+        // set weapon stays one.
+        stamp.stampOn(upgraded, weapon);
         return GestureOutcome.committed(upgraded, messages.format("heroic.success"));
     }
 

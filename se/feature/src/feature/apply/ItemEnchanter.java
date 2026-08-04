@@ -55,12 +55,25 @@ public final class ItemEnchanter {
     private final Supplier<List<String>> weaponGroups; // ADR-0070 reforges.weapon-groups — read live per apply
     private final Messages messages;
     private final VanillaEnchants vanilla;   // §6.6 cross-version set-piece base enchants (ADR-0047 instance wiring)
+    private final java.util.Random rolls;    // §6.6 the mint roster's draws — injected so a mint is stubbable
+    private final HeroicMint heroic;         // §F a set member's heroic: true, stamped at mint
+
+    /** Fixture form: no injected RNG and no heroic economy — a pack with neither mints exactly as before. */
+    public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
+                         platform.item.ItemGroups groups, IntSupplier baseSlots, IntSupplier crystalSlots,
+                         IntSupplier maxMerge, Supplier<List<String>> weaponGroups, Messages messages,
+                         VanillaEnchants vanilla) {
+        this(codec, lore, content, groups, baseSlots, crystalSlots, maxMerge, weaponGroups, messages, vanilla,
+                new java.util.Random(), HeroicMint.NONE);
+    }
 
     /** Slot/merge caps and the reforge weapon-groups are read per apply so a reload re-tunes them live. */
     public ItemEnchanter(CombatCodec codec, LoreRenderer lore, ContentHolder content,
                          platform.item.ItemGroups groups, IntSupplier baseSlots, IntSupplier crystalSlots,
                          IntSupplier maxMerge, Supplier<List<String>> weaponGroups, Messages messages,
-                         VanillaEnchants vanilla) {
+                         VanillaEnchants vanilla, java.util.Random rolls, HeroicMint heroic) {
+        this.rolls = Objects.requireNonNull(rolls, "rolls");
+        this.heroic = Objects.requireNonNull(heroic, "heroic");
         this.codec = Objects.requireNonNull(codec, "codec");
         this.lore = Objects.requireNonNull(lore, "lore");
         this.content = Objects.requireNonNull(content, "content");
@@ -269,6 +282,10 @@ public final class ItemEnchanter {
      * {@code weapon}. An armour member stamps {@link CombatState#setKey()} (counts toward completion); the
      * weapon stamps {@link CombatState#setWeaponKey()} (the extra bonus while complete and held). Unknown
      * set/member &rarr; empty (ADR-0019, no invented data).
+     *
+     * <p>A member's own likeness rides here too (§6.6): its dye, the roster entries it adds to the shared ones,
+     * and its {@code heroic: true}. Its own LORE is not written onto the stack — it is rendered from state like
+     * every other section (ADR-0040), keyed on the piece's gear kind.
      */
     public java.util.Optional<ItemStack> mintSetPiece(String setKey, String memberToken) {
         compile.load.SetDef def = set(setKey);
@@ -277,16 +294,19 @@ public final class ItemEnchanter {
         }
         String token = memberToken == null ? "" : memberToken.toLowerCase(java.util.Locale.ROOT);
         if (def.hasWeapon() && token.equals("weapon")) {
-            Material material = item.mint.ItemFactory.material(def.weapon().material(), Material.IRON_SWORD);
-            String name = def.weapon().name() != null ? def.weapon().name() : def.display();
+            compile.load.SetDef.Member member = def.weapon();
+            Material material = item.mint.ItemFactory.material(member.material(), Material.IRON_SWORD);
+            String name = member.name() != null ? member.name() : def.display();
             ItemStack stack = item.mint.ItemFactory.build(material, name, List.of());
             // §6.6 configured weapon enchants: custom ones stamp into the combat state (so the engine runs
-            // them while held), vanilla names apply cross-version at mint.
-            CombatState next = new CombatState(customEnchants(def.weaponEnchants()), List.of(), null, setKey,
+            // them while held), vanilla names apply cross-version at mint. Rolled entries draw ONCE, here.
+            Map<String, Integer> roster = SetMint.resolve(def.weaponEnchants(), rolls);
+            CombatState next = new CombatState(customEnchants(roster), List.of(), null, setKey,
                     false, item.codec.HeroicStat.NONE, 0, null, null); // weaponMember(setKey) + carried custom enchants
             codec.write(stack, next);
             lore.apply(stack, next);
-            vanilla.apply(stack, vanillaEnchants(def.weaponEnchants()));
+            vanilla.apply(stack, vanillaEnchants(roster));
+            finishPiece(stack, member, true);
             return java.util.Optional.of(stack);
         }
         for (compile.load.SetDef.Member member : def.armorMembers()) {
@@ -294,16 +314,29 @@ public final class ItemEnchanter {
                 Material material = item.mint.ItemFactory.material(member.material(), Material.LEATHER_HELMET);
                 String name = member.name() != null ? member.name() : def.display();
                 ItemStack stack = item.mint.ItemFactory.build(material, name, List.of());
-                // §6.6 configured armour enchants (applied to every piece): custom ones stamp into the combat
-                // state, vanilla names apply cross-version at mint.
-                CombatState next = new CombatState(customEnchants(def.armorEnchants()), List.of(), setKey, false);
+                // §6.6 the shared armour roster plus this slot's own entries: custom ones stamp into the
+                // combat state, vanilla names apply cross-version at mint.
+                Map<String, Integer> roster = SetMint.resolve(def.armorEnchantsFor(member.slot()), rolls);
+                CombatState next = new CombatState(customEnchants(roster), List.of(), setKey, false);
                 codec.write(stack, next);
                 lore.apply(stack, next);
-                vanilla.apply(stack, vanillaEnchants(def.armorEnchants()));
+                vanilla.apply(stack, vanillaEnchants(roster));
+                finishPiece(stack, member, false);
                 return java.util.Optional.of(stack);
             }
         }
         return java.util.Optional.empty();
+    }
+
+    /**
+     * The per-member finish: the leather dye, then the heroic stamp LAST — it re-renders lore from state, so
+     * anything that changes state has to be in place before it runs.
+     */
+    private void finishPiece(ItemStack stack, compile.load.SetDef.Member member, boolean weapon) {
+        item.mint.ItemFactory.dye(stack, member.color());
+        if (member.heroic()) {
+            heroic.stampOn(stack, weapon);
+        }
     }
 
     /** The custom plugin enchants ({@code enchants/<id> → level}) from a set's configured enchants, for the combat state. */

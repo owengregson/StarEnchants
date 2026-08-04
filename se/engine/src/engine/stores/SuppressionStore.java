@@ -559,8 +559,8 @@ public final class SuppressionStore implements RetainedStore {
     /**
      * Arm (or extend) a defender-keyed window on {@code defender} for the packed cooldown-scope {@code id}.
      * {@code chance} is the percentage rolled at each CONSULT (clamped to 100; {@code >= 100} is absolute).
-     * Maintained-while-worn is the intended shape, so a re-arm only ever EXTENDS — the same merge the
-     * activator side uses, which lets a PASSIVE re-arm on every lifecycle tick without churning the window.
+     * Maintained-while-worn is the intended shape, so a re-arm never WEAKENS a live window — see
+     * {@link #strongerDefender}, which lets a PASSIVE re-arm on every lifecycle tick without churning it.
      *
      * <p>Deliberately does NOT fire {@link SuppressListener}: that hook exists so a maintained buff on the
      * SUPPRESSED player drops instantly, and a defender window suppresses none of its holder's own abilities.
@@ -572,7 +572,7 @@ public final class SuppressionStore implements RetainedStore {
         }
         Defender fresh = new Defender(nowTicks + durationTicks, Math.min(chance, 100), byDefId, feedback);
         defenderByPlayer.computeIfAbsent(defender, k -> new ConcurrentHashMap<>())
-                .merge(id, fresh, SuppressionStore::laterDefender);
+                .merge(id, fresh, SuppressionStore::strongerDefender);
     }
 
     /** {@link #defend} for a dense effect kindId ({@code scope: KIND}). */
@@ -583,11 +583,30 @@ public final class SuppressionStore implements RetainedStore {
         }
         Defender fresh = new Defender(nowTicks + durationTicks, Math.min(chance, 100), byDefId, feedback);
         defenderKindByPlayer.computeIfAbsent(defender, k -> new ConcurrentHashMap<>())
-                .merge(kindId, fresh, SuppressionStore::laterDefender);
+                .merge(kindId, fresh, SuppressionStore::strongerDefender);
     }
 
-    private static Defender laterDefender(Defender a, Defender b) {
-        return b.expiry() > a.expiry() ? b : a;
+    /**
+     * Two arms on one {@code (holder, scope, key)} triple resolve to a window that is no weaker than either:
+     * the STRONGEST chance governs (carrying its own attribution and cue with it), over the LATER expiry.
+     *
+     * <p>Keeping the later record whole was the bug: a set and its own crystal arm the same triple on the same
+     * cadence from two independent abilities, and whichever fired later in a cycle governed the next window —
+     * so completing a set AND carrying its matching crystal left a wearer permanently WORSE off than the set
+     * alone (a 100% freeze immunity degraded to the crystal's 10%, and the set's block line replaced by the
+     * crystal's). Nothing about arm order should decide that, and a re-arm must never take away what the
+     * holder already had.
+     *
+     * <p>Chance decides the identity rather than expiry because chance is the whole point of the window and
+     * expiry is a refresh detail; a chance tie falls back to the later expiry, and a full tie keeps the
+     * incumbent — the same "ties keep what is already live" rule the activator-side merges use.
+     */
+    private static Defender strongerDefender(Defender a, Defender b) {
+        long expiry = Math.max(a.expiry(), b.expiry());
+        Defender governing = b.chance() > a.chance()
+                || (b.chance() == a.chance() && b.expiry() > a.expiry()) ? b : a;
+        return governing.expiry() == expiry ? governing
+                : new Defender(expiry, governing.chance(), governing.byDefId(), governing.feedback());
     }
 
     /** What a defender-keyed block reports back: the naming scope, the arming ability, and the cue to emit. */

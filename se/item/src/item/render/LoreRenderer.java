@@ -183,6 +183,17 @@ public final class LoreRenderer {
         /** The lore shared by every armour piece of {@code setKey} (empty if none / unknown). */
         List<String> armor(String setKey);
 
+        /**
+         * The lore for ONE armour piece of {@code setKey}: that slot's own flavour lines followed by the
+         * shared block. {@code slotToken} is the item's gear kind ({@code HELMET}, {@code BOOTS}, …), which
+         * is the slot name for every piece a set can mint — so the discriminator is the material itself and
+         * nothing has to be stamped on the item to carry it. Defaults to the shared block, which is what a
+         * set saying nothing per piece renders and what {@link #armor(String)} has always returned.
+         */
+        default List<String> armor(String setKey, String slotToken) {
+            return armor(setKey);
+        }
+
         /** The weapon's own lore for {@code setKey} (empty if none / unknown). */
         List<String> weapon(String setKey);
 
@@ -207,6 +218,11 @@ public final class LoreRenderer {
     /** Body lore lines: one per enchant ({@code name level}), set lore, the orb slots line, then one per crystal. */
     public List<String> lines(CombatState state) {
         return composer.body(state);
+    }
+
+    /** {@link #lines(CombatState)} for a known gear kind, so a set piece renders ITS slot's lore (§6.6). */
+    public List<String> lines(CombatState state, String kind) {
+        return composer.body(state, kind);
     }
 
     /**
