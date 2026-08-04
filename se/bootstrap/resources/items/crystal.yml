@@ -33,10 +33,12 @@ sounds:
 # The ITEM EXTRACTOR. On gear carrying a weapon reforge it pops the REFORGE off first, intact (ADR-0070);
 # otherwise on crystal-bearing GEAR it pops the whole last crystal off intact — a multi-crystal comes back as
 # one multi-crystal (ADR-0035); apply it again to that crystal item to split its topmost single. On a
-# multi-crystal ITEM it pops the topmost single.
+# multi-crystal ITEM it pops the topmost single, and on a folded MULTI-MASK item it pops that mask's topmost
+# one back off the same way (ADR-0074).
 extractor:
   material: AMETHYST_CLUSTER
   name: "&dItem Extractor"
   lore:
     - "&7Drag onto gear to pop its reforge or crystal"
-    - "&7off whole, or onto a multi-crystal to split it."
+    - "&7off whole, or onto a multi-crystal or"
+    - "&7multi-mask to split one back off."
