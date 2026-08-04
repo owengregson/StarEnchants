@@ -1,0 +1,74 @@
+# Matrix: 06-enchants-tools-heroic.md § Auto Smelt
+display: "Auto Smelt"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eIron and gold ore leave the rock already"
+  - "&esmelted, and a richer stack each level."
+trigger: MINE
+# The jar's `pickaxe` item set: the 5 tiered pickaxes, NOT the 21-tool set its Detonate/Haste siblings carry.
+# Fuse shares this set, which is the acquisition quirk matrix-06 records on Fuse (a table-rolled Detonate on a
+# spade or an axe can never be joined by either half of the smelting pair).
+applies-to: [PICKAXE]
+group: "common"
+tier: common
+# Matrix-06 records no tier for the tool enchants — only the enchant-table weight (6 here) — so the rung comes
+# from the codex's own tier table (`autosmelt` 1 = the ladder's first rung), the same source doc 05's files
+# used for their unrecorded acquisition rows. Weight itself has no field in this schema; the ladder drives
+# rarity, and the two are independent in the jar (a weight-6 enchant sits on tier 1).
+# Iron and gold are two ABILITIES rather than one condition with an `||`, because the make-up ingots below
+# name their material at compile time: one rule per ore is the only shape that can hand out the right metal.
+# The two conditions are mutually exclusive, so a break still rolls the ladder's chance exactly once.
+# `%block.type%` is the MINE activation's own block (the engine's only block-fact source).
+# interactions, none authored here: the jar stands the whole enchant down on a tool that also carries Detonate
+# or Atomic Detonate (those smelt in-volume themselves, and only alongside Fuse), and Auto Sell (doc 07) sells
+# a smelted drop instead of giving it. Both counterparties are unshipped — Detonate is deferred on the
+# block-filter gap, Auto Sell is a mastery — so nothing here has anything to stand down for yet; the clause is
+# tracked in deferred-content rather than approximated with `blacklist:`, which would refuse the very
+# Auto Smelt + Fuse + Detonate tool the in-volume smelt rule requires.
+# Block XP needs no step: the jar hands the block's XP to the player directly, the engine leaves the vanilla
+# orb, and the value is the same.
+# era: the jar's ore ids resolve straight through (`IRON_ORE`/`GOLD_ORE` survive the flattening; the ingots
+# are unchanged), so the gate below is the jar's two ores verbatim. The engine's own smelt table additionally
+# knows the deepslate/nether/copper ores that postdate the jar — widening this gate to them is an era ruling
+# for the owner, not a translation, and it is tracked in deferred-content.
+levels:
+  # Chance 34 pp per level. L3 computes to 1.02 in the jar — over the ceiling, so it always fires; D-06-1 rules
+  # the 100 % cap as-intended, which is what ships. Ingots per proc = level: SMELT yields the one, GIVE_ITEM
+  # tops it up to L (omitted at L1, where the smelt alone is already the whole output).
+  1:
+    chance: 34
+    abilities:
+      - condition: "%block.type% == \"IRON_ORE\""
+        effects:
+          - { SMELT: {} }
+          - { TELEPORT_DROPS: {} }
+      - condition: "%block.type% == \"GOLD_ORE\""
+        effects:
+          - { SMELT: {} }
+          - { TELEPORT_DROPS: {} }
+  2:
+    chance: 68
+    abilities:
+      - condition: "%block.type% == \"IRON_ORE\""
+        effects:
+          - { SMELT: {} }
+          - { TELEPORT_DROPS: {} }
+          - { GIVE_ITEM: { material: "IRON_INGOT", count: 1, who: "@Self" } }
+      - condition: "%block.type% == \"GOLD_ORE\""
+        effects:
+          - { SMELT: {} }
+          - { TELEPORT_DROPS: {} }
+          - { GIVE_ITEM: { material: "GOLD_INGOT", count: 1, who: "@Self" } }
+  3:
+    chance: 100
+    abilities:
+      - condition: "%block.type% == \"IRON_ORE\""
+        effects:
+          - { SMELT: {} }
+          - { TELEPORT_DROPS: {} }
+          - { GIVE_ITEM: { material: "IRON_INGOT", count: 2, who: "@Self" } }
+      - condition: "%block.type% == \"GOLD_ORE\""
+        effects:
+          - { SMELT: {} }
+          - { TELEPORT_DROPS: {} }
+          - { GIVE_ITEM: { material: "GOLD_INGOT", count: 2, who: "@Self" } }

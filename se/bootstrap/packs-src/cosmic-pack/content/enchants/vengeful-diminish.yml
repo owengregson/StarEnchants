@@ -1,0 +1,77 @@
+# Matrix: 06-enchants-tools-heroic.md § Vengeful Diminish
+display: "Vengeful Diminish"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe heroic grade of Diminish: a chance to halve the hit"
+  - "&ethat armed it, cap what follows, and throw the rest back."
+trigger: DEFENSE
+applies-to: [CHESTPLATE]
+group: "heroic"
+tier: heroic
+# THE HEROIC APPLICATION CONTRACT (matrix 06 § Heroic application rules) — the full reading lives in
+# reinforced-tank.yml. `requires:` is the APPLY-GATE, `removes-required:` is REPLACE + SLOT-EXEMPT; the gate
+# settles for `partner >= the heroic level applied` rather than the partner's MAX (exact only at rung 6,
+# where Diminish and Vengeful Diminish's ladders meet), and REVERSE-BLOCK is unexpressible (`blacklist:` is
+# checked bidirectionally and would veto the apply `requires:` demands). Both gaps ledgered once for the
+# batch. Tier 7 = the `heroic` rung (&d, weight 70); table weight 2 is a book-roll number the surface does
+# not carry, and END-SUPPRESS is the tier world rule.
+requires: ["enchants/diminish"]
+removes-required: true
+# NO `%damage% > 0` GATE, deliberately: the counterpart carries one and the heroic does not (measured, kept),
+# so a 0-damage hit can arm this where it could never arm Diminish.
+# Arm chance 0.05 x level = 5 / 10 / 15 / 20 / 25 / 30 %; no cooldown.
+# THE DOUBLE HALVING is measured and kept. The arming hit takes -50 % from the DAMAGE_MOD below, and
+# DAMAGE_CAP then stores `factor 0.5` x the wearer's last committed damage — so the stored cap sits at about
+# a QUARTER of what the arming hit would have been, and that is the number the feedback line shows.
+# ENGINE ORDERING, recorded not fixed: the cap value is fixed AT ARM TIME from the last-taken history, and
+# the defence walk runs BEFORE this hit is committed and recorded. So the cap prices off the PREVIOUS
+# committed hit, not the arming one — a one-hit lag the counterpart inherits identically (diminish.yml ships
+# the same shape at factor 1.0). Ledgered as a partial for the pair.
+# ARMED-STATE SHARING: the matrix expects the engine's state to be per-enchant and records that as a
+# structural change from the jar's shared key. It is not — `DamageCapStore` is keyed per PLAYER with one
+# armed cap, and re-arming replaces it. So the jar's shared-key behaviour is reproduced exactly (a cap armed
+# by either grade is the cap the next hit honours), with the wrinkle that the LAST arm wins wholesale, factor
+# and reflect together: a later Diminish arm (factor 1.0, no reflect) overwrites this one's reflect. Wearing
+# both at once still needs two chestplates, which no player has — the matrix's own note. Matrix line owed.
+# MEASURED ARMED SEMANTICS vs what ships (ledger D-06-18): the jar reflected the cap VALUE to any player
+# attacker on EVERY hit and cleared only when a hit exceeded the cap, so chip damage reflected forever. The
+# engine primitive — built for this family — is duration-bounded (100 t) and reflects only the OVERFLOW above
+# the cap, back to the attacker. That is the as-intended reading the ledger rules; the endless chip-reflect
+# is not ported. Reflect recursion can re-enter the attacker's own gear; the engine pipeline bounds it.
+# strings: the arming line is DAMAGE_CAP's own `feedback`, not a separate MESSAGE — the primitive fills
+# `{damage}` with the cap value it just committed, which is exactly the matrix's `{cap}` placeholder (the
+# only edit to a verbatim string is the token name the engine answers to). It renders through the chat
+# convention: at most two decimals with trailing zeros trimmed, so a cap of 4.50 reads `4.5` where the matrix
+# says "two decimals" — a rendering delta, not a value one. The jar's console spam line is not ported.
+# era: none.
+levels:
+  1:
+    chance: 5
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }
+      - { DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100, feedback: "§e§l* DIMINISH [§eMAX DMG: {damage}§l] *" } }
+  2:
+    chance: 10
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }
+      - { DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100, feedback: "§e§l* DIMINISH [§eMAX DMG: {damage}§l] *" } }
+  3:
+    chance: 15
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }
+      - { DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100, feedback: "§e§l* DIMINISH [§eMAX DMG: {damage}§l] *" } }
+  4:
+    chance: 20
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }
+      - { DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100, feedback: "§e§l* DIMINISH [§eMAX DMG: {damage}§l] *" } }
+  5:
+    chance: 25
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }
+      - { DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100, feedback: "§e§l* DIMINISH [§eMAX DMG: {damage}§l] *" } }
+  6:
+    chance: 30
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }
+      - { DAMAGE_CAP: { factor: 0.5, reflect: true, duration: 100, feedback: "§e§l* DIMINISH [§eMAX DMG: {damage}§l] *" } }

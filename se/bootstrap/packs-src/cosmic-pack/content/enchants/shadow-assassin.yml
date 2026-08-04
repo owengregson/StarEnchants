@@ -1,0 +1,71 @@
+# Matrix: 06-enchants-tools-heroic.md § Shadow Assassin
+display: "Shadow Assassin"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe heroic grade of Assassin: the closer the hit"
+  - "&elands the harder it bites, and it never bites back."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "heroic"
+tier: heroic
+# THE HEROIC APPLICATION CONTRACT (matrix 06 § Heroic application rules) — the full reading lives in
+# reinforced-tank.yml; the four lines it comes down to: `requires:` is the APPLY-GATE, `removes-required:` is
+# REPLACE + SLOT-EXEMPT, the gate settles for `partner >= the heroic level applied` rather than the partner's
+# MAX (exact only at rung 5, where Assassin and Shadow Assassin's ladders meet), and REVERSE-BLOCK is
+# unexpressible because `blacklist:` is checked bidirectionally and would veto the apply `requires:` demands.
+# Both gaps are ledgered once, for all four batch-06 heroics. Tier 7 = the `heroic` rung (&d, weight 70);
+# table weight 5 is a book-roll number the surface does not carry, and END-SUPPRESS is the tier world rule.
+requires: ["enchants/assassin"]
+removes-required: true
+# No chance roll and no cooldown: every hit takes exactly one band. The five bands below are DISJOINT and
+# contiguous from 0 to 3.75, so the matrix's "first match" ordering is moot — at most one can hold. Vanilla
+# melee reach is under 3.75, so in practice every landed melee hit collects at least the outer band; the
+# `>= 3.75` case carries no row precisely because it is the x1.000 no-op.
+# THE HEROIC DELETES ALL THREE PENALTY BANDS. The counterpart docks 0.01 / 0.0225 / 0.0475 per level past
+# 2.0 / 2.5 / 3.0 blocks; nothing here is ever negative. Read against Assassin the transform is: bands x1.5,
+# thresholds x2.5, penalties gone. Counterpart Assassin is REPLACED by the contract, never summed.
+# Cumulative multipliers the matrix records, all reproduced by the per-band adds below: `1 + 0.075L` inside
+# 0.625 (L5 x1.375), `1 + 0.06L` inside 1.25 (x1.300), `1 + 0.045L` inside 1.875 (x1.225), `1 + 0.03L` inside
+# 2.5 (x1.150), `1 + 0.015L` inside 3.75 (x1.075).
+# `%distance%` is the foot-to-foot separation the matrix measures. Cross-world hits cannot occur in-engine,
+# so the recorded same-world guard needs no row. On the reflected-enchant path the same two entities are
+# measured in reverse, which is the same number — inherited from PROC_REFLECT, nothing to author.
+# Composition with every other attack modifier is the engine's additive fold (the jar composed
+# multiplicatively in unspecified order — a model difference the fold design owns, not a deviation).
+# era: none (pure damage math).
+levels:
+  1:
+    abilities:
+      - { condition: "%distance% < 0.625", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 7.5 } } ] }
+      - { condition: "%distance% >= 0.625 && %distance% < 1.25", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 6 } } ] }
+      - { condition: "%distance% >= 1.25 && %distance% < 1.875", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 4.5 } } ] }
+      - { condition: "%distance% >= 1.875 && %distance% < 2.5", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 3 } } ] }
+      - { condition: "%distance% >= 2.5 && %distance% < 3.75", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 1.5 } } ] }
+  2:
+    abilities:
+      - { condition: "%distance% < 0.625", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } } ] }
+      - { condition: "%distance% >= 0.625 && %distance% < 1.25", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } } ] }
+      - { condition: "%distance% >= 1.25 && %distance% < 1.875", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 9 } } ] }
+      - { condition: "%distance% >= 1.875 && %distance% < 2.5", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 6 } } ] }
+      - { condition: "%distance% >= 2.5 && %distance% < 3.75", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 3 } } ] }
+  3:
+    abilities:
+      - { condition: "%distance% < 0.625", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 22.5 } } ] }
+      - { condition: "%distance% >= 0.625 && %distance% < 1.25", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 18 } } ] }
+      - { condition: "%distance% >= 1.25 && %distance% < 1.875", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 13.5 } } ] }
+      - { condition: "%distance% >= 1.875 && %distance% < 2.5", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 9 } } ] }
+      - { condition: "%distance% >= 2.5 && %distance% < 3.75", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 4.5 } } ] }
+  4:
+    abilities:
+      - { condition: "%distance% < 0.625", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 30 } } ] }
+      - { condition: "%distance% >= 0.625 && %distance% < 1.25", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 24 } } ] }
+      - { condition: "%distance% >= 1.25 && %distance% < 1.875", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 18 } } ] }
+      - { condition: "%distance% >= 1.875 && %distance% < 2.5", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } } ] }
+      - { condition: "%distance% >= 2.5 && %distance% < 3.75", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 6 } } ] }
+  5:
+    abilities:
+      - { condition: "%distance% < 0.625", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 37.5 } } ] }
+      - { condition: "%distance% >= 0.625 && %distance% < 1.25", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 30 } } ] }
+      - { condition: "%distance% >= 1.25 && %distance% < 1.875", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 22.5 } } ] }
+      - { condition: "%distance% >= 1.875 && %distance% < 2.5", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } } ] }
+      - { condition: "%distance% >= 2.5 && %distance% < 3.75", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 7.5 } } ] }

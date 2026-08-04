@@ -31,10 +31,11 @@ tier: rare
 # Self-shot: the jar cancelled and played CAT_HISS 0.85/0.2. SE never dispatches an activation whose victim
 # IS the actor, so the branch and its cue are dropped — the same note §Healing carries.
 # era: none. `SPELL_WITCH` crosses through the particle alias table;
-# `ORB_PICKUP`->`ENTITY_EXPERIENCE_ORB_PICKUP` is a legacy-sweep alias row. SOUND has no `who`, so the
-# recorded shooter cue plays at the activation location (the ally's position, a block from where the shooter
-# is about to stand); PARTICLE's recorded +0.5 y and 0.5 speed have no param and the burst centres on the
-# body.
+# `ORB_PICKUP`->`ENTITY_EXPERIENCE_ORB_PICKUP` is a legacy-sweep alias row. The recorded `who=@Self` on the
+# arrival cue IS authored: SOUND took a `who` slot in wave 1e (default `@Here`), and it anchors the play on
+# each resolved entity instead of the activation location — which here is the ally's position, a block from
+# where the shooter is about to stand. PARTICLE's recorded +0.5 y and 0.5 speed have no param and the burst
+# centres on the body.
 levels:
   # Range 6 x level blocks (the jar compares squared: 36/144/324/576/900); everything else is
   # level-independent, 100 % on every qualifying hit. The misspelling "Teleporation" is the source's and is
@@ -47,7 +48,7 @@ levels:
         effects:
           - { CANCEL: {} }
           - { TELEPORT: { to: "VICTIM", who: "@Self" } }
-          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341 } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
           - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
       - trigger: BOW
         chance: 100
@@ -67,7 +68,7 @@ levels:
         effects:
           - { CANCEL: {} }
           - { TELEPORT: { to: "VICTIM", who: "@Self" } }
-          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341 } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
           - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
       - trigger: BOW
         chance: 100
@@ -87,7 +88,7 @@ levels:
         effects:
           - { CANCEL: {} }
           - { TELEPORT: { to: "VICTIM", who: "@Self" } }
-          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341 } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
           - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
       - trigger: BOW
         chance: 100
@@ -107,7 +108,7 @@ levels:
         effects:
           - { CANCEL: {} }
           - { TELEPORT: { to: "VICTIM", who: "@Self" } }
-          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341 } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
           - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
       - trigger: BOW
         chance: 100
@@ -127,7 +128,7 @@ levels:
         effects:
           - { CANCEL: {} }
           - { TELEPORT: { to: "VICTIM", who: "@Self" } }
-          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341 } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
           - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
       - trigger: BOW
         chance: 100

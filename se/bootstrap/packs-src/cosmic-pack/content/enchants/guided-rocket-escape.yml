@@ -1,0 +1,138 @@
+# Matrix: 06-enchants-tools-heroic.md § Guided Rocket Escape
+display: "Guided Rocket Escape"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA killing blow from any source is voided and"
+  - "&elaunches you, regenerating, with flight while"
+  - "&ethe boots carry you down."
+trigger: HURT
+applies-to: [BOOTS]
+group: "heroic"
+tier: heroic
+requires: ["enchants/rocket-escape"]
+removes-required: true
+disabled-worlds: ["world_koth"]
+# This entry's TABLE WEIGHT IS 0 — heroic books only, never a tier roll (the same acquisition quirk
+# reflective-block.yml and bidirectional-teleportation.yml carry). A book-roll fact the enchant surface does
+# not carry either way; max 3, base 25.0, interval 5.0 all come across from Rocket Escape.
+# HEROIC APPLICATION CONTRACT (matrix 06 § heroic application rules), as far as the surface carries it:
+# `requires:` + `removes-required: true` ARE the APPLY-GATE, the REPLACE (the non-heroic comes off as this
+# lands, so the two never run on one item) and the SLOT-EXEMPT (net-zero slots), in one pair of knobs. Three
+# clauses have no expression and are recorded rather than authored: the gate wants the partner at its MAX
+# level where the engine wants it at >= the applied level (heroic III demands Rocket Escape III, not III of
+# III — identical here, since both max at 3); REVERSE-BLOCK cannot ride `blacklist:`, because that check is
+# bidirectional and a row on either file would also block the heroic's own apply, which needs the partner
+# PRESENT; and NO-RANDOMIZE / NO-DUST / NO-COMBINE / BLACK-SCROLL / END-SUPPRESS are tier-7 item-flow and
+# world policy, owned by the layers that read `tier:` (teleblock.yml's precedent for the End rule).
+# DELTA vs `rocket-escape.yml` (matrix 02), which this replaces: any damage cause instead of entity-only, half
+# the cooldown (15 s vs 30 s), a flight window on top of the launch, boots only, and its own message. The
+# launch velocities, the Regen ladder and the escape-window ttls are IDENTICAL to the base at every rung.
+# The matrix's ANY_DAMAGE_TRIGGER gap is CLOSED: `HURT` is the all-cause DEFENSE-direction trigger (the same
+# walk enlighted.yml takes for the same jar behaviour), so a lethal fall, burn or drowning saves too — which
+# `DEFENSE` could never see. `CANCEL` on a HURT activation cancels the damage event itself.
+# The FALL companion takes `cooldown-scope: none`: every block of one enchant otherwise shares ONE bucket, so
+# the 300 t the launch arms would deny the no-fall-damage window the launch just opened (the stop
+# rocket-escape.yml's own companion still carries — this file closes it for the heroic grade).
+# The window var is the BASE's spelling, `rocketescaping`, deliberately: one key, one meaning ("an escape
+# window is open"), so this companion also covers a window a co-worn base Rocket Escape opened (its own
+# companion is still cooldown-starved). The matrix's jar-side key `rocket-escape` is the jar's, not ours.
+# Cooldown bucket: the matrix records ONE bucket shared with the non-heroic at asymmetric thresholds (15 s
+# read here, 30 s there). Inexpressible — cooldown scope is per-enchant and the only opt-out is `none` — so
+# each grade paces itself. Only observable while both are worn on different pieces, which the contract's
+# REPLACE already makes an edge case.
+# SABOTAGE VETO (swords doc 03). Inside Sabotage's 1000 ms mark the escape is vetoed at 10 % x the mark
+# level; sabotage.yml writes that level onto its victim as `sabotage`, read here actor-side as a bare
+# `%sabotage%` (inversion.yml's idiom for the same seam). It rides the chance as a pre-roll subtraction —
+# distribution-identical, the same shape trap.yml/snare.yml use for the Metaphysical rebate. Two recorded
+# halves do not survive that shape: the jar BURNS the cooldown on a vetoed escape (a failed roll arms
+# nothing here), and the victim-shown line `§c§l ** §7Guided Rocket Escape:§c§l SABOTAGED **` (leading space
+# verbatim) fires "on a would-be proc", which one already-reduced roll cannot report. Same class as the
+# Metaphysical blocked-proc lines; tracked in deferred-content.md.
+# WORLD RULES. `world_koth` is a literal refusal and ships as `disabled-worlds:` — inert on any server
+# without that world. The other three do not: the duels-lowered launch (y = 2+L in `world_duels`/
+# `world_duels2`) would need the whole ladder duplicated behind another deployment's world names, the
+# dungeon-parkour veto is a region-flag SE has no analogue for, and the tier-7 End suppression is the
+# contract's world policy (teleblock.yml). An operator who wants the duels ladder edits this file.
+# FLY speed is the closed FLY_SPEED_PARAM gap (the surface's `speed`, fraction, 0 = leave the server's). The
+# engine restores the PRIOR fly speed when the window ends, where the jar hard-set the vanilla 0.1 — an
+# improvement on a clobber, entry note, no ledger row.
+# era: `EXPLODE` is the 1.8 sound id (`ENTITY_GENERIC_EXPLODE` here, resolver alias, as on the base); the
+# flight toggle behaves identically on 1.8.9 and every velocity/teleport rides the scheduling abstraction.
+levels:
+  # Launch y = 4+2L (6/8/10 — the base's own ladder); Regen amp = L+1 for 20(L+2) t (II/III/IV, 60/80/100);
+  # flight 20L t at 0.2+0.03L; escape window 20(L+2)+5 = 65/85/105 t. Cooldown 300 t (15 s) at every rung.
+  1:
+    abilities:
+      - cooldown: 300
+        chance: "100 - 10 * %sabotage%"
+        condition: "%damage% >= %actor.health%"
+        effects:
+          - { CANCEL: {} }
+          - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 1.0, pitch: 0.54 } }
+          - { VELOCITY: { mode: "add", y: 6, who: "@Self" } }
+          - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }
+          - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }
+          - { POTION: { effect: "REGENERATION", level: 2, duration: 60, who: "@Self" } }
+          - { FLY: { ticks: 20, speed: 0.23, who: "@Self" } }
+          - { SET_VAR: { name: "rocketescaping", value: "1", ttl: 65, who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 69, spread: 2.0, who: "@Self" } }
+          - { MESSAGE: { text: "", who: "@Self" } }
+          - { MESSAGE: { text: "§a§l(!) §aYour Guided Rocket Escape boots have activated, flight temporarily enabled, recover while they last!", who: "@Self" } }
+          - { MESSAGE: { text: "", who: "@Self" } }
+          # Authored last because `wait:` accumulates down the list: everything above sits at t=0 and this
+          # cleanup puff lands on the tick the window closes.
+          - { PARTICLE: { particle: "CLOUD", count: 69, spread: 2.0, who: "@Self", wait: 65 } }
+      # No fall damage from the wearer's own launch, for exactly as long as the window holds.
+      - trigger: FALL
+        cooldown-scope: none
+        condition: "%rocketescaping% == 1"
+        effects:
+          - { CANCEL: {} }
+  2:
+    abilities:
+      - cooldown: 300
+        chance: "100 - 10 * %sabotage%"
+        condition: "%damage% >= %actor.health%"
+        effects:
+          - { CANCEL: {} }
+          - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 1.0, pitch: 0.54 } }
+          - { VELOCITY: { mode: "add", y: 8, who: "@Self" } }
+          - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }
+          - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }
+          - { POTION: { effect: "REGENERATION", level: 3, duration: 80, who: "@Self" } }
+          - { FLY: { ticks: 40, speed: 0.26, who: "@Self" } }
+          - { SET_VAR: { name: "rocketescaping", value: "1", ttl: 85, who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 69, spread: 2.0, who: "@Self" } }
+          - { MESSAGE: { text: "", who: "@Self" } }
+          - { MESSAGE: { text: "§a§l(!) §aYour Guided Rocket Escape boots have activated, flight temporarily enabled, recover while they last!", who: "@Self" } }
+          - { MESSAGE: { text: "", who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 69, spread: 2.0, who: "@Self", wait: 85 } }
+      - trigger: FALL
+        cooldown-scope: none
+        condition: "%rocketescaping% == 1"
+        effects:
+          - { CANCEL: {} }
+  3:
+    abilities:
+      - cooldown: 300
+        chance: "100 - 10 * %sabotage%"
+        condition: "%damage% >= %actor.health%"
+        effects:
+          - { CANCEL: {} }
+          - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 1.0, pitch: 0.54 } }
+          - { VELOCITY: { mode: "add", y: 10, who: "@Self" } }
+          - { REMOVE_POTION: { effect: "SLOW", who: "@Self" } }
+          - { REMOVE_POTION: { effect: "SLOW_DIGGING", who: "@Self" } }
+          - { POTION: { effect: "REGENERATION", level: 4, duration: 100, who: "@Self" } }
+          - { FLY: { ticks: 60, speed: 0.29, who: "@Self" } }
+          - { SET_VAR: { name: "rocketescaping", value: "1", ttl: 105, who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 69, spread: 2.0, who: "@Self" } }
+          - { MESSAGE: { text: "", who: "@Self" } }
+          - { MESSAGE: { text: "§a§l(!) §aYour Guided Rocket Escape boots have activated, flight temporarily enabled, recover while they last!", who: "@Self" } }
+          - { MESSAGE: { text: "", who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 69, spread: 2.0, who: "@Self", wait: 105 } }
+      - trigger: FALL
+        cooldown-scope: none
+        condition: "%rocketescaping% == 1"
+        effects:
+          - { CANCEL: {} }

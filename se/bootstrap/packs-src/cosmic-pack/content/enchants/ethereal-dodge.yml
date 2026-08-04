@@ -1,0 +1,160 @@
+# Matrix: 06-enchants-tools-heroic.md § Ethereal Dodge
+# Single-pass per D-001 — one roll per hit.
+display: "Ethereal Dodge"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe heroic grade of Dodge, on the boots: a chance to slip a hit"
+  - "&eentirely (better while crouched), sometimes into a burst of Speed,"
+  - "&eand every fall is walked off."
+trigger: DEFENSE
+applies-to: [BOOTS]
+group: "heroic"
+tier: heroic
+# HEROIC APPLICATION CONTRACT (matrix 06 § Heroic application rules). tier 7 = the `heroic` rung of tiers.yml
+# (`&d`, weight 70). `requires` + `removes-required` carry the APPLY-GATE, the REPLACE and the SLOT-EXEMPT
+# rules in one pair: no Dodge on the item, no apply; a successful apply deletes the Dodge line so the two never
+# both run, and `freedBy` makes the upgrade cost a net zero slots.
+# Two halves are NOT expressible and are recorded rather than dropped: the gate's "at the partner's MAX level"
+# gradient (`ItemEnchanter.checkRelationships` tests the prereq at `>= the level being applied`), and
+# REVERSE-BLOCK, which has no expression on EITHER file: `blacklist:` is tested bidirectionally, so a row on
+# dodge.yml fires on this apply too, refusing the very Dodge line `requires` demands. NO-RANDOMIZE /
+# NO-DUST / NO-COMBINE / BLACK-SCROLL / END-SUPPRESS are book-flow and world rules with no per-enchant knob.
+# Note the item sets diverge across the upgrade: base Dodge is armour-wide, the heroic is boots-only (measured,
+# and it is what the apply gate then means — the prerequisite Dodge has to be on the boots).
+requires: ["enchants/dodge"]
+removes-required: true  # the heroic supersedes its non-heroic partner (net-zero enchant slots)
+# Max level 5, not the measured 1: D-06-15 rules the jar's missing `max` assignment a bug and the intended
+# ladder 5, which is what every level-scaled formula in the entry (5xL dodge chance, 5+(L-1)x2 speed chance,
+# max(2, 2+L/2) amplifier) is written for, and what base Dodge ships.
+# The crouch bonus is authored as the matrix records it — a `+20 %chance%` outcome clause on the ability's own
+# condition, one roll at 5xL standing or 5xL+20 crouched. dodge.yml had to split the same activation into two
+# mutually exclusive blocks because it ALSO carries a damage-cause gate and a condition takes at most one ':'
+# clause; this entry records no cause gate (DEFENSE is already the entity-caused direction), so the clause form
+# is available and is used.
+# FOUR abilities per level, and their ORDER is load-bearing:
+#   A  DEFENSE, the dodge itself — cancels, and writes the 1-tick `dodge.window` marker;
+#   B  DEFENSE, ordered after A and gated on that marker, the Speed burst on its own separate roll;
+#   C  FALL, unconditional negation — 100 %, every fall, no roll and no cooldown (measured design, kept);
+#   D  FALL, the fall-dodge line, above 5 blocks only.
+# A's marker is read by B inside the SAME activation: SET_VAR writes straight through to the var store and the
+# condition's var read is a live lookup, so a later ability sees it, and `ttl: 1` expires it on the next tick
+# so it can never fund a second burst. The var is named `dodge.window` rather than the jar's `dodge-window` —
+# the pack's dotted idiom (`trap.frozen`, `angelic.active`, `sabotage.spend`); the name is internal and never
+# rendered, and the same rename precedent is bleed.yml publishing `bleedstacks` for the matrix's `bleedstack`.
+# A's CANCEL does not stop B: the executor evaluates and runs every candidate ability of the activation in
+# turn, and cancelling the damage event is a sink write, not a control-flow break.
+# D's `%damage% > 2` is exact under the vanilla fall formula `damage = distance - 3`, i.e. a fall of more than
+# 5 blocks. Its facts were populated before C cancelled, so it still reads the fall's original damage.
+# The engine's potion tracking reproduces the jar's "a stronger tracked SPEED wins" refusal, so B never
+# downgrades a live burst. The jar's unguarded player cast (which crashes on mob defenders) is moot in-engine.
+# era: `ENTITY_BAT_TAKEOFF` is the modern spelling of 1.8's `BAT_TAKEOFF` and `Aliases.SOUND` carries NO row for
+# the pair today — dodge.yml (batch 01) ships the same spelling on the same claim, so both files lose the cue on
+# the 1.8 lane until the legacy sweep writes it (logged in deferred-content). `CLOUD` and `SPEED` are fine on
+# 1.8.9, and the sword-block-era `%sneaking%` reads unchanged.
+levels:
+  1:
+    abilities:
+      - chance: 5
+        condition: "%sneaking% : +20 %chance%"
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§e*DODGE*", who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 10, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 0.75 } }
+          - { SET_VAR: { name: "dodge.window", value: "1", ttl: 1, who: "@Self" } }
+      # Jar amplifier `max(2, 2 + L/2)` (integer division); the engine's level is that amplifier + 1 — Speed III.
+      - chance: 5
+        condition: "%dodge.window% == 1"
+        effects:
+          - { POTION: { effect: "SPEED", level: 3, duration: 60, who: "@Self" } }
+      - trigger: FALL
+        effects:
+          - { CANCEL: {} }
+      - trigger: FALL
+        condition: "%damage% > 2"
+        effects:
+          - { MESSAGE: { text: "§e*FALL DODGED*", who: "@Self" } }
+  2:
+    abilities:
+      - chance: 10
+        condition: "%sneaking% : +20 %chance%"
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§e*DODGE*", who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 10, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 0.75 } }
+          - { SET_VAR: { name: "dodge.window", value: "1", ttl: 1, who: "@Self" } }
+      - chance: 7
+        condition: "%dodge.window% == 1"
+        effects:
+          - { POTION: { effect: "SPEED", level: 4, duration: 60, who: "@Self" } }
+      - trigger: FALL
+        effects:
+          - { CANCEL: {} }
+      - trigger: FALL
+        condition: "%damage% > 2"
+        effects:
+          - { MESSAGE: { text: "§e*FALL DODGED*", who: "@Self" } }
+  3:
+    abilities:
+      - chance: 15
+        condition: "%sneaking% : +20 %chance%"
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§e*DODGE*", who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 10, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 0.75 } }
+          - { SET_VAR: { name: "dodge.window", value: "1", ttl: 1, who: "@Self" } }
+      - chance: 9
+        condition: "%dodge.window% == 1"
+        effects:
+          - { POTION: { effect: "SPEED", level: 4, duration: 60, who: "@Self" } }
+      - trigger: FALL
+        effects:
+          - { CANCEL: {} }
+      - trigger: FALL
+        condition: "%damage% > 2"
+        effects:
+          - { MESSAGE: { text: "§e*FALL DODGED*", who: "@Self" } }
+  4:
+    abilities:
+      - chance: 20
+        condition: "%sneaking% : +20 %chance%"
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§e*DODGE*", who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 10, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 0.75 } }
+          - { SET_VAR: { name: "dodge.window", value: "1", ttl: 1, who: "@Self" } }
+      - chance: 11
+        condition: "%dodge.window% == 1"
+        effects:
+          - { POTION: { effect: "SPEED", level: 5, duration: 60, who: "@Self" } }
+      - trigger: FALL
+        effects:
+          - { CANCEL: {} }
+      - trigger: FALL
+        condition: "%damage% > 2"
+        effects:
+          - { MESSAGE: { text: "§e*FALL DODGED*", who: "@Self" } }
+  5:
+    abilities:
+      - chance: 25
+        condition: "%sneaking% : +20 %chance%"
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§e*DODGE*", who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 10, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_BAT_TAKEOFF", volume: 1.0, pitch: 0.75 } }
+          - { SET_VAR: { name: "dodge.window", value: "1", ttl: 1, who: "@Self" } }
+      - chance: 13
+        condition: "%dodge.window% == 1"
+        effects:
+          - { POTION: { effect: "SPEED", level: 5, duration: 60, who: "@Self" } }
+      - trigger: FALL
+        effects:
+          - { CANCEL: {} }
+      - trigger: FALL
+        condition: "%damage% > 2"
+        effects:
+          - { MESSAGE: { text: "§e*FALL DODGED*", who: "@Self" } }

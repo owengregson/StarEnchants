@@ -1,0 +1,47 @@
+# Matrix: 06-enchants-tools-heroic.md § Divine Enlighted
+# Single-pass per D-001.
+display: "Divine Enlighted"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe heroic grade of Enlighted: a chance to heal a full"
+  - "&eheart whenever anything hurts you."
+trigger: HURT
+applies-to: [ARMOR]
+group: "heroic"
+tier: heroic
+# HEROIC APPLICATION CONTRACT (matrix 06 § Heroic application rules). tier 7 = the `heroic` rung of tiers.yml
+# (`&d`, weight 70). `requires` + `removes-required` carry the APPLY-GATE, the REPLACE and the SLOT-EXEMPT
+# rules in one pair: no Enlighted on the item, no apply; a successful apply deletes the Enlighted line so the
+# two never both run, and `freedBy` makes the upgrade cost a net zero slots.
+# Two halves are NOT expressible and are recorded rather than dropped: the gate's "at the partner's MAX level"
+# gradient (`ItemEnchanter.checkRelationships` tests the prereq at `>= the level being applied`), and
+# REVERSE-BLOCK, which has no expression on EITHER file: `blacklist:` is tested bidirectionally, so a row on
+# enlighted.yml fires on this apply too, refusing the very Enlighted line `requires` demands be present.
+# NO-RANDOMIZE / NO-DUST / NO-COMBINE / BLACK-SCROLL / END-SUPPRESS are book-flow and world rules with no
+# per-enchant knob.
+requires: ["enchants/enlighted"]
+removes-required: true  # the heroic supersedes its non-heroic partner (net-zero enchant slots)
+# The matrix's `ANY_DAMAGE_TRIGGER` gap is CLOSED: `HURT` is a DEFENSE-direction trigger that fires on every
+# damage-taken event whatever the cause and needs no attacker, which is exactly what the entry asks for
+# (`DEFENSE` would see entity-on-entity damage only, and `FALL`/`FIRE` cover two causes between them). The gap
+# block is a batch-1 snapshot; enlighted.yml has shipped this same walk since the first armour batch.
+# The 1-tick deferral lands the heal AFTER the damage applies, as measured; MODIFY_HEALTH `give` clamps at max
+# health. Defensive double-fire member: the chances below are the SINGLE-PASS intended values per D-001, so the
+# measured melee rate (the jar's two-pass compound) is deliberately not reproduced.
+# The base clamps its level at 3 by a hand-edited lore quirk; the heroic drops it, which is a no-op for engine
+# levels — nothing to author either way.
+# era: none.
+levels:
+  # Chance 7.5 x level per (single-pass) damage event; heal +2.0 HP (one heart) at every level.
+  1:
+    chance: 7.5
+    effects:
+      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self", wait: 1 } }
+  2:
+    chance: 15
+    effects:
+      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self", wait: 1 } }
+  3:
+    chance: 22.5
+    effects:
+      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self", wait: 1 } }

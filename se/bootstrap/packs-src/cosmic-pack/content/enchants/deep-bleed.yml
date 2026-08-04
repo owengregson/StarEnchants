@@ -1,0 +1,248 @@
+# Matrix: 06-enchants-tools-heroic.md § Deep Bleed
+display: "Deep Bleed"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe heroic grade of Bleed: the same wound, opened deeper,"
+  - "&ecalled out as it crosses the halfway and full marks."
+trigger: ATTACK
+applies-to: [AXE]
+group: "heroic"
+tier: heroic
+# HEROIC APPLICATION CONTRACT (matrix 06 § Heroic application rules). tier 7 = the `heroic` rung of tiers.yml
+# (`&d`, weight 70), which carries the recorded lore colour and the above-the-rest sort. `requires` +
+# `removes-required` are the APPLY-GATE, the REPLACE and the SLOT-EXEMPT rules in one pair: the book refuses an
+# item that is not already carrying Bleed, and a successful apply deletes the Bleed line so the two never both
+# run (`freedBy` then makes the upgrade cost a net zero slots).
+# TWO halves of the contract are NOT expressible here and are recorded, not silently dropped:
+#  - the gate's "at the partner's MAX level" gradient — `ItemEnchanter.checkRelationships` tests the prereq at
+#    `>= the level being applied`, so Deep Bleed II wants Bleed II, not Bleed VI;
+#  - REVERSE-BLOCK ("a non-heroic can never be applied over its heroic") has no expression on EITHER file:
+#    `ItemEnchanter.checkRelationships` tests `blacklist:` bidirectionally, so a row on bleed.yml fires on
+#    this apply just as surely as one here would, refusing the very Bleed line `requires` demands be present.
+# NO-RANDOMIZE / NO-DUST / NO-COMBINE / BLACK-SCROLL / END-SUPPRESS are book-flow and world rules with no
+# per-enchant knob; they belong to the interaction layer, not to any of the 25 heroic files.
+requires: ["enchants/bleed"]
+removes-required: true  # the heroic supersedes its non-heroic partner (net-zero enchant slots)
+# The counter is `bleedstacks` — bleed.yml's published name, NOT the matrix's `bleedstack`. One name per
+# counter is the shared-counter rule bleed.yml states outright ("whoever adds the stack decides that write's
+# curve"), and the whole downstream family (Deep Wounds' +0.5 pp fold, Devour's +1.5 pp and > 0 gate, Blessed's
+# clear, Blood Lust's ally-heal roll) reads that spelling. Deep Bleed's own curve is the steeper coefficient
+# below; everything else about the counter — step 1, cap 20, `ttl: 0` no-decay (D-04-6), the `< 20` pre-increment
+# gate — is bleed.yml's, unchanged.
+# Ordering is load-bearing exactly as it is in bleed.yml: the ability CONDITION reads the counter before this
+# hit lands, every effect parameter under it reads the counter after (SET_VAR writes straight through to the
+# var store and an expression parameter is evaluated when its effect runs), so the increment stays the first
+# row. Derived step `i = max(1, floor(stacks / 2))` — the heroic HAS the max(1, ...) guard the jar's base Bleed
+# lacked, so D-04-5's one-line divergence is on the base file, not this one.
+# Player and mob victims take different debuffs and one ability cannot branch mid-list, so each level carries
+# four mutually exclusive blocks: {player, mob} x {this stack lands on a called-out band, or it does not}.
+# Exactly one gate can pass per hit, so a hit still rolls ONCE — "stack added", "debuff applied" and "line
+# printed" stay the single outcome they are in the jar.
+# The band conditions read the counter PRE-increment, which is where the off-by-one comes from: `i` is derived
+# from the POST-increment value, so i = 5 (the -18.75 % call-out) is stacks 10 or 11, i.e. a pre-hit 9 or 10,
+# and i = 10 (-37.5 %) is stacks 20, i.e. a pre-hit 19 — 21 is unreachable under the cap and the `< 20` gate.
+# The PLAYER-side slow IS authored here, where bleed.yml holds it back. The difference is recorded, not
+# invented: D-06-13 rules the jar's until-externally-cleared player slow as the bounded `i * 20` t the mob
+# branch already carries, refreshed by every later stack — so the heroic has a finite window the surface can
+# express and the base (recorded as held for as long as stacks live) still does not.
+# `speed` is an ABSOLUTE walk-speed fraction on a [-1, 1] parameter, not a delta and not a percentage: vanilla
+# base is 0.2 and the band curve is `0.2 - 0.0075 * i`, so 0.1925 at one stack down to 0.1250 at the cap
+# (-3.75 % to -37.5 %). Consequence carried over from trap.yml: every grant registers its OWN timed revert to
+# the vanilla 0.2, so an earlier, shallower grant's expiry can end a deeper slow a later stack re-armed, and
+# the restore hands back 0.2 rather than the victim's prior speed. Matched, not fixed.
+# The 15-per-burst particle count is the port-choice bleed.yml made for this same jar mechanism (one countless
+# block-break world effect per repeat, `max(1, i / 2)` repeats, folded into one count expression). Kept
+# identical so the base and the heroic read as one wound; the matrix records the bare repeat count.
+# Interactions carried elsewhere, nothing authored here: Blood Lust's 7x7x7 ally-leech roll hangs off each
+# stack added to a player (armour doc 04, still blocked on tagged PROXIMITY_EVENT), and Blessed is the sole
+# remover. The jar's shared key with non-heroic Bleed is moot in play — the contract above makes co-occurrence
+# impossible — but the shared spelling is what keeps the downstream readers working across the upgrade.
+# The call-out goes to @Self (the wielder), the pack default for a `** NAME **` proc line (Blessed, Deep
+# Wounds, Immortal, Nature's Wrath all ship it that way). The matrix does not name a recipient, and a
+# victim-side send would print nothing at all on the mob half, where MESSAGE has no player to reach.
+# era: `BLOCK_CRACK` is the jar's legacy world effect 2001; the particle, `REDSTONE_BLOCK`, `BEDROCK` and the
+# `SLOW` -> `SLOWNESS` mapping all resolve on 1.8.9 through the existing alias map. Walk-speed mechanics are
+# identical on both eras.
+levels:
+  # Chance 8 x level + 40. Everything downstream is level-INDEPENDENT — level buys frequency only, and the cap
+  # is 20 at every level.
+  1:
+    chance: 48
+    abilities:
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && %victim.var.bleedstacks% != 9 && %victim.var.bleedstacks% != 10 && %victim.var.bleedstacks% != 19"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+      # Pre-hit 9 / 10 / 19: this stack lands on i = 5 or i = 10, the only two bands that speak.
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && (%victim.var.bleedstacks% == 9 || %victim.var.bleedstacks% == 10 || %victim.var.bleedstacks% == 19)"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          # `3.75 * i` is the speed loss as a percentage of the vanilla 0.2 — 18.75 at i = 5, 37.5 at i = 10,
+          # the two renders the matrix records. The token binding lives in `tokens`, so the line itself stays
+          # byte-verbatim, and it evaluates post-increment like every other parameter in this block.
+          - { MESSAGE: { text: "§c** DEEP BLEED [§4-{percent}§c% Speed] **", tokens: { percent: "3.75 * max(1, floor(%victim.var.bleedstacks% / 2))" }, who: "@Self" } }
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\" && %victim.var.bleedstacks% != 9 && %victim.var.bleedstacks% != 10 && %victim.var.bleedstacks% != 19"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          # Jar amplifier `max(1, i / 3)`; the engine's level is that amplifier + 1, so Slowness II up to i = 5,
+          # III at 6-8 and IV at 9-10. Duration `i * 20` t, re-applied by every later stack.
+          - { POTION: { effect: "SLOWNESS", level: "max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 3)) + 1", duration: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\" && (%victim.var.bleedstacks% == 9 || %victim.var.bleedstacks% == 10 || %victim.var.bleedstacks% == 19)"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { POTION: { effect: "SLOWNESS", level: "max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 3)) + 1", duration: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { MESSAGE: { text: "§c** DEEP BLEED [§4-{percent}§c% Speed] **", tokens: { percent: "3.75 * max(1, floor(%victim.var.bleedstacks% / 2))" }, who: "@Self" } }
+  2:
+    chance: 56
+    abilities:
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && %victim.var.bleedstacks% != 9 && %victim.var.bleedstacks% != 10 && %victim.var.bleedstacks% != 19"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && (%victim.var.bleedstacks% == 9 || %victim.var.bleedstacks% == 10 || %victim.var.bleedstacks% == 19)"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { MESSAGE: { text: "§c** DEEP BLEED [§4-{percent}§c% Speed] **", tokens: { percent: "3.75 * max(1, floor(%victim.var.bleedstacks% / 2))" }, who: "@Self" } }
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\" && %victim.var.bleedstacks% != 9 && %victim.var.bleedstacks% != 10 && %victim.var.bleedstacks% != 19"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { POTION: { effect: "SLOWNESS", level: "max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 3)) + 1", duration: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\" && (%victim.var.bleedstacks% == 9 || %victim.var.bleedstacks% == 10 || %victim.var.bleedstacks% == 19)"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { POTION: { effect: "SLOWNESS", level: "max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 3)) + 1", duration: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { MESSAGE: { text: "§c** DEEP BLEED [§4-{percent}§c% Speed] **", tokens: { percent: "3.75 * max(1, floor(%victim.var.bleedstacks% / 2))" }, who: "@Self" } }
+  3:
+    chance: 64
+    abilities:
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && %victim.var.bleedstacks% != 9 && %victim.var.bleedstacks% != 10 && %victim.var.bleedstacks% != 19"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && (%victim.var.bleedstacks% == 9 || %victim.var.bleedstacks% == 10 || %victim.var.bleedstacks% == 19)"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { MESSAGE: { text: "§c** DEEP BLEED [§4-{percent}§c% Speed] **", tokens: { percent: "3.75 * max(1, floor(%victim.var.bleedstacks% / 2))" }, who: "@Self" } }
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\" && %victim.var.bleedstacks% != 9 && %victim.var.bleedstacks% != 10 && %victim.var.bleedstacks% != 19"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { POTION: { effect: "SLOWNESS", level: "max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 3)) + 1", duration: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\" && (%victim.var.bleedstacks% == 9 || %victim.var.bleedstacks% == 10 || %victim.var.bleedstacks% == 19)"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { POTION: { effect: "SLOWNESS", level: "max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 3)) + 1", duration: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { MESSAGE: { text: "§c** DEEP BLEED [§4-{percent}§c% Speed] **", tokens: { percent: "3.75 * max(1, floor(%victim.var.bleedstacks% / 2))" }, who: "@Self" } }
+  4:
+    chance: 72
+    abilities:
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && %victim.var.bleedstacks% != 9 && %victim.var.bleedstacks% != 10 && %victim.var.bleedstacks% != 19"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && (%victim.var.bleedstacks% == 9 || %victim.var.bleedstacks% == 10 || %victim.var.bleedstacks% == 19)"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { MESSAGE: { text: "§c** DEEP BLEED [§4-{percent}§c% Speed] **", tokens: { percent: "3.75 * max(1, floor(%victim.var.bleedstacks% / 2))" }, who: "@Self" } }
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\" && %victim.var.bleedstacks% != 9 && %victim.var.bleedstacks% != 10 && %victim.var.bleedstacks% != 19"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { POTION: { effect: "SLOWNESS", level: "max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 3)) + 1", duration: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\" && (%victim.var.bleedstacks% == 9 || %victim.var.bleedstacks% == 10 || %victim.var.bleedstacks% == 19)"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { POTION: { effect: "SLOWNESS", level: "max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 3)) + 1", duration: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { MESSAGE: { text: "§c** DEEP BLEED [§4-{percent}§c% Speed] **", tokens: { percent: "3.75 * max(1, floor(%victim.var.bleedstacks% / 2))" }, who: "@Self" } }
+  5:
+    chance: 80
+    abilities:
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && %victim.var.bleedstacks% != 9 && %victim.var.bleedstacks% != 10 && %victim.var.bleedstacks% != 19"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && (%victim.var.bleedstacks% == 9 || %victim.var.bleedstacks% == 10 || %victim.var.bleedstacks% == 19)"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { MESSAGE: { text: "§c** DEEP BLEED [§4-{percent}§c% Speed] **", tokens: { percent: "3.75 * max(1, floor(%victim.var.bleedstacks% / 2))" }, who: "@Self" } }
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\" && %victim.var.bleedstacks% != 9 && %victim.var.bleedstacks% != 10 && %victim.var.bleedstacks% != 19"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { POTION: { effect: "SLOWNESS", level: "max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 3)) + 1", duration: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\" && (%victim.var.bleedstacks% == 9 || %victim.var.bleedstacks% == 10 || %victim.var.bleedstacks% == 19)"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { POTION: { effect: "SLOWNESS", level: "max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 3)) + 1", duration: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { MESSAGE: { text: "§c** DEEP BLEED [§4-{percent}§c% Speed] **", tokens: { percent: "3.75 * max(1, floor(%victim.var.bleedstacks% / 2))" }, who: "@Self" } }
+  6:
+    chance: 88
+    abilities:
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && %victim.var.bleedstacks% != 9 && %victim.var.bleedstacks% != 10 && %victim.var.bleedstacks% != 19"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && (%victim.var.bleedstacks% == 9 || %victim.var.bleedstacks% == 10 || %victim.var.bleedstacks% == 19)"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { MESSAGE: { text: "§c** DEEP BLEED [§4-{percent}§c% Speed] **", tokens: { percent: "3.75 * max(1, floor(%victim.var.bleedstacks% / 2))" }, who: "@Self" } }
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\" && %victim.var.bleedstacks% != 9 && %victim.var.bleedstacks% != 10 && %victim.var.bleedstacks% != 19"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { POTION: { effect: "SLOWNESS", level: "max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 3)) + 1", duration: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+      - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\" && (%victim.var.bleedstacks% == 9 || %victim.var.bleedstacks% == 10 || %victim.var.bleedstacks% == 19)"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { POTION: { effect: "SLOWNESS", level: "max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 3)) + 1", duration: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
+          - { MESSAGE: { text: "§c** DEEP BLEED [§4-{percent}§c% Speed] **", tokens: { percent: "3.75 * max(1, floor(%victim.var.bleedstacks% / 2))" }, who: "@Self" } }

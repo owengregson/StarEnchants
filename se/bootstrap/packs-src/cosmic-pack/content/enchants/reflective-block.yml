@@ -1,0 +1,159 @@
+# Matrix: 06-enchants-tools-heroic.md § Reflective Block
+display: "Reflective Block"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe heroic grade of Block: shrug off most of an"
+  - "&eincoming hit, and sometimes throw part of it back."
+trigger: DEFENSE
+applies-to: [SWORD]
+group: "heroic"
+tier: heroic
+# THE HEROIC APPLICATION CONTRACT (matrix 06 § Heroic application rules) — the full reading lives in
+# reinforced-tank.yml. `requires:` is the APPLY-GATE, `removes-required:` is REPLACE + SLOT-EXEMPT; the gate
+# settles for `partner >= the heroic level applied` rather than the partner's MAX (exact only at rung 3,
+# where Block and Reflective Block's ladders meet), and REVERSE-BLOCK is unexpressible (`blacklist:` is
+# checked bidirectionally and would veto the very apply `requires:` demands). Both gaps ledgered once for the
+# batch. Tier 7 = the `heroic` rung (&d, weight 70). This entry's TABLE WEIGHT IS 0 — it is never drawn from
+# a tier roll, which is a book-roll fact the enchant surface does not carry either way. END-SUPPRESS is the
+# tier world rule, not a `disabled-worlds:` list.
+requires: ["enchants/block"]
+removes-required: true
+# TWO LEGS, and the second is nested inside the first — the shape the jar ran and the reason four blocks
+# appear per rung:
+#   * THE REDUCTION (blocks 1-2) is attacker-BLIND: it answers PvE hits too, and it is the only leg most
+#     successful blocks ever show, because the feedback rides the inner roll (measured, kept).
+#   * THE REFLECT (blocks 3-4) fires only after the reduction landed and only against a PLAYER — on a DEFENSE
+#     activation the "victim" IS the attacker, so `%victim.type%` is that test.
+# D-06-16 (as-intended): the jar's ternary was INVERTED — it rolled `0.16 x level` while blocking and
+# `0.7 x level` while open. The intended reading ships: blocking `0.7 x level` capped at 100 (70 / 100 /
+# 100 %), open `0.16 x level` (16 / 32 / 48 %). The inner roll is `0.08 x level` with +5 pp while blocking:
+# 13 / 21 / 29 % blocking, 8 / 16 / 24 % open. Both rolls are authored as two mutually exclusive blocks
+# instead of a `+N %chance%` clause, because a condition takes at most ONE ':' clause and a clause never
+# gates (the dodge.yml / silence.yml reading) — and the split lets the capped 100 read as the literal number.
+# Exactly one block of each pair is eligible per hit, so it is still one roll per leg.
+# THE ARMED MARKER is how the nesting survives being two abilities: the reduction writes `rblock-armed` and
+# the reflect gates on it. SET_VAR writes straight into the shared VarStore on the firing thread and an
+# unknown `%token%` is resolved LAZILY at condition-evaluation time, so a later ability in the SAME defence
+# walk reads what an earlier one just wrote. ORDER MATTERS here and the file's order is the walk's order:
+# the reduction blocks are authored first. `ttl: 1` keeps the flag from ever reaching the next tick's hit.
+# THE REFLECT ITSELF is REFLECT's own mark, armed for a single tick: the fold consults it at the end of THIS
+# event, so the triggering hit is the one that comes back — the matrix's reading. Recorded delta: the engine
+# reflects a share of the COMMITTED damage (post-fold, i.e. after this file's own reduction), where the jar
+# computed from the pre-reduction final damage, so the returned health is smaller by exactly the reduction
+# that leg applied. A mirrored Reflective Block can answer once and no further: SE-issued damage never
+# re-enters the proc walk (ADR-0054).
+# Double-fire: the reduction leg is attacker-blind, so the jar double-fired it (00 §3.4); the values here are
+# the SINGLE-PASS intent per D-001, never the doubled measurement. Vanilla's own blocking reduction still
+# applies after ours, as measured.
+# STRINGS, verbatim. `{ATTACKER}` is the matrix's `{defender}`: MESSAGE expands it to the ACTIVATING player,
+# and on a defence activation that is the wearer, not the swinger ({SELF} would name each line's own
+# recipient, which is wrong for the copy sent to the attacker). `{percent}` is a per-level constant, so it is
+# inlined and each rendered line is byte-identical (the hex.yml reading); `{damage}` binds through MESSAGE's
+# `tokens` to the incoming hit and renders through the chat convention (at most 2 dp, trailing zeros
+# trimmed) against the jar's one-decimal format — a rounding delta on hits that carry two decimals.
+# Counterpart Block (requires blocking, 0.1 x level, and the integer-division 0/50/50 % reduction D-03-1
+# already ruled on) is REPLACED by the contract, never summed.
+# era: `%blocking%` abstracts the seam — 1.8 right-click sword blocking, a raised shield on modern Paper
+# (the counterpart records the same). The CRIT and SPELL_WITCH bursts resolve on both lanes. The jar's
+# `ZOMBIE_METAL` is 1.8's mob.zombie.metal; the modern spelling ships here per the pack-wide convention, but
+# `Aliases.SOUND` carries no `ZOMBIE_METAL -> ENTITY_ZOMBIE_ATTACK_IRON_DOOR` row, so the cue resolves to
+# nothing on the legacy lane until the sweep adds one (deferred-content). Volume 10.0 is the jar's own
+# number, kept verbatim — audible far beyond the fight.
+# PARTICLE placement: both bursts name an ENTITY, so each centres on that party's BODY — the recorded +1 y at
+# the wearer and at the attacker alike (the hex.yml reading). A location selector is NOT the spelling for it:
+# PARTICLE reads only the entity channel of `who` and falls back to the bare activation location, so `@Add{y=1}`
+# would silently drop the offset it names and burst at the wearer's feet.
+levels:
+  # Reduction and reflected share are both `0.25 x level` = 25 / 50 / 75 %.
+  1:
+    abilities:
+      - condition: "%blocking%"
+        chance: 70
+        effects:
+          - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }
+          - { SET_VAR: { name: "rblock-armed", value: "1", ttl: 1, who: "@Self" } }
+      - condition: "!%blocking%"
+        chance: 16
+        effects:
+          - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }
+          - { SET_VAR: { name: "rblock-armed", value: "1", ttl: 1, who: "@Self" } }
+      - condition: '%rblock-armed% == 1 && %victim.type% == "PLAYER" && %blocking%'
+        chance: 13
+        effects:
+          - { REFLECT: { percent: 25, duration: 1, who: "@Attacker" } }
+          - { MESSAGE: { text: "§a§l* BLOCKED [{damage} DMG] *", who: "@Self", tokens: { damage: "%damage%" } } }
+          - { MESSAGE: { text: "§c§l* {ATTACKER} REFLECTIVE BLOCK [§725% DMG§c§l]", who: "@Attacker" } }
+          - { PARTICLE: { particle: "CRIT", count: 25, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 25, who: "@Attacker" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 10.0, pitch: 2.0 } }
+      - condition: '%rblock-armed% == 1 && %victim.type% == "PLAYER" && !%blocking%'
+        chance: 8
+        effects:
+          - { REFLECT: { percent: 25, duration: 1, who: "@Attacker" } }
+          - { MESSAGE: { text: "§a§l* BLOCKED [{damage} DMG] *", who: "@Self", tokens: { damage: "%damage%" } } }
+          - { MESSAGE: { text: "§c§l* {ATTACKER} REFLECTIVE BLOCK [§725% DMG§c§l]", who: "@Attacker" } }
+          - { PARTICLE: { particle: "CRIT", count: 25, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 25, who: "@Attacker" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 10.0, pitch: 2.0 } }
+  2:
+    abilities:
+      # 0.7 x 2 = 140, capped at 100 by the matrix's own reading: blocking II always reduces.
+      - condition: "%blocking%"
+        chance: 100
+        effects:
+          - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }
+          - { SET_VAR: { name: "rblock-armed", value: "1", ttl: 1, who: "@Self" } }
+      - condition: "!%blocking%"
+        chance: 32
+        effects:
+          - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }
+          - { SET_VAR: { name: "rblock-armed", value: "1", ttl: 1, who: "@Self" } }
+      - condition: '%rblock-armed% == 1 && %victim.type% == "PLAYER" && %blocking%'
+        chance: 21
+        effects:
+          - { REFLECT: { percent: 50, duration: 1, who: "@Attacker" } }
+          - { MESSAGE: { text: "§a§l* BLOCKED [{damage} DMG] *", who: "@Self", tokens: { damage: "%damage%" } } }
+          - { MESSAGE: { text: "§c§l* {ATTACKER} REFLECTIVE BLOCK [§750% DMG§c§l]", who: "@Attacker" } }
+          - { PARTICLE: { particle: "CRIT", count: 25, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 25, who: "@Attacker" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 10.0, pitch: 2.0 } }
+      - condition: '%rblock-armed% == 1 && %victim.type% == "PLAYER" && !%blocking%'
+        chance: 16
+        effects:
+          - { REFLECT: { percent: 50, duration: 1, who: "@Attacker" } }
+          - { MESSAGE: { text: "§a§l* BLOCKED [{damage} DMG] *", who: "@Self", tokens: { damage: "%damage%" } } }
+          - { MESSAGE: { text: "§c§l* {ATTACKER} REFLECTIVE BLOCK [§750% DMG§c§l]", who: "@Attacker" } }
+          - { PARTICLE: { particle: "CRIT", count: 25, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 25, who: "@Attacker" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 10.0, pitch: 2.0 } }
+  3:
+    abilities:
+      # 0.7 x 3 = 210, likewise capped at 100.
+      - condition: "%blocking%"
+        chance: 100
+        effects:
+          - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 75 } }
+          - { SET_VAR: { name: "rblock-armed", value: "1", ttl: 1, who: "@Self" } }
+      - condition: "!%blocking%"
+        chance: 48
+        effects:
+          - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 75 } }
+          - { SET_VAR: { name: "rblock-armed", value: "1", ttl: 1, who: "@Self" } }
+      - condition: '%rblock-armed% == 1 && %victim.type% == "PLAYER" && %blocking%'
+        chance: 29
+        effects:
+          - { REFLECT: { percent: 75, duration: 1, who: "@Attacker" } }
+          - { MESSAGE: { text: "§a§l* BLOCKED [{damage} DMG] *", who: "@Self", tokens: { damage: "%damage%" } } }
+          - { MESSAGE: { text: "§c§l* {ATTACKER} REFLECTIVE BLOCK [§775% DMG§c§l]", who: "@Attacker" } }
+          - { PARTICLE: { particle: "CRIT", count: 25, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 25, who: "@Attacker" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 10.0, pitch: 2.0 } }
+      - condition: '%rblock-armed% == 1 && %victim.type% == "PLAYER" && !%blocking%'
+        chance: 24
+        effects:
+          - { REFLECT: { percent: 75, duration: 1, who: "@Attacker" } }
+          - { MESSAGE: { text: "§a§l* BLOCKED [{damage} DMG] *", who: "@Self", tokens: { damage: "%damage%" } } }
+          - { MESSAGE: { text: "§c§l* {ATTACKER} REFLECTIVE BLOCK [§775% DMG§c§l]", who: "@Attacker" } }
+          - { PARTICLE: { particle: "CRIT", count: 25, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 25, who: "@Attacker" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 10.0, pitch: 2.0 } }

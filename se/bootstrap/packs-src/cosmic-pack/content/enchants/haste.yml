@@ -1,0 +1,42 @@
+# Matrix: 06-enchants-tools-heroic.md § Haste
+display: "Haste"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eBreaking blocks keeps your hands quick:"
+  - "&eHaste that renews itself while you dig."
+# Both mining hooks, exactly as the jar: the break itself and the swing that starts it. A two-second grant
+# refreshed from both is a continuous effect while digging and lapses a moment after you stop — which is the
+# whole felt behaviour, and it is why no cooldown belongs here (every swing is meant to re-arm it).
+# INTERACT_LEFT also fires on a swing at open air, where the jar's block-damage hook did not; matrix-06 accepts
+# that as the price of covering all 21 tools, since the grant is cosmetic anywhere but a block face. The jar's
+# own refresh path additionally fired only while holding an iron or diamond pickaxe — a dispatch quirk of that
+# hook, not a rule of the enchant, and not replicated.
+trigger: [MINE, INTERACT_LEFT]
+# The jar's 21-material `tools` set spelled out: 5 pickaxes + 5 axes + 5 spades + 5 hoes (our TOOL composite is
+# exactly those four families) plus the fishing rod, which the jar's set really does carry. TOOL alone would
+# drop the rod; WEAPON would swap in swords and a bow the jar never covered.
+applies-to: [TOOL, FISHING_ROD]
+group: "common"
+tier: common
+# Matrix-06 records no tier for the tool enchants — only the enchant-table weight (2 here) — so the rung comes
+# from the codex's own tier table (`haste` 1), the same source doc 05's files used for their unrecorded
+# acquisition rows.
+# No chance, no condition, no cooldown: the swing IS the activation, at every level.
+# D-06-5 (as-intended): the jar re-applied its own Haste unconditionally, so a stronger beacon or potion Haste
+# was overwritten and DOWNGRADED on the next swing. The engine's potion tracking never downgrades a stronger
+# effect, which is the ledger's intended reading — a beacon's Haste II outlives this enchant's Haste I.
+# interactions: none — the enchant touches no shared state. strings: none.
+# era: `FAST_DIGGING` is the 1.8-era name of the modern `HASTE` effect; the boot-time alias resolver maps it,
+# so the jar's spelling is what ships (the same choice insomnia.yml made for `SLOW_DIGGING`).
+levels:
+  # Haste I/II/III (the surface's `level` is 1-based, so it IS the enchant level — the jar's `L-1` is the raw
+  # amplifier). Duration is a flat 40 t at every level; only the amplifier ladders.
+  1:
+    effects:
+      - { POTION: { effect: "FAST_DIGGING", level: 1, duration: 40, who: "@Self" } }
+  2:
+    effects:
+      - { POTION: { effect: "FAST_DIGGING", level: 2, duration: 40, who: "@Self" } }
+  3:
+    effects:
+      - { POTION: { effect: "FAST_DIGGING", level: 3, duration: 40, who: "@Self" } }

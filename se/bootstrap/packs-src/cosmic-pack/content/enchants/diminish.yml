@@ -10,36 +10,32 @@ tier: legendary
 condition: "%damage% > 0"
 # D-01-07: the charge is bounded by the DAMAGE_CAP window (100t default) and caps the next hit at exactly the
 # stored value, replacing the measured never-expiring charge and its armour-re-reduced over-delivery.
-# NOTE: {damage} is the matrix string verbatim; MESSAGE fills only {ATTACKER}/{VICTIM} and DAMAGE_CAP carries
-# no feedback param, so the token currently renders literally — needs an engine-side token before shipping.
+# The arming line is DAMAGE_CAP's own `feedback`, not a separate MESSAGE: the primitive fills `{damage}` with
+# the cap value it just committed, which is the token the matrix string already carries. MESSAGE fills only
+# {ATTACKER}/{VICTIM}, so the same string there rendered `{damage}` literally. Heroic Vengeful Diminish rides
+# the identical shape.
 levels:
   1:
     chance: 1.5
     effects:
-      - { DAMAGE_CAP: { factor: 1.0, reflect: false, duration: 100 } }
-      - { MESSAGE: { text: "§e§l* DIMINISH [§eDMG: {damage}§l] *", who: "@Self" } }
+      - { DAMAGE_CAP: { factor: 1.0, reflect: false, duration: 100, feedback: "§e§l* DIMINISH [§eDMG: {damage}§l] *" } }
   2:
     chance: 3.0
     effects:
-      - { DAMAGE_CAP: { factor: 1.0, reflect: false, duration: 100 } }
-      - { MESSAGE: { text: "§e§l* DIMINISH [§eDMG: {damage}§l] *", who: "@Self" } }
+      - { DAMAGE_CAP: { factor: 1.0, reflect: false, duration: 100, feedback: "§e§l* DIMINISH [§eDMG: {damage}§l] *" } }
   3:
     chance: 4.5
     effects:
-      - { DAMAGE_CAP: { factor: 1.0, reflect: false, duration: 100 } }
-      - { MESSAGE: { text: "§e§l* DIMINISH [§eDMG: {damage}§l] *", who: "@Self" } }
+      - { DAMAGE_CAP: { factor: 1.0, reflect: false, duration: 100, feedback: "§e§l* DIMINISH [§eDMG: {damage}§l] *" } }
   4:
     chance: 6.0
     effects:
-      - { DAMAGE_CAP: { factor: 1.0, reflect: false, duration: 100 } }
-      - { MESSAGE: { text: "§e§l* DIMINISH [§eDMG: {damage}§l] *", who: "@Self" } }
+      - { DAMAGE_CAP: { factor: 1.0, reflect: false, duration: 100, feedback: "§e§l* DIMINISH [§eDMG: {damage}§l] *" } }
   5:
     chance: 7.5
     effects:
-      - { DAMAGE_CAP: { factor: 1.0, reflect: false, duration: 100 } }
-      - { MESSAGE: { text: "§e§l* DIMINISH [§eDMG: {damage}§l] *", who: "@Self" } }
+      - { DAMAGE_CAP: { factor: 1.0, reflect: false, duration: 100, feedback: "§e§l* DIMINISH [§eDMG: {damage}§l] *" } }
   6:
     chance: 9.0
     effects:
-      - { DAMAGE_CAP: { factor: 1.0, reflect: false, duration: 100 } }
-      - { MESSAGE: { text: "§e§l* DIMINISH [§eDMG: {damage}§l] *", who: "@Self" } }
+      - { DAMAGE_CAP: { factor: 1.0, reflect: false, duration: 100, feedback: "§e§l* DIMINISH [§eDMG: {damage}§l] *" } }

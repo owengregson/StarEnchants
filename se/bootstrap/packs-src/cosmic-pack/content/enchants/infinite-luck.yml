@@ -1,0 +1,51 @@
+# Matrix: 06-enchants-tools-heroic.md § Infinite Luck
+# Roster marker (metaphysical.yml / sticky.yml precedent): the enchant is rollable, applicable and displayed,
+# and it has zero local logic — the matrix's own decomposition is one marker write and nothing else. It ships
+# effect-less rather than as the recorded `SET_VAR(name=infinite-luck, value=L, ttl=0)` for the reason the
+# Solitude row settled pack-wide: a ttl-0 marker written on a PASSIVE walk has no teardown, so one equip
+# would leave it standing forever. The level is published as worn state instead, which the consumer reads as
+# `%actor.enchlevel.infinite-luck%` (the file STEM is the key; the `enchants/infinite-luck` stable-key
+# spelling reads 0 in silence). Unequipping therefore clears it, and a second piece leaves the highest level
+# standing — which is also the fix for the jar's clear-on-any-unequip quirk.
+display: "Infinite Luck"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eLuck without a ceiling — the heroic armor"
+  - "&esets read this level when they answer a"
+  - "&ekilling blow."
+trigger: PASSIVE
+applies-to: [ARMOR]
+group: "heroic"
+tier: heroic
+requires: ["enchants/lucky"]
+removes-required: true
+# HEROIC APPLICATION CONTRACT (matrix 06 § heroic application rules), as far as the surface carries it:
+# `requires:` + `removes-required: true` ARE the APPLY-GATE, the REPLACE (Lucky comes off as this lands, so
+# the two never run on one item) and the SLOT-EXEMPT (net-zero slots), in one pair of knobs. Three clauses
+# have no expression and are recorded rather than authored: the gate wants Lucky at MAX where the engine
+# wants it at >= the applied level (this is the widest gap in the family — Lucky maxes at 10 and this at 5,
+# so Infinite Luck V demands Lucky V, not Lucky X); REVERSE-BLOCK cannot ride `blacklist:` — that check is
+# bidirectional, so a row on either file would also block THIS apply, which needs Lucky present; and
+# NO-RANDOMIZE / NO-DUST / NO-COMBINE / BLACK-SCROLL / END-SUPPRESS are tier-7 item-flow and world policy,
+# owned by the layers that read `tier:`. Acquisition carries one more: a tier-7 draw re-rolls Infinite Luck
+# 50 % of the time (half as likely as any other heroic) — pool-weight metadata for the book table, not a
+# rule a content file states.
+# DELTA vs `lucky.yml` (matrix 01), which this replaces: everything. Lucky is a self-contained death save at
+# `level/400`; this grade keeps NO save of its own and exists only to be read. Until the consumer ships, an
+# item that trades Lucky for Infinite Luck trades a working save for a marker — the jar's own arrangement,
+# recorded here and in deferred-content.md rather than softened.
+# CONSUMER (matrix 10, armour sets): a threshold check satisfied when the stored level >= N, over an
+# accumulator each worn LEATHER heroic-armor piece raises by +12.5 (four pieces = 50.0; iron/diamond heroic
+# pieces contribute 0). The codex leaves the semantics past that point UNRESOLVED, and the piece half is a
+# worn-gear CLASSIFICATION and COUNT — the same fact `enchants/hero-killer` is stopped on (WORN_GEAR_FACT),
+# which the wave-1f enchlevel facts do NOT supply. Both halves are matrix 10's to settle; this entry ships
+# the marker only, exactly as its decomposition says.
+# strings: none. era: none.
+levels:
+  # The ladder exists so the marker carries a readable level — the stored value IS the level, and every
+  # number that consumes it lives on the armour-set side.
+  1: { effects: [] }
+  2: { effects: [] }
+  3: { effects: [] }
+  4: { effects: [] }
+  5: { effects: [] }

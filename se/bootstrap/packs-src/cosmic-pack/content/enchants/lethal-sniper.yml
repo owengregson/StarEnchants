@@ -1,0 +1,84 @@
+# Matrix: 06-enchants-tools-heroic.md § Lethal Sniper
+display: "Lethal Sniper"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eAn arrow that lands high on the body hits for"
+  - "&ea headshot — and at V it never misses one."
+trigger: BOW
+applies-to: [BOW]
+group: "heroic"
+tier: heroic
+requires: ["enchants/sniper"]
+removes-required: true
+# HEROIC APPLICATION CONTRACT (matrix 06 § heroic application rules), as far as the surface carries it:
+# `requires:` + `removes-required: true` ARE the APPLY-GATE, the REPLACE (Sniper comes off as this lands, so
+# the two never run on one item) and the SLOT-EXEMPT (net-zero slots), in one pair of knobs. Three clauses
+# have no expression and are recorded rather than authored: the gate wants Sniper at MAX where the engine
+# wants it at >= the applied level (Lethal Sniper II demands Sniper II, not Sniper V); REVERSE-BLOCK cannot
+# ride the `blacklist:` sniper.yml's note anticipated here — that check is bidirectional, so a row on either
+# file would also block THIS apply, which needs Sniper present; and NO-RANDOMIZE / NO-DUST / NO-COMBINE /
+# BLACK-SCROLL / END-SUPPRESS are tier-7 item-flow and world policy, owned by the layers that read `tier:`.
+# DELTA vs `sniper.yml` (matrix 05), which this replaces: the same trigger, gate, cues and shape, with the
+# chance ladder lifted to 70-100 % (L5 is every qualifying arrow) and the multiplier to x3.2-x4.0.
+# `%impactheight%` is the closed PROJECTILE_HIT_HEIGHT gap — the projectile's Y minus the struck entity's
+# feet Y at impact, exactly the recorded 1.9-block test. Rage immunity is the base's reading, unchanged: the
+# matrix names a 200 ms window in which the victim is immune (roll consumed), and the only 200 ms victim
+# stamp anyone publishes is rage.yml's `raged` (4 t), which execute.yml also reads. A condition gate stops
+# the activation BEFORE the roll rather than consuming it — no observable difference on a 100 %-ladder rung.
+# ARROW DEFLECT (armor doc 01) is authored on the OTHER side and nothing about it belongs here: a Lethal
+# Sniper arrow bypasses the victim's deflect at 10 % x this level. arrow-deflect.yml ships without the
+# clause (it predates this file); the drop-in is a chance rebate reading `%victim.enchlevel.lethal-sniper%`
+# on its DEFENSE pass, where the "victim" IS the shooter. Tracked in deferred-content.md.
+# The jar tagged EVERY projectile the shooter loosed — snowballs, pearls — which its own height test then
+# made harmless; the engine's BOW trigger is the bow's arrow, so the tag never happens.
+# Composition with Longbow / Unfocus: the jar stacked those multiplicatively at MONITOR, the engine folds
+# every contribution additively into one hit (Longbow's interaction note; nothing to author here).
+# strings: verbatim per level below, victim-only — the shooter gets no feedback (measured, kept). The `+`
+# reads like an addition but the number IS the total multiplier; the jar's misleading prefix ships as-is.
+# era: `HURT_FLESH` is the 1.8-era spelling of `ENTITY_PLAYER_HURT` and `Aliases.SOUND` carries no row for
+# the pair — the legacy-sweep row sniper.yml already owes, which this file rides; `REDSTONE_BLOCK` and the
+# block-crack burst are fine on 1.8.9, where the arrow geometry is identical.
+condition: "%impactheight% > 1.9 && %victim.var.raged% == 0"
+levels:
+  # chance `0.625 + 0.075 x level` = 70/77.5/85/92.5/100 %; multiplier `min(4.0, 0.2L + 3.0)` = 3.2/3.4/3.6/
+  # 3.8/4.0 (the cap binds exactly at L5), authored as the engine's additive fold: +220 pp = x3.2 outgoing.
+  # The SOUND rides the activation location, which on a BOW hit IS the victim. The block-crack burst is
+  # repeated `max(1, level/2)` times in the jar — 1/1/1/2/2 — copied literally as one line per repeat.
+  1:
+    chance: 70
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 220 } }  # x3.2 outgoing
+      - { MESSAGE: { text: "§c§l*** HEADSHOT [+3.2x DMG] ***", who: "@Victim" } }
+      - { SOUND: { sound: "ENTITY_PLAYER_HURT", volume: 2.0, pitch: 0.3 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }  # recorded at eye height; PARTICLE centres on the body (cosmetic delta)
+  2:
+    chance: 77.5
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 240 } }  # x3.4 outgoing
+      - { MESSAGE: { text: "§c§l*** HEADSHOT [+3.4x DMG] ***", who: "@Victim" } }
+      - { SOUND: { sound: "ENTITY_PLAYER_HURT", volume: 2.0, pitch: 0.3 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }
+  3:
+    chance: 85
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 260 } }  # x3.6 outgoing
+      - { MESSAGE: { text: "§c§l*** HEADSHOT [+3.6x DMG] ***", who: "@Victim" } }
+      - { SOUND: { sound: "ENTITY_PLAYER_HURT", volume: 2.0, pitch: 0.3 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }
+  4:
+    chance: 92.5
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 280 } }  # x3.8 outgoing
+      - { MESSAGE: { text: "§c§l*** HEADSHOT [+3.8x DMG] ***", who: "@Victim" } }
+      - { SOUND: { sound: "ENTITY_PLAYER_HURT", volume: 2.0, pitch: 0.3 } }
+      # Two bursts from level 4: the jar's `max(1, level/2)` repeat count, copied literally.
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }
+  5:
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 300 } }  # x4.0 outgoing
+      - { MESSAGE: { text: "§c§l*** HEADSHOT [+4.0x DMG] ***", who: "@Victim" } }
+      - { SOUND: { sound: "ENTITY_PLAYER_HURT", volume: 2.0, pitch: 0.3 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }

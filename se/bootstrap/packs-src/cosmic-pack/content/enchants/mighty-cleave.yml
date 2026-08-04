@@ -1,0 +1,65 @@
+# Matrix: 06-enchants-tools-heroic.md § Mighty Cleave
+display: "Mighty Cleave"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe heroic grade of Cleave: a landed hit splashes"
+  - "&ehard onto everyone else standing around your target."
+trigger: ATTACK
+applies-to: [AXE]
+group: "heroic"
+tier: heroic
+# THE HEROIC APPLICATION CONTRACT (matrix 06 § Heroic application rules) — the full reading lives in
+# reinforced-tank.yml. `requires:` is the APPLY-GATE, `removes-required:` is REPLACE + SLOT-EXEMPT; the gate
+# settles for `partner >= the heroic level applied` rather than the partner's MAX (never exact here — Cleave
+# runs to VII and Mighty Cleave stops at V, so Mighty Cleave V demands Cleave V, not Cleave VII), and
+# REVERSE-BLOCK is unexpressible (`blacklist:` is checked bidirectionally and would veto the very apply
+# `requires:` demands). Both gaps ledgered once for the batch. Tier 7 = the `heroic` rung (&d, weight 70);
+# table weight 5 is a book-roll number the surface does not carry, and END-SUPPRESS is the tier world rule.
+requires: ["enchants/cleave"]
+removes-required: true
+condition: "%damage% > 0"
+cooldown: 30  # the jar's 1500 ms attacker throttle, one bucket for the whole ability (the counterpart's shape)
+# The splash is centred on the VICTIM and never touches them: the jar searched from the victim and skipped
+# them, which `exclude=victim` reproduces, and AOE excludes the activator natively. Allies and spectators ride
+# the ENEMIES filter. Shape delta, values kept: the jar's `3.0 + 0.25L` is a bounding-box half-extent and
+# AOE's is a sphere radius, so the corner reach differs slightly at the same figure (the counterpart records
+# the identical reading).
+# D-04-8, inherited: the jar's splash was attacker-less generic damage — armour-reduced, NO kill credit, and
+# it only re-entered the defensive pass. Engine DAMAGE is activator-attributed, so a splash kill now credits
+# the swinger and the splashed player's own defence enchants see a damager.
+# PENDING PER-VICTIM COOLDOWN — the recorded 20 t (1000 ms) per-splash-victim stamp is NOT authored, for the
+# reason cleave.yml carries: the engine's cooldown bucket is per-player, so the 30 t above paces the whole
+# ability and a per-target window has nowhere to live (deferred-content, shared with thundering-blow).
+# THE SHARED BUCKET IS authored, from this side, exactly as cleave.yml assigns it: the jar keyed the heroic's
+# per-victim stamp under the SAME bucket name as the counterpart's, so a heroic splash locks the plain one
+# out for 20 t. `SUPPRESS(scope=ENCHANT, key=enchants/cleave, who=@Self)` is that half, coarsened to the
+# holder rather than the victim like the stamp above it. Unreachable in ordinary play — the contract keeps
+# the two grades off one item and an off-hand axe never walks the attack side (G01) — so it only bites when
+# an admin force-give has put both on one player, which is precisely the case the jar's shared name covered.
+# Not ported: the mcMMO Skull Splitter lockout (no mcMMO, so the jar's cooldown-burned-on-a-vetoed-hit quirk
+# has no analogue) and two console log lines. Counterpart Cleave (radius 0.45L, 1/2/3 damage, max 7) is
+# REPLACED by the contract, never summed.
+# era: none — no sounds, no particles.
+levels:
+  # Splash 5 / 5 / 6 / 7 / 7 (2.5-3.5 hearts) inside `3.0 + 0.25L` = 3.25 / 3.50 / 3.75 / 4.00 / 4.25.
+  # Only those two ladders move; the roll is 100 % at every rung, so no `chance:` appears.
+  1:
+    effects:
+      - { DAMAGE: { amount: 5, who: "@Aoe{r=3.25, filter=ENEMIES, exclude=victim}" } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/cleave", duration: 20, mode: "timed", who: "@Self" } }
+  2:
+    effects:
+      - { DAMAGE: { amount: 5, who: "@Aoe{r=3.50, filter=ENEMIES, exclude=victim}" } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/cleave", duration: 20, mode: "timed", who: "@Self" } }
+  3:
+    effects:
+      - { DAMAGE: { amount: 6, who: "@Aoe{r=3.75, filter=ENEMIES, exclude=victim}" } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/cleave", duration: 20, mode: "timed", who: "@Self" } }
+  4:
+    effects:
+      - { DAMAGE: { amount: 7, who: "@Aoe{r=4.00, filter=ENEMIES, exclude=victim}" } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/cleave", duration: 20, mode: "timed", who: "@Self" } }
+  5:
+    effects:
+      - { DAMAGE: { amount: 7, who: "@Aoe{r=4.25, filter=ENEMIES, exclude=victim}" } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/cleave", duration: 20, mode: "timed", who: "@Self" } }

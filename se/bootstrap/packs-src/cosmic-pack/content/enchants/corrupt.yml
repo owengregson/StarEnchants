@@ -11,7 +11,22 @@ tier: epic
 # Players only, and never onto someone already corrupted — the re-proc gate reads the victim's own flag
 # (`%victim.var.corrupt%`, 0 when unset), which is what the matrix's VICTIM_VAR_FACT gap asked for and wave 1
 # shipped. The flag carries the LEVEL as its value, so the gate cannot be written `!= 1`.
-condition: "%victim.type% == \"PLAYER\" && %victim.var.corrupt% == 0"
+# That gate is spelled on EACH branch below rather than once at the root: an ability's own `condition:`
+# REPLACES the enchant's, never ands with it, so a root gate would be dead text under the two branches.
+# THE INVERSION CARVE-OUT IS AUTHORED (batch 06 drop-in, off the wave-1f enchlevel facts): a victim HOLDING
+# an Inversion item takes the flag and the portal burst but NONE of the DoT rows. `%victim.enchlevel.<stem>%`
+# reads the worn map, which spans armour PLUS the held hands, so a held Inversion sword reports its level
+# here — `%victim.helditem%` was only ever a material, which is why this clause waited on wave 1f. The key is
+# the file STEM, never the `enchants/inversion` stable key (an unknown key reads 0 in silence).
+# Shipped as TWO MUTUALLY EXCLUSIVE branches per level rather than one ability with a gated tail, because the
+# surface has no per-effect condition and two independently-rolled abilities would let the flag land without
+# the rot. Disjoint conditions mean exactly one branch is ever eligible, so the roll still happens once at
+# the recorded chance. Jar order kept inside each branch (flag, then burst, then the rot).
+# The other half of that pairing lives entirely on the other side: swords/Inversion reads this flag and its
+# level to turn its own heal into self-damage (`corrupt-inverts-inversion`, chance 20 x corrupt level), and
+# carries the `§5* CORRUPTED [§c{AMOUNT}§5 DMG] *` line. It reads a bare `%corrupt%`, not
+# `%victim.var.corrupt%` — Inversion runs on the corrupted player's own HURT, so this write lands in the
+# store that file reads from.
 # D-04-9 (major, codex-marked): the jar's roll compares Math.random() to `5.0 + 0.02 * level` — always true, so
 # Corrupt procs on 100% of qualifying hits at every level. As intended it is `0.05 + 0.02 * level`, which is
 # exactly the activation envelope's `5 + 2 * level` and the package's own pattern; 7/9/11/13% ships.
@@ -19,15 +34,6 @@ condition: "%victim.type% == \"PLAYER\" && %victim.var.corrupt% == 0"
 # lengths, reproducing the jar's mismatch structurally: at L1 the flag outlives the DoT, at L2-L4 the DoT
 # outlives the flag, so a mid-DoT re-proc can re-flag without starting a second DoT. The jar's async
 # final-tick cancel race has no analogue here — wait chains are deterministic.
-# PENDING (no longer blocked) — the Inversion carve-out is NOT authored yet: a victim HOLDING an Inversion
-# item takes the flag and the portal burst but none of the DoT rows. `%victim.helditem%` is a material, which
-# is why this waited, but wave 1f's `%victim.enchlevel.inversion%` reads a held sword's level (the worn map
-# spans armour plus the held hands), so it is a condition drop-in whenever this file is next opened.
-# The other half of that pairing IS authored now, and entirely on the other side: swords/Inversion reads this
-# flag and its level to turn its own heal into self-damage (`corrupt-inverts-inversion`, chance 20 x corrupt
-# level), and carries the `§5* CORRUPTED [§c{AMOUNT}§5 DMG] *` line. It reads a bare `%corrupt%`, not
-# `%victim.var.corrupt%` — Inversion runs on the corrupted player's own HURT, so this write lands in the
-# store that file reads from.
 # The PORTAL burst is recorded at the victim's eye height with jar speed 0.6F: PARTICLE centres on the body
 # and the surface's spread default stands, so both are cosmetic deltas (same reading as §Hex's burst).
 # era: PORTAL and the REDSTONE_WIRE crack material both resolve on 1.8.9 — no hazard.
@@ -40,50 +46,80 @@ levels:
   # count, and 8 is what the same doc's Anti Gank row records for a single-burst 2001 mapping (§Devour ports
   # its own single burst at the same 8; Bleed's 15-a-repeat is the repeat-scaled variant).
   1:
-    chance: 7
-    effects:
-      - { SET_VAR: { name: "corrupt", value: "1", ttl: 40, who: "@Victim" } }
-      - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim" } }
-      - { DAMAGE: { amount: 1, who: "@Victim" } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
-      - { DAMAGE: { amount: 1, who: "@Victim", wait: 20 } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+    abilities:
+      # The rot branch — the victim holds no Inversion.
+      - condition: "%victim.type% == \"PLAYER\" && %victim.var.corrupt% == 0 && %victim.enchlevel.inversion% == 0"
+        chance: 7
+        effects:
+          - { SET_VAR: { name: "corrupt", value: "1", ttl: 40, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim" } }
+          - { DAMAGE: { amount: 1, who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+          - { DAMAGE: { amount: 1, who: "@Victim", wait: 20 } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+      # The carve-out branch — a held Inversion takes the mark and the burst, and none of the rot.
+      - condition: "%victim.type% == \"PLAYER\" && %victim.var.corrupt% == 0 && %victim.enchlevel.inversion% > 0"
+        chance: 7
+        effects:
+          - { SET_VAR: { name: "corrupt", value: "1", ttl: 40, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim" } }
   2:
-    chance: 9
-    effects:
-      - { SET_VAR: { name: "corrupt", value: "2", ttl: 80, who: "@Victim" } }
-      - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim" } }
-      - { DAMAGE: { amount: 1, who: "@Victim" } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
-      - { DAMAGE: { amount: 1, who: "@Victim", wait: 40 } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
-      - { DAMAGE: { amount: 1, who: "@Victim", wait: 40 } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+    abilities:
+      - condition: "%victim.type% == \"PLAYER\" && %victim.var.corrupt% == 0 && %victim.enchlevel.inversion% == 0"
+        chance: 9
+        effects:
+          - { SET_VAR: { name: "corrupt", value: "2", ttl: 80, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim" } }
+          - { DAMAGE: { amount: 1, who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+          - { DAMAGE: { amount: 1, who: "@Victim", wait: 40 } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+          - { DAMAGE: { amount: 1, who: "@Victim", wait: 40 } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+      - condition: "%victim.type% == \"PLAYER\" && %victim.var.corrupt% == 0 && %victim.enchlevel.inversion% > 0"
+        chance: 9
+        effects:
+          - { SET_VAR: { name: "corrupt", value: "2", ttl: 80, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim" } }
   3:
-    chance: 11
-    effects:
-      - { SET_VAR: { name: "corrupt", value: "3", ttl: 120, who: "@Victim" } }
-      - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim" } }
-      - { DAMAGE: { amount: 2, who: "@Victim" } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
-      - { DAMAGE: { amount: 2, who: "@Victim", wait: 60 } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
-      - { DAMAGE: { amount: 2, who: "@Victim", wait: 60 } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
-      - { DAMAGE: { amount: 2, who: "@Victim", wait: 60 } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+    abilities:
+      - condition: "%victim.type% == \"PLAYER\" && %victim.var.corrupt% == 0 && %victim.enchlevel.inversion% == 0"
+        chance: 11
+        effects:
+          - { SET_VAR: { name: "corrupt", value: "3", ttl: 120, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim" } }
+          - { DAMAGE: { amount: 2, who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+          - { DAMAGE: { amount: 2, who: "@Victim", wait: 60 } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+          - { DAMAGE: { amount: 2, who: "@Victim", wait: 60 } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+          - { DAMAGE: { amount: 2, who: "@Victim", wait: 60 } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+      - condition: "%victim.type% == \"PLAYER\" && %victim.var.corrupt% == 0 && %victim.enchlevel.inversion% > 0"
+        chance: 11
+        effects:
+          - { SET_VAR: { name: "corrupt", value: "3", ttl: 120, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim" } }
   4:
-    chance: 13
-    effects:
-      - { SET_VAR: { name: "corrupt", value: "4", ttl: 160, who: "@Victim" } }
-      - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim" } }
-      - { DAMAGE: { amount: 2, who: "@Victim" } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
-      - { DAMAGE: { amount: 2, who: "@Victim", wait: 80 } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
-      - { DAMAGE: { amount: 2, who: "@Victim", wait: 80 } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
-      - { DAMAGE: { amount: 2, who: "@Victim", wait: 80 } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
-      - { DAMAGE: { amount: 2, who: "@Victim", wait: 80 } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+    abilities:
+      - condition: "%victim.type% == \"PLAYER\" && %victim.var.corrupt% == 0 && %victim.enchlevel.inversion% == 0"
+        chance: 13
+        effects:
+          - { SET_VAR: { name: "corrupt", value: "4", ttl: 160, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim" } }
+          - { DAMAGE: { amount: 2, who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+          - { DAMAGE: { amount: 2, who: "@Victim", wait: 80 } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+          - { DAMAGE: { amount: 2, who: "@Victim", wait: 80 } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+          - { DAMAGE: { amount: 2, who: "@Victim", wait: 80 } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+          - { DAMAGE: { amount: 2, who: "@Victim", wait: 80 } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+      - condition: "%victim.type% == \"PLAYER\" && %victim.var.corrupt% == 0 && %victim.enchlevel.inversion% > 0"
+        chance: 13
+        effects:
+          - { SET_VAR: { name: "corrupt", value: "4", ttl: 160, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim" } }

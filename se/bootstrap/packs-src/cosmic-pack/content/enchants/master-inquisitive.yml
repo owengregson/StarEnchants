@@ -1,0 +1,105 @@
+# Matrix: 06-enchants-tools-heroic.md § Master Inquisitive
+display: "Master Inquisitive"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eMobs you mark and then finish off pay out"
+  - "&eseveral times the experience."
+trigger: [ATTACK, KILL, EXP_GAIN]
+applies-to: [SWORD]
+group: "heroic"
+tier: heroic
+requires: ["enchants/inquisitive"]
+removes-required: true
+# HEROIC APPLICATION CONTRACT (matrix 06 § heroic application rules), as far as the surface carries it:
+# `requires:` + `removes-required: true` ARE the APPLY-GATE, the REPLACE (Inquisitive comes off as this
+# lands, so the two never run on one item) and the SLOT-EXEMPT (net-zero slots), in one pair of knobs. Three
+# clauses have no expression and are recorded rather than authored: the gate wants Inquisitive at MAX where
+# the engine wants it at >= the applied level; REVERSE-BLOCK cannot ride `blacklist:` — that check is
+# bidirectional, so a row on either file would also block THIS apply, which needs Inquisitive present; and
+# NO-RANDOMIZE / NO-DUST / NO-COMBINE / BLACK-SCROLL / END-SUPPRESS are tier-7 item-flow and world policy,
+# owned by the layers that read `tier:`.
+# DELTA vs `inquisitive.yml` (matrix 03), which this replaces: the same mark -> kill -> payout chain with the
+# mark chance doubled (15 pp per level) and the multiplier doubled (x2.5-x4.0 against x1.25-x2.0).
+# The matrix decomposes the payout as an EXP_GAIN ability reading the mark off the victim, but an XP-gain
+# activation HAS no victim — the mob is already dead — so the chain is the base's three-rule shape: ATTACK
+# writes the mark on the mob, KILL reads it back through the victim-var fact and opens a 40 t pickup window
+# on the holder, EXP_GAIN spends that window on the orbs. `%minq.window%` is a dotted author var, not a
+# scoped fact: the whole token resolves against the actor's own var store through the unknown-token seam,
+# which is why the KILL rule writes the same spelling. The matrix's TARGET_SCOPED_VAR gap is CLOSED — the
+# write is `SET_VAR who=@Victim` and the read `%victim.var.<name>%` (a batch-1 gap-block snapshot).
+# THE MARK KEY IS ITS OWN, `inquisitive.master`, exactly as the matrix records: the two grades mark with
+# different keys and so compound. In the jar that showed up cross-player (two players' items on one mob,
+# 1.75 x 3.50 = 6.125x); here the payout is the KILLER's own XP event, so the compounding that survives is a
+# wielder carrying both grades at once — main hand plus off hand, since the worn map includes both held
+# items. The contract keeps them off ONE item, which is the rule it states.
+# Two measured behaviours the pickup-window decomposition narrows, both decomposition deltas rather than
+# ledger rows: the jar boosted the XP even when a DIFFERENT player or the environment killed the marked mob
+# (holder-agnostic — lost here, only the holder's own kill opens the window), and the 40 t window technically
+# catches unrelated XP picked up inside the same 2 s (new; the kill's own orbs dominate it). Flag to the
+# owner if cross-player payout is wanted back.
+# A later hit overwrites the mark with that hit's level, as measured. The mark is only tested for presence;
+# the payout factor comes from the holder's own rung, which is the same number on any ordinary kill.
+# strings: none. era: none.
+levels:
+  # Mark chance `0.075 x level x 2` = 15/30/45/60 %; XP factor `(1 + 0.25 x level) x 2` = 2.5/3.0/3.5/4.0.
+  # The engine truncates to whole XP, matching the measured 5 XP -> 12/15/17/20.
+  1:
+    abilities:
+      - trigger: ATTACK
+        chance: 15
+        condition: "%victim.type% != \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "inquisitive.master", value: "1", ttl: 0, who: "@Victim" } }
+      - trigger: KILL
+        condition: "%victim.var.inquisitive.master% > 0"
+        effects:
+          - { SET_VAR: { name: "minq.window", value: "1", ttl: 40, who: "@Self" } }
+      - trigger: EXP_GAIN
+        condition: "%minq.window% == 1"
+        effects:
+          - { EXP_MULTIPLY: { factor: 2.5 } }
+  2:
+    abilities:
+      - trigger: ATTACK
+        chance: 30
+        condition: "%victim.type% != \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "inquisitive.master", value: "2", ttl: 0, who: "@Victim" } }
+      - trigger: KILL
+        condition: "%victim.var.inquisitive.master% > 0"
+        effects:
+          - { SET_VAR: { name: "minq.window", value: "1", ttl: 40, who: "@Self" } }
+      - trigger: EXP_GAIN
+        condition: "%minq.window% == 1"
+        effects:
+          - { EXP_MULTIPLY: { factor: 3.0 } }
+  3:
+    abilities:
+      - trigger: ATTACK
+        chance: 45
+        condition: "%victim.type% != \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "inquisitive.master", value: "3", ttl: 0, who: "@Victim" } }
+      - trigger: KILL
+        condition: "%victim.var.inquisitive.master% > 0"
+        effects:
+          - { SET_VAR: { name: "minq.window", value: "1", ttl: 40, who: "@Self" } }
+      - trigger: EXP_GAIN
+        condition: "%minq.window% == 1"
+        effects:
+          - { EXP_MULTIPLY: { factor: 3.5 } }
+  4:
+    abilities:
+      - trigger: ATTACK
+        chance: 60
+        condition: "%victim.type% != \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "inquisitive.master", value: "4", ttl: 0, who: "@Victim" } }
+      - trigger: KILL
+        condition: "%victim.var.inquisitive.master% > 0"
+        effects:
+          - { SET_VAR: { name: "minq.window", value: "1", ttl: 40, who: "@Self" } }
+      - trigger: EXP_GAIN
+        condition: "%minq.window% == 1"
+        effects:
+          - { EXP_MULTIPLY: { factor: 4.0 } }

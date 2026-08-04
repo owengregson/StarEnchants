@@ -1,0 +1,47 @@
+# Matrix: 06-enchants-tools-heroic.md § Demonic Lifesteal
+display: "Demonic Lifesteal"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe heroic grade of Lifesteal — a hit that connects"
+  - "&egives back whole hearts, not slivers."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "heroic"
+tier: heroic
+# HEROIC APPLICATION CONTRACT (matrix 06 § Heroic application rules). tier 7 = the `heroic` rung of tiers.yml
+# (`&d`, weight 70). `requires` + `removes-required` carry the APPLY-GATE, the REPLACE and the SLOT-EXEMPT
+# rules in one pair: no Lifesteal on the item, no apply; a successful apply deletes the Lifesteal line so the
+# two never both run, and `freedBy` makes the upgrade cost a net zero slots.
+# Two halves are NOT expressible and are recorded rather than dropped: the gate's "at the partner's MAX level"
+# gradient (`ItemEnchanter.checkRelationships` tests the prereq at `>= the level being applied`, so Demonic
+# Lifesteal II wants Lifesteal II, not Lifesteal V), and REVERSE-BLOCK, which has no expression on EITHER
+# file: `blacklist:` is tested bidirectionally, so a row on lifesteal.yml fires on this apply just as surely
+# as one here would, refusing the very Lifesteal line `requires` demands. NO-RANDOMIZE / NO-DUST /
+# NO-COMBINE / BLACK-SCROLL / END-SUPPRESS are book-flow and world rules with no per-enchant knob.
+requires: ["enchants/lifesteal"]
+removes-required: true  # the heroic supersedes its non-heroic partner (net-zero enchant slots)
+# Damage-independent like its base: a graze heals as much as a crit, measured and kept.
+# D-06-14: the jar's heal base is `(int)health`, so the truncation quietly ate up to 0.99 HP of the nominal
+# heal. As-intended is the flat bonus shipped here — exact current health plus the bonus, clamped — and
+# MODIFY_HEALTH `give` already clamps at max health, so no `mode: set` is needed to cover the overheal half.
+# The chance ladder is explicit in the jar (15/20/25), not the base's `min(30, 10 x level)` curve, and the
+# unreachable ternary tails (0.25 / 8) are dead code, not ported.
+# The NECROMANCER mask on the VICTIM voids the heal outright — the interaction-layer rule
+# `necromancer-blocks-lifesteal` the base Lifesteal and Vampire already share, carried by the masks family.
+# The jar burns the proc either way (its check sits inside the successful roll); single-pass that is the same
+# net outcome, so nothing is authored on this side.
+# era: none.
+levels:
+  # Bonus 8 / 12 / 15 HP (4 / 6 / 7.5 hearts), clamped at max health.
+  1:
+    chance: 15
+    effects:
+      - { MODIFY_HEALTH: { amount: 8, mode: "give", who: "@Self" } }
+  2:
+    chance: 20
+    effects:
+      - { MODIFY_HEALTH: { amount: 12, mode: "give", who: "@Self" } }
+  3:
+    chance: 25
+    effects:
+      - { MODIFY_HEALTH: { amount: 15, mode: "give", who: "@Self" } }

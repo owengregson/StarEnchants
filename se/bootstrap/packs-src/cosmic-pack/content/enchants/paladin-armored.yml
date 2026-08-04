@@ -1,0 +1,88 @@
+# Matrix: 06-enchants-tools-heroic.md § Paladin Armored
+display: "Paladin Armored"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe heroic grade of Armored: swords bite far less"
+  - "&edeeply, and a struck blessing burns a debuff away."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "heroic"
+tier: heroic
+# THE HEROIC APPLICATION CONTRACT (matrix 06 § Heroic application rules) — the full reading lives in
+# reinforced-tank.yml. `requires:` is the APPLY-GATE, `removes-required:` is REPLACE + SLOT-EXEMPT; the gate
+# settles for `partner >= the heroic level applied` rather than the partner's MAX (exact only at rung 4,
+# where Armored and Paladin Armored's ladders meet), and REVERSE-BLOCK is unexpressible (`blacklist:` is
+# checked bidirectionally and would veto the very apply `requires:` demands). Both gaps ledgered once for the
+# batch. Tier 7 = the `heroic` rung (&d, weight 70); table weight 4 is a book-roll number the surface does
+# not carry, and END-SUPPRESS is the tier world rule, not a `disabled-worlds:` list.
+requires: ["enchants/armored"]
+removes-required: true
+# Two abilities per rung, both attacker-gated — so D-001's defensive double-fire never applies and these are
+# the single-pass values spec §6 asks for. On a DEFENSE activation the "victim" IS the attacker, so
+# `%victim.type%` is the attacker-is-a-player test and `%victim.helditem%` is their hand.
+#   * THE BLESS rolls `0.01 x level` = 1 / 2 / 3 / 4 % against ANY player attacker — unarmed, axe, bow, all of
+#     it. Only the reduction below is sword-gated.
+#   * THE REDUCTION takes no roll: `0.03 x level` = 3 / 6 / 9 / 12 % (damage kept 0.97 / 0.94 / 0.91 / 0.88).
+# CURE's `count` CLOSES the matrix's `CURE_COUNT_PARAM` gap: `count: 1` strips exactly ONE debuff in the
+# server's own enumeration order, which is the jar's "the first tracked one" reading. Without it CURE clears
+# the whole HARMFUL category and a single bless would wipe a full stack of poison, wither and slowness.
+# THE FLOOR is the matrix's `%damage% >` 1.03093 / 1.06383 / 1.09890 / 1.13636 — the damage below which the
+# reduced hit would land at or under 1.0, and which the jar SKIPS rather than clamps. Authored in the
+# multiplicative form the counterpart family already ships (reinforced-tank.yml / tank.yml), which is the
+# same guard without the matrix's rounding: 1/0.97 = 1.030927…, and the rounded figure sits a hair above it.
+# `_SWORD` is the matrix's own test and is era-safe unchanged (1.8's WOOD_SWORD / GOLD_SWORD and the modern
+# WOODEN_/GOLDEN_/NETHERITE_ spellings all carry it); the counterpart tests the looser bare "SWORD".
+# Carried by OTHER files, nothing owed here: the bless bypasses the Deep Wounds heal lockout (the jar's
+# 1-arg overload — recorded on Deep Wounds, doc 03), and the KOTH armour set rate-limits the `** BLESSED **`
+# line to once per 160 t (set-side, doc 10). The console bless log is not ported.
+# Stacking: every worn piece fires with its own level and the engine folds the pieces ADDITIVELY where the
+# jar composed them multiplicatively — the D-02-10 reading the Tank/Armored family already carries, one rung
+# up. Counterpart Armored (0.01875 x level, no bless, plus a break cue) is REPLACED, never summed.
+# count 1 is the matrix number, not the counterpart's 8: a single crack mote at the wearer, and unlike the
+# counterpart no break SOUND at all — so the missing DIG_STONE alias row cannot bite this file.
+# era: BLOCK_CRACK and DIAMOND_BLOCK both resolve on 1.8.9; nothing else here touches an era seam.
+levels:
+  1:
+    abilities:
+      - chance: 1
+        condition: '%victim.type% == "PLAYER"'
+        effects:
+          - { CURE: { category: "HARMFUL", count: 1, who: "@Self" } }
+          - { MESSAGE: { text: "§e§l** BLESSED **", who: "@Self" } }
+      - condition: '%victim.helditem% contains "_SWORD" && %damage% * 0.97 > 1.0'
+        effects:
+          - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 3 } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_BLOCK", count: 1, who: "@Self" } }
+  2:
+    abilities:
+      - chance: 2
+        condition: '%victim.type% == "PLAYER"'
+        effects:
+          - { CURE: { category: "HARMFUL", count: 1, who: "@Self" } }
+          - { MESSAGE: { text: "§e§l** BLESSED **", who: "@Self" } }
+      - condition: '%victim.helditem% contains "_SWORD" && %damage% * 0.94 > 1.0'
+        effects:
+          - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 6 } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_BLOCK", count: 1, who: "@Self" } }
+  3:
+    abilities:
+      - chance: 3
+        condition: '%victim.type% == "PLAYER"'
+        effects:
+          - { CURE: { category: "HARMFUL", count: 1, who: "@Self" } }
+          - { MESSAGE: { text: "§e§l** BLESSED **", who: "@Self" } }
+      - condition: '%victim.helditem% contains "_SWORD" && %damage% * 0.91 > 1.0'
+        effects:
+          - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 9 } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_BLOCK", count: 1, who: "@Self" } }
+  4:
+    abilities:
+      - chance: 4
+        condition: '%victim.type% == "PLAYER"'
+        effects:
+          - { CURE: { category: "HARMFUL", count: 1, who: "@Self" } }
+          - { MESSAGE: { text: "§e§l** BLESSED **", who: "@Self" } }
+      - condition: '%victim.helditem% contains "_SWORD" && %damage% * 0.88 > 1.0'
+        effects:
+          - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 12 } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_BLOCK", count: 1, who: "@Self" } }
