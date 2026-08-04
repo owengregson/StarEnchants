@@ -45,6 +45,7 @@ come back.
 | `enchants/cleave` | the recorded PER-SPLASH-VICTIM 20 t (1000 ms) stamp, shipped as the ability's own 30 t per-player bucket | per-victim cooldown scope — the identical stop the `enchants/thundering-blow` row carries; one attacker's splash now paces across targets | follow-up candidate |
 | `enchants/thundering-blow` | the recorded PER-VICTIM 50 t cooldown, shipped as the engine's per-player bucket | per-victim cooldown scope; the coarsening is recorded here rather than as a deviation (one attacker's proc now paces across targets) | follow-up candidate |
 | `enchants/spirits` | the ally heal pulse never reaches its effects. The payload ability is authored and configured (period/radius/ALLIES/max-targets all per level), but every block of an enchant shares ONE cooldown bucket, and the 200 t re-arm the DEFENSE spawn takes covers the blaze's whole 200 t life — gate 6 denies every pulse it could ever fire. The blaze, its buffs, its name and the proc cues all ship | per-ability cooldown-scope opt-out — the identical stop `enchants/rocket-escape`'s FALL companion carries in the wave-1f pool below, total here rather than partial (cooldown == summon lifetime, so no pulse survives it) | wave 1f |
+| `enchants/guardians` + `enchants/spirits` + `enchants/undead-ruse` | the summon NAME's owner token. All three author the matrix's verbatim `{owner}` string as `{player}` (`§b§l{player}'s Guardian`, `§c§l{player}'s Spirit`, `§d§l{player}'s Undead Minion`), but nothing substitutes it: `GUARD`/`SPAWN_ENTITY`/`SPAWN_SWARM` hand `name` to `DispatchSinkBase.applyGuardName`, which only runs `Colors.translate` — so the nameplate reads the literal `{player}`. `{ATTACKER}`/`{VICTIM}` are `MESSAGE`-only, `{PLAYER}` is `RUN_COMMAND`-only, and no `{player}` substitution exists anywhere in the tree. Everything else on all three files ships | an actor-name token on the summon-name param — the one substitution the three spawners share. Not a stop: the nameplate is cosmetic and the idiom has shipped since batch 01, so the pack is internally consistent and flips in one pass when the token lands (`SUMMON_REBIND`'s rename takes the same param, so Hijack inherits the fix) | wave 1f |
 | `enchants/undead-ruse` | the minion OWNERSHIP half: the jar's minions never target or hurt their summoner, and these will — vanilla zombie AI takes the wearer standing inside their own ring. Count, buff amplifiers, names, permanence, the vanish window and all three particle bursts ship | an `owner` param on SPAWN_SWARM. `owner: activator` on SPAWN_ENTITY/GUARD binds `GuardianCasts`, which `SummonTargetGuardListener` reads to cancel a summon acquiring its owner; the swarm spawner binds only `SwarmSpawns` (disable-teardown), so there is no ownership to read | wave 1f |
 | `enchants/self-destruct` | the per-level FUSE ladder (100/80/60 t = 5/4/3 s): all three levels ship on vanilla's own 80 t fuse | the summon surface has no fuse param, and `ttl` is a DESPAWN rather than a detonation — any ttl at or under 80 t removes the charge BEFORE it can explode, so an authored 60 t would leave L3 spawning duds (ttl is omitted instead; a primed TNT always leaves by exploding). Closes with a `fuse` param on SPAWN_ENTITY, the shape `powered` already takes for creepers | wave 1f |
 | `enchants/plague-carrier` + `enchants/self-destruct` | the payload only lands while the OWNER still wears the piece. Both entries are death-triggered — Plague Carrier finishes the wearer itself, Self Destruct lets the lethal hit stand — and `SummonPayloadService` runs the owner's abilities out of their LIVE `WornState`. Death drops the armour, the armour-change feeder (modern) / gear poll (1.8) refreshes off that drop and respawn refreshes again, so the blast most likely resolves for an owner who no longer carries the enchant — and it leaves a DUD, because the detonate phase has already cancelled the vanilla explosion. Everything else ships. Both files also express their recorded 200 t re-arm without `cooldown:`, for the shared-bucket reason the `enchants/spirits` row above carries — a cooldown on the proc would deny the detonations that follow it: Plague Carrier drops the re-arm (its own `KILL` makes one unreachable) and Self Destruct rides a 200 t `SET_VAR` marker in its condition | the payload's abilities snapshotted onto the SUMMON at spawn (or a worn-state read pinned to the spawning activation), so a summon can outlive its owner's gear the way the jar's did | wave 1f |
@@ -102,7 +103,8 @@ come back.
   silently drops the cue until the sweep verifies the pairing),
   `PISTON_EXTEND→BLOCK_PISTON_EXTEND` (Inversion, batch 03),
   `DRINK→ENTITY_GENERIC_DRINK` (Vampire, batch 03),
-  `ANVIL_BREAK→BLOCK_ANVIL_BREAK` (Disarmor + Disintegrate, batch 03),
+  `ANVIL_BREAK→BLOCK_ANVIL_BREAK` (Disarmor + Disintegrate, batch 03, and Eagle
+  Eye, batch 05 — see the collision note at the end of this list),
   `ZOMBIE_PIG_ANGRY→ENTITY_ZOMBIFIED_PIGLIN_ANGRY` and
   `FIREWORK_BLAST→ENTITY_FIREWORK_ROCKET_BLAST` (Divine Immolation, batch 03),
   `CHICKEN_HURT→ENTITY_CHICKEN_HURT`, `MAGMACUBE_WALK2→ENTITY_MAGMA_CUBE_SQUISH`
@@ -130,13 +132,21 @@ come back.
   `COW_IDLE→ENTITY_COW_AMBIENT` and `COW_HURT→ENTITY_COW_HURT` (Cowification,
   batch 05 — matrix 05 says the cow sounds "all exist in 1.8", which is true of
   the SOUND but not of the modern spelling the file authors);
-  `ANVIL_BREAK→BLOCK_ANVIL_DESTROY` (Eagle Eye, batch 05, matrix-flagged) —
-  NOTE this collides with the batch-03 row above, which maps the same 1.8
-  `ANVIL_BREAK` to `BLOCK_ANVIL_BREAK`; the modern anvil family is
-  DESTROY/FALL/HIT/LAND/PLACE/STEP/USE, so one of the two targets does not
-  exist and the sweep must settle it against a real jar (`disarmor.yml` and
-  `disintegrate.yml` author `BLOCK_ANVIL_BREAK`, `eagle-eye.yml` authors
-  `BLOCK_ANVIL_DESTROY` as matrix 05 records it).
+  **`ANVIL_BREAK` collision — SETTLED on `BLOCK_ANVIL_BREAK`.** The batch-05
+  Eagle Eye row used to map the same 1.8 `ANVIL_BREAK` to
+  `BLOCK_ANVIL_DESTROY`, on the premise that only one of the two modern names
+  exists. That premise is FALSE: `test-fixtures/handles/sounds-1.21.11.txt` and
+  `sounds-26.1.2.txt` (javap'd from the reference-cache paper-api jars) both
+  carry `BLOCK_ANVIL_BREAK` **and** `BLOCK_ANVIL_DESTROY`, so
+  `ModernHandleEraTest` passes either spelling and cannot arbitrate. Settled by
+  convention on the batch-03 spelling — one spelling pack-wide —
+  and `eagle-eye.yml` was flipped to `BLOCK_ANVIL_BREAK` (its 20 SOUND lines and
+  its era comment). Left for the sweep to confirm against a real jar: 1.8's
+  `ANVIL_BREAK` is `random.anvil_break`, whose modern id is `block.anvil.destroy`
+  (= `BLOCK_ANVIL_DESTROY`), while `BLOCK_ANVIL_BREAK` is `block.anvil.break`
+  — if the cue's character matters, the sweep flips all three files together
+  and writes the alias row to match. Nothing resolves on the legacy lane either
+  way until that row lands.
 
 ## Matrix maintenance queue
 

@@ -23,6 +23,9 @@ condition: "%damagecause% == \"ENTITY_ATTACK\" && %victim.type% == \"PLAYER\""
 # The vanish window is the INTENDED (zombies x 20) + 20 t; the jar's flat 20 t is its own loop counter already
 # decremented to zero (D-02-13). The reappear burst rides that window as a `wait:` on the last line, so it must
 # stay last — a wait tier accumulates down the effect list.
+# The minion name carries `{player}` for the matrix's `{owner}`, the spelling `enchants/guardians` has shipped
+# since batch 01 — but nothing substitutes it (`applyGuardName` only colour-translates), so the nameplate reads
+# the token literally until a summon-name actor token lands. Recorded in deferred-content.md, cosmetic.
 # GAP, recorded in deferred-content.md: SPAWN_SWARM takes no `owner`, so these minions get no identity binding
 # and vanilla AI happily turns them on the wearer standing in the middle of their own ring. The jar's minions
 # never hurt (or target) their summoner; SPAWN_ENTITY/GUARD both bind an owner and the summon-target guard
