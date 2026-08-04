@@ -759,9 +759,10 @@ public interface Sink {
     /**
      * Arm a hunger window on {@code target} for {@code durationTicks} (MODIFY_FOOD): {@code windowType} is
      * 0=scale-gain (a food-level INCREASE is multiplied by {@code factor}), 1=cancel-drain (a DECREASE is
-     * cancelled). The hunger change is a SEPARATE Bukkit event, landing a tick or more after the meal or the
-     * exhaustion that causes it, so this writes a per-player timed flag the food listener reads back rather
-     * than touching the food level here. A non-positive duration is a no-op.
+     * cancelled), 2=absolute (an INCREASE's RESULTING level is multiplied by {@code factor}, outranking an
+     * armed scale-gain). The hunger change is a SEPARATE Bukkit event, landing a tick or more after the meal
+     * or the exhaustion that causes it, so this writes a per-player timed flag the food listener reads back
+     * rather than touching the food level here. A non-positive duration is a no-op.
      */
     void foodWindow(Player target, int windowType, int durationTicks, double factor);
 

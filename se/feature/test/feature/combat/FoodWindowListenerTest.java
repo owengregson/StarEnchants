@@ -15,8 +15,9 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit-pins the MODIFY_FOOD hunger bridge: the two window modes act on opposite DIRECTIONS of the same
- * event, neither touches the other's direction, and an unarmed player's hunger is left alone.
+ * Unit-pins the MODIFY_FOOD hunger bridge: the gain modes and the drain mode act on opposite DIRECTIONS of
+ * the same event, neither touches the other's direction, absolute outranks scale-gain on a gain, and an
+ * unarmed player's hunger is left alone.
  */
 class FoodWindowListenerTest {
 
@@ -85,6 +86,71 @@ class FoodWindowListenerTest {
 
         verify(drain, never()).setCancelled(anyBoolean());
         verify(drain, never()).setFoodLevel(anyInt());
+    }
+
+    @Test
+    void absoluteScalesTheResultingLevelNotTheDelta() {
+        FoodWindowStore store = new FoodWindowStore();
+        UUID player = UUID.randomUUID();
+        store.arm(player, FoodWindowStore.Type.ABSOLUTE, 0L, 100, 1.5);
+
+        // 4 → 6 by 1.5: absolute lands on 9 (the whole resulting level); the delta answer would be 7.
+        FoodLevelChangeEvent event = event(player, 4, 6);
+        new FoodWindowListener(store, NOW).onFoodChange(event);
+
+        verify(event).setFoodLevel(9);
+    }
+
+    @Test
+    void absoluteClampsToTheVanillaMaximum() {
+        FoodWindowStore store = new FoodWindowStore();
+        UUID player = UUID.randomUUID();
+        store.arm(player, FoodWindowStore.Type.ABSOLUTE, 0L, 100, 1.5);
+
+        FoodLevelChangeEvent event = event(player, 16, 18);
+        new FoodWindowListener(store, NOW).onFoodChange(event);
+
+        verify(event).setFoodLevel(20);
+    }
+
+    @Test
+    void absoluteDoesNotTouchADrain() {
+        FoodWindowStore store = new FoodWindowStore();
+        UUID player = UUID.randomUUID();
+        store.arm(player, FoodWindowStore.Type.ABSOLUTE, 0L, 100, 1.5);
+
+        FoodLevelChangeEvent drain = event(player, 12, 11);
+        new FoodWindowListener(store, NOW).onFoodChange(drain);
+
+        verify(drain, never()).setCancelled(anyBoolean());
+        verify(drain, never()).setFoodLevel(anyInt());
+    }
+
+    @Test
+    void aLapsedAbsoluteWindowLeavesTheGainUntouched() {
+        FoodWindowStore store = new FoodWindowStore();
+        UUID player = UUID.randomUUID();
+        store.arm(player, FoodWindowStore.Type.ABSOLUTE, 0L, 10, 1.5); // lapsed well before NOW = 50
+
+        FoodLevelChangeEvent gain = event(player, 4, 6);
+        new FoodWindowListener(store, NOW).onFoodChange(gain);
+
+        verify(gain, never()).setFoodLevel(anyInt());
+    }
+
+    @Test
+    void absoluteWinsOverScaleGainWhenBothAreArmed() {
+        FoodWindowStore store = new FoodWindowStore();
+        UUID player = UUID.randomUUID();
+        store.arm(player, FoodWindowStore.Type.ABSOLUTE, 0L, 100, 1.5);
+        store.arm(player, FoodWindowStore.Type.SCALE_GAIN, 0L, 100, 3.0);
+
+        // absolute → 9; the scale-gain answer would be 4 + 6 = 10, so a wrong precedence is visible.
+        FoodLevelChangeEvent event = event(player, 4, 6);
+        new FoodWindowListener(store, NOW).onFoodChange(event);
+
+        verify(event).setFoodLevel(9);
+        verify(event, never()).setFoodLevel(10);
     }
 
     @Test

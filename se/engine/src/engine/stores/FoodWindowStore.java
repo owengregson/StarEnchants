@@ -17,13 +17,17 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class FoodWindowStore implements PlayerScoped {
 
-    /** The hunger semantics a window covers; the ordinal is the wire code passed through the {@code Sink}. */
+    /**
+     * The hunger semantics a window covers; the ordinal is the wire code passed through the {@code Sink}, so
+     * new types append. ABSOLUTE outranks SCALE_GAIN when both are live — it restates the resulting level
+     * outright, so there is nothing left for a delta scale to say.
+     */
     public enum Type {
-        SCALE_GAIN, CANCEL_DRAIN;
+        SCALE_GAIN, CANCEL_DRAIN, ABSOLUTE;
 
         private static final Type[] VALUES = values();
 
-        /** The type for a wire code (0..1), or {@code null} if out of range. */
+        /** The type for a wire code (0..2), or {@code null} if out of range. */
         public static Type of(int code) {
             return code >= 0 && code < VALUES.length ? VALUES[code] : null;
         }
@@ -63,6 +67,13 @@ public final class FoodWindowStore implements PlayerScoped {
     public double gainFactor(UUID player, long nowTicks) {
         Slots slots = windows.get(player);
         int t = Type.SCALE_GAIN.ordinal();
+        return slots == null || nowTicks >= slots.until()[t] ? 1.0 : slots.factor()[t];
+    }
+
+    /** The live ABSOLUTE multiplier for {@code player} at {@code nowTicks}, or {@code 1} when unarmed. */
+    public double absoluteFactor(UUID player, long nowTicks) {
+        Slots slots = windows.get(player);
+        int t = Type.ABSOLUTE.ordinal();
         return slots == null || nowTicks >= slots.until()[t] ? 1.0 : slots.factor()[t];
     }
 
