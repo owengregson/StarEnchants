@@ -135,6 +135,7 @@ public final class FactPopulator {
     private final RageStackStore rageStacks; // §3 %ragestacks% source — an actor-scoped read (mask-gated)
     private final HeldSlotStore heldSlots;   // %heldticks% source — an actor-scoped read (mask-gated)
     private final SoulTotalStore soulTotals; // %actor.souls%/%victim.souls% source — cached totals, never an inventory walk
+    private final engine.stores.TeleblockStore teleblock; // %status.teleblock% source — an actor-scoped read (mask-gated)
     private final UnaryOperator<String> papiDelegate;
     private final ActorProbe probe; // §3.3 era-specific entity/material reads (swim/glide/isAir/main-hand)
     // rand()'s draw, installed on each activation's buffer. Volatile: written once at boot wiring, read on
@@ -198,6 +199,7 @@ public final class FactPopulator {
     private final int itemDurabilitySlot;    // ITEM_DAMAGE: the damaged item's remaining durability % (from the context)
     private final int victimHeroicPiecesSlot; // worn heroic armour pieces on the victim (from the worn-fact source)
     private final int actorHeroicPiecesSlot;  // worn heroic armour pieces on the actor (from the worn-fact source)
+    private final int statusTeleblockSlot;    // %status.teleblock% (actor-scoped store read, mask-gated)
 
     /** Search radius for {@code %nearbyenemies%}, in blocks. */
     private static final double NEARBY_RADIUS = 8.0;
@@ -229,6 +231,7 @@ public final class FactPopulator {
         this.rageStacks = stores.rageStacks();
         this.heldSlots = stores.heldSlots();
         this.soulTotals = stores.soulTotals();
+        this.teleblock = stores.teleblock();
         this.papiDelegate = papiDelegate == null ? t -> null : papiDelegate;
         this.probe = Objects.requireNonNull(probe, "probe");
         this.buffer = ThreadLocal.withInitial(vocabulary::newFactBuffer);
@@ -304,6 +307,7 @@ public final class FactPopulator {
         this.itemDurabilitySlot = slot(vocabulary, "item.durabilitypercent", VarKind.NUM);
         this.victimHeroicPiecesSlot = slot(vocabulary, "victim.heroicpieces", VarKind.NUM);
         this.actorHeroicPiecesSlot = slot(vocabulary, "actor.heroicpieces", VarKind.NUM);
+        this.statusTeleblockSlot = slot(vocabulary, "status.teleblock", VarKind.BOOL);
     }
 
     /**
@@ -399,6 +403,10 @@ public final class FactPopulator {
                 // no-entity-read rule as its victim-side twin, so it costs nothing on the hit path.
                 if (id != null && actorHeroicPiecesSlot >= 0 && mask.readsNum(actorHeroicPiecesSlot)) {
                     facts.setNumber(actorHeroicPiecesSlot, wornFactSource.heroicPieces(id));
+                }
+                // %status.teleblock%: a store read by UUID, mask-gated like the rest of this block.
+                if (id != null && statusTeleblockSlot >= 0 && mask.readsFlag(statusTeleblockSlot)) {
+                    facts.setFlag(statusTeleblockSlot, teleblock.isBlocked(id, nowTicks));
                 }
                 facts.papiResolver(token -> {
                     String value = vars.get(id, token, nowTicks);

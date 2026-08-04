@@ -284,7 +284,12 @@ class FanOutEffectTest {
                         c -> c.with("scope", 1).with("key", 7).with("duration", 100).with("chance", 50)
                                 .with("consumed-message-actor", "dodged")
                                 .with("consumed-message-victim", "fizzled"),
-                        (s, p) -> verify(s).suppressIncoming(p, 1, 7, 100, 50, -1, null, "dodged", "fizzled", -1)));
+                        (s, p) -> verify(s).suppressIncoming(p, 1, 7, 100, 50, -1, null, "dodged", "fizzled", -1)),
+                // Not TELEBLOCK: it is the fallback rung, so a row on it would pass even with the mapping gone.
+                playerOnly("STATUS_CLEAR → clearStatus carries the named window's wire code",
+                        new StatusClearEffect(),
+                        c -> c.with("status", "POTION_LOCK"),
+                        (s, p) -> verify(s).clearStatus(p, engine.sink.StatusKinds.POTION_LOCK)));
     }
 
     /** The wave-1d.2 kinds whose fan-out shape is neither plain-entity nor plain-player. */

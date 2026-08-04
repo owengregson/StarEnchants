@@ -1030,4 +1030,10 @@ public interface Sink {
      */
     void suppressIncoming(Player target, int scopeKind, int scopeId, int durationTicks, int chance, int byDefId,
                           UUID by, String actorMessage, String victimMessage, int soundId);
+
+    /**
+     * Lift the engine status window named by {@code statusOrdinal} off {@code target} — {@code STATUS_CLEAR}
+     * (see {@code StatusClearEffect}'s wire ordinals). Clearing a window nobody holds is a silent no-op.
+     */
+    void clearStatus(Player target, int statusOrdinal);
 }

@@ -89,7 +89,8 @@ class NewEffectEndToEndTest {
             "FALL_SHIELD: { window: 200, who: \"@Victim\" }",
             "VULNERABILITY: { percent: 100, duration: 60, hit-message: \"hit\", "
                     + "expiry-message: \"off\", who: \"@Victim\" }",
-            "SUPPRESS_INCOMING: { scope: GROUP, key: lifesteal, duration: 100, chance: 50, who: \"@Self\" }");
+            "SUPPRESS_INCOMING: { scope: GROUP, key: lifesteal, duration: 100, chance: 50, who: \"@Self\" }",
+            "STATUS_CLEAR: { status: TELEBLOCK, who: \"@Self\" }");
 
     @TempDir
     Path root;
