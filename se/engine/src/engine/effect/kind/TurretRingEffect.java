@@ -73,8 +73,8 @@ public final class TurretRingEffect implements EffectKind {
                     + "ticks (a fresh draw per volley, so a ring never fires as one salvo). A shot that strikes "
                     + "a body runs the ACTOR's IMPACT abilities on it ONCE — that payload is the whole damage; "
                     + "emplacements take no damage and neither they nor their shots ever break blocks. The "
-                    + "spawn-* cue plays where each one lands (plus a damage-free lightning flash unless "
-                    + "spawn-lightning: false) and the despawn-* cue where it expires. Era note: a "
+                    + "`spawn-` cue plays where each one lands (plus a damage-free lightning flash unless "
+                    + "spawn-lightning: false) and the `despawn-` cue where it expires. Era note: a "
                     + "fireball-family projectile is propelled with setDirection, whose scaling changed in the "
                     + "1.21 line — the shot flies everywhere, but reads faster there than the authored speed.")
             .example("{ TURRET_RING: { type: ENDER_CRYSTAL, count: 5, ring-radius: 8, ttl: 300, "
