@@ -469,31 +469,48 @@ public final class ItemEnchanter {
     }
 
     /**
-     * Validate (without mutating) that mask {@code maskKey} may sit on {@code gear} (ADR-0053 §3): a single
-     * HELMET carrying no mask yet — one mask per helmet, a boolean occupancy, never the crystal slot ledger.
-     * Drag-apply pre-checks this BEFORE consuming the mask, so a violation never wastes it.
+     * Validate (without mutating) that mask {@code maskEntry} may sit on {@code gear} (ADR-0053 §3): a single
+     * HELMET carrying no mask yet — one mask SOCKET per helmet, a boolean occupancy, never the crystal slot
+     * ledger. A composite (ADR-0074) is still ONE entry and so still one occupancy; what the cap bounds is how
+     * many CHILDREN that entry folds, and EVERY child must exist and have compiled — a composite whose second
+     * child went stale must not apply half of itself.
+     *
+     * <p>Drag-apply pre-checks this BEFORE consuming the mask, so a violation never wastes it.
      */
-    public ApplyResult checkMask(ItemStack gear, String maskKey) {
+    public ApplyResult checkMask(ItemStack gear, String maskEntry) {
         if (gear == null || gear.getType() == Material.AIR) {
             return ApplyResult.fail(messages.format("mask.on-item"));
         }
         if (gear.getAmount() > 1) {
             return ApplyResult.fail(messages.format("mask.single-item"));
         }
-        MaskDef def = mask(maskKey);
-        if (def == null) {
-            return ApplyResult.fail(messages.format("mask.no-such", "KEY", maskKey));
+        List<String> children = item.codec.MaskItemData.componentsOf(maskEntry);
+        if (children.isEmpty()) {
+            return ApplyResult.fail(messages.format("mask.no-such", "KEY", String.valueOf(maskEntry)));
         }
-        if (content.snapshot().byStableKey(maskKey) == null) {
-            return ApplyResult.fail(messages.format("mask.no-compile", "KEY", maskKey));
+        // No child-count belt here, unlike checkCrystalEntry: a mask entry can only ever be built by the FOLD
+        // gesture, which already refuses past masks.max-merge, and MaskItemData's own ABSOLUTE_MAX bounds the
+        // PDC string. A crystal entry has a second author (the carrier grant), which is why that one needs both.
+        MaskDef first = null;
+        for (String key : children) {
+            MaskDef def = mask(key);
+            if (def == null) {
+                return ApplyResult.fail(messages.format("mask.no-such", "KEY", key));
+            }
+            if (content.snapshot().byStableKey(key) == null) {
+                return ApplyResult.fail(messages.format("mask.no-compile", "KEY", key));
+            }
+            if (first == null) {
+                first = def;
+            }
         }
         if (!groups.matches(gear.getType(), HELMET_ONLY)) {
-            return ApplyResult.fail(messages.format("apply.not-applicable", "DISPLAY", def.display()));
+            return ApplyResult.fail(messages.format("apply.not-applicable", "DISPLAY", first.display()));
         }
         if (codec.read(gear).maskKey() != null) {
             return ApplyResult.fail(messages.format("mask.already"));
         }
-        return ApplyResult.ok(messages.format("apply.ok", "DISPLAY", def.display()));
+        return ApplyResult.ok(messages.format("apply.ok", "DISPLAY", first.display()));
     }
 
     /** Stamp mask {@code maskKey} onto {@code gear} in place (re-validating first); re-renders lore (ADR-0040). */

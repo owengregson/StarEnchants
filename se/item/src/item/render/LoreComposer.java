@@ -112,9 +112,15 @@ public final class LoreComposer {
         // §mask line (ADR-0053): directly BELOW the crystal line(s) and still in the body, so on a masked helmet it
         // sits above only the heroic + protection + trak lines compose() appends. {NAME} → the mask's styled display.
         if (state.maskKey() != null) {
-            String maskTemplate = config.maskLine().get();
+            // ADR-0074: a COMPOSITE helmet carries several children in one entry and takes the "Multi-Mask"
+            // template, {NAME} reading every child in its own colour — the Multi Crystal line above, verbatim.
+            List<String> children = item.codec.MaskItemData.componentsOf(state.maskKey());
+            String multi = config.maskLineMulti().get();
+            String maskTemplate = children.size() > 1 && multi != null && !multi.isBlank()
+                    ? multi : config.maskLine().get();
             if (maskTemplate != null && !maskTemplate.isBlank()) {
-                out.add(Colors.translate(Tokens.sub(maskTemplate, "NAME", nameOr(state.maskKey(), style))));
+                out.add(Colors.translate(
+                        StyledNames.render(maskTemplate, "NAME", children, key -> nameOr(key, style))));
             }
         }
         return out;

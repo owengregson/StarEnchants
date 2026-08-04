@@ -165,7 +165,14 @@ public final class MaskIllusionService {
         }
     }
 
-    /** The pre-built mask head for the worn helmet, or {@code null} when this wearer shows reality. */
+    /**
+     * The pre-built mask head for the worn helmet, or {@code null} when this wearer shows reality.
+     *
+     * <p>A COMPOSITE shows its FIRST child's head (ADR-0074, owner ruling). A body has one face and the illusion
+     * has one texture, so folding cannot average them; the first child is the one the wearer folded ONTO, which
+     * makes the worn face a choice they made rather than an ordering accident. Every child's abilities still
+     * fire — the illusion is cosmetic, and it is the only part of a composite that has to pick.
+     */
     private ItemStack shownHeadFor(Player wearer) {
         ItemStack helmet = wearer.getInventory().getHelmet();
         if (helmet == null) {
@@ -175,7 +182,8 @@ public final class MaskIllusionService {
         if (maskKey == null) {
             return null;
         }
-        MaskDef def = library.get().maskDefOf(maskKey);
+        java.util.List<String> children = item.codec.MaskItemData.componentsOf(maskKey);
+        MaskDef def = children.isEmpty() ? null : library.get().maskDefOf(children.get(0));
         if (def == null || def.head() == null || def.head().isBlank()) {
             return null; // key stale after a reload, or an untextured mask — no illusion (ADR-0053 §4)
         }

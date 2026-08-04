@@ -25,14 +25,31 @@ public final class MaskCodec {
         return keyOf(stack) != null;
     }
 
-    /** The mask def key {@code stack} carries, or {@code null} if it is not a mask. */
+    /**
+     * The mask ENTRY {@code stack} carries, or {@code null} if it is not a mask. A composite's entry is its
+     * children joined ({@code "masks/a+masks/b"}, ADR-0074) — the same string a helmet stores, so applying is
+     * still a straight copy.
+     */
     public String keyOf(ItemStack stack) {
         String raw = store.read(stack, maskKey);
         return raw == null || raw.isBlank() ? null : raw;
     }
 
-    /** Stamp a mask item's identity (mint / admin give). */
+    /** The children {@code stack} folds, or {@code null} if it is not a mask. One key for a plain mask. */
+    public MaskItemData dataOf(ItemStack stack) {
+        String entry = keyOf(stack);
+        java.util.List<String> keys = MaskItemData.componentsOf(entry);
+        // Absent or malformed (an entry of nothing but delimiters) → not a mask, never a throw.
+        return keys.isEmpty() || keys.size() > MaskItemData.ABSOLUTE_MAX ? null : new MaskItemData(keys);
+    }
+
+    /** Stamp a mask item's identity (mint / admin give) — a plain key, or a composite's joined entry. */
     public void stamp(ItemStack stack, String defKey) {
         store.write(stack, maskKey, defKey);
+    }
+
+    /** Stamp {@code data}'s children as this mask item's identity. */
+    public void stamp(ItemStack stack, MaskItemData data) {
+        store.write(stack, maskKey, data == null ? null : data.entry());
     }
 }

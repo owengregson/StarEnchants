@@ -55,14 +55,30 @@ final class MasksModule {
     private final NearGuard nearGuard;
     private final SplashHealGuard splashHealGuard;
     private final SpawnerYieldListener spawnerYield;
+    /** ADR-0074: handed to the crystals module so the ONE Item Extractor can split a composite mask. */
+    final feature.crystal.MaskSplitter splitter;
 
     MasksModule(BootCore core, EquipModule equip) {
         this.core = core;
         BooleanSupplier enabled = enabled();
         // The mask item economy: mint / apply-onto-helmet / pop-off, over the ONE shared codec + textured-head seam.
         this.masks = new MaskService(core.maskCodec(), core.enchanter(), core.content(),
-                () -> core.items().config().maskOrDefault(), core.bindings().texturedHeads(),
-                core.bindings().headEquip(), core.messages());
+                () -> core.items().config().maskOrDefault(),
+                () -> core.master().config().masks().maxMerge(), // ADR-0074 composite child cap, read live
+                core.bindings().texturedHeads(), core.bindings().headEquip(), core.messages());
+        // ADR-0074: the Item Extractor's mask hook. A binding, not a listener — the extractor cursor belongs to
+        // CrystalListener alone, exactly as the reforge hook is arranged (ADR-0070).
+        this.splitter = new feature.crystal.MaskSplitter() {
+            @Override
+            public boolean carriesComposite(org.bukkit.inventory.ItemStack stack) {
+                return masks.carriesComposite(stack);
+            }
+
+            @Override
+            public feature.apply.GestureOutcome split(org.bukkit.inventory.ItemStack maskItem) {
+                return masks.split(maskItem);
+            }
+        };
         this.applyListener = new MaskListener(masks, core.messages(), core.sounds());
         this.removeListener = new MaskRemoveListener(masks, core.codec(), core.messages(), core.sounds(), enabled);
         // A spent masked helmet breaks whole (like vanilla) and pops the mask back off intact, into the wearer's

@@ -153,7 +153,8 @@ public final class MasterConfigLoader {
         return new MasterConfig.MasksSection(
                 // lower-cased here so the guard's typed-command match is an exact compare (case folds at load).
                 commands.stream().map(c -> c.toLowerCase(Locale.ROOT)).toList(),
-                parseInt(n.string("near-radius"), d.nearRadius(), n, diags));
+                parseInt(n.string("near-radius"), d.nearRadius(), n, diags),
+                parseInt(n.string("max-merge"), d.maxMerge(), n, diags));
     }
 
     /** The universal pet knobs + the three universal pet message templates (ADR-0052). */

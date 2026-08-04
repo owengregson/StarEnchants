@@ -41,11 +41,18 @@ public final class CrystalService {
     private final Supplier<CrystalConfig> config;
     private final IntSupplier maxMerge; // §E crystals.max-merge — the global multi-crystal cap (read live)
     private final ReforgeExtractor reforges; // ADR-0070: the reforge socket outranks the crystal stack at extract
+    private final MaskSplitter masks;        // ADR-0074: the extractor splits a COMPOSITE mask item
     private final platform.lang.Messages messages; // §L lang.yml
 
     public CrystalService(CrystalItemCodec codec, CrystalExtractorCodec extractorCodec, ItemEnchanter enchanter,
                           ContentHolder content, Supplier<CrystalConfig> config, IntSupplier maxMerge,
                           ReforgeExtractor reforges, platform.lang.Messages messages) {
+        this(codec, extractorCodec, enchanter, content, config, maxMerge, reforges, MaskSplitter.NONE, messages);
+    }
+
+    public CrystalService(CrystalItemCodec codec, CrystalExtractorCodec extractorCodec, ItemEnchanter enchanter,
+                          ContentHolder content, Supplier<CrystalConfig> config, IntSupplier maxMerge,
+                          ReforgeExtractor reforges, MaskSplitter masks, platform.lang.Messages messages) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.extractorCodec = Objects.requireNonNull(extractorCodec, "extractorCodec");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
@@ -53,6 +60,7 @@ public final class CrystalService {
         this.config = Objects.requireNonNull(config, "config");
         this.maxMerge = Objects.requireNonNull(maxMerge, "maxMerge");
         this.reforges = Objects.requireNonNull(reforges, "reforges");
+        this.masks = Objects.requireNonNull(masks, "masks");
         this.messages = Objects.requireNonNull(messages, "messages");
     }
 
@@ -144,12 +152,22 @@ public final class CrystalService {
                 messages.format("crystal.merge", "CRYSTAL", label(merged.keys())));
     }
 
-    /** Extractor gesture: pop the topmost single off a multi-crystal ITEM, else the gear's REFORGE first
-     *  (ADR-0070 — the reforge socket outranks the crystal stack), else the gear's last crystal entry. */
+    /** Extractor gesture: pop the topmost single off a multi-crystal ITEM, else the topmost child off a
+     *  COMPOSITE MASK item (ADR-0074), else the gear's REFORGE first (ADR-0070 — the reforge socket outranks
+     *  the crystal stack), else the gear's last crystal entry. */
     public GestureOutcome extract(ItemStack cursor, ItemStack target) {
         CrystalItemData targetCrystal = codec.read(target);
         if (targetCrystal != null) {
             return extractFromCrystal(cursor, target, targetCrystal);
+        }
+        if (masks.carriesComposite(target)) {
+            // The mask side spends no cursor of its own, so the extractor is spent here — the one place that
+            // knows a cursor was involved at all. A plain (unfolded) mask is not claimed and falls through.
+            GestureOutcome split = masks.split(target);
+            if (split.commit()) {
+                consume(cursor); // the mask side owns no cursor; the extractor is spent here, on success only
+            }
+            return split;
         }
         if (reforges.carries(target)) {
             return reforges.extract(cursor, target);

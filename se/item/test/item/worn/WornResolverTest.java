@@ -482,6 +482,32 @@ class WornResolverTest {
         assertEquals(0, worn.activeCrystalAbilityIds().length, "a mask is never tracked as a crystal");
     }
 
+    /** ADR-0074: ids 2/3 add a SECOND mask so a composite has two children to fold and two chains to walk. */
+    private static final StableKeyIndex COMPOSITE_KEYS =
+            new StableKeyIndex(List.of("masks/agent", "masks/agent/a1", "masks/blaze", "masks/blaze/a1"));
+    private static final Ability[] COMPOSITE_ABILITIES =
+            {ability(0, 1 << 0), ability(1, 1 << 0), ability(2, 1 << 0), ability(3, 1 << 0)};
+
+    @Test
+    void everyChildOfACompositeFiresAsIfItAloneWereWorn() {
+        // THE contract of the whole feature (ADR-0074): a helmet's one socket holds N folded masks, and each
+        // resolves its own primary AND its own /aN chain. A walk that stopped at the first child would ship a
+        // composite that silently wore only half of itself.
+        CombatState helmet = new CombatState(Map.of(), List.of()).withMask("masks/agent+masks/blaze");
+        WornState worn = resolver().resolveFrom(List.of(helmet), COMPOSITE_KEYS, COMPOSITE_ABILITIES, 1);
+        assertArrayEquals(new int[] {0, 1, 2, 3}, sorted(worn.byTrigger(0)));
+        assertEquals(0, worn.activeCrystalAbilityIds().length, "a composite is still never a crystal");
+    }
+
+    @Test
+    void aStaleChildDoesNotSilenceItsSiblings() {
+        // A child whose content was deleted between reloads resolves to no id. The siblings must still fire —
+        // losing one folded mask must not cost the wearer the whole helmet.
+        CombatState helmet = new CombatState(Map.of(), List.of()).withMask("masks/gone+masks/blaze");
+        WornState worn = resolver().resolveFrom(List.of(helmet), COMPOSITE_KEYS, COMPOSITE_ABILITIES, 1);
+        assertArrayEquals(new int[] {2, 3}, sorted(worn.byTrigger(0)));
+    }
+
     @Test
     void masksFeatureOffDropsTheMask() {
         // §L features.masks off: the applied mask contributes nothing.

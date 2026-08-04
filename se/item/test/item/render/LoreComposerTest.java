@@ -25,6 +25,7 @@ class LoreComposerTest {
             "crystals/a", "Aaa",
             "crystals/b", "Bbb",
             "masks/agent", "Agent",
+            "masks/blaze", "Blaze",
             "reforges/testforge", "Testforge")::get;
     private static final String HEROIC = "&6&lHEROIC {TYPE} (&e{+/-}{AMOUNT}% DMG&7)";
 
@@ -35,6 +36,7 @@ class LoreComposerTest {
                 .withCrystalLine(() -> "&8S {CRYSTAL}")
                 .withCrystalLineMulti(() -> "&8M {CRYSTAL}")
                 .withMaskLine(() -> "&8Mask: {NAME}")
+                .withMaskLineMulti(() -> "&8Masks: {NAME}")
                 .withReforgeLine(() -> "&8Reforge: {NAME}")
                 .withHeroicLine(() -> HEROIC));
     }
@@ -121,6 +123,36 @@ class LoreComposerTest {
         List<String> body = composer.body(state);
         assertEquals("§8S Aaa", body.get(body.size() - 2), "the crystal line sits directly above the mask line");
         assertEquals("§8Mask: Agent", body.get(body.size() - 1), "the mask line is the last body line, {NAME}→display");
+    }
+
+    @Test
+    void aCompositeHelmetTakesTheMultiTemplateAndNamesEveryChild() {
+        // ADR-0074, the Multi Crystal line's twin: a folded mask renders from its own template with {NAME}
+        // reading every child. A composite falling through to the single template would name only one of them.
+        LoreComposer composer = composer();
+        CombatState state = new CombatState(Map.of(), List.of()).withMask("masks/agent+masks/blaze");
+        List<String> body = composer.body(state);
+        // The join separator is the template's own leading colour run + ", " (StyledNames), so each child's gap
+        // resets to the line's base colour before the next name supplies its own — the Multi Crystal rule.
+        assertEquals("§8Masks: Agent§8, Blaze", body.get(body.size() - 1));
+    }
+
+    @Test
+    void aPlainMaskStillTakesTheSingleTemplateWhenBothAreWired() {
+        LoreComposer composer = composer();
+        CombatState state = new CombatState(Map.of(), List.of()).withMask("masks/agent");
+        List<String> body = composer.body(state);
+        assertEquals("§8Mask: Agent", body.get(body.size() - 1), "one child is not a composite");
+    }
+
+    @Test
+    void aCompositeFallsBackToTheSingleTemplateWhenNoMultiIsWired() {
+        // The cascade (ADR-0035's, reused): a pack that sets only `lore-while-on-item` still renders a folded
+        // mask — from the one template it has, naming every child through the same {NAME} join.
+        LoreComposer noMulti = new LoreComposer(LoreRenderer.Config.of(LoreStyle.DEFAULT, NAMES)
+                .withMaskLine(() -> "&8Mask: {NAME}"));
+        CombatState state = new CombatState(Map.of(), List.of()).withMask("masks/agent+masks/blaze");
+        assertEquals(List.of("§8Mask: Agent§8, Blaze"), noMulti.body(state));
     }
 
     @Test

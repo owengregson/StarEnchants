@@ -52,10 +52,13 @@ public final class Modules {
         this.stores = new StoresModule(core);
         this.guard = new GuardModule(core);
         this.carriers = new CarriersModule(core);
-        // ADR-0070: constructed before crystals (the extractor hook); REGISTRY keeps reforges directly after masks —
-        // the reload↔menus precedent (construction order ≠ fold order).
+        // ADR-0070/0074: BOTH constructed before crystals, because each hands the ONE Item Extractor a hook —
+        // reforges pop off gear, a composite mask splits (ADR-0074). The REGISTRY still keeps masks directly
+        // after pets and reforges directly after masks: the reload↔menus precedent (construction order ≠ fold
+        // order), so what a module needs at build time never dictates when it folds.
         this.reforges = new ReforgesModule(core);
-        this.crystals = new CrystalsModule(core, reforges.reforges);
+        this.masks = new MasksModule(core, equip);         // ADR-0053 helmet masks (subscribes the equip-refresh seam)
+        this.crystals = new CrystalsModule(core, reforges.reforges, masks.splitter);
         this.heroic = new HeroicModule(core);
         this.slots = new SlotsModule(core);
         this.scrolls = new ScrollsModule(core, carriers, souls);  // carrier economy + soul-gem holy re-render (§4)
@@ -63,7 +66,6 @@ public final class Modules {
                                                                 // scroll tiles take the white/black scroll mints
         this.useItems = new UseItemsModule(core);          // §3.6 right-click content items
         this.pets = new PetsModule(core, equip);           // ADR-0052 leveling head items (needs the refresher)
-        this.masks = new MasksModule(core, equip);         // ADR-0053 helmet masks (subscribes the equip-refresh seam)
         this.bless = new BlessModule(core);          // /bless (CosmicRenewed-compatible first debuff)
         this.traks = new TraksModule(core);
         this.enchants = new EnchantsModule(core);

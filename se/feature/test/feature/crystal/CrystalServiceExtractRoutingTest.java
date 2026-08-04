@@ -3,6 +3,7 @@ package feature.crystal;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -22,16 +23,17 @@ import org.junit.jupiter.api.Test;
 import platform.lang.Messages;
 
 /**
- * The extractor's branch ORDER on the ONE Item Extractor (ADR-0070): a crystal-bearing ITEM splits first, then
- * a gear's REFORGE (the {@link ReforgeExtractor} hook) outranks its crystal stack, then the last crystal entry.
- * Pure routing over mocked codecs/enchanter and a mock hook — the contract is which branch runs, not the
- * downstream mint (covered by the service tests).
+ * The extractor's branch ORDER on the ONE Item Extractor (ADR-0070/0074): a crystal-bearing ITEM splits first,
+ * then a COMPOSITE MASK item, then a gear's REFORGE (the {@link ReforgeExtractor} hook) outranks its crystal
+ * stack, then the last crystal entry. Pure routing over mocked codecs/enchanter and mock hooks — the contract is
+ * which branch runs, not the downstream mint (covered by the service tests).
  */
 class CrystalServiceExtractRoutingTest {
 
     private CrystalItemCodec codec;
     private ItemEnchanter enchanter;
     private ReforgeExtractor reforges;
+    private MaskSplitter masks;
     private CrystalService service;
 
     @BeforeEach
@@ -41,8 +43,9 @@ class CrystalServiceExtractRoutingTest {
         enchanter = mock(ItemEnchanter.class);
         ContentHolder content = mock(ContentHolder.class);
         reforges = mock(ReforgeExtractor.class);
+        masks = mock(MaskSplitter.class);
         service = new CrystalService(codec, extractorCodec, enchanter, content,
-                () -> null, () -> 3, reforges, Messages.defaults());
+                () -> null, () -> 3, reforges, masks, Messages.defaults());
     }
 
     @Test
@@ -71,6 +74,54 @@ class CrystalServiceExtractRoutingTest {
         verify(reforges, never()).carries(any());  // the crystal-item branch precedes the reforge hook
         verify(reforges, never()).extract(any(), any());
         verify(enchanter, never()).extractCrystal(any());
+    }
+
+    @Test
+    void aCompositeMaskItemIsSplitBeforeTheReforgeHookAndSpendsTheCursor() {
+        // ADR-0074: the mask side owns no cursor of its own, so the extractor is spent HERE — and only when the
+        // split actually committed, or a refused split would silently eat the extractor.
+        ItemStack cursor = mock(ItemStack.class);
+        when(cursor.getAmount()).thenReturn(1);
+        ItemStack maskItem = mock(ItemStack.class);
+        when(codec.read(maskItem)).thenReturn(null); // not a crystal ITEM
+        when(masks.carriesComposite(maskItem)).thenReturn(true);
+        when(masks.split(maskItem)).thenReturn(GestureOutcome.committed(maskItem, "SPLIT"));
+
+        GestureOutcome out = service.extract(cursor, maskItem);
+
+        assertSame("SPLIT", out.message());
+        verify(cursor).setAmount(0); // one extractor spent
+        verify(reforges, never()).carries(any()); // the mask branch precedes the reforge hook
+        verify(enchanter, never()).extractCrystal(any());
+    }
+
+    @Test
+    void aRefusedMaskSplitSpendsNoExtractor() {
+        ItemStack cursor = mock(ItemStack.class);
+        ItemStack maskItem = mock(ItemStack.class);
+        when(codec.read(maskItem)).thenReturn(null);
+        when(masks.carriesComposite(maskItem)).thenReturn(true);
+        when(masks.split(maskItem)).thenReturn(GestureOutcome.noop("nothing to split"));
+
+        assertFalse(service.extract(cursor, maskItem).commit());
+        verify(cursor, never()).setAmount(anyInt());
+    }
+
+    @Test
+    void aPlainMaskIsNotClaimedAndFallsThrough() {
+        // Only a FOLDED mask is the extractor's business; a plain one falls through to the ordinary gear path,
+        // which then reports it carries no crystal — the same answer it gave before composites existed.
+        ItemStack cursor = mock(ItemStack.class);
+        ItemStack maskItem = mock(ItemStack.class);
+        when(codec.read(maskItem)).thenReturn(null);
+        when(masks.carriesComposite(maskItem)).thenReturn(false);
+        when(reforges.carries(maskItem)).thenReturn(false);
+        when(enchanter.extractCrystal(maskItem)).thenReturn(ExtractResult.fail("no crystals"));
+
+        service.extract(cursor, maskItem);
+
+        verify(masks, never()).split(any());
+        verify(enchanter).extractCrystal(maskItem);
     }
 
     @Test

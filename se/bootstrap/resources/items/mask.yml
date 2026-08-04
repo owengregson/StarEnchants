@@ -3,7 +3,10 @@
 # display/colour/description filled in, onto its content-configured player-head texture (content/masks/<key>.yml).
 # A mask drag-applies onto a HELMET (exclusively) and, while that helmet is worn, grants the mask's abilities AND
 # repaints the helmet's WORN appearance with this head for every observer — never touching the inventory item.
-# One mask per helmet; right-click the masked helmet with an empty cursor to pop the mask back off intact.
+# One mask SOCKET per helmet; right-click the masked helmet with an empty cursor to pop the mask back off intact.
+# Drag a mask onto ANOTHER mask to FOLD them into a multi-mask (ADR-0074): every folded mask's abilities resolve
+# as if it alone were worn, up to config.yml `masks.max-merge`. Apply the Item Extractor to a folded mask to pop
+# its topmost one back off.
 # Everything below is configurable; reload with /se reload. Placeholders (usable in name + every lore line):
 #   {COLOR}       = the mask's colour codes (content/masks/<key>.yml `color`, e.g. "&8" or "{#8B4513}") — carries its own &
 #   {NAME}        = the mask's display name (bare, no colour codes)
@@ -15,6 +18,10 @@ type: mask
 # The minted mask item's display name. {COLOR} already carries the mask's own &, so the template supplies only
 # the &l bold and the trailing " Mask" (e.g. "&8&lAgent Mask").
 name: "{COLOR}&l{NAME} Mask"
+# A FOLDED mask's name and on-helmet line (ADR-0074), where {NAME} reads every child comma-joined in its own
+# colour and {COLOR} is the FIRST child's — the face the worn illusion shows. Each defaults to its single-mask
+# form, so a pack that deletes these lines renders one uniform name for plain and folded masks alike.
+name-multi: "&f&lMulti-Mask ({NAME}&r&f&l)"
 lore:
   - "&eOverrides the visual appearance of a helmet and imbues it with magic mask abilities."
   - ""
@@ -28,6 +35,7 @@ lore:
 # LoreComposer section). {NAME} expands here to the mask's colour-styled display, so a masked helmet always shows
 # which mask it carries.
 lore-while-on-item: "&6&lMask Equipped ({NAME}&r&6&l)"
+lore-while-on-item-multi: "&6&lMulti-Mask Equipped ({NAME}&r&6&l)"
 # Apply / remove gesture sounds (namespaced keys, valid across the version range) — the SAME amethyst cues the
 # crystal likeness carries, since masks share the crystal drag-apply gesture family. apply plays on a successful
 # drag-onto-helmet; remove plays when a right-click pops the mask back off.

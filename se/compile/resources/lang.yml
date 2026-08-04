@@ -285,6 +285,12 @@ mask.on-item: "&cApply the mask onto a helmet."
 mask.single-item: "&cApply the mask to a single helmet — split the stack first."
 mask.already: "&cThat helmet already wears a mask — right-click it to remove the mask first."
 mask.none: "&cThat helmet carries no mask to remove."
+# Composite masks (ADR-0074) — the crystal merge lines' twins. merge-single guards a stacked target (which of the
+# N would the fold land on?); merge-cap names the masks.max-merge ceiling; split-not-multi refuses an extractor
+# applied to a mask that folds nothing.
+mask.merge-single: "&cFold onto a single mask — split the stack first."
+mask.merge-cap: "&cThat mask is full — a mask holds at most {MAX} powers."
+mask.split-not-multi: "&cThat is a single mask — apply the extractor to a multi-mask or to gear."
 # Ward-guard feedback (ADR-0053 §7/§8). invsee-blocked: shown to the viewer whose /invsee a masked player shielded.
 # The /near listing is prefix-free (the owned interception replaces the external plugin's output): a header, one
 # entry per nearby player, or a none line. {RADIUS}/{NAME}/{DISTANCE} filled by NearGuard.
@@ -333,6 +339,8 @@ crystal.merge: "&dMerged into a multi-crystal: &f{CRYSTAL}&d."
 crystal.extract-success: "&aExtracted &f{CRYSTAL}&a back into a crystal."
 mask.apply-success: "&aApplied &f{MASK}&a to your helmet."
 mask.remove-success: "&aRemoved &f{MASK}&a from your helmet."
+mask.merge: "&dFolded into a multi-mask: &f{MASK}&d."
+mask.extract-success: "&aExtracted &f{MASK}&a back into a mask."
 # ── Weapon reforges (ADR-0070) ─────────────────────────────────────────────────────────────────────────
 reforge.no-such: "&cNo such reforge: &f{KEY}"
 reforge.no-compile: "&c{KEY} &cdid not compile."

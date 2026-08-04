@@ -235,6 +235,7 @@ class MasterConfigLoaderTest {
                     - near
                     - whereis
                   near-radius: 500
+                  max-merge: 4
                 """);
 
         MasterConfig config = MasterConfigLoader.load(file);
@@ -244,6 +245,20 @@ class MasterConfigLoaderTest {
         assertTrue(config.features().pets()); // an omitted feature stays on
         assertEquals(java.util.List.of("near", "whereis"), config.masks().nearCommands());
         assertEquals(500, config.masks().nearRadius());
+        assertEquals(4, config.masks().maxMerge()); // ADR-0074 composite child cap
+    }
+
+    @Test
+    void masksMaxMergeDefaultsAndClampsToAtLeastOne(@TempDir Path dir) throws Exception {
+        // The crystals.max-merge rule, verbatim: a cap below one would refuse the plain mask itself, so 0 and
+        // negatives clamp to 1 — which is the documented "no folding at all" setting, not a broken mask family.
+        Path absent = dir.resolve("absent.yml");
+        Files.writeString(absent, "combat:\n  pvp: false\n");
+        assertEquals(2, MasterConfigLoader.load(absent).masks().maxMerge());
+
+        Path zero = dir.resolve("zero.yml");
+        Files.writeString(zero, "masks:\n  max-merge: 0\n");
+        assertEquals(1, MasterConfigLoader.load(zero).masks().maxMerge());
     }
 
     @Test

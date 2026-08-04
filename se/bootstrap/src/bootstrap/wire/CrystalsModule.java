@@ -20,16 +20,18 @@ final class CrystalsModule {
     final CrystalService crystals;
     final List<Mintable> mints;
 
-    CrystalsModule(BootCore core, feature.crystal.ReforgeExtractor reforges) {
+    CrystalsModule(BootCore core, feature.crystal.ReforgeExtractor reforges,
+                   feature.crystal.MaskSplitter masks) {
         this.core = core;
         CrystalItemCodec crystalItemCodec = new CrystalItemCodec(ItemKeys.of().crystalItem(), core.store());
         CrystalExtractorCodec crystalExtractorCodec =
                 new CrystalExtractorCodec(ItemKeys.of().crystalExtractor(), core.store());
-        // ADR-0070: the ONE Item Extractor pops a reforge FIRST via this hook, then crystals — the reforge
-        // module owns the reforge-side economy while the extractor cursor stays claimed by CrystalListener alone.
+        // ADR-0070/0074: the ONE Item Extractor pops a multi-crystal's topmost single, else splits a COMPOSITE
+        // MASK, else a reforge, else the gear's last crystal — each family owning its own economy behind a hook
+        // while the extractor cursor stays claimed by CrystalListener alone.
         this.crystals = new CrystalService(crystalItemCodec, crystalExtractorCodec, core.enchanter(), core.content(),
                 () -> core.items().config().crystalOrDefault(), () -> core.master().config().crystals().maxMerge(),
-                reforges, core.messages());
+                reforges, masks, core.messages());
         this.mints = List.of(Mints.crystal(crystals, core.content()), Mints.extractor(crystals));
     }
 
