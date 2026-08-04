@@ -11,6 +11,7 @@ import engine.condition.GroundOwnership;
 import engine.condition.PotionLevels;
 import engine.condition.VarVocabulary;
 import engine.selector.kind.Allies;
+import engine.sink.FrozenTargets;
 import engine.stores.BookRateStore;
 import engine.stores.EngineStores;
 import engine.stores.HeldSlotStore;
@@ -219,6 +220,7 @@ public final class FactPopulator {
     private final int bookRateGenerateSlot;   // %bookrate.generate% (actor-scoped store read, mask-gated)
     private final int bookRateApplySlot;      // %bookrate.apply% (actor-scoped store read, mask-gated)
     private final int actorSetWeaponSlot;     // %actor.setweapon% (from the worn-fact source, mask-gated)
+    private final int statusFreezeSlot;       // %status.freeze% (actor-scoped registry read, mask-gated)
 
     /** Search radius for {@code %nearbyenemies%}, in blocks. */
     private static final double NEARBY_RADIUS = 8.0;
@@ -340,6 +342,7 @@ public final class FactPopulator {
         this.bookRateGenerateSlot = slot(vocabulary, "bookrate.generate", VarKind.BOOL);
         this.bookRateApplySlot = slot(vocabulary, "bookrate.apply", VarKind.BOOL);
         this.actorSetWeaponSlot = slot(vocabulary, "actor.setweapon", VarKind.BOOL);
+        this.statusFreezeSlot = slot(vocabulary, "status.freeze", VarKind.BOOL);
     }
 
     /**
@@ -444,6 +447,11 @@ public final class FactPopulator {
                 // %status.teleblock%: a store read by UUID, mask-gated like the rest of this block.
                 if (id != null && statusTeleblockSlot >= 0 && mask.readsFlag(statusTeleblockSlot)) {
                     facts.setFlag(statusTeleblockSlot, teleblock.isBlocked(id, nowTicks));
+                }
+                // %status.freeze%: liveness is the window's TICK budget, not its wall deadline — the same read
+                // the freeze chain itself gates on, so the fact and the window can never disagree.
+                if (id != null && statusFreezeSlot >= 0 && mask.readsFlag(statusFreezeSlot)) {
+                    facts.setFlag(statusFreezeSlot, FrozenTargets.isFrozen(id));
                 }
                 // %bookrate.*%: the same UUID-keyed store read, one flag per armable site.
                 if (id != null && bookRateGenerateSlot >= 0 && mask.readsFlag(bookRateGenerateSlot)) {

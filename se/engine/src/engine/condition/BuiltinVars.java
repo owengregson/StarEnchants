@@ -132,6 +132,13 @@ public final class BuiltinVars {
                 // a second independent roll; %actor.helditem% cannot stand in, being a material name and never
                 // an item identity.
                 .flag("actor.setweapon")
+                // Wave 2e.2 fact — the guard paired with STATUS_CLEAR's FREEZE rung, the teleblock flag's
+                // sibling. Actor-scoped like it, because the refusal it exists for is the actor's own ("you
+                // must be frozen to break out"): a use-item that lifts a window has to refuse when the window
+                // is not there, and clearing a freeze the actor never had would burn the charge in silence.
+                // The victim reading needs no fact — STATUS_CLEAR on a target is already idempotent
+                // (FrozenTargets.breakNow answers false when there is nothing to thaw).
+                .flag("status.freeze")
                 .build();
     }
 }

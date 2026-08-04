@@ -500,12 +500,15 @@ public interface Sink {
     void sound(Location at, int soundId, float volume, float pitch);
 
     /**
-     * Play a sound at {@code target}'s own position, read AT DISPATCH time on the target's region thread
-     * (deferred-safe, like {@link #particle(LivingEntity, int, int, int, double, double, double)}). Still a
-     * world play, so it is audible to everyone around the target — the SOUND {@code who}-slot path, one play
-     * per resolved target.
+     * Play a sound at {@code target}'s own position raised by {@code dy} blocks, read AT DISPATCH time on the
+     * target's region thread (deferred-safe, like
+     * {@link #particle(LivingEntity, int, int, int, double, double, double, double)}). Still a world play, so it
+     * is audible to everyone around the target — the SOUND {@code who}-slot path, one play per resolved target.
+     *
+     * <p>The offset resolves HERE rather than in the effect because only this side holds the target's position:
+     * an effect reading it would be a cross-region entity read (ADR-0043). {@code dy == 0} is the anchor itself.
      */
-    void sound(LivingEntity target, int soundId, float volume, float pitch);
+    void sound(LivingEntity target, int soundId, float volume, float pitch, double dy);
 
     void particle(Location at, int particleId, int count);
 
@@ -519,13 +522,16 @@ public interface Sink {
                   double offsetX, double offsetY, double offsetZ);
 
     /**
-     * Spawn {@code count} particles at {@code target}'s MID-BODY (its feet + half its height), read AT DISPATCH time
-     * on the target's region thread (deferred-safe, like {@link #potion}), with optional block data
-     * ({@code blockMaterialId < 0} = none) and the per-axis {@code offsetX/Y/Z} spread. The PARTICLE {@code who}-slot
-     * path (ADR-0049) — a per-target burst that lands where each target actually is.
+     * Spawn {@code count} particles at {@code target}'s MID-BODY (its feet + half its height) raised by {@code dy}
+     * blocks, read AT DISPATCH time on the target's region thread (deferred-safe, like {@link #potion}), with
+     * optional block data ({@code blockMaterialId < 0} = none) and the per-axis {@code offsetX/Y/Z} spread. The
+     * PARTICLE {@code who}-slot path (ADR-0049) — a per-target burst that lands where each target actually is.
+     *
+     * <p>{@code dy} TRANSLATES the anchor; the offsets SCATTER around it. They are independent knobs — a burst
+     * four blocks overhead is {@code dy}, not a widened {@code offsetY}, which would only stretch it upward.
      */
     void particle(LivingEntity target, int particleId, int count, int blockMaterialId,
-                  double offsetX, double offsetY, double offsetZ);
+                  double offsetX, double offsetY, double offsetZ, double dy);
 
     /**
      * Draw {@code count} coloured-dust motes at a single point — the per-point primitive for the shaped-particle

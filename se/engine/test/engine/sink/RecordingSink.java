@@ -256,7 +256,7 @@ final class RecordingSink extends DispatchSinkBase {
 
     @Override
     public void particle(LivingEntity target, int particleId, int count, int blockMaterialId,
-                         double offsetX, double offsetY, double offsetZ) {
+                         double offsetX, double offsetY, double offsetZ, double dy) {
     }
 
     @Override
