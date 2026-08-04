@@ -2302,6 +2302,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 if (ownerId != null) {
                     // ADR-0049: bind EVERY owned spawn to its owner so a hit on it fires GUARDIAN_HURT (Blood Link);
                     // era-agnostic (no entity PDC), independent of the Tameable tagging below.
+                    // No group: this is the FLAGLESS spawn path, so the summon carries no payload phase at all
+                    // and can never be a `strike` courier — there is no IMPACT here to scope.
                     GuardianCasts.bind(spawned.getUniqueId(), ownerId);
                     if (spawned instanceof Tameable tame) {
                         // Owned/tamed summon: resolve by the Tameable CAPABILITY (a stable interface across the
@@ -2395,7 +2397,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         }
         applyGuardName(spawned, flags.name(), ownerId);
         if (ownerId != null) {
-            GuardianCasts.bind(spawned.getUniqueId(), ownerId);
+            GuardianCasts.bind(spawned.getUniqueId(), ownerId, flags.sourceGroup());
             if (spawned instanceof Tameable tame) {
                 tame.setOwner(Bukkit.getOfflinePlayer(ownerId));
                 tame.setTamed(true);
@@ -3158,14 +3160,16 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void fallingBlock(Location at, int materialId, int ttlTicks, UUID owner, UUID target, double carriedDamage) {
+    public void fallingBlock(Location at, int materialId, int ttlTicks, UUID owner, UUID target,
+                             double carriedDamage, int sourceGroup) {
         Location loc = at.clone();
-        regionOp(loc, () -> spawnCosmeticBlock(loc, materialId, ttlTicks, owner, target, carriedDamage, 0, 0, -1));
+        regionOp(loc, () -> spawnCosmeticBlock(loc, materialId, ttlTicks, owner, target, carriedDamage, 0, 0, -1,
+                sourceGroup));
     }
 
     @Override
     public void fallingBlockField(Location center, List<Integer> palette, BlockFieldProfile profile,
-                                  int ttlTicks, UUID owner, UUID target, double carriedDamage) {
+                                  int ttlTicks, UUID owner, UUID target, double carriedDamage, int sourceGroup) {
         Location origin = center.clone(); // own the centre: a WAIT tier can defer this to a later tick
         regionOp(origin, () -> {
             World world = origin.getWorld();
@@ -3195,7 +3199,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
                         // Folia region boundary, and the spawn must run on the column's owning thread.
                         Scheduling.onRegion(at, () -> spawnCosmeticBlock(at, materialId, ttlTicks, owner, target,
                                 carriedDamage, profile.rehitMax(), profile.rehitWindowTicks(),
-                                profile.killMaterialId()));
+                                profile.killMaterialId(), sourceGroup));
                     }
                 }
             }
@@ -3332,7 +3336,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
     @Override
     public void turretRing(Location origin, Player actor, TurretRingProfile profile,
                            FieldCue spawnCue, double spawnSpread, boolean spawnLightning,
-                           FieldCue despawnCue, double despawnSpread) {
+                           FieldCue despawnCue, double despawnSpread, int sourceGroup) {
         Location anchor = origin.clone(); // own the origin: a WAIT tier can defer this to a later tick
         // The actor is only ever needed as a UUID — the protection query takes one, and a turret outlives the
         // activation that placed it, so the IMPACT owner is looked up fresh at each strike rather than held.
@@ -3349,7 +3353,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 // Re-key to the SITE's own region: the column scan, the spawn and every volley run on the thread
                 // owning that ground, which a ring several blocks wide need not share with the caster.
                 Scheduling.onRegion(site, () -> placeTurret(site, anchor.getBlockY() + 1, ownerId, profile,
-                        spawnCue, spawnSpread, spawnLightning, despawnCue, despawnSpread));
+                        spawnCue, spawnSpread, spawnLightning, despawnCue, despawnSpread, sourceGroup));
             }
         });
     }
@@ -3357,7 +3361,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
     /** One emplacement, on ITS own region thread: the ground test, the per-site protection query, then the arming. */
     private void placeTurret(Location site, int scanTopY, UUID ownerId, TurretRingProfile profile,
                              FieldCue spawnCue, double spawnSpread, boolean spawnLightning,
-                             FieldCue despawnCue, double despawnSpread) {
+                             FieldCue despawnCue, double despawnSpread, int sourceGroup) {
         Location ground = openGround(site, scanTopY);
         if (ground == null) {
             LOG.log(System.Logger.Level.DEBUG, () -> "TURRET_RING site skipped, no open ground: " + where(site));
@@ -3381,9 +3385,11 @@ public abstract class DispatchSinkBase implements SinkReadback {
         // Zeroing (not cancelling) is what keeps a crystal standing: it is destroyed by any damage that LANDS.
         PetSummons.bind(turretId, TURRET_FLAGS);
         if (ownerId != null) {
-            GuardianCasts.bind(turretId, ownerId); // a hit on it fires GUARDIAN_HURT, like every owned spawn
+            GuardianCasts.bind(turretId, ownerId, sourceGroup); // a hit on it fires GUARDIAN_HURT, like every owned spawn
         }
-        TurretCasts.bindTurret(turretId);
+        // The group is recorded on the EMPLACEMENT, not captured by the volley task: a turret outlives the
+        // activation that placed it, and the volley already re-reads its owner rather than holding one.
+        TurretCasts.bindTurret(turretId, sourceGroup);
         if (spawnLightning) {
             world.strikeLightningEffect(ground); // visual only — never the vanilla ~5 damage + fire
         }
@@ -3466,7 +3472,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
             projectile.setShooter(owner); // vanilla ProjectileSource, exactly as launchProjectile tracks a shot
         }
         UUID shotId = shot.getUniqueId();
-        TurretCasts.bindShot(shotId, ownerId);
+        TurretCasts.bindShot(shotId, ownerId, TurretCasts.groupOf(turret.getUniqueId()));
         // A shot that never hits anything would leak its row; the ceiling drops it. Scheduled on the REGION, not
         // the projectile — Folia retires an entity's tasks with the entity, which is exactly the case to cover.
         Scheduling.onRegionLater(muzzle, TURRET_SHOT_TTL_TICKS, () -> TurretCasts.forgetShot(shotId));
@@ -3520,7 +3526,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     /** One cosmetic falling block, already on its own region thread — the body both falling-block intents share. */
     private void spawnCosmeticBlock(Location at, int materialId, int ttlTicks, UUID owner, UUID target,
-                                    double carriedDamage, int rehitMax, int rehitWindowTicks, int killMaterialId) {
+                                    double carriedDamage, int rehitMax, int rehitWindowTicks, int killMaterialId,
+                                    int sourceGroup) {
         Material material = material(materialId);
         World world = at.getWorld();
         if (material == null || !material.isBlock() || world == null) {
@@ -3532,7 +3539,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         // Track EVERY cosmetic block (owner or not) so the landing listener cancels its placement; an owner
         // additionally drives the IMPACT abilities. A FALLING_BLOCK is always cosmetic and must never stick.
         UUID fbId = fb.getUniqueId();
-        FallingBlockCasts.bind(fbId, owner, target, carriedDamage, rehitMax, rehitWindowTicks);
+        FallingBlockCasts.bind(fbId, owner, target, carriedDamage, rehitMax, rehitWindowTicks, sourceGroup);
         if (killMaterialId >= 0) {
             armBlockKillWatch(fb, fbId, killMaterialId);
         }

@@ -117,6 +117,57 @@ public final class TriggerRunner {
     }
 
     /**
+     * Run {@code triggerId}'s worn abilities RESTRICTED to those declaring the interned cooldown-scope GROUP
+     * {@code scopeGroup} — IMPACT source scoping (ADR-0074). The identity is the authored {@code group:} because
+     * it is the only one an ARM and its PAYLOAD share: they are two separate authored bonuses, so a per-ability
+     * id would match neither.
+     *
+     * <p>A sibling of {@link #runCandidates} rather than a caller of it: the candidate list is derived FROM the
+     * worn state, and routing through that method would take a second lookup whose staleness check could
+     * disagree with this one's. Nothing else differs — same gates, same order, no new gate.
+     */
+    public void runGrouped(Ability[] abilities, int generation, int worldId, int triggerId, boolean attackSide,
+                           Player actor, ActivationContext context, SinkReadback sink, StableKeyIndex stableKeys,
+                           int scopeGroup) {
+        WornState wornState = worn.get(actor.getUniqueId());
+        if (wornState == null || wornState.gen() != generation) {
+            return; // unresolved or stale across a reload — contribute nothing
+        }
+        int[] candidates = wornState.byTrigger(triggerId);
+        if (scopeGroup >= 0) {
+            candidates = withGroup(abilities, candidates, scopeGroup);
+        }
+        runResolved(abilities, generation, worldId, triggerId, attackSide, actor, context, sink, stableKeys,
+                wornState, candidates, true, null);
+    }
+
+    /** The subset of {@code candidates} whose ability declares {@code scopeGroup}; the shared empty array for none. */
+    static int[] withGroup(Ability[] abilities, int[] candidates, int scopeGroup) {
+        int kept = 0;
+        for (int id : candidates) {
+            if (abilities[id].cdScopeGroup() == scopeGroup) {
+                kept++;
+            }
+        }
+        if (kept == candidates.length) {
+            return candidates; // every candidate matched — hand back the worn state's own array, allocate nothing
+        }
+        if (kept == 0) {
+            return NO_CANDIDATES;
+        }
+        int[] filtered = new int[kept];
+        int at = 0;
+        for (int id : candidates) {
+            if (abilities[id].cdScopeGroup() == scopeGroup) {
+                filtered[at++] = id;
+            }
+        }
+        return filtered;
+    }
+
+    private static final int[] NO_CANDIDATES = new int[0];
+
+    /**
      * The COLD equipment-transition entry point: run an EXPLICIT candidate list that is NOT read from the worn
      * state. An UNEQUIP walk's ability has already left that state and took its {@code FactMask} bits with it, so
      * gating on the post-refresh mask would read every authored fact as its default; this resolves the FULL mask

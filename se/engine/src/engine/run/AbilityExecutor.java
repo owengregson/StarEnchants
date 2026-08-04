@@ -333,7 +333,8 @@ public final class AbilityExecutor {
                 List<LivingEntity> targets = selector == null ? List.of() : selector.resolve(sel);
                 List<org.bukkit.Location> locations = selector == null ? List.of() : selector.resolveLocations(sel);
                 EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets),
-                        locationSlotMap(kind, locations), ability.level(), ability.defId(), null, null, origin);
+                        locationSlotMap(kind, locations), ability.level(), ability.defId(), ability.cdScopeGroup(),
+                        null, null, origin);
                 sink.delay(0);
                 if (stopping) {
                     kind.stop(ctx, sink);
@@ -386,7 +387,8 @@ public final class AbilityExecutor {
                     targets = withoutDefendedTargets(ability, gated, targets);
                 }
                 EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets),
-                        locationSlotMap(kind, locations), ability.level(), ability.defId(), activeGem, facts, origin);
+                        locationSlotMap(kind, locations), ability.level(), ability.defId(), ability.cdScopeGroup(),
+                        activeGem, facts, origin);
                 // WAIT (§3.6): defer only this effect's world-mutation intents by its accumulated tick tier.
                 // Targets are resolved now on the firing thread; inline feedback (fold/cancel) stays instant.
                 sink.delay(effect.cumulativeWaitTicks());

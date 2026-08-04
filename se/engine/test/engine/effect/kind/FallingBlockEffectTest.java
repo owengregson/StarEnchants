@@ -56,8 +56,10 @@ class FallingBlockEffectTest {
         new FallingBlockEffect().run(plainGrid().targets("who", who), sink);
 
         // One intent, the single-material palette, the aimed target's own UUID, no owner (no actor), no carry.
+        // The trailing -1: content authoring no `group:` stays UNSCOPED, so the landing fires the owner's whole
+        // IMPACT roster exactly as it did before the scoping existed.
         verify(sink).fallingBlockField(any(Location.class), eq(List.of(5)), profile.capture(),
-                eq(40), isNull(), eq(target), eq(0.0));
+                eq(40), isNull(), eq(target), eq(0.0), eq(-1));
         assertEquals(1, profile.getValue().radius(), "the 3x3 grid the content authored");
         assertArrayEquals(new int[] {4}, profile.getValue().layerYOffsets(new Random()), "one layer, at height");
         assertTrue(profile.getValue().spawns(new Random()), "every position rains");
@@ -78,8 +80,8 @@ class FallingBlockEffectTest {
 
         new FallingBlockEffect().run(plainGrid().targets("who", a, b), sink);
 
-        verify(sink).fallingBlockField(any(), any(), any(), anyInt(), isNull(), eq(idA), anyDouble());
-        verify(sink).fallingBlockField(any(), any(), any(), anyInt(), isNull(), eq(idB), anyDouble());
+        verify(sink).fallingBlockField(any(), any(), any(), anyInt(), isNull(), eq(idA), anyDouble(), anyInt());
+        verify(sink).fallingBlockField(any(), any(), any(), anyInt(), isNull(), eq(idB), anyDouble(), anyInt());
     }
 
     @Test
@@ -97,7 +99,7 @@ class FallingBlockEffectTest {
         new FallingBlockEffect().run(ctx, sink);
 
         verify(sink).fallingBlockField(any(), eq(List.of(5, 9)), profile.capture(),
-                anyInt(), isNull(), any(), anyDouble());
+                anyInt(), isNull(), any(), anyDouble(), anyInt());
         assertEquals(77, profile.getValue().killMaterialId());
     }
 
@@ -118,7 +120,7 @@ class FallingBlockEffectTest {
         new FallingBlockEffect().run(ctx, sink);
 
         verify(sink).fallingBlockField(any(), any(), any(), anyInt(), isNull(), eq(target),
-                eq(2.0 + 15.0 / 100.0 * 44.0));
+                eq(2.0 + 15.0 / 100.0 * 44.0), anyInt());
     }
 
     @Test

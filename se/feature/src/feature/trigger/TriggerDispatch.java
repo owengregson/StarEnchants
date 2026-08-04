@@ -475,12 +475,30 @@ public final class TriggerDispatch {
      * (Folia-safe cross-region read), and effects route to {@code victim} via the sink.
      */
     public void fireImpact(Player owner, LivingEntity victim, double carriedDamage) {
+        fireImpact(owner, victim, carriedDamage, -1);
+    }
+
+    /**
+     * {@link #fireImpact(Player, LivingEntity, double)} restricted to the abilities carrying the authored
+     * {@code group:} {@code sourceGroup} — the one the arming ability declared and its carrier brought here
+     * (ADR-0074). {@code -1} is unscoped and runs the owner's whole IMPACT roster, which is what every cast
+     * armed by an ungrouped ability still hands back.
+     */
+    public void fireImpact(Player owner, LivingEntity victim, double carriedDamage, int sourceGroup) {
         if (impact < 0 || owner == null || victim == null) {
             return;
         }
         ActivationContext context =
                 new ActivationContext(owner, victim, null, victim.getLocation(), carriedDamage, null);
-        fire(owner, impact, context, null);
+        if (sourceGroup < 0) {
+            fire(owner, impact, context, null);
+            return;
+        }
+        Snapshot snapshot = content.snapshot();
+        SinkReadback sink = newSink();
+        runner.runGrouped(snapshot.abilities(), snapshot.generation(), worldId(snapshot, context), impact,
+                attackTrigger.test(impact), owner, context, sink, snapshot.stableKeys(), sourceGroup);
+        sink.flush();
     }
 
     /**

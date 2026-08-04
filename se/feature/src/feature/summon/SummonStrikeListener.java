@@ -68,6 +68,8 @@ public final class SummonStrikeListener implements Listener {
             GuardianCasts.forget(id); // registries before the removal, the summon-path invariant
             summon.remove();
         }
-        dispatch.fireImpact(owner, victim, carried);
+        // Scoped to the group that SUMMONED the courier (ADR-0074) — read from the registry before the forget
+        // above could have dropped it would be wrong; SummonFlags carries it on the summon itself.
+        dispatch.fireImpact(owner, victim, carried, flags.sourceGroup());
     }
 }

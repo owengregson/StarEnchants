@@ -116,7 +116,7 @@ public final class TurretRingEffect implements EffectKind {
                 continue;
             }
             sink.turretRing(origin, ctx.actor(), profile, spawnCue, spawnSpread, lightning,
-                    despawnCue, despawnSpread);
+                    despawnCue, despawnSpread, ctx.sourceGroup()); // ADR-0074: scope each skull's IMPACT
         }
     }
 

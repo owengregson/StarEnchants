@@ -53,13 +53,14 @@ public final class TurretListener implements Listener {
             return;
         }
         Entity shot = event.getDamager();
-        UUID ownerId = TurretCasts.claimImpact(shot.getUniqueId());
-        if (ownerId == null) {
+        TurretCasts.Impact impact = TurretCasts.claimImpact(shot.getUniqueId());
+        if (impact == null) {
             return; // not one of ours, already spent, or fired by nobody — nothing to run IMPACT against
         }
-        Player owner = Bukkit.getPlayer(ownerId);
+        Player owner = Bukkit.getPlayer(impact.owner());
         if (owner != null) {
-            dispatch.fireImpact(owner, victim, event.getDamage());
+            // Scoped to the group that armed the RING (ADR-0074), which the shot carried from its emplacement.
+            dispatch.fireImpact(owner, victim, event.getDamage(), impact.sourceGroup());
         }
     }
 }

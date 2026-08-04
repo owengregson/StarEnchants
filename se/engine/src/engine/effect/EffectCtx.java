@@ -103,6 +103,19 @@ public interface EffectCtx {
     }
 
     /**
+     * The interned cooldown-scope GROUP id of the ability this effect belongs to — the authored {@code group:} —
+     * or {@code -1} when it declares none (and for hand-built contexts).
+     *
+     * <p>This is the identity an effect that ARMS a deferred payload carries into the carrier, so the landing can
+     * fire only that feature's {@code IMPACT} abilities (ADR-0074). Deliberately the group and not
+     * {@link #sourceDefId()}: a field's arm and its payload are two separate authored bonuses with two defIds,
+     * so a defId filter would match nothing at all.
+     */
+    default int sourceGroup() {
+        return -1;
+    }
+
+    /**
      * The activator's active soul-gem id, or {@code null} when they are not in soul mode (REMOVE_SOULS).
      * Souls bind to the activator, so this is the actor's gem — not a target's.
      */

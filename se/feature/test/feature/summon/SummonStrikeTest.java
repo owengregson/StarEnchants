@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -95,10 +96,24 @@ class SummonStrikeTest {
         withOwnerOnline(() -> listener.onStrike(event));
 
         verify(event).setCancelled(true);
-        verify(dispatch).fireImpact(owner, victim, 7.5); // the damage that would have landed, not a default 0
+        verify(dispatch).fireImpact(owner, victim, 7.5, -1); // the damage that would have landed, not a default 0
         verify(zombie).remove();
         assertNull(PetSummons.flags(id), "registries are forgotten before the removal");
         assertNull(GuardianCasts.owner(id));
+    }
+
+    @Test
+    void theSummoningGroupScopesTheCouriersImpact() {
+        // ADR-0074: the courier fires the OWNER's IMPACT abilities, so a summoner who also carries another
+        // IMPACT payload fired that one on every melee hit their zombies landed. The group rides the summon
+        // itself rather than the registry, because payload-consume forgets the registry BEFORE the dispatch.
+        Entity zombie = mock(Entity.class);
+        Player victim = mock(Player.class);
+        arm(zombie, strike(true, true).withSourceGroup(12));
+
+        withOwnerOnline(() -> listener.onStrike(hit(zombie, victim, 5.0)));
+
+        verify(dispatch).fireImpact(owner, victim, 5.0, 12);
     }
 
     @Test
@@ -113,7 +128,7 @@ class SummonStrikeTest {
             listener.onStrike(event); // a re-delivery finds nothing armed
         });
 
-        verify(dispatch, times(1)).fireImpact(any(), any(), anyDouble());
+        verify(dispatch, times(1)).fireImpact(any(), any(), anyDouble(), anyInt());
         verify(zombie, times(1)).remove();
     }
 
@@ -129,7 +144,7 @@ class SummonStrikeTest {
             listener.onStrike(event);
         });
 
-        verify(dispatch, times(2)).fireImpact(owner, victim, 4.0);
+        verify(dispatch, times(2)).fireImpact(owner, victim, 4.0, -1);
         verify(zombie, never()).remove();
         assertNotNull(PetSummons.flags(id), "an unconsumed courier stays armed");
     }
@@ -144,7 +159,7 @@ class SummonStrikeTest {
         withOwnerOnline(() -> listener.onStrike(event));
 
         verify(event, never()).setCancelled(true);
-        verify(dispatch).fireImpact(owner, victim, 3.0);
+        verify(dispatch).fireImpact(owner, victim, 3.0, -1);
         verify(zombie).remove();
     }
 

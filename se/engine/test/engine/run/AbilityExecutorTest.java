@@ -549,6 +549,47 @@ class AbilityExecutorTest {
                 AreaScan.NONE);
     }
 
+    /**
+     * The ability's three int identities reach the effect ctx in their OWN slots (ADR-0074 adds the third).
+     * {@code level}, {@code defId} and {@code cdScopeGroup} are adjacent ints in one constructor call, so a
+     * transposition compiles silently — and would scope a landing by a level or attribute a diagnostic to a
+     * group. Every value here is distinct precisely so that fails.
+     */
+    @Test
+    void theAbilitysLevelDefIdAndGroupReachTheEffectCtxInTheirOwnSlots() {
+        int[] seen = new int[3];
+        EffectRegistry probes = EffectRegistry.builder().register(new IgniteEffect()).register(
+                new engine.effect.EffectKind() {
+                    @Override
+                    public engine.spec.EffectSpec spec() {
+                        return engine.spec.EffectSpec.of("PROBE_IDS").affinity(Affinity.CONTEXT_LOCAL)
+                                .doc("test double").example("{ PROBE_IDS: { } }").build();
+                    }
+
+                    @Override
+                    public void run(engine.effect.EffectCtx ctx, engine.sink.Sink sink) {
+                        seen[0] = ctx.level();
+                        seen[1] = ctx.sourceDefId();
+                        seen[2] = ctx.sourceGroup();
+                    }
+                }).build();
+        AbilityExecutor probing = new AbilityExecutor(probes,
+                SelectorRegistry.builder().register(new SelfSelector()).register(new VictimSelector()).build(),
+                new ActivationPipeline(new CooldownStore(), SoulSpender.NONE), AreaScan.NONE);
+        Ability ability = Abilities.ability().trigger(TRIGGER).level(4).defId(77).cooldownScope(-1, 12, -1)
+                .affinity(Affinity.CONTEXT_LOCAL)
+                .effects(new CompiledEffect("PROBE_IDS", Args.empty(),
+                        new CompiledSelector("SELF", Args.empty()), 0, Affinity.CONTEXT_LOCAL))
+                .build();
+
+        probing.run(new Ability[] {ability}, new int[] {0}, activation(), context(mock(Player.class), null),
+                new ModernDispatchSink(handles, Envs.sink().build()), KEYS);
+
+        assertEquals(4, seen[0], "level");
+        assertEquals(77, seen[1], "sourceDefId");
+        assertEquals(12, seen[2], "sourceGroup");
+    }
+
     private static Activation activation() {
         return Activation.builder(ACTOR, 0, TRIGGER, 0L).build();
     }
