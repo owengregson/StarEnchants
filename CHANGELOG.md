@@ -12,6 +12,17 @@ versioning: [Semantic Versioning](https://semver.org/).
   changed — its content is untouched, and an on-disk copy you already have is never overwritten.
   Apply the new one with `/se pack apply signature-pack`.
 
+### Fixed
+
+- **Diminish and Vengeful Diminish now cap the hit they promise.** ⚠️ *Shipped-behavior change,
+  flagged for pre-release veto.* The armed cap was being spent by the very hit that armed it, so
+  the enchants' own "cap your **next** incoming hit" never happened and the `duration:` window was
+  never consulted. The cap is now claimed before the hit is priced, so it survives its arming hit
+  and clamps the next one to land inside the window — which is what both enchants, their lore and
+  the docs have always advertised. In play the cap now genuinely bites (and Vengeful Diminish's
+  overflow genuinely comes back at the attacker) on a later swing instead of quietly softening the
+  proc swing itself. Any pack using the `DAMAGE_CAP` effect is affected.
+
 ## [1.13.0-beta] — 2026-07-19
 
 A reforge + pet polish pass: the weapon reforges gain their intended feel, two pets are rebalanced,
