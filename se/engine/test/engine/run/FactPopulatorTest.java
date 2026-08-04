@@ -82,6 +82,7 @@ class FactPopulatorTest {
         World world = mock(World.class);
         lenient().when(world.getName()).thenReturn("world_nether");
         lenient().when(p.getWorld()).thenReturn(world);
+        lenient().when(p.getLocation()).thenReturn(new Location(world, 3.5, 41.25, -7.5)); // %actor.y%
         lenient().when(p.getGameMode()).thenReturn(GameMode.SURVIVAL);
         PlayerInventory inv = mock(PlayerInventory.class);
         ItemStack held = mock(ItemStack.class);
@@ -128,6 +129,7 @@ class FactPopulatorTest {
         assertTrue(f.flag(flag("onfire")));   // fireTicks 20 > 0
         assertTrue(f.flag(flag("onground")));
         assertEquals(75.0, f.number(num("actor", "healthpercent"))); // 15 / 20 * 100
+        assertEquals(41.25, f.number(num("actor", "y")));            // feet Y verbatim, not the block or the eye
         assertEquals("world_nether", f.string(str("actor", "world")));
         assertEquals("SURVIVAL", f.string(str("actor", "gamemode")));
         assertEquals("DIAMOND_SWORD", f.string(str("actor", "helditem")));
@@ -372,11 +374,15 @@ class FactPopulatorTest {
     }
 
     @Test
-    void heroicPieceCountsComeFromTheVictimsWornStateAndAreMaskGated() {
+    void heroicPieceCountsComeFromEachSidesOwnWornStateAndAreMaskGated() {
         // The count is a worn-state read by UUID, never a gear scan and never an entity touch — that is what
         // lets a heroic gate price a cross-region victim on Folia. It is also mask-gated: an activation whose
-        // conditions never mention it must not reach the source at all.
+        // conditions never mention it must not reach the source at all. Both sides are asserted on ONE
+        // activation with DIFFERENT counts, so a slot crossed between them (each side reading the other's id —
+        // the only way two facts sharing one source go wrong) cannot pass.
         int slot = num("victim", "heroicpieces");
+        int actorSlot = num("actor", "heroicpieces");
+        UUID actorId = UUID.randomUUID();
         UUID victimId = UUID.randomUUID();
         java.util.List<UUID> consulted = new java.util.ArrayList<>();
         FactPopulator.wornFactSource(new engine.condition.WornFactSource() {
@@ -388,12 +394,15 @@ class FactPopulatorTest {
             @Override
             public int heroicPieces(UUID entity) {
                 consulted.add(entity);
-                return entity.equals(victimId) ? 3 : 0;
+                if (entity.equals(victimId)) {
+                    return 3;
+                }
+                return entity.equals(actorId) ? 1 : 0;
             }
         });
         try {
             Player a = actor();
-            when(a.getUniqueId()).thenReturn(UUID.randomUUID());
+            when(a.getUniqueId()).thenReturn(actorId);
             Player v = mock(Player.class);
             when(v.getUniqueId()).thenReturn(victimId);
             FactPopulator pop = FactPopulator.builtin(new ModernActorProbe());
@@ -401,12 +410,15 @@ class FactPopulatorTest {
             pop.populate(new ActivationContext(a, v, null, null), 0L, FactMask.NONE);
             assertTrue(consulted.isEmpty(), "an unreferenced fact must never consult the source");
 
-            FactMask mask = new FactMask(1L << slot, 0L, 0L);
-            assertEquals(3.0, pop.populate(new ActivationContext(a, v, null, null), 0L, mask).number(slot));
+            FactMask mask = new FactMask((1L << slot) | (1L << actorSlot), 0L, 0L);
+            FactBuffer both = pop.populate(new ActivationContext(a, v, null, null), 0L, mask);
+            assertEquals(3.0, both.number(slot));
+            assertEquals(1.0, both.number(actorSlot), "the actor reads their OWN pieces, not the victim's");
 
-            // No victim: 0, and the source is not asked about the actor instead.
+            // No victim: the victim side is 0, and the source is not asked about the actor in its place.
             consulted.clear();
-            assertEquals(0.0, pop.populate(new ActivationContext(a, null, null, null), 0L, mask).number(slot));
+            FactMask victimOnly = new FactMask(1L << slot, 0L, 0L);
+            assertEquals(0.0, pop.populate(new ActivationContext(a, null, null, null), 0L, victimOnly).number(slot));
             assertTrue(consulted.isEmpty(), "a victimless activation must not read the actor's pieces");
         } finally {
             FactPopulator.wornFactSource(null);
@@ -643,6 +655,7 @@ class FactPopulatorTest {
         lenient().when(actor.getFoodLevel()).thenReturn(5);
         lenient().when(actor.getLevel()).thenReturn(1);
         lenient().when(actor.getTotalExperience()).thenReturn(0);
+        lenient().when(actor.getLocation()).thenReturn(new Location(mock(World.class), 0, 64, 0)); // %actor.y%
         when(actor.isSneaking()).thenReturn(true);
         when(actor.isBlocking()).thenThrow(new IllegalStateException("wrong region"));
 

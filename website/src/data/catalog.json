@@ -6443,6 +6443,10 @@
     "type": "STR"
     },
   {
+    "name": "actor.heroicpieces",
+    "type": "NUM"
+    },
+  {
     "name": "actor.level",
     "type": "NUM"
     },
@@ -6465,6 +6469,10 @@
   {
     "name": "actor.world",
     "type": "STR"
+    },
+  {
+    "name": "actor.y",
+    "type": "NUM"
     },
   {
     "name": "attackerindex",

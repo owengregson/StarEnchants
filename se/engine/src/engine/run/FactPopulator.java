@@ -197,6 +197,7 @@ public final class FactPopulator {
     private final int equipChangeSlot;       // EQUIP/UNEQUIP on an EQUIP_CHANGE activation (from the context)
     private final int itemDurabilitySlot;    // ITEM_DAMAGE: the damaged item's remaining durability % (from the context)
     private final int victimHeroicPiecesSlot; // worn heroic armour pieces on the victim (from the worn-fact source)
+    private final int actorHeroicPiecesSlot;  // worn heroic armour pieces on the actor (from the worn-fact source)
 
     /** Search radius for {@code %nearbyenemies%}, in blocks. */
     private static final double NEARBY_RADIUS = 8.0;
@@ -244,6 +245,9 @@ public final class FactPopulator {
         addActorFlag(vocabulary, "swimming", probe::isSwimming);
         addActorFlag(vocabulary, "gliding", probe::isGliding);
         addActorNum(vocabulary, "actor.healthpercent", actor -> healthPercent(actor));
+        // %actor.y%: feet Y, not eye Y — a build-height gate reads where the player STANDS, and the eye
+        // offset differs by pose (sneak/swim), which would make the same block read two heights.
+        addActorNum(vocabulary, "actor.y", actor -> actor.getLocation().getY());
         addActorFlag(vocabulary, "onfire", actor -> actor.getFireTicks() > 0);
         addActorFlag(vocabulary, "onground", FactPopulator::onGround);
         addActorStr(vocabulary, "actor.world", actor -> actor.getWorld().getName());
@@ -299,6 +303,7 @@ public final class FactPopulator {
         this.equipChangeSlot = slot(vocabulary, "equipchange", VarKind.STR);
         this.itemDurabilitySlot = slot(vocabulary, "item.durabilitypercent", VarKind.NUM);
         this.victimHeroicPiecesSlot = slot(vocabulary, "victim.heroicpieces", VarKind.NUM);
+        this.actorHeroicPiecesSlot = slot(vocabulary, "actor.heroicpieces", VarKind.NUM);
     }
 
     /**
@@ -389,6 +394,11 @@ public final class FactPopulator {
                 }
                 if (id != null && actorSoulsSlot >= 0 && mask.readsNum(actorSoulsSlot)) {
                     facts.setNumber(actorSoulsSlot, soulTotals.current(id));
+                }
+                // %actor.heroicpieces%: the count flattened onto the actor's own WornState, by UUID — the same
+                // no-entity-read rule as its victim-side twin, so it costs nothing on the hit path.
+                if (id != null && actorHeroicPiecesSlot >= 0 && mask.readsNum(actorHeroicPiecesSlot)) {
+                    facts.setNumber(actorHeroicPiecesSlot, wornFactSource.heroicPieces(id));
                 }
                 facts.papiResolver(token -> {
                     String value = vars.get(id, token, nowTicks);
