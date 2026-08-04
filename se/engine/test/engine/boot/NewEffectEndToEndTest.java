@@ -88,7 +88,8 @@ class NewEffectEndToEndTest {
             "FACING_SET: { mode: away, anchor: activator, who: \"@Victim\" }",
             "FALL_SHIELD: { window: 200, who: \"@Victim\" }",
             "VULNERABILITY: { percent: 100, duration: 60, hit-message: \"hit\", "
-                    + "expiry-message: \"off\", who: \"@Victim\" }");
+                    + "expiry-message: \"off\", who: \"@Victim\" }",
+            "SUPPRESS_INCOMING: { scope: GROUP, key: lifesteal, duration: 100, chance: 50, who: \"@Self\" }");
 
     @TempDir
     Path root;

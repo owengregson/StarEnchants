@@ -131,6 +131,17 @@ public final class ActivationPipeline {
             return record(GateOutcome.SUPPRESSED, ability, act,
                     WhyRing.packScope(0, 0, ability.suppressKey()), -1); // transient; id = suppress interner
         }
+        // 5b. DEFENDER-KEYED suppression: the same gate read from the other end. The window lives on the
+        //     VICTIM, so "Immune to X" holds against the opening proc of an engagement — a who=@Attacker
+        //     SUPPRESS armed from DEFENSE always misses it, because the attack pass resolves first. Each
+        //     window rolls its own chance HERE, per incoming activation, which an arm-time roll cannot express.
+        SuppressionStore.Matched defended =
+                suppression.defenderBlocks(ability, act.victimId(), act.nowTicks(), act.chanceRoll());
+        if (defended != null) {
+            releaseCooldowns(ability, act); // nothing reserved yet at gate 5, but symmetric with the arms below
+            return record(GateOutcome.SUPPRESSED, ability, act,
+                    WhyRing.packScope(1, defended.scopeKind(), defended.scopeId()), defended.byDefId());
+        }
         if (suppressed(ability, act)) {
             long d = suppression.blockedDetail(ability, act.actor(), act.nowTicks());
             // d==0 is the benign cross-region race: suppressesAny won, then the window evicted before
@@ -211,8 +222,13 @@ public final class ActivationPipeline {
      * carries an authored window.
      */
     public SuppressionStore.Feedback suppressionFeedback(Ability ability, Activation act) {
-        return ability.suppressImmune() ? null
-                : suppression.blockedFeedback(ability, act.actor(), act.nowTicks());
+        if (ability.suppressImmune()) {
+            return null;
+        }
+        SuppressionStore.Feedback own = suppression.blockedFeedback(ability, act.actor(), act.nowTicks());
+        // A defender-keyed block names its window WITHOUT re-rolling: the roll was already spent deciding the
+        // block, and drawing again to decide what to print could answer differently (or find nothing at all).
+        return own != null ? own : suppression.defenderFeedback(ability, act.victimId(), act.nowTicks());
     }
 
     /** Report one attempt's verdict + per-gate payload to the recorder, then return the verdict (ADR-0045). */

@@ -238,7 +238,7 @@ class CompilerFuzzTest {
      *  (scope KIND: the key is a dense effect kindId instead, ADR-0053); mode lowered to its wire ordinal. */
     private static void assertSuppressBridge(CompiledEffect e, int scopeSize) {
         Args args = e.args();
-        if (!e.head().equals("SUPPRESS") || !args.has("scope") || !args.has("key")) {
+        if (!isSuppressLike(e.head()) || !args.has("scope") || !args.has("key")) {
             return;
         }
         Object scope = args.opt("scope").orElseThrow();
@@ -259,6 +259,11 @@ class CompilerFuzzTest {
             assertTrue(mode instanceof Long m && (m == 0L || m == 1L),
                     () -> "SUPPRESS mode not erased to its wire ordinal: " + mode);
         }
+    }
+
+    /** The two heads the erase stage lowers through the one scope/key bridge (outgoing and incoming). */
+    private static boolean isSuppressLike(String head) {
+        return head.equals("SUPPRESS") || head.equals("SUPPRESS_INCOMING");
     }
 
     private static void assertScope(int id, int size) {
@@ -332,7 +337,7 @@ class CompilerFuzzTest {
     private static void assertParams(ContentFuzz.GeneratedLine line, CompiledEffect e) {
         Args args = e.args();
         ParamSpec spec = EFFECTS.lookup(e.head()).get().spec().paramSpec();
-        boolean suppress = e.head().equals("SUPPRESS");
+        boolean suppress = isSuppressLike(e.head());
         for (Param p : spec.params()) {
             String name = p.name();
             if (suppress && (name.equals("scope") || name.equals("key") || name.equals("mode"))) {

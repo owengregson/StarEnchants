@@ -183,7 +183,8 @@ public final class DefaultEraseStage implements EraseStage {
     }
 
     /**
-     * Lowers each {@code SUPPRESS} effect's args to ints so {@code run} does zero string work: scope
+     * Lowers each {@code SUPPRESS}/{@code SUPPRESS_INCOMING} effect's args to ints so {@code run} does zero
+     * string work — both directions share the one keying, so they must share the one lowering: scope
      * ENCHANT/GROUP/TYPE interns {@code key} into the SAME {@code cooldownScopes} interner the abilities'
      * {@code cdScope*} use (the gate-5 bridge invariant); scope KIND (ADR-0053) resolves {@code key} as an
      * effect head to its dense kindId — an unknown head is an {@code E_UNKNOWN_KIND} and the op is dropped
@@ -195,7 +196,9 @@ public final class DefaultEraseStage implements EraseStage {
         List<CompiledEffect> out = new ArrayList<>(effects.size());
         for (CompiledEffect effect : effects) {
             Args args = effect.args();
-            if (!"SUPPRESS".equals(effect.head()) || !args.has("scope") || !args.has("key")) {
+            boolean suppressLike = "SUPPRESS".equals(effect.head())
+                    || "SUPPRESS_INCOMING".equals(effect.head()); // the same scope/key bridge, other direction
+            if (!suppressLike || !args.has("scope") || !args.has("key")) {
                 out.add(effect);
                 continue;
             }
@@ -206,7 +209,8 @@ public final class DefaultEraseStage implements EraseStage {
                 keyId = effectIdOf == null ? -1 : effectIdOf.applyAsInt(head.toUpperCase(Locale.ROOT));
                 if (effectIdOf != null && keyId < 0) {
                     diags.error(DiagCode.E_UNKNOWN_KIND,
-                            "unknown effect '" + head + "' for SUPPRESS scope KIND — this effect is skipped",
+                            "unknown effect '" + head + "' for " + effect.head()
+                                    + " scope KIND — this effect is skipped",
                             source,
                             "use a registered effect head, e.g. MODIFY_FOOD (run /se docs to list kinds)");
                     continue; // warn-and-skip this one op (the E_UNKNOWN_HANDLE policy)

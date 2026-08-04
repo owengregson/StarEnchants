@@ -389,6 +389,14 @@ effect SUPPRESS
   param consumed-sound HANDLE optional min=- max=- enum=- handle=SOUND default=-
 effect SUPPRESS_IMMUNE
   param chance INT optional min=0 max=100 enum=- handle=- default=100
+effect SUPPRESS_INCOMING
+  param scope ENUM required min=- max=- enum=ENCHANT,GROUP,KIND,TYPE handle=- default=-
+  param key STRING required min=- max=- enum=- handle=- default=-
+  param duration TICKS optional min=0 max=- enum=- handle=- default=200
+  param chance INT optional min=1 max=100 enum=- handle=- default=100
+  param consumed-message-actor STRING optional min=- max=- enum=- handle=- default=
+  param consumed-message-victim STRING optional min=- max=- enum=- handle=- default=
+  param consumed-sound HANDLE optional min=- max=- enum=- handle=SOUND default=-
 effect SWAP_POSITION
   param range DOUBLE optional min=1 max=- enum=- handle=- default=12
   param channel TICKS optional min=0 max=- enum=- handle=- default=40

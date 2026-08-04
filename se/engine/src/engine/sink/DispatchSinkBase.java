@@ -2979,6 +2979,23 @@ public abstract class DispatchSinkBase implements SinkReadback {
         }
     }
 
+    @Override
+    public void suppressIncoming(Player target, int scopeKind, int scopeId, int durationTicks, int chance,
+                                 int byDefId, UUID by, String actorMessage, String victimMessage, int soundId) {
+        if (target == null || scopeId < 0) {
+            return;
+        }
+        SuppressionStore.Feedback feedback = suppressionFeedback(by, actorMessage, victimMessage, soundId);
+        long now = nowTicks.getAsLong();
+        // Same UUID-only, same-thread write as suppress(): per-player in-memory state, no entity read.
+        if (scopeKind == ScopeKinds.KIND) {
+            suppression.defendKind(target.getUniqueId(), scopeId, now, durationTicks, chance, byDefId, feedback);
+            return;
+        }
+        suppression.defend(target.getUniqueId(), CooldownStore.key(scopeKind, scopeId), now, durationTicks,
+                chance, byDefId, feedback);
+    }
+
     /** {@code null} unless the author wrote at least one cue — the ordinary window stores nothing to read back. */
     private static SuppressionStore.Feedback suppressionFeedback(UUID by, String actorMessage,
                                                                  String victimMessage, int soundId) {

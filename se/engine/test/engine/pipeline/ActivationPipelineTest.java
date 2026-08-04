@@ -134,6 +134,50 @@ class ActivationPipelineTest {
     }
 
     @Test
+    void aDefenderKeyedWindowGatesWhatIsAimedAtItsHolderNotWhatItsHolderDoes() {
+        // The whole point of the incoming direction: the window sits on the VICTIM, and the ACTIVATOR (who
+        // carries no window at all) is the one gated. Keyed on the activator instead, this ability would sail
+        // through — which is the leak a who=@Attacker SUPPRESS from DEFENSE has always had.
+        SuppressionStore store = new SuppressionStore();
+        ActivationPipeline p = new ActivationPipeline(cooldowns, spender, store,
+                ActivationPipeline.Guard.ALLOW, ActivationPipeline.Guard.ALLOW);
+        Ab a = new Ab();
+        a.cdGroup = 5;
+        UUID defender = UUID.randomUUID();
+        store.defend(defender, CooldownStore.key(1, 5), 90L, 40, 100, -1, null);
+
+        assertEquals(GateOutcome.SUPPRESSED, p.evaluate(a.build(), act().victimId(defender).build()));
+        assertEquals(GateOutcome.ACTIVATED, p.evaluate(a.build(), act().build()),
+                "the same ability aimed at nobody is untouched — the window is not the activator's");
+        assertEquals(GateOutcome.ACTIVATED,
+                p.evaluate(a.build(), act().victimId(UUID.randomUUID()).build()),
+                "and aimed at someone else it is untouched too");
+        assertEquals(GateOutcome.ACTIVATED,
+                p.evaluate(a.build(), Activation.builder(ACTOR, 3, 0, 140L).victimId(defender).build()),
+                "tick 140: the window elapsed");
+    }
+
+    @Test
+    void aDefenderWindowsChanceIsRolledPerIncomingActivation() {
+        // A partial mask is the case an arm-time roll cannot express at all: the same window must let one proc
+        // through and stop the next. Both verdicts come from ONE window, so a roll hoisted to the arm fails.
+        SuppressionStore store = new SuppressionStore();
+        UUID defender = UUID.randomUUID();
+        Ab a = new Ab();
+        a.cdType = 4;
+        ActivationPipeline p = new ActivationPipeline(cooldowns, spender, store,
+                ActivationPipeline.Guard.ALLOW, ActivationPipeline.Guard.ALLOW);
+        store.defend(defender, CooldownStore.key(2, 4), 0L, 200, 50, -1, null);
+
+        assertEquals(GateOutcome.SUPPRESSED,
+                p.evaluate(a.build(), act().victimId(defender).chanceRoll(() -> 10.0).build()),
+                "a draw under the window's chance blocks");
+        assertEquals(GateOutcome.ACTIVATED,
+                p.evaluate(a.build(), act().victimId(defender).chanceRoll(() -> 90.0).build()),
+                "a draw at or above it lets the proc through, from the SAME live window");
+    }
+
+    @Test
     void suppressionOnlyGatesTheMatchingScopeKindAndId() {
         SuppressionStore store = new SuppressionStore();
         ActivationPipeline p = new ActivationPipeline(cooldowns, spender, store,
