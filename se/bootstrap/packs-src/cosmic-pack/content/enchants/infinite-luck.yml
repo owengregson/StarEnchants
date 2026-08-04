@@ -36,10 +36,17 @@ removes-required: true
 # recorded here and in deferred-content.md rather than softened.
 # CONSUMER (matrix 10, armour sets): a threshold check satisfied when the stored level >= N, over an
 # accumulator each worn LEATHER heroic-armor piece raises by +12.5 (four pieces = 50.0; iron/diamond heroic
-# pieces contribute 0). The codex leaves the semantics past that point UNRESOLVED, and the piece half is a
-# worn-gear CLASSIFICATION and COUNT — the same fact `enchants/hero-killer` is stopped on (WORN_GEAR_FACT),
-# which the wave-1f enchlevel facts do NOT supply. Both halves are matrix 10's to settle; this entry ships
-# the marker only, exactly as its decomposition says.
+# pieces contribute 0). Nothing on THIS file changes when that lands — the marker publishes the level and the
+# arithmetic is the set's — so the entry still ships exactly as its decomposition says, and the two things
+# still owed are the consumer's, recorded here so whoever writes it does not re-derive them:
+#  - the codex leaves the accumulator's semantics UNRESOLVED past the +12.5, so the weighting is an owner /
+#    matrix-10 ruling, not a translation;
+#  - the piece COUNT half is CLOSED (a rebase-time correction: at drain time only the victim-scope
+#    `%victim.heroicpieces%` existed, and this consumer counts the WEARER'S OWN pieces). `%actor.heroicpieces%`
+#    shipped in wave 2d on the same flattened-WornState read, and wave 2e's minted-heroic set pieces made
+#    both counts real. Both are UNWEIGHTED, where the recorded accumulator pays only for leather — but the
+#    three M-Kit sets whose pieces mint heroic are all LEATHER, precisely the case where weighted and
+#    unweighted agree; whether the weighting survives the port stays part of the same ruling.
 # strings: none. era: none.
 levels:
   # The ladder exists so the marker carries a readable level — the stored value IS the level, and every

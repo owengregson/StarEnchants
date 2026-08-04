@@ -1,0 +1,54 @@
+# Matrix: 06-enchants-tools-heroic.md § Experience
+display: "Experience"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe blocks you break give up more"
+  - "&eexperience than they should."
+# MINE, NOT THE MATRIX'S `EXP_GAIN` + `%isblock%`. The decomposition gates one `EXP_MULTIPLY` behind
+# "block-sourced XP only", and that gate has no honest home on the XP-gain path: `PlayerExpChangeEvent`
+# carries no source at all — not a block, not a cause — so nothing hooked there can tell a mined block from a
+# bottle, a furnace, a trade or a kill. Authored WITH the condition the enchant would be silently dead
+# forever (`%isblock%` is false on every XP-gain activation); authored WITHOUT it, a held tool would multiply
+# every XP the holder ever earns by up to 2.25x, which is an economy-wide change, not this enchant.
+# The engine took the other door in wave 2c: `fireMine` reads the sink's XP multiplier and scales the broken
+# block's own yield, so MINE *is* the block-sourced path and the recorded gate is structural rather than
+# authored. Nothing here needs to say "only blocks" — the trigger already has.
+trigger: MINE
+# The jar's 21-material `tools` set: the four TOOL families (5 pickaxes + 5 axes + 5 spades + 5 hoes) plus
+# the fishing rod the composite would drop — the spelling haste.yml, oxygenate.yml and telepathy.yml settled
+# for the same set, under the item-set ruling (take a composite when it matches the jar's set EXACTLY).
+applies-to: [TOOL, FISHING_ROD]
+group: "common"
+tier: common
+# Matrix-06 records no tier for the tool enchants — only the enchant-table weight (6 here) — so the rung
+# comes from the codex's own tier table (`experience` 1 = the ladder's first rung), the same source doc 05's
+# files used for their unrecorded acquisition rows.
+# No chance, no cooldown, no condition: the break IS the activation, at every level (max 5; base 10.0,
+# interval 10.0). A 0-XP block stays 0 — a multiplier over nothing is nothing, so stone costs nothing to
+# scale and no guard is needed.
+# TRUNCATED, NOT ROUNDED. The scaled yield is a whole-orb quantity and the port measured truncation: a
+# 7-XP block runs 8 / 10 / 12 / 14 / 15 across the five rungs, not 9 / 11 / 12 / 14 / 16. (The EXP_GAIN path
+# rounds instead — it scales an amount already granted, where the nearest whole XP is the honest reading.)
+# ORDERING, free: the scaling lands BEFORE the drop read-backs, so a Telepathy or Auto Smelt hand-off on the
+# same swing carries the boosted figure — the matrix's own quirk, reproduced by where the engine applies it
+# rather than by a rule anyone authored.
+# No region or permission check, exactly as measured: the enchant fires on any break the server let through,
+# and a cancelled break never reaches MINE at all.
+# strings: none. era: none.
+levels:
+  # Factor 1.0 + 0.25 x level.
+  1:
+    effects:
+      - { EXP_MULTIPLY: { factor: 1.25 } }
+  2:
+    effects:
+      - { EXP_MULTIPLY: { factor: 1.50 } }
+  3:
+    effects:
+      - { EXP_MULTIPLY: { factor: 1.75 } }
+  4:
+    effects:
+      - { EXP_MULTIPLY: { factor: 2.00 } }
+  5:
+    effects:
+      - { EXP_MULTIPLY: { factor: 2.25 } }

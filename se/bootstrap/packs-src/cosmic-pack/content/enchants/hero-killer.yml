@@ -1,0 +1,54 @@
+# Matrix: 04-enchants-axes.md § Hero Killer
+display: "Hero Killer"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eSpends souls to hit far harder — but only"
+  - "&eagainst a player wearing heroic armor."
+trigger: ATTACK
+applies-to: [AXE]
+group: "soul"
+tier: soul
+soul-cost: 4  # flat at every level, charge-or-abort — the D-04-11 as-intended reading of the jar's gate-then-over-draw
+# THE ATTACKER-SIDE SOUL GATE IS `soul-cost` AND NOTHING ELSE, exactly as soul-trap.yml settled it: an
+# ability carrying a cost never fires outside soul mode and refuses atomically when the cross-gem balance
+# cannot pay, before any effect runs — which IS the matrix's "actor in soul mode with souls > 0" condition.
+# The jar checked `souls > 0` and then removed 4 behind a shared 1000 ms limiter that made same-second procs
+# free; D-04-11 rules 4 per activation, clamped to held souls, the intent, and that is what the charge does.
+# No `no-souls-message`: the matrix records no out-of-souls string, so the refusal is silent. The "soul
+# system enabled" toggle is a pack/config knob, not a per-file condition.
+# The rest of the gate chain, in the order the jar reads it:
+#  - players only;
+#  - the anti-hot-swap window, > 5 t since the last hotbar-slot change, with the `== 0` arm restoring the
+#    unset-means-allowed default for a player who has never switched (the idiom divine-immolation.yml
+#    settled and boss-slayer.yml documents — one fact, one threshold, shared with §Boss Slayer and
+#    §Soul Trap; the one-tick leak on the swap tick is recorded there and shared here);
+#  - `%soultrap% != 1`, the attacker reading HIS OWN copy of the trap mark: a trapped player cannot spend
+#    souls. Bare (actor-scope) read of the var soul-trap.yml writes victim-side, so that name is load-bearing
+#    across the two files; it reads 0 in silence whether or not Soul Trap itself is on anyone's axe;
+#  - THE VICTIM'S HEROIC ARMOR, which is what this enchant is FOR and what kept it deferred through wave 1f.
+#    `%victim.heroicpieces%` (wave 2c) counts how many of the defender's four worn armour pieces carry a
+#    heroic upgrade — a COUNT, not the heroic stat SUM the reduction fold already folds, because "wearing at
+#    least one piece" is a gate no percentage can express and four 10 % pieces must not read as one 40 % one.
+#    Armour ONLY: a heroic sword in the hand is not a piece the defender is wearing.
+# LIVE as of wave 2e: a set member declaring `heroic: true` mints already heroic through the upgrade
+# gesture's own stats write, so the count is real for any M-Kit wearer and the gate bites today. (The drain
+# authored this block as inert-on-purpose while no heroic item existed; the liveness arrived in flight.)
+# The gate is NOT softened either way: without it this would be a flat +10/20/30 % against every player
+# alive, which is a different enchant.
+# Heroic-armour detection is the item model's own classification (`HeroicStat`), never an NBT probe — the
+# same classification the heroic service guards on, counted where slot provenance still exists and read on
+# the hit path off the flattened worn state by UUID, so a cross-region victim is Folia-safe.
+# numbers: max 3; base 10.0, interval 10.0; table weight 2; tier 6 (the `soul` rung). No chance roll — the
+# gate chain IS the rarity. strings: none. era: none (no sounds, no particles).
+condition: "%victim.type% == \"PLAYER\" && (%heldticks% > 5 || %heldticks% == 0) && %soultrap% != 1 && %victim.heroicpieces% >= 1"
+levels:
+  # +10 pp per level on every gated hit, nothing else scales.
+  1:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }
+  2:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 20 } }
+  3:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 30 } }

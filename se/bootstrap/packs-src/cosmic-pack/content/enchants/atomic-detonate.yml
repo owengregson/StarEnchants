@@ -1,0 +1,81 @@
+# Matrix: 06-enchants-tools-heroic.md § Atomic Detonate
+display: "Atomic Detonate"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe heroic grade of Detonate: no roll, no"
+  - "&eslab — a whole cube of wall goes at once."
+trigger: MINE
+# The 21-material `tools` set, exactly as the counterpart carries it (the item-set ruling's canonical
+# spelling: the four TOOL families plus the fishing rod the composite would drop).
+applies-to: [TOOL, FISHING_ROD]
+group: "heroic"
+tier: heroic
+# THE HEROIC APPLICATION CONTRACT (matrix 06 § Heroic application rules) — the full reading lives in
+# reinforced-tank.yml. `requires:` is the APPLY-GATE, `removes-required:` is REPLACE + SLOT-EXEMPT; the gate
+# settles for `partner >= the heroic level applied` rather than the partner's MAX (never exact here —
+# Detonate runs to IX and this grade stops at IV, so Atomic Detonate IV demands Detonate IV, not Detonate
+# IX), and REVERSE-BLOCK is unexpressible (`blacklist:` is checked bidirectionally and would veto the very
+# apply `requires:` demands). Tier 7 = the `heroic` rung (&d, weight 70); table weight 6 is a book-roll
+# number the surface does not carry, and END-SUPPRESS is the tier world rule. Max 4; base 10.0,
+# interval 10.0. The jar's separate face cache per grade is moot — the engine orients from the mined face.
+requires: ["enchants/detonate"]
+removes-required: true
+# Origin-block deny as Detonate: mining a comparator or a sponge runs no explosion at all, and `contains`
+# spans the 1.8 REDSTONE_COMPARATOR_ON / _OFF split and the flattened COMPARATOR in one clause.
+condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\")"
+# TWO OF THE FOUR RUNGS HAVE NO VOLUME, AND SHIP WITHOUT ONE. The recorded cube is a face-oriented box with
+# ASYMMETRIC half-extents — L1 `(1,2,1,2)` is a 4x4 cross-section and L3 `(2,3,2,3)` a 6x6 — while `@Bore`'s
+# cross-section is symmetric (`half-width`/`half-height` give the odd 3x3, 5x5, 7x7 only). L2 `(2,2,2,2)` and
+# L4 `(3,3,3,3)` therefore spell EXACTLY (5x5x5 = 125 and 7x7x7 = 343, block for block); L1 and L3 have no
+# spelling at all — the nearest symmetric cross-sections are 3x3 = 9 and 5x5 = 25 against L1's recorded 16,
+# and 5x5 = 25 and 7x7 = 49 against L3's recorded 36 — so nothing is approximated there — the levels carry the metadata and no effects until `@Bore` takes per-axis
+# extents (deferred-content.md). Consequence stated plainly: the enchant is INERT at L1 and L3, so an upgrade
+# from II to III is a downgrade until that lands.
+# THE PER-BLOCK DENY LIST is the jar's 21-entry blacklist — Detonate's 22 minus its duplicated BEDROCK —
+# and it is authored identically to `detonate.yml`, including the era fallback chains (`1.8|modern`; the
+# compiler takes the first name that exists on the running version) and the same three dead 1.8 ITEM ids
+# dropped for cause (SIGN, WOOD_DOOR, REDSTONE_COMPARATOR). The reading lives in `detonate.yml`; it is
+# repeated here rather than shared because a selector body is a literal.
+# What this grade owes ON TOP of the counterpart's riders, recorded rather than approximated:
+#   - the VOID-DROPS list. Seven bulk materials (COBBLESTONE, STONE, GRAVEL, DIRT, GRASS, SANDSTONE,
+#     NETHERRACK) were destroyed WITHOUT drops inside the cube while everything else dropped normally;
+#     `BREAK_BLOCK.drops` is all-or-nothing, so the cube drops everything and a 343-block blast buries the
+#     miner in cobble the jar would have voided. The only lever that would have paid for it — selling the
+#     bulk instead — is out by owner ruling R9.
+#   - the EXPLOSIVES EXPERT clause. Wearing that mastery dropped this entry's tool-class gating so pickaxe
+#     AND spade ground broke from either tool. Moot here: the tool-class sublists are not authored on either
+#     grade (Detonate's own reading), so every tool already breaks everything the deny list allows and the
+#     flag has nothing left to unlock. When the sublists land, the gate reads
+#     `%actor.enchlevel.explosives-expert%` and NOT the matrix's `%mastery.explosives-expert%` var spelling —
+#     nothing writes that var, and an unknown key reads 0 in silence, so a stale spelling would compile and
+#     gate nothing forever. Plain Detonate must keep ignoring the flag (measured).
+# The Y floor (`y > 0`) is the world's own; the jar's `y > 200` ceiling clause is unreachable with a 7-block
+# span and is not ported. Drop composition (Telepathy / Auto Smelt + Fuse), the Factions and war-zone hooks
+# and spawner bookkeeping are all as Detonate records them. D-06-10 (Auto Sell dropping the `x amount`) is
+# retired by R9; D-06-11 is the same origin re-process D-06-3 names, which the engine's break path does not
+# do; D-06-2's null cached face cannot happen when the face IS the activation.
+# strings: none.
+# era: as Detonate — the deny list's 1.8 spellings ride the fallback chains, and `EXPLOSION_LARGE` is the
+# 1.8-era name of the jar's `LARGE_EXPLODE`, renamed again at 1.20.5 and carried both ways by
+# `Aliases.PARTICLE`.
+levels:
+  # No roll at any rung: the cube is always full size (the counterpart's depth lottery is exactly what the
+  # heroic grade buys out). Depth is `min(9, 3 + level)` = 4 / 5 / 6 / 7, and `@Bore`'s `depth` counts the
+  # activation block's own layer, so the shipped rungs are 5 and 7 layers deep.
+  # One EXPLOSION_LARGE burst and one durability point per explosion, the counterpart's reading verbatim
+  # (per-block particles have no spelling; the pickaxe-only and dropless-block gates on the charge are not
+  # ported).
+  1:
+    effects: []
+  2:
+    effects:
+      - { BREAK_BLOCK: { drops: true, who: "@Bore{half-width=2, half-height=2, depth=5, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+      - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
+  3:
+    effects: []
+  4:
+    effects:
+      - { BREAK_BLOCK: { drops: true, who: "@Bore{half-width=3, half-height=3, depth=7, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+      - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
