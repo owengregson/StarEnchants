@@ -35,17 +35,19 @@ public interface Projectiles {
     String kindOf(Entity entity);
 
     /**
-     * Where a {@link ProjectileHitEvent}'s projectile came down, or {@code null} when this era cannot say it
-     * landed on the world — an entity hit (which BOW/ATTACK already dispatches, so PROJECTILE_LAND must not),
-     * or an era whose event carries no hit accessors at all.
+     * Hands {@code land} the point where a {@link ProjectileHitEvent}'s projectile came down, or calls it not at
+     * all — an entity hit (which BOW/ATTACK already dispatches, so PROJECTILE_LAND must not double-dispatch it),
+     * or a projectile this era cannot follow to the ground.
      *
-     * <p>Era split, both halves verified against the shipped jars: modern reads {@code getHitEntity} /
-     * {@code getHitBlock} (1.11+). 1.8.8's {@code ProjectileHitEvent} exposes ONLY the projectile (javap), is
-     * fired for entity hits as well as block hits ({@code EntityArrow} calls
-     * {@code CraftEventFactory.callProjectileHitEvent} BEFORE branching on the hit entity), and fires while the
-     * arrow still sits at its pre-move position — the hit point is only written afterwards. Neither the
-     * discrimination nor the landing point is derivable there, so the legacy leaf answers {@code null} and the
-     * trigger is inert on 1.8, exactly as ITEM_DAMAGE is inert without {@code PlayerItemDamageEvent} (§4).
+     * <p>A callback rather than a return value because the two eras answer at different TIMES, both verified
+     * against the shipped jars. Modern reads {@code getHitEntity}/{@code getHitBlock} (1.11+) and answers inline.
+     * 1.8.8's {@code ProjectileHitEvent} exposes ONLY the projectile (javap), and {@code EntityArrow} fires it
+     * BEFORE branching on the hit entity and before moving the arrow to the impact — so neither the
+     * discrimination nor the landing point is readable during the event. Both become readable one tick later:
+     * the block branch sets {@code inGround} and ends the tick at the impact, while an entity hit has already
+     * {@code die()}d the arrow. The legacy leaf therefore probes rather than declining, and PROJECTILE_LAND is
+     * live on 1.8 for arrows. It stays inert there for throwables and fireballs, whose hit event fires only once
+     * the projectile is already {@code dead} — nothing survives to probe.
      */
-    Location landingOf(ProjectileHitEvent event);
+    void landing(ProjectileHitEvent event, java.util.function.Consumer<Location> land);
 }

@@ -43,13 +43,19 @@ import java.util.OptionalInt;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Snowball;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -136,6 +142,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
         guiCheck(h);
         degradeChecks(h);
         gearPollChecks(h);
+        projectileLandChecks(h);
         maxHealthCheck(h);
         overhealthChecks(h);
     }
@@ -466,6 +473,81 @@ public final class LegacySmokeSuite implements Harness.Scenario {
 
     private static double horizontal(Vector v) {
         return Math.sqrt(v.getX() * v.getX() + v.getZ() * v.getZ());
+    }
+
+    // ── PROJECTILE_LAND's 1.8 stuck-probe: the answer the hit event cannot give, read a tick later ──
+
+    /**
+     * 1.8's {@code ProjectileHitEvent} fires before the arrow branches on what it hit and before it moves to the
+     * impact, so {@code LegacyProjectiles} defers to the arrow's own {@code inGround} flag one tick on. Only a
+     * booted 1.8 server can say whether that flag is set by then — the whole trigger is dead on this lane if it
+     * is not, silently, exactly as it was before the probe existed.
+     *
+     * <p>The negative half pins the documented residual: a thrown projectile is already {@code dead} when its hit
+     * event fires, so the leaf declines rather than probing a corpse.
+     */
+    private void projectileLandChecks(Harness h) {
+        h.expect("legacy.projectileland.arrowLanding");
+        h.expect("legacy.projectileland.throwableDeclined");
+
+        feature.compat.LegacyProjectiles projectiles = new feature.compat.LegacyProjectiles();
+        AtomicInteger arrowLandings = new AtomicInteger();
+        AtomicInteger throwableLandings = new AtomicInteger();
+        AtomicReference<Location> lastLanding = new AtomicReference<>();
+        Listener probe = new Listener() {
+            @EventHandler
+            public void onHit(ProjectileHitEvent event) {
+                boolean arrow = event.getEntity() instanceof Arrow;
+                projectiles.landing(event, at -> {
+                    (arrow ? arrowLandings : throwableLandings).incrementAndGet();
+                    lastLanding.set(at);
+                });
+            }
+        };
+        plugin.getServer().getPluginManager().registerEvents(probe, plugin);
+
+        World world = plugin.getServer().getWorlds().get(0);
+        Location at = world.getSpawnLocation();
+        Scheduling.onRegion(at, () -> {
+            Player shooter;
+            try {
+                shooter = FakePlayers.spawn(world, "se_lc_pl");
+            } catch (Throwable t) {
+                h.fail("legacy.projectileland.arrowLanding", "spawn on 1.8: " + t);
+                HandlerList.unregisterAll(probe);
+                return;
+            }
+            Scheduling.onEntity(shooter, () -> {
+                // Dropped from above the shooter rather than launched from the hand: a point-blank launch can
+                // clip the shooter, and the contract under test is the landing, not the trajectory.
+                Location drop = at.clone().add(0.5, 4.0, 0.5);
+                Arrow arrow = world.spawnArrow(drop, new Vector(0.0, -1.0, 0.0), 2.0f, 0.0f);
+                arrow.setShooter(shooter);
+                Snowball snowball = (Snowball) world.spawnEntity(drop, EntityType.SNOWBALL);
+                snowball.setShooter(shooter);
+                snowball.setVelocity(new Vector(0.0, -1.0, 0.0));
+                Scheduling.onEntityLater(shooter, 60L, () -> {
+                    h.guard("legacy.projectileland.arrowLanding", () -> {
+                        if (arrowLandings.get() != 1) {
+                            throw new IllegalStateException("expected exactly 1 arrow landing from the 1.8 "
+                                    + "in-ground probe, got " + arrowLandings.get());
+                        }
+                        Location landed = lastLanding.get();
+                        if (landed == null || landed.distance(at) > 6.0) {
+                            throw new IllegalStateException("landing anchored away from the drop column: " + landed);
+                        }
+                    });
+                    h.guard("legacy.projectileland.throwableDeclined", () -> {
+                        if (throwableLandings.get() != 0) {
+                            throw new IllegalStateException("a thrown projectile reached PROJECTILE_LAND on 1.8 ("
+                                    + throwableLandings.get() + ") — the leaf must decline what it cannot probe");
+                        }
+                    });
+                    HandlerList.unregisterAll(probe);
+                    FakePlayers.despawn(shooter);
+                });
+            });
+        });
     }
 
     // ── §6 gear-poll identity (F10/F11): the 1.8 poll tracks each slot's combat-state blob, not just material ──

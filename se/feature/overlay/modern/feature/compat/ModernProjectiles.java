@@ -1,5 +1,6 @@
 package feature.compat;
 
+import java.util.function.Consumer;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.AbstractArrow;
@@ -26,13 +27,13 @@ public final class ModernProjectiles implements Projectiles {
     }
 
     @Override
-    public Location landingOf(ProjectileHitEvent event) {
+    public void landing(ProjectileHitEvent event, Consumer<Location> land) {
         if (event.getHitEntity() != null) {
-            return null; // BOW/ATTACK owns entity hits — PROJECTILE_LAND must not double-dispatch them
+            return; // BOW/ATTACK owns entity hits — PROJECTILE_LAND must not double-dispatch them
         }
         Block block = event.getHitBlock();
         // Block centre, not the corner: an @Aoe anchored on the corner reaches a block less on one side.
-        return block != null ? block.getLocation().add(0.5, 0.5, 0.5) : event.getEntity().getLocation();
+        land.accept(block != null ? block.getLocation().add(0.5, 0.5, 0.5) : event.getEntity().getLocation());
     }
 
     @Override

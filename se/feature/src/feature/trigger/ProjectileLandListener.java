@@ -2,7 +2,6 @@ package feature.trigger;
 
 import feature.compat.Projectiles;
 import java.util.Objects;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -14,9 +13,11 @@ import org.bukkit.event.entity.ProjectileHitEvent;
  * BOW fires at the entity a shot HITS — so a landing-AoE bow ability or a web field had no hook.
  *
  * <p>The landing point (and whether this event is a landing at all) comes from the {@link Projectiles} era
- * seam, which is also where the no-double-dispatch rule lives: an entity hit answers {@code null} because
- * BOW/ATTACK already dispatched it. Runs on the landing region's thread, so the projectile read is Folia-safe;
- * the shooter's worn abilities resolve from the immutable WornState and effects route through the sink.
+ * seam, which is also where the no-double-dispatch rule lives: an entity hit calls nothing back because
+ * BOW/ATTACK already dispatched it. The seam also owns WHEN it answers — modern inline, 1.8 a tick later off
+ * the arrow's own entity scheduler, which is why this is a callback. Either way the dispatch runs on the
+ * landing region's thread, so the projectile read is Folia-safe; the shooter's worn abilities resolve from the
+ * immutable WornState and effects route through the sink.
  */
 public final class ProjectileLandListener implements Listener {
 
@@ -33,9 +34,6 @@ public final class ProjectileLandListener implements Listener {
         if (!(event.getEntity().getShooter() instanceof Player shooter)) {
             return; // a skeleton's arrow carries nobody's enchants
         }
-        Location at = projectiles.landingOf(event);
-        if (at != null) {
-            dispatch.fireProjectileLand(shooter, at);
-        }
+        projectiles.landing(event, at -> dispatch.fireProjectileLand(shooter, at));
     }
 }

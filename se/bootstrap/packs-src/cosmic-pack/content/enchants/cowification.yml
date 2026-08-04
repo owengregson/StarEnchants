@@ -38,8 +38,8 @@ tier: uncommon
 # landing point alone.
 # strings: none.
 # era: the 1.8.9 mount API takes a single passenger — engine-owned, the rider effect falls back accordingly.
-# PROJECTILE_LAND is INERT on 1.8.9 (the era seam cannot tell a landing from an entity hit, nor read the hit
-# point), so the landing AoE simply never runs on the legacy fork; the direct-hit pair and the rider both do.
+# PROJECTILE_LAND is LIVE on 1.8.9 for arrows — the era's hit event fires before the arrow branches or moves,
+# so the seam probes its in-ground flag a tick later; the landing AoE, the direct-hit pair and the rider all run.
 # `EXPLOSION_LARGE` renames at 1.20.5 (resolver). `ENTITY_COW_AMBIENT`/`ENTITY_COW_HURT` are the modern
 # spellings of 1.8's `COW_IDLE`/`COW_HURT` and both now carry rows in `Aliases.SOUND` (wave 2e.2, closing the
 # legacy sweep), so the herd is audible on the 1.8 lane.
