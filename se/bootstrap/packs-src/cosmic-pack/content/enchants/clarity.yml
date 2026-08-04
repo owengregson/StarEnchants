@@ -9,9 +9,8 @@ applies-to: [ARMOR]
 group: "legendary"
 tier: legendary
 repeat: 3  # scan period, level-independent
-# era: `BLOCK_FIRE_EXTINGUISH` is 1.8's `FIZZ`, and `Aliases.SOUND` carries no row for the pair — this entry
-# authors exactly ONE sound, so the scrub is silent on the legacy lane until it lands (one of four tokens the
-# wave-2e.2 sweep missed; re-ledgered on the legacy list).
+# era: `BLOCK_FIRE_EXTINGUISH` is 1.8's `FIZZ` (`random.fizz`) and `Aliases.SOUND` carries the row, so the
+# scrub is audible on both lanes — it matters here because this entry authors exactly ONE sound.
 # Grace window: the matrix's interactions line is the authority (its activation line's %clarity.grace%
 # condition is not an authorable fact) — the grace is a SUPPRESS(scope=ENCHANT, key=enchants/clarity),
 # armed here on @Self so gate 5 holds off the 3-tick re-fire for one blindness window. Durations are the

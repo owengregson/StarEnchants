@@ -115,9 +115,7 @@ bonuses:
     effects:
       - { DAMAGE_MOD: { side: attack, mode: add, amount: 20 } }
 # era: WITHER_SPAWN/WITHER_DEATH are the 1.8 sound names, authored modern (ENTITY_WITHER_*) as the rest of
-# this pack does — but only the SPAWN half resolves back: `Aliases.SOUND` carries `WITHER_SPAWN` and has no
-# `WITHER_DEATH` row, so the death cue alone is silent on 1.8. One of four tokens the wave-2e.2 sweep's
-# "still-owed list is empty" claim missed; re-ledgered on the legacy list.
+# this pack does; `Aliases.SOUND` carries both rows, so each half resolves back on 1.8.
 # The particles keep their classic names: WITCH_MAGIC
 # → SPELL_WITCH (WITCH on the modern registry), and LARGE_EXPLODE → EXPLOSION_LARGE (modern EXPLOSION — the
 # alias table gives EXPLOSION_EMITTER to 1.8's EXPLOSION_HUGE, one step up). The strike's

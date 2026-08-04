@@ -32,12 +32,11 @@ tier: epic
 # No ally/PvP filter beyond the engine's global gates, matching the jar.
 # strings: none.
 # era: `CRIT_MAGIC` maps to 1.8's `magicCrit` through `Aliases.PARTICLE` (already carried).
-# `ANVIL_BREAK` (1.8.9) is authored as `BLOCK_ANVIL_BREAK`, the batch-03 spelling `disarmor.yml` and
-# `disintegrate.yml` ship — the pack carries ONE modern spelling for that constant. The matrix records
-# DESTROY on this entry, but the collision is settled pack-wide rather than per file, and the settled row
-# (`ANVIL_BREAK` -> `BLOCK_ANVIL_BREAK`) has LANDED in `Aliases.SOUND`, so the legacy lane resolves today.
-# Open only on the cue's CHARACTER: 1.8's `random.anvil_break` is modern `block.anvil.destroy`, so if that
-# matters the sweep flips all three files and the alias row together (deferred-content.md legacy sweep).
+# `ANVIL_BREAK` (1.8.9) is authored as `BLOCK_ANVIL_DESTROY`, the one spelling the pack carries for that
+# constant — `disarmor.yml` and `disintegrate.yml` ship it too, and the row `ANVIL_BREAK` ->
+# `BLOCK_ANVIL_DESTROY` is in `Aliases.SOUND`, so both lanes resolve. The character question the matrix
+# raised is settled its way: 1.8's `random.anvil_break` is the SHATTER, not a block break (1.8's anvil step
+# sound answers `dig.stone` for its break), and modern `block.anvil.destroy` is the cue that inherited it.
 levels:
   # Chance 25/30/35/40/45 % (`0.05*level + 0.2`; L2/L3 measure 30.000000000000004 / 35.000000000000003) —
   # level-scoped, so all four distance branches share the single roll the jar made before branching.
@@ -51,22 +50,22 @@ levels:
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
           # The jar played this to the ATTACKER at the victim's location; SOUND has no `who`, so it plays at
           # the activation location for everyone in earshot (delivery delta, recorded).
-          - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
       - condition: "%victim.type% == \"PLAYER\" && %distance% >= 10 && %distance% < 20"
         effects:
           - { DURABILITY: { amount: 2, target: "armor", mode: "damage", who: "@Victim" } }
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
       - condition: "%victim.type% == \"PLAYER\" && %distance% >= 20 && %distance% < 32"
         effects:
           - { DURABILITY: { amount: 3, target: "armor", mode: "damage", who: "@Victim" } }
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
       - condition: "%victim.type% == \"PLAYER\" && %distance% >= 32"
         effects:
           - { DURABILITY: { amount: 4, target: "armor", mode: "damage", who: "@Victim" } }
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
   2:
     chance: 30
     abilities:
@@ -74,22 +73,22 @@ levels:
         effects:
           - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
       - condition: "%victim.type% == \"PLAYER\" && %distance% >= 10 && %distance% < 20"
         effects:
           - { DURABILITY: { amount: 2, target: "armor", mode: "damage", who: "@Victim" } }
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
       - condition: "%victim.type% == \"PLAYER\" && %distance% >= 20 && %distance% < 32"
         effects:
           - { DURABILITY: { amount: 3, target: "armor", mode: "damage", who: "@Victim" } }
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
       - condition: "%victim.type% == \"PLAYER\" && %distance% >= 32"
         effects:
           - { DURABILITY: { amount: 4, target: "armor", mode: "damage", who: "@Victim" } }
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
   3:
     chance: 35
     abilities:
@@ -97,22 +96,22 @@ levels:
         effects:
           - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
       - condition: "%victim.type% == \"PLAYER\" && %distance% >= 10 && %distance% < 20"
         effects:
           - { DURABILITY: { amount: 2, target: "armor", mode: "damage", who: "@Victim" } }
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
       - condition: "%victim.type% == \"PLAYER\" && %distance% >= 20 && %distance% < 32"
         effects:
           - { DURABILITY: { amount: 3, target: "armor", mode: "damage", who: "@Victim" } }
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
       - condition: "%victim.type% == \"PLAYER\" && %distance% >= 32"
         effects:
           - { DURABILITY: { amount: 4, target: "armor", mode: "damage", who: "@Victim" } }
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
   4:
     chance: 40
     abilities:
@@ -120,22 +119,22 @@ levels:
         effects:
           - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
       - condition: "%victim.type% == \"PLAYER\" && %distance% >= 10 && %distance% < 20"
         effects:
           - { DURABILITY: { amount: 2, target: "armor", mode: "damage", who: "@Victim" } }
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
       - condition: "%victim.type% == \"PLAYER\" && %distance% >= 20 && %distance% < 32"
         effects:
           - { DURABILITY: { amount: 3, target: "armor", mode: "damage", who: "@Victim" } }
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
       - condition: "%victim.type% == \"PLAYER\" && %distance% >= 32"
         effects:
           - { DURABILITY: { amount: 4, target: "armor", mode: "damage", who: "@Victim" } }
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
   5:
     chance: 45
     abilities:
@@ -143,19 +142,19 @@ levels:
         effects:
           - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
       - condition: "%victim.type% == \"PLAYER\" && %distance% >= 10 && %distance% < 20"
         effects:
           - { DURABILITY: { amount: 2, target: "armor", mode: "damage", who: "@Victim" } }
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
       - condition: "%victim.type% == \"PLAYER\" && %distance% >= 20 && %distance% < 32"
         effects:
           - { DURABILITY: { amount: 3, target: "armor", mode: "damage", who: "@Victim" } }
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
       - condition: "%victim.type% == \"PLAYER\" && %distance% >= 32"
         effects:
           - { DURABILITY: { amount: 4, target: "armor", mode: "damage", who: "@Victim" } }
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }

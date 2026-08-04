@@ -20,9 +20,8 @@ cooldown: 200
 # ever replaced; the pack-wide flip landed with the token — `enchants/spirits` and `enchants/undead-ruse` took
 # the same edit.)
 # era: iron golems on 1.8 carry NoAI/targeting quirks (datawatcher 15) — GUARD must go through the era shim;
-# ENTITY_IRON_GOLEM_DEATH → 1.8.9 `mob.irongolem.death`, whose `IRONGOLEM_DEATH` row `Aliases.SOUND` does NOT
-# carry, so that cue is silent on the legacy lane (spirits.yml authors the same token and records the same
-# gap — one of four the wave-2e.2 sweep missed, re-ledgered on the legacy list).
+# ENTITY_IRON_GOLEM_DEATH → 1.8.9 `mob.irongolem.death`, whose `IRONGOLEM_DEATH` row `Aliases.SOUND` carries,
+# so the cue plays on both lanes (spirits.yml authors the same token off the same row).
 levels:
   1:
     chance: 6
