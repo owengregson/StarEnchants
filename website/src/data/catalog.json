@@ -5643,15 +5643,15 @@
     },
   {
     "head": "STATUS_CLEAR",
-    "doc": "Remove an active engine status window from each target: TELEBLOCK (the teleport denial), POTION_LOCK (every potion denial held on them), or DISARM (the armed disarm window). Unlike CURE this touches no potion EFFECT — it lifts the plugin state that was denying one. Clearing a window nobody holds is a silent no-op, so the authored condition decides what a wasted use costs.",
+    "doc": "Remove an active engine status window from each target: TELEBLOCK (the teleport denial), POTION_LOCK (every potion denial held on them), DISARM (the armed disarm window), or FREEZE (a live freeze, with its damage-over-time and both movement modifiers). Unlike CURE this touches no potion EFFECT — it lifts the plugin state that was denying one. Clearing a window nobody holds is a silent no-op, so the authored condition decides what a wasted use costs.",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ STATUS_CLEAR: { status: <enum{TELEBLOCK|POTION_LOCK|DISARM}> } }",
+    "usage": "{ STATUS_CLEAR: { status: <enum{TELEBLOCK|POTION_LOCK|DISARM|FREEZE}> } }",
     "example": "{ STATUS_CLEAR: { status: TELEBLOCK, who: \"@Self\" } }",
     "params": [
       {
         "name": "status",
         "kind": "ENUM",
-        "label": "enum{TELEBLOCK|POTION_LOCK|DISARM}",
+        "label": "enum{TELEBLOCK|POTION_LOCK|DISARM|FREEZE}",
         "required": true,
         "default": null,
         "min": null,
@@ -5659,7 +5659,8 @@
         "enum": [
           "TELEBLOCK",
           "POTION_LOCK",
-          "DISARM"
+          "DISARM",
+          "FREEZE"
           ],
         "handle": null,
         "doc": "which engine window to lift"

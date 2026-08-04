@@ -298,7 +298,12 @@ class FanOutEffectTest {
                 playerOnly("STATUS_CLEAR → clearStatus carries the named window's wire code",
                         new StatusClearEffect(),
                         c -> c.with("status", "POTION_LOCK"),
-                        (s, p) -> verify(s).clearStatus(p, engine.sink.StatusKinds.POTION_LOCK)));
+                        (s, p) -> verify(s).clearStatus(p, engine.sink.StatusKinds.POTION_LOCK)),
+                // The newest rung: a mis-appended ordinal would silently thaw nothing (or clear a disarm).
+                playerOnly("STATUS_CLEAR → FREEZE maps to the freeze window, not the rung beside it",
+                        new StatusClearEffect(),
+                        c -> c.with("status", "FREEZE"),
+                        (s, p) -> verify(s).clearStatus(p, engine.sink.StatusKinds.FREEZE)));
     }
 
     /** The wave-1d.2 kinds whose fan-out shape is neither plain-entity nor plain-player. */

@@ -447,7 +447,7 @@ effect STACKING_DOT
   param duration TICKS optional min=1 max=- enum=- handle=- default=200
   param message STRING optional min=- max=- enum=- handle=- default=
 effect STATUS_CLEAR
-  param status ENUM required min=- max=- enum=DISARM,POTION_LOCK,TELEBLOCK handle=- default=-
+  param status ENUM required min=- max=- enum=DISARM,FREEZE,POTION_LOCK,TELEBLOCK handle=- default=-
 effect STRIP_SCROLL
   param scroll ENUM optional min=- max=- enum=HOLY,WHITE handle=- default=HOLY
   param hand BOOL optional min=- max=- enum=- handle=- default=true

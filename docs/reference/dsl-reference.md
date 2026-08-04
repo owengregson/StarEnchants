@@ -1175,11 +1175,11 @@ Watch each target for `duration` and, every `period` ticks they spend standing o
 
 ### STATUS_CLEAR
 
-Remove an active engine status window from each target: TELEBLOCK (the teleport denial), POTION_LOCK (every potion denial held on them), or DISARM (the armed disarm window). Unlike CURE this touches no potion EFFECT — it lifts the plugin state that was denying one. Clearing a window nobody holds is a silent no-op, so the authored condition decides what a wasted use costs.
+Remove an active engine status window from each target: TELEBLOCK (the teleport denial), POTION_LOCK (every potion denial held on them), DISARM (the armed disarm window), or FREEZE (a live freeze, with its damage-over-time and both movement modifiers). Unlike CURE this touches no potion EFFECT — it lifts the plugin state that was denying one. Clearing a window nobody holds is a silent no-op, so the authored condition decides what a wasted use costs.
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ STATUS_CLEAR: { status: <enum{TELEBLOCK|POTION_LOCK|DISARM}> } }`
-- _param_ `status` `enum{TELEBLOCK|POTION_LOCK|DISARM}` — which engine window to lift
+- _usage_: `{ STATUS_CLEAR: { status: <enum{TELEBLOCK|POTION_LOCK|DISARM|FREEZE}> } }`
+- _param_ `status` `enum{TELEBLOCK|POTION_LOCK|DISARM|FREEZE}` — which engine window to lift
 - _target_ `who`: selector `SELF`
 - _example_: `{ STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }`
 
