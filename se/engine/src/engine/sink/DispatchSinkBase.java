@@ -5,6 +5,7 @@ import engine.interact.DamageFold;
 import engine.selector.kind.Allies;
 import engine.selector.kind.Targets;
 import engine.stores.BatteryStore;
+import engine.stores.BookRateStore;
 import engine.stores.CooldownStore;
 import engine.stores.DamageCapStore;
 import engine.stores.DisarmWindowStore;
@@ -19,6 +20,7 @@ import engine.stores.OutgoingDebuffStore;
 import engine.stores.ReboundStore;
 import engine.stores.RecentAttackersStore;
 import engine.stores.ReflectMarksStore;
+import engine.stores.SoulExemptStore;
 import engine.stores.SuppressionStore;
 import engine.stores.TeleblockStore;
 import engine.stores.VarStore;
@@ -60,6 +62,7 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Tameable;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -231,6 +234,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final SummonPayloads payloads;
     /** The per-site protection gate (gate 2's provider list), asked once per TURRET_RING emplacement. */
     private final SiteGate siteGate;
+    /** The ITEM_XP_TRACK seam the pets family implements (item-attached progression is theirs, not the engine's). */
+    private final ItemXpGrant itemXp;
+    /** SOUL_COST_EXEMPT windows — gate 10's waiver, re-read here for the REMOVE_SOULS debit path. */
+    private final SoulExemptStore soulExempt;
+    /** BOOK_RATE_MODIFIER charges, spent by the book economy's own roll sites. */
+    private final BookRateStore bookRate;
 
     /** The event's own entity (the combat victim), whose zero-WAIT health writes run inline at flush (ADR-0051). */
     private LivingEntity eventEntity;
@@ -297,6 +306,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.visibility = env.visibility();
         this.payloads = env.payloads();
         this.siteGate = env.siteGate();
+        this.itemXp = env.itemXp();
+        this.soulExempt = env.stores().soulExempt();
+        this.bookRate = env.stores().bookRate();
         this.fold = new DamageFold();
         this.activeFold = this.fold;
     }
@@ -3376,6 +3388,13 @@ public abstract class DispatchSinkBase implements SinkReadback {
         if (holder == null || gemId == null || amount <= 0) {
             return;
         }
+        // SOUL_COST_EXEMPT covers this path too. REMOVE_SOULS@Self is the OTHER way an activation deducts the
+        // actor's souls — it never passes gate 10 — so leaving it out would make "no soul costs" mean "no soul
+        // costs except the ones authored as an effect", which is not what the item promises.
+        if (soulExempt.waives(holder.getUniqueId(), nowTicks.getAsLong())) {
+            soulRefundNotice(holder, amount);
+            return;
+        }
         // Route to the HOLDER's own thread (not global like money): the debit write-throughs the gem's PDC
         // wherever it sits in the holder's inventory, which is region-bound on Folia. The in-memory authority
         // debit drains the holder's gems least-first inside SoulDebit.debit on that thread.
@@ -4151,5 +4170,132 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 target.sendMessage(Colors.translate(lapse)); // already on the target's own thread
             }
         });
+    }
+
+    // ── Soul-cost exemption + book-rate charges (pet-family economy hooks) ─────────────────────
+
+    @Override
+    public void armSoulExempt(Player holder, int durationTicks, int threshold, String message) {
+        if (holder == null) {
+            return;
+        }
+        // Per-player in-memory window keyed on the UUID alone — no entity read, so Folia-safe inline on the
+        // firing thread, exactly like the suppression arms.
+        soulExempt.arm(holder.getUniqueId(), nowTicks.getAsLong(), durationTicks, threshold, message);
+    }
+
+    @Override
+    public void soulRefundNotice(Player holder, int souls) {
+        if (holder == null || souls <= 0) {
+            return;
+        }
+        String line = soulExempt.refundMessage(holder.getUniqueId(), nowTicks.getAsLong(), souls);
+        if (!line.isEmpty()) {
+            message(holder, Tokens.sub(line, "souls", souls));
+        }
+    }
+
+    @Override
+    public void armBookRate(Player holder, int site, int percent) {
+        if (holder != null) {
+            bookRate.arm(holder.getUniqueId(), site, percent);
+        }
+    }
+
+    // ── Inventory conversion (INVENTORY_CONVERT) ──────────────────────────────────────────────
+
+    @Override
+    public void convertInventory(Player actor, int fromMaterialId, int toMaterialId, int limit, boolean plain,
+                                 int protectTicks, String countVar) {
+        if (actor == null || limit <= 0) {
+            return;
+        }
+        Material from = material(fromMaterialId);
+        Material to = material(toMaterialId);
+        if (from == null || to == null || !isItemMaterial(from) || !isItemMaterial(to)) {
+            return;
+        }
+        // The PLAN is read INLINE — a pure read of the ACTIVATOR's own inventory, which the firing thread owns
+        // on every USE activation (this kind's only consumer). It has to be inline: the converted count is what
+        // the zero-converted branch and the XP grant gate on, and a count written after the flush is a count no
+        // ability in the same walk can read. A cross-region actor (a resolved projectile shooter) degrades to
+        // converting nothing, the way PetService's cage pre-check degrades — never a cross-region inventory read.
+        int[] amounts = Regions.read("DispatchSink.convertInventory",
+                () -> eligibleAmounts(actor, from, plain), null);
+        if (amounts == null) {
+            return;
+        }
+        int[] plan = ConversionPlan.plan(amounts, limit);
+        if (countVar != null && !countVar.isEmpty()) {
+            vars.set(actor.getUniqueId(), countVar, Integer.toString(ConversionPlan.converted(plan)),
+                    nowTicks.getAsLong(), 0);
+        }
+        if (ConversionPlan.converted(plan) <= 0) {
+            return; // nothing matched: no mutation to schedule, and the count var already says so
+        }
+        UUID owner = actor.getUniqueId();
+        // The MUTATION still hops (the §3.6 rule): reads may be inline, writes route to the owning thread.
+        entityOp(actor, () -> {
+            PlayerInventory inventory = actor.getInventory();
+            Location at = actor.getLocation();
+            for (int i = 1; i + 2 < plan.length; i += 3) {
+                int slot = plan[i];
+                int take = plan[i + 1];
+                int leftover = plan[i + 2];
+                ItemStack held = inventory.getItem(slot);
+                // Re-validate: an earlier intent in this same flush may already have moved the stack, and a
+                // plan applied to whatever now sits in that slot would convert somebody's unrelated items.
+                if (held == null || held.getType() != from || held.getAmount() != take + leftover
+                        || (plain && held.hasItemMeta())) {
+                    continue;
+                }
+                inventory.setItem(slot, null);
+                giveProtected(actor, owner, new ItemStack(to, take), at, protectTicks);
+                if (leftover > 0) {
+                    giveProtected(actor, owner, new ItemStack(from, leftover), at, protectTicks);
+                }
+            }
+        });
+    }
+
+    /** Each slot's ELIGIBLE amount for the conversion; {@link ConversionPlan#SKIP} where the slot cannot
+     *  contribute. Reading the inventory is all this does — the budget arithmetic is {@link ConversionPlan}. */
+    private static int[] eligibleAmounts(Player actor, Material from, boolean plain) {
+        ItemStack[] contents = actor.getInventory().getContents();
+        int[] amounts = new int[contents.length];
+        for (int slot = 0; slot < contents.length; slot++) {
+            ItemStack stack = contents[slot];
+            // A named/enchanted/PDC-carrying stack is somebody's keepsake, not raw material.
+            if (stack != null && stack.getType() == from && !(plain && stack.hasItemMeta())) {
+                amounts[slot] = Math.max(ConversionPlan.SKIP, stack.getAmount());
+            }
+        }
+        return amounts;
+    }
+
+    /** Give {@code stack} to {@code actor}, owner-locking whatever overflows to the ground for {@code ticks}. */
+    private void giveProtected(Player actor, UUID owner, ItemStack stack, Location at, int ticks) {
+        for (org.bukkit.entity.Item dropped : Inventories.giveOrDropTracked(actor, stack, at)) {
+            protectDrop(dropped, owner, ticks);
+        }
+    }
+
+    @Override
+    public void itemXpTrack(Player holder, int amount, int windowMinutes, String gainMessage,
+                            String levelUpMessage) {
+        if (holder == null || amount <= 0) {
+            return;
+        }
+        // The HOLDER's own thread: the grant reads the held slot, mutates that stack's item data and writes the
+        // slot back, all of which is region-bound to wherever the holder is.
+        entityOp(holder, () -> itemXp.grant(holder, amount, windowMinutes, gainMessage, levelUpMessage));
+    }
+
+    /**
+     * Owner-lock a dropped item to {@code owner} for {@code ticks} ({@code INVENTORY_CONVERT}'s
+     * {@code protect-seconds}). Base = recorded no-op: 1.8.9's {@code Item} carries no owner API, so the
+     * legacy tree drops unprotected rather than pretending otherwise.
+     */
+    protected void protectDrop(org.bukkit.entity.Item dropped, UUID owner, int ticks) {
     }
 }

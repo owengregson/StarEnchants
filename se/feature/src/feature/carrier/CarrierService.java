@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import platform.item.ItemGroups;
@@ -49,6 +50,7 @@ public final class CarrierService {
     private final ItemGroups groups; // §I applies-to gate — the white scroll only protects the configured item kinds
     private final platform.lang.Messages messages; // §I the applies reject reads common.wrong-applies (single source)
     private final java.util.function.Supplier<compile.load.MasterConfig.ApplyCuesSection> applyCues; // universal book-apply feedback (config.yml apply-cues), live
+    private final engine.stores.BookRateStore bookRates; // BOOK_RATE_MODIFIER's apply-site charge, spent at the roll
 
     /**
      * Canonical form (composition root): likeness suppliers re-read on use so a {@code /se reload} re-tunes
@@ -69,6 +71,23 @@ public final class CarrierService {
                           java.util.function.Consumer<ItemStack> reRender,
                           ItemGroups groups, platform.lang.Messages messages,
                           java.util.function.Supplier<compile.load.MasterConfig.ApplyCuesSection> applyCues) {
+        this(codec, enchanter, content, random, bookConfig, dustConfig, whiteScrollConfig, roman, maxBookSuccess,
+                slot, reRender, groups, messages, applyCues, new engine.stores.BookRateStore());
+    }
+
+    /** The composition-root form: {@code bookRates} must be the engine aggregate's store, or a pet's armed
+     *  apply charge is never seen by the roll it was armed for. */
+    public CarrierService(CarrierCodec codec, ItemEnchanter enchanter, ContentHolder content, Random random,
+                          java.util.function.Supplier<compile.load.EnchantBookConfig> bookConfig,
+                          java.util.function.Supplier<compile.load.DustConfig> dustConfig,
+                          java.util.function.Supplier<compile.load.WhiteScrollConfig> whiteScrollConfig,
+                          java.util.function.BooleanSupplier roman,
+                          java.util.function.IntSupplier maxBookSuccess,
+                          item.codec.AppliedSlot slot,
+                          java.util.function.Consumer<ItemStack> reRender,
+                          ItemGroups groups, platform.lang.Messages messages,
+                          java.util.function.Supplier<compile.load.MasterConfig.ApplyCuesSection> applyCues,
+                          engine.stores.BookRateStore bookRates) {
         this.codec = Objects.requireNonNull(codec, "codec");
         this.enchanter = Objects.requireNonNull(enchanter, "enchanter");
         this.content = Objects.requireNonNull(content, "content");
@@ -83,6 +102,7 @@ public final class CarrierService {
         this.groups = Objects.requireNonNull(groups, "groups");
         this.messages = Objects.requireNonNull(messages, "messages");
         this.applyCues = Objects.requireNonNull(applyCues, "applyCues");
+        this.bookRates = Objects.requireNonNull(bookRates, "bookRates");
     }
 
     /** Mint a RANDOM-bonus SUCCESS DUST (§I; ADR-0019) — combined onto a book it rolls a bonus in {@code [min, max]}. */
@@ -157,6 +177,14 @@ public final class CarrierService {
      * unsupported kind) leaves both stacks untouched.
      */
     public GestureOutcome applyTo(ItemStack carrier, ItemStack target) {
+        return applyTo(null, carrier, target);
+    }
+
+    /**
+     * As {@link #applyTo(ItemStack, ItemStack)} with the acting player in hand, so an armed
+     * {@code BOOK_RATE_MODIFIER} apply-site charge can be spent on this roll. A {@code null} actor spends none.
+     */
+    public GestureOutcome applyTo(Player actor, ItemStack carrier, ItemStack target) {
         CarrierData data = codec.read(carrier);
         if (data == null) {
             return GestureOutcome.noop(messages.format("carrier.not-carrier"));
@@ -193,7 +221,18 @@ public final class CarrierService {
         }
 
         int base = baseSuccessOf(data); // an unopened-book output / randomizer reroll overrides the default 100
-        int successChance = effectiveSuccess(base, data.successBonus()); // dust-accumulated bonus (ADR-0019)
+        int shown = effectiveSuccess(base, data.successBonus()); // dust-accumulated bonus (ADR-0019)
+        // The apply-site charge is folded in HERE and not inside effectiveSuccess: that helper also renders a
+        // book's lore and the dust-combine feedback, where a one-shot bonus nobody has spent yet would show as
+        // a permanent property of the book. Consumed by the ATTEMPT — a failed roll does not give it back.
+        int bonus = actor == null || !isEnchantBook(data) ? 0
+                : bookRates.consume(actor.getUniqueId(), engine.stores.BookRateStore.APPLY);
+        int successChance = effectiveSuccess(shown, bonus);
+        if (bonus > 0) {
+            // Pre-roll, so it cannot ride the GestureOutcome (ADR-0041 reports the RESULT); still the Messages
+            // seam, never a raw sendMessage. Base and bonus stay separate so the line can show both.
+            messages.send(actor, "carrier.applying-book", "RATE", shown, "BONUS", bonus);
+        }
         boolean destroyOnFail = bookConfig.get().destroyOnFail(); // §I enchant-book likeness, read live
         compile.load.MasterConfig.ApplyCuesSection cues = applyCues.get(); // universal apply feedback (config.yml apply-cues, live)
         consume(carrier); // a use is spent whether the roll succeeds or fails

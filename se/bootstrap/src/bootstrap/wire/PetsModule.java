@@ -58,6 +58,8 @@ final class PetsModule {
                 () -> core.items().config().petFoodOrDefault(),
                 equip.refresher(), core.tick()::get, core.bindings().actorProbe()::isAir,
                 cue, core.rolls(), homes, core.stores().teleblock(), visuals);
+        // ITEM_XP_TRACK's grant target — installed here because this is where the pet service first exists.
+        core.itemXpGrant(pets::grantTrackedExp);
         this.leveler = new PetLevelListener(pets, core.petCodec(), () -> core.master().config().pets(),
                 equip.refresher(), enabled());
         this.sweep = new PetSweep(core.petCodec(), leveler, equip.refresher(), enabled());

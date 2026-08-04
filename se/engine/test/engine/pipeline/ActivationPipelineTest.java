@@ -12,6 +12,7 @@ import engine.condition.FactBuffer;
 import engine.interact.SoulSpender;
 import engine.interact.SuppressionSet;
 import engine.stores.CooldownStore;
+import engine.stores.SoulExemptStore;
 import engine.stores.SuppressionStore;
 import schema.diag.Source;
 import schema.grammar.expr.FlowKind;
@@ -343,6 +344,65 @@ class ActivationPipelineTest {
 
         assertEquals(GateOutcome.NO_SOULS, pipeline.evaluate(a.build(), act().build()));
         assertEquals(2, spender.balance, "a refused spend leaves the balance alone");
+    }
+
+    @Test
+    void anExemptActorPaysNothingFiresWithNoGemAndStopsTheEscalationLadder() {
+        // SOUL_COST_EXEMPT's whole contract at gate 10, in one walk. Three things a partial implementation
+        // would get wrong: the spender must not be touched at all (a waiver that still debits is no waiver),
+        // the activation must fire with NO gem active (an ability that "costs nothing" cannot still demand
+        // soul mode), and the escalating price must not advance (a free activation may not raise the next).
+        SoulExemptStore exempt = new SoulExemptStore();
+        ActivationPipeline p = pipelineWith(exempt);
+        Ab a = new Ab();
+        a.soulCost = 4;
+        a.soulCostGrowth = 2.0; // an escalating price, so a stepped ladder would show up as a doubled read-back
+        spender.balance = 0;    // an empty wallet: any real debit attempt would answer NO_SOULS
+        exempt.arm(ACTOR, 100L, 50, 10, "+{souls}");
+
+        assertEquals(GateOutcome.ACTIVATED, pipeline(p, a));
+        assertEquals(0, spender.balance, "the spender was never consulted");
+        assertEquals(4, p.soulCostWaived(a.build(), act().build()),
+                "the ladder did not step, so the price re-reads at its base");
+        assertEquals(GateOutcome.ACTIVATED, pipeline(p, a));
+        assertEquals(4, p.soulCostWaived(a.build(), act().build()),
+                "a second free activation still did not step it");
+    }
+
+    @Test
+    void theExemptionLapsesAtItsExpiryAndTheCostIsChargedAgain() {
+        SoulExemptStore exempt = new SoulExemptStore();
+        ActivationPipeline p = pipelineWith(exempt);
+        Ab a = new Ab();
+        a.soulCost = 4;
+        spender.balance = 4;
+        exempt.arm(ACTOR, 100L, 30, 0, "+{souls}"); // live over [100, 130)
+
+        Activation atExpiry = Activation.builder(ACTOR, 3, 0, 130L).soulMode(ACTOR).build();
+        assertEquals(0, p.soulCostWaived(a.build(), atExpiry), "half-open: the expiry tick is already free");
+        assertEquals(GateOutcome.ACTIVATED, p.evaluate(a.build(), atExpiry));
+        assertEquals(0, spender.balance, "past the window the cost is charged for real");
+    }
+
+    @Test
+    void aFreeAbilityNeverReadsTheExemptionStore() {
+        // The hot-path shape: the read-back short-circuits on soul-cost 0, which is nearly all content, so an
+        // exempt player cannot make every ordinary proc emit a refund line.
+        SoulExemptStore exempt = new SoulExemptStore();
+        ActivationPipeline p = pipelineWith(exempt);
+        exempt.arm(ACTOR, 100L, 50, 0, "+{souls}");
+        assertEquals(0, p.soulCostWaived(new Ab().build(), act().build()));
+    }
+
+    private ActivationPipeline pipelineWith(SoulExemptStore exempt) {
+        return new ActivationPipeline(cooldowns, spender, new SuppressionStore(),
+                ActivationPipeline.Guard.ALLOW, ActivationPipeline.Guard.ALLOW, engine.stores.WhyRecorder.NONE,
+                new engine.stores.SoulEscalationStore(), exempt);
+    }
+
+    /** Evaluate {@code a} with NO gem active — the state a waiver has to fire through. */
+    private static GateOutcome pipeline(ActivationPipeline p, Ab a) {
+        return p.evaluate(a.build(), act().build());
     }
 
     @Test

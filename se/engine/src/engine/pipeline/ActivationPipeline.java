@@ -10,6 +10,7 @@ import engine.condition.NumExprEval;
 import engine.interact.SoulSpender;
 import engine.stores.CooldownStore;
 import engine.stores.SoulEscalationStore;
+import engine.stores.SoulExemptStore;
 import engine.stores.SuppressionStore;
 import engine.stores.WhyRecorder;
 import engine.stores.WhyRing;
@@ -58,6 +59,7 @@ public final class ActivationPipeline {
     private final Guard preActivate;
     private final WhyRecorder recorder;
     private final SoulEscalationStore escalation;
+    private final SoulExemptStore soulExempt;
 
     public ActivationPipeline(CooldownStore cooldowns, SoulSpender spender) {
         this(cooldowns, spender, new SuppressionStore(), Guard.ALLOW, Guard.ALLOW, WhyRecorder.NONE);
@@ -78,11 +80,18 @@ public final class ActivationPipeline {
         this(cooldowns, spender, suppression, protection, preActivate, recorder, new SoulEscalationStore());
     }
 
-    /** The production seam: {@code escalation} must be the aggregate's store, or gate 10's counters never
-     *  see the quit sweep. */
     public ActivationPipeline(CooldownStore cooldowns, SoulSpender spender, SuppressionStore suppression,
                               Guard protection, Guard preActivate, WhyRecorder recorder,
                               SoulEscalationStore escalation) {
+        this(cooldowns, spender, suppression, protection, preActivate, recorder, escalation,
+                new SoulExemptStore());
+    }
+
+    /** The production seam: {@code escalation} and {@code soulExempt} must be the aggregate's stores, or
+     *  gate 10's counters and waivers never see the quit sweep. */
+    public ActivationPipeline(CooldownStore cooldowns, SoulSpender spender, SuppressionStore suppression,
+                              Guard protection, Guard preActivate, WhyRecorder recorder,
+                              SoulEscalationStore escalation, SoulExemptStore soulExempt) {
         this.cooldowns = Objects.requireNonNull(cooldowns, "cooldowns");
         this.spender = Objects.requireNonNull(spender, "spender");
         this.suppression = Objects.requireNonNull(suppression, "suppression");
@@ -90,6 +99,7 @@ public final class ActivationPipeline {
         this.preActivate = Objects.requireNonNull(preActivate, "preActivate");
         this.recorder = Objects.requireNonNull(recorder, "recorder");
         this.escalation = Objects.requireNonNull(escalation, "escalation");
+        this.soulExempt = Objects.requireNonNull(soulExempt, "soulExempt");
     }
 
     /** Run {@code ability} through every gate against {@code act}, returning where it stopped. Every path
@@ -231,6 +241,20 @@ public final class ActivationPipeline {
         return own != null ? own : suppression.defenderFeedback(ability, act.victimId(), act.nowTicks());
     }
 
+    /**
+     * The soul cost gate 10 WAIVED for this activation, or {@code 0} — the dispatch layer's read-back after an
+     * {@code ACTIVATED} verdict, exactly as {@link #remainingCooldownTicks} is read back after
+     * {@code ON_COOLDOWN} and {@link #suppressionFeedback} after {@code SUPPRESSED}. A pure re-read: an exempt
+     * activation neither spends nor steps the ladder, so re-deriving the price answers what the gate saw.
+     * Costs one field read on the overwhelming majority of activations, which carry no soul cost at all.
+     */
+    public int soulCostWaived(Ability ability, Activation act) {
+        if (ability.soulCost() <= 0) {
+            return 0;
+        }
+        return soulExempt.waives(act.actor(), act.nowTicks()) ? soulCostFor(ability, act) : 0;
+    }
+
     /** Report one attempt's verdict + per-gate payload to the recorder, then return the verdict (ADR-0045). */
     /**
      * The ability's chance for THIS activation: the primitive when {@code chance:} was a constant (one null
@@ -336,6 +360,12 @@ public final class ActivationPipeline {
     private int consumeSouls(Ability ability, Activation act, int cost) {
         if (cost <= 0) {
             return -1; // free — not a soul-cost ability
+        }
+        // SOUL_COST_EXEMPT: the waiver is checked BEFORE the gem branch, so an exempt actor fires a soul-cost
+        // ability with no gem active at all — "deduct none" cannot mean "still require soul mode". Nothing is
+        // spent, so the escalation ladder must not step either: a free activation may not raise the next price.
+        if (soulExempt.waives(act.actor(), act.nowTicks())) {
+            return -1;
         }
         boolean paid;
         if (act.activeGem() == null) {

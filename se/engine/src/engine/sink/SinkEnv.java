@@ -41,7 +41,7 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
                       DoubleSupplier moneyInterestCap, GearProtection gearProtection,
                       ToDoubleFunction<UUID> lightningBoost, TrapStructures trapStructures,
                       PlayerVisibility visibility, PermanentPotions permanentPotions,
-                      SummonPayloads payloads, SiteGate siteGate) {
+                      SummonPayloads payloads, SiteGate siteGate, ItemXpGrant itemXp) {
 
     public SinkEnv {
         Objects.requireNonNull(economy, "economy");
@@ -61,6 +61,7 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
         Objects.requireNonNull(permanentPotions, "permanentPotions");
         Objects.requireNonNull(payloads, "payloads");
         Objects.requireNonNull(siteGate, "siteGate");
+        Objects.requireNonNull(itemXp, "itemXp");
     }
 
     /** The four-arg shape every non-root site used before the exemption rode the env — no-op movement hook. */
@@ -136,8 +137,21 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
                              GearProtection gearProtection, ToDoubleFunction<UUID> lightningBoost,
                              PlayerVisibility visibility, PermanentPotions permanentPotions,
                              SummonPayloads payloads, SiteGate siteGate) {
+        return of(economy, souls, stores, nowTicks, movementExemption, moneyInterestCap, gearProtection,
+                lightningBoost, visibility, permanentPotions, payloads, siteGate, ItemXpGrant.NONE);
+    }
+
+    /**
+     * The full shape: {@code itemXp} is the {@code ITEM_XP_TRACK} seam the pets family implements
+     * ({@link ItemXpGrant#NONE} = no item ever gains progression).
+     */
+    public static SinkEnv of(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
+                             Consumer<Player> movementExemption, DoubleSupplier moneyInterestCap,
+                             GearProtection gearProtection, ToDoubleFunction<UUID> lightningBoost,
+                             PlayerVisibility visibility, PermanentPotions permanentPotions,
+                             SummonPayloads payloads, SiteGate siteGate, ItemXpGrant itemXp) {
         return new SinkEnv(economy, souls, stores, nowTicks, movementExemption, BukkitBlockOps.ledger(),
                 new TrailWalker(), new TimedRevert(), new DotParkLedger(), moneyInterestCap, gearProtection,
-                lightningBoost, new TrapStructures(), visibility, permanentPotions, payloads, siteGate);
+                lightningBoost, new TrapStructures(), visibility, permanentPotions, payloads, siteGate, itemXp);
     }
 }

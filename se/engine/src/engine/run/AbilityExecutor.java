@@ -111,6 +111,7 @@ public final class AbilityExecutor {
                     boolean faulted = runEffects(ability, context, sink, activation.activeGem(), activation.facts(), quarantine);
                     activated++;
                     notifyActivation(ability, context, stableKeys);
+                    emitSoulRefund(ability, activation, context, sink);
                     if (faulted) {
                         quarantine.recordFailure(id, ability.defId());
                     }
@@ -164,6 +165,20 @@ public final class AbilityExecutor {
     }
 
     /**
+     * Emit the refund line for a soul cost gate 10 WAIVED (SOUL_COST_EXEMPT) — the DISPATCH layer's job for the
+     * same reason {@link #emitVerdictFeedback} is: the pipeline is Bukkit-free and holds only a UUID. The
+     * threshold test and the wording live on the exemption window, so an ordinary activation pays one
+     * {@code soulCost() <= 0} compare and nothing else.
+     */
+    private void emitSoulRefund(Ability ability, Activation activation, ActivationContext context,
+                                SinkReadback sink) {
+        int waived = pipeline.soulCostWaived(ability, activation);
+        if (waived > 0 && context.actor() != null) {
+            sink.soulRefundNotice(context.actor(), waived);
+        }
+    }
+
+    /**
      * The COLD use-item path (§3.6, docs/decisions/0048-use-items.md): evaluate the explicit {@code candidateIds}
      * (a held use-item's abilities, resolved from its def's stable keys — NOT a worn {@code byTrigger} set) and
      * run every ACTIVATED one's effects into {@code sink}, exactly like {@link #run} but returning a compact
@@ -197,6 +212,7 @@ public final class AbilityExecutor {
                                 activation.facts(), quarantine);
                         activated = true;
                         notifyActivation(ability, context, stableKeys);
+                        emitSoulRefund(ability, activation, context, sink);
                         if (faulted) {
                             quarantine.recordFailure(id, ability.defId());
                         }

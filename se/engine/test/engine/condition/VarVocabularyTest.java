@@ -50,9 +50,10 @@ class VarVocabularyTest {
         // (victim.heroicpieces number — the worn heroic-armour piece count), and wave 2d
         // (actor.heroicpieces + actor.y numbers — the actor-side piece tally and the absolute feet height —
         // plus the status.teleblock flag, STATUS_CLEAR's paired guard), and wave 2d.2 (actor.ownedground
-        // flag — whether the temp block under the actor's feet is one the actor placed).
+        // flag — whether the temp block under the actor's feet is one the actor placed, plus
+        // bookrate.generate/bookrate.apply — BOOK_RATE_MODIFIER's paired per-site armed guards).
         assertEquals(29, v.numberSlots());
-        assertEquals(23, v.flagSlots());
+        assertEquals(25, v.flagSlots());
         assertEquals(13, v.stringSlots());
         assertEquals(VarKind.NUM, v.lookup("victim", "health").orElseThrow().kind());
         assertEquals(VarKind.NUM, v.lookup("actor", "maxhealth").orElseThrow().kind());

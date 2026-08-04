@@ -120,6 +120,12 @@ public final class BuiltinVars {
                 // The paired guard for STATUS_CLEAR: an item whose whole purpose is lifting a window needs to
                 // refuse when the window is not there, and no engine status was queryable before this.
                 .flag("status.teleblock")
+                // The paired guards for BOOK_RATE_MODIFIER, one per site. A charge with no expiry has to be
+                // refusable — arming a second one would silently overwrite the first — and the two sites are
+                // independent charges, so one shared flag could not tell an armed Blackscroll from an armed
+                // Enchanter.
+                .flag("bookrate.generate")
+                .flag("bookrate.apply")
                 .build();
     }
 }

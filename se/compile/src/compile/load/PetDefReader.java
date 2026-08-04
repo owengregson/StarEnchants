@@ -81,6 +81,8 @@ final class PetDefReader {
         List<String> description = root.stringList("description");
         String permission = orEmpty(ContentParse.blankToNull(root.string("permission")));
         String messageOnNoHome = orEmpty(ContentParse.blankToNull(root.string("message-on-no-home")));
+        PetCurve expCurve = readCurve(root, diags);
+        int maxLevel = ContentParse.resolveInt(root, "max-level", 0, diags);
 
         YamlNode levels = root.child("levels");
         if (levels == null || !levels.isMapping()) {
@@ -121,8 +123,23 @@ final class PetDefReader {
         }
 
         PetDef def = new PetDef(key, display, color, active, head, material, descriptor, description, permission,
-                messageOnNoHome, brackets);
+                messageOnNoHome, expCurve, maxLevel, brackets);
         return new Parsed(def, abilities);
+    }
+
+    /**
+     * The optional {@code exp-curve: { base: N, per-level: M }} block — the pet's own exp ladder. Absent (the
+     * whole signature pack) leaves the universal flat rate in charge, which is why adding this changes nothing
+     * that was already shipped.
+     */
+    private static PetCurve readCurve(YamlNode root, Diagnostics diags) {
+        YamlNode curve = root.child("exp-curve");
+        if (curve == null || !curve.isMapping()) {
+            return null;
+        }
+        int base = ContentParse.resolveInt(curve, "base", 0, diags);
+        int perLevel = ContentParse.resolveInt(curve, "per-level", 0, diags);
+        return base == 0 && perLevel == 0 ? null : new PetCurve(base, perLevel);
     }
 
     /** A field that may be ONE string or a list of lines (the descriptor is usually a single wrapped line). */

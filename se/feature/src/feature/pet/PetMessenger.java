@@ -77,6 +77,13 @@ public final class PetMessenger {
                 "TIME_FORMATTED", TimeFormat.hmsFromTicks(remainingTicks))));
     }
 
+    /** An already-composed line (an {@code ITEM_XP_TRACK} template with its tokens filled) — prefix-free. */
+    public void line(Player player, String text) {
+        if (text != null && !text.isEmpty()) {
+            messages.sendText(player, Colors.translate(text));
+        }
+    }
+
     private void send(Player player, String template, PetDef def, boolean uppercase, long remainingTicks) {
         if (template == null || template.isEmpty()) {
             return; // empty = silent (the use-item.success convention)

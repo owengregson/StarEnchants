@@ -430,6 +430,9 @@ carrier.success-now: "&aThe book's success chance is now &f{PERCENT}%&a."
 carrier.dust.only-book: "&cDust can only boost an enchant book."
 carrier.dust.ceiling: "&7That book is already at the &f{MAX}%&7 success ceiling."
 carrier.dust.no-bonus: "&cThis dust confers no success bonus."
+# Sent just before an apply roll that spends a BOOK_RATE_MODIFIER apply charge (Enchanter pet).
+# {RATE} = the book's own success; {BONUS} = the one-shot charge added on top of it.
+carrier.applying-book: "&7Applying enchantment book... &e{RATE}&6(+{BONUS})&e% success chance..."
 # White scroll — a one-shot protect against a failed enchant (its own apply-success roll gates the guard).
 white-scroll.already: "&7That item is already protected."
 white-scroll.fail: "&eThe White Scroll failed — the item is not protected."

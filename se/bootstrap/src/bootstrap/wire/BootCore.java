@@ -180,6 +180,9 @@ public final class BootCore {
     private final CombatDispatch dispatch;
     private final TriggerDispatch triggerDispatch;
     private feature.summon.SummonPayloadService summonPayloads; // built after triggerDispatch, read only at runtime
+    // ITEM_XP_TRACK's grant target: PetsModule installs the live PetService, which is built long after the
+    // sink env. Until then (and on a boot where pets are disabled) every grant is a no-op.
+    private engine.sink.ItemXpGrant itemXp = engine.sink.ItemXpGrant.NONE;
 
     /** Build the whole substrate for {@code plugin} — the old onEnable construction, relocated verbatim. */
     public static BootCore boot(JavaPlugin plugin) {
@@ -459,7 +462,8 @@ public final class BootCore {
                 new ActivationPipeline(stores.cooldowns(), soulService, stores.suppression(), protectionGuard,
                         engine.pipeline.ReboundGate.INSTANCE, // gate 9: PROC_REBOUND's veto (Enchant Reflect)
                         stores.why(), // ADR-0045: record every gate walk
-                        stores.soulEscalation()),
+                        stores.soulEscalation(),
+                        stores.soulExempt()), // gate 10's SOUL_COST_EXEMPT waiver
                 areaScan(bindings), (key, ability, context) -> {
                     if (key == null) {
                         return; // a null key is skipped, not faked
@@ -530,7 +534,10 @@ public final class BootCore {
                 (summon, flags) -> summonPayloads.fire(summon, flags),
                 // The gate-2 provider list again, this time asked PER SITE (TURRET_RING) — the same composed
                 // service the pipeline guard consults, so one boundary answer serves both.
-                protection::allows);
+                protection::allows,
+                // ITEM_XP_TRACK: late-bound like summonPayloads — the pets service does not exist yet.
+                (holder, amount, window, gain, levelUp) ->
+                        itemXp.grant(holder, amount, window, gain, levelUp));
         // mcMMO friendly-fire gate — ONE alliance predicate feeding both consumers. Combat suppression has
         // always used it; the targeting filters (@Aoe{filter=ENEMIES|ALLIES}) never had it installed, so they
         // treated a party-mate as an enemy while the damage gate spared them. Same predicate, both sides.
@@ -712,6 +719,11 @@ public final class BootCore {
     public TriggerDispatch triggerDispatch() { return triggerDispatch; }
 
     public feature.summon.SummonPayloadService summonPayloads() { return summonPayloads; }
+
+    /** Install the live {@code ITEM_XP_TRACK} target (PetsModule, once the pet service exists). */
+    public void itemXpGrant(engine.sink.ItemXpGrant grant) {
+        this.itemXp = grant == null ? engine.sink.ItemXpGrant.NONE : grant;
+    }
 
     /** The feature-neutral onDisable steps (the sink-static and driver stops are the modules' own). */
     public List<FeatureModule.Stop> coreStops() {

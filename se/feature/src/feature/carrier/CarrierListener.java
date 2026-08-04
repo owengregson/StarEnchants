@@ -45,6 +45,6 @@ public final class CarrierListener extends ApplyGestureListener {
 
     @Override
     protected GestureOutcome apply(Player player, ItemStack cursor, ItemStack target, int slot) {
-        return service.applyTo(cursor, target);
+        return service.applyTo(player, cursor, target);
     }
 }

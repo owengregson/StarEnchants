@@ -36,6 +36,7 @@ public final class ItemKeys {
     private final String petExp;
     private final String petExpFrac;
     private final String petFood;
+    private final String petXpGate;
     private final String maskItem;
     private final String illusion;
     private final String reforgeItem;
@@ -48,6 +49,7 @@ public final class ItemKeys {
                      String trakGem, String trakBlocks, String trakMobs, String trakSouls, String trakFish,
                      String loreComposer, String useItem,
                      String pet, String petLevel, String petExp, String petExpFrac, String petFood,
+                     String petXpGate,
                      String maskItem, String illusion, String reforgeItem, String holyProtections) {
         this.combat = combat;
         this.soul = soul;
@@ -75,6 +77,7 @@ public final class ItemKeys {
         this.petExp = petExp;
         this.petExpFrac = petExpFrac;
         this.petFood = petFood;
+        this.petXpGate = petXpGate;
         this.maskItem = maskItem;
         this.illusion = illusion;
         this.reforgeItem = reforgeItem;
@@ -85,7 +88,8 @@ public final class ItemKeys {
         return new ItemKeys("combat", "soul", "carrier", "guarded", "crystalitem", "crystalextractor",
                 "heroicupgrade", "slotitem", "slotsuccess", "scroll", "scrollconvert", "unopened",
                 "godlytransmog", "appliedslot", "trakgem", "trakblocks", "trakmobs", "traksouls", "trakfish",
-                "lorecomposer", "useitem", "pet", "petlevel", "petexp", "petexpfrac", "petfood", "maskitem",
+                "lorecomposer", "useitem", "pet", "petlevel", "petexp", "petexpfrac", "petfood", "petxpgate",
+                "maskitem",
                 "illusion", "reforgeitem", "holyprotections");
     }
 
@@ -214,6 +218,11 @@ public final class ItemKeys {
     /** A Pet Food apply item (ADR-0052): the PDC integer under this key is its baked +levels amount. */
     public String petFood() {
         return petFood;
+    }
+
+    /** ITEM_XP_TRACK's per-item {@code window} stamp, in MINUTES since the epoch (see {@link PetCodec}). */
+    public String petXpGate() {
+        return petXpGate;
     }
 
     /** A mask head item (ADR-0053): the PDC string under this key is the mask's def key (its identity, pre-apply). */

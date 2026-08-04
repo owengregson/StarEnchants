@@ -24,7 +24,7 @@ public record EngineStores(
         DotAmplifyStore dotAmplify, HeadTrophyStore headTrophies, FoodWindowStore foodWindows,
         MessageThrottleStore messageThrottle, SoulEscalationStore soulEscalation,
         DotSuppressionStore dotSuppression, ReboundStore rebounds, FallShieldStore fallShields,
-        VulnerabilityStore vulnerability) {
+        VulnerabilityStore vulnerability, SoulExemptStore soulExempt, BookRateStore bookRate) {
 
     public EngineStores {
         Objects.requireNonNull(vars, "vars");
@@ -56,6 +56,8 @@ public record EngineStores(
         Objects.requireNonNull(rebounds, "rebounds");
         Objects.requireNonNull(fallShields, "fallShields");
         Objects.requireNonNull(vulnerability, "vulnerability");
+        Objects.requireNonNull(soulExempt, "soulExempt");
+        Objects.requireNonNull(bookRate, "bookRate");
     }
 
     /** A fresh aggregate with every store newly constructed (the composition-root default). */
@@ -69,7 +71,7 @@ public record EngineStores(
                 new DotAmplifyStore(), new HeadTrophyStore(), new FoodWindowStore(),
                 new MessageThrottleStore(), new SoulEscalationStore(), new DotSuppressionStore(),
                 new ReboundStore(), new FallShieldStore(),
-                new VulnerabilityStore());
+                new VulnerabilityStore(), new SoulExemptStore(), new BookRateStore());
     }
 
     /** Every store as the {@link PlayerScoped} seam, in sweep order. */
@@ -77,7 +79,8 @@ public record EngineStores(
         return List.of(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns, combo, why,
                 recentAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks, ward, hitTempo, battery,
                 disarmWindows, heldSlots, soulTotals, dotAmplify, headTrophies, foodWindows,
-                messageThrottle, soulEscalation, dotSuppression, rebounds, fallShields, vulnerability);
+                messageThrottle, soulEscalation, dotSuppression, rebounds, fallShields, vulnerability,
+                soulExempt, bookRate);
     }
 
     /**
@@ -97,11 +100,14 @@ public record EngineStores(
      *
      * <p>{@link FallShieldStore} joins them for the {@link DotSuppressionStore} reason: it BENEFITS its holder,
      * and the fall it was armed for does not survive the logout, so retaining it is free fall immunity.
+     *
+     * <p>{@link SoulExemptStore} joins them for the same reason again — a self-armed buff whose clock keeps
+     * running while its holder is offline, so a relog can only ever shorten it.
      */
     public List<PlayerScoped> quitVolatile() {
         return List.of(vars, knockback, keepOnDeath, immune, combo, why, recentAttackers, damageCap, rageStacks,
                 ward, hitTempo, battery, disarmWindows, heldSlots, soulTotals, foodWindows, messageThrottle,
-                soulEscalation, dotSuppression, rebounds, fallShields);
+                soulEscalation, dotSuppression, rebounds, fallShields, soulExempt);
     }
 
     /**
@@ -109,11 +115,12 @@ public record EngineStores(
      * reflect-mark / outgoing-debuff / DoT-amplify windows, plus the armed head trophies. Only their
      * already-elapsed entries are shed on quit, so a ~5-10s disconnect+reconnect cannot skip a live cooldown or
      * shed an opponent-landed window (the monotonic tick keeps a surviving absolute expiry valid on rejoin). A
-     * head trophy has no expiry at all — it waits for the death that spends it.
+     * head trophy has no expiry at all — it waits for the death that spends it, and an armed book-rate charge
+     * waits for the roll that spends it.
      */
     public List<RetainedStore> quitRetained() {
         return List.of(cooldowns, teleblock, suppression, reflectMarks, outgoingDebuff, dotAmplify,
-                headTrophies, vulnerability);
+                headTrophies, vulnerability, bookRate);
     }
 
     /**

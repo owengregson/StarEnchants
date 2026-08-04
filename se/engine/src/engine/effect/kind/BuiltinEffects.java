@@ -146,6 +146,11 @@ public final class BuiltinEffects {
                 .register(new DelayedStrikeFieldEffect()) // Revenge of Yijki: telegraphed ground spots, struck as one
                 .register(new SummonPurgeEffect())       // Rot and Decay: despawn foreign summons (CONVERT_SUMMON's inverse)
                 .register(new TurretRingEffect())        // Demonic Gateway: a ring of invulnerable firing emplacements
+                // Cosmic-port wave 2d.2 (pets). APPENDED, never inserted (ADR-0039 dense kind ids).
+                .register(new SoulCostExemptEffect())    // Tesla: a window in which no action costs souls
+                .register(new BookRateModifierEffect())  // Blackscroll/Enchanter: one-shot bid on the next book roll
+                .register(new InventoryConvertEffect())  // Lava/Water: bounded material swap across the inventory
+                .register(new ItemXpTrackEffect())       // every pet: item-attached progression, cosmic semantics
                 .build();
     }
 }

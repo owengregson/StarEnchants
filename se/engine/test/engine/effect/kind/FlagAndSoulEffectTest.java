@@ -74,7 +74,30 @@ class FlagAndSoulEffectTest {
                 flag("GRAVITY_WELL → no intent (service-owned marker)", new GravityWellEffect(), c -> { }, s -> { }),
                 flag("GRAPPLE → no intent (service-owned marker)", new GrappleEffect(), c -> { }, s -> { }),
                 flag("SWAP_POSITION → no intent (service-owned marker)", new SwapPositionEffect(), c -> { }, s -> { }),
-                flag("JAVELIN → no intent (service-owned marker)", new JavelinEffect(), c -> { }, s -> { }));
+                flag("JAVELIN → no intent (service-owned marker)", new JavelinEffect(), c -> { }, s -> { }),
+                // Actor-scoped, so it declares no who-slot; protect-seconds reaches the sink as TICKS (x20),
+                // which is the one unit conversion in the whole kind and silently 20x wrong if dropped.
+                dynamicTest("INVENTORY_CONVERT → convertInventory(actor, from, to, limit, plain, ticks, var)", () -> {
+                    Player actor = mock(Player.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
+                            .with("from", 4).with("to", 9).with("limit", 1152).with("plain", true)
+                            .with("protect-seconds", 60).with("count-var", "converted");
+                    Sink sink = mock(Sink.class);
+                    new InventoryConvertEffect().run(ctx, sink);
+                    verify(sink).convertInventory(actor, 4, 9, 1152, true, 1200, "converted");
+                    verifyNoMoreInteractions(sink);
+                }),
+                // Holder-scoped like INVENTORY_CONVERT: no who-slot, the grant lands on the held item.
+                dynamicTest("ITEM_XP_TRACK → itemXpTrack(actor, amount, window, both templates)", () -> {
+                    Player actor = mock(Player.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
+                            .with("amount", 500).with("window", 1440)
+                            .with("message", "+{xp}").with("level-up-message", "*** {level} ***");
+                    Sink sink = mock(Sink.class);
+                    new ItemXpTrackEffect().run(ctx, sink);
+                    verify(sink).itemXpTrack(actor, 500, 1440, "+{xp}", "*** {level} ***");
+                    verifyNoMoreInteractions(sink);
+                }));
     }
 
     /** An armed/combat-state kind targeting @Self: it emits exactly one intent per Player target. */
@@ -122,6 +145,20 @@ class FlagAndSoulEffectTest {
                 armed("TRAP_BREAK → breakTraps(player, whiff 7)", new TrapBreakEffect(),
                         c -> c.with("whiff-sound", 7),
                         (s, p) -> verify(s).breakTraps(p, 7)),
+                armed("SOUL_COST_EXEMPT → armSoulExempt(player, 240, 10, message)", new SoulCostExemptEffect(),
+                        c -> c.with("duration", 240).with("feedback-threshold", 10)
+                                .with("message", "+{souls} souls"),
+                        (s, p) -> verify(s).armSoulExempt(p, 240, 10, "+{souls} souls")),
+                // The site token has to reach the store as its ORDINAL: a swapped mapping arms the Blackscroll
+                // charge from an Enchanter pet, which no roll at either site would ever reveal.
+                armed("BOOK_RATE_MODIFIER site:generate → armBookRate(player, GENERATE, 6)",
+                        new BookRateModifierEffect(),
+                        c -> c.with("site", "generate").with("percent", 6),
+                        (s, p) -> verify(s).armBookRate(p, engine.stores.BookRateStore.GENERATE, 6)),
+                armed("BOOK_RATE_MODIFIER site:apply → armBookRate(player, APPLY, 6)",
+                        new BookRateModifierEffect(),
+                        c -> c.with("site", "apply").with("percent", 6),
+                        (s, p) -> verify(s).armBookRate(p, engine.stores.BookRateStore.APPLY, 6)),
                 dynamicTest("HIT_TEMPO on a non-player target → no intent (the Player filter)", () -> {
                     LivingEntity cow = mock(LivingEntity.class); // not a Player
                     FakeEffectCtx ctx = FakeEffectCtx.create().targets("who", cow)

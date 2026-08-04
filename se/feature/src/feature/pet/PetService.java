@@ -3,6 +3,7 @@ package feature.pet;
 import compile.load.ContentHolder;
 import compile.load.MasterConfig;
 import compile.load.PetBracket;
+import compile.load.PetCurve;
 import compile.load.PetDef;
 import compile.load.PetFoodConfig;
 import compile.load.PetItemConfig;
@@ -48,7 +49,7 @@ import platform.text.Tokens;
  * The pets cold path (ADR-0052, leveling per ADR-0059): mints pet heads and Pet Food from the universal
  * likeness, renders a pet's name/lore from its stored state (never parsed back), owns the level economy (exp
  * from kills / vanilla XP / successful use / passive inventory time, +levels from food, all clamped to the
- * universal max, level-up cue on every gain), and runs an ACTIVE pet's right-click
+ * pet's own cap under the universal max, level-up cue on every gain), and runs an ACTIVE pet's right-click
  * through the SAME pipeline every source uses ({@link TriggerDispatch#fireUse} over the live bracket's USE
  * keys — full gate sequence, gate-6 cooldown on the pet-wide scope). Activation may open an ARMED window
  * ({@link PetArmedStore}): the bracket's non-USE abilities join {@code WornState} until the scheduled expiry
@@ -139,7 +140,7 @@ public final class PetService {
             stack = ItemFactory.buildItem(def.material(), Material.PAPER, null, null);
         }
         headEquip.unwearable(stack); // a pet activates from the HOTBAR, never the helmet slot — deny client-side (1.8.4)
-        int clamped = Math.min(Math.max(1, level), pets.get().maxLevel());
+        int clamped = Math.min(Math.max(1, level), def.cappedAt(pets.get().maxLevel()));
         codec.stamp(stack, key, clamped);
         render(stack, def);
         return stack;
@@ -177,15 +178,17 @@ public final class PetService {
         int exp = codec.exp(stack);
         PetBracket bracket = def.bracketFor(level);
         String time = TimeFormat.hmsFromTicks(bracket == null ? 0 : bracket.cooldownTicks());
+        int needed = def.expNeededFrom(level, section.expPerLevel());
+        int max = def.cappedAt(section.maxLevel());
         Object[] tokens = {
                 "COLOR", def.color(),
                 "NAME", def.display(),
                 "TIME_FORMATTED", time,
                 "LEVEL", Integer.toString(level),
-                "MAX_LEVEL", Integer.toString(section.maxLevel()),
+                "MAX_LEVEL", Integer.toString(max),
                 "EXP", Integer.toString(exp),
-                "EXP_NEXT", Integer.toString(section.expPerLevel()),
-                "EXP_BAR", expBar(level, exp, section),
+                "EXP_NEXT", Integer.toString(needed),
+                "EXP_BAR", expBar(level, exp, needed, max),
         };
         List<String> template = PetTokens.colorTolerant(def.active() ? cfg.loreActive() : cfg.lorePassive());
         // Two line-expanding tokens, nested: {DESCRIPTOR} (the flavour header) then {DESCRIPTION} (the
@@ -210,8 +213,13 @@ public final class PetService {
      * pads a leading space so its first {@code _} does not hug the {@code [}.
      */
     static String expBar(int level, int exp, MasterConfig.PetsSection cfg) {
-        int filled = level >= cfg.maxLevel() ? 10
-                : (int) Math.min(10, Math.max(0, (10L * exp) / cfg.expPerLevel()));
+        return expBar(level, exp, cfg.expPerLevel(), cfg.maxLevel());
+    }
+
+    /** As above over an explicit per-level threshold + cap, so a per-pet curve renders its OWN bar. */
+    static String expBar(int level, int exp, int needed, int maxLevel) {
+        int filled = level >= maxLevel ? 10
+                : (int) Math.min(10, Math.max(0, (10L * exp) / Math.max(1, needed)));
         StringBuilder bar = new StringBuilder("&a");
         bar.append("■ ".repeat(filled)); // each square keeps its trailing space — the last one is the right-hand pad
         bar.append("&7");
@@ -245,6 +253,42 @@ public final class PetService {
             newExp = 0; // the cap is a clean landmark, not a part-filled bar
         }
         return new LevelRoll(newLevel, newExp);
+    }
+
+    /**
+     * {@link #rollExp}'s per-pet-curve twin: the same multi-level, park-at-the-cap semantics, but each level
+     * costs what the pet's own ladder says rather than one flat rate. Separate from {@link #rollExp} so the
+     * universal path — every signature-pack pet, which declares no curve — is byte-identical to what shipped.
+     */
+    static LevelRoll rollCurve(int level, int exp, int amount, int maxLevel, PetCurve curve) {
+        int newLevel = level;
+        int newExp = exp + amount;
+        while (newLevel < maxLevel && newExp >= curve.neededFrom(newLevel)) {
+            newExp -= curve.neededFrom(newLevel);
+            newLevel++;
+        }
+        if (newLevel >= maxLevel) {
+            newExp = 0; // the cap is a clean landmark, not a part-filled bar
+        }
+        return new LevelRoll(newLevel, newExp);
+    }
+
+    /**
+     * {@code ITEM_XP_TRACK}'s roll — the COSMIC semantics, owner ruling 2026-08-01: <em>at most one level per
+     * grant, remainder banked; bank unbounded at the cap</em>. Deliberately NOT {@link #rollExp}, which rolls
+     * as many levels as the grant pays for and zeroes exp at the cap. The two coexist, keyed by WHICH PATH
+     * GRANTS: a kill / vanilla-XP / food / passive credit keeps the shipped roll, an authored
+     * {@code ITEM_XP_TRACK} takes this one.
+     */
+    static LevelRoll bankExp(int level, int exp, int amount, int maxLevel, int needed) {
+        int total = exp + amount;
+        if (level >= maxLevel) {
+            return new LevelRoll(level, total); // at the cap the bank just keeps growing — no ceiling at all
+        }
+        if (total >= Math.max(1, needed)) {
+            return new LevelRoll(level + 1, total - Math.max(1, needed)); // ONE level, remainder banked
+        }
+        return new LevelRoll(level, total);
     }
 
     /** The ACTIVE use-XP roll: uniform in {@code [expPerLevel/8, expPerLevel/5]}, floor division, min 1. */
@@ -283,13 +327,89 @@ public final class PetService {
             return Progress.NONE;
         }
         MasterConfig.PetsSection cfg = pets.get();
+        int max = def.cappedAt(cfg.maxLevel());
         int level = codec.level(stack);
         int exp = codec.exp(stack);
-        if (level >= cfg.maxLevel()) {
+        if (level >= max) {
             return Progress.NONE; // capped: exp no longer accrues
         }
-        LevelRoll roll = rollExp(level, exp, amount, cfg.maxLevel(), cfg.expPerLevel());
+        LevelRoll roll = def.expCurve() == null
+                ? rollExp(level, exp, amount, max, cfg.expPerLevel())
+                : rollCurve(level, exp, amount, max, def.expCurve());
         return commitProgress(owner, stack, def, level, exp, roll.level(), roll.exp());
+    }
+
+    /**
+     * {@code ITEM_XP_TRACK}: credit {@code amount} to the pet {@code holder} is HOLDING, under the COSMIC
+     * semantics ({@link #bankExp}) rather than {@link #gainExp}'s shipped roll. {@code windowMinutes > 0}
+     * gates the grant to once per window using a stamp that rides the ITEM, so the gate travels with a traded
+     * pet and a freshly minted one earns immediately (it carries no stamp at all).
+     *
+     * <p>Runs on the holder's own region thread — the caller is the sink's entity hop — and writes the held
+     * slot back itself, since a level write that never reaches the inventory is a level nobody keeps.
+     * A STACKED pet is skipped for {@link #creditUseExp}'s reason: crediting would level every copy.
+     */
+    public void grantTrackedExp(Player holder, int amount, int windowMinutes, String gainMessage,
+                                String levelUpMessage) {
+        if (holder == null || amount <= 0) {
+            return;
+        }
+        PlayerInventory inventory = holder.getInventory();
+        ItemStack stack = inventory.getItem(inventory.getHeldItemSlot());
+        if (stack == null || stack.getAmount() > 1) {
+            return;
+        }
+        PetDef def = defOf(codec.keyOf(stack));
+        if (def == null) {
+            return; // not a pet in hand: nothing carries item progression
+        }
+        int nowMinutes = (int) (System.currentTimeMillis() / 60_000L);
+        if (windowMinutes > 0) {
+            int last = codec.xpGateMinutes(stack);
+            if (last > 0 && nowMinutes - last < windowMinutes) {
+                return; // inside the window — the grant is skipped whole, not scaled
+            }
+        }
+        MasterConfig.PetsSection cfg = pets.get();
+        int level = codec.level(stack);
+        int exp = codec.exp(stack);
+        LevelRoll roll = bankExp(level, exp, amount, def.cappedAt(cfg.maxLevel()),
+                def.expNeededFrom(level, cfg.expPerLevel()));
+        String oldName = displayNameOf(stack, def);
+        Progress progress = commitProgress(holder, stack, def, level, exp, roll.level(), roll.exp());
+        if (windowMinutes > 0) {
+            codec.writeXpGateMinutes(stack, nowMinutes); // stamped on the GRANT, so a skipped one does not slide it
+        }
+        emitXpLines(holder, def, gainMessage, levelUpMessage, amount, roll, oldName,
+                level, cfg.expPerLevel());
+        if (progress.changed() || windowMinutes > 0) {
+            inventory.setItem(inventory.getHeldItemSlot(), stack);
+            if (progress.bracketCrossed()) {
+                refresh.accept(holder);
+            }
+        }
+    }
+
+    /** The stack's rendered name — read BEFORE the level write, so the level-up line names the old level. */
+    @SuppressWarnings("deprecation") // getDisplayName(): the floor-stable item-meta path
+    private static String displayNameOf(ItemStack stack, PetDef def) {
+        return stack.getItemMeta() == null ? def.display() : stack.getItemMeta().getDisplayName();
+    }
+
+    /** The two authored lines of an {@code ITEM_XP_TRACK} grant; an empty template is silent. */
+    private void emitXpLines(Player holder, PetDef def, String gainMessage, String levelUpMessage,
+                             int amount, LevelRoll roll, String oldName, int oldLevel, int universalFlat) {
+        if (gainMessage != null && !gainMessage.isEmpty()) {
+            // {needed} is the requirement AFTER the level-up — the recorded quirk, kept: on the activation
+            // that levels you the bar you are told about is the new one.
+            messenger.line(holder, Tokens.sub(gainMessage,
+                    "xp", amount, "exp", roll.exp(),
+                    "needed", def.expNeededFrom(roll.level(), universalFlat)));
+        }
+        if (roll.level() > oldLevel && levelUpMessage != null && !levelUpMessage.isEmpty()) {
+            // {item} is the PRE-rebuild display name, so the line names the pet at the level it just left.
+            messenger.line(holder, Tokens.sub(levelUpMessage, "item", oldName, "level", roll.level()));
+        }
     }
 
     /** Add {@code levels} whole levels (Pet Food), clamped to the max; exp is preserved below the cap. */
@@ -302,10 +422,11 @@ public final class PetService {
             return Progress.NONE;
         }
         MasterConfig.PetsSection cfg = pets.get();
+        int max = def.cappedAt(cfg.maxLevel());
         int level = codec.level(stack);
         int exp = codec.exp(stack);
-        int newLevel = Math.min(cfg.maxLevel(), level + levels);
-        int newExp = newLevel >= cfg.maxLevel() ? 0 : exp;
+        int newLevel = Math.min(max, level + levels);
+        int newExp = newLevel >= max ? 0 : exp;
         return commitProgress(owner, stack, def, level, exp, newLevel, newExp);
     }
 
@@ -322,7 +443,7 @@ public final class PetService {
             return Progress.NONE;
         }
         MasterConfig.PetsSection cfg = pets.get();
-        if (codec.level(stack) >= cfg.maxLevel()) {
+        if (codec.level(stack) >= def.cappedAt(cfg.maxLevel())) {
             return Progress.NONE; // parked at the cap
         }
         double rate = !def.active() && hotbar ? cfg.passiveHotbarLevelsPerHour() : cfg.passiveLevelsPerHour();
@@ -349,7 +470,8 @@ public final class PetService {
             return Progress.NONE;
         }
         codec.writeProgress(stack, newLevel, newExp);
-        if (displayedChanged(oldLevel, newLevel, oldExp, newExp, pets.get().expPerLevel())) {
+        if (displayedChanged(oldLevel, newLevel, oldExp, newExp,
+                def.expNeededFrom(oldLevel, pets.get().expPerLevel()))) {
             render(stack, def); // the name carries {LEVEL}, the lore the bar — silent tenths skip the recompose
         }
         if (newLevel > oldLevel) {
@@ -361,7 +483,9 @@ public final class PetService {
 
     /** Whether the pet on {@code stack} is already at the universal max level (the food check-before-consume). */
     public boolean atMaxLevel(ItemStack stack) {
-        return codec.level(stack) >= pets.get().maxLevel();
+        PetDef def = defOf(codec.keyOf(stack));
+        int max = pets.get().maxLevel();
+        return codec.level(stack) >= (def == null ? max : def.cappedAt(max));
     }
 
     /**

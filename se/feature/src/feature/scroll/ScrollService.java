@@ -2,6 +2,7 @@ package feature.scroll;
 
 import compile.load.ContentHolder;
 import compile.load.ScrollsConfig;
+import engine.stores.BookRateStore;
 import feature.apply.Rolls;
 import feature.apply.GestureOutcome;
 import feature.carrier.CarrierService;
@@ -19,6 +20,7 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.function.Supplier;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import platform.item.ItemGroups;
 import platform.text.Tokens;
@@ -45,11 +47,23 @@ public final class ScrollService {
     private final platform.lang.Messages messages;
     private final item.codec.GodlyTransmogCodec godlyCodec; // null in tests that never mint the godly tool
     private final ItemGroups groups; // §I applies-to gate — the black scroll only extracts from the configured item kinds
+    private final BookRateStore bookRates; // BOOK_RATE_MODIFIER's generate-site charge, spent at the extraction roll
 
     /** {@code godlyCodec} enables minting the physical godly-transmog tool (null disables it). */
     public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
                          ContentHolder content, Supplier<ScrollsConfig> config, Random random,
-                         platform.lang.Messages messages, item.codec.GodlyTransmogCodec godlyCodec, ItemGroups groups) {
+                         platform.lang.Messages messages, item.codec.GodlyTransmogCodec godlyCodec,
+                         ItemGroups groups) {
+        this(scrolls, combat, lore, carriers, content, config, random, messages, godlyCodec, groups,
+                new BookRateStore());
+    }
+
+    /** The composition-root form: {@code bookRates} must be the engine aggregate's store, or a pet's armed
+     *  generate charge is never seen by the roll it was armed for. */
+    public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
+                         ContentHolder content, Supplier<ScrollsConfig> config, Random random,
+                         platform.lang.Messages messages, item.codec.GodlyTransmogCodec godlyCodec,
+                         ItemGroups groups, BookRateStore bookRates) {
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");
         this.combat = Objects.requireNonNull(combat, "combat");
         this.lore = Objects.requireNonNull(lore, "lore");
@@ -60,6 +74,7 @@ public final class ScrollService {
         this.messages = Objects.requireNonNull(messages, "messages");
         this.godlyCodec = godlyCodec;
         this.groups = Objects.requireNonNull(groups, "groups");
+        this.bookRates = Objects.requireNonNull(bookRates, "bookRates");
     }
 
     public boolean isScroll(ItemStack stack) {
@@ -136,11 +151,16 @@ public final class ScrollService {
         return stack;
     }
 
-    /** Dispatch a scroll-on-target gesture by the cursor scroll's kind. */
+    /** Dispatch a scroll-on-target gesture by the cursor scroll's kind; no actor = no book-rate charge. */
     public GestureOutcome interact(ItemStack cursor, ItemStack target) {
+        return interact(null, cursor, target);
+    }
+
+    /** Dispatch a scroll-on-target gesture by the cursor scroll's kind. */
+    public GestureOutcome interact(Player actor, ItemStack cursor, ItemStack target) {
         String kind = scrolls.kind(cursor);
         if (BLACK.equals(kind)) {
-            return applyBlack(cursor, target);
+            return applyBlack(actor, cursor, target);
         }
         if (RANDOMIZER.equals(kind)) {
             return applyRandomizer(cursor, target);
@@ -243,7 +263,7 @@ public final class ScrollService {
      * (§I); the drawn book carries the scroll's stamped conversion success rate (a legacy scroll with no stamp
      * falls back to the global ceiling). Both the scroll's stamp and the apply re-cap to the live ceiling.
      */
-    private GestureOutcome applyBlack(ItemStack cursor, ItemStack gear) {
+    private GestureOutcome applyBlack(Player actor, ItemStack cursor, ItemStack gear) {
         if (gear == null || gear.getType() == Material.AIR) {
             return GestureOutcome.noop(messages.format("scroll.black.apply-target"));
         }
@@ -261,7 +281,12 @@ public final class ScrollService {
         List<String> keys = new ArrayList<>(current.enchants().keySet());
         String key = keys.get(random.nextInt(keys.size()));
         int level = current.enchants().get(key);
-        int convert = carriers.capBookSuccess(scrolls.convertOf(cursor, carriers.capBookSuccess(100)));
+        // The generate-site charge is spent HERE, not at mint: a scroll already in the world was minted long
+        // before anyone armed a pet, so the modifier has to land on the extraction roll that reads the rate
+        // back. Consumed by the attempt (this extraction always succeeds, so the outcome cannot refund it).
+        int bonus = actor == null ? 0 : bookRates.consume(actor.getUniqueId(), BookRateStore.GENERATE);
+        int convert = carriers.capBookSuccess(
+                scrolls.convertOf(cursor, carriers.capBookSuccess(100)) + bonus);
         consume(cursor);
         Map<String, Integer> remaining = new LinkedHashMap<>(current.enchants());
         remaining.remove(key);
