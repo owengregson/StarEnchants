@@ -22,8 +22,8 @@ tier: epic
 # SOUND plays at the activation location rather than to the victim alone (the effect has no recipient param);
 # the jar's victim-only cue is a cosmetic delta. The jar's NPE on null mob equipment has no analogue — the
 # engine's var read is null-safe.
-# era: `ARROW_HIT` is the 1.8-era spelling of ENTITY_ARROW_HIT — the matrix marks the entry era-clean, but
-# the resolver's alias table does not carry the pair yet; row owed in the legacy sweep (deferred-content.md).
+# era: `ARROW_HIT` is the 1.8-era spelling of ENTITY_ARROW_HIT — the matrix marks the entry era-clean and the
+# resolver now carries the pair (wave 2e.2, closing the legacy sweep), so the cue lands on both lanes.
 levels:
   1:
     abilities:

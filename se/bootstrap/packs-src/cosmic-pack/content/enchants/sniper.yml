@@ -29,8 +29,10 @@ condition: "%impactheight% > 1.9 && %victim.var.raged% == 0"
 # `+<n>x` reads like an addition but IS the total multiplier. Victim-only: the shooter gets no feedback.
 # Config text promises "up to 3.5x" where the implementation caps at 3.1x — text drift, behavior copied.
 # era: `REDSTONE_BLOCK` is fine on 1.8.9; `HURT_FLESH` is the 1.8-era spelling of ENTITY_PLAYER_HURT — the
-# matrix marks the entry era-clean, but the resolver's alias table does not carry the pair yet; row owed in
-# the legacy sweep (deferred-content.md).
+# matrix marks the entry era-clean and the resolver now carries the pair (wave 2e.2, closing the legacy
+# sweep). 1.8 has no player-specific hurt constant at all, which is why the row targets what this file
+# authors rather than the arguably-closer ENTITY_GENERIC_HURT: mapping to GENERIC would leave the authored
+# token unresolved and the cue silent.
 levels:
   # chance `0.35 + 0.075 x level` = 42.5/50/57.5/65/72.5 % (L4 measured `0.6499999999999999`, one ULP below
   # 0.65 — the exact 65 ships, the difference is sub-observable); multiplier 1 + 0.42 x level → an additive

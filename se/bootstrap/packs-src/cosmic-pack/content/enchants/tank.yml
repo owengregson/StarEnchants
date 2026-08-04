@@ -22,9 +22,8 @@ tier: epic
 # proc per piece; count 8 is that pair's convention, not a matrix number, and the engine centres a @Self
 # burst on the body.
 # era: the "_AXE" substring is version-safe (pickaxes never match, and 1.8's WOOD_AXE / GOLD_AXE match as
-# readily as the modern spellings). BLOCK_STONE_BREAK has no resolver alias row (1.8 spells it DIG_STONE; the
-# table carries the sibling DIG_GRASS row but not this one), so the break cue resolves to nothing on the
-# legacy lane until one is added — the BLOCK_CRACK burst still lands there.
+# readily as the modern spellings). BLOCK_STONE_BREAK carries its resolver row (1.8 spells it DIG_STONE,
+# beside the sibling DIG_GRASS row the table already had), so the break cue lands on the legacy lane too.
 levels:
   1:
     condition: '%victim.helditem% contains "_AXE" && %damage% * 0.98125 > 1.0'

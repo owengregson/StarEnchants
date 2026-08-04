@@ -55,9 +55,10 @@ condition: "%victim.type% == \"PLAYER\" && %victim.var.trap.frozen% != 1"
 # Boost, which no effect exposes). A trapped player can still hop; at 99.5 % slow they hop on the spot, which
 # is why this ships anyway. A jump knob on FREEZE is owed engine-side.
 # era: `STATIONARY_WATER` is 1.8's still-water spelling of `WATER` and `Sound.WATER` is 1.8's
-# `BLOCK_WATER_AMBIENT` — the modern spellings ship here (the pack-wide convention), but `Aliases.MATERIAL`
-# carries no `STATIONARY_WATER` row and `Aliases.SOUND` no `WATER` row, so both cues resolve to nothing on
-# the legacy lane until the sweep adds them (deferred-content).
+# `BLOCK_WATER_AMBIENT` — the modern spellings ship here (the pack-wide convention), and both rows landed in
+# wave 2e.2 (closing the legacy sweep): `Aliases.MATERIAL` carries `STATIONARY_WATER` and `Aliases.SOUND`
+# carries `WATER`. The material row is FORWARD-only in practice and says so in place — a 1.8 server resolves
+# the token `WATER` on the direct branch, so a modern-authored `WATER` still places flowing water there.
 # SNOW_BLOCK is block id 80 on 1.8.9 and needs no row.
 levels:
   # Proc 0.04 x level = 4 / 8 / 12 %, each rung carrying its own Metaphysical rebate and the 0.01 floor.

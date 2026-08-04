@@ -39,7 +39,7 @@ removes-required: true
 # jar composed them multiplicatively — the D-02-10 reading the Tank/Armored family already carries, one rung
 # up. Counterpart Armored (0.01875 x level, no bless, plus a break cue) is REPLACED, never summed.
 # count 1 is the matrix number, not the counterpart's 8: a single crack mote at the wearer, and unlike the
-# counterpart no break SOUND at all — so the missing DIG_STONE alias row cannot bite this file.
+# counterpart no break SOUND at all — so no cue alias can bite this file either way.
 # era: BLOCK_CRACK and DIAMOND_BLOCK both resolve on 1.8.9; nothing else here touches an era seam.
 levels:
   1:

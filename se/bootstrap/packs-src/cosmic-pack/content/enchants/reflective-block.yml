@@ -55,9 +55,10 @@ removes-required: true
 # already ruled on) is REPLACED by the contract, never summed.
 # era: `%blocking%` abstracts the seam — 1.8 right-click sword blocking, a raised shield on modern Paper
 # (the counterpart records the same). The CRIT and SPELL_WITCH bursts resolve on both lanes. The jar's
-# `ZOMBIE_METAL` is 1.8's mob.zombie.metal; the modern spelling ships here per the pack-wide convention, but
-# `Aliases.SOUND` carries no `ZOMBIE_METAL -> ENTITY_ZOMBIE_ATTACK_IRON_DOOR` row, so the cue resolves to
-# nothing on the legacy lane until the sweep adds one (deferred-content). Volume 10.0 is the jar's own
+# `ZOMBIE_METAL` is 1.8's mob.zombie.metal; the modern spelling ships here per the pack-wide convention, and
+# `Aliases.SOUND` now carries the `ZOMBIE_METAL -> ENTITY_ZOMBIE_ATTACK_IRON_DOOR` row (wave 2e.2, closing
+# the legacy sweep), so the cue lands on the 1.8 lane — which this entry needed more than most, since it
+# authors exactly one sound and was otherwise silent there. Volume 10.0 is the jar's own
 # number, kept verbatim — audible far beyond the fight.
 # PARTICLE placement: both bursts name an ENTITY, so each centres on that party's BODY — the recorded +1 y at
 # the wearer and at the attacker alike (the hex.yml reading). A location selector is NOT the spelling for it:

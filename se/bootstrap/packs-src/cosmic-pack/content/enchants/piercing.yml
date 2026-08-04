@@ -23,8 +23,8 @@ condition: "%victim.type% == \"PLAYER\""
 # which is the measured default and what ships here (no `cooldown:`). Eagle Eye reads the same stamp; the
 # window is one interaction-layer rule shared by both readers and its single writer, not enchant behavior.
 # strings: none.
-# era: `ARROW_HIT` is the 1.8-era spelling of ENTITY_ARROW_HIT — the matrix marks the entry era-clean, but
-# the resolver's alias table does not carry the pair yet; row owed in the legacy sweep (deferred-content.md).
+# era: `ARROW_HIT` is the 1.8-era spelling of ENTITY_ARROW_HIT — the matrix marks the entry era-clean and the
+# resolver now carries the pair (wave 2e.2, closing the legacy sweep), so the cue lands on both lanes.
 levels:
   # bonus 2.5 pp per level = 2.5/5/7.5/10/12.5 % of the triggering hit. The SOUND rides the activation
   # location (the hit) — the jar played it to the attacker at the attacker's own location, and SOUND has no

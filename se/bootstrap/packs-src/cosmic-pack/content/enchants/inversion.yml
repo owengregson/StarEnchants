@@ -38,7 +38,7 @@ tier: legendary
 # while the particle and sound stay shared. The self-DAMAGE cannot re-arm this enchant — SE-issued damage is
 # an ADR-0054 engine-damage frame our own walks never proc off — and, aimed at the event entity with no wait,
 # it folds into the very hit it declined to cancel.
-# era: BLOCK_PISTON_EXTEND is the modern spelling of the 1.8 `PISTON_EXTEND` cue (legacy-sweep alias row);
+# era: BLOCK_PISTON_EXTEND is the modern spelling of the 1.8 `PISTON_EXTEND` cue, which carries its alias row;
 # SPELL exists on both eras through the particle alias table.
 levels:
   # Activation chance 5 x level (float-cast, exact at these values); the heal is a level-independent

@@ -29,9 +29,9 @@ condition: "%damage% > 0 && %victim.var.bleedstacks% > 0 && %victim.var.raged% =
 # +40/50/60/70 % (×1.4 … ×1.7). Per-stack contribution is a flat 1.5 pp at every level; level moves only the
 # base term.
 # strings: none.
-# era: the block is `MYCEL` on 1.8.9 and `MYCELIUM` from the flattening on — `Aliases.MATERIAL` does NOT
-# carry that pair yet, so the crack burst would warn-skip on the legacy fork (parked on the
-# deferred-content.md legacy-sweep alias list, batch 04).
+# era: the block is `MYCEL` on 1.8.9 and `MYCELIUM` from the flattening on — `Aliases.MATERIAL` carries the
+# pair as of wave 2e.2 (one of the sweep's two block rows, the other being Titan Trap's water), so the crack
+# burst resolves on the legacy fork.
 levels:
   # Base term +10 pp a rung; everything else is level-independent.
   1:

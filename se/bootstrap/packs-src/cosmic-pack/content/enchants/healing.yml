@@ -36,7 +36,8 @@ tier: common
 # SOUND has no `who`: the recorded shooter-only chime plays at the impact instead, where the healed ally is
 # standing (the same cosmetic delta §Piercing and §Unfocus already carry).
 # era: `BLOCK_CRACK` with block data exists on 1.8.9 (`blockcrack_133_0`) and EMERALD_BLOCK/ABSORPTION/
-# HEALTH_BOOST all predate it; `ENTITY_EXPERIENCE_ORB_PICKUP` is the 1.8 `ORB_PICKUP` sound (alias row owed).
+# HEALTH_BOOST all predate it; `ENTITY_EXPERIENCE_ORB_PICKUP` is the 1.8 `ORB_PICKUP` sound and carries its alias
+# row (wave 2e.2, closing the legacy sweep).
 levels:
   1:
     abilities:

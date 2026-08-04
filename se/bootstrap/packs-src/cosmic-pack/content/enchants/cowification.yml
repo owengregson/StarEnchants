@@ -41,7 +41,8 @@ tier: uncommon
 # PROJECTILE_LAND is INERT on 1.8.9 (the era seam cannot tell a landing from an entity hit, nor read the hit
 # point), so the landing AoE simply never runs on the legacy fork; the direct-hit pair and the rider both do.
 # `EXPLOSION_LARGE` renames at 1.20.5 (resolver). `ENTITY_COW_AMBIENT`/`ENTITY_COW_HURT` are the modern
-# spellings of 1.8's `COW_IDLE`/`COW_HURT` and are NOT yet in `Aliases.SOUND` — legacy-sweep alias rows.
+# spellings of 1.8's `COW_IDLE`/`COW_HURT` and both now carry rows in `Aliases.SOUND` (wave 2e.2, closing the
+# legacy sweep), so the herd is audible on the 1.8 lane.
 levels:
   # Direct chance 10/20/30 % (L3 measured 30.000000000000004); direct Nausea II 20/40/60 t; AoE radius 1/2/3
   # (the jar's cube half-extent); AoE Nausea II 25/50/75 t. Cow lifetime and invuln window are 200 t flat.

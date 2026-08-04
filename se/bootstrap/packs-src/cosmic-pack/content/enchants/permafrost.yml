@@ -54,9 +54,10 @@ tier: mastery
 # day the fact lands.
 # era: SNOW_BLOCK is block id 80 on 1.8.9 and needs no alias. The modern handle names ship here, per the
 # pack-wide convention, and the two renames land differently: `SLOW_DIGGING` → `MINING_FATIGUE` IS in
-# `Aliases.POTION_EFFECT`, so the pending attacker debuff resolves on both lanes the day it is authored, but
-# `Aliases.SOUND` carries NO row for 1.8's `GLASS` → `BLOCK_GLASS_BREAK` — the freeze cue is silent on the
-# legacy lane until the sweep adds it (owed in deferred-content).
+# `Aliases.POTION_EFFECT`, so the pending attacker debuff resolves on both lanes the day it is authored, and
+# `Aliases.SOUND` now carries 1.8's `GLASS` → `BLOCK_GLASS_BREAK` too (wave 2e.2, closing the legacy sweep).
+# That row is why this entry is audible on 1.8 at all: it authors exactly ONE sound, so the whole proc used
+# to fire in silence there.
 levels:
   # Chance `2 + L/3` % in true double division — 2.33333 / 2.66667 / 3.0 / 3.33333 / 3.66667 / 4.0, the
   # matrix's own figures, not the jar's integer-division shape.
