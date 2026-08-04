@@ -1,0 +1,37 @@
+# Matrix: 03-enchants-swords.md § Double Strike
+display: "Double Strike"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance for a hit to land a second time."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "legendary"
+tier: legendary
+# D-03-5: the jar scheduled an attacker-attributed re-hit 2 t later for the first hit's FINAL damage, which
+# re-entered the whole pipeline — every enchant re-procced, it could recurse without a depth guard, it fed
+# post-armor damage back in as raw, and vanilla invulnerability could swallow it outright. ECHO_STRIKE is the
+# shipped fold: one re-run of this activation over the same hit, all damage folded into the one event, no
+# recursion and no invulnerability window. The liveness / Phoenix-revival edges of the 2 t delay disappear
+# with it.
+# D-03-6: the jar's Rage exclusion read a misspelled marker key that was never written, so the follow-up was
+# multiplied by Rage AND double-incremented the combo. The intended behaviour — echo hits excluded from Rage
+# — is the engine default (Rage's counter steps once per real swing), so nothing is authored for it here.
+# strings: none.
+# era: `RED_DUST` (1.8.9) <-> `REDSTONE` / `DUST` (1.20.5 flattening) via the resolver.
+levels:
+  # chance 2 x level (2/4/6 %).
+  1:
+    chance: 2
+    effects:
+      - { ECHO_STRIKE: {} }
+      - { PARTICLE: { particle: "REDSTONE", count: 20, spread: 0.5, who: "@Victim" } }
+  2:
+    chance: 4
+    effects:
+      - { ECHO_STRIKE: {} }
+      - { PARTICLE: { particle: "REDSTONE", count: 20, spread: 0.5, who: "@Victim" } }
+  3:
+    chance: 6
+    effects:
+      - { ECHO_STRIKE: {} }
+      - { PARTICLE: { particle: "REDSTONE", count: 20, spread: 0.5, who: "@Victim" } }

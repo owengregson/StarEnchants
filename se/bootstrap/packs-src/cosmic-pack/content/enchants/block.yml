@@ -1,0 +1,35 @@
+# Matrix: 03-enchants-swords.md § Block
+display: "Block"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eWhile you are blocking, a chance to shrug"
+  - "&eoff part of an incoming hit."
+trigger: DEFENSE
+applies-to: [SWORD]
+group: "epic"
+tier: epic
+condition: "%blocking%"
+# D-03-1 (as-intended): the jar's `0.5 * (L / 2)` reduction is INTEGER division, so L1 reduced nothing at all
+# and L2/L3 both landed on 50 %; the real-division reading `0.5 * (L / 2.0)` ships instead — 25/50/75 %.
+# Defensive double-fire member (00 §3.4): the values below are the SINGLE-PASS intent per D-001, never the
+# doubled measurement. The reduction is a defense-side fold contribution, so vanilla's own blocking reduction
+# still applies after it, as measured. Chance 10/20/30 % (L3 measured 0.30000000000000004).
+# era: right-click sword blocking is a 1.8-era mechanic — on modern Paper %blocking% resolves to a raised
+# shield, which is the same fact on the modern lane. ITEM_BREAK (legacy) <-> ENTITY_ITEM_BREAK via the
+# boot-time sound resolver.
+levels:
+  1:
+    chance: 10
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }
+      - { SOUND: { sound: "ENTITY_ITEM_BREAK", volume: 0.7, pitch: 0.2 } }
+  2:
+    chance: 20
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 50 } }
+      - { SOUND: { sound: "ENTITY_ITEM_BREAK", volume: 0.7, pitch: 0.2 } }
+  3:
+    chance: 30
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 75 } }
+      - { SOUND: { sound: "ENTITY_ITEM_BREAK", volume: 0.7, pitch: 0.2 } }

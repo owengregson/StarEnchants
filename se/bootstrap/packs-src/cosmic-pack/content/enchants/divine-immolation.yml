@@ -1,0 +1,85 @@
+# Matrix: 03-enchants-swords.md § Divine Immolation
+display: "Divine Immolation"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eSpends souls to burst holy fire around"
+  - "&eyour target, withering everything caught"
+  - "&ein it."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "soul"
+tier: soul
+# The gate chain, in the order the jar reads it:
+#  - held sword: the recorded `%actor.helditem% contains SWORD` re-check, kept even though applies-to
+#    already scopes the enchant to swords (the jar tested the hand, not the source item).
+#  - held-switch window: the matrix armed a companion `HELD -> SET_VAR(heldswitch, ttl=5)` rule because no
+#    held-age fact existed; `%heldticks%` (wave 1) IS that fact, so the companion block is not authored —
+#    it would also sit in this enchant's single cooldown bucket and be starved by the 20 t pace below.
+#    HeldSlotStore stamps ONLY on a hotbar-slot change and reads 0 for a player who has never switched, so
+#    the `== 0` arm restores the jar's unset-means-allowed default; the cost is the swap tick itself.
+#  - souls: the gate is "gem armed AND balance > 0", NOT "balance >= 20", so this is `%actor.souls% > 0`
+#    plus a REMOVE_SOULS row — `soul-cost: 20` would abort for anyone under 20 souls and is the wrong gate
+#    here (unlike Immortal/Nature Wrath, whose spends must fund the whole sequence). REMOVE_SOULS is itself
+#    a no-op outside soul mode, which carries the "gem armed" half.
+# Soul Trap (axes doc) blocking this proc, ally/vanish/gamemode/PvP filtering inside the burst and the
+# global souls toggle are all interaction/policy layers — nothing authored here.
+condition: "%actor.helditem% contains \"SWORD\" && (%heldticks% >= 5 || %heldticks% == 0) && %actor.souls% > 0"
+cooldown: 20  # D-03-13: measured, the 1 s throttle guarded only the soul spend and the AoE burst fired free; as-intended both share the pace
+# PERIODIC_DAMAGE (wave 1) owns the wither conversion: it strips WITHER and denies it for the window, so its
+# own pulses are the only ticking damage. The POTION row above it is the recorded status/visual layer and is
+# authored as measured, and kept:
+# inert until the wave-1f PERIODIC_DAMAGE replace fix — the shipped replace denies the status for the window;
+# the contract cancels only the TICKS (visual survives in the jar).
+# Port choice: the codex contradicts itself on the wither cadence; 20 t is the plausible reading. The jar
+# marked a victim with divine fire FOREVER (any later wither source converted); the shipped window is owned
+# and expires with `duration`.
+# The recorded per-tick cosmetics — SOUND(ENTITY_ZOMBIFIED_PIGLIN_ANGRY, 0.6, 0.8), FLAME x20 and LAVA x15 —
+# have no home on the frozen surface: PERIODIC_DAMAGE carries a `feedback` line and nothing else. Dropped,
+# recorded here; the message itself is byte-verbatim on the feedback param.
+# era: `ZOMBIE_PIG_ANGRY` (1.8.9) <-> `ENTITY_ZOMBIFIED_PIGLIN_ANGRY` (renamed 1.16) and `FIREWORK_BLAST`
+# <-> `ENTITY_FIREWORK_ROCKET_BLAST` both need legacy alias rows; FLAME / LAVA particles and WITHER exist
+# on 1.8.9 unchanged.
+levels:
+  # radius 1 x L; hit damage floor(1.25 x L) = 1/2/3/5 (the L3->L4 step is +2, measured); WITHER II for that
+  # same number of seconds; conversion window (4 + L) s with min(7, 4 + L) damage a pulse (5/6/7/7, capped);
+  # 20 souls a spend at every level.
+  1:
+    effects:
+      - { REMOVE_SOULS: { amount: 20, who: "@Self" } }
+      - { DAMAGE: { amount: 1, who: "@Aoe{r=1, filter=ENEMIES}" } }  # the primary victim sits inside the radius and is included (exclude=none)
+      - { POTION: { effect: "WITHER", level: 2, duration: 20, who: "@Aoe{r=1, filter=ENEMIES}" } }
+      - { PARTICLE: { particle: "FLAME", count: 30, spread: 0.15, who: "@Aoe{r=1, filter=ENEMIES}" } }
+      - { PARTICLE: { particle: "LAVA", count: 20, spread: 0.5, who: "@Aoe{r=1, filter=ENEMIES}" } }
+      - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_BLAST", volume: 1.0, pitch: 0.3 } }
+      - { SOUND: { sound: "ENTITY_ZOMBIFIED_PIGLIN_ANGRY", volume: 0.8, pitch: 0.5 } }
+      - { PERIODIC_DAMAGE: { amount: 5, period: 20, duration: 100, replace: "WITHER", feedback: "§c§l** DIVINE IMMOLATION **", who: "@Aoe{r=1, filter=ENEMIES}" } }
+  2:
+    effects:
+      - { REMOVE_SOULS: { amount: 20, who: "@Self" } }
+      - { DAMAGE: { amount: 2, who: "@Aoe{r=2, filter=ENEMIES}" } }
+      - { POTION: { effect: "WITHER", level: 2, duration: 40, who: "@Aoe{r=2, filter=ENEMIES}" } }
+      - { PARTICLE: { particle: "FLAME", count: 30, spread: 0.15, who: "@Aoe{r=2, filter=ENEMIES}" } }
+      - { PARTICLE: { particle: "LAVA", count: 20, spread: 0.5, who: "@Aoe{r=2, filter=ENEMIES}" } }
+      - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_BLAST", volume: 1.0, pitch: 0.3 } }
+      - { SOUND: { sound: "ENTITY_ZOMBIFIED_PIGLIN_ANGRY", volume: 0.8, pitch: 0.5 } }
+      - { PERIODIC_DAMAGE: { amount: 6, period: 20, duration: 120, replace: "WITHER", feedback: "§c§l** DIVINE IMMOLATION **", who: "@Aoe{r=2, filter=ENEMIES}" } }
+  3:
+    effects:
+      - { REMOVE_SOULS: { amount: 20, who: "@Self" } }
+      - { DAMAGE: { amount: 3, who: "@Aoe{r=3, filter=ENEMIES}" } }
+      - { POTION: { effect: "WITHER", level: 2, duration: 60, who: "@Aoe{r=3, filter=ENEMIES}" } }
+      - { PARTICLE: { particle: "FLAME", count: 30, spread: 0.15, who: "@Aoe{r=3, filter=ENEMIES}" } }
+      - { PARTICLE: { particle: "LAVA", count: 20, spread: 0.5, who: "@Aoe{r=3, filter=ENEMIES}" } }
+      - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_BLAST", volume: 1.0, pitch: 0.3 } }
+      - { SOUND: { sound: "ENTITY_ZOMBIFIED_PIGLIN_ANGRY", volume: 0.8, pitch: 0.5 } }
+      - { PERIODIC_DAMAGE: { amount: 7, period: 20, duration: 140, replace: "WITHER", feedback: "§c§l** DIVINE IMMOLATION **", who: "@Aoe{r=3, filter=ENEMIES}" } }
+  4:
+    effects:
+      - { REMOVE_SOULS: { amount: 20, who: "@Self" } }
+      - { DAMAGE: { amount: 5, who: "@Aoe{r=4, filter=ENEMIES}" } }
+      - { POTION: { effect: "WITHER", level: 2, duration: 100, who: "@Aoe{r=4, filter=ENEMIES}" } }
+      - { PARTICLE: { particle: "FLAME", count: 30, spread: 0.15, who: "@Aoe{r=4, filter=ENEMIES}" } }
+      - { PARTICLE: { particle: "LAVA", count: 20, spread: 0.5, who: "@Aoe{r=4, filter=ENEMIES}" } }
+      - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_BLAST", volume: 1.0, pitch: 0.3 } }
+      - { SOUND: { sound: "ENTITY_ZOMBIFIED_PIGLIN_ANGRY", volume: 0.8, pitch: 0.5 } }
+      - { PERIODIC_DAMAGE: { amount: 7, period: 20, duration: 160, replace: "WITHER", feedback: "§c§l** DIVINE IMMOLATION **", who: "@Aoe{r=4, filter=ENEMIES}" } }

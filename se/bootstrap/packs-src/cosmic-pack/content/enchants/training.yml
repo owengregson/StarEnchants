@@ -1,0 +1,48 @@
+# Matrix: 03-enchants-swords.md § Training
+display: "Training"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eEvery scrap of experience you pick up"
+  - "&ewhile carrying this weapon counts for more."
+trigger: EXP_GAIN
+applies-to: [SWORD, AXE, BOW]  # jar weapons set = sword/axe/bow; WEAPON would add modern types the jar never covered
+group: "uncommon"
+tier: uncommon
+# The multiplier is the WHOLE enchant: the jar's combat hook is an empty class body, so there are no other rules.
+# External-integration re-scope, recorded here rather than as a ledger row: the jar multiplied mcMMO
+# COMBAT-SKILL xp through mcMMO's own gain hook and was inert without mcMMO. There is no mcMMO in the
+# StarEnchants stack, so the port re-targets the engine's EXP_GAIN (vanilla XP).
+# strings: none.
+# era: none.
+levels:
+  # x1.035 per level (1 + 0.035·L): +3.5 % … +35 %.
+  1:
+    effects:
+      - { EXP_MULTIPLY: { factor: 1.035 } }
+  2:
+    effects:
+      - { EXP_MULTIPLY: { factor: 1.07 } }
+  3:
+    effects:
+      - { EXP_MULTIPLY: { factor: 1.105 } }
+  4:
+    effects:
+      - { EXP_MULTIPLY: { factor: 1.14 } }  # measured 1.1400000000000001 — the float artifact of the accumulating ladder, authored as the exact value
+  5:
+    effects:
+      - { EXP_MULTIPLY: { factor: 1.175 } }
+  6:
+    effects:
+      - { EXP_MULTIPLY: { factor: 1.21 } }
+  7:
+    effects:
+      - { EXP_MULTIPLY: { factor: 1.245 } }
+  8:
+    effects:
+      - { EXP_MULTIPLY: { factor: 1.28 } }
+  9:
+    effects:
+      - { EXP_MULTIPLY: { factor: 1.315 } }
+  10:
+    effects:
+      - { EXP_MULTIPLY: { factor: 1.35 } }

@@ -1,0 +1,134 @@
+# Matrix: 03-enchants-swords.md § Inversion
+display: "Inversion"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance to shrug off any damage you take"
+  - "&eand heal 1 to 3 health instead."
+trigger: HURT
+applies-to: [SWORD]
+group: "legendary"
+tier: legendary
+# HURT, not DEFENSE: the matrix's HURT_TRIGGER gap is what this entry was waiting on. The jar inverts EVERY
+# damage cause (fall, fire, drowning, poison ticks), and DEFENSE needs an attacking target, so only the
+# all-cause defensive trigger reproduces it. No %damagecause% condition — every cause qualifies.
+# The sword is HELD while defending: a non-armour held item stays in WornState, so an equipment-scanning
+# defensive trigger reaches it (the entry's "WornState held-item source" note).
+# The 1/2/3 draw is an exact chance ladder over 1 t scratch vars, which the frozen surface has no single
+# primitive for (the entry's optional RANDOM_PARAM gap would collapse it to one row). `inv.proc` carries the
+# 5 x level activation roll to the rows behind it so the whole proc shares ONE roll; `inv.done` makes the
+# three heal rungs mutually exclusive. A SET_VAR write lands in the store immediately, so a later row in the
+# same pass reads it — the ladder is 33.334% / 50%-of-the-rest / remainder, i.e. 1/3 each.
+# Defensive double-fire member: single-pass values per D-001. The jar's guard on the 1-3 draw is dead code
+# (always true) and is not ported; its CCE on non-player defenders is a crash bug the engine cannot reach
+# (player-scoped). MODIFY_HEALTH already clamps at max health and refuses a dead target, as measured.
+# Corrupt (Corrupt's own doc) owns the inverted branch: while the defender is corrupted, `corrupt x 20`% of
+# these procs turn the heal into DAMAGE(amount = the same 1-3 draw) @Self and let the incoming hit land
+# uncancelled, with the message "§5* CORRUPTED [§c{AMOUNT}§5 DMG] *" (verbatim; the jar renders {AMOUNT} as a
+# double — 1.0/2.0/3.0 — and token binding lands with wave 1e). That is interaction-layer rule
+# `corrupt-inverts-inversion` (chance 20/40/~60/~80% by Corrupt level), authored on the other side, so
+# nothing about it is expressible here.
+# era: BLOCK_PISTON_EXTEND is the modern spelling of the 1.8 `PISTON_EXTEND` cue (legacy-sweep alias row);
+# SPELL exists on both eras through the particle alias table.
+levels:
+  # Activation chance 5 x level (float-cast, exact at these values); the heal is a level-independent
+  # 1.0/2.0/3.0 uniform draw.
+  1:
+    abilities:
+      - chance: 5
+        effects:
+          - { SET_VAR: { name: "inv.proc", value: "1", ttl: 1, who: "@Self" } }
+      - condition: "%inv.proc% == 1"
+        chance: 33.334
+        effects:
+          - { SET_VAR: { name: "inv.done", value: "1", ttl: 1, who: "@Self" } }
+          - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }
+      - condition: "%inv.proc% == 1 && %inv.done% != 1"
+        chance: 50
+        effects:
+          - { SET_VAR: { name: "inv.done", value: "1", ttl: 1, who: "@Self" } }
+          - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }
+      - condition: "%inv.proc% == 1 && %inv.done% != 1"
+        chance: 100
+        effects:
+          - { MODIFY_HEALTH: { amount: 3, mode: "give", who: "@Self" } }
+      - condition: "%inv.proc% == 1"
+        chance: 100
+        effects:
+          - { CANCEL: {} }
+          - { PARTICLE: { particle: "SPELL", count: 20, spread: 0.45, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_PISTON_EXTEND", volume: 0.8, pitch: 2.0 } }
+  2:
+    abilities:
+      - chance: 10
+        effects:
+          - { SET_VAR: { name: "inv.proc", value: "1", ttl: 1, who: "@Self" } }
+      - condition: "%inv.proc% == 1"
+        chance: 33.334
+        effects:
+          - { SET_VAR: { name: "inv.done", value: "1", ttl: 1, who: "@Self" } }
+          - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }
+      - condition: "%inv.proc% == 1 && %inv.done% != 1"
+        chance: 50
+        effects:
+          - { SET_VAR: { name: "inv.done", value: "1", ttl: 1, who: "@Self" } }
+          - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }
+      - condition: "%inv.proc% == 1 && %inv.done% != 1"
+        chance: 100
+        effects:
+          - { MODIFY_HEALTH: { amount: 3, mode: "give", who: "@Self" } }
+      - condition: "%inv.proc% == 1"
+        chance: 100
+        effects:
+          - { CANCEL: {} }
+          - { PARTICLE: { particle: "SPELL", count: 20, spread: 0.45, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_PISTON_EXTEND", volume: 0.8, pitch: 2.0 } }
+  3:
+    abilities:
+      - chance: 15
+        effects:
+          - { SET_VAR: { name: "inv.proc", value: "1", ttl: 1, who: "@Self" } }
+      - condition: "%inv.proc% == 1"
+        chance: 33.334
+        effects:
+          - { SET_VAR: { name: "inv.done", value: "1", ttl: 1, who: "@Self" } }
+          - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }
+      - condition: "%inv.proc% == 1 && %inv.done% != 1"
+        chance: 50
+        effects:
+          - { SET_VAR: { name: "inv.done", value: "1", ttl: 1, who: "@Self" } }
+          - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }
+      - condition: "%inv.proc% == 1 && %inv.done% != 1"
+        chance: 100
+        effects:
+          - { MODIFY_HEALTH: { amount: 3, mode: "give", who: "@Self" } }
+      - condition: "%inv.proc% == 1"
+        chance: 100
+        effects:
+          - { CANCEL: {} }
+          - { PARTICLE: { particle: "SPELL", count: 20, spread: 0.45, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_PISTON_EXTEND", volume: 0.8, pitch: 2.0 } }
+  4:
+    abilities:
+      - chance: 20
+        effects:
+          - { SET_VAR: { name: "inv.proc", value: "1", ttl: 1, who: "@Self" } }
+      - condition: "%inv.proc% == 1"
+        chance: 33.334
+        effects:
+          - { SET_VAR: { name: "inv.done", value: "1", ttl: 1, who: "@Self" } }
+          - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }
+      - condition: "%inv.proc% == 1 && %inv.done% != 1"
+        chance: 50
+        effects:
+          - { SET_VAR: { name: "inv.done", value: "1", ttl: 1, who: "@Self" } }
+          - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }
+      - condition: "%inv.proc% == 1 && %inv.done% != 1"
+        chance: 100
+        effects:
+          - { MODIFY_HEALTH: { amount: 3, mode: "give", who: "@Self" } }
+      - condition: "%inv.proc% == 1"
+        chance: 100
+        effects:
+          - { CANCEL: {} }
+          - { PARTICLE: { particle: "SPELL", count: 20, spread: 0.45, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_PISTON_EXTEND", volume: 0.8, pitch: 2.0 } }

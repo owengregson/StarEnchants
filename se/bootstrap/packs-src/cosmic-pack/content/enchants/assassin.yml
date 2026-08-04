@@ -1,0 +1,69 @@
+# Matrix: 03-enchants-swords.md § Assassin
+display: "Assassin"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe closer you are when the hit lands the harder"
+  - "&eit bites — and past two blocks it bites you back."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "epic"
+tier: epic
+# No chance roll: every qualifying hit takes exactly one band. The jar ran cumulative independent `if`s; the
+# eight DISJOINT net bands below reproduce its totals exactly (L5: x1.25 / x1.20 / x1.15 / x1.10 / x1.05 /
+# x1.00 / x0.95 / x0.8875 / x0.7625). 1.5-2.0 blocks deliberately carries no row — that gap IS the x1.00 band.
+# The past-two-blocks penalty is real and kept. Cross-world hits cannot occur in-engine, so no world guard.
+# Composition with every other attack modifier is the engine's additive fold (the jar composed
+# multiplicatively in unspecified order — an engine-model difference the fold design owns, not a deviation).
+# The heroic upgrade path to Shadow Assassin lives in doc 07.
+# era: none (pure damage math).
+levels:
+  1:
+    abilities:
+      - { condition: "%distance% < 0.25", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } } ] }
+      - { condition: "%distance% >= 0.25 && %distance% < 0.5", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 4 } } ] }
+      - { condition: "%distance% >= 0.5 && %distance% < 0.75", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 3 } } ] }
+      - { condition: "%distance% >= 0.75 && %distance% < 1.0", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 2 } } ] }
+      - { condition: "%distance% >= 1.0 && %distance% < 1.5", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 1 } } ] }
+      - { condition: "%distance% > 2.0 && %distance% <= 2.5", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: -1 } } ] }
+      - { condition: "%distance% > 2.5 && %distance% <= 3.0", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: -2.25 } } ] }
+      - { condition: "%distance% > 3.0", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: -4.75 } } ] }
+  2:
+    abilities:
+      - { condition: "%distance% < 0.25", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } } ] }
+      - { condition: "%distance% >= 0.25 && %distance% < 0.5", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } } ] }
+      - { condition: "%distance% >= 0.5 && %distance% < 0.75", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 6 } } ] }
+      - { condition: "%distance% >= 0.75 && %distance% < 1.0", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 4 } } ] }
+      - { condition: "%distance% >= 1.0 && %distance% < 1.5", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 2 } } ] }
+      - { condition: "%distance% > 2.0 && %distance% <= 2.5", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: -2 } } ] }
+      - { condition: "%distance% > 2.5 && %distance% <= 3.0", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: -4.5 } } ] }
+      - { condition: "%distance% > 3.0", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: -9.5 } } ] }
+  3:
+    abilities:
+      - { condition: "%distance% < 0.25", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } } ] }
+      - { condition: "%distance% >= 0.25 && %distance% < 0.5", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } } ] }
+      - { condition: "%distance% >= 0.5 && %distance% < 0.75", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 9 } } ] }
+      - { condition: "%distance% >= 0.75 && %distance% < 1.0", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 6 } } ] }
+      - { condition: "%distance% >= 1.0 && %distance% < 1.5", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 3 } } ] }
+      - { condition: "%distance% > 2.0 && %distance% <= 2.5", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: -3 } } ] }
+      - { condition: "%distance% > 2.5 && %distance% <= 3.0", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: -6.75 } } ] }
+      - { condition: "%distance% > 3.0", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: -14.25 } } ] }
+  4:
+    abilities:
+      - { condition: "%distance% < 0.25", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 20 } } ] }
+      - { condition: "%distance% >= 0.25 && %distance% < 0.5", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 16 } } ] }
+      - { condition: "%distance% >= 0.5 && %distance% < 0.75", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } } ] }
+      - { condition: "%distance% >= 0.75 && %distance% < 1.0", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } } ] }
+      - { condition: "%distance% >= 1.0 && %distance% < 1.5", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 4 } } ] }
+      - { condition: "%distance% > 2.0 && %distance% <= 2.5", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: -4 } } ] }
+      - { condition: "%distance% > 2.5 && %distance% <= 3.0", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: -9 } } ] }
+      - { condition: "%distance% > 3.0", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: -19 } } ] }
+  5:
+    abilities:
+      - { condition: "%distance% < 0.25", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 25 } } ] }
+      - { condition: "%distance% >= 0.25 && %distance% < 0.5", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 20 } } ] }
+      - { condition: "%distance% >= 0.5 && %distance% < 0.75", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } } ] }
+      - { condition: "%distance% >= 0.75 && %distance% < 1.0", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } } ] }
+      - { condition: "%distance% >= 1.0 && %distance% < 1.5", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } } ] }
+      - { condition: "%distance% > 2.0 && %distance% <= 2.5", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: -5 } } ] }
+      - { condition: "%distance% > 2.5 && %distance% <= 3.0", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: -11.25 } } ] }
+      - { condition: "%distance% > 3.0", effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: -23.75 } } ] }

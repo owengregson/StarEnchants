@@ -1,0 +1,45 @@
+# Matrix: 03-enchants-swords.md § Paralyze
+display: "Paralyze"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance to call a harmless bolt down on your"
+  - "&etarget, slow them, and land a separate flat hit."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "rare"
+tier: rare
+# The DAMAGE row is a SECOND, separate hit — the jar never folded it into the melee event, so it is authored
+# as its own flat damage rather than a DAMAGE_MOD contribution.
+# No cooldown, as measured: each proc stacks another 5 s slow and another flat hit on top of the last.
+# D-03-9: the measured bolt struck at the ATTACKER's location (verified bytecode); the as-intended strike on
+# the victim is what ships here, so LIGHTNING rides @Victim.
+# era: LIGHTNING(damage=0) is the effect-only bolt on both lanes; SLOW / SLOW_DIGGING are the 1.8-era
+# spellings the handle resolver maps to SLOWNESS / MINING_FATIGUE.
+levels:
+  # chance 1.75 x level, EXCEPT level 3 which the jar special-cased DOWN from 5.25 to a flat 5;
+  # Slowness I/I/II/II for 100 t, Fatigue II 100 t at L4; the separate hit is 1 + level.
+  1:
+    chance: 1.75
+    effects:
+      - { LIGHTNING: { damage: 0, who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 1, duration: 100, who: "@Victim" } }
+      - { DAMAGE: { amount: 2, who: "@Victim" } }
+  2:
+    chance: 3.5
+    effects:
+      - { LIGHTNING: { damage: 0, who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 1, duration: 100, who: "@Victim" } }
+      - { DAMAGE: { amount: 3, who: "@Victim" } }
+  3:
+    chance: 5
+    effects:
+      - { LIGHTNING: { damage: 0, who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 2, duration: 100, who: "@Victim" } }
+      - { DAMAGE: { amount: 4, who: "@Victim" } }
+  4:
+    chance: 7
+    effects:
+      - { LIGHTNING: { damage: 0, who: "@Victim" } }
+      - { POTION: { effect: "SLOW", level: 2, duration: 100, who: "@Victim" } }
+      - { POTION: { effect: "SLOW_DIGGING", level: 2, duration: 100, who: "@Victim" } }  # the Fatigue rung is level 4 only
+      - { DAMAGE: { amount: 5, who: "@Victim" } }
