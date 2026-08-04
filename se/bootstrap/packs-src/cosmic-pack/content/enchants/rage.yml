@@ -1,0 +1,233 @@
+# Matrix: 03-enchants-swords.md § Rage
+display: "Rage"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eEach sword hit builds a combo that adds damage;"
+  - "&etaking any hit yourself wipes it."
+trigger: ATTACK
+applies-to: [SWORD, AXE, BOW]  # jar weapons set = sword/axe/bow; WEAPON would add modern types the jar never covered
+group: "legendary"
+tier: legendary
+chance: 100  # no chance roll — every gated hit counts
+# Item set weapons, but gated on the held item so axes and bows never proc (measured). ATTACK is melee-only,
+# which is what excludes projectile damagers exactly as the jar's trigger choice did.
+condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0"
+# The matrix's COUNTER_VAR + VAR_SCALED_DAMAGE gaps are closed by the wave-1 surface: SET_VAR op=increment IS
+# the counter, %counter.rage.pvp% / %counter.rage.pve% ARE the reads (an unset var reads 0), and an
+# expression-valued DAMAGE_MOD amount folds the count into the damage. The engine's native %combo% /
+# %ragestacks% facts stay unused — they are single-bucket and not per-enchant, and the jar's two independent
+# pvp/pve buckets are the mechanism.
+# BLOCK ORDER IS THE MECHANISM: the multiplier reads the PRE-increment count, so the fold block is authored
+# BEFORE the increment block and the first hit of a chain is always x1.0. The mark block sits between them so
+# it reads the same pre-increment count the fold did.
+# Counters reset when the HOLDER takes ANY damage — the all-cause defender walk is HURT (DEFENSE only walks
+# entity-on-entity damage). No decay timer (ttl 0 = forever) and no cap on the counter itself: the ceiling is
+# the fold's own min(..., 150), exactly as measured. The jar's combo-DECREMENT API has no callers — not ported.
+# interactions carried elsewhere, nothing authored here:
+#   - Devour (axes, 04) suppresses the multiplier and the victim mark but NOT the increment — layer rule
+#     `devour-suppresses-rage-multiplier`; the axes doc owns the mark it keys on.
+#   - Pacify (bow, 05) authors SUPPRESS(scope=ENCHANT, key=enchants/rage, duration=15xL) @Victim.
+#   - Execute (03) refuses to fire inside the 4 t `raged` window this writes.
+#   - Double Strike echo exclusion is the engine default (ledger D-03-6: the jar's guard typo let echo hits
+#     multiply and double-increment).
+# strings: none.
+# era: block id 152 = REDSTONE_BLOCK; the block-crack particle is fine on 1.8.9.
+levels:
+  1:
+    # +5% per banked hit (measured 0.05), total capped at +150% (x2.5) — the cap lands at combo 30.
+    abilities:
+      # 1. fold: pre-increment count x 5%, pvp bucket
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "min(%counter.rage.pvp% * 5, 150)" } }
+      # 2. mark + cue, only once the chain is actually banking damage (count >= 1)
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\" && %counter.rage.pvp% >= 1"
+        effects:
+          - { SET_VAR: { name: "raged", value: "1", ttl: 4, who: "@Victim" } }  # the 200 ms Execute-exclusion window
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim" } }  # recorded at eye height; PARTICLE centres on the body and no victim-scoped offset selector exists (cosmetic delta)
+      # 3. increment, last
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "counter.rage.pvp", op: "increment", step: 1, ttl: 0, who: "@Self" } }
+      # 1-3 again against everything that is not a player — the independent pve bucket
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% != \"PLAYER\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "min(%counter.rage.pve% * 5, 150)" } }
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% != \"PLAYER\" && %counter.rage.pve% >= 1"
+        effects:
+          - { SET_VAR: { name: "raged", value: "1", ttl: 4, who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim" } }
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% != \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "counter.rage.pve", op: "increment", step: 1, ttl: 0, who: "@Self" } }
+      # Reset-on-damage-taken: both buckets, any cause, no condition of its own.
+      - trigger: HURT
+        condition: ""
+        effects:
+          - { SET_VAR: { name: "counter.rage.pvp", value: "0", ttl: 0, who: "@Self" } }
+          - { SET_VAR: { name: "counter.rage.pve", value: "0", ttl: 0, who: "@Self" } }
+  2:
+    # +10% per banked hit (measured 0.1), total capped at +150% (x2.5) — the cap lands at combo 15.
+    abilities:
+      # 1. fold: pre-increment count x 10%, pvp bucket
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "min(%counter.rage.pvp% * 10, 150)" } }
+      # 2. mark + cue, only once the chain is actually banking damage (count >= 1)
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\" && %counter.rage.pvp% >= 1"
+        effects:
+          - { SET_VAR: { name: "raged", value: "1", ttl: 4, who: "@Victim" } }  # the 200 ms Execute-exclusion window
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim" } }  # recorded at eye height; PARTICLE centres on the body and no victim-scoped offset selector exists (cosmetic delta)
+      # 3. increment, last
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "counter.rage.pvp", op: "increment", step: 1, ttl: 0, who: "@Self" } }
+      # 1-3 again against everything that is not a player — the independent pve bucket
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% != \"PLAYER\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "min(%counter.rage.pve% * 10, 150)" } }
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% != \"PLAYER\" && %counter.rage.pve% >= 1"
+        effects:
+          - { SET_VAR: { name: "raged", value: "1", ttl: 4, who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim" } }
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% != \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "counter.rage.pve", op: "increment", step: 1, ttl: 0, who: "@Self" } }
+      # Reset-on-damage-taken: both buckets, any cause, no condition of its own.
+      - trigger: HURT
+        condition: ""
+        effects:
+          - { SET_VAR: { name: "counter.rage.pvp", value: "0", ttl: 0, who: "@Self" } }
+          - { SET_VAR: { name: "counter.rage.pve", value: "0", ttl: 0, who: "@Self" } }
+  3:
+    # +15% per banked hit (measured 0.15000000000000002), total capped at +150% (x2.5) — the cap lands at combo 10.
+    abilities:
+      # 1. fold: pre-increment count x 15%, pvp bucket
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "min(%counter.rage.pvp% * 15, 150)" } }
+      # 2. mark + cue, only once the chain is actually banking damage (count >= 1)
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\" && %counter.rage.pvp% >= 1"
+        effects:
+          - { SET_VAR: { name: "raged", value: "1", ttl: 4, who: "@Victim" } }  # the 200 ms Execute-exclusion window
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim" } }  # recorded at eye height; PARTICLE centres on the body and no victim-scoped offset selector exists (cosmetic delta)
+      # 3. increment, last
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "counter.rage.pvp", op: "increment", step: 1, ttl: 0, who: "@Self" } }
+      # 1-3 again against everything that is not a player — the independent pve bucket
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% != \"PLAYER\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "min(%counter.rage.pve% * 15, 150)" } }
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% != \"PLAYER\" && %counter.rage.pve% >= 1"
+        effects:
+          - { SET_VAR: { name: "raged", value: "1", ttl: 4, who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim" } }
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% != \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "counter.rage.pve", op: "increment", step: 1, ttl: 0, who: "@Self" } }
+      # Reset-on-damage-taken: both buckets, any cause, no condition of its own.
+      - trigger: HURT
+        condition: ""
+        effects:
+          - { SET_VAR: { name: "counter.rage.pvp", value: "0", ttl: 0, who: "@Self" } }
+          - { SET_VAR: { name: "counter.rage.pve", value: "0", ttl: 0, who: "@Self" } }
+  4:
+    # +20% per banked hit (measured 0.2), total capped at +150% (x2.5) — the cap lands at combo 8.
+    abilities:
+      # 1. fold: pre-increment count x 20%, pvp bucket
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "min(%counter.rage.pvp% * 20, 150)" } }
+      # 2. mark + cue, only once the chain is actually banking damage (count >= 1)
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\" && %counter.rage.pvp% >= 1"
+        effects:
+          - { SET_VAR: { name: "raged", value: "1", ttl: 4, who: "@Victim" } }  # the 200 ms Execute-exclusion window
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim" } }  # recorded at eye height; PARTICLE centres on the body and no victim-scoped offset selector exists (cosmetic delta)
+      # 3. increment, last
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "counter.rage.pvp", op: "increment", step: 1, ttl: 0, who: "@Self" } }
+      # 1-3 again against everything that is not a player — the independent pve bucket
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% != \"PLAYER\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "min(%counter.rage.pve% * 20, 150)" } }
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% != \"PLAYER\" && %counter.rage.pve% >= 1"
+        effects:
+          - { SET_VAR: { name: "raged", value: "1", ttl: 4, who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim" } }
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% != \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "counter.rage.pve", op: "increment", step: 1, ttl: 0, who: "@Self" } }
+      # Reset-on-damage-taken: both buckets, any cause, no condition of its own.
+      - trigger: HURT
+        condition: ""
+        effects:
+          - { SET_VAR: { name: "counter.rage.pvp", value: "0", ttl: 0, who: "@Self" } }
+          - { SET_VAR: { name: "counter.rage.pve", value: "0", ttl: 0, who: "@Self" } }
+  5:
+    # +25% per banked hit (measured 0.25), total capped at +150% (x2.5) — the cap lands at combo 6.
+    abilities:
+      # 1. fold: pre-increment count x 25%, pvp bucket
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "min(%counter.rage.pvp% * 25, 150)" } }
+      # 2. mark + cue, only once the chain is actually banking damage (count >= 1)
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\" && %counter.rage.pvp% >= 1"
+        effects:
+          - { SET_VAR: { name: "raged", value: "1", ttl: 4, who: "@Victim" } }  # the 200 ms Execute-exclusion window
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim" } }  # recorded at eye height; PARTICLE centres on the body and no victim-scoped offset selector exists (cosmetic delta)
+      # 3. increment, last
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "counter.rage.pvp", op: "increment", step: 1, ttl: 0, who: "@Self" } }
+      # 1-3 again against everything that is not a player — the independent pve bucket
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% != \"PLAYER\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "min(%counter.rage.pve% * 25, 150)" } }
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% != \"PLAYER\" && %counter.rage.pve% >= 1"
+        effects:
+          - { SET_VAR: { name: "raged", value: "1", ttl: 4, who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim" } }
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% != \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "counter.rage.pve", op: "increment", step: 1, ttl: 0, who: "@Self" } }
+      # Reset-on-damage-taken: both buckets, any cause, no condition of its own.
+      - trigger: HURT
+        condition: ""
+        effects:
+          - { SET_VAR: { name: "counter.rage.pvp", value: "0", ttl: 0, who: "@Self" } }
+          - { SET_VAR: { name: "counter.rage.pve", value: "0", ttl: 0, who: "@Self" } }
+  6:
+    # +30% per banked hit (measured 0.30000000000000004), total capped at +150% (x2.5) — the cap lands at combo 5.
+    abilities:
+      # 1. fold: pre-increment count x 30%, pvp bucket
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "min(%counter.rage.pvp% * 30, 150)" } }
+      # 2. mark + cue, only once the chain is actually banking damage (count >= 1)
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\" && %counter.rage.pvp% >= 1"
+        effects:
+          - { SET_VAR: { name: "raged", value: "1", ttl: 4, who: "@Victim" } }  # the 200 ms Execute-exclusion window
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim" } }  # recorded at eye height; PARTICLE centres on the body and no victim-scoped offset selector exists (cosmetic delta)
+      # 3. increment, last
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "counter.rage.pvp", op: "increment", step: 1, ttl: 0, who: "@Self" } }
+      # 1-3 again against everything that is not a player — the independent pve bucket
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% != \"PLAYER\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "min(%counter.rage.pve% * 30, 150)" } }
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% != \"PLAYER\" && %counter.rage.pve% >= 1"
+        effects:
+          - { SET_VAR: { name: "raged", value: "1", ttl: 4, who: "@Victim" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim" } }
+      - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% != \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "counter.rage.pve", op: "increment", step: 1, ttl: 0, who: "@Self" } }
+      # Reset-on-damage-taken: both buckets, any cause, no condition of its own.
+      - trigger: HURT
+        condition: ""
+        effects:
+          - { SET_VAR: { name: "counter.rage.pvp", value: "0", ttl: 0, who: "@Self" } }
+          - { SET_VAR: { name: "counter.rage.pve", value: "0", ttl: 0, who: "@Self" } }

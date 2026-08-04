@@ -1,0 +1,56 @@
+# Matrix: 03-enchants-swords.md § Disintegrate
+display: "Disintegrate"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eEvery hit has a chance to chew through"
+  - "&ethe armor of the player you strike."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "epic"
+tier: epic
+condition: "%victim.type% == \"PLAYER\""
+# The four rows carry the recorded -1/-2/-2/-1 slot profile through DURABILITY's `select=slot:<piece>`
+# (the wave-1 shipping of the matrix's ARMOR_SLOT_DURABILITY gap). `skip-undamaged: false` is the
+# deliberate split from Demonforged and is spelled out on every row: a piece at full durability IS
+# scratched here (measured, kept).
+# The jar played the anvil break to the attacker alone, at the victim's location; SOUND is location-scoped,
+# so anyone in earshot hears it — a cosmetic audibility delta, noted and kept.
+# The jar's chance test used `<=` against the roll, an extra ULP of chance at these magnitudes; the engine's
+# `<` gate is the shipped form.
+# interactions: none. strings: none.
+# era: `ANVIL_BREAK` (1.8.9) <-> `BLOCK_ANVIL_BREAK` (modern) — same rename as Disarmor; the legacy lane
+# needs that alias row for the sound to sound at all (an unresolved handle warn-and-skips).
+levels:
+  # chance 2 x level (2/4/6/8 %). The durability profile is level-independent — only the odds move.
+  1:
+    chance: 2
+    effects:
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", select: "slot:helmet", skip-undamaged: false, who: "@Victim" } }
+      - { DURABILITY: { amount: 2, target: "armor", mode: "damage", select: "slot:chestplate", skip-undamaged: false, who: "@Victim" } }
+      - { DURABILITY: { amount: 2, target: "armor", mode: "damage", select: "slot:leggings", skip-undamaged: false, who: "@Victim" } }
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", select: "slot:boots", skip-undamaged: false, who: "@Victim" } }
+      - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+  2:
+    chance: 4
+    effects:
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", select: "slot:helmet", skip-undamaged: false, who: "@Victim" } }
+      - { DURABILITY: { amount: 2, target: "armor", mode: "damage", select: "slot:chestplate", skip-undamaged: false, who: "@Victim" } }
+      - { DURABILITY: { amount: 2, target: "armor", mode: "damage", select: "slot:leggings", skip-undamaged: false, who: "@Victim" } }
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", select: "slot:boots", skip-undamaged: false, who: "@Victim" } }
+      - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+  3:
+    chance: 6
+    effects:
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", select: "slot:helmet", skip-undamaged: false, who: "@Victim" } }
+      - { DURABILITY: { amount: 2, target: "armor", mode: "damage", select: "slot:chestplate", skip-undamaged: false, who: "@Victim" } }
+      - { DURABILITY: { amount: 2, target: "armor", mode: "damage", select: "slot:leggings", skip-undamaged: false, who: "@Victim" } }
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", select: "slot:boots", skip-undamaged: false, who: "@Victim" } }
+      - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }
+  4:
+    chance: 8
+    effects:
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", select: "slot:helmet", skip-undamaged: false, who: "@Victim" } }
+      - { DURABILITY: { amount: 2, target: "armor", mode: "damage", select: "slot:chestplate", skip-undamaged: false, who: "@Victim" } }
+      - { DURABILITY: { amount: 2, target: "armor", mode: "damage", select: "slot:leggings", skip-undamaged: false, who: "@Victim" } }
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", select: "slot:boots", skip-undamaged: false, who: "@Victim" } }
+      - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 0.3, pitch: 0.8 } }

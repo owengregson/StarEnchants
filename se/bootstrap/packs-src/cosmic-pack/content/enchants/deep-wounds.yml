@@ -1,0 +1,36 @@
+# Matrix: 03-enchants-swords.md § Deep Wounds
+display: "Deep Wounds"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eEvery hit lands a little harder and leaves an"
+  - "&eopen wound your target cannot bless away."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "uncommon"
+tier: uncommon
+# No roll and no guards — the only unconditional attack multiplier in the sword pool, so both rows run on
+# every qualifying hit. The wound mark is written on the VICTIM for 30xL t (the jar's 1500xL ms window); the
+# marked player reads it as %deepwounds% when they next activate, which is exactly what Blessed (doc 04)
+# gates its refusal on (`!%deepwounds%`, with its own `§4** DEEP WOUNDS §7(NO BLESS)§4 **` line — that string
+# belongs to Blessed's file, not this one).
+# PENDING PUBLISHER — not authored: the third recorded row folds +0.5 % per live Bleed stack into this hit,
+# `DAMAGE_MOD amount = "%victim.var.bleedstacks% * 0.5"`. NO engine work is owed: the matrix's
+# VAR_SCALED_DAMAGE gap was absorbed into expression-valued params (same closure Rage's fold uses). What is
+# missing is only the doc-04 Bleed counter's publisher — nothing writes the stack var until the axes batch —
+# so the clause is a drop-in the moment that lands (deferred-content.md, partial entries).
+# Shipped multiplier is therefore the flat term alone, 1 + 0.01xL; with the clause authored and a full
+# 20-stack bleed the matrix ceiling is x1.11/x1.12/x1.13.
+# era: none.
+levels:
+  1:
+    effects:
+      - { SET_VAR: { name: "deepwounds", value: "1", ttl: 30, who: "@Victim" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 1 } }
+  2:
+    effects:
+      - { SET_VAR: { name: "deepwounds", value: "1", ttl: 60, who: "@Victim" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 2 } }
+  3:
+    effects:
+      - { SET_VAR: { name: "deepwounds", value: "1", ttl: 90, who: "@Victim" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 3 } }

@@ -1,0 +1,54 @@
+# Matrix: 03-enchants-swords.md § Insomnia
+display: "Insomnia"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eYour hits land harder, but the strain leaves you"
+  - "&ewith Mining Fatigue — and Nausea from level 6."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "common"
+tier: common
+# The self-debuff IS the trade: every POTION here targets the WIELDER, never the victim, and buys the damage
+# bonus on the same swing. Non-force application is kept as measured — an already-running longer Fatigue is
+# not refreshed, which is exactly the engine's own potion semantics, so nothing forces a re-apply.
+# era: SLOW_DIGGING / CONFUSION are the 1.8-era spellings the handle resolver maps to MINING_FATIGUE / NAUSEA.
+levels:
+  # chance 2.5 pp per level; Fatigue I@40t (L1), II@60t (L2), III@60t (L3+); Nausea II 60t at L6-7;
+  # damage +5 pp per level, i.e. the measured x1.05 .. x1.35 net multiplier.
+  1:
+    chance: 2.5
+    effects:
+      - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 40, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }
+  2:
+    chance: 5
+    effects:
+      - { POTION: { effect: "SLOW_DIGGING", level: 2, duration: 60, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }
+  3:
+    chance: 7.5
+    effects:
+      - { POTION: { effect: "SLOW_DIGGING", level: 3, duration: 60, who: "@Self" } }  # min(level, 3) caps the amplifier here
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }
+  4:
+    chance: 10
+    effects:
+      - { POTION: { effect: "SLOW_DIGGING", level: 3, duration: 60, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 20 } }
+  5:
+    chance: 12.5
+    effects:
+      - { POTION: { effect: "SLOW_DIGGING", level: 3, duration: 60, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 25 } }
+  6:
+    chance: 15
+    effects:
+      - { POTION: { effect: "SLOW_DIGGING", level: 3, duration: 60, who: "@Self" } }
+      - { POTION: { effect: "CONFUSION", level: 2, duration: 60, who: "@Self" } }  # the Nausea rung opens at level 6
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 30 } }
+  7:
+    chance: 17.5
+    effects:
+      - { POTION: { effect: "SLOW_DIGGING", level: 3, duration: 60, who: "@Self" } }
+      - { POTION: { effect: "CONFUSION", level: 2, duration: 60, who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 35 } }

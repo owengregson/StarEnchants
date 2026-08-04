@@ -1,0 +1,31 @@
+# Matrix: 03-enchants-swords.md § Featherweight
+display: "Featherweight"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eLanding a hit can quicken your swing —"
+  - "&enever while you are already hasted."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "uncommon"
+tier: uncommon
+# The skip-while-hasted gate is the wave-1 potion fact: %actor.potion.<effect>% reads the active level as
+# amplifier + 1, so == 0 is "no Haste at all". Haste from ANY source starves the proc (a beacon, the vanilla
+# Haste enchant), exactly as measured — the gate is the presence test, not a level comparison.
+condition: "%actor.potion.FAST_DIGGING% == 0"
+# strings: none.
+# era: FAST_DIGGING (legacy) resolves to the modern registry's HASTE through the alias table.
+levels:
+  # chance 25 pp per level; Haste at the enchant's own level for 20 t per level. The jar rolled with `<=`,
+  # a sub-percent-of-a-percent widening that is not modeled.
+  1:
+    chance: 25
+    effects:
+      - { POTION: { effect: "FAST_DIGGING", level: 1, duration: 20, who: "@Self" } }
+  2:
+    chance: 50
+    effects:
+      - { POTION: { effect: "FAST_DIGGING", level: 2, duration: 40, who: "@Self" } }
+  3:
+    chance: 75
+    effects:
+      - { POTION: { effect: "FAST_DIGGING", level: 3, duration: 60, who: "@Self" } }

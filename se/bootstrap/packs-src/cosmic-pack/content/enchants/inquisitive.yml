@@ -1,0 +1,85 @@
+# Matrix: 03-enchants-swords.md § Inquisitive
+display: "Inquisitive"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eMobs you mark and then finish off"
+  - "&epay out extra experience."
+trigger: [ATTACK, KILL, EXP_GAIN]
+applies-to: [SWORD]
+group: "legendary"
+tier: legendary
+# Three rules chain the mark into the payout: ATTACK writes the mark on the mob, KILL reads it back through
+# the wave-1 victim-var fact and opens a 40 t pickup window on the holder, EXP_GAIN spends that window on
+# the orbs. `%inq.window%` is a dotted author var, not a scoped fact — the whole token resolves against the
+# actor's own var store through the unknown-token seam, which is why the KILL rule writes the same spelling.
+# A later hit overwrites the mark with that hit's level, as measured. The mark is only tested for presence;
+# the payout factor comes from the holder's own rung, which is the same number on any ordinary kill.
+# Two measured behaviours the pickup-window decomposition narrows, both decomposition deltas rather than
+# ledger rows (no codex-marked bug): the jar boosted the XP even when a DIFFERENT player or the environment
+# killed the marked mob (holder-agnostic — lost here, only the holder's own kill opens the window), and the
+# 40 t window technically catches unrelated XP picked up inside the same 2 s (new; the kill's own orbs
+# dominate it).
+# interactions: none — a self-contained mark → XP chain. strings: none. era: none.
+levels:
+  # mark chance 7.5 pp per level; XP x1.25 / x1.5 / x1.75 / x2.0. The engine truncates to whole XP, matching
+  # the measured 5 XP → 6 / 7 / 8 / 10.
+  1:
+    abilities:
+      - trigger: ATTACK
+        chance: 7.5
+        condition: "%victim.type% != \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "inquisitive", value: "1", ttl: 0, who: "@Victim" } }
+      - trigger: KILL
+        condition: "%victim.var.inquisitive% > 0"
+        effects:
+          - { SET_VAR: { name: "inq.window", value: "1", ttl: 40, who: "@Self" } }
+      - trigger: EXP_GAIN
+        condition: "%inq.window% == 1"
+        effects:
+          - { EXP_MULTIPLY: { factor: 1.25 } }
+  2:
+    abilities:
+      - trigger: ATTACK
+        chance: 15
+        condition: "%victim.type% != \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "inquisitive", value: "2", ttl: 0, who: "@Victim" } }
+      - trigger: KILL
+        condition: "%victim.var.inquisitive% > 0"
+        effects:
+          - { SET_VAR: { name: "inq.window", value: "1", ttl: 40, who: "@Self" } }
+      - trigger: EXP_GAIN
+        condition: "%inq.window% == 1"
+        effects:
+          - { EXP_MULTIPLY: { factor: 1.5 } }
+  3:
+    abilities:
+      - trigger: ATTACK
+        chance: 22.5
+        condition: "%victim.type% != \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "inquisitive", value: "3", ttl: 0, who: "@Victim" } }
+      - trigger: KILL
+        condition: "%victim.var.inquisitive% > 0"
+        effects:
+          - { SET_VAR: { name: "inq.window", value: "1", ttl: 40, who: "@Self" } }
+      - trigger: EXP_GAIN
+        condition: "%inq.window% == 1"
+        effects:
+          - { EXP_MULTIPLY: { factor: 1.75 } }
+  4:
+    abilities:
+      - trigger: ATTACK
+        chance: 30
+        condition: "%victim.type% != \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "inquisitive", value: "4", ttl: 0, who: "@Victim" } }
+      - trigger: KILL
+        condition: "%victim.var.inquisitive% > 0"
+        effects:
+          - { SET_VAR: { name: "inq.window", value: "1", ttl: 40, who: "@Self" } }
+      - trigger: EXP_GAIN
+        condition: "%inq.window% == 1"
+        effects:
+          - { EXP_MULTIPLY: { factor: 2.0 } }

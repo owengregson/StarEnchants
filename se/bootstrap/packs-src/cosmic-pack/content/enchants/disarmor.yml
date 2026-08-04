@@ -1,0 +1,148 @@
+# Matrix: 03-enchants-swords.md § Disarmor
+display: "Disarmor"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA slim chance to rip a piece of armor off a"
+  - "&eplayer you have already beaten down to 10 HP."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "legendary"
+tier: legendary
+condition: "%victim.type% == \"PLAYER\" && %victim.health% <= 10.0"
+# Chance is 0.25 pp per level, 0.25-2.0 % (L7 measured 0.017500000000000002).
+# PENDING WAVE-1F FACT — the Sticky rebate is NOT authored: Sticky (doc 02, shipped as a roster marker)
+# subtracts 0.25 pp per Sticky level from this roll, i.e. the clause `-0.25 * <victim's Sticky level>
+# %chance%` on the conditions above, with NO floor — so Sticky at or above this enchant's level cancels the
+# proc outright (kept). The frozen surface carries no victim worn-enchant-level fact to read that level; the
+# ledger already holds the consumer-side row on `enchants/sticky`.
+# D-03-3 (as-intended): the jar rolled 0-3 against branches numbered 1-4, so a quarter of its procs stripped
+# NOTHING (sound and messages still fired) and boots were unreachable. REMOVE_ARMOR draws uniformly over all
+# four worn slots, which is the intent. It drops the stripped piece; the jar tried the victim's inventory
+# first and only dropped on overflow — a cosmetic placement delta, noted for the primitive's param review.
+# The jar's three stacked world-effect 2001 bursts at y+0/+1/+2 collapse into the single body-centred burst
+# below, spread-y 1.5 covering the same column.
+# {ATTACKER} and {VICTIM} are the engine's bound MESSAGE combat-party tokens, not unfilled placeholders.
+# era: ANVIL_BREAK (legacy) <-> BLOCK_ANVIL_BREAK (modern) — the resolver's SOUND table carries ANVIL_LAND
+# but not yet ANVIL_BREAK, so this is a legacy-sweep alias row. World-effect 2001 maps to BLOCK_CRACK plus
+# block data, present on 1.8.9.
+levels:
+  1:
+    chance: 0.25
+    effects:
+      - { REMOVE_ARMOR: { who: "@Victim" } }
+      - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 1.0, pitch: 0.6 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_ORE", count: 24, spread: 0.4, spread-y: 1.5, who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "§6§l* DISARMORED *§7 (by: {ATTACKER})", who: "@Victim" } }
+      - { MESSAGE: { text: "§7A random piece of your armor has been unequipped. Re-equip it quickly before you get KO'd!", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "§a§l* DISARMED {VICTIM} *", who: "@Self" } }
+  2:
+    chance: 0.5
+    effects:
+      - { REMOVE_ARMOR: { who: "@Victim" } }
+      - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 1.0, pitch: 0.6 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_ORE", count: 24, spread: 0.4, spread-y: 1.5, who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "§6§l* DISARMORED *§7 (by: {ATTACKER})", who: "@Victim" } }
+      - { MESSAGE: { text: "§7A random piece of your armor has been unequipped. Re-equip it quickly before you get KO'd!", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "§a§l* DISARMED {VICTIM} *", who: "@Self" } }
+  3:
+    chance: 0.75
+    effects:
+      - { REMOVE_ARMOR: { who: "@Victim" } }
+      - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 1.0, pitch: 0.6 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_ORE", count: 24, spread: 0.4, spread-y: 1.5, who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "§6§l* DISARMORED *§7 (by: {ATTACKER})", who: "@Victim" } }
+      - { MESSAGE: { text: "§7A random piece of your armor has been unequipped. Re-equip it quickly before you get KO'd!", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "§a§l* DISARMED {VICTIM} *", who: "@Self" } }
+  4:
+    chance: 1.0
+    effects:
+      - { REMOVE_ARMOR: { who: "@Victim" } }
+      - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 1.0, pitch: 0.6 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_ORE", count: 24, spread: 0.4, spread-y: 1.5, who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "§6§l* DISARMORED *§7 (by: {ATTACKER})", who: "@Victim" } }
+      - { MESSAGE: { text: "§7A random piece of your armor has been unequipped. Re-equip it quickly before you get KO'd!", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "§a§l* DISARMED {VICTIM} *", who: "@Self" } }
+  5:
+    chance: 1.25
+    effects:
+      - { REMOVE_ARMOR: { who: "@Victim" } }
+      - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 1.0, pitch: 0.6 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_ORE", count: 24, spread: 0.4, spread-y: 1.5, who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "§6§l* DISARMORED *§7 (by: {ATTACKER})", who: "@Victim" } }
+      - { MESSAGE: { text: "§7A random piece of your armor has been unequipped. Re-equip it quickly before you get KO'd!", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "§a§l* DISARMED {VICTIM} *", who: "@Self" } }
+  6:
+    chance: 1.5
+    effects:
+      - { REMOVE_ARMOR: { who: "@Victim" } }
+      - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 1.0, pitch: 0.6 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_ORE", count: 24, spread: 0.4, spread-y: 1.5, who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "§6§l* DISARMORED *§7 (by: {ATTACKER})", who: "@Victim" } }
+      - { MESSAGE: { text: "§7A random piece of your armor has been unequipped. Re-equip it quickly before you get KO'd!", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "§a§l* DISARMED {VICTIM} *", who: "@Self" } }
+  7:
+    chance: 1.75
+    effects:
+      - { REMOVE_ARMOR: { who: "@Victim" } }
+      - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 1.0, pitch: 0.6 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_ORE", count: 24, spread: 0.4, spread-y: 1.5, who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "§6§l* DISARMORED *§7 (by: {ATTACKER})", who: "@Victim" } }
+      - { MESSAGE: { text: "§7A random piece of your armor has been unequipped. Re-equip it quickly before you get KO'd!", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "§a§l* DISARMED {VICTIM} *", who: "@Self" } }
+  8:
+    chance: 2.0
+    effects:
+      - { REMOVE_ARMOR: { who: "@Victim" } }
+      - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 1.0, pitch: 0.6 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_ORE", count: 24, spread: 0.4, spread-y: 1.5, who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "§6§l* DISARMORED *§7 (by: {ATTACKER})", who: "@Victim" } }
+      - { MESSAGE: { text: "§7A random piece of your armor has been unequipped. Re-equip it quickly before you get KO'd!", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "", who: "@Victim" } }
+      - { MESSAGE: { text: "§a§l* DISARMED {VICTIM} *", who: "@Self" } }

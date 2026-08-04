@@ -1,0 +1,46 @@
+# Matrix: 03-enchants-swords.md § Obliterate
+display: "Obliterate"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance to blast your target away on a hit."
+trigger: ATTACK
+applies-to: [SWORD, AXE, BOW]
+group: "common"
+tier: common
+# applies-to is the jar's "weapons" item set spelled out (swords + axes + bow) rather than the WEAPON
+# composite, which would also cover crossbows, tridents and maces the original never listed. The trigger
+# stays melee-only: the matrix records ATTACK alone, so a bow carrying this enchant never fires it.
+# VELOCITY mode=away with the default activator anchor is the attacker->victim shove the jar computed by
+# hand, normalized vector and all, including its zero-length skip when the two share a position.
+# The jar's world gates are server policy, not enchant behaviour: the End-world disable is a global tier
+# rule, the duel flag and the KOTH knockback suppression belong to the policy layer. KOTH suppresses ONLY
+# the shove and still plays the burst, which the recorded order (particle first, then velocity) preserves as
+# long as the policy sits between the two rows.
+# era: EXPLOSION_LARGE is the cross-era spelling of the jar's LARGE_EXPLODE, mapped by the particle aliases.
+levels:
+  # chance 10 pp per level; push speed 1.8 + 0.5 x level (2.3/2.8/3.3/3.8/4.3).
+  1:
+    chance: 10
+    effects:
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3, spread: 1.0, who: "@Victim" } }
+      - { VELOCITY: { mode: "away", strength: 2.3, who: "@Victim" } }
+  2:
+    chance: 20
+    effects:
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3, spread: 1.0, who: "@Victim" } }
+      - { VELOCITY: { mode: "away", strength: 2.8, who: "@Victim" } }
+  3:
+    chance: 30
+    effects:
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3, spread: 1.0, who: "@Victim" } }
+      - { VELOCITY: { mode: "away", strength: 3.3, who: "@Victim" } }
+  4:
+    chance: 40
+    effects:
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3, spread: 1.0, who: "@Victim" } }
+      - { VELOCITY: { mode: "away", strength: 3.8, who: "@Victim" } }
+  5:
+    chance: 50
+    effects:
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3, spread: 1.0, who: "@Victim" } }
+      - { VELOCITY: { mode: "away", strength: 4.3, who: "@Victim" } }

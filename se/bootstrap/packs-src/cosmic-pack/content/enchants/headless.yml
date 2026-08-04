@@ -1,0 +1,38 @@
+# Matrix: 03-enchants-swords.md § Headless
+display: "Headless"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA hit on a player can mark them: their"
+  - "&enext death leaves their head behind."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "common"
+tier: common
+condition: "%victim.type% == \"PLAYER\""
+# HEAD_TROPHY arms the mark on the victim; the engine consumes it at their next death from ANY cause and
+# resolves {VICTIM} / {KILLER} / {MONTH} / {DAY} / {YEAR} / {X} / {Y} / {Z} / {ITEM} at that moment — so the
+# lore carries the KILL date (D-03-7: a date object captured at class load made every jar skull show the
+# server BOOT date; the as-intended kill date ships, display strings unchanged). {ITEM} is the killer's held
+# display name, else the capitalized material, else `Fists`. A killer-less death drops the bare, lore-less
+# head, as measured. Lore lines are separated by '|'; the trailing spaces closing the first three are
+# verbatim from the jar.
+# The mark is per-victim and survives relogs (the jar's own semantics), but it is bounded state the engine
+# clears on consumption rather than the jar's unbounded, never-cleaned name-keyed map.
+# The jar's console line `HEADLESS ENCH -- Dropping skull of {VICTIM}!` is a server log, not an authorable
+# effect — recorded here, not shipped. Its CosmicContests hook (`contests add {KILLER} headsCollected 1`,
+# deduped per victim) is an external-plugin integration and out of port scope.
+# era: SKULL_ITEM data 3 (legacy) / PLAYER_HEAD (modern) — HEAD_TROPHY resolves the head item per era.
+levels:
+  # chance 3 pp per level; everything downstream is level-independent.
+  1:
+    chance: 3
+    effects:
+      - { HEAD_TROPHY: { name: "§fSkull of {VICTIM}", lore: "§7Defeated by §f{KILLER}§7 on |§f{MONTH} {DAY}, {YEAR}§7 at |§f{X}, {Y}, {Z}§7 with a(n) |§f{ITEM}!", who: "@Victim" } }
+  2:
+    chance: 6
+    effects:
+      - { HEAD_TROPHY: { name: "§fSkull of {VICTIM}", lore: "§7Defeated by §f{KILLER}§7 on |§f{MONTH} {DAY}, {YEAR}§7 at |§f{X}, {Y}, {Z}§7 with a(n) |§f{ITEM}!", who: "@Victim" } }
+  3:
+    chance: 9
+    effects:
+      - { HEAD_TROPHY: { name: "§fSkull of {VICTIM}", lore: "§7Defeated by §f{KILLER}§7 on |§f{MONTH} {DAY}, {YEAR}§7 at |§f{X}, {Y}, {Z}§7 with a(n) |§f{ITEM}!", who: "@Victim" } }

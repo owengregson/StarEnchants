@@ -1,0 +1,40 @@
+# Matrix: 03-enchants-swords.md § Vampire
+display: "Vampire"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA melee hit can drink your target's life —"
+  - "&ethe heal reaches you three seconds later."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "rare"
+tier: rare
+# The heal is deferred 60 t and liveness-gated at execution, which is exactly the jar's alive-and-valid check:
+# a wielder dead at t+60 gets nothing. It is flat (damage-independent) and clamped at max health.
+# The jar suppressed the second drink cue only when the heal failed; under the liveness gate the mismatch
+# window is that same death case, so the cue is kept as recorded — cosmetic either way.
+# Interaction carried by the OTHER side, nothing authored here: a victim wearing the NECROMANCER mask blocks
+# the proc outright (masks family, doc 11 — the `necromancer-blocks-lifesteal` rule, shared with §Lifesteal).
+# The jar's ordering trivia (roll before the mask check) has no observable effect, so it is not modelled.
+# strings: none.
+# era: `DRINK` (legacy) ↔ `ENTITY_GENERIC_DRINK` (modern) through the handle resolver.
+levels:
+  # chance 5/10/15 % (L3 measured `0.15000000000000002`); heal 1/2/3 HP; delay 60 t at every level.
+  1:
+    chance: 5
+    effects:
+      - { SOUND: { sound: "ENTITY_GENERIC_DRINK", volume: 0.75, pitch: 2.0 } }
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self", wait: 60 } }
+      # The closing cue rides the heal's own t+60 tier: `wait:` accumulates down the list, so it carries none of its own.
+      - { SOUND: { sound: "ENTITY_GENERIC_DRINK", volume: 0.75, pitch: 2.0 } }
+  2:
+    chance: 10
+    effects:
+      - { SOUND: { sound: "ENTITY_GENERIC_DRINK", volume: 0.75, pitch: 2.0 } }
+      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self", wait: 60 } }
+      - { SOUND: { sound: "ENTITY_GENERIC_DRINK", volume: 0.75, pitch: 2.0 } }
+  3:
+    chance: 15
+    effects:
+      - { SOUND: { sound: "ENTITY_GENERIC_DRINK", volume: 0.75, pitch: 2.0 } }
+      - { MODIFY_HEALTH: { amount: 3, mode: "give", who: "@Self", wait: 60 } }
+      - { SOUND: { sound: "ENTITY_GENERIC_DRINK", volume: 0.75, pitch: 2.0 } }

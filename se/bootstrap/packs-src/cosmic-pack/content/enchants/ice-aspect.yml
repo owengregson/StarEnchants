@@ -1,0 +1,40 @@
+# Matrix: 03-enchants-swords.md § IceAspect
+# The registered display name has NO space — "IceAspect", matrix-recorded verbatim.
+display: "IceAspect"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA hit on a player can lock them in place,"
+  - "&eunless something already slows them."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "epic"
+tier: epic
+# The no-re-slow gate is the wave-1 potion fact: %victim.potion.SLOW% reads the active level as
+# amplifier + 1, so == 0 is "not slowed by anything" — an already-slowed victim is skipped outright.
+condition: "%victim.potion.SLOW% == 0 && %victim.type% == \"PLAYER\""
+# The Dragon Slayer set's `immune_freeze` blocks this proc outright — no leak chance — and carries the
+# set-side line "§8§l* DRAGON SLAYER [§7Ice Aspect blocked!§8§l] *" (interaction rule
+# `dragon-slayer-blocks-freeze`, shared with §Trap). Authored on the armor-set side (10 doc): the jar's
+# cancellable proc event maps to the engine's native activation-veto pipeline, so nothing is authored here.
+# strings: none on this side.
+# era: SLOW (legacy) resolves to the modern registry's SLOWNESS; the jar's raw block id 57 is authored as
+# the DIAMOND_BLOCK handle.
+levels:
+  # chance 7.5 pp per level (L3 measured 0.22500000000000003 — float noise on the exact 22.5); duration
+  # 2 s per level. The amplifier is hard-coded 5 at every level — Slowness VI, ~-90% speed, an effective
+  # stop rather than a slow — so only the duration scales.
+  1:
+    chance: 7.5
+    effects:
+      - { POTION: { effect: "SLOW", level: 6, duration: 40, who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_BLOCK", count: 8, who: "@Victim" } }
+  2:
+    chance: 15
+    effects:
+      - { POTION: { effect: "SLOW", level: 6, duration: 80, who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_BLOCK", count: 8, who: "@Victim" } }
+  3:
+    chance: 22.5
+    effects:
+      - { POTION: { effect: "SLOW", level: 6, duration: 120, who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_BLOCK", count: 8, who: "@Victim" } }

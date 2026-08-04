@@ -1,0 +1,38 @@
+# Matrix: 03-enchants-swords.md § Lifesteal
+display: "Lifesteal"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance for every hit you land to heal you."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "legendary"
+tier: legendary
+# The heal is damage-independent — a graze heals as much as a crit, which is measured and kept.
+# D-03-8: the jar SETS health to floor(health) + level, so the truncation quietly ate up to 0.999 HP of the
+# nominal heal. As-intended is the flat +level heal shipped here; MODIFY_HEALTH give already clamps at max
+# health, so the "overheal" half of the measured behaviour is covered without a mode=set.
+# The NECROMANCER mask negates this outright (interaction-layer rule `necromancer-blocks-lifesteal`, shared
+# with Vampire) — carried by the masks family, nothing authored on this side.
+# era: none.
+levels:
+  # chance min(30, 10 x level) — 10/20/30/30/30; heal = level HP.
+  1:
+    chance: 10
+    effects:
+      - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } }
+  2:
+    chance: 20
+    effects:
+      - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }
+  3:
+    chance: 30
+    effects:
+      - { MODIFY_HEALTH: { amount: 3, mode: "give", who: "@Self" } }
+  4:
+    chance: 30
+    effects:
+      - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }
+  5:
+    chance: 30
+    effects:
+      - { MODIFY_HEALTH: { amount: 5, mode: "give", who: "@Self" } }

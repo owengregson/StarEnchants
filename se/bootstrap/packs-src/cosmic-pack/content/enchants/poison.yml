@@ -1,0 +1,33 @@
+# Matrix: 03-enchants-swords.md § Poison
+display: "Poison"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance to poison whoever you hit, for a random short window."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "rare"
+tier: rare
+# The matrix's RANDOM_PARAM gap is closed by the wave-1 expression params: rand(lo, hi) is uniform over
+# [lo, hi) and is drawn once per activation, so floor(rand(0, 20 x level)) IS the jar's per-proc duration
+# draw — a uniform INTEGER in 0 .. 20xL-1 (mean ~10xL t). The floor() is load-bearing: an expression-valued
+# int param ROUNDS, which would give the two end values half weight and reach 20xL; the jar truncates.
+# Sub-tick-interval procs that do nothing (a 0-19 t Poison I never ticks) are part of the measured envelope
+# and are kept, not floored to a minimum.
+# POTION level is 1-based, so level L is amplifier L-1 (Poison I-III), and application is non-force: a live
+# stronger or longer poison wins.
+# interactions: none. strings: none.
+# era: POISON exists on 1.8.9; no hazard.
+levels:
+  1:
+    chance: 10
+    effects:
+      - { POTION: { effect: "POISON", level: 1, duration: "floor(rand(0, 20))", who: "@Victim" } }
+  2:
+    chance: 20
+    effects:
+      - { POTION: { effect: "POISON", level: 2, duration: "floor(rand(0, 40))", who: "@Victim" } }
+  3:
+    # Measured 0.30000000000000004 — binary noise on 3 x 0.1, shipped as the exact 30 it stands for.
+    chance: 30
+    effects:
+      - { POTION: { effect: "POISON", level: 3, duration: "floor(rand(0, 60))", who: "@Victim" } }

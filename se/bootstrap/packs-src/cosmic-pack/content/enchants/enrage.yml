@@ -1,0 +1,51 @@
+# Matrix: 03-enchants-swords.md § Enrage
+display: "Enrage"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe closer you are to death, the harder"
+  - "&eyou hit."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "epic"
+tier: epic
+# Three cumulative health bands, each its own ability so each carries its own condition: at 25 % health all
+# three fire and the additive fold reaches +45 pp. No chance roll — a qualifying swing always gets the bonus.
+# Net: x1.0 above 75 %, x1.15 at or below 75 %, x1.30 at or below 50 %, x1.45 at or below 25 % (the jar's
+# doubles read 1.2999999999999998 / 1.4499999999999997 — float noise on the exact 30/45).
+# LEVEL-INDEPENDENT: L1-L3 are byte-identical. The quirk is measured and kept; the three levels exist only so
+# the acquisition ladder has rungs to roll.
+# interactions: none. strings: none. era: none.
+levels:
+  1:
+    abilities:
+      - condition: "%actor.healthpercent% <= 75"
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }
+      - condition: "%actor.healthpercent% <= 50"
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }
+      - condition: "%actor.healthpercent% <= 25"
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }
+  2:
+    abilities:
+      - condition: "%actor.healthpercent% <= 75"
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }
+      - condition: "%actor.healthpercent% <= 50"
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }
+      - condition: "%actor.healthpercent% <= 25"
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }
+  3:
+    abilities:
+      - condition: "%actor.healthpercent% <= 75"
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }
+      - condition: "%actor.healthpercent% <= 50"
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }
+      - condition: "%actor.healthpercent% <= 25"
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }

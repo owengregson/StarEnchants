@@ -1,0 +1,31 @@
+# Matrix: 03-enchants-swords.md § Blind
+display: "Blind"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance to blind whatever you hit,"
+  - "&ein melee or with an arrow."
+trigger: [ATTACK, BOW]
+applies-to: [SWORD, BOW]
+group: "rare"
+tier: rare
+# The item set is swords_and_bow, so both damage triggers carry the same roll and the same payload — one
+# ability per trigger, as Deathbringer (doc 01) already ships. Chance 10/20/30 % (the L3 measured double is
+# 0.30000000000000004). POTION `level` is 1-based, so level L is amplifier L-1 = Blindness I-III.
+# Application is non-force: an already-live stronger or longer blindness wins, which is the engine's own
+# potion semantics — nothing to author. The jar's declared recently-blinded marker is dead and not ported.
+# Clarity (doc 01) blocking low-amplifier blindness on PLAYER victims is the interaction layer's
+# `clarity-blocks-blindness` rule and is authored on neither side (mobs are always blinded).
+# era: BLINDNESS exists on 1.8.9; no hazard.
+levels:
+  1:
+    abilities:
+      - { trigger: ATTACK, chance: 10, effects: [ { POTION: { effect: "BLINDNESS", level: 1, duration: 30, who: "@Victim" } } ] }
+      - { trigger: BOW, chance: 10, effects: [ { POTION: { effect: "BLINDNESS", level: 1, duration: 30, who: "@Victim" } } ] }
+  2:
+    abilities:
+      - { trigger: ATTACK, chance: 20, effects: [ { POTION: { effect: "BLINDNESS", level: 2, duration: 60, who: "@Victim" } } ] }
+      - { trigger: BOW, chance: 20, effects: [ { POTION: { effect: "BLINDNESS", level: 2, duration: 60, who: "@Victim" } } ] }
+  3:
+    abilities:
+      - { trigger: ATTACK, chance: 30, effects: [ { POTION: { effect: "BLINDNESS", level: 3, duration: 90, who: "@Victim" } } ] }
+      - { trigger: BOW, chance: 30, effects: [ { POTION: { effect: "BLINDNESS", level: 3, duration: 90, who: "@Victim" } } ] }

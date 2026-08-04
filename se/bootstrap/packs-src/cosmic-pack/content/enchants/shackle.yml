@@ -1,0 +1,34 @@
+# Matrix: 03-enchants-swords.md § Shackle (registered copy)
+display: "Shackle"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eMobs from a spawner take no knockback from your hits,"
+  - "&eso a grinder stays where you put it."
+trigger: ATTACK
+applies-to: [SWORD, AXE, BOW]  # jar weapons set = sword/axe/bow; WEAPON would add modern types the jar never covered
+group: "rare"
+tier: rare
+chance: 100  # no chance roll — every gated hit holds the mob still
+# The jar reads a Bukkit metadata key nothing ever writes (the real spawner flag is an NMS field), so Shackle
+# is almost certainly INERT in the shipped jar; the as-intended behaviour ships instead — ledger D-03-12. The
+# engine's %victim.fromspawner% fact is the real spawn-provenance read the jar meant to make.
+# KNOCKBACK_CONTROL cancels the hit's own knockback instead of the jar's zero-the-velocity-one-tick-later
+# trick, so there is no race against a teleport or another plugin's velocity write in that tick.
+# The two mob gates are the only scaling: level 3 shackles everything spawner-born.
+# Only the REGISTERED copy is ported. The jar carries a second, byte-identical Shackle that never registers
+# (name-keyed registration would have collided) — dead code, no pack entry.
+# interactions: none. strings: none.
+# era: none — BLAZE and MAGMA_CUBE both exist on 1.8.9.
+levels:
+  1:
+    condition: "%victim.fromspawner% && %victim.mobtype% != \"BLAZE\" && %victim.mobtype% != \"MAGMA_CUBE\""
+    effects:
+      - { KNOCKBACK_CONTROL: { multiplier: 0, duration: 2, who: "@Victim" } }
+  2:
+    condition: "%victim.fromspawner% && %victim.mobtype% != \"MAGMA_CUBE\""
+    effects:
+      - { KNOCKBACK_CONTROL: { multiplier: 0, duration: 2, who: "@Victim" } }
+  3:
+    condition: "%victim.fromspawner%"
+    effects:
+      - { KNOCKBACK_CONTROL: { multiplier: 0, duration: 2, who: "@Victim" } }

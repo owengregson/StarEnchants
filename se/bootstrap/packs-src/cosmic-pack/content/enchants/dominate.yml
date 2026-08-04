@@ -1,0 +1,49 @@
+# Matrix: 03-enchants-swords.md § Dominate
+display: "Dominate"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance to leave the player you hit"
+  - "&eswinging softer for a few seconds."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "epic"
+tier: epic
+# D-03-4 (as-intended): the debuff ships. The measured jar computed `level x 5 / 100` in INTEGER division,
+# which is always 0, so the multiplier was x1.0 and Dominate never reduced anything — message and particles
+# only. The recorded intent (-5 pp per level of outgoing damage for 2 s per level) is what WEAKEN carries here.
+# WEAKEN is non-stacking: a live stronger application is not downgraded and a refresh is silent. The jar
+# messaged on first application only; that is the effect's own refresh semantics, so the MESSAGE row simply
+# rides the same ability. The jar cleaned its metadata lazily on the victim's next attack — WEAKEN expires on
+# schedule instead (intended scoping).
+# The matrix records the string as `§c§l* DOMINATED [§c-{level·5}% DMG for {level·2}s§c§l] *`, rendered per
+# level as the literals below (-5% DMG for 2s … -20% DMG for 8s). Both values are per-level constants, so
+# they are inlined (death-god.yml precedent) and each line is byte-identical to the jar's render — MESSAGE
+# fills only {ATTACKER}/{VICTIM}.
+# era: `ENCHANTMENT_TABLE` (1.8.9) <-> `ENCHANT` (1.20.5 registry rename), both ways through the resolver.
+levels:
+  # chance 4 x level (4/8/12/16 %; L3 measured as 0.12000000000000001 — float noise on the exact 12).
+  # WEAKEN 5 x level percent for 2 x level seconds (40/80/120/160 t).
+  1:
+    chance: 4
+    effects:
+      - { WEAKEN: { percent: 5, duration: 40, who: "@Victim" } }
+      - { MESSAGE: { text: "§c§l* DOMINATED [§c-5% DMG for 2s§c§l] *", who: "@Victim" } }
+      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 32, spread: 0.8, who: "@Victim" } }
+  2:
+    chance: 8
+    effects:
+      - { WEAKEN: { percent: 10, duration: 80, who: "@Victim" } }
+      - { MESSAGE: { text: "§c§l* DOMINATED [§c-10% DMG for 4s§c§l] *", who: "@Victim" } }
+      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 32, spread: 0.8, who: "@Victim" } }
+  3:
+    chance: 12
+    effects:
+      - { WEAKEN: { percent: 15, duration: 120, who: "@Victim" } }
+      - { MESSAGE: { text: "§c§l* DOMINATED [§c-15% DMG for 6s§c§l] *", who: "@Victim" } }
+      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 32, spread: 0.8, who: "@Victim" } }
+  4:
+    chance: 16
+    effects:
+      - { WEAKEN: { percent: 20, duration: 160, who: "@Victim" } }
+      - { MESSAGE: { text: "§c§l* DOMINATED [§c-20% DMG for 8s§c§l] *", who: "@Victim" } }
+      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 32, spread: 0.8, who: "@Victim" } }

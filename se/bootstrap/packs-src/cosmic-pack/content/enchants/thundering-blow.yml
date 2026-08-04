@@ -1,0 +1,32 @@
+# Matrix: 03-enchants-swords.md § Thundering Blow
+display: "Thundering Blow"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA melee hit can call a thunderclap down"
+  - "&eon your target and drive 5 damage home."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "common"
+tier: common
+cooldown: 50  # 2500 ms, level-independent; the jar registered its cooldown metadata under a DIFFERENT plugin instance (an ownership leak with no behavioural intent) — the engine's cooldown bucket owns it
+# Gate 6 tests the cooldown BEFORE the chance roll, where the jar rolled first and then swallowed a landed proc
+# on a live cooldown. The roll has no side effects, so the two orders are observationally identical.
+# The bolt is cosmetic (damage 0, no fire); the 5.0 lands as its own flat hit, never folded into the melee event.
+# strings: none.
+# era: none.
+levels:
+  1:
+    chance: 1.75
+    effects:
+      - { LIGHTNING: { damage: 0, who: "@Victim" } }
+      - { DAMAGE: { amount: 5.0, who: "@Victim" } }
+  2:
+    chance: 3.5
+    effects:
+      - { LIGHTNING: { damage: 0, who: "@Victim" } }
+      - { DAMAGE: { amount: 5.0, who: "@Victim" } }
+  3:
+    chance: 5  # special-cased DOWN from 5.25 — the same `L==3 ? 5 : 1.75·L` expression as §Paralyze, a different resulting table
+    effects:
+      - { LIGHTNING: { damage: 0, who: "@Victim" } }
+      - { DAMAGE: { amount: 5.0, who: "@Victim" } }

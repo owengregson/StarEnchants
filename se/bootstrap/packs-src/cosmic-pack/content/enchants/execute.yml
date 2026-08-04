@@ -1,0 +1,59 @@
+# Matrix: 03-enchants-swords.md § Execute
+display: "Execute"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA hit on a player already down to four"
+  - "&ehearts can land for triple damage."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "rare"
+tier: rare
+# %victim.health% is the PRE-hit health the matrix measured — the post-hit value has its own fact
+# (%posthit.health%) — so the 8 HP window is read before this hit lands.
+# The `%victim.var.raged% == 0` clause IS the interaction rule `execute-blocked-while-victim-raged`.
+# Rage writes `raged` victim-scoped inside its 200 ms (4 t) window (§Rage) and the wave-1 victim-var fact
+# reads that other entity's state here. A mark from a PRIOR hit blocks Execute; single-pass, both cannot
+# apply on the same hit, so the jar's iteration-order roulette on a collision becomes a deterministic
+# exclusion.
+condition: "%victim.type% == \"PLAYER\" && %victim.health% <= 8.0 && %victim.var.raged% == 0"
+# strings: none.
+# era: REDSTONE_WIRE is the particle's block-data handle — legacy block id 55, modern REDSTONE_WIRE block
+# state; the material resolver carries both spellings.
+levels:
+  # chance 4 pp per level; the x3.0 multiplier is level-independent. The measured L3/L6 chances carry
+  # float noise (0.12000000000000001 / 0.24000000000000002) — the exact 4 x L rungs ship.
+  1:
+    chance: 4
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 200 } }  # x3.0 outgoing
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+  2:
+    chance: 8
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 200 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+  3:
+    chance: 12
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 200 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+  4:
+    chance: 16
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 200 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+  5:
+    chance: 20
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 200 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+  6:
+    chance: 24
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 200 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
+  7:
+    chance: 28
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 200 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
