@@ -1,0 +1,275 @@
+# Matrix: 06-enchants-tools-heroic.md § Bidirectional Teleportation
+display: "Bidirectional Teleportation"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe heroic grade of Teleportation. Shoot an ally"
+  - "&eto blink to them; shoot an enemy to yank them"
+  - "&eto you, or to nail them where they stand."
+trigger: BOW
+applies-to: [BOW]
+group: "heroic"
+tier: heroic
+# THE HEROIC APPLICATION CONTRACT (matrix 06 § Heroic application rules), as far as the surface carries it —
+# the full reasoning, and the three clauses the surface cannot express, are written out on
+# alien-implants.yml and tracked in deferred-content.md. In short: `requires:` + `removes-required:` carry
+# the APPLY-GATE, REPLACE and SLOT-EXEMPT; the MAX-level reading of the gate, REVERSE-BLOCK (a symmetric
+# `blacklist:` would brick the apply `requires:` demands) and the book-flow / End rules do not ship.
+requires: ["enchants/teleportation"]
+removes-required: true
+# Table weight 0: heroic books only, never an enchantment-table roll (acquisition metadata, nothing to
+# author). Max 5; base 20.0; interval 10.0 — all copied from Teleportation by the heroic base class.
+# THE `PULL_IMPULSE` GAP IS CLOSED, by the batch-1 staleness pattern: `VELOCITY` grew `mode=toward` with an
+# `anchor`, and a numeric parameter accepts an expression, so the recorded magnitude
+# `clamp(distance^2 / 50, 1.0, cap)` is authored literally as the `strength` expression and `anchor=activator`
+# is the shooter's own ADR-0043 origin snapshot. Two recorded approximations remain: the engine normalises
+# the whole actor->victim delta and ADDS the impulse, where the jar SET velocity and separately softened the
+# Y component (`y x -mag/1.75`, with a near-flat vector then multiplied 7.5x on Y — an arm that starts from a
+# ~0 Y and stays there). The felt result is the same capped, distance-scaled yank toward the shooter.
+# `%victim.relation%` needs no gap either: it shipped in wave 1b and teleportation.yml has branched on it
+# since batch 05. The matrix's ALLY/MEMBER vs ENEMY/NEUTRAL split collapses onto the one installed alliance
+# hook's ALLY | ENEMY | NEUTRAL, so the enemy arm is spelled as "not ALLY".
+# THE ROLL IS CARRIED, NOT RE-ROLLED. The source's enemy branch is one `Math.random() <= 0.066 x L` with an
+# else — grapple or trap, never both, never neither — and two independently-rolled abilities cannot express
+# that (they would double-fire on ~6-22 % of hits and whiff on as many). The shape is inversion.yml's:
+# ability 1 owns the roll and writes a 1 t scratch var, everything downstream reads it. A SET_VAR write
+# lands in the store immediately, so a later ability in the same pass sees it.
+# The trap's entry guard is the jar's own `!(walkSpeed < 0.2)` — and note it is read on the VICTIM here, so
+# unlike Heroic Titan Trap (D-06-17) there is nothing to correct: it is already the anti-re-trap guard.
+# Authored as trap.yml's victim-side marker idiom, TTL-matched to the freeze. Narrowing recorded: the jar's
+# walk-speed read also refused a victim slowed by ANY other source, where this marker is this enchant's own.
+# Carried by OTHER layers, nothing authored here: the GLITCH mask (doc 11) vetoes the whole enemy branch;
+# the vanish (`canSee`) veto; the PvP-region gates that require both ends PvP-enabled; the End/KOTH
+# PvP-boundary refusal, whose string is recorded for the port —
+# `§c§l(!) §cYou cannot teleport from PvP-enabled to PvP-disabled with Bidirectional Teleportation in The End or KOTH.`
+# — the `cosmic-station-1` exemption, the cross-world guard the engine's own teleport path owns, and the
+# transient combat-tag exemption around the hop. The jar's self-hit handling lives only on the non-heroic,
+# and SE never dispatches an activation whose victim IS the actor, so there is nothing to port.
+# THE GRAPPLE'S TWO CUES ARE ONE LINE EACH, not one per party. The matrix records both sounds playing at the
+# puller AND the pulled, but ADR-0066 emits a given sound id at most once per event sink, so a second copy of
+# the same id in the same activation is dead on arrival (nature-wrath.yml and plague-carrier.yml collapse the
+# same way and record it). Authored `who`-less, the surviving play is a WORLD play at the activation location
+# and volume 10.0 carries roughly 160 blocks — well past the 50-block grapple ceiling — so both ends of the
+# grapple hear it anyway, which is what the recorded pair was for.
+# TELEPORT lands the shooter on the ally's position with the engine's orientation semantics; the jar
+# preserved the shooter's pitch/yaw. Noted for the parity harness, as teleportation.yml notes it.
+# PARTICLE has no height offset: the recorded victim EYE height (grapple) and +0.5 y (ally blink) both
+# render as the body-centred burst `who:` gives, the same treatment teleportation.yml recorded.
+# era: `ZOMBIE_METAL`->`ENTITY_ZOMBIE_ATTACK_IRON_DOOR` and `WITHER_SHOOT`->`ENTITY_WITHER_SHOOT` are owed
+# as legacy-sweep alias rows (neither pair is in `Aliases.SOUND` today);
+# `ORB_PICKUP`->`ENTITY_EXPERIENCE_ORB_PICKUP` is already on the sweep list via Healing/Teleportation.
+# `WITCH_MAGIC`/`SPELL_WITCH` crosses through the particle alias table, and walk-speed roots behave
+# identically on 1.8.9.
+levels:
+  # Per level: grapple chance `6.6 x L`, grapple range `10 x L` blocks, pull cap `6.0 + 0.5 x L`, ally range
+  # a flat 30 at every rung. The trap freeze measures 20 t everywhere because `(int)(1.0 + 0.125 x L)`
+  # truncates to 1 s; D-06-12 rules the as-intended `(1 + 0.125 x L)` s = 22.5/25/27.5/30/32.5 t, rounded to
+  # whole ticks (23/25/28/30/33) because TICKS is an integer parameter. The `{seconds}` token in the TRAPPED
+  # line is inlined at the value that duration really is — the jar's own render of `(1s)` was the same
+  # truncation D-06-12 deletes, and a message that undersells a live root is not the string being preserved.
+  # The too-far line has two spellings: the max rung drops the word "level".
+  1:
+    abilities:
+      # The one enemy-branch roll. Everything below reads its 1 t marker, so grapple and trap stay exclusive.
+      - condition: "%victim.type% == \"PLAYER\" && %victim.relation% != \"ALLY\""
+        chance: 6.6
+        effects:
+          - { SET_VAR: { name: "bidir.proc", value: "1", ttl: 1, who: "@Self" } }
+      - condition: "%bidir.proc% == 1 && %distance% <= 10"
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+          - { VELOCITY: { mode: "toward", anchor: "activator", strength: "clamp(%distance% * %distance% / 50, 1.0, 6.5)", who: "@Victim" } }
+          - { CANCEL: {} }  # a landed grapple deals zero bow damage
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 10.0, pitch: 1.1 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 10.0, pitch: 1.5 } }
+          - { MESSAGE: { text: "§c§l* BIDIRECTIONAL TELEPORT [towards: §7{ATTACKER}§c§l] *", who: "@Victim" } }
+          - { MESSAGE: { text: "§d§l* BIDIRECTIONAL TELEPORT [pulling: §7{VICTIM}§d§l] *" } }
+      - condition: "%bidir.proc% == 1 && %distance% > 10"
+        chance: 100
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYour Teleportation target is too far away to pull with this Bidirectional Teleportation level!" } }
+      # The else arm: the roll failed, so the arrow's damage stands and the target is rooted instead.
+      - condition: "%victim.type% == \"PLAYER\" && %victim.relation% != \"ALLY\" && %bidir.proc% != 1 && %victim.var.bidir.trapped% != 1"
+        chance: 100
+        effects:
+          - { FREEZE: { duration: 23, dot: 0, slow: 100, who: "@Victim" } }
+          - { SET_VAR: { name: "bidir.trapped", value: "1", ttl: 23, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* BIDIRECTIONAL TRAPPED [by: §7{ATTACKER} (1.15s)]§c§l *", who: "@Victim" } }
+      # The ally arms are a mutually exclusive PAIR on `%distance%`, and BOTH open with CANCEL: the jar
+      # cancels the hit and eats the arrow BEFORE it range-checks, so a too-far allied hit still deals zero,
+      # it just prints instead of blinking (teleportation.yml ships the same pair).
+      - condition: "%victim.relation% == \"ALLY\" && %distance% <= 30"
+        chance: 100
+        effects:
+          - { CANCEL: {} }
+          - { TELEPORT: { to: "VICTIM", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+      - condition: "%victim.relation% == \"ALLY\" && %distance% > 30"
+        chance: 100
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§c§l(!) §cYour ally is too far away to teleport to with this level of Bidirectional Teleportation." } }
+  2:
+    abilities:
+      - condition: "%victim.type% == \"PLAYER\" && %victim.relation% != \"ALLY\""
+        chance: 13.2
+        effects:
+          - { SET_VAR: { name: "bidir.proc", value: "1", ttl: 1, who: "@Self" } }
+      - condition: "%bidir.proc% == 1 && %distance% <= 20"
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+          - { VELOCITY: { mode: "toward", anchor: "activator", strength: "clamp(%distance% * %distance% / 50, 1.0, 7.0)", who: "@Victim" } }
+          - { CANCEL: {} }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 10.0, pitch: 1.1 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 10.0, pitch: 1.5 } }
+          - { MESSAGE: { text: "§c§l* BIDIRECTIONAL TELEPORT [towards: §7{ATTACKER}§c§l] *", who: "@Victim" } }
+          - { MESSAGE: { text: "§d§l* BIDIRECTIONAL TELEPORT [pulling: §7{VICTIM}§d§l] *" } }
+      - condition: "%bidir.proc% == 1 && %distance% > 20"
+        chance: 100
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYour Teleportation target is too far away to pull with this Bidirectional Teleportation level!" } }
+      - condition: "%victim.type% == \"PLAYER\" && %victim.relation% != \"ALLY\" && %bidir.proc% != 1 && %victim.var.bidir.trapped% != 1"
+        chance: 100
+        effects:
+          - { FREEZE: { duration: 25, dot: 0, slow: 100, who: "@Victim" } }
+          - { SET_VAR: { name: "bidir.trapped", value: "1", ttl: 25, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* BIDIRECTIONAL TRAPPED [by: §7{ATTACKER} (1.25s)]§c§l *", who: "@Victim" } }
+      - condition: "%victim.relation% == \"ALLY\" && %distance% <= 30"
+        chance: 100
+        effects:
+          - { CANCEL: {} }
+          - { TELEPORT: { to: "VICTIM", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+      - condition: "%victim.relation% == \"ALLY\" && %distance% > 30"
+        chance: 100
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§c§l(!) §cYour ally is too far away to teleport to with this level of Bidirectional Teleportation." } }
+  3:
+    abilities:
+      - condition: "%victim.type% == \"PLAYER\" && %victim.relation% != \"ALLY\""
+        chance: 19.8
+        effects:
+          - { SET_VAR: { name: "bidir.proc", value: "1", ttl: 1, who: "@Self" } }
+      - condition: "%bidir.proc% == 1 && %distance% <= 30"
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+          - { VELOCITY: { mode: "toward", anchor: "activator", strength: "clamp(%distance% * %distance% / 50, 1.0, 7.5)", who: "@Victim" } }
+          - { CANCEL: {} }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 10.0, pitch: 1.1 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 10.0, pitch: 1.5 } }
+          - { MESSAGE: { text: "§c§l* BIDIRECTIONAL TELEPORT [towards: §7{ATTACKER}§c§l] *", who: "@Victim" } }
+          - { MESSAGE: { text: "§d§l* BIDIRECTIONAL TELEPORT [pulling: §7{VICTIM}§d§l] *" } }
+      - condition: "%bidir.proc% == 1 && %distance% > 30"
+        chance: 100
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYour Teleportation target is too far away to pull with this Bidirectional Teleportation level!" } }
+      - condition: "%victim.type% == \"PLAYER\" && %victim.relation% != \"ALLY\" && %bidir.proc% != 1 && %victim.var.bidir.trapped% != 1"
+        chance: 100
+        effects:
+          - { FREEZE: { duration: 28, dot: 0, slow: 100, who: "@Victim" } }
+          - { SET_VAR: { name: "bidir.trapped", value: "1", ttl: 28, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* BIDIRECTIONAL TRAPPED [by: §7{ATTACKER} (1.4s)]§c§l *", who: "@Victim" } }
+      - condition: "%victim.relation% == \"ALLY\" && %distance% <= 30"
+        chance: 100
+        effects:
+          - { CANCEL: {} }
+          - { TELEPORT: { to: "VICTIM", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+      - condition: "%victim.relation% == \"ALLY\" && %distance% > 30"
+        chance: 100
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§c§l(!) §cYour ally is too far away to teleport to with this level of Bidirectional Teleportation." } }
+  4:
+    abilities:
+      - condition: "%victim.type% == \"PLAYER\" && %victim.relation% != \"ALLY\""
+        chance: 26.4
+        effects:
+          - { SET_VAR: { name: "bidir.proc", value: "1", ttl: 1, who: "@Self" } }
+      - condition: "%bidir.proc% == 1 && %distance% <= 40"
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+          - { VELOCITY: { mode: "toward", anchor: "activator", strength: "clamp(%distance% * %distance% / 50, 1.0, 8.0)", who: "@Victim" } }
+          - { CANCEL: {} }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 10.0, pitch: 1.1 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 10.0, pitch: 1.5 } }
+          - { MESSAGE: { text: "§c§l* BIDIRECTIONAL TELEPORT [towards: §7{ATTACKER}§c§l] *", who: "@Victim" } }
+          - { MESSAGE: { text: "§d§l* BIDIRECTIONAL TELEPORT [pulling: §7{VICTIM}§d§l] *" } }
+      - condition: "%bidir.proc% == 1 && %distance% > 40"
+        chance: 100
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYour Teleportation target is too far away to pull with this Bidirectional Teleportation level!" } }
+      - condition: "%victim.type% == \"PLAYER\" && %victim.relation% != \"ALLY\" && %bidir.proc% != 1 && %victim.var.bidir.trapped% != 1"
+        chance: 100
+        effects:
+          - { FREEZE: { duration: 30, dot: 0, slow: 100, who: "@Victim" } }
+          - { SET_VAR: { name: "bidir.trapped", value: "1", ttl: 30, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* BIDIRECTIONAL TRAPPED [by: §7{ATTACKER} (1.5s)]§c§l *", who: "@Victim" } }
+      - condition: "%victim.relation% == \"ALLY\" && %distance% <= 30"
+        chance: 100
+        effects:
+          - { CANCEL: {} }
+          - { TELEPORT: { to: "VICTIM", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+      - condition: "%victim.relation% == \"ALLY\" && %distance% > 30"
+        chance: 100
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§c§l(!) §cYour ally is too far away to teleport to with this level of Bidirectional Teleportation." } }
+  5:
+    abilities:
+      - condition: "%victim.type% == \"PLAYER\" && %victim.relation% != \"ALLY\""
+        chance: 33.0
+        effects:
+          - { SET_VAR: { name: "bidir.proc", value: "1", ttl: 1, who: "@Self" } }
+      - condition: "%bidir.proc% == 1 && %distance% <= 50"
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+          - { VELOCITY: { mode: "toward", anchor: "activator", strength: "clamp(%distance% * %distance% / 50, 1.0, 8.5)", who: "@Victim" } }
+          - { CANCEL: {} }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 10.0, pitch: 1.1 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 10.0, pitch: 1.5 } }
+          - { MESSAGE: { text: "§c§l* BIDIRECTIONAL TELEPORT [towards: §7{ATTACKER}§c§l] *", who: "@Victim" } }
+          - { MESSAGE: { text: "§d§l* BIDIRECTIONAL TELEPORT [pulling: §7{VICTIM}§d§l] *" } }
+      # The max rung is the one that drops the word "level" from the too-far line.
+      - condition: "%bidir.proc% == 1 && %distance% > 50"
+        chance: 100
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYour Teleportation target is too far away to pull with Bidirectional Teleportation!" } }
+      - condition: "%victim.type% == \"PLAYER\" && %victim.relation% != \"ALLY\" && %bidir.proc% != 1 && %victim.var.bidir.trapped% != 1"
+        chance: 100
+        effects:
+          - { FREEZE: { duration: 33, dot: 0, slow: 100, who: "@Victim" } }
+          - { SET_VAR: { name: "bidir.trapped", value: "1", ttl: 33, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* BIDIRECTIONAL TRAPPED [by: §7{ATTACKER} (1.65s)]§c§l *", who: "@Victim" } }
+      - condition: "%victim.relation% == \"ALLY\" && %distance% <= 30"
+        chance: 100
+        effects:
+          - { CANCEL: {} }
+          - { TELEPORT: { to: "VICTIM", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+      - condition: "%victim.relation% == \"ALLY\" && %distance% > 30"
+        chance: 100
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§c§l(!) §cYour ally is too far away to teleport to with this level of Bidirectional Teleportation." } }

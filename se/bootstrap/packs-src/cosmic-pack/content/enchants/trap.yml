@@ -18,8 +18,13 @@ condition: "%victim.type% == \"PLAYER\" && %victim.var.trap.frozen% != 1"
 # The Metaphysical rebate IS authored, as the chance expression on every level below: -2.5 pp per level of
 # Metaphysical the victim wears, read through `%victim.enchlevel.metaphysical%`. That key is the file STEM,
 # never the `enchants/metaphysical` stable key — the worn map is keyed by stem, and an unknown key reads 0
-# silently, so a stable-key spelling would compile and then rebate nothing forever. Heroic Metaphysical
-# writes the SAME worn state (highest-only: the two grades never sum), so one read covers both grades.
+# silently, so a stable-key spelling would compile and then rebate nothing forever. Heroic Metaphysical does
+# NOT write that key — `%victim.enchlevel.<key>%` is keyed by STEM, so the heroic publishes
+# `polymorphic-metaphysical` and nothing else — which is why every rung carries a SECOND term at the same
+# -2.5 pp coefficient (owner ruling: additive, not the highest-of-the-two the matrix reads onto the jar's one
+# shared key). The two are boots-only on both grades and the contract keeps them off one item, so no wearer
+# can hold both and the sum is unreachable in play; it is spelled additively so a pack that ever separates
+# them rebates rather than silently ignoring the heroic.
 # The `max(1, …)` IS D-03-11's 1 % floor. Measured, Metaphysical ≥ 2 against Trap I drives the chance
 # NEGATIVE (−1 %) so it can never land, and the ledger rules the floor the as-intended reading, matching
 # Heroic Trap's own 0.01 floor; matrix-02's blanket "Trap has no floor" line records the measured jar, which
@@ -52,7 +57,7 @@ levels:
   # Freeze is 35 t and a FULL stop at every level; only the chance ladders (4/8/12 %, L3 measured
   # `0.12000000000000001`) — each rung carrying its own Metaphysical rebate and D-03-11 floor.
   1:
-    chance: "max(1, 4 - 2.5 * %victim.enchlevel.metaphysical%)"
+    chance: "max(1, 4 - 2.5 * %victim.enchlevel.metaphysical% - 2.5 * %victim.enchlevel.polymorphic-metaphysical%)"
     effects:
       # The matrix writes this row as `MOVEMENT_SPEED(speed=-0.2)` — a delta off the vanilla 0.2 — but the
       # primitive SETS walk speed, so the recorded end state ("walk speed to 0", full stop) is authored
@@ -67,7 +72,7 @@ levels:
       # release line lands at t=35 — the tick the freeze and the marker both expire.
       - { MESSAGE: { text: "§a§l(!) §aYou are no longer trapped!", who: "@Victim", wait: 35 } }
   2:
-    chance: "max(1, 8 - 2.5 * %victim.enchlevel.metaphysical%)"
+    chance: "max(1, 8 - 2.5 * %victim.enchlevel.metaphysical% - 2.5 * %victim.enchlevel.polymorphic-metaphysical%)"
     effects:
       - { MOVEMENT_SPEED: { speed: 0, ticks: 35, who: "@Victim" } }
       - { SET_VAR: { name: "trap.frozen", value: "1", ttl: 35, who: "@Victim" } }
@@ -75,7 +80,7 @@ levels:
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "SNOW_BLOCK", count: 8, who: "@Victim" } }
       - { MESSAGE: { text: "§a§l(!) §aYou are no longer trapped!", who: "@Victim", wait: 35 } }
   3:
-    chance: "max(1, 12 - 2.5 * %victim.enchlevel.metaphysical%)"
+    chance: "max(1, 12 - 2.5 * %victim.enchlevel.metaphysical% - 2.5 * %victim.enchlevel.polymorphic-metaphysical%)"
     effects:
       - { MOVEMENT_SPEED: { speed: 0, ticks: 35, who: "@Victim" } }
       - { SET_VAR: { name: "trap.frozen", value: "1", ttl: 35, who: "@Victim" } }

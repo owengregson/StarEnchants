@@ -1,0 +1,94 @@
+# Matrix: 06-enchants-tools-heroic.md § Alien Implants
+display: "Alien Implants"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe heroic grade of Implants: hunger never"
+  - "&edrains while the helmet is worn, and the"
+  - "&etimer hands back two hearts' worth instead of one."
+trigger: REPEATING
+# Item set = the jar's 5 `helmets`, which is this pack's HELMET group (the base Implants ships the same
+# token). The modern widening to turtle/netherite helmets rides along, as it does on every armour file.
+applies-to: [HELMET]
+group: "heroic"
+tier: heroic
+# THE HEROIC APPLICATION CONTRACT (matrix 06 § Heroic application rules), as far as the surface carries it.
+# `requires:` + `removes-required:` express the APPLY-GATE, the REPLACE rule and SLOT-EXEMPT in one pair: the
+# book refuses an item that is not already carrying Implants, the successful apply strips the Implants line
+# so the two never both run, and the freed prerequisite nets the slot back out. Tier 7 is the `heroic` rung
+# (`&d`, the matrix-recorded lore colour, already in tiers.yml).
+requires: ["enchants/implants"]
+removes-required: true
+# WHAT THE PAIR CANNOT SAY, recorded in deferred-content.md rather than faked here:
+#   * the gate is "partner at its MAX level"; `requires:` compares the partner's level against the level
+#     being APPLIED, so Alien Implants I lands on an item carrying only Implants I. At the top rung (III on
+#     III) the two readings coincide, which is the case the jar's own book flow cared about.
+#   * REVERSE-BLOCK (a non-heroic can never be applied over its heroic) has NO expression. `blacklist:` is
+#     checked SYMMETRICALLY — `def.blacklist().contains(other) || otherDef.blacklist().contains(def.key())`
+#     — so blacklisting Implants from either side would also block the heroic's own apply, which `requires:`
+#     has just demanded be possible. Authoring it would brick the enchant; it is left off deliberately.
+#   * NO-RANDOMIZE / NO-DUST / NO-COMBINE / BLACK-SCROLL are book-flow rules, and END-SUPPRESS (tier > 5
+#     inert in The End) is the world/region policy teleblock.yml already records: `disabled-worlds:` names
+#     literal worlds and no pack knows what the End is called on a given stack.
+# NO `suppress-immune`, by owner ruling: the contract's END-SUPPRESS rule (matrix 06 § Heroic application
+# rules — "all tier > 5 enchants are inert while the holder is in The End", a SUPPRESS-scope world rule) has
+# to be able to reach every heroic, and `suppress-immune` exempts an enchant from ALL suppression
+# (`SuppressionStore.suppressesAny` returns false outright). The maintained-passive convention the armour
+# batch reads onto worn windows loses to it here. Consequence, accepted: a silence window lets the hunger
+# lock LAPSE and the wearer starts starving, which the jar's raw FoodLevelChangeEvent veto never could.
+# The hunger lock IS the matrix's `FOOD_DRAIN_CANCEL` gap, and it is CLOSED: `MODIFY_FOOD mode=cancel-drain`
+# cancels hunger LOSS for `duration` ticks and leaves gains alone, which is exactly the jar's
+# "only cancels decreases, so eating still works". The surface's own instruction for an always-on worn
+# window is to re-arm it on REPEATING with a duration at least the period — there is no unequip teardown, so
+# the window simply lapses a second or two after the helmet comes off (the jar cleared its flag on the
+# unequip edge; the delta is that trailing window, not a leak that outlives the wear).
+# THE HEAL CADENCE is authored as a SECOND clock at twice the food period, not as the matrix's
+# INVERT_VAR(implant-phase) toggle. Same result — the source runs ONE task that feeds food every fire and
+# heals on every other one — and it is the shape the base implants.yml already ships, so the heroic reads as
+# its own file's delta. It also deletes the toggle's own recorded defect outright: the jar leaves the phase
+# stale across an unequip, so the first heal after re-equipping lands off-phase. Two independent clocks have
+# no phase to leave behind.
+# Numbers: max 3; table weight 2; base 10.0, interval 5.0 (all copied from Implants by the heroic base
+# class). Measured periods integer-divide to 120/40/40 t, making L3 a pure no-op over L2 — D-06-8 rules the
+# as-intended ramp 120/60/40 t, which is the same call D-01-10 makes on the base enchant and the same ladder
+# implants.yml ships. Heal is 2.0 HP against the base's 1.0.
+# strings: none. era: none.
+levels:
+  1:
+    abilities:
+      - repeat: 120  # as-intended food cadence (D-06-8)
+        condition: "%actor.food% < 20"
+        effects:
+          - { MODIFY_FOOD: { amount: 1, mode: "give", who: "@Self" } }
+      - repeat: 240  # every other food tick (D-06-8)
+        effects:
+          - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # give clamps to max instead of skipping the last 2 HP (D-06-9)
+      # The lock's own clock is level-independent, as the jar's flag was: armed on equip, lifted on unequip.
+      # `duration` outruns `repeat` so the re-arm lands inside the live window and the drain is never let
+      # through on the seam.
+      - repeat: 100
+        effects:
+          - { MODIFY_FOOD: { mode: "cancel-drain", duration: 120, who: "@Self" } }
+  2:
+    abilities:
+      - repeat: 60  # as-intended food cadence (D-06-8)
+        condition: "%actor.food% < 20"
+        effects:
+          - { MODIFY_FOOD: { amount: 1, mode: "give", who: "@Self" } }
+      - repeat: 120  # every other food tick (D-06-8)
+        effects:
+          - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # give clamps to max instead of skipping the last 2 HP (D-06-9)
+      - repeat: 100
+        effects:
+          - { MODIFY_FOOD: { mode: "cancel-drain", duration: 120, who: "@Self" } }
+  3:
+    abilities:
+      - repeat: 40  # as-intended food cadence (D-06-8)
+        condition: "%actor.food% < 20"
+        effects:
+          - { MODIFY_FOOD: { amount: 1, mode: "give", who: "@Self" } }
+      - repeat: 80  # every other food tick (D-06-8)
+        effects:
+          - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } }  # give clamps to max instead of skipping the last 2 HP (D-06-9)
+      - repeat: 100
+        effects:
+          - { MODIFY_FOOD: { mode: "cancel-drain", duration: 120, who: "@Self" } }

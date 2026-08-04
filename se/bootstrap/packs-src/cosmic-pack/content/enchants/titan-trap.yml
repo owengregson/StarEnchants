@@ -1,0 +1,114 @@
+# Matrix: 06-enchants-tools-heroic.md § Titan Trap
+display: "Titan Trap"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe heroic grade of Trap: a hit can nail a player"
+  - "&ewhere they stand, head-deep in water, for three seconds."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "heroic"
+tier: heroic
+# THE HEROIC APPLICATION CONTRACT (matrix 06 § Heroic application rules) — the full reading lives in
+# reinforced-tank.yml. `requires:` is the APPLY-GATE, `removes-required:` is REPLACE + SLOT-EXEMPT; the gate
+# settles for `partner >= the heroic level applied` rather than the partner's MAX (exact only at rung 3,
+# where Trap and Titan Trap's ladders meet), and REVERSE-BLOCK is unexpressible (`blacklist:` is checked
+# bidirectionally and would veto the apply `requires:` demands). Both gaps ledgered once for the batch.
+# Tier 7 = the `heroic` rung (&d, weight 70); table weight 2 is a book-roll number the surface does not
+# carry, and END-SUPPRESS is the tier world rule, not a `disabled-worlds:` list.
+requires: ["enchants/trap"]
+removes-required: true
+# Players only, and never onto someone already frozen. The jar reads the ATTACKER's walk speed, so a slowed
+# attacker could never proc at all — ledger D-06-17 rules that the wrong subject and reads the intent as
+# anti-re-trap, which is the victim-side guard below. The counterpart already ships this exact idiom off the
+# same ruling (trap.yml), down to the `trap.frozen` key: BOTH grades read and write it, so neither can re-arm
+# a freeze the other is still holding. Sharing is right even though the contract keeps the two off one item —
+# the marker lives on the VICTIM, and two different attackers can carry one grade each.
+condition: "%victim.type% == \"PLAYER\" && %victim.var.trap.frozen% != 1"
+# The Metaphysical resistance IS authored, as the chance expression on every rung: -1.25 pp per level of
+# Metaphysical the victim wears, read through `%victim.enchlevel.metaphysical%`. That key is the file STEM,
+# never the `enchants/metaphysical` stable key — the worn map is keyed by stem and an unknown key reads 0 in
+# silence, so a stable-key spelling would compile and then rebate nothing forever. Heroic Metaphysical
+# publishes its OWN stem (`polymorphic-metaphysical`) rather than feeding this one, so every rung carries a
+# SECOND term at the same -1.25 pp coefficient — owner ruling: additive, not the highest-of-the-two the
+# matrix reads onto the jar's one shared key. Both grades are boots-only and the contract keeps them off one
+# item, so no wearer can hold both and the sum is unreachable in play.
+# `max(1, …)` is the matrix's own 0.01 floor — this entry always keeps a >= 1 % window, unlike Snare and
+# Disarmor, whose recorded absolute immunity is the expression chance's own [0,100] clamp. The counterpart
+# takes -2.5 pp unfloored and D-03-11 puts the same 1 % floor under it, so the pair is uniform.
+# Resistance table the matrix records at L3 (12 % base): M1 10.75 %, M2 9.5 %, M3 8.25 %, M4 7 %.
+# STILL PENDING, exactly as on trap.yml / snare.yml — the blocked-proc line `§8§l** METAPHYSICAL (§8Trap
+# blocked!§l) **`, shown to the VICTIM. The matrix fires it on a would-be proc, a roll that would have passed
+# but for the rebate, and its own decomposition is a PRE-roll subtraction it calls distribution-identical: the
+# engine rolls once at the already-reduced chance and no fact reports a roll that failed only because of the
+# rebate. Re-gating on FULL immunity is no substitute here — the 1 % floor means Titan Trap is never fully
+# blocked, so the line would never print. Tracked with its two siblings in deferred-content.
+# MEASURED INTERACTION POSTURE, copied not fixed: unlike the counterpart, this entry does NOT fire the
+# proc-veto event and IGNORES the Dragon Slayer set's `immune_freeze`. So the set line
+# `§8§l* DRAGON SLAYER [§7Trap blocked!§8§l] *` and the engine's activation veto both cover Trap and NOT
+# Titan Trap; the armour-set batch authors that rule on the set side (`dragon-slayer-blocks-freeze`) and must
+# key it to the counterpart alone. The owner may align the two with a single interaction rule later.
+# Counterpart Trap (flat 35 t, no jump lock, no water cue, -2.5 pp unfloored resistance) is REPLACED by the
+# contract, never summed.
+# THE JUMP LOCK IS NOT SHIPPED, on either lane. The jar's Jump-amplifier-128 trick is a 1.8-only integer
+# overflow and FREEZE is the root that replaces it, but FREEZE is visual + `slow` + `dot` only — nothing in
+# it touches jumping (the only jump suppressor in the engine is the reforge control lock's negative Jump
+# Boost, which no effect exposes). A trapped player can still hop; at 99.5 % slow they hop on the spot, which
+# is why this ships anyway. A jump knob on FREEZE is owed engine-side.
+# era: `STATIONARY_WATER` is 1.8's still-water spelling of `WATER` and `Sound.WATER` is 1.8's
+# `BLOCK_WATER_AMBIENT` — the modern spellings ship here (the pack-wide convention), but `Aliases.MATERIAL`
+# carries no `STATIONARY_WATER` row and `Aliases.SOUND` no `WATER` row, so both cues resolve to nothing on
+# the legacy lane until the sweep adds them (deferred-content).
+# SNOW_BLOCK is block id 80 on 1.8.9 and needs no row.
+levels:
+  # Proc 0.04 x level = 4 / 8 / 12 %, each rung carrying its own Metaphysical rebate and the 0.01 floor.
+  # Duration 35 + 10L = 45 / 55 / 65 t (2.25 / 2.75 / 3.25 s) — the freeze, the water cue and the marker all
+  # run on the SAME clock, and the release line waits it out.
+  1:
+    chance: "max(1, 4 - 1.25 * %victim.enchlevel.metaphysical% - 1.25 * %victim.enchlevel.polymorphic-metaphysical%)"
+    effects:
+      # slow 99.5 % IS the matrix's walk speed 0.001 (0.5 % of vanilla's 0.2), and `dot: 0` keeps the root
+      # damage-free — the jar's freeze only holds, it never bleeds. `neutralize-frost-slow` defaults true, so
+      # the authored 99.5 is the real number rather than vanilla's own fully-frozen slow stacked on top, and
+      # `breakout-chance` stays 0: the jar's sentence is fixed, never a struggle the victim can win early.
+      - { FREEZE: { duration: 45, dot: 0, slow: 99.5, who: "@Victim" } }
+      - { SET_VAR: { name: "trap.frozen", value: "1", ttl: 45, who: "@Victim" } }
+      # The head-height "water" cue. The jar broadcast a client-only block-change packet over a 64-block box,
+      # which no player-state primitive expresses; the engine's temp-block ledger places and reverts a REAL
+      # block instead — one point at dy 1, `airOnly: false` so it takes over whatever is at head height and
+      # restores it on release. Consequence recorded, not fixed: this one is visible to everyone and briefly
+      # real, where the jar's was a lie told only to the trapped player.
+      - { TEMP_BLOCK: { shape: "POINT", material: "WATER", ticks: 45, dy: 1, airOnly: false, who: "@Victim" } }
+      # Volume 10.0 is the jar's own number, kept verbatim — audible far beyond the fight. The recorded "at
+      # the victim" needs no `who`: an ATTACK activation's location IS the victim's, so the default `@Here`
+      # already anchors the cue there (a `who` would only move the anchor; the play is world-audible either
+      # way, where the jar's was sent to one player).
+      - { SOUND: { sound: "BLOCK_WATER_AMBIENT", volume: 10.0, pitch: 1.1 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "SNOW_BLOCK", count: 1, who: "@Victim" } }
+      # `{seconds}` is the matrix's own placeholder; MESSAGE's `tokens` binds it to a number and renders it
+      # through the chat convention (at most 2 dp, trailing zeros trimmed), so it reads 2.25 / 2.75 / 3.25 as
+      # recorded. The line stays byte-verbatim because the binding lives in the parameter, not in the text.
+      - { MESSAGE: { text: "§c§l** TITAN TRAP [§7{seconds}s§c§l] **", who: "@Victim", tokens: { seconds: 2.25 } } }
+      # Authored LAST because `wait:` accumulates down the effect list: everything above sits at t=0, so this
+      # release line lands on the tick the freeze, the water and the marker all expire. Bytecode-verified as
+      # the victim's line — the "attacker" reading was a decompiler artifact.
+      - { MESSAGE: { text: "§a§l** FREE [§7Titan Trap§a§l] **", who: "@Victim", wait: 45 } }
+  2:
+    chance: "max(1, 8 - 1.25 * %victim.enchlevel.metaphysical% - 1.25 * %victim.enchlevel.polymorphic-metaphysical%)"
+    effects:
+      - { FREEZE: { duration: 55, dot: 0, slow: 99.5, who: "@Victim" } }
+      - { SET_VAR: { name: "trap.frozen", value: "1", ttl: 55, who: "@Victim" } }
+      - { TEMP_BLOCK: { shape: "POINT", material: "WATER", ticks: 55, dy: 1, airOnly: false, who: "@Victim" } }
+      - { SOUND: { sound: "BLOCK_WATER_AMBIENT", volume: 10.0, pitch: 1.1 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "SNOW_BLOCK", count: 1, who: "@Victim" } }
+      - { MESSAGE: { text: "§c§l** TITAN TRAP [§7{seconds}s§c§l] **", who: "@Victim", tokens: { seconds: 2.75 } } }
+      - { MESSAGE: { text: "§a§l** FREE [§7Titan Trap§a§l] **", who: "@Victim", wait: 55 } }
+  3:
+    chance: "max(1, 12 - 1.25 * %victim.enchlevel.metaphysical% - 1.25 * %victim.enchlevel.polymorphic-metaphysical%)"
+    effects:
+      - { FREEZE: { duration: 65, dot: 0, slow: 99.5, who: "@Victim" } }
+      - { SET_VAR: { name: "trap.frozen", value: "1", ttl: 65, who: "@Victim" } }
+      - { TEMP_BLOCK: { shape: "POINT", material: "WATER", ticks: 65, dy: 1, airOnly: false, who: "@Victim" } }
+      - { SOUND: { sound: "BLOCK_WATER_AMBIENT", volume: 10.0, pitch: 1.1 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "SNOW_BLOCK", count: 1, who: "@Victim" } }
+      - { MESSAGE: { text: "§c§l** TITAN TRAP [§7{seconds}s§c§l] **", who: "@Victim", tokens: { seconds: 3.25 } } }
+      - { MESSAGE: { text: "§a§l** FREE [§7Titan Trap§a§l] **", who: "@Victim", wait: 65 } }

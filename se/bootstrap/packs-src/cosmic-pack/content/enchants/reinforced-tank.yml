@@ -1,0 +1,72 @@
+# Matrix: 06-enchants-tools-heroic.md § Reinforced Tank
+display: "Reinforced Tank"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe heroic grade of Tank: an axe in the"
+  - "&eother hand bites far less deeply."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "heroic"
+tier: heroic
+# THE HEROIC APPLICATION CONTRACT (matrix 06 § Heroic application rules), as far as the frozen surface carries
+# it — the same four lines every heroic in this batch ships:
+#   * `requires:` IS the APPLY-GATE — the book only takes on an item already carrying its non-heroic partner.
+#   * `removes-required:` IS both the REPLACE rule (the partner's line goes, so the two never both run on one
+#     item) and the SLOT-EXEMPT rule (the enchanter nets the freed prerequisite out of the slot cost).
+#   * NOT expressible, ledgered: the gate fires at `partner >= the heroic LEVEL BEING APPLIED`, not at the
+#     partner's MAX level. Exact only at the top rung — Tank and Reinforced Tank are both max 4, so
+#     Reinforced Tank IV does demand Tank IV, while Reinforced Tank I settles for Tank I.
+#   * NOT expressible, ledgered: REVERSE-BLOCK (a non-heroic can never go back over its heroic). `blacklist:`
+#     is checked BIDIRECTIONALLY against everything already on the item, so blacklisting Tank here would veto
+#     the very apply `requires:` demands. Its absence is what keeps the heroic's own UPGRADE path open: each
+#     apply eats the prerequisite, so re-applying Tank is how a player climbs from Reinforced Tank I to IV.
+#   * NO-RANDOMIZE / NO-DUST / NO-COMBINE / BLACK-SCROLL / DOWNGRADE-GUARD and the contract's eight strings are
+#     apply-pipeline + lang rules, not enchant fields — nothing to author here either way.
+# Tier 7 = the ladder's `heroic` rung (&d, weight 70, tiers.yml). The entry's own table weight 2 is a
+# book-roll number the enchant surface does not carry. END-SUPPRESS (every tier > 5 inert in The End) is the
+# tier world rule, not this file: `disabled-worlds:` names literal worlds and no pack knows what the End is
+# called on a given stack (teleblock.yml records the same reading for tier 6).
+requires: ["enchants/tank"]
+removes-required: true
+# No roll and no cooldown: 100 % of qualifying hits, exactly like the counterpart. Three gates, all on the
+# level's own condition — on a DEFENSE activation the "victim" IS the attacker, so `%victim.type%` is the
+# attacker-is-a-player test (guardians.yml ships the same idiom) and `%victim.helditem%` is their hand.
+# Axes ONLY: swords, fists, bows and every environmental source bypass this entirely — the hard counter
+# Paladin Armored is to swords. `_AXE` does NOT match `_PICKAXE` (codex-verified, and true of the substring:
+# DIAMOND_PICKAXE has no `_AXE` in it), and it catches 1.8's WOOD_AXE / GOLD_AXE as readily as the modern
+# spellings, so the test is era-safe unchanged.
+# THE FLOOR is the matrix's `%damage% >` 1.02302 / 1.04712 / 1.07239 / 1.09890 — the damage below which the
+# reduced hit would land at or under 1.0 and is SKIPPED rather than clamped. Authored in the multiplicative
+# form the counterpart already ships (`%damage% * 0.9775 > 1.0`), which is the same guard without the
+# matrix's rounding: 1/0.9775 = 1.0230179…, and the rounded 1.02302 sits a hair above it.
+# Reduction 0.0225 x level = 2.25 / 4.5 / 6.75 / 9 % (damage kept 0.9775 / 0.9550 / 0.9325 / 0.9100).
+# Stacking: every worn piece fires with its own level, and the engine folds the pieces ADDITIVELY where the
+# jar composed them multiplicatively — a full L4 set reduces 36 % here against the jar's 0.91^4 = 31.4 %
+# (ledger D-02-10, ruled on the counterpart; the same fold, one rung up). Attacker-gated, so D-001's
+# double-fire never applies and the recorded values are single-pass as spec §6 requires.
+# Counterpart Tank (0.01875 x level, plus a break cue) is REPLACED by the contract, never summed.
+# era: none. BLOCK_CRACK + IRON_BLOCK both resolve on 1.8.9; unlike the counterpart this entry plays no
+# break SOUND at all, so no sound alias is in play here either way.
+levels:
+  1:
+    condition: '%victim.type% == "PLAYER" && %victim.helditem% contains "_AXE" && %damage% * 0.9775 > 1.0'
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 2.25 } }
+      # count 1 is the matrix number, not the counterpart's 8: the heroic's flourish is a single crack mote
+      # at the wearer, with no sound behind it. The engine centres a @Self burst on the body.
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "IRON_BLOCK", count: 1, who: "@Self" } }
+  2:
+    condition: '%victim.type% == "PLAYER" && %victim.helditem% contains "_AXE" && %damage% * 0.9550 > 1.0'
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 4.5 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "IRON_BLOCK", count: 1, who: "@Self" } }
+  3:
+    condition: '%victim.type% == "PLAYER" && %victim.helditem% contains "_AXE" && %damage% * 0.9325 > 1.0'
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 6.75 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "IRON_BLOCK", count: 1, who: "@Self" } }
+  4:
+    condition: '%victim.type% == "PLAYER" && %victim.helditem% contains "_AXE" && %damage% * 0.9100 > 1.0'
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 9 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "IRON_BLOCK", count: 1, who: "@Self" } }

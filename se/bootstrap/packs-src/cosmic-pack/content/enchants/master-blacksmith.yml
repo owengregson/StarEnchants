@@ -1,0 +1,68 @@
+# Matrix: 06-enchants-tools-heroic.md § Master Blacksmith
+display: "Master Blacksmith"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eSome swings hammer the dents out of your armor."
+  - "&eThe harder you repair, the softer that swing lands."
+trigger: ATTACK
+applies-to: [AXE]
+group: "heroic"
+tier: heroic
+requires: ["enchants/blacksmith"]
+removes-required: true
+# HEROIC APPLICATION CONTRACT (matrix 06 § heroic application rules), as far as the surface carries it:
+# `requires:` + `removes-required: true` ARE the APPLY-GATE, the REPLACE (Blacksmith comes off as this lands,
+# so the two never run on one item) and the SLOT-EXEMPT (net-zero slots), in one pair of knobs. Three clauses
+# have no expression and are recorded rather than authored: the gate wants Blacksmith at MAX where the engine
+# wants it at >= the applied level; REVERSE-BLOCK cannot ride `blacklist:` — that check is bidirectional, so
+# a row on either file would also block THIS apply, which needs Blacksmith present; and NO-RANDOMIZE /
+# NO-DUST / NO-COMBINE / BLACK-SCROLL / END-SUPPRESS are tier-7 item-flow and world policy, owned by the
+# layers that read `tier:`.
+# DELTA vs `blacksmith.yml` (matrix 04), which this replaces: the same unconditional shape — the roll IS the
+# activation and every row below runs together on a proc, self-nerf included — with the proc ladder doubled
+# (12.5 pp per level), the repair doubled (2/2/4/4/5 against 1/1/2/2/3) and the flat x0.5 self-tax replaced
+# by a level-scaled one that reaches ZERO damage at L5. The codex reads the tax as the intended trade-off for
+# free armour repair, so it ships as recorded rather than as a bug — a maxed Master Blacksmith swing that
+# procs deals nothing at all, by design.
+# `select: most-damaged` is the closed DURABILITY_PIECE_SELECT gap: it addresses exactly the one worn piece
+# the jar picks instead of the whole set. From L3 the jar re-scans, and the second pick is evaluated against
+# the freshly repaired set — two `select: most-damaged` rows reproduce that exactly (the same piece again
+# when it is still the worst, the next-worst otherwise). The repair lands whether or not anything needed it,
+# so `skip-undamaged` stays off.
+# The penalty is authored as the engine's additive fold (-80 pp = x0.20 alone); the jar composes its
+# multiplier at MONITOR, which only diverges when a second multiplier lands on the same swing — accepted
+# family-wide as D-04-1.
+# strings: none. era: none (the durability API is uniform through the item-data layer).
+levels:
+  # Proc `0.125 x level` = 12.5/25/37.5/50/62.5 %. Repair: first call 2 (3 at L5), second call from L3 2 —
+  # totals 2/2/4/4/5. Outgoing multiplier `0.25 - 0.05 x level` = x0.20/x0.15/x0.10/x0.05/x0.00, authored as
+  # the additive fold -(80 + 5(L-1)) pp.
+  1:
+    chance: 12.5
+    effects:
+      - { DURABILITY: { amount: 2, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: -80 } }
+  2:
+    chance: 25
+    effects:
+      - { DURABILITY: { amount: 2, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: -85 } }
+  3:
+    chance: 37.5
+    effects:
+      - { DURABILITY: { amount: 2, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      - { DURABILITY: { amount: 2, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: -90 } }
+  4:
+    chance: 50
+    effects:
+      - { DURABILITY: { amount: 2, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      - { DURABILITY: { amount: 2, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: -95 } }
+  5:
+    chance: 62.5
+    effects:
+      - { DURABILITY: { amount: 3, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      - { DURABILITY: { amount: 2, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      # -100 pp is the measured zero-damage swing, kept: the fold cannot take a hit below zero.
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: -100 } }

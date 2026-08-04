@@ -1,0 +1,64 @@
+# Matrix: 06-enchants-tools-heroic.md § Mighty Cactus
+display: "Mighty Cactus"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe heroic grade of Cactus: every player who strikes"
+  - "&eyou takes a thorn back, and thorns cannot touch you."
+trigger: [DEFENSE, HURT]
+applies-to: [ARMOR]
+group: "heroic"
+tier: heroic
+# THE HEROIC APPLICATION CONTRACT (matrix 06 § Heroic application rules) — the full reading lives in
+# reinforced-tank.yml. `requires:` is the APPLY-GATE, `removes-required:` is REPLACE + SLOT-EXEMPT; the gate
+# settles for `partner >= the heroic level applied` rather than the partner's MAX (exact at rung 2, where
+# Cactus and Mighty Cactus both end), and REVERSE-BLOCK is unexpressible (`blacklist:` is checked
+# bidirectionally and would veto the very apply `requires:` demands). Both gaps ledgered once for the batch.
+# Tier 7 = the `heroic` rung (&d, weight 70); table weight 2 is a book-roll number the surface does not
+# carry, and END-SUPPRESS is the tier world rule, not a `disabled-worlds:` list.
+requires: ["enchants/cactus"]
+removes-required: true
+# Two abilities, because the jar ran two listeners — and neither rolls at level 2.
+#   * THE THORN — 100 % of hits taken from a PLAYER. On a DEFENSE activation the "victim" IS the attacker, so
+#     `%victim.type%` is the attacker-is-a-player test (the counterpart ships the same idiom). Damage back is
+#     0.5 x level: 0.5 / 1.0, a quarter and half a heart. Routed through the damage pipeline, so the
+#     attacker's own defensive enchants answer it — the jar's shape exactly.
+#   * THE THORNS NEGATION — DEFENSE only walks entity-on-entity damage, so the matrix's ANY_DAMAGE branch is
+#     the all-cause defender walk HURT (the enlighted.yml / drunk.yml idiom). 50 % at L1 and unconditional at
+#     L2: measured design, kept — Mighty Cactus II simply cannot be hurt by Thorns.
+# Both legs can fire on ONE thorns hit from a player: the thorn gates on the attacker and never on the cause.
+# That is the jar's pair of independent listeners, reproduced rather than tidied.
+# PING-PONG: the jar bounded a Mighty-Cactus-versus-Mighty-Cactus exchange with its damage floor. Here it
+# cannot start — ADR-0054 keeps SE-issued damage out of the proc walk, so a thorn never procs the thorn back
+# (engine-structural, no value change).
+# Attacker-gated, so D-001's defensive double-fire never applies and these are the single-pass values spec §6
+# asks for. Counterpart Cactus (equip-map gate, no thorns branch, an 8-mote burst and a break cue) is
+# REPLACED by the contract, never summed.
+# count 1 is the matrix number, not the counterpart's 8: the heroic's flourish is a single crack mote at the
+# wearer with no break sound behind it (the reinforced-tank.yml reading).
+# era: DamageCause THORNS exists on 1.8.9 and CACTUS is spelled the same on both lanes, so this entry owes no
+# alias row at all — the counterpart's wool-break cue was the only thing that did.
+levels:
+  1:
+    abilities:
+      - trigger: DEFENSE
+        condition: '%victim.type% == "PLAYER"'
+        effects:
+          - { DAMAGE: { amount: 0.5, who: "@Attacker" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "CACTUS", count: 1, who: "@Self" } }
+      - trigger: HURT
+        chance: 50
+        condition: '%damagecause% == "THORNS"'
+        effects:
+          - { CANCEL: {} }
+  2:
+    abilities:
+      - trigger: DEFENSE
+        condition: '%victim.type% == "PLAYER"'
+        effects:
+          - { DAMAGE: { amount: 1.0, who: "@Attacker" } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "CACTUS", count: 1, who: "@Self" } }
+      # No `chance:` — 100 %, the rung's unconditional thorns immunity.
+      - trigger: HURT
+        condition: '%damagecause% == "THORNS"'
+        effects:
+          - { CANCEL: {} }

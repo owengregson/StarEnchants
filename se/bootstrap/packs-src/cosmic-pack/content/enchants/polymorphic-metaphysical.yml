@@ -1,0 +1,62 @@
+# Matrix: 06-enchants-tools-heroic.md § Polymorphic Metaphysical
+# Roster marker, exactly like its counterpart (metaphysical.yml, the sticky.yml precedent): the entry is
+# rollable, applicable and displayed, and its whole recorded body is a worn-level MARKER — the jar's
+# `SET_VAR(metaphysical, level)` held while the boots are on. Wave 1f retired that marker: the worn level IS
+# readable now (`%victim.enchlevel.<stem>%`), so writing a var would only duplicate the fact, with the
+# teardown problem SET_VAR still has (no lifecycle stop half — the solitude.yml reading). Nothing is
+# authored below and nothing ever will be.
+display: "Polymorphic Metaphysical"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe heroic grade of Metaphysical: hostile traps, snares"
+  - "&eand freezing blows all struggle to hold you."
+trigger: PASSIVE
+applies-to: [BOOTS]
+group: "heroic"
+tier: heroic
+# THE HEROIC APPLICATION CONTRACT (matrix 06 § Heroic application rules) — the full reading lives in
+# reinforced-tank.yml. `requires:` is the APPLY-GATE, `removes-required:` is REPLACE + SLOT-EXEMPT; the gate
+# settles for `partner >= the heroic level applied` rather than the partner's MAX (exact only at rung 4,
+# where Metaphysical and Polymorphic Metaphysical's ladders meet), and REVERSE-BLOCK is unexpressible
+# (`blacklist:` is checked bidirectionally and would veto the very apply `requires:` demands). Both gaps
+# ledgered once for the batch. Tier 7 = the `heroic` rung (&d, weight 70); table weight 1 is a book-roll
+# number the surface does not carry, and END-SUPPRESS is the tier world rule.
+requires: ["enchants/metaphysical"]
+removes-required: true
+# ── THE DOWNSTREAM REBATE FEED (closed by owner ruling) ────────────────────────────────────────────────────
+# `%victim.enchlevel.<key>%` keys on the FILE STEM (`WornResolver.stemOf` = the last path segment of the
+# stable key), so this file publishes `polymorphic-metaphysical` and the counterpart publishes
+# `metaphysical`. They are two different keys — the two grades do NOT share one worn slot, and "highest-only"
+# has nothing to resolve between them, so reading the counterpart's stem alone left this grade INERT.
+# Ruled ADDITIVE and authored on all four consumers, each at ITS OWN coefficient — the matrix records the
+# heroic's stored level feeding the same reductions, so the second term repeats the first's:
+#   trap.yml `-2.5 pp`, titan-trap.yml `-1.25 pp`, snare.yml `-7 pp`, pummel.yml `-4 pp`, all of the shape
+#   <base> - <coef> x %victim.enchlevel.metaphysical% - <coef> x %victim.enchlevel.polymorphic-metaphysical%
+# with each file's own floor (Trap and Titan Trap keep their `max(1, …)`; Snare and Pummel keep none).
+# Additive over max() costs nothing in play: both grades are BOOTS-only and the contract's REPLACE keeps them
+# off one item, so no wearer can carry both and the two terms are never non-zero together. Where they could
+# be — a pack that separates the grades — additive rebates, where max() would discard the smaller.
+# Jar hazard for the shared key, now moot: there the counterpart unconditionally OVERWROTE the marker, so
+# heroic IV plus plain I worn together dropped downstream resistance to 1 while the Ice-Aspect block stayed
+# at 80 %. Per-stem keys cannot overwrite each other — the hazard is gone with the sharing.
+# ── PENDING: THE ICE ASPECT VETO AND ITS STRING ────────────────────────────────────────────────────────────
+# Recorded: an Ice Aspect proc landing on the wearer is cancelled with chance `0.2 x level` = 20 / 40 / 60 /
+# 80 % (the jar's `<=` comparison is a negligible delta), and on a block the WEARER sees
+#   §d§l** POLYMORPHIC METAPHYSICAL (§7Ice Aspect blocked!§d§l) **
+# What it blocks is Ice Aspect's `0.075 x level` Slowness VI proc (2/4/6 s, doc 03).
+# Not expressible: this is a chance-per-INCOMING-proc veto, and SUPPRESS is the only proc-parking primitive.
+# SUPPRESS can only be armed from a hit the wearer has ALREADY taken — the attacker's ATTACK walk runs before
+# the defender's DEFENSE walk inside one event — so a defensively armed window would park Ice Aspect one hit
+# LATE, for a fixed duration, and against every other victim the attacker touches in that window; the
+# recorded rule rolls per proc and blocks the proc in front of it. `mode: next-hit` does not help either: it
+# is consumed on the target's own INCOMING hits, not on their next swing. Same interaction-layer vocabulary
+# the Metaphysical blocked-proc lines wait on, and the same answer — recorded, not approximated.
+# (SUPPRESS's `consumed-message-actor` is where the string above would ride once such a rule exists.)
+# ──────────────────────────────────────────────────────────────────────────────────────────────────────────
+# Counterpart Metaphysical (an empty defense hook — marker only) is REPLACED by the contract, never summed.
+# era: none. Nothing here touches the world.
+levels:
+  1: { effects: [] }
+  2: { effects: [] }
+  3: { effects: [] }
+  4: { effects: [] }

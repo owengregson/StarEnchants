@@ -1,0 +1,33 @@
+# Matrix: 06-enchants-tools-heroic.md § Oxygenate
+display: "Oxygenate"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eEvery block you break tops your air back up."
+trigger: MINE
+# The jar's 21-material `tools` set: 5 pickaxes + 5 axes + 5 spades + 5 hoes (our TOOL composite is exactly
+# those four families) plus the fishing rod, which the jar's set really does carry. TOOL alone would drop the
+# rod — the spelling haste.yml settled on for the same set.
+applies-to: [TOOL, FISHING_ROD]
+group: "common"
+tier: common
+# Matrix-06 records no tier for the tool enchants — only the enchant-table weight (6 here) — so the rung
+# comes from the codex's own tier table (`oxygenate` 1 = the ladder's first rung, lore colour `§7`), the same
+# source doc 05's files used for their unrecorded acquisition rows. Max 1 is the numbers ladder's one rung.
+# THE GAP IS CLOSED. The matrix files `AIR_TICKS_RESTORE` (restore N air ticks, clamped to max) as a gap
+# because `FILL_OXYGEN` was a full refill; the shipped effect now takes `amount`, "air ticks to add, clamped
+# to the target's maximum air" — the recorded primitive exactly. The gap block's optional `skip-if-overflow`
+# param is deliberately NOT wanted here: it existed only to reproduce the measured no-op inside the last
+# 0-19 ticks, and D-06-6 rules the clamped top-up the as-intended reading (the same call D-01-11 makes for
+# Implants' heal guard). So the plain clamped add IS the ledgered behaviour.
+# Level is never read in the source and max is 1 — one rung, one row.
+# Acquisition metadata, nothing authorable: the jar additionally lists Oxygenate in its retired set, so it
+# is excluded from every random enchantment pool and mystery book. That is a catalog/roll-table flag (the
+# treatment snare.yml's retirement gets), not runtime behaviour.
+# strings: none. era: none — no material, sound or particle is named anywhere in the entry.
+levels:
+  # +20 air ticks (1.0 s) per block broken, level-independent; the engine clamps at the vanilla 300 t
+  # maximum. No chance roll and no cooldown in the source, so every qualifying break fires.
+  1:
+    chance: 100
+    effects:
+      - { FILL_OXYGEN: { amount: 20, who: "@Self" } }

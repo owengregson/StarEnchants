@@ -16,8 +16,11 @@ tier: uncommon
 # The Metaphysical reduction IS authored, as each level's chance expression: -7 pp per level of Metaphysical
 # the victim wears, read through `%victim.enchlevel.metaphysical%` — the file STEM, never the
 # `enchants/metaphysical` stable key, because the worn map is keyed by stem and an unknown key reads 0 in
-# silence. The heroic grade (Polymorphic Metaphysical) writes the SAME worn state, highest-only, so one read
-# covers both. Effective chance is the matrix's `max(0, 9xL − 7xMeta)` WITHOUT an authored max(): an
+# silence. The heroic grade (Polymorphic Metaphysical) publishes its OWN stem, not this one, so every rung
+# carries a second term at the same -7 pp coefficient (owner ruling: additive, not highest-of-the-two — the
+# jar's one shared key has no counterpart on a stem-keyed fact). Both grades are boots-only and the contract
+# keeps them off one item, so the sum is unreachable in play.
+# Effective chance is the matrix's `max(0, 9xL − 7xMeta)` WITHOUT an authored max(): an
 # expression chance clamps to [0,100] and that 0 bound is the recorded absolute immunity, so Metaphysical >= 2
 # already hard-blocks Snare I and >= 4 covers Snare I-III. Measured reduction per level: 7 / 14 /
 # 21.000000000000002 / 28 / 35.000000000000003 pp — float noise on exact 7 pp rungs, so the exact rung ships.
@@ -43,23 +46,23 @@ levels:
   # single-burst 2001 mapping (healing.yml and devour.yml port theirs the same way). The world effect's
   # vanilla break sound has no PARTICLE half and is not authored.
   1:
-    chance: "9 - 7 * %victim.enchlevel.metaphysical%"
+    chance: "9 - 7 * %victim.enchlevel.metaphysical% - 7 * %victim.enchlevel.polymorphic-metaphysical%"
     effects:
       - { POTION: { effect: "SLOW", level: 2, duration: 40, who: "@Victim" } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "VINE", count: 8, who: "@Victim" } }
   2:
-    chance: "18 - 7 * %victim.enchlevel.metaphysical%"
+    chance: "18 - 7 * %victim.enchlevel.metaphysical% - 7 * %victim.enchlevel.polymorphic-metaphysical%"
     effects:
       - { POTION: { effect: "SLOW", level: 3, duration: 60, who: "@Victim" } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "VINE", count: 8, who: "@Victim" } }
   3:
-    chance: "27 - 7 * %victim.enchlevel.metaphysical%"
+    chance: "27 - 7 * %victim.enchlevel.metaphysical% - 7 * %victim.enchlevel.polymorphic-metaphysical%"
     effects:
       - { POTION: { effect: "SLOW", level: 4, duration: 80, who: "@Victim" } }
       - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 80, who: "@Victim" } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "VINE", count: 8, who: "@Victim" } }
   4:
-    chance: "36 - 7 * %victim.enchlevel.metaphysical%"
+    chance: "36 - 7 * %victim.enchlevel.metaphysical% - 7 * %victim.enchlevel.polymorphic-metaphysical%"
     effects:
       - { POTION: { effect: "SLOW", level: 5, duration: 100, who: "@Victim" } }
       - { POTION: { effect: "SLOW_DIGGING", level: 2, duration: 100, who: "@Victim" } }

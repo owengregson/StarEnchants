@@ -1,0 +1,50 @@
+# Matrix: 06-enchants-tools-heroic.md § Godly Overload
+display: "Godly Overload"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe heroic grade of Overload — a far larger block of bonus"
+  - "&emaximum health, held for as long as the piece is worn."
+trigger: PASSIVE
+applies-to: [ARMOR]
+group: "heroic"
+tier: heroic
+# HEROIC APPLICATION CONTRACT (matrix 06 § Heroic application rules). tier 7 = the `heroic` rung of tiers.yml
+# (`&d`, weight 70). `requires` + `removes-required` carry the APPLY-GATE, the REPLACE and the SLOT-EXEMPT
+# rules in one pair: no Overload on the item, no apply; a successful apply deletes the Overload line so the two
+# never both run, and `freedBy` makes the upgrade cost a net zero slots. This is also the progression interlock
+# overload.yml already describes from the other side.
+# Two halves are NOT expressible and are recorded rather than dropped: the gate's "at the partner's MAX level"
+# gradient (`ItemEnchanter.checkRelationships` tests the prereq at `>= the level being applied`), and
+# REVERSE-BLOCK, which has no expression on EITHER file: `blacklist:` is tested bidirectionally, so a row on
+# overload.yml fires on this apply too, refusing the very Overload line `requires` demands. NO-RANDOMIZE /
+# NO-DUST / NO-COMBINE / BLACK-SCROLL / END-SUPPRESS are book-flow and world rules with no per-enchant knob.
+requires: ["enchants/overload"]
+removes-required: true  # the heroic supersedes its non-heroic partner (net-zero enchant slots)
+# NO `suppress-immune`, by owner ruling, and this is where the heroic parts from its base: the contract's
+# END-SUPPRESS rule (matrix 06 § Heroic application rules — "all tier > 5 enchants are inert while the holder
+# is in The End", a SUPPRESS-scope world rule) has to be able to reach every heroic, and `suppress-immune`
+# exempts an enchant from ALL suppression (`SuppressionStore.suppressesAny` returns false outright). So the
+# base's reading — noDefenseProcs maps to SUPPRESS(scope=TYPE, key=defense), which never dropped worn
+# passives, hence overload.yml's immunity — does not carry up a tier.
+# Stackable in bookkeeping, never in effect: POTION's non-stacking amplifier semantics skip an equal-or-higher
+# amplifier, so several pieces at the same level yield ONE Health Boost and only the highest worn level
+# expresses — the measured behaviour, and the highest-only rule the base shares with this grade.
+# The jar's swap-without-unequip lingering-effect hazard is structural in the engine's WornState (equip arms,
+# unequip lifts), so there is nothing to port.
+# The mastery drain reduces the expressed HEALTH_BOOST amplifier by its own level + 1 and skips the effect at
+# <= 0 — an interaction rule, not authored here (same as on the base).
+# Equip/removal feedback is the shared potion-registry [+]/[-] pair (see Obsidianshield).
+# era: HEALTH_BOOST exists on 1.8.9; the max-health attribute interplay is the item-data layer's.
+levels:
+  # Jar amplifier L+2; the engine's level is that amplifier + 1, so Health Boost IV/V/VI = +16/+20/+24 HP
+  # (+8/+10/+12 hearts, a 22-heart pool at L3).
+  # duration = maintained-while-worn: the passive driver holds the buff while the piece is worn.
+  1:
+    effects:
+      - { POTION: { effect: "HEALTH_BOOST", level: 4, duration: 200, who: "@Self" } }
+  2:
+    effects:
+      - { POTION: { effect: "HEALTH_BOOST", level: 5, duration: 200, who: "@Self" } }
+  3:
+    effects:
+      - { POTION: { effect: "HEALTH_BOOST", level: 6, duration: 200, who: "@Self" } }

@@ -18,10 +18,12 @@ tier: uncommon
 # unrolled particle, mirrored onto ATTACK per the corpus melee-mirror note) and the landing AoE.
 # POTION level is 1-based, so the recorded Nausea II is `level: 2` (confusion.yml ships the same reading).
 # Rider slot: ONE rider per shot, and a second PROJECTILE_DRESSING on the same shot replaces the first. The
-# jar's priority — Explosive's wither skull wins, the cow stands down when the bow carries both — is
-# unauthored, though no longer blocked: wave 1f's `%actor.enchlevel.explosive%` reads the shooter's own held
-# bow, so the stand-down is a `%actor.enchlevel.explosive% == 0` gate whenever this file is next opened.
-# Recorded, not a stop: both riders are pure scenery, so whichever the dispatch order lands is cosmetic.
+# jar's priority IS authored now (batch 06 drop-in): Explosive's wither skull wins, so the cow stands down
+# when the bow carries both. `%actor.enchlevel.explosive%` reads the SHOOTER's own worn map, which spans
+# armour plus the held hands, so the bow in their hand reports its Explosive level on the BOW_FIRE ability
+# below — the key is the file STEM, never the `enchants/explosive` stable key. One-directional, exactly like
+# the jar: Explosive makes no reciprocal check and needs none. Cosmetic either way, since a dressing rider is
+# scenery, but the dispatch order no longer decides it.
 # Rider hit semantics: the jar cancelled + zeroed damage dealt TO the cow and played ENTITY_COW_HURT 1.0/0.7
 # to whoever struck it. The `invulnerable` window below is the cancel half; the striker cue has no expression
 # (rider lifecycle is engine-owned) — cosmetic, recorded here rather than ledgered.
@@ -45,7 +47,7 @@ levels:
   # (the jar's cube half-extent); AoE Nausea II 25/50/75 t. Cow lifetime and invuln window are 200 t flat.
   1:
     abilities:
-      - { trigger: BOW_FIRE, chance: 100, effects: [ { PROJECTILE_DRESSING: { type: "COW", ttl: 200, invulnerable: 200, no-pickup: true } } ] }
+      - { trigger: BOW_FIRE, chance: 100, condition: "%actor.enchlevel.explosive% == 0", effects: [ { PROJECTILE_DRESSING: { type: "COW", ttl: 200, invulnerable: 200, no-pickup: true } } ] }
       - trigger: [BOW, ATTACK]
         chance: 10
         effects:
@@ -66,7 +68,7 @@ levels:
           - { POTION: { effect: "CONFUSION", level: 2, duration: 25, who: "@Aoe{r=1,filter=ENEMIES}" } }
   2:
     abilities:
-      - { trigger: BOW_FIRE, chance: 100, effects: [ { PROJECTILE_DRESSING: { type: "COW", ttl: 200, invulnerable: 200, no-pickup: true } } ] }
+      - { trigger: BOW_FIRE, chance: 100, condition: "%actor.enchlevel.explosive% == 0", effects: [ { PROJECTILE_DRESSING: { type: "COW", ttl: 200, invulnerable: 200, no-pickup: true } } ] }
       - trigger: [BOW, ATTACK]
         chance: 20
         effects:
@@ -84,7 +86,7 @@ levels:
           - { POTION: { effect: "CONFUSION", level: 2, duration: 50, who: "@Aoe{r=2,filter=ENEMIES}" } }
   3:
     abilities:
-      - { trigger: BOW_FIRE, chance: 100, effects: [ { PROJECTILE_DRESSING: { type: "COW", ttl: 200, invulnerable: 200, no-pickup: true } } ] }
+      - { trigger: BOW_FIRE, chance: 100, condition: "%actor.enchlevel.explosive% == 0", effects: [ { PROJECTILE_DRESSING: { type: "COW", ttl: 200, invulnerable: 200, no-pickup: true } } ] }
       - trigger: [BOW, ATTACK]
         chance: 30
         effects:

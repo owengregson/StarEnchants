@@ -1,0 +1,47 @@
+# Matrix: 06-enchants-tools-heroic.md § Planetary Deathbringer
+display: "Planetary Deathbringer"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe heroic grade of Deathbringer: a far better chance"
+  - "&eto double the damage of a melee hit or an arrow."
+trigger: [ATTACK, BOW]
+applies-to: [ARMOR]
+group: "heroic"
+tier: heroic
+# THE HEROIC APPLICATION CONTRACT (matrix 06 § Heroic application rules) — the full reading lives in
+# reinforced-tank.yml. `requires:` is the APPLY-GATE, `removes-required:` is REPLACE + SLOT-EXEMPT; the gate
+# settles for `partner >= the heroic level applied` rather than the partner's MAX (exact only at rung 3,
+# where Deathbringer and Planetary Deathbringer's ladders meet), and REVERSE-BLOCK is unexpressible
+# (`blacklist:` is checked bidirectionally and would veto the very apply `requires:` demands). Both gaps
+# ledgered once for the batch. Tier 7 = the `heroic` rung (&d, weight 70); table weight 9 is a book-roll
+# number the surface does not carry, and END-SUPPRESS is the tier world rule.
+requires: ["enchants/deathbringer"]
+removes-required: true
+# Two abilities per rung, one per trigger — the counterpart's own shape, and the jar's: melee and the
+# wearer's arrows are separate listeners that roll independently, so a bow user who also punches gets two
+# chances at two different moments, never one shared roll. No cooldown at either.
+# Chance is `0.1 x level x 1.5` = 15 / 30 / 45 %. The jar's missing-level fallback (a flat 15 %) is
+# unreachable in-engine — a level outside the ladder never compiles to an ability.
+# The multiplier is a flat x2.0 at EVERY level: `+100` on the attack side of the additive fold. The jar
+# multiplied its modifiers together in unspecified order where the engine sums them — a model difference the
+# fold design owns, not a deviation (the same reading shadow-assassin.yml carries).
+# RECORD-AND-ALLOW, flagged for the owner: the contract only keeps the two grades off ONE item, so a wearer
+# with counterpart Deathbringer on one piece and this on another gets two independent rolls that compound to
+# x4 when both land (measured). Capping it would be a new interaction rule, not a port.
+# The jar re-rolled even on events other plugins later cancelled (`ignoreCancelled=false`); the engine folds
+# once at the end of the hit, so that quirk has nothing to express.
+# Counterpart Deathbringer (10/20/30 %, same x2.0) is REPLACED by the contract, never summed.
+# era: none — pure damage math, no cues at all.
+levels:
+  1:
+    abilities:
+      - { trigger: ATTACK, chance: 15, effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } } ] }  # x2.0 outgoing
+      - { trigger: BOW, chance: 15, effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } } ] }
+  2:
+    abilities:
+      - { trigger: ATTACK, chance: 30, effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } } ] }
+      - { trigger: BOW, chance: 30, effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } } ] }
+  3:
+    abilities:
+      - { trigger: ATTACK, chance: 45, effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } } ] }
+      - { trigger: BOW, chance: 45, effects: [ { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } } ] }

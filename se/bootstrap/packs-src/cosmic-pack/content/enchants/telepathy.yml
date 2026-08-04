@@ -1,0 +1,60 @@
+# Matrix: 06-enchants-tools-heroic.md § Telepathy
+display: "Telepathy"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA broken block's drops can go straight"
+  - "&einto your inventory instead of the floor."
+trigger: MINE
+# The jar's 21-material `tools` set: the four TOOL families (5 pickaxes + 5 axes + 5 spades + 5 hoes) plus
+# the fishing rod the composite would drop — the spelling haste.yml and oxygenate.yml settled on for the same
+# set. Owner ruling: take a composite when it matches the jar's set EXACTLY (TOOL is those four families and
+# nothing else), and enumerate only where no composite fits (reforged.yml / obliterate.yml, the weapons sets).
+applies-to: [TOOL, FISHING_ROD]
+group: "uncommon"
+tier: uncommon
+# Matrix-06 records no tier for the tool enchants — only the enchant-table weight (6 here) — so the rung
+# comes from the codex's own tier table (`telepathy` 2 = `uncommon`, lore colour `§a`), the same source
+# doc 05's files used for their unrecorded acquisition rows. Max 4 is the chance ladder's four rungs.
+# TWO CONDITIONS, one gate. The sponge exclusion is the jar's own origin guard. The iron/gold clause is the
+# matrix's `auto-smelt-owns-those-two-ores` interaction rule, authored here because the wave-1f enchlevel
+# facts made it expressible: `%actor.enchlevel.auto-smelt%` reads the WIELDER's worn map, which is built
+# from armour plus the held hands, so the pickaxe doing the mining reads. Auto Smelt is doc 06's own entry
+# and may land after this file — an enchant absent from the pack reads 0 rather than failing the load, so
+# the clause is inert until it ships and correct the moment it does.
+# Recorded delta on that read: it is per-WIELDER, not per-ITEM (the silence.yml finding), so an Auto Smelt
+# tool in the OFF hand also stands Telepathy down where the jar demanded the same item.
+condition: "%block.type% != \"SPONGE\" && !(%actor.enchlevel.auto-smelt% > 0 && (%block.type% == \"IRON_ORE\" || %block.type% == \"GOLD_ORE\"))"
+# THE WHOLE DROP MODEL IS THE LEDGER'S, NOT THE JAR'S. D-06-7 rules the measured handling a bug — only the
+# first drop stack delivered, over a hand-rolled Fortune floor table (COAL/DIAMOND/EMERALD/QUARTZ/LAPIS ore:
+# F I one roll @0.25, F II three @0.25, F III+ four @0.20 capped at 5), its own silk-touch re-derivation, a
+# double-slab special case and dead RAILS / never-true drop-count guards. `TELEPORT_DROPS` hands over the
+# REAL drop list, so vanilla Fortune and Silk Touch apply as the server computes them and nothing is voided.
+# That deletes the whole table, which is why no material and no Fortune arithmetic appears in this file.
+# Block XP: the jar handed `getExpToDrop()` to the player directly, which is what the vanilla orb already
+# does — no step, and no double-award to reproduce.
+# Ordering carried by OTHER layers, nothing authored here: Auto Sell (doc 07) wins outright for any sellable
+# drop, and inside a Detonate / Atomic Detonate volume this enchant's PRESENCE routes the volume's drops to
+# the inventory (recorded on those entries, resolved by the excavation effect, not by this ability).
+# The jar has no Factions or region check on this path at all — the engine's break pipeline owns that.
+# strings: none.
+# era: the matrix flags `QUARTZ_ORE`->`NETHER_QUARTZ_ORE`, but that alias only ever served the Fortune table
+# D-06-7 deletes; `SPONGE`, `IRON_ORE` and `GOLD_ORE` all resolve on 1.8.9 and on modern. No alias owed.
+levels:
+  # Chance 25 x level. L4 is exactly 1.00 and therefore always fires — a by-design cap the matrix explicitly
+  # does not ledger, so the 100 ships as the top rung rather than as a corrected curve.
+  1:
+    chance: 25
+    effects:
+      - { TELEPORT_DROPS: {} }
+  2:
+    chance: 50
+    effects:
+      - { TELEPORT_DROPS: {} }
+  3:
+    chance: 75
+    effects:
+      - { TELEPORT_DROPS: {} }
+  4:
+    chance: 100
+    effects:
+      - { TELEPORT_DROPS: {} }
