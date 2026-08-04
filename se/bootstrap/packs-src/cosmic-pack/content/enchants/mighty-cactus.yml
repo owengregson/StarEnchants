@@ -36,7 +36,8 @@ removes-required: true
 # count 1 is the matrix number, not the counterpart's 8: the heroic's flourish is a single crack mote at the
 # wearer with no break sound behind it (the reinforced-tank.yml reading).
 # era: DamageCause THORNS exists on 1.8.9 and CACTUS is spelled the same on both lanes, so this entry owes no
-# alias row at all — the counterpart's wool-break cue was the only thing that did.
+# alias row at all — the counterpart's wool-break cue is the only thing that does, and `DIG_WOOL` is still
+# unwritten (cactus.yml records it).
 levels:
   1:
     abilities:

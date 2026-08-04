@@ -51,9 +51,10 @@ soul-cost: 5  # flat at every level, charge-or-abort — the D-04-14 as-intended
 # strings: `§9§l** SOUL TRAP §7[{seconds}s]§9§l**`, {seconds} inlined per level so each rendered line is
 # byte-identical — note there is NO space between `]` and the trailing `**`, verbatim.
 # Acquisition: max 3; base 10.0, interval 10.0; table weight 2; tier 6 (the `soul` rung).
-# era: `ENDERMAN_SCREAM` is the 1.8.9 spelling of ENTITY_ENDERMAN_SCREAM and `Aliases.SOUND` carries NO row for
-# the pair today, so the scream is silent on the legacy lane until the sweep writes it (owed in
-# deferred-content.md). The particles need nothing: `SPELL_WITCH` (1.8 `WITCH_MAGIC`) and `SPELL` (modern
+# era: `ENDERMAN_SCREAM` is the 1.8.9 spelling of ENTITY_ENDERMAN_SCREAM and `Aliases.SOUND` now carries the
+# row (wave 2e.2, closing the legacy sweep), so the scream lands on the legacy lane. It mattered more here
+# than on most files: this entry authors exactly ONE sound, so until the row landed the whole proc fired in
+# silence on 1.8. The particles need nothing: `SPELL_WITCH` (1.8 `WITCH_MAGIC`) and `SPELL` (modern
 # `EFFECT`) both ride existing `Aliases.PARTICLE` rows, and the resolver's reverse scan makes them
 # bidirectional. The recorded +1 y offsets and 0.7/0.4 particle speeds have no param — PARTICLE centres on the
 # body — and the fallback hit is plain armour-reduced DAMAGE, as in the jar.

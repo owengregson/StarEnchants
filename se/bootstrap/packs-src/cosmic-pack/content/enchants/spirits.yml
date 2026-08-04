@@ -29,8 +29,10 @@ tier: epic
 # and gate 6 denies every pulse it could ever fire. Dropping this block's scope means it neither blocks on nor
 # arms that bucket — the spawn keeps its own re-arm, and the heal pulses for as long as the spirit lives.
 # era: `IRONGOLEM_DEATH` / `ORB_PICKUP` are the 1.8.9 spellings of ENTITY_IRON_GOLEM_DEATH (`mob.irongolem.death`)
-# and ENTITY_EXPERIENCE_ORB_PICKUP (`random.orb`), but `Aliases.SOUND` carries NEITHER pair today, so neither cue
-# resolves on the legacy lane until both rows land — they are owed on deferred-content.md's legacy-sweep list.
+# and ENTITY_EXPERIENCE_ORB_PICKUP (`random.orb`). The ORB_PICKUP row landed in wave 2e.2 (closing the legacy
+# sweep), so the ally-heal chime resolves on 1.8; `IRONGOLEM_DEATH` was MISSED by that sweep and still has no
+# row, so the spawn cue alone stays silent there. Re-ledgered on the legacy list with the three other tokens
+# the sweep's "still-owed list is empty" claim skipped (`FIZZ`, `DIG_WOOL`, `WITHER_DEATH`).
 # SPELL/FLAME/HEART resolve on both eras (1.8 takes particles by NMS name, not a Bukkit enum).
 # A 1.8 blaze carries its own AI quirks, but a non-targeting one never reaches its fireball path.
 levels:

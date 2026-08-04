@@ -47,9 +47,9 @@ removes-required: true  # the heroic supersedes its non-heroic partner (net-zero
 # 5 blocks. Its facts were populated before C cancelled, so it still reads the fall's original damage.
 # The engine's potion tracking reproduces the jar's "a stronger tracked SPEED wins" refusal, so B never
 # downgrades a live burst. The jar's unguarded player cast (which crashes on mob defenders) is moot in-engine.
-# era: `ENTITY_BAT_TAKEOFF` is the modern spelling of 1.8's `BAT_TAKEOFF` and `Aliases.SOUND` carries NO row for
-# the pair today — dodge.yml (batch 01) ships the same spelling on the same claim, so both files lose the cue on
-# the 1.8 lane until the legacy sweep writes it (logged in deferred-content). `CLOUD` and `SPEED` are fine on
+# era: `ENTITY_BAT_TAKEOFF` is the modern spelling of 1.8's `BAT_TAKEOFF` and `Aliases.SOUND` now carries the
+# row (wave 2e.2, closing the legacy sweep) — dodge.yml (batch 01) ships the same spelling, so both files
+# gained the cue on the 1.8 lane together. `CLOUD` and `SPEED` are fine on
 # 1.8.9, and the sword-block-era `%sneaking%` reads unchanged.
 levels:
   1:

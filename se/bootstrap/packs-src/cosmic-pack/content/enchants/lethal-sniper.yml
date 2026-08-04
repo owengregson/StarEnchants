@@ -35,8 +35,8 @@ removes-required: true
 # every contribution additively into one hit (Longbow's interaction note; nothing to author here).
 # strings: verbatim per level below, victim-only — the shooter gets no feedback (measured, kept). The `+`
 # reads like an addition but the number IS the total multiplier; the jar's misleading prefix ships as-is.
-# era: `HURT_FLESH` is the 1.8-era spelling of `ENTITY_PLAYER_HURT` and `Aliases.SOUND` carries no row for
-# the pair — the legacy-sweep row sniper.yml already owes, which this file rides; `REDSTONE_BLOCK` and the
+# era: `HURT_FLESH` is the 1.8-era spelling of `ENTITY_PLAYER_HURT` and `Aliases.SOUND` carries the row as of
+# wave 2e.2 (closing the legacy sweep) — the same row sniper.yml rides; `REDSTONE_BLOCK` and the
 # block-crack burst are fine on 1.8.9, where the arrow geometry is identical.
 condition: "%impactheight% > 1.9 && %victim.var.raged% == 0"
 levels:

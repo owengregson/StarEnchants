@@ -54,9 +54,9 @@ removes-required: true
 # preserved the shooter's pitch/yaw. Noted for the parity harness, as teleportation.yml notes it.
 # PARTICLE has no height offset: the recorded victim EYE height (grapple) and +0.5 y (ally blink) both
 # render as the body-centred burst `who:` gives, the same treatment teleportation.yml recorded.
-# era: `ZOMBIE_METAL`->`ENTITY_ZOMBIE_ATTACK_IRON_DOOR` and `WITHER_SHOOT`->`ENTITY_WITHER_SHOOT` are owed
-# as legacy-sweep alias rows (neither pair is in `Aliases.SOUND` today);
-# `ORB_PICKUP`->`ENTITY_EXPERIENCE_ORB_PICKUP` is already on the sweep list via Healing/Teleportation.
+# era: `ZOMBIE_METAL`->`ENTITY_ZOMBIE_ATTACK_IRON_DOOR` (wave 2e.2) and `WITHER_SHOOT`->`ENTITY_WITHER_SHOOT`
+# (wave 2c) both carry alias rows now, as does `ORB_PICKUP`->`ENTITY_EXPERIENCE_ORB_PICKUP` (wave 2e.2, the
+# row Healing/Teleportation share) — so all three cues land on the 1.8 lane.
 # `WITCH_MAGIC`/`SPELL_WITCH` crosses through the particle alias table, and walk-speed roots behave
 # identically on 1.8.9.
 levels:

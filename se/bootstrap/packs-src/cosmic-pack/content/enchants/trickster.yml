@@ -22,8 +22,8 @@ condition: '%victim.type% == "PLAYER"'
 # the activation location; the destination swirl rides the body two ticks after the hop, the same delay the
 # engine's own blink arrival cue uses, so it lands where the wearer does.
 # era: WITCH_MAGIC and CLOUD are the 1.8 particle spellings (SPELL_WITCH resolves both ways, CLOUD is
-# unchanged). PORTAL_TRIGGER is the 1.8 sound id and has no resolver alias row yet, so the modern
-# BLOCK_PORTAL_TRIGGER token resolves to nothing on the legacy lane until one is added.
+# unchanged). PORTAL_TRIGGER is the 1.8 sound id and its resolver row landed in wave 2e.2 (closing the legacy
+# sweep), so the modern BLOCK_PORTAL_TRIGGER token this file authors resolves on the legacy lane too.
 levels:
   1:
     chance: 1.25

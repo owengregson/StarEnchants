@@ -17,8 +17,8 @@ soul-cost: 5  # flat at every level, and no cooldown — sustained fire drains s
 no-souls-message: "§c§l** OUT OF SOULS **"
 # era: HAPPY_VILLAGER carries its own cross-era spelling through the particle alias table; the recorded
 # LEVEL_UP and EAT sounds are the 1.8 enum constants, authored here as their modern flattened names
-# (ENTITY_PLAYER_LEVELUP is already in the alias table; ENTITY_GENERIC_EAT still needs its row for the
-# legacy lane).
+# (ENTITY_PLAYER_LEVELUP was already in the alias table; ENTITY_GENERIC_EAT got its row in wave 2e.2, closing
+# the legacy sweep, so both cues land on 1.8).
 # Ledger D-02-4 (as-intended): the heal ships as damage x level/10. The measured jar computed
 # damage x (level/10) in integer division — always 0.0 HP at every level while still charging souls and
 # playing the full feedback. The same truncation collapsed its "ally needs healing" test into "any ally

@@ -41,6 +41,17 @@ tier: mastery
 # kept, so no dedup cooldown here — an enchant's cooldown is one shared bucket and any value would also pace
 # the proc above). `ttl: 40` is the engine default and a port choice: the jar's anvil dies on landing and the
 # codex records no ttl. The block never places and drops nothing — engine FALLING_BLOCK semantics.
+# IMPACT SCOPING (ADR-0074 §4) IS DELIBERATELY NOT DECLARED HERE, and this file is the recorded reason. The
+# filter matches on the authored `group:`, and this file's is `mastery` — a FAMILY word rather than this
+# enchant's own — so an anvil landing still fires every other mastery enchant's IMPACT abilities. No other
+# mastery declares one today, so the collision is latent, not live. Narrowing it to `tombstone` is NOT
+# available: `group:` is one ROOT key per enchant (no per-ability override in `EnchantDefReader`), and the
+# same interned string is a SUPPRESSION match key — `sets/dragon-slayer` arms
+# `SUPPRESS_INCOMING{scope: GROUP, key: mastery, chance: 25}` for its recorded "25% Mastery Enchant Negation",
+# and `masks/rift` arms the same head at `chance: 50` for its own mastery negation. BOTH are authored and
+# live in this pack, and both name this exact string; renaming would cut this enchant out of them to sharpen
+# a filter that costs nothing today. It needs an owner ruling — a per-ability group override on the enchant
+# reader, or a second identity for IMPACT scoping that is not also the suppression match key.
 # The payload's `percent-damage` at 10 on the `whole-set` is the recorded 10 % of max off EACH of the four
 # slots. D-07-15 (the jar's `(int)` truncation zeroing the hit on items with max durability under 10, intended
 # minimum 1) needs nothing authored: the engine ROUNDS (`(int) Math.round(max x percent / 100)`), which is
@@ -72,10 +83,11 @@ tier: mastery
 # era: a falling ANVIL works on 1.8.9 (anvil-with-data falling block — the legacy overlay's block-state data
 # hazard, shared with any FALLING_BLOCK content). `ANVIL_LAND` <-> `BLOCK_ANVIL_LAND` and `WITHER_HURT` <->
 # `ENTITY_WITHER_HURT` already carry alias rows, as does `ENCHANTMENT_TABLE` <-> `ENCHANT`; `PORTAL` and
-# `SLOW` are fine on 1.8.9 through the potion aliases. The two zombie-door cues do NOT have rows yet —
-# `ZOMBIE_WOODBREAK` <-> `ENTITY_ZOMBIE_BREAK_WOODEN_DOOR` and `ZOMBIE_WOOD` <->
-# `ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR` — so both warn-skip on the legacy fork until the sweep writes them
-# (parked on the deferred-content legacy list). The landing world-effect 2001 is an engine internal.
+# `SLOW` are fine on 1.8.9 through the potion aliases. The two zombie-door cues now carry rows too —
+# `ZOMBIE_WOODBREAK` <-> `ENTITY_ZOMBIE_BREAK_WOODEN_DOOR` (wave 2e) and `ZOMBIE_WOOD` <->
+# `ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR` (wave 2e.2, closing the sweep) — so both land on the legacy fork. They
+# are near-twins the flattening reordered (BREAK is the door breaking, ATTACK the blows before it), and this
+# entry authors one of each, in that order. The landing world-effect 2001 is an engine internal.
 levels:
   # Per level 1-10 — chance `0.02 x (L/3)` as a true double division = 0.66667 % a rung; targets
   # `i = 4 + floor(L/2)` = 4/5/5/6/6/7/7/8/8/9; radius `6 + L` = 7-16. Freeze 60 t and silence 80 t are

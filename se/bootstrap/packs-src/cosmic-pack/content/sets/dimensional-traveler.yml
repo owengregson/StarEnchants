@@ -76,22 +76,35 @@ bonuses:
   # The Clarity gate the matrix records on the BLINDNESS rung needs nothing authored: enchants/clarity is an
   # autonomous 3-tick scrubber in this port, so a victim wearing it sheds the blindness on its own while the
   # SLOW — never Clarity-gated, measured — stays.
-  # The +4 Y on the two cues is dropped: SOUND reads only the entity channel of `who`, so a location selector
-  # would silently move the cue off the victim to the activation point (the reflective-block.yml reading).
+  # The recorded +4 Y on the two cues is AUTHORED, on `dy` (wave 2e.2): it translates the anchor a cue plays
+  # at, which is the knob this entry always needed — `who` reads only the entity channel, so a location
+  # selector would have moved the cue off the victim to the activation point (the reflective-block.yml
+  # reading), and `spread-y` only widens a scatter.
+  # `group:` is the IMPACT scope (ADR-0074 §4): the field's blocks carry it to their landings and fire ONLY
+  # the payload below, instead of every IMPACT ability the wearer happens to own. The arm and the payload are
+  # two separate bonuses with two different def ids, so the authored group is the only identity they share —
+  # and it must be spelled the SAME on both or the field fires nothing. The name is this set's own proc, not
+  # a family word, so the coarse-identity collision the ADR records cannot reach it. Nothing suppresses on
+  # this key (no `SUPPRESS{scope: GROUP, key: dimensional-shift}` exists anywhere in the pack), so declaring
+  # it changes gate 5 for neither rung.
   - on: armor
     trigger: DEFENSE
+    group: "dimensional-shift"
     chance: "1 - 0.125 * %victim.enchlevel.poltergeist%"
     condition: "(%actor.world% contains \"dungeon\") : %stop%"
     effects:
       - { FREEZE: { duration: 80, dot: 0, slow: 100, who: "@Aoe{r=25, filter=ENEMIES}" } }
       - { POTION: { effect: BLINDNESS, level: 1, duration: 60, who: "@Aoe{r=25, filter=ENEMIES}" } }
       - { POTION: { effect: SLOW, level: 1, duration: 80, who: "@Aoe{r=25, filter=ENEMIES}" } }
-      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1.0, pitch: 1.1, who: "@Aoe{r=25, filter=ENEMIES}" } }
-      - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 1.0, pitch: 1.1, who: "@Aoe{r=25, filter=ENEMIES}" } }
-      # {ATTACKER} on a DEFENSE activation is the WEARER — the caster this line names. The jar's own §c is
-      # kept: it was always overridden by the relation colour that followed it, and no relation-colour token
-      # exists here, so this renders the jar's line minus that one overridden code point.
-      - { MESSAGE: { text: "§5§l** DIMENSIONAL SHIFT (§c{ATTACKER} [4s]§5§l) **", who: "@Aoe{r=25, filter=ENEMIES}" } }
+      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1.0, pitch: 1.1, dy: 4, who: "@Aoe{r=25, filter=ENEMIES}" } }
+      - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 1.0, pitch: 1.1, dy: 4, who: "@Aoe{r=25, filter=ENEMIES}" } }
+      # {ATTACKER} on a DEFENSE activation is the WEARER — the caster this line names. {RELATION_COLOR} (wave
+      # 2e.2) restores the jar's per-reader colour, so the string is verbatim again — the jar's own §c
+      # included, which was always overridden by the colour that follows it. Every recipient of THIS line is
+      # an enemy of the wearer (the selector filters ENEMIES), so the token can only ever pick `enemy-color`,
+      # left at its `&c` default — the same code point the jar wrote — and `ally-color` is unreachable here,
+      # so no value is invented for it.
+      - { MESSAGE: { text: "§5§l** DIMENSIONAL SHIFT (§c{RELATION_COLOR}{ATTACKER} [4s]§5§l) **", who: "@Aoe{r=25, filter=ENEMIES}" } }
       # The block field in full: a 9×9 grid 10 above each victim, 3–4 layers each rising 12–19 per index, at
       # 50 % density over a uniform END_STONE/NETHERRACK palette (≈142 blocks a target). damage-percent 15
       # under health-cap 44 is the recorded 0.15 × min(maxhealth, 44) — 3.0 at 20 HP, 6.6 flat from 44 up —
@@ -119,6 +132,7 @@ bonuses:
   # shaken loose. Recorded, not faked.
   - on: armor
     trigger: IMPACT
+    group: "dimensional-shift"   # the arm's group, verbatim — the pair is matched on this string alone
     chance: 100
     condition: "%victim.type% == \"PLAYER\""
     effects:

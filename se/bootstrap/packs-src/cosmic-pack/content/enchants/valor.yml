@@ -20,9 +20,8 @@ tier: epic
 # proc per piece; count 8 is that pair's convention, not a matrix number, and the engine centres a @Self
 # burst on the body.
 # era: 1.8's IRON_SWORD / DIAMOND_SWORD spellings are identical to the modern ones — no hazard.
-# BLOCK_STONE_BREAK has no resolver alias row (1.8 spells it DIG_STONE; the table carries the sibling
-# DIG_GRASS row but not this one), so the break cue resolves to nothing on the legacy lane until one is
-# added — the BLOCK_CRACK burst still lands there.
+# BLOCK_STONE_BREAK carries its resolver row (1.8 spells it DIG_STONE, beside the sibling DIG_GRASS row the
+# table already had), so the break cue lands on the legacy lane too.
 levels:
   1:
     condition: '%actor.health% <= 8 && (%actor.helditem% == "IRON_SWORD" || %actor.helditem% == "DIAMOND_SWORD") && %damage% * 0.91 > 1.0'

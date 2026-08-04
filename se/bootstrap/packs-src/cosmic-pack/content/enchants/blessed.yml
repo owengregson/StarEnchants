@@ -27,7 +27,8 @@ tier: epic
 # Interactions carried elsewhere, nothing authored here: the KOTH armour set throttles the BLESSED line to one
 # per 160 t for its wearers (cleanse unthrottled) — a set-membership condition with no fact on the frozen
 # surface; and the jar's custom BLESS player event is an external hook, out of port scope.
-# era: `SPLASH` (1.8) -> `ENTITY_GENERIC_SPLASH` needs the resolver alias (deferred-content.md legacy sweep).
+# era: `SPLASH` (1.8) -> `ENTITY_GENERIC_SPLASH` carries its resolver alias row (wave 2e.2, closing the
+# legacy sweep), so the cleanse cue lands on both lanes.
 levels:
   # Chance 3 pp per level; the cleanse itself never scales.
   1:
