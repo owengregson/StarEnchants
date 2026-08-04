@@ -92,6 +92,11 @@ class NewEffectEndToEndTest {
             "SUPPRESS_INCOMING: { scope: GROUP, key: lifesteal, duration: 100, chance: 50, who: \"@Self\" }",
             "STATUS_CLEAR: { status: TELEBLOCK, who: \"@Self\" }");
 
+    /** The kinds wave 2d.2 adds, in the same minimal authored form. */
+    private static final List<String> WAVE_2D2 = List.of(
+            "STACKING_DOT: { step: 2, period: 10, cap: 6, stack-ttl: 60, lead-in: 20, duration: 200, "
+                    + "message: \"decaying\", who: \"@Victim\" }");
+
     @TempDir
     Path root;
 
@@ -119,6 +124,11 @@ class NewEffectEndToEndTest {
     @TestFactory
     Stream<DynamicTest> everyWave2dKindCompilesToItsOwnRegistryId() {
         return compilesToItsOwnRegistryId(WAVE_2D);
+    }
+
+    @TestFactory
+    Stream<DynamicTest> everyWave2d2KindCompilesToItsOwnRegistryId() {
+        return compilesToItsOwnRegistryId(WAVE_2D2);
     }
 
     private Stream<DynamicTest> compilesToItsOwnRegistryId(List<String> wave) {

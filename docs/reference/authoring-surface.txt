@@ -368,6 +368,14 @@ effect SPAWN_SWARM
   param cloud-range DOUBLE optional min=1 max=- enum=- handle=- default=16
   param name STRING optional min=- max=- enum=- handle=- default=
   param effects HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=
+effect STACKING_DOT
+  param step DOUBLE optional min=0 max=- enum=- handle=- default=2
+  param period TICKS optional min=1 max=- enum=- handle=- default=10
+  param cap INT optional min=1 max=- enum=- handle=- default=6
+  param stack-ttl TICKS optional min=1 max=- enum=- handle=- default=60
+  param lead-in TICKS optional min=1 max=- enum=- handle=- default=20
+  param duration TICKS optional min=1 max=- enum=- handle=- default=200
+  param message STRING optional min=- max=- enum=- handle=- default=
 effect STATUS_CLEAR
   param status ENUM required min=- max=- enum=DISARM,POTION_LOCK,TELEBLOCK handle=- default=-
 effect STRIP_SCROLL
@@ -572,6 +580,7 @@ var actor.helditem STR
 var actor.heroicpieces NUM
 var actor.level NUM
 var actor.maxhealth NUM
+var actor.ownedground BOOL
 var actor.souls NUM
 var actor.totalexp NUM
 var actor.type STR

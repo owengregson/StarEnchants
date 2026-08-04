@@ -427,9 +427,11 @@ public interface Sink {
      * activations; a teleport / death / relog / world change restarts at the current cell. Each staircase cell
      * ground-snaps to solid floor (climbing a one-block stair, pausing over air) and reverts after
      * {@code durationTicks} through the shared {@code TempBlockLedger}, each on its OWN region (a line may
-     * straddle a Folia region boundary).
+     * straddle a Folia region boundary). Every stamped cell carries {@code owner} as its ground claimant —
+     * a trail is a field you can chase somebody down with, so it answers {@code OWNED_GROUND} like any other.
      */
-    void tempBlockTrail(int trailKeyDefId, UUID walker, Location currentCell, int materialId, int durationTicks);
+    void tempBlockTrail(int trailKeyDefId, UUID walker, Location currentCell, int materialId, int durationTicks,
+                        UUID owner);
 
     /** Drop {@code count} of a material as an item entity at {@code at} (DROP_ITEM). */
     void dropItem(Location at, int materialId, int count);
@@ -903,20 +905,22 @@ public interface Sink {
     /**
      * {@link #tempBlock(Location, int, int, int, boolean)} that, when {@code confined != null}, also
      * registers the placed tile as a one-tile confining structure (ADR-0071 TRAP_BREAK) whose sole
-     * victim is {@code confined}, so Turnkey can early-restore it. A {@code null} confined is byte-for-byte
-     * the 5-arg form.
+     * victim is {@code confined}, so Turnkey can early-restore it, and that stamps {@code owner} on the
+     * placement so the ground has a claimant ({@code OWNED_GROUND} / {@code STACKING_DOT}). Both {@code null}
+     * is byte-for-byte the 5-arg form.
      */
     void tempBlock(Location at, int materialId, int durationTicks, int replaceMode, boolean unbreakable,
-                   UUID confined);
+                   UUID confined, UUID owner);
 
     /**
      * {@link #tempBox(Location, int, int, int, int, int, int)} that, when {@code confined != null},
      * registers the placed volume as a confining structure (ADR-0071 TRAP_BREAK) whose sole victim is
-     * {@code confined}. A {@code null} confined is byte-for-byte the 7-arg form. A {@code fillChance} below 100
+     * {@code confined}, and stamps {@code owner} on every placed tile (see the 7-arg {@link #tempBlock}).
+     * A {@code null} confined and owner is byte-for-byte the 7-arg form. A {@code fillChance} below 100
      * places only that percent of the box's COLUMNS ({@link ScatterFill}) — a ragged web instead of a solid one.
      */
     void tempBox(Location center, int materialId, int width, int height, int depth, int durationTicks,
-                 int replaceMode, UUID confined, double fillChance);
+                 int replaceMode, UUID confined, double fillChance, UUID owner);
 
     /**
      * Remove {@code target} outright (DESPAWN): no drops, no experience, no {@code EntityDeathEvent} — the
@@ -945,6 +949,22 @@ public interface Sink {
                         java.util.List<Integer> replaced, String feedback, LivingEntity attacker,
                         int tickSoundId, float tickVolume, float tickPitch,
                         int tickParticleId, int tickParticleCount);
+
+    /**
+     * {@code STACKING_DOT} — watch {@code target} for {@code durationTicks} and, on every {@code periodTicks}
+     * pulse they spend standing on ground {@code owner} placed, deal {@code step} × their live stack count
+     * through the real damage pipeline, attributed to {@code attacker}.
+     *
+     * <p>Unlike {@link #periodicDamage}, whose window is fixed at arm time, this one is a FIELD: a pulse spent
+     * off the owner's ground costs nothing and adds nothing, and the ladder resumes rather than restarting if
+     * they step back within {@code stackWindowTicks}. The stack count is shared per victim across every
+     * attacker ({@link StackingDots}), so several overlapping fields ramp one ladder instead of several.
+     *
+     * <p>{@code feedback} is sent to the target on each damaging pulse with {@code {damage}} and
+     * {@code {stacks}} filled; empty is silent, and the owner is told nothing at all.
+     */
+    void stackingDot(LivingEntity target, LivingEntity attacker, UUID owner, double step, int periodTicks,
+                     int cap, int stackWindowTicks, int leadInTicks, int durationTicks, String feedback);
 
     /**
      * Mark {@code target} so their incoming damage from the {@code causeMask} damage-over-time causes is

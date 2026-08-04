@@ -551,6 +551,10 @@ public final class BootCore {
                 return state == null ? 0 : state.heroicPieces();
             }
         });
+        // %actor.ownedground% off the per-boot temp-block ledger: the fact layer holds no sink env, and the
+        // ledger is the only place a placement's claimant is recorded (wave 2d.2's owner concept).
+        engine.run.FactPopulator.groundOwnership((owner, world, x, y, z) ->
+                owner != null && owner.equals(sinkEnv.tempBlocks().ownerAt(world, x, y, z)));
         // %victim.mobtype% from MythicMobs' internal name,
         engine.run.FactPopulator.entityTypeResolver(
                 bindings.mythicMobType(plugin, master.config().integrations()::enabled));

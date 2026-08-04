@@ -4680,6 +4680,105 @@
     "targets": []
     },
   {
+    "head": "STACKING_DOT",
+    "doc": "Watch each target for `duration` and, every `period` ticks they spend standing on ground the ACTIVATOR placed with `TEMP_BLOCK`, deal `step` x their live stack count as real (pre-armour) damage credited to the activator. Stacks climb one per damaging pulse to `cap` and lapse `stack-ttl` after the last one, so leaving the field pauses the ramp rather than resetting it. The ladder is PER VICTIM and shared across every attacker — two overlapping fields ramp one ladder, not two. The first pulse waits `lead-in`, which is what lets one activation lay its field and its watcher together.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ STACKING_DOT: { step: <double[0..]=2>, period: <ticks[1..]=10>, cap: <int[1..]=6>, stack-ttl: <ticks[1..]=60>, lead-in: <ticks[1..]=20>, duration: <ticks[1..]=200>, message: <string=> } }",
+    "example": "{ STACKING_DOT: { step: 2, period: 10, cap: 6, stack-ttl: 60, lead-in: 20, duration: 200, message: \"&c&l* DECAYING [&7-{damage}HP ({stacks} stacks)&c&l] *\", who: \"@Aoe\" } }",
+    "params": [
+      {
+        "name": "step",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "2",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "damage added per live stack, in raw half-hearts"
+        },
+      {
+        "name": "period",
+        "kind": "TICKS",
+        "label": "ticks[1..]",
+        "required": false,
+        "default": "10",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "ticks between pulses"
+        },
+      {
+        "name": "cap",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": false,
+        "default": "6",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "the most stacks one victim's ladder can reach"
+        },
+      {
+        "name": "stack-ttl",
+        "kind": "TICKS",
+        "label": "ticks[1..]",
+        "required": false,
+        "default": "60",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "how long a ladder survives after its last pulse — the grace for stepping off the ground"
+        },
+      {
+        "name": "lead-in",
+        "kind": "TICKS",
+        "label": "ticks[1..]",
+        "required": false,
+        "default": "20",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "delay before the first pulse reads the ground"
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[1..]",
+        "required": false,
+        "default": "200",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "how long each target is watched"
+        },
+      {
+        "name": "message",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "line sent to the victim on each damaging pulse ({damage}, {stacks}); empty = silent"
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
     "head": "STATUS_CLEAR",
     "doc": "Remove an active engine status window from each target: TELEBLOCK (the teleport denial), POTION_LOCK (every potion denial held on them), or DISARM (the armed disarm window). Unlike CURE this touches no potion EFFECT — it lifts the plugin state that was denying one. Clearing a window nobody holds is a silent no-op, so the authored condition decides what a wasted use costs.",
     "affinity": "CONTEXT_LOCAL",
@@ -6784,6 +6883,10 @@
   {
     "name": "actor.maxhealth",
     "type": "NUM"
+    },
+  {
+    "name": "actor.ownedground",
+    "type": "BOOL"
     },
   {
     "name": "actor.souls",

@@ -8,6 +8,7 @@ import engine.sink.Sink;
 import engine.spec.EffectSpec;
 import engine.spec.T;
 import java.util.Locale;
+import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
@@ -78,6 +79,9 @@ public final class TempBlockEffect implements EffectKind {
         boolean airOnly = ctx.bool("airOnly");
         double fillChance = ctx.dbl("fill-chance");
         boolean footprint = "FOOTPRINT".equals(shape);
+        // The ground's claimant is the WEARER, never the target the shape is stamped around: a field is
+        // something you lay down, and `who` is who you laid it on (%actor.ownedground% / STACKING_DOT).
+        UUID owner = ctx.actor() == null ? null : ctx.actor().getUniqueId();
         // 0 = air only (safe); a non-air-only FOOTPRINT replaces ONLY the solid ground beneath the feet (mode 3),
         // so a moving trail can never let a player scaffold up by jumping into freshly-placed blocks; other shapes
         // replace anything (mode 2, captured + restored on revert).
@@ -105,11 +109,11 @@ public final class TempBlockEffect implements EffectKind {
                         // effect stays stateless — the sink owns the path memory (the MARK_ZONE precedent). The
                         // trail API is single-material, so a snake trail always uses palette[0] (the base material).
                         sink.tempBlockTrail(ctx.sourceDefId(), who.getUniqueId(),
-                                new Location(world, bx, by, bz), palette[0], ticks);
+                                new Location(world, bx, by, bz), palette[0], ticks, owner);
                     } else {
                         for (int dx = -radius; dx <= radius; dx++) {
                             for (int dz = -radius; dz <= radius; dz++) {
-                                place(sink, world, bx + dx, by, bz + dz, palette, ticks, mode, fillChance);
+                                place(sink, world, bx + dx, by, bz + dz, palette, ticks, mode, fillChance, owner);
                             }
                         }
                     }
@@ -117,7 +121,8 @@ public final class TempBlockEffect implements EffectKind {
                 case "COLUMN" -> {
                     int[] forward = forwardOffset(base, ahead);
                     for (int h = 0; h < height; h++) {
-                        place(sink, world, bx + forward[0], by + h, bz + forward[1], palette, ticks, mode, fillChance);
+                        place(sink, world, bx + forward[0], by + h, bz + forward[1], palette, ticks, mode, fillChance,
+                                owner);
                     }
                 }
                 case "BOX" ->
@@ -126,17 +131,17 @@ public final class TempBlockEffect implements EffectKind {
                     // (ADR-0071 TRAP_BREAK) so Turnkey can early-restore it.
                     sink.tempBox(new Location(world, bx, by, bz), palette[0],
                             ctx.integer("width"), height, ctx.integer("depth"), ticks, mode, who.getUniqueId(),
-                            fillChance);
+                            fillChance, owner);
                 default -> {
                     // POINT: a block in the target's own cell (dy >= 0, the Fantasy web) is a confining trap —
                     // register it via the 6-arg overload; a POINT below the feet (dy < 0) is floor paint, plain.
                     if (dy >= 0) {
                         if (fills(bx, bz, fillChance)) {
                             sink.tempBlock(new Location(world, bx, by, bz), materialAt(palette, bx, bz), ticks, mode,
-                                    false, who.getUniqueId());
+                                    false, who.getUniqueId(), owner);
                         }
                     } else {
-                        place(sink, world, bx, by, bz, palette, ticks, mode, fillChance);
+                        place(sink, world, bx, by, bz, palette, ticks, mode, fillChance, owner);
                     }
                 }
             }
@@ -161,9 +166,9 @@ public final class TempBlockEffect implements EffectKind {
     }
 
     private static void place(Sink sink, World world, int x, int y, int z, int[] palette, int ticks, int mode,
-                              double fillChance) {
+                              double fillChance, UUID owner) {
         if (fills(x, z, fillChance)) {
-            sink.tempBlock(new Location(world, x, y, z), materialAt(palette, x, z), ticks, mode, false);
+            sink.tempBlock(new Location(world, x, y, z), materialAt(palette, x, z), ticks, mode, false, null, owner);
         }
     }
 

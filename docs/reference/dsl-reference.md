@@ -1026,6 +1026,22 @@ Summon count entities of type evenly spaced on a radius-block ring around the ac
 - _param_ `effects` `potion_effect list` — potion effects held for each summon's whole life
 - _example_: `{ SPAWN_SWARM: { type: BAT, count: 10, radius: 0.5, ttl: 300, speed: 0.5 } }`
 
+### STACKING_DOT
+
+Watch each target for `duration` and, every `period` ticks they spend standing on ground the ACTIVATOR placed with `TEMP_BLOCK`, deal `step` x their live stack count as real (pre-armour) damage credited to the activator. Stacks climb one per damaging pulse to `cap` and lapse `stack-ttl` after the last one, so leaving the field pauses the ramp rather than resetting it. The ladder is PER VICTIM and shared across every attacker — two overlapping fields ramp one ladder, not two. The first pulse waits `lead-in`, which is what lets one activation lay its field and its watcher together.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ STACKING_DOT: { step: <double[0..]=2>, period: <ticks[1..]=10>, cap: <int[1..]=6>, stack-ttl: <ticks[1..]=60>, lead-in: <ticks[1..]=20>, duration: <ticks[1..]=200>, message: <string=> } }`
+- _param_ `step` `double[0..]` — damage added per live stack, in raw half-hearts
+- _param_ `period` `ticks[1..]` — ticks between pulses
+- _param_ `cap` `int[1..]` — the most stacks one victim's ladder can reach
+- _param_ `stack-ttl` `ticks[1..]` — how long a ladder survives after its last pulse — the grace for stepping off the ground
+- _param_ `lead-in` `ticks[1..]` — delay before the first pulse reads the ground
+- _param_ `duration` `ticks[1..]` — how long each target is watched
+- _param_ `message` `string` — line sent to the victim on each damaging pulse ({damage}, {stacks}); empty = silent
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ STACKING_DOT: { step: 2, period: 10, cap: 6, stack-ttl: 60, lead-in: 20, duration: 200, message: "&c&l* DECAYING [&7-{damage}HP ({stacks} stacks)&c&l] *", who: "@Aoe" } }`
+
 ### STATUS_CLEAR
 
 Remove an active engine status window from each target: TELEBLOCK (the teleport denial), POTION_LOCK (every potion denial held on them), or DISARM (the armed disarm window). Unlike CURE this touches no potion EFFECT — it lifts the plugin state that was denying one. Clearing a window nobody holds is a silent no-op, so the authored condition decides what a wasted use costs.
@@ -1549,6 +1565,7 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%actor.heroicpieces%` | NUM |
 | `%actor.level%` | NUM |
 | `%actor.maxhealth%` | NUM |
+| `%actor.ownedground%` | BOOL |
 | `%actor.souls%` | NUM |
 | `%actor.totalexp%` | NUM |
 | `%actor.type%` | STR |

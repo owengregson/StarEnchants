@@ -80,17 +80,28 @@ public final class TempBlockLedger<S> {
         void tile(UUID world, int x, int y, int z);
     }
 
-    /** One temporary layer over a position. {@code deadline}/{@code seq} mutate on a same-material refresh. */
+    /**
+     * One temporary layer over a position. {@code deadline}/{@code seq}/{@code owner} mutate on a same-material
+     * refresh.
+     *
+     * <p>{@code owner} is the player whose ability placed this layer, or {@code null} for an unowned placement
+     * (every pre-field caller). It is what makes a temp-block shape a FIELD somebody owns rather than scenery:
+     * {@code OWNED_GROUND} asks whose ground a body is standing on, and {@code STACKING_DOT} only ramps on its
+     * own wearer's. Ownership is per LAYER, not per tile, so one player's floor under another's keeps its own
+     * identity and re-surfaces with it when the top expires.
+     */
     private static final class Layer {
         private final long id;
         private final int typeId;
         private long deadline;
         private long seq;
+        private UUID owner;
 
-        private Layer(long id, int typeId, long deadline) {
+        private Layer(long id, int typeId, long deadline, UUID owner) {
             this.id = id;
             this.typeId = typeId;
             this.deadline = deadline;
+            this.owner = owner;
         }
     }
 
@@ -131,7 +142,7 @@ public final class TempBlockLedger<S> {
      * every layer is long past its deadline (its reverts never fired — {@link #STALE_GRACE_TICKS}) is
      * force-reverted and dropped first, so this placement starts fresh over the true original, not a leaked block.
      */
-    Pending place(Key key, int typeId, int ticks, long now) {
+    Pending place(Key key, int typeId, int ticks, long now, UUID owner) {
         Entry<S> entry = entries.get(key);
         if (entry != null && expired(entry, now)) {
             // A scheduled revert never fired (chunk unload / dropped region task): the entry — and its temp block
@@ -142,7 +153,7 @@ public final class TempBlockLedger<S> {
         }
         if (entry == null) {
             entry = new Entry<>(ops.captureOriginal(key));
-            Layer layer = pushLayer(entry, typeId, now + ticks);
+            Layer layer = pushLayer(entry, typeId, now + ticks, owner);
             entries.put(key, entry);
             ops.setTypeId(key, typeId);
             return new Pending(layer.id, layer.seq, layer.deadline - now);
@@ -151,9 +162,13 @@ public final class TempBlockLedger<S> {
         if (top.typeId == typeId) {
             top.deadline = Math.max(top.deadline, now + ticks);
             top.seq++;
+            // A same-material refresh re-owns the tile: two overlapping fields of the same block are
+            // indistinguishable in the world, so the ground belongs to whoever last painted it. Taking the
+            // incumbent instead would let the first player into a contested patch keep it for its whole life.
+            top.owner = owner;
             return new Pending(top.id, top.seq, top.deadline - now);
         }
-        Layer layer = pushLayer(entry, typeId, now + ticks);
+        Layer layer = pushLayer(entry, typeId, now + ticks, owner);
         ops.setTypeId(key, typeId);
         return new Pending(layer.id, layer.seq, layer.deadline - now);
     }
@@ -233,6 +248,26 @@ public final class TempBlockLedger<S> {
         return true;
     }
 
+    /**
+     * The player who placed the VISIBLE layer at a tile, or {@code null} when the tile is untracked, was placed
+     * before the owner concept, or its entry has been emptied. The one read the field family needs: it turns a
+     * self-reverting block shape into a field with a claimant, which is what {@code OWNED_GROUND} answers and
+     * what {@code STACKING_DOT} ramps on. The VISIBLE layer is deliberate — a body stands on what it can see, so
+     * a floor buried under someone else's does not claim the feet above it.
+     *
+     * <p>Owning region thread only, as {@link #reclaim}/{@link #revertAt}: it walks the layer list, which the
+     * class consistency model keeps single-threaded per key. Both consumers obey it — the DoT tick is scheduled
+     * on the field tile's own region, and the condition fact reads the block under the event's own entity, whose
+     * region is the one the event is already running on.
+     */
+    public UUID ownerAt(UUID world, int x, int y, int z) {
+        Entry<S> entry = entries.get(new Key(world, x, y, z));
+        if (entry == null || entry.layers.isEmpty()) {
+            return null;
+        }
+        return entry.layers.get(entry.layers.size() - 1).owner;
+    }
+
     /** A public wrapper over {@link #revert} for the feature-layer chunk-load re-arm (F29). Owning thread only. */
     public void revertAt(UUID world, int x, int y, int z, long layerId, long seq, long now) {
         revert(new Key(world, x, y, z), layerId, seq, now);
@@ -300,8 +335,8 @@ public final class TempBlockLedger<S> {
         entries.remove(key); // external change or restored — the leaked entry is gone either way
     }
 
-    private Layer pushLayer(Entry<S> entry, int typeId, long deadline) {
-        Layer layer = new Layer(nextLayerId.incrementAndGet(), typeId, deadline);
+    private Layer pushLayer(Entry<S> entry, int typeId, long deadline, UUID owner) {
+        Layer layer = new Layer(nextLayerId.incrementAndGet(), typeId, deadline, owner);
         entry.layers.add(layer);
         return layer;
     }

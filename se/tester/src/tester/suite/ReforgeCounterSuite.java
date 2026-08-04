@@ -1240,8 +1240,8 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
             UUID victimId = victim.getUniqueId();
             Scheduling.onRegion(base, () -> {
                 ModernDispatchSink sink = new ModernDispatchSink(handles, env);
-                sink.tempBox(base, webId, 3, 4, 3, 600, 2, victimId, 100);      // the Spider box (confined)
-                sink.tempBlock(base.clone().add(6, 0, 0), webId, 600, 2, false, victimId); // an in-cell web (confined)
+                sink.tempBox(base, webId, 3, 4, 3, 600, 2, victimId, 100, null);      // the Spider box (confined)
+                sink.tempBlock(base.clone().add(6, 0, 0), webId, 600, 2, false, victimId, null); // an in-cell web (confined)
                 sink.flush();
                 Scheduling.onRegionLater(base, 5L, () -> {
                     List<int[]> tiles = tilesConfining(env, victimId, base);

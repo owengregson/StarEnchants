@@ -2,6 +2,7 @@ package engine.sink;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import engine.sink.TempBlockLedger.Key;
@@ -78,9 +79,9 @@ class TempBlockLedgerTest {
         FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
         TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
 
-        Pending magma = ledger.place(K, MAGMA, 100, 0);       // Hell's Kitchen floor at t0
+        Pending magma = ledger.place(K, MAGMA, 100, 0, null);       // Hell's Kitchen floor at t0
         assertEquals(MAGMA, blocks.typeAt(K));
-        Pending nether = ledger.place(K, NETHERRACK, 40, 90);  // walking trail at t0+90
+        Pending nether = ledger.place(K, NETHERRACK, 40, 90, null);  // walking trail at t0+90
         assertEquals(NETHERRACK, blocks.typeAt(K));
         assertEquals(1, blocks.captures, "the trail must NOT re-capture the magma as its original");
 
@@ -101,8 +102,8 @@ class TempBlockLedgerTest {
         FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
         TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
 
-        Pending magma = ledger.place(K, MAGMA, 100, 0);        // floor, 100t
-        Pending nether = ledger.place(K, NETHERRACK, 40, 10);  // trail on top, expires t50
+        Pending magma = ledger.place(K, MAGMA, 100, 0, null);        // floor, 100t
+        Pending nether = ledger.place(K, NETHERRACK, 40, 10, null);  // trail on top, expires t50
 
         ledger.revert(K, nether.layerId(), nether.seq(), 50);
         assertEquals(MAGMA, blocks.typeAt(K), "popping the trail repaints the still-live floor");
@@ -118,10 +119,10 @@ class TempBlockLedgerTest {
         FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
         TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
 
-        Pending p0 = ledger.place(K, ICE, 20, 0);
-        Pending p5 = ledger.place(K, ICE, 20, 5);
-        Pending p10 = ledger.place(K, ICE, 20, 10);
-        Pending p15 = ledger.place(K, ICE, 20, 15);
+        Pending p0 = ledger.place(K, ICE, 20, 0, null);
+        Pending p5 = ledger.place(K, ICE, 20, 5, null);
+        Pending p10 = ledger.place(K, ICE, 20, 10, null);
+        Pending p15 = ledger.place(K, ICE, 20, 15, null);
         assertEquals(1, blocks.captures, "refreshes never re-capture");
         assertEquals(1, blocks.sets, "refreshes never re-place the block");
         assertEquals(ICE, blocks.typeAt(K));
@@ -146,8 +147,8 @@ class TempBlockLedgerTest {
         FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
         TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
 
-        Pending magma = ledger.place(K, MAGMA, 100, 0);
-        Pending nether = ledger.place(K, NETHERRACK, 40, 10);
+        Pending magma = ledger.place(K, MAGMA, 100, 0, null);
+        Pending nether = ledger.place(K, NETHERRACK, 40, 10, null);
 
         blocks.current.put(K, AIR); // player mines the tile out from under us
 
@@ -168,9 +169,9 @@ class TempBlockLedgerTest {
         FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
         TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
 
-        Pending a = ledger.place(K, GOLD, 200, 0);        // bottom, longest (deadline 200)
-        Pending b = ledger.place(K, MAGMA, 55, 5);        // middle, expires t60
-        Pending c = ledger.place(K, NETHERRACK, 110, 10); // top,    expires t120
+        Pending a = ledger.place(K, GOLD, 200, 0, null);        // bottom, longest (deadline 200)
+        Pending b = ledger.place(K, MAGMA, 55, 5, null);        // middle, expires t60
+        Pending c = ledger.place(K, NETHERRACK, 110, 10, null); // top,    expires t120
         assertEquals(NETHERRACK, blocks.typeAt(K));
         assertEquals(1, blocks.captures);
 
@@ -191,9 +192,9 @@ class TempBlockLedgerTest {
         FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
         TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
 
-        Pending a = ledger.place(K, GOLD, 300, 0);        // bottom, deadline 300
-        Pending b = ledger.place(K, MAGMA, 100, 0);       // middle, deadline 100
-        Pending c = ledger.place(K, NETHERRACK, 100, 0);  // top,    deadline 100 (same tick as the middle)
+        Pending a = ledger.place(K, GOLD, 300, 0, null);        // bottom, deadline 300
+        Pending b = ledger.place(K, MAGMA, 100, 0, null);       // middle, deadline 100
+        Pending c = ledger.place(K, NETHERRACK, 100, 0, null);  // top,    deadline 100 (same tick as the middle)
 
         ledger.revert(K, c.layerId(), c.seq(), 100);
         assertEquals(GOLD, blocks.typeAt(K), "the exposed expired middle is skipped to the live bottom");
@@ -212,8 +213,8 @@ class TempBlockLedgerTest {
         FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
         TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
 
-        Pending walker = ledger.place(K, ICE, 40, 0);   // WALKER tile
-        Pending block = ledger.place(K, MAGMA, 20, 5);  // TEMP_BLOCK point at the same coordinate
+        Pending walker = ledger.place(K, ICE, 40, 0, null);   // WALKER tile
+        Pending block = ledger.place(K, MAGMA, 20, 5, null);  // TEMP_BLOCK point at the same coordinate
         assertEquals(1, blocks.captures, "two sources share ONE captured original (stone), not two");
         assertEquals(MAGMA, blocks.typeAt(K));
 
@@ -232,11 +233,11 @@ class TempBlockLedgerTest {
         FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
         TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
 
-        Pending magma = ledger.place(K, MAGMA, 100, 0); // floor at t0, deadline 100; its revert never fires
+        Pending magma = ledger.place(K, MAGMA, 100, 0, null); // floor at t0, deadline 100; its revert never fires
         assertEquals(MAGMA, blocks.typeAt(K));
 
         long late = 100 + TempBlockLedger.STALE_GRACE_TICKS + 1; // past deadline + grace → abandoned
-        Pending ice = ledger.place(K, ICE, 40, late);
+        Pending ice = ledger.place(K, ICE, 40, late, null);
         assertEquals(ICE, blocks.typeAt(K));
         assertEquals(1, blocks.restores, "the abandoned magma was reverted to STONE before the fresh placement");
         assertEquals(2, blocks.captures, "the stale entry dropped, so ICE captured a FRESH original (the STONE)");
@@ -259,8 +260,8 @@ class TempBlockLedgerTest {
         FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
         TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
 
-        ledger.place(K, MAGMA, 100, 0);                                 // deadline 100
-        ledger.place(K, NETHERRACK, 40, 100 + TempBlockLedger.STALE_GRACE_TICKS); // still within grace
+        ledger.place(K, MAGMA, 100, 0, null);                                 // deadline 100
+        ledger.place(K, NETHERRACK, 40, 100 + TempBlockLedger.STALE_GRACE_TICKS, null); // still within grace
         assertEquals(NETHERRACK, blocks.typeAt(K));
         assertEquals(1, blocks.captures, "within grace the entry is kept — no fresh capture, no self-heal restore");
         assertEquals(0, blocks.restores);
@@ -275,7 +276,7 @@ class TempBlockLedgerTest {
         FakeBlocks blocks = new FakeBlocks().seed(K, GOLD);
         TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
 
-        Pending magma = ledger.place(K, MAGMA, 100, 0);
+        Pending magma = ledger.place(K, MAGMA, 100, 0, null);
         assertEquals(MAGMA, blocks.typeAt(K));
 
         assertTrue(ledger.reclaim(WORLD, 0, 64, 0));
@@ -295,8 +296,8 @@ class TempBlockLedgerTest {
         FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
         TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
 
-        ledger.place(K, MAGMA, 100, 0);
-        ledger.place(K, NETHERRACK, 40, 10);
+        ledger.place(K, MAGMA, 100, 0, null);
+        ledger.place(K, NETHERRACK, 40, 10, null);
         assertEquals(NETHERRACK, blocks.typeAt(K));
 
         assertTrue(ledger.reclaim(WORLD, 0, 64, 0));
@@ -311,7 +312,7 @@ class TempBlockLedgerTest {
         FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
         TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
 
-        Pending magma = ledger.place(K, MAGMA, 100, 0);
+        Pending magma = ledger.place(K, MAGMA, 100, 0, null);
         blocks.current.put(K, AIR); // the world diverged (some other plugin/piston changed it)
 
         assertFalse(ledger.reclaim(WORLD, 0, 64, 0));
@@ -342,7 +343,7 @@ class TempBlockLedgerTest {
         assertTrue(ledger.isEmpty());
         assertFalse(ledger.guarded(WORLD, 0, 64, 0));
 
-        Pending p = ledger.place(K, ICE, 20, 0);
+        Pending p = ledger.place(K, ICE, 20, 0, null);
         assertFalse(ledger.isEmpty());
         assertTrue(ledger.guarded(WORLD, 0, 64, 0));
         assertFalse(ledger.guarded(WORLD, 1, 64, 0), "a neighbouring tile is not guarded");
@@ -365,10 +366,10 @@ class TempBlockLedgerTest {
         FakeBlocks blocks = new FakeBlocks().seed(K, STONE).seed(farChunk, GOLD).seed(otherWorldKey, ICE);
         TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
 
-        Pending magma = ledger.place(K, MAGMA, 100, 0);       // in chunk (0,0)
-        Pending nether = ledger.place(K, NETHERRACK, 40, 10);  // second layer at K
-        ledger.place(farChunk, MAGMA, 100, 0);                 // other chunk — must be skipped
-        ledger.place(otherWorldKey, MAGMA, 100, 0);            // other world — must be skipped
+        Pending magma = ledger.place(K, MAGMA, 100, 0, null);       // in chunk (0,0)
+        Pending nether = ledger.place(K, NETHERRACK, 40, 10, null);  // second layer at K
+        ledger.place(farChunk, MAGMA, 100, 0, null);                 // other chunk — must be skipped
+        ledger.place(otherWorldKey, MAGMA, 100, 0, null);            // other world — must be skipped
 
         record Emit(int x, int y, int z, long id, long seq, long delay) { }
         List<Emit> emitted = new ArrayList<>();
@@ -404,7 +405,7 @@ class TempBlockLedgerTest {
     void rearmChunk_futureDeadlineKeepsRealDelay() {
         FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
         TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
-        ledger.place(K, MAGMA, 100, 0); // deadline 100
+        ledger.place(K, MAGMA, 100, 0, null); // deadline 100
 
         long[] delay = {-1};
         ledger.rearmChunk(WORLD, 0, 0, 40, (x, y, z, id, seq, d) -> delay[0] = d);
@@ -417,7 +418,7 @@ class TempBlockLedgerTest {
     void healIfExpired_graceThenRestore_divergedDropsWithoutRestore() {
         FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
         TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
-        ledger.place(K, MAGMA, 100, 0); // deadline 100
+        ledger.place(K, MAGMA, 100, 0, null); // deadline 100
 
         ledger.healIfExpired(WORLD, 0, 64, 0, 100 + TempBlockLedger.STALE_GRACE_TICKS); // still within grace
         assertEquals(MAGMA, blocks.typeAt(K), "within grace this is a live entry — no heal");
@@ -432,7 +433,7 @@ class TempBlockLedgerTest {
         // Diverged case: the tile was changed under us → heal drops the entry, restores nothing.
         FakeBlocks b2 = new FakeBlocks().seed(K, STONE);
         TempBlockLedger<Integer> l2 = new TempBlockLedger<>(b2);
-        l2.place(K, MAGMA, 100, 0);
+        l2.place(K, MAGMA, 100, 0, null);
         b2.current.put(K, AIR);
         l2.healIfExpired(WORLD, 0, 64, 0, 100 + TempBlockLedger.STALE_GRACE_TICKS + 1);
         assertEquals(AIR, b2.typeAt(K));
@@ -446,8 +447,8 @@ class TempBlockLedgerTest {
         Key k2 = new Key(WORLD, 5, 70, 3);
         FakeBlocks blocks = new FakeBlocks().seed(K, STONE).seed(k2, GOLD);
         TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
-        ledger.place(K, MAGMA, 100, 0);
-        ledger.place(k2, ICE, 100, 0);
+        ledger.place(K, MAGMA, 100, 0, null);
+        ledger.place(k2, ICE, 100, 0, null);
 
         List<Key> visited = new ArrayList<>();
         ledger.forEachTile((w, x, y, z) -> visited.add(new Key(w, x, y, z)));
@@ -471,5 +472,53 @@ class TempBlockLedgerTest {
         assertFalse(TempBlockLedger.replaceable(3, true, false, false), "solid-only skips air (no scaffolding)");
 
         assertTrue(TempBlockLedger.replaceable(2, false, false, false), "mode 2 replaces anything");
+    }
+
+    // (h) Ownership: whose ground a tile is, layer by layer. This is what OWNED_GROUND and STACKING_DOT read,
+    // and the answer has to follow the VISIBLE layer — a buried floor is not what anyone is standing on.
+    @Test
+    void ownershipFollowsTheVisibleLayerAndUnwindsWithIt() {
+        UUID alice = UUID.fromString("00000000-0000-0000-0000-00000000a11c");
+        UUID bob = UUID.fromString("00000000-0000-0000-0000-00000000b0bb");
+        FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
+        TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
+
+        assertNull(ledger.ownerAt(WORLD, 0, 64, 0), "an untouched tile belongs to nobody");
+
+        Pending frost = ledger.place(K, ICE, 100, 0, alice);
+        assertEquals(alice, ledger.ownerAt(WORLD, 0, 64, 0));
+
+        // Bob's rot lands on top: the ground everyone can see is now his, and Alice's ice is buried.
+        Pending rot = ledger.place(K, MAGMA, 40, 10, bob);
+        assertEquals(bob, ledger.ownerAt(WORLD, 0, 64, 0));
+
+        // His layer expires and hers resurfaces — with her name on it, which is the whole point of per-layer
+        // ownership: a field outlived by somebody else's does not lose its claim.
+        ledger.revert(K, rot.layerId(), rot.seq(), 50);
+        assertEquals(ICE, blocks.typeAt(K));
+        assertEquals(alice, ledger.ownerAt(WORLD, 0, 64, 0));
+
+        ledger.revert(K, frost.layerId(), frost.seq(), 100);
+        assertEquals(STONE, blocks.typeAt(K));
+        assertNull(ledger.ownerAt(WORLD, 0, 64, 0), "the true original belongs to nobody");
+    }
+
+    // (i) A same-material refresh RE-OWNS the tile. Two identical floors are indistinguishable in the world, so
+    // the ground answers to whoever painted it last; keeping the incumbent would let the first player into a
+    // contested patch hold it for the layer's whole life.
+    @Test
+    void sameMaterialRefreshTakesTheNewOwner() {
+        UUID alice = UUID.fromString("00000000-0000-0000-0000-00000000a11c");
+        UUID bob = UUID.fromString("00000000-0000-0000-0000-00000000b0bb");
+        FakeBlocks blocks = new FakeBlocks().seed(K, STONE);
+        TempBlockLedger<Integer> ledger = new TempBlockLedger<>(blocks);
+
+        ledger.place(K, ICE, 100, 0, alice);
+        Pending refreshed = ledger.place(K, ICE, 100, 10, bob);
+
+        assertEquals(bob, ledger.ownerAt(WORLD, 0, 64, 0));
+        assertEquals(1, blocks.captures, "a refresh never re-captures the original");
+        ledger.revert(K, refreshed.layerId(), refreshed.seq(), 110);
+        assertEquals(STONE, blocks.typeAt(K), "one layer, so one restore of the true original");
     }
 }

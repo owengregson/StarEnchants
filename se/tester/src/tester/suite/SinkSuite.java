@@ -258,10 +258,10 @@ public final class SinkSuite implements Harness.Scenario {
                     Location cellA = new Location(world, tx0, ty, tz0);
                     Location cellB = new Location(world, tx0 + 3, ty, tz0 + 3); // a diagonal 3-block sprint from A
                     ModernDispatchSink trailA = new ModernDispatchSink(handles, trailEnv); // activation 1: restart → stamps A
-                    trailA.tempBlockTrail(trailDef, trailWalker, cellA, netherId, 10);
+                    trailA.tempBlockTrail(trailDef, trailWalker, cellA, netherId, 10, null);
                     trailA.flush();
                     ModernDispatchSink trailB = new ModernDispatchSink(handles, trailEnv); // activation 2: walk A→B → the staircase
-                    trailB.tempBlockTrail(trailDef, trailWalker, cellB, netherId, 10);
+                    trailB.tempBlockTrail(trailDef, trailWalker, cellB, netherId, 10, null);
                     trailB.flush();
 
                     Scheduling.onRegionLater(cellA, 4L, () -> h.guard("sink.trail.snake.stamped", () -> {
