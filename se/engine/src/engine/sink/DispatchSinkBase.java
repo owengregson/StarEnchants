@@ -1263,6 +1263,56 @@ public abstract class DispatchSinkBase implements SinkReadback {
         });
     }
 
+    @Override
+    public void stackingDot(LivingEntity target, LivingEntity attacker, UUID owner, double step, int periodTicks,
+                            int cap, int stackWindowTicks, int leadInTicks, int durationTicks, String feedback) {
+        if (target == null || owner == null || durationTicks <= 0) {
+            return;
+        }
+        int period = Math.max(1, periodTicks);
+        String line = feedback == null ? "" : Colors.translate(feedback);
+        entityOp(target, () -> {
+            // Counted pulses, like periodicDamage — lag never adds or drops one. The lead-in is the arming
+            // delay before the ground is first read, so a proc that lays its field and its watcher in the same
+            // activation does not test ground that has not been placed yet.
+            int[] left = {Math.max(1, durationTicks / period)};
+            TaskHandle[] task = new TaskHandle[1];
+            task[0] = Scheduling.repeatingEntity(target, Math.max(1, leadInTicks), period, () -> {
+                if (!target.isValid() || target.isDead()) {
+                    if (task[0] != null) {
+                        task[0].cancel();
+                    }
+                    return;
+                }
+                if (--left[0] < 0) {
+                    if (task[0] != null) {
+                        task[0].cancel();
+                    }
+                    return;
+                }
+                Location feet = target.getLocation();
+                World world = feet.getWorld();
+                // The field test. We are on the target's own thread, which owns the block under their feet —
+                // the owning-region rule the ledger's layer read documents. Off the ground: no stack, no
+                // damage, no message, and the ladder is left to lapse on its own window.
+                if (world == null || !owner.equals(tempBlocks.ownerAt(world.getUID(),
+                        feet.getBlockX(), feet.getBlockY() - 1, feet.getBlockZ()))) {
+                    return;
+                }
+                long now = nowTicks.getAsLong();
+                int stacks = StackingDots.bump(target.getUniqueId(), cap, stackWindowTicks, now);
+                double amount = step * stacks;
+                if (amount > 0) {
+                    hurtOrPark(target, amount, attacker);
+                }
+                if (!line.isEmpty() && target instanceof Player rotting) {
+                    rotting.sendMessage(Tokens.sub(Tokens.sub(line, "damage", Numbers.chat(amount)),
+                            "stacks", Integer.toString(stacks)));
+                }
+            });
+        });
+    }
+
     /**
      * Arm the {@code replace} window: the named vanilla DoTs' DAMAGE is cancelled while the burn runs, and the
      * status effects themselves are left alone — visible, re-appliable, never stripped ({@link #potionLock} is
@@ -2339,7 +2389,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
                         // Through the shared ledger with its own revert (like tempBlock), so an overlapping
                         // trail/floor compounds instead of clobbering; the revert rides THIS tile's region.
                         TempBlockLedger.Key key = new TempBlockLedger.Key(worldId, bx, y, bz);
-                        TempBlockLedger.Pending pending = tempBlocks.place(key, typeId, durationTicks, now);
+                        // Unowned ground: a walker platform travels under its own walker and nothing ever asks
+                        // whose it is — the field consumers read TEMP_BLOCK's shapes, which carry their placer.
+                        TempBlockLedger.Pending pending = tempBlocks.place(key, typeId, durationTicks, now, null);
                         Scheduling.onRegionLater(tileAt, pending.delayTicks(),
                                 () -> tempBlocks.revert(key, pending.layerId(), pending.seq(), nowTicks.getAsLong()));
                     });
@@ -2350,12 +2402,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void tempBlock(Location at, int materialId, int durationTicks, int replaceMode, boolean unbreakable) {
-        tempBlock(at, materialId, durationTicks, replaceMode, unbreakable, null);
+        tempBlock(at, materialId, durationTicks, replaceMode, unbreakable, null, null);
     }
 
     @Override
     public void tempBlock(Location at, int materialId, int durationTicks, int replaceMode, boolean unbreakable,
-                          UUID confined) {
+                          UUID confined, UUID owner) {
         Location pos = at.clone(); // own the position: a WAIT tier can defer this to a later tick
         regionOp(pos, () -> {
             Material material = material(materialId);
@@ -2375,7 +2427,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
             // stack as layers and the final revert restores the TRUE original, never an intermediate temp block.
             TempBlockLedger.Key key = new TempBlockLedger.Key(
                     world.getUID(), pos.getBlockX(), pos.getBlockY(), pos.getBlockZ());
-            TempBlockLedger.Pending pending = tempBlocks.place(key, material.ordinal(), durationTicks, nowTicks.getAsLong());
+            TempBlockLedger.Pending pending =
+                    tempBlocks.place(key, material.ordinal(), durationTicks, nowTicks.getAsLong(), owner);
             if (confined != null) {
                 // A block in the victim's own cell (ADR-0071 TRAP_BREAK, the Fantasy web): register the placed
                 // tile as a one-tile confining structure so Turnkey can early-restore it intact.
@@ -2390,12 +2443,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
     @Override
     public void tempBox(Location center, int materialId, int width, int height, int depth, int durationTicks,
                         int replaceMode) {
-        tempBox(center, materialId, width, height, depth, durationTicks, replaceMode, null, 100);
+        tempBox(center, materialId, width, height, depth, durationTicks, replaceMode, null, 100, null);
     }
 
     @Override
     public void tempBox(Location center, int materialId, int width, int height, int depth, int durationTicks,
-                        int replaceMode, UUID confined, double fillChance) {
+                        int replaceMode, UUID confined, double fillChance, UUID owner) {
         Location origin = center.clone(); // own the centre: a WAIT tier can defer this to a later tick
         regionOp(origin, () -> {
             Material material = material(materialId);
@@ -2434,7 +2487,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
                                 return;
                             }
                             TempBlockLedger.Key key = new TempBlockLedger.Key(worldId, bx, by, bz);
-                            TempBlockLedger.Pending pending = tempBlocks.place(key, typeId, durationTicks, now);
+                            TempBlockLedger.Pending pending = tempBlocks.place(key, typeId, durationTicks, now, owner);
                             if (sid >= 0) {
                                 trapStructures.tile(sid, bx, by, bz); // only tiles the ledger actually placed
                             }
@@ -2519,7 +2572,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
                                 return;
                             }
                             TempBlockLedger.Key key = new TempBlockLedger.Key(worldId, bx, by, bz);
-                            TempBlockLedger.Pending pending = tempBlocks.place(key, typeId, durationTicks, now);
+                            // Unowned: a cage is a structure two parties are locked inside, not ground either owns.
+                            TempBlockLedger.Pending pending = tempBlocks.place(key, typeId, durationTicks, now, null);
                             trapStructures.tile(cageSid, bx, by, bz); // register the placed wall/floor/roof cell
                             if (connect) {
                                 // A no-physics place leaves a modern fence-like block unconnected (walk-through
@@ -2586,7 +2640,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void tempBlockTrail(int trailKeyDefId, UUID walker, Location currentCell, int materialId, int durationTicks) {
+    public void tempBlockTrail(int trailKeyDefId, UUID walker, Location currentCell, int materialId,
+                               int durationTicks, UUID owner) {
         Location pos = currentCell.clone(); // own the cell: a WAIT tier can defer this to a later tick
         // The walk (memory read/write + staircase) runs on the WALKER's own region — regionOp targets the
         // current cell, and a REPEATING trigger fires on the wearer's region, so one key has a single writer.
@@ -2618,7 +2673,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
                     // Solid ground only (mode 3), captured + restored on revert; through the shared ledger so a
                     // trail crossing a magma floor compounds and the final revert restores the true original.
                     TempBlockLedger.Key key = new TempBlockLedger.Key(worldId, bx, y, bz);
-                    TempBlockLedger.Pending pending = tempBlocks.place(key, typeId, durationTicks, nowTicks.getAsLong());
+                    TempBlockLedger.Pending pending =
+                            tempBlocks.place(key, typeId, durationTicks, nowTicks.getAsLong(), owner);
                     Location revertAt = new Location(world, bx, y, bz);
                     Scheduling.onRegionLater(revertAt, pending.delayTicks(),
                             () -> tempBlocks.revert(key, pending.layerId(), pending.seq(), nowTicks.getAsLong()));

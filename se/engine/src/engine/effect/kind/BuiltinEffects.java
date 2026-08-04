@@ -141,6 +141,8 @@ public final class BuiltinEffects {
                 .register(new VulnerabilityEffect())     // Mark of the Beast: +% incoming from EVERY source
                 .register(new SuppressIncomingEffect())  // masks: gate 5 read from the DEFENDER's end
                 .register(new StatusClearEffect())       // lift a named engine window (teleblock/potion-lock/disarm)
+                // Cosmic-port wave 2d.2. APPENDED, never inserted (ADR-0039 dense kind ids).
+                .register(new StackingDotEffect())       // Rot and Decay: a ladder that burns only on the wearer's ground
                 .build();
     }
 }

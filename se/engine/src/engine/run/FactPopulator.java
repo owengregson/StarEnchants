@@ -7,6 +7,7 @@ import engine.condition.BuiltinVars;
 import engine.condition.WornFactSource;
 import engine.condition.EnchantLevels;
 import engine.condition.FactBuffer;
+import engine.condition.GroundOwnership;
 import engine.condition.PotionLevels;
 import engine.condition.VarVocabulary;
 import engine.selector.kind.Allies;
@@ -21,6 +22,8 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.DoubleSupplier;
 import java.util.function.UnaryOperator;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -162,6 +165,17 @@ public final class FactPopulator {
     public static void wornFactSource(WornFactSource source) {
         wornFactSource = source == null ? WornFactSource.NONE : source;
     }
+
+    /**
+     * {@code %actor.ownedground%}'s soft hook: boot-installed over the per-boot temp-block ledger, which lives
+     * on the sink env the engine's fact layer cannot see. Same installer shape as {@link #wornFactSource}.
+     */
+    private static volatile GroundOwnership groundOwnership = GroundOwnership.NONE;
+
+    /** A {@code null} resets to the un-owned source. */
+    public static void groundOwnership(GroundOwnership source) {
+        groundOwnership = source == null ? GroundOwnership.NONE : source;
+    }
     private final List<ActorNum> actorNum = new ArrayList<>();
     private final List<ActorFlag> actorFlag = new ArrayList<>();
     private final List<ActorStr> actorStr = new ArrayList<>();
@@ -261,6 +275,15 @@ public final class FactPopulator {
         // (ADR-0035). Same-region as the actor, so Folia-safe; guarded with the other actor reads if it ever isn't.
         addActorStr(vocabulary, "actor.groundblock",
                 actor -> actor.getLocation().getBlock().getRelative(org.bukkit.block.BlockFace.DOWN).getType().name());
+        // %actor.ownedground%: the same block one below the feet as %actor.groundblock%, asked of the ledger
+        // instead of the world — "am I standing on ground I laid" rather than "what is under me". Same-region
+        // as the actor, so the layer-list read the ledger documents as owning-thread-only holds here.
+        addActorFlag(vocabulary, "actor.ownedground", actor -> {
+            Location feet = actor.getLocation();
+            World world = feet.getWorld();
+            return world != null && groundOwnership.ownedBy(actor.getUniqueId(), world.getUID(),
+                    feet.getBlockX(), feet.getBlockY() - 1, feet.getBlockZ());
+        });
 
         addVictimNum(vocabulary, "victim.health", LivingEntity::getHealth);
         addVictimNum(vocabulary, "victim.maxhealth", FactPopulator::maxHealth);

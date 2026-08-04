@@ -6,6 +6,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -21,6 +23,7 @@ import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import testfx.FakeEffectCtx;
@@ -44,7 +47,7 @@ class TempBlockEffectTest {
         Sink sink = mock(Sink.class);
         new TempBlockEffect().run(ctx("POINT"), sink);
         // POINT at dy >= 0 is an in-cell block → the confined 6-arg overload (unstubbed UUID → null here).
-        verify(sink, times(1)).tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean(), any());
+        verify(sink, times(1)).tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean(), any(), any());
     }
 
     @Test
@@ -64,7 +67,7 @@ class TempBlockEffectTest {
         new TempBlockEffect().run(ctx, sink);
 
         // dy 0 = a block in the victim's own cell (the Fantasy web) → the confined 6-arg overload carries the UUID.
-        verify(sink, times(1)).tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean(), eq(victim));
+        verify(sink, times(1)).tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean(), eq(victim), any());
     }
 
     @Test
@@ -83,9 +86,37 @@ class TempBlockEffectTest {
 
         new TempBlockEffect().run(ctx, sink);
 
-        // dy -1 = floor paint below the feet → the plain 5-arg path, never registered as confinement.
-        verify(sink, times(1)).tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean());
-        verify(sink, never()).tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean(), any());
+        // dy -1 = floor paint below the feet → placed, but never registered as confinement (null confined).
+        verify(sink, times(1))
+                .tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean(), isNull(), any());
+        verify(sink, never())
+                .tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean(), notNull(), any());
+    }
+
+    // Ownership rides the ACTIVATOR, not the target the shape is stamped around: %actor.ownedground% and
+    // STACKING_DOT ask whose field this is, and stamping the victim would answer "the person standing in it".
+    @Test
+    void floorPaintIsOwnedByTheActivatorNotTheTarget() {
+        World world = mock(World.class);
+        LivingEntity who = mock(LivingEntity.class);
+        Player wearer = mock(Player.class);
+        UUID victim = UUID.fromString("00000000-0000-0000-0000-0000000000d2");
+        UUID placer = UUID.fromString("00000000-0000-0000-0000-0000000000e3");
+        when(who.getLocation()).thenReturn(new Location(world, 10, 64, 20));
+        when(who.getUniqueId()).thenReturn(victim);
+        when(wearer.getUniqueId()).thenReturn(placer);
+        FakeEffectCtx ctx = FakeEffectCtx.create()
+                .with("shape", "POINT").with("material", 7).with("ticks", 40)
+                .with("radius", 0).with("height", 1).with("ahead", 0).with("dy", -1).with("airOnly", true)
+                .with("fill-chance", 100.0)
+                .actor(wearer)
+                .targets("who", who);
+        Sink sink = mock(Sink.class);
+
+        new TempBlockEffect().run(ctx, sink);
+
+        verify(sink, times(1))
+                .tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean(), isNull(), eq(placer));
     }
 
     @Test
@@ -107,14 +138,14 @@ class TempBlockEffectTest {
         // BOX is always entity-centred (the Spider box) → the confining tempBox overload carries the victim UUID,
         // and the default fill-chance keeps the box solid.
         verify(sink, times(1)).tempBox(any(Location.class), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(),
-                anyInt(), eq(victim), eq(100.0));
+                anyInt(), eq(victim), eq(100.0), any());
     }
 
     @Test
     void footprintEmitsTheFullSquare() {
         Sink sink = mock(Sink.class);
         new TempBlockEffect().run(ctx("FOOTPRINT"), sink); // radius 1 → 3x3 = 9
-        verify(sink, times(9)).tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean());
+        verify(sink, times(9)).tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean(), any(), any());
     }
 
     // fill-chance thins the shape into a partial field, and the SAME ground always makes the same choice — a
@@ -143,7 +174,7 @@ class TempBlockEffectTest {
         new TempBlockEffect().run(ctx, sink);
         ArgumentCaptor<Location> at = ArgumentCaptor.forClass(Location.class);
         verify(sink, org.mockito.Mockito.atLeast(0))
-                .tempBlock(at.capture(), anyInt(), anyInt(), anyInt(), anyBoolean());
+                .tempBlock(at.capture(), anyInt(), anyInt(), anyInt(), anyBoolean(), any(), any());
         return at.getAllValues().size();
     }
 
@@ -165,15 +196,15 @@ class TempBlockEffectTest {
 
         new TempBlockEffect().run(ctx, sink);
 
-        verify(sink, times(1)).tempBlockTrail(eq(88), eq(walker), any(Location.class), eq(7), eq(40));
-        verify(sink, never()).tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean());
+        verify(sink, times(1)).tempBlockTrail(eq(88), eq(walker), any(Location.class), eq(7), eq(40), any());
+        verify(sink, never()).tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean(), any(), any());
     }
 
     @Test
     void columnEmitsHeightBlocks() {
         Sink sink = mock(Sink.class);
         new TempBlockEffect().run(ctx("COLUMN"), sink); // height 2 → 2
-        verify(sink, times(2)).tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean());
+        verify(sink, times(2)).tempBlock(any(Location.class), anyInt(), anyInt(), anyInt(), anyBoolean(), any(), any());
     }
 
     // A mixed palette (material2/3/4) scatters block-by-block: each coordinate draws independently, so adjacent
@@ -206,7 +237,7 @@ class TempBlockEffectTest {
 
         ArgumentCaptor<Location> loc = ArgumentCaptor.forClass(Location.class);
         ArgumentCaptor<Integer> mat = ArgumentCaptor.forClass(Integer.class);
-        verify(sink, times(81)).tempBlock(loc.capture(), mat.capture(), anyInt(), anyInt(), anyBoolean());
+        verify(sink, times(81)).tempBlock(loc.capture(), mat.capture(), anyInt(), anyInt(), anyBoolean(), any(), any());
         Map<Coord, Integer> out = new HashMap<>();
         List<Location> locs = loc.getAllValues();
         List<Integer> mats = mat.getAllValues();

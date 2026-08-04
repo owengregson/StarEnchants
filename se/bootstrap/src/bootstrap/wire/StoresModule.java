@@ -5,6 +5,7 @@ import engine.sink.DamageMarks;
 import engine.sink.FallingBlockCasts;
 import engine.sink.GuardianCasts;
 import engine.sink.OwnerZones;
+import engine.sink.StackingDots;
 import engine.sink.TempEquip;
 
 /**
@@ -27,6 +28,7 @@ final class StoresModule {
                 .stop("damage marks", DamageMarks::clearAll)              // reaper's Mark of the Reaper
                 .stop("owner zones", OwnerZones::clearAll)                // devil's Hell's Kitchen hellfire zones
                 .stop("temp equips", TempEquip::clearAll)                 // spooky's pumpkin helmet
+                .stop("decay ladders", StackingDots::clearAll)            // rot's per-victim STACKING_DOT stacks
                 .build();
     }
 }

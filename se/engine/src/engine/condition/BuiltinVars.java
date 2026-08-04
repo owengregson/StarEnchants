@@ -113,6 +113,10 @@ public final class BuiltinVars {
                 // The actor's feet Y in world coordinates. Absolute, not relative: the consumers gate on a
                 // build height ("only below y=40"), which no differencing fact (%actor.belowvictim%) reaches.
                 .number("actor.y")
+                // Wave 2d.2 (the field family). Whether the temp block under the actor's feet is one the
+                // actor placed — the one fact that tells "my field" from "somebody's field", since a
+                // material read (%actor.groundblock%) cannot tell two players' identical floors apart.
+                .flag("actor.ownedground")
                 // The paired guard for STATUS_CLEAR: an item whose whole purpose is lifting a window needs to
                 // refuse when the window is not there, and no engine status was queryable before this.
                 .flag("status.teleblock")

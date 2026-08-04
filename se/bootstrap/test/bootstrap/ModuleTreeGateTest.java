@@ -119,6 +119,10 @@ class ModuleTreeGateTest {
     private static final Set<String> FROZEN_STATICS = Set.of(
             "CombatDispatch#friendlyFire",
             "FactPopulator#wornFactSource",
+            // %actor.ownedground% off the per-boot temp-block ledger: same adjudication as
+            // wornFactSource — the fact layer holds no SinkEnv, and threading one into every
+            // FactPopulator construction site would put a sink on the unit tests.
+            "FactPopulator#groundOwnership",
             "FactPopulator#entityTypeResolver",
             "ItemFactory#customItemResolver",
             "ItemFactory#itemWrapWidth",
