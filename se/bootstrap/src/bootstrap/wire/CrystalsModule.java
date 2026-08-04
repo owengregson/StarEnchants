@@ -2,6 +2,8 @@ package bootstrap.wire;
 
 import feature.crystal.CrystalListener;
 import feature.crystal.CrystalService;
+import feature.crystal.MaskSplitter;
+import feature.crystal.ReforgeExtractor;
 import feature.menu.CrystalsBrowserMenu;
 import feature.menu.Mintable;
 import item.codec.CrystalExtractorCodec;
@@ -20,8 +22,7 @@ final class CrystalsModule {
     final CrystalService crystals;
     final List<Mintable> mints;
 
-    CrystalsModule(BootCore core, feature.crystal.ReforgeExtractor reforges,
-                   feature.crystal.MaskSplitter masks) {
+    CrystalsModule(BootCore core, ReforgeExtractor reforges, MaskSplitter masks) {
         this.core = core;
         CrystalItemCodec crystalItemCodec = new CrystalItemCodec(ItemKeys.of().crystalItem(), core.store());
         CrystalExtractorCodec crystalExtractorCodec =

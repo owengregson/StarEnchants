@@ -2,11 +2,13 @@ package feature.mask;
 
 import compile.load.Library;
 import compile.load.MaskDef;
+import item.codec.MaskItemData;
 import item.head.EquipmentRepaint;
 import item.head.HeadAttributes;
 import item.head.IllusionMark;
 import item.head.TexturedHeads;
 import item.view.ItemViewCache;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -182,7 +184,7 @@ public final class MaskIllusionService {
         if (maskKey == null) {
             return null;
         }
-        java.util.List<String> children = item.codec.MaskItemData.componentsOf(maskKey);
+        List<String> children = MaskItemData.componentsOf(maskKey);
         MaskDef def = children.isEmpty() ? null : library.get().maskDefOf(children.get(0));
         if (def == null || def.head() == null || def.head().isBlank()) {
             return null; // key stale after a reload, or an untextured mask — no illusion (ADR-0053 §4)
