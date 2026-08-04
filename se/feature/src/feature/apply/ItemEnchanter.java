@@ -486,7 +486,9 @@ public final class ItemEnchanter {
             return ApplyResult.fail(messages.format("mask.single-item"));
         }
         List<String> children = MaskItemData.componentsOf(maskEntry);
-        if (children.isEmpty()) {
+        if (children.isEmpty() || children.size() > MaskItemData.ABSOLUTE_MAX) {
+            // Decode-tolerant: a blank or absurdly long entry is refused as unknown content, never thrown out of
+            // the gesture. The child COUNT cap lives on the fold; this is only the PDC-bloat backstop.
             return ApplyResult.fail(messages.format("mask.no-such", "KEY", String.valueOf(maskEntry)));
         }
         // No child-count belt here, unlike checkCrystalEntry: a mask entry can only ever be built by the FOLD

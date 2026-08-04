@@ -79,7 +79,13 @@ public final class MaskService {
      */
     public ItemStack mint(String key) {
         List<String> children = MaskItemData.componentsOf(key);
-        return children.isEmpty() ? null : mint(new MaskItemData(children));
+        // Decode-tolerant like every other item read (§4.2): an absent, blank or over-long entry — a hand-edited
+        // blob, or one from a future cap — mints nothing rather than throwing out of a gesture. The record's
+        // own ABSOLUTE_MAX guard is a programming invariant, not an input filter, so the filtering is here.
+        if (children.isEmpty() || children.size() > MaskItemData.ABSOLUTE_MAX) {
+            return null;
+        }
+        return mint(new MaskItemData(children));
     }
 
     /** Mint the mask (or composite) {@code data}; {@code null} when its FIRST child names no live content. */
