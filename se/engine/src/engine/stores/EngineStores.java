@@ -22,7 +22,8 @@ public record EngineStores(
         WardStore ward, HitTempoStore hitTempo, BatteryStore battery,
         DisarmWindowStore disarmWindows, HeldSlotStore heldSlots, SoulTotalStore soulTotals,
         DotAmplifyStore dotAmplify, HeadTrophyStore headTrophies, FoodWindowStore foodWindows,
-        MessageThrottleStore messageThrottle, SoulEscalationStore soulEscalation) {
+        MessageThrottleStore messageThrottle, SoulEscalationStore soulEscalation,
+        DotSuppressionStore dotSuppression) {
 
     public EngineStores {
         Objects.requireNonNull(vars, "vars");
@@ -50,6 +51,7 @@ public record EngineStores(
         Objects.requireNonNull(foodWindows, "foodWindows");
         Objects.requireNonNull(messageThrottle, "messageThrottle");
         Objects.requireNonNull(soulEscalation, "soulEscalation");
+        Objects.requireNonNull(dotSuppression, "dotSuppression");
     }
 
     /** A fresh aggregate with every store newly constructed (the composition-root default). */
@@ -61,7 +63,7 @@ public record EngineStores(
                 new RageStackStore(), new WardStore(), new HitTempoStore(), new BatteryStore(),
                 new DisarmWindowStore(), new HeldSlotStore(), new SoulTotalStore(),
                 new DotAmplifyStore(), new HeadTrophyStore(), new FoodWindowStore(),
-                new MessageThrottleStore(), new SoulEscalationStore());
+                new MessageThrottleStore(), new SoulEscalationStore(), new DotSuppressionStore());
     }
 
     /** Every store as the {@link PlayerScoped} seam, in sweep order. */
@@ -69,7 +71,7 @@ public record EngineStores(
         return List.of(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns, combo, why,
                 recentAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks, ward, hitTempo, battery,
                 disarmWindows, heldSlots, soulTotals, dotAmplify, headTrophies, foodWindows,
-                messageThrottle, soulEscalation);
+                messageThrottle, soulEscalation, dotSuppression);
     }
 
     /**
@@ -80,11 +82,14 @@ public record EngineStores(
      * held-slot stamp, the cached soul total, the self-armed hunger windows, the notice throttle, and the
      * escalating soul price). Clearing these on quit is the conservative direction — worn-derived buffs
      * re-establish on rejoin, a self-armed cap only protects its owner, and a reset soul price undercharges.
+     *
+     * <p>{@link DotSuppressionStore} joins them despite being opponent-applied: it BENEFITS the victim, and the
+     * burn that pays for it stops at the logout, so retaining it would be free DoT immunity.
      */
     public List<PlayerScoped> quitVolatile() {
         return List.of(vars, knockback, keepOnDeath, immune, combo, why, recentAttackers, damageCap, rageStacks,
                 ward, hitTempo, battery, disarmWindows, heldSlots, soulTotals, foodWindows, messageThrottle,
-                soulEscalation);
+                soulEscalation, dotSuppression);
     }
 
     /**

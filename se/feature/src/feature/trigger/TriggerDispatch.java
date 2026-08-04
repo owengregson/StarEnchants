@@ -216,6 +216,12 @@ public final class TriggerDispatch {
      */
     public void fireDamage(Player actor, int triggerId, int alsoTriggerId, ActivationContext context,
                            org.bukkit.event.entity.EntityDamageEvent event, boolean applyHeroic) {
+        if (dotDamageSuppressed(actor, event)) {
+            // A PERIODIC_DAMAGE burn replaced this DoT's damage: the tick is cancelled outright rather than
+            // folded, and nothing walks off a hit that deals nothing. The status effect stays on the victim.
+            event.setCancelled(true);
+            return;
+        }
         if (triggerId < 0 && alsoTriggerId < 0) {
             if (applyHeroic) {
                 fireEnvironmentalHeroic(actor, event);
@@ -274,7 +280,18 @@ public final class TriggerDispatch {
         }
     }
 
-    /** The {@link DotAmplifyStore} bit for a damage cause, or {@code 0} when the cause is not amplifiable. */
+    /**
+     * Whether a {@code PERIODIC_DAMAGE} {@code replace} window is standing in for this vanilla DoT tick — the
+     * burn is then the only damage clock, so the tick is cancelled while the status effect that produced it is
+     * left on the victim, visible. Non-DoT causes are never suppressed.
+     */
+    private boolean dotDamageSuppressed(Player actor, org.bukkit.event.entity.EntityDamageEvent event) {
+        int causeBit = dotCauseBit(event.getCause());
+        return causeBit != 0 && env.stores().dotSuppression()
+                .suppressed(actor.getUniqueId(), env.nowTicks().getAsLong(), causeBit);
+    }
+
+    /** The DoT cause bit for a damage cause, or {@code 0} when the cause ticks no damage over time. */
     private static int dotCauseBit(org.bukkit.event.entity.EntityDamageEvent.DamageCause cause) {
         return switch (cause) {
             case WITHER -> DotAmplifyStore.CAUSE_WITHER;

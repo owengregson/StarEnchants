@@ -895,12 +895,21 @@ public interface Sink {
      * Burn {@code target} for {@code amount} every {@code periodTicks} over {@code durationTicks}
      * (PERIODIC_DAMAGE), attributed to {@code attacker}: raw pre-armor half-hearts on the ADR-0054 deferred
      * path, never the fold and never attack-scaled, exactly as FREEZE's DoT. Each pulse is liveness-gated
-     * (the dead stay dead, ADR-0051) and sends {@code feedback} to a player target when non-empty. Every
-     * potion effect in {@code replaced} is stripped and denied for the window, which is what makes this a
-     * CONVERSION of a vanilla DoT rather than a second one stacked on top.
+     * (the dead stay dead, ADR-0051), sends {@code feedback} to a player target when non-empty, and plays the
+     * {@code tick*} cue at the target ({@code tickSoundId}/{@code tickParticleId} below 0 = none). The cue is
+     * per PULSE, so it deliberately bypasses {@code CueOnce} (ADR-0066) — that brackets one hit's
+     * co-activations, and a burn's pulses are separate events.
+     *
+     * <p>Every potion effect in {@code replaced} has its DAMAGE cancelled for the window
+     * ({@link engine.stores.DotSuppressionStore}) while the effect itself is left on the target, icon and
+     * particles intact — the burn CONVERTS the vanilla DoT instead of stacking with it. Only WITHER and POISON
+     * tick damage; any other name is a no-op here, never a strip ({@link #potionLock} is the strip-and-deny
+     * intent and is unaffected).
      */
     void periodicDamage(LivingEntity target, double amount, int periodTicks, int durationTicks,
-                        java.util.List<Integer> replaced, String feedback, LivingEntity attacker);
+                        java.util.List<Integer> replaced, String feedback, LivingEntity attacker,
+                        int tickSoundId, float tickVolume, float tickPitch,
+                        int tickParticleId, int tickParticleCount);
 
     /**
      * Mark {@code target} so their incoming damage from the {@code causeMask} damage-over-time causes is

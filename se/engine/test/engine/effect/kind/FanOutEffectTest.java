@@ -285,8 +285,30 @@ class FanOutEffectTest {
                             .targets("who", a, b);
                     Sink sink = mock(Sink.class);
                     new PeriodicDamageEffect().run(ctx, sink);
-                    verify(sink).periodicDamage(a, 6.0, 20, 120, List.of(9), "burning", actor);
-                    verify(sink).periodicDamage(b, 6.0, 20, 120, List.of(9), "burning", actor);
+                    // No tick-sound/tick-particle authored: the cue ids are the "none" sentinel and the
+                    // volume/pitch/count are never read, so an unauthored burn stays byte-identical.
+                    verify(sink).periodicDamage(a, 6.0, 20, 120, List.of(9), "burning", actor,
+                            -1, 0f, 0f, -1, 0);
+                    verify(sink).periodicDamage(b, 6.0, 20, 120, List.of(9), "burning", actor,
+                            -1, 0f, 0f, -1, 0);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("PERIODIC_DAMAGE carries each authored tick cue to every target", () -> {
+                    // Every cue value distinct and non-default, so a transposed volume/pitch or a
+                    // sound-id-for-particle-id swap cannot pass.
+                    Player actor = mock(Player.class);
+                    LivingEntity a = mock(LivingEntity.class);
+                    LivingEntity b = mock(LivingEntity.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
+                            .with("amount", 3.0).with("period", 5).with("duration", 60)
+                            .with("replace", List.of()).with("feedback", "")
+                            .with("tick-sound", 11).with("tick-volume", 0.6).with("tick-pitch", 0.8)
+                            .with("tick-particle", 4).with("tick-particle-count", 20)
+                            .targets("who", a, b);
+                    Sink sink = mock(Sink.class);
+                    new PeriodicDamageEffect().run(ctx, sink);
+                    verify(sink).periodicDamage(a, 3.0, 5, 60, List.of(), "", actor, 11, 0.6f, 0.8f, 4, 20);
+                    verify(sink).periodicDamage(b, 3.0, 5, 60, List.of(), "", actor, 11, 0.6f, 0.8f, 4, 20);
                     verifyNoMoreInteractions(sink);
                 }),
                 dynamicTest("DESPAWN removes mobs and NEVER a player in the same target list", () -> {

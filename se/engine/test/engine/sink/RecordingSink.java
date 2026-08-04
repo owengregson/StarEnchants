@@ -37,10 +37,17 @@ final class RecordingSink extends DispatchSinkBase {
     final Map<Integer, PotionEffectType> potions = new HashMap<>();
     /** The type {@link #entityType(int)} returns for any id (the summon paths need a non-null one). */
     EntityType spawnType;
+    /** The sound {@link #sound(int)} returns for any id; {@code null} (the default) makes every cue a no-op. */
+    Sound cueSound;
 
     final List<Location> teleports = new ArrayList<>();
     final List<Location> dust = new ArrayList<>();
+    /** Plan-free bursts (PERIODIC_DAMAGE's per-pulse cue), so a test can count them per pulse. */
+    final List<Burst> bursts = new ArrayList<>();
     int safeChecks;
+
+    record Burst(LivingEntity target, int particleId, int count) {
+    }
 
     RecordingSink(SinkEnv env) {
         super(env);
@@ -64,6 +71,11 @@ final class RecordingSink extends DispatchSinkBase {
     }
 
     @Override
+    protected void particleDirect(LivingEntity target, int particleId, int count, double spread) {
+        bursts.add(new Burst(target, particleId, count));
+    }
+
+    @Override
     protected PotionEffectType potionEffect(int id) {
         return potions.getOrDefault(id, slowType);
     }
@@ -76,7 +88,7 @@ final class RecordingSink extends DispatchSinkBase {
 
     @Override
     protected Sound sound(int id) {
-        return null;
+        return cueSound;
     }
 
     @Override
