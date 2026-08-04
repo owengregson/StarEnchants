@@ -1629,6 +1629,10 @@ public abstract class DispatchSinkBase implements SinkReadback {
             TaskHandle[] task = new TaskHandle[1];
             task[0] = Scheduling.repeatingEntity(target, Math.max(1, leadInTicks), period, () -> {
                 if (!target.isValid() || target.isDead()) {
+                    // Death ends the ladder outright rather than leaving it to lapse: the window is short, but a
+                    // decay count that survives its own victim and resumes mid-climb when they walk back in is
+                    // not a thing anyone would defend. This is the only place the engine watches a rotting body.
+                    StackingDots.clear(target.getUniqueId());
                     if (task[0] != null) {
                         task[0].cancel();
                     }
