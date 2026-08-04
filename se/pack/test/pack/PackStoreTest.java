@@ -57,6 +57,29 @@ class PackStoreTest {
         assertEquals("effects 7", info.surface());
     }
 
+    /**
+     * The jar bundles more than one pack (ADR-0023 {@code packs/index.txt}), so several archives share
+     * {@code packs/}: each must list under its own name with its own manifest, in a stable order, and
+     * {@code info}/{@code apply} must select by name rather than by whatever the directory hands back first.
+     */
+    @Test
+    void severalPacksCoexistAndAreSelectedByName(@TempDir Path data) throws Exception {
+        writeSurfaceA(data);
+        PackStore store = new PackStore(data);
+        store.export("second", "the second pack", "se", "2026-06-23T10:00:00", "1:bbbb", "effects 2");
+
+        write(data, "config.yml", "slots:\n  base: 42\n"); // a surface only the first pack carries
+        store.export("first", "the first pack", "se", "2026-06-23T10:05:00", "1:aaaa", "effects 1");
+
+        assertEquals(List.of("first", "second"), store.list().stream().map(PackStore.PackInfo::name).toList());
+        assertEquals("the second pack", store.info("second").orElseThrow().description());
+
+        store.apply("second", "backup-two", "2026-06-23T11:00:00", "1:live", "effects 3");
+        assertEquals("slots:\n  base: 9\n", Files.readString(data.resolve("config.yml")),
+                "apply must lay down the NAMED pack, not a sibling archive");
+        assertEquals("second", Files.readString(data.resolve(PackStore.ACTIVE_MARKER)));
+    }
+
     @Test
     void applyReplacesTheWholeSurfaceAndBacksUpTheOldOne(@TempDir Path data) throws Exception {
         // Capture surface A as pack "a".

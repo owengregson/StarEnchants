@@ -23,11 +23,9 @@ import org.junit.jupiter.api.Test;
 import schema.diag.Diagnostic;
 
 /**
- * The batch gate for the in-progress {@code cosmic-pack} port: every content batch must leave the pack
- * compiling clean through the real loaders and {@link FloorStrictResolvers}, the same bar
- * {@link SignaturePackValidationTest} holds the shipped pack to. No corpus-size floor while the pack fills
- * batch by batch — that (and the ship wiring: zip task, {@code packs/index.txt}, fingerprint stamp) lands
- * with the port's polish PR, which is also when a half-built pack first becomes applyable.
+ * The shipped {@code cosmic-pack} must compile clean through the real loaders and
+ * {@link FloorStrictResolvers}, the same bar {@link SignaturePackValidationTest} holds its sibling to — it
+ * is bundled and applyable ({@code /se pack apply cosmic-pack}), so a broken batch would ship.
  */
 class CosmicPackValidationTest {
 
@@ -46,6 +44,9 @@ class CosmicPackValidationTest {
                 .map(Diagnostic::toString)
                 .collect(Collectors.joining("\n  "));
         assertFalse(library.hasErrors(), () -> "Cosmic pack content has blocking diagnostics:\n  " + blocking);
+        // The whole ported corpus × its levels — guard against a silent empty/partial load.
+        assertTrue(library.snapshot().abilityCount() > 1000,
+                () -> "expected the full cosmic corpus, got " + library.snapshot().abilityCount() + " abilities");
     }
 
     @Test
