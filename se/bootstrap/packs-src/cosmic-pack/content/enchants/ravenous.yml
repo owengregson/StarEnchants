@@ -1,0 +1,35 @@
+# Matrix: 04-enchants-axes.md § Ravenous
+display: "Ravenous"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eLanding a hit while hungry can put"
+  - "&ehalf a shank back on the bar."
+trigger: ATTACK
+applies-to: [AXE]
+group: "uncommon"
+tier: uncommon
+condition: "%actor.food% < 20"
+# The hunger gate is the only guard the jar had: no damage check and no cancellation check, so ANY hit on ANY
+# entity qualifies and none is authored. `mode: give` clamps at 20 on its own, so the gate only saves the roll.
+# Saturation is untouched, as measured.
+# The jar retired this from its own tier registry while leaving it functional; the port keeps it live
+# (progression metadata, not a runtime rule).
+# interactions: none. strings: none. era: none.
+levels:
+  # Level buys frequency only — chance 5 pp per level, restore flat +1 at every rung.
+  1:
+    chance: 5
+    effects:
+      - { MODIFY_FOOD: { amount: 1, mode: "give", who: "@Self" } }
+  2:
+    chance: 10
+    effects:
+      - { MODIFY_FOOD: { amount: 1, mode: "give", who: "@Self" } }
+  3:
+    chance: 15
+    effects:
+      - { MODIFY_FOOD: { amount: 1, mode: "give", who: "@Self" } }
+  4:
+    chance: 20
+    effects:
+      - { MODIFY_FOOD: { amount: 1, mode: "give", who: "@Self" } }

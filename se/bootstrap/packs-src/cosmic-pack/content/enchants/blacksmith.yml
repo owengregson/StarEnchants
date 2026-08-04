@@ -1,0 +1,52 @@
+# Matrix: 04-enchants-axes.md § Blacksmith
+display: "Blacksmith"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eSome swings hammer a dent out of your own"
+  - "&earmor — that hit lands at half damage."
+trigger: ATTACK
+applies-to: [AXE]
+group: "legendary"
+tier: legendary
+# No condition at all: the roll IS the activation (7.5 pp per level), and every row below runs together on a
+# proc — including the self-nerf. The codex reads the unconditional half-damage as the intended trade-off for
+# free armour repair, so it ships as recorded rather than as a bug.
+# The matrix's DURABILITY_PIECE_SELECT gap is CLOSED — `select` shipped in wave 1, so `most-damaged` addresses
+# exactly the one worn piece the jar picks instead of the whole set (the gap block is a batch-1 snapshot).
+# From L3 the jar scans a SECOND time, and the second pick is re-evaluated against the freshly repaired set:
+# two `select: most-damaged` rows reproduce that exactly (same piece again when it is still the worst, the
+# next-worst otherwise). Totals restored: 1/1/2/2/3.
+# The penalty is authored as the engine's additive fold (-50 pp = x0.5 alone); the jar composes its 0.5
+# multiplicatively at MONITOR, which only diverges when a second multiplier lands on the same swing —
+# accepted family-wide as D-04-1.
+# The heroic "Master Blacksmith" upgrade chain is progression metadata (tiers file), not a runtime rule.
+# era: none.
+levels:
+  1:
+    chance: 7.5
+    effects:
+      - { DURABILITY: { amount: 1, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: -50 } }
+  2:
+    chance: 15
+    effects:
+      - { DURABILITY: { amount: 1, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: -50 } }
+  3:
+    chance: 22.5
+    effects:
+      - { DURABILITY: { amount: 1, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      - { DURABILITY: { amount: 1, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: -50 } }
+  4:
+    chance: 30
+    effects:
+      - { DURABILITY: { amount: 1, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      - { DURABILITY: { amount: 1, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: -50 } }
+  5:
+    chance: 37.5
+    effects:
+      - { DURABILITY: { amount: 2, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      - { DURABILITY: { amount: 1, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: -50 } }

@@ -1,0 +1,51 @@
+# Matrix: 04-enchants-axes.md § Boss Slayer
+display: "Boss Slayer"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eYou hit bosses far harder — as long as the"
+  - "&eaxe was already in your hand."
+trigger: ATTACK
+applies-to: [AXE]
+group: "legendary"
+tier: legendary
+# The gate chain, in the order the jar reads it:
+#  - not a player, and a boss (see the boss list below);
+#  - the axe re-check on the HAND, kept even though applies-to already scopes the enchant: `matchesregex` is
+#    a full match, so `.*_AXE$` takes DIAMOND_AXE and leaves DIAMOND_PICKAXE out — the jar's own endsWith,
+#    and the gate §Barbarian's D-04-4 fix converges on;
+#  - the anti-hot-swap window, > 5 t since the last hotbar-slot change. HeldSlotStore stamps ONLY on a slot
+#    change and reads 0 for a player who has never switched, so the `== 0` arm restores the jar's
+#    unset-means-allowed default (the idiom divine-immolation.yml settled). Recorded approximation: 0 also
+#    means "switched THIS tick", so a hit on the swap tick passes the gate the swap should have closed —
+#    one tick of leak, accepted rather than fixed, since a distinguishable never-switched sentinel is an
+#    engine change and every consumer of `%heldticks%` (§Hero Killer, §Soul Trap) shares the arm.
+# D-04-7: the enchant is INERT in the jar — its boss test reads an externally-written "boss" flag that
+# nothing in the corpus ever writes — and ships active against a pack-configured boss list. The matrix writes
+# that list as `%victim.mobtype%` conditions, but that fact is the MythicMobs soft hook and resolves to the
+# empty string with no integration installed, which would leave the enchant exactly as inert as the jar. So
+# the list is expressed as `%victim.type%` over the vanilla bosses, which needs no external plugin and
+# resolves on both lanes (ENDER_DRAGON and WITHER exist on 1.8.9). A server running MythicMobs bosses widens
+# the list here with `|| %victim.mobtype% == "<mythic id>"` — that is what "pack-configured" buys.
+# `%victim.type% != "PLAYER"` is redundant against a list of mob types; it is kept because the matrix
+# decomposes it as its own clause.
+# The held-swap window is shared with §Hero Killer and §Soul Trap — one fact, one threshold.
+# era: axe material names differ per lane (1.8.9 WOOD_AXE/GOLD_AXE vs modern WOODEN_AXE/GOLDEN_AXE); the
+# `_AXE` suffix holds on both, which an exact-name list would not.
+condition: "%victim.type% != \"PLAYER\" && (%victim.type% == \"ENDER_DRAGON\" || %victim.type% == \"WITHER\") && %actor.helditem% matchesregex \".*_AXE$\" && (%heldticks% > 5 || %heldticks% == 0)"
+levels:
+  # No roll: +7.5 pp per level on every gated hit, nothing else scales.
+  1:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 7.5 } }
+  2:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }
+  3:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 22.5 } }
+  4:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 30 } }
+  5:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 37.5 } }

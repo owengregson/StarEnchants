@@ -1,0 +1,51 @@
+# Matrix: 04-enchants-axes.md § Cleave
+display: "Cleave"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA landed hit splashes onto everyone else"
+  - "&estanding around your target."
+trigger: ATTACK
+applies-to: [AXE]
+group: "epic"
+tier: epic
+condition: "%damage% > 0"
+cooldown: 30  # the jar's 1500 ms attacker throttle, one bucket for the whole ability
+# The splash is centred on the VICTIM — AOE resolves around the combat target — and the victim is never in it:
+# the jar used the victim as the search origin and skipped it, which `exclude=victim` reproduces exactly.
+# Shape delta, values kept: the jar's number is a bounding-box half-extent, AOE's is a sphere radius, so the
+# corner reach differs slightly at the same figure.
+# D-04-8: the jar's splash was attacker-less generic damage — armour-reduced, NO kill credit, and it re-entered
+# the defensive pass only (`00-MECHANICS.md` §3.5 mode B). Engine DAMAGE is activator-attributed, so a splash
+# kill now credits the swinger.
+# PENDING PER-VICTIM COOLDOWN — the recorded 20 t (1000 ms) per-splash-victim stamp is NOT authored. The
+# engine's cooldown bucket is per-player, so the 30 t above paces the whole ability and a per-target window
+# has nowhere to live; same blocker as `enchants/thundering-blow` (deferred-content.md, partial entries).
+# The heroic twin shares a mutual 20 t exclusion window with this one, authored from the HEROIC side (batch 06)
+# as SUPPRESS(scope=ENCHANT, key=enchants/cleave, duration=20, who=@Self) — nothing is owed here.
+# Not ported: the mcMMO Skull Splitter hook (external plugin — with it gone the jar's
+# cooldown-consumed-on-a-suppressed-hit quirk has no analogue) and two console log lines. The jar's faction
+# and duel sparing rides the ENEMIES filter's single ally model; spectator-flagged entities are exempt natively.
+# era: none — no sounds, no particles.
+levels:
+  # Radius 0.45 x level; splash damage 1 (L1-3) / 2 (L4-6) / 3 (L7). Only those two ladders move.
+  1:
+    effects:
+      - { DAMAGE: { amount: 1, who: "@Aoe{r=0.45, filter=ENEMIES, exclude=victim}" } }
+  2:
+    effects:
+      - { DAMAGE: { amount: 1, who: "@Aoe{r=0.90, filter=ENEMIES, exclude=victim}" } }
+  3:
+    effects:
+      - { DAMAGE: { amount: 1, who: "@Aoe{r=1.35, filter=ENEMIES, exclude=victim}" } }
+  4:
+    effects:
+      - { DAMAGE: { amount: 2, who: "@Aoe{r=1.80, filter=ENEMIES, exclude=victim}" } }
+  5:
+    effects:
+      - { DAMAGE: { amount: 2, who: "@Aoe{r=2.25, filter=ENEMIES, exclude=victim}" } }
+  6:
+    effects:
+      - { DAMAGE: { amount: 2, who: "@Aoe{r=2.70, filter=ENEMIES, exclude=victim}" } }
+  7:
+    effects:
+      - { DAMAGE: { amount: 3, who: "@Aoe{r=3.15, filter=ENEMIES, exclude=victim}" } }

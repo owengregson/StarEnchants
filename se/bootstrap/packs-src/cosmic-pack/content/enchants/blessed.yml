@@ -1,0 +1,84 @@
+# Matrix: 04-enchants-axes.md § Blessed
+display: "Blessed"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eHitting a player can wash one debuff off you"
+  - "&eand close every wound you are carrying."
+trigger: ATTACK
+applies-to: [AXE]
+group: "epic"
+tier: epic
+# Players only, and refused while the actor is carrying a Deep Wounds mark. `deepwounds` is the SET_VAR that
+# swords/Deep Wounds writes ON ITS VICTIM for 30 t per level — so the marked player reads it here from their
+# own store as a bare `%deepwounds%`, the same actor-side idiom §Angelic and §Inversion use (an unset var is
+# never `== 1`, which is why the gate is written against 1 rather than 0).
+# Two abilities per level because the refusal has to say so: the gates are mutually exclusive and share the
+# level's chance, so a hit rolls once and either cleanses or prints the veto — the jar's order (roll, then
+# check the mark). The matrix files that line under the deep-wounds interaction rule, but the pack has no
+# interaction-rule surface and deep-wounds.yml explicitly leaves the string here.
+# Everything downstream of the roll is level-independent: exactly one debuff (`count: 1`) of whichever the
+# server enumerates first, which is the jar's arbitrary iteration order over its 9-type debuff list — that
+# list IS the HARMFUL category, so no potion type is named and the enchant carries no era exposure.
+# The counter reset is the ONLY remover of §Bleed's shared `bleedstacks`, and it runs first and
+# unconditionally, cleansing or not — the jar's order, kept. The walk-speed row is the other half of that
+# routine: it hands back the vanilla 0.2 whether or not there was a bleed slow to undo, so a Blessed proc also
+# ends any other live walk-speed effect on the wielder (a §Trap freeze included). That clobber is the jar's
+# own, and it is what makes the reset whole once Bleed's player-side slow lands.
+# Interactions carried elsewhere, nothing authored here: the KOTH armour set throttles the BLESSED line to one
+# per 160 t for its wearers (cleanse unthrottled) — a set-membership condition with no fact on the frozen
+# surface; and the jar's custom BLESS player event is an external hook, out of port scope.
+# era: `SPLASH` (1.8) -> `ENTITY_GENERIC_SPLASH` needs the resolver alias (deferred-content.md legacy sweep).
+levels:
+  # Chance 3 pp per level; the cleanse itself never scales.
+  1:
+    chance: 3
+    abilities:
+      - condition: "%victim.type% == \"PLAYER\" && %deepwounds% != 1"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", value: "0", ttl: 0, who: "@Self" } }
+          - { MOVEMENT_SPEED: { speed: 0.2, ticks: 0, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.2, pitch: 2.0 } }
+          - { CURE: { category: "HARMFUL", count: 1, who: "@Self" } }
+          - { MESSAGE: { text: "§e§l** BLESSED **" } }
+      - condition: "%victim.type% == \"PLAYER\" && %deepwounds% == 1"
+        effects:
+          - { MESSAGE: { text: "§4** DEEP WOUNDS §7(NO BLESS)§4 **" } }
+  2:
+    chance: 6
+    abilities:
+      - condition: "%victim.type% == \"PLAYER\" && %deepwounds% != 1"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", value: "0", ttl: 0, who: "@Self" } }
+          - { MOVEMENT_SPEED: { speed: 0.2, ticks: 0, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.2, pitch: 2.0 } }
+          - { CURE: { category: "HARMFUL", count: 1, who: "@Self" } }
+          - { MESSAGE: { text: "§e§l** BLESSED **" } }
+      - condition: "%victim.type% == \"PLAYER\" && %deepwounds% == 1"
+        effects:
+          - { MESSAGE: { text: "§4** DEEP WOUNDS §7(NO BLESS)§4 **" } }
+  3:
+    chance: 9
+    abilities:
+      - condition: "%victim.type% == \"PLAYER\" && %deepwounds% != 1"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", value: "0", ttl: 0, who: "@Self" } }
+          - { MOVEMENT_SPEED: { speed: 0.2, ticks: 0, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.2, pitch: 2.0 } }
+          - { CURE: { category: "HARMFUL", count: 1, who: "@Self" } }
+          - { MESSAGE: { text: "§e§l** BLESSED **" } }
+      - condition: "%victim.type% == \"PLAYER\" && %deepwounds% == 1"
+        effects:
+          - { MESSAGE: { text: "§4** DEEP WOUNDS §7(NO BLESS)§4 **" } }
+  4:
+    chance: 12
+    abilities:
+      - condition: "%victim.type% == \"PLAYER\" && %deepwounds% != 1"
+        effects:
+          - { SET_VAR: { name: "bleedstacks", value: "0", ttl: 0, who: "@Self" } }
+          - { MOVEMENT_SPEED: { speed: 0.2, ticks: 0, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.2, pitch: 2.0 } }
+          - { CURE: { category: "HARMFUL", count: 1, who: "@Self" } }
+          - { MESSAGE: { text: "§e§l** BLESSED **" } }
+      - condition: "%victim.type% == \"PLAYER\" && %deepwounds% == 1"
+        effects:
+          - { MESSAGE: { text: "§4** DEEP WOUNDS §7(NO BLESS)§4 **" } }

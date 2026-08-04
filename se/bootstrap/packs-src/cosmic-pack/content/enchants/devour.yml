@@ -1,0 +1,60 @@
+# Matrix: 04-enchants-axes.md § Devour
+display: "Devour"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eBleeding targets take far more from your axe —"
+  - "&eevery open wound feeds the swing."
+trigger: ATTACK
+applies-to: [AXE]
+group: "legendary"
+tier: legendary
+chance: 100  # no chance roll — 100 % once the gate passes
+condition: "%damage% > 0 && %victim.var.bleedstacks% > 0 && %victim.var.raged% == 0"
+# The READ side of the shared bleed counter. Both matrix gaps are closed by the wave-1 surface: STACK_COUNTER
+# is `SET_VAR op=increment` with a cap (Bleed, this same doc, is the publisher and owns cap 20) and
+# VICTIM_VAR_FACT ships as `%victim.var.<name>%`, which reads 0 on an unbled victim — so the gate below is a
+# plain `> 0`. swords/Deep Wounds reads the SAME counter with its own coefficient and is deliberately NOT in
+# the Rage exclusion, so Devour and Deep Wounds can both fold into one hit.
+# Rage exclusion (mutual, 4 t / 200 ms), authored entirely on this side because rage.yml deferred it here:
+#   * the gate clause `%victim.var.raged% == 0` is the read half — `raged` is the 4 t victim mark Rage writes
+#     (§Rage, and execute.yml reads the same spelling). A Devour suppressed this way consumes nothing: the
+#     activation never runs, so no particle either, which is the jar's order.
+#   * the SUPPRESS row is the write half. COARSER than rage.yml's note ("suppresses the multiplier and the
+#     victim mark but NOT the increment"): `scope=ENCHANT` parks the WHOLE enchant for the window, so Rage's
+#     combo increment also skips those 4 t. No finer key exists on the frozen surface — Rage's fold, mark and
+#     increment are three abilities under one enchant key, and `scope=KIND` on DAMAGE_MOD would park every
+#     damage fold the holder owns. Recorded, not a stop: the two never co-fire in practice anyway, since
+#     Rage's own `%actor.helditem% contains "_SWORD"` gate cannot pass on the axe Devour rides.
+# The stack term needs no `min()` — the counter's own cap of 20 is the ceiling, so the fold tops out at
+# +40/50/60/70 % (×1.4 … ×1.7). Per-stack contribution is a flat 1.5 pp at every level; level moves only the
+# base term.
+# strings: none.
+# era: the block is `MYCEL` on 1.8.9 and `MYCELIUM` from the flattening on — `Aliases.MATERIAL` does NOT
+# carry that pair yet, so the crack burst would warn-skip on the legacy fork (parked on the
+# deferred-content.md legacy-sweep alias list, batch 04).
+levels:
+  # Base term +10 pp a rung; everything else is level-independent.
+  1:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "10 + 1.5 * %victim.var.bleedstacks%" } }
+      # Jar world-effect 2001 (block-break) with block id 110, at the victim's FEET — no +1y, unlike Bleed's.
+      # PARTICLE centres on the body and the world effect carries no count, so the count is port-chosen at 8 —
+      # the count the same doc's Anti Gank row records for a single-burst 2001 mapping (Bleed's is the
+      # repeat-scaled variant, 15 a repeat).
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "MYCELIUM", count: 8, who: "@Victim" } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 4, mode: "timed", who: "@Self" } }
+  2:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "20 + 1.5 * %victim.var.bleedstacks%" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "MYCELIUM", count: 8, who: "@Victim" } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 4, mode: "timed", who: "@Self" } }
+  3:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "30 + 1.5 * %victim.var.bleedstacks%" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "MYCELIUM", count: 8, who: "@Victim" } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 4, mode: "timed", who: "@Self" } }
+  4:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "40 + 1.5 * %victim.var.bleedstacks%" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "MYCELIUM", count: 8, who: "@Victim" } }
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 4, mode: "timed", who: "@Self" } }

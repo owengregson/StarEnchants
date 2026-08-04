@@ -1,0 +1,48 @@
+# Matrix: 04-enchants-axes.md § Pummel
+display: "Pummel"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA melee hit staggers everyone crowding"
+  - "&earound your target — never the target."
+trigger: ATTACK
+applies-to: [AXE]
+group: "rare"
+tier: rare
+# Bystanders only: the jar searches around the VICTIM and the victim is never in their own result, which
+# `exclude=victim` reproduces exactly. No victim-type gate — mobs caught in the splash are slowed too, and
+# they get neither the ally test nor the Metaphysical rebate (jar behaviour; ENEMIES admits hostile mobs).
+# The jar's ally test is Factions TRUCE-or-better, looser than Bleed/Cleave's mutual-ally test; the engine's
+# single ally model under `filter=ENEMIES` absorbs both readings.
+# Shape delta, recorded not fixed: the jar's radius is a box half-extent, the engine's `r` a sphere radius.
+# PENDING WAVE-1F FACT — the Metaphysical rebate is NOT authored here, the same stop `trap.yml` and
+# `disarmor.yml` already carry. It needs the victim-side worn-enchant-level fact the frozen surface does not
+# express (deferred-content.md holds the consumer-side row under `enchants/metaphysical`). When it lands this
+# ability gains a `-4 %chance%` clause per Metaphysical level on the bystander being tested, plus the blocked
+# line `§8§l** METAPHYSICAL (§8Pummel blocked!§l) **`.
+# That clause is PER-TARGET when it lands: D-04-13 rules the jar's veto a bug, because it mutated the shared
+# chance threshold inside the target loop, so one Metaphysical wearer shielded every later-iterated bystander
+# wearing none. The as-intended reading vetoes only the wearer's own slot in the splash.
+# era: legacy `SLOW` potion name (modern `SLOWNESS`) — resolver alias, the spelling every shipped file uses;
+# BLOCK_CRACK and STONE are both safe on 1.8.9.
+levels:
+  # chance 6 pp per level; radius = level; SLOW at engine level = enchant level (the jar's amplifier level-1
+  # IS the I/II/III tier). Duration is the AS-INTENDED 1.5 s x level = 30/60/90 t (D-04-12); the jar's
+  # `(int)(level * 1.5)` seconds truncated to 20/60/80 t.
+  1:
+    chance: 6
+    effects:
+      - { POTION: { effect: "SLOW", level: 1, duration: 30, who: "@Aoe{r=1,filter=ENEMIES,exclude=victim}" } }
+      # The jar plays the block-break world effect with the victim's STANDING block (STONE when that is air);
+      # a dynamic block param is not expressible, so STONE ships flat — cosmetic only. The matrix records no
+      # count for this row (the world effect carries none), so the surface default of 1 stands.
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "STONE", who: "@Aoe{r=1,filter=ENEMIES,exclude=victim}" } }
+  2:
+    chance: 12
+    effects:
+      - { POTION: { effect: "SLOW", level: 2, duration: 60, who: "@Aoe{r=2,filter=ENEMIES,exclude=victim}" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "STONE", who: "@Aoe{r=2,filter=ENEMIES,exclude=victim}" } }
+  3:
+    chance: 18
+    effects:
+      - { POTION: { effect: "SLOW", level: 3, duration: 90, who: "@Aoe{r=3,filter=ENEMIES,exclude=victim}" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "STONE", who: "@Aoe{r=3,filter=ENEMIES,exclude=victim}" } }
