@@ -1191,6 +1191,19 @@ Hide the target player from the attacker (viewer=attacker) or from every online 
 - _target_ `who`: selector `SELF`
 - _example_: `{ VIEWER_HIDE: { duration: 60, viewer: attacker } }`
 
+### VULNERABILITY
+
+Mark each player target to take `percent`% more damage from EVERY source (fall, fire and the void included) for `duration`. NON-STACKING: a re-mark keeps the stronger window and the later expiry, never the sum. The contribution is additive with the victim's own reductions, so armour still counts — this is a fragility mark, not a bypass.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ VULNERABILITY: { percent: <double[0..]>, duration: <ticks[1..]=60>, hit-message: <string=>, expiry-message: <string=> } }`
+- _param_ `percent` `double[0..]` — extra incoming damage, e.g. 100 for double
+- _param_ `duration` `ticks[1..]` — how long the mark holds
+- _param_ `hit-message` `string` — line sent to the marked player on each hit the mark amplifies ({damage} = the hit); empty = silent
+- _param_ `expiry-message` `string` — line sent when the mark lapses; empty = silent
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ VULNERABILITY: { percent: 100, duration: 60, hit-message: "&cmarked (-{damage})", expiry-message: "&7mark off", who: "@Victim" } }`
+
 ### WALKER
 
 Lay a temporary platform of a material under the target for a duration (then revert), out to a radius. replace = AIR_ONLY | REPLACEABLE (air/liquid) | ANY.

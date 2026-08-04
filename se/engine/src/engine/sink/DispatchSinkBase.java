@@ -161,6 +161,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     private final TeleblockStore teleblock;
     private final engine.stores.FallShieldStore fallShields;
+    private final engine.stores.VulnerabilityStore vulnerability;
     private final ImmuneStore immune;
     private final WardStore ward; // ADR-0053 mask ward flags
     private final FoodWindowStore foodWindows; // MODIFY_FOOD armed hunger windows
@@ -244,6 +245,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.keepOnDeath = env.stores().keepOnDeath();
         this.teleblock = env.stores().teleblock();
         this.fallShields = env.stores().fallShields();
+        this.vulnerability = env.stores().vulnerability();
         this.immune = env.stores().immune();
         this.ward = env.stores().ward();
         this.foodWindows = env.stores().foodWindows();
@@ -3567,5 +3569,28 @@ public abstract class DispatchSinkBase implements SinkReadback {
         // Per-player one-shot flag consumed by the fall-damage listener (a separate Bukkit event). UUID
         // captured here, concurrent store, no entity read → Folia-safe inline on the firing thread.
         fallShields.arm(target.getUniqueId(), nowTicks.getAsLong(), windowTicks);
+    }
+
+    @Override
+    public void vulnerability(Player target, double percent, int durationTicks, String hitMessage,
+                              String expiryMessage) {
+        if (target == null) {
+            return;
+        }
+        long expiry = vulnerability.mark(target.getUniqueId(), percent, hitMessage, expiryMessage,
+                nowTicks.getAsLong(), durationTicks);
+        if (expiry == 0L || expiryMessage == null || expiryMessage.isEmpty()) {
+            return;
+        }
+        // The lapse notice is the one piece no combat path can emit: every other read of this window happens
+        // ON a hit, and a mark that ends quietly ends while nobody is being hit. Scheduled on the marked
+        // player's own thread; the store matches on the expiry tick, so a refresh silences this arm's notice
+        // rather than firing twice.
+        Scheduling.onEntityLater(target, durationTicks, () -> {
+            String lapse = vulnerability.lapse(target.getUniqueId(), expiry);
+            if (!lapse.isEmpty()) {
+                target.sendMessage(Colors.translate(lapse)); // already on the target's own thread
+            }
+        });
     }
 }

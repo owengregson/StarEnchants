@@ -431,6 +431,11 @@ effect VELOCITY
 effect VIEWER_HIDE
   param duration TICKS optional min=0 max=- enum=- handle=- default=20
   param viewer ENUM optional min=- max=- enum=all,attacker handle=- default=attacker
+effect VULNERABILITY
+  param percent DOUBLE required min=0 max=- enum=- handle=- default=-
+  param duration TICKS optional min=1 max=- enum=- handle=- default=60
+  param hit-message STRING optional min=- max=- enum=- handle=- default=
+  param expiry-message STRING optional min=- max=- enum=- handle=- default=
 effect WALKER
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
   param ticks TICKS optional min=0 max=- enum=- handle=- default=60

@@ -9,6 +9,8 @@ import engine.run.ActorProbe;
 import engine.run.FactPopulator;
 import engine.run.UseAttempt;
 import engine.sink.SinkEnv;
+import engine.stores.VulnerabilityStore;
+import feature.combat.HitFeedback;
 import engine.stores.DotAmplifyStore;
 import engine.sink.SinkReadback;
 import engine.trigger.TriggerRegistry;
@@ -261,11 +263,41 @@ public final class TriggerDispatch {
                     attackTrigger.test(alsoTriggerId), actor, context, sink, snapshot.stableKeys(), heroic);
         }
         amplifyDot(actor, event, sink);
+        amplifyVulnerable(actor, sink);
         event.setDamage(sink.fold().apply(event.getDamage()));
         if (sink.cancelled()) {
             event.setCancelled(true);
         }
+        emitVulnerableLine(actor, event, sink);
         sink.flush();
+    }
+
+    /**
+     * Fold {@code actor}'s VULNERABILITY mark onto an environmental hit — the half of the mark's "every
+     * source" contract that CombatDispatch never sees (fall, fire, drowning, the void). Negated into the
+     * reduction bucket for the same reason the combat side uses it: this path sets no attack-scale, so the
+     * two bucket choices happen to agree here, and using one bucket everywhere keeps the mark's felt strength
+     * identical whichever way the damage arrived.
+     */
+    private void amplifyVulnerable(Player actor, SinkReadback sink) {
+        VulnerabilityStore.Mark mark =
+                env.stores().vulnerability().active(actor.getUniqueId(), env.nowTicks().getAsLong());
+        if (mark != null) {
+            sink.fold().addReduction(-mark.percent() / 100.0);
+        }
+    }
+
+    /** The mark's per-hit line on the environmental path, reporting the figure that was actually committed. */
+    private void emitVulnerableLine(Player actor, org.bukkit.event.entity.EntityDamageEvent event,
+                                    SinkReadback sink) {
+        if (event.isCancelled()) {
+            return; // a hit that never landed is not a hit the mark amplified
+        }
+        VulnerabilityStore.Mark mark =
+                env.stores().vulnerability().active(actor.getUniqueId(), env.nowTicks().getAsLong());
+        if (mark != null && !mark.hitMessage().isEmpty()) {
+            sink.message(actor, HitFeedback.fill(mark.hitMessage(), event.getDamage()));
+        }
     }
 
     /**
@@ -286,7 +318,9 @@ public final class TriggerDispatch {
         SinkReadback sink = newSink();
         runner.contributeHeroicReduction(snapshot.generation(), actor, sink);
         amplifyDot(actor, event, sink);
+        amplifyVulnerable(actor, sink);
         event.setDamage(sink.fold().apply(event.getDamage()));
+        emitVulnerableLine(actor, event, sink);
         sink.flush();
     }
 

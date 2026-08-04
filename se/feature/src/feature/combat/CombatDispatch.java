@@ -21,6 +21,7 @@ import engine.stores.DamageCapStore;
 import engine.stores.DisarmWindowStore;
 import engine.stores.HitTempoStore;
 import engine.stores.OutgoingDebuffStore;
+import engine.stores.VulnerabilityStore;
 import engine.stores.ReboundStore;
 import engine.stores.RecentAttackersStore;
 import engine.stores.ReflectMarksStore;
@@ -67,6 +68,7 @@ public final class CombatDispatch {
     private final RecentAttackersStore recent;    // §2 gank window (Aegis / Anti Gank facts)
     private final ReflectMarksStore reflectMarks;  // §3 Hex reflect
     private final OutgoingDebuffStore outgoingDebuff; // §4 Weaken/Destruction
+    private final VulnerabilityStore vulnerability;   // wave 2d: the victim's own incoming-damage mark
     private final DamageCapStore damageCap;         // §5 Diminish
     private final SuppressionStore suppression;      // §7 one-shot Neutralize consume
     // ADR-0071 reforge armed-window stores: consulted at the hit site here, armed by the sink intents (shared via the env).
@@ -154,6 +156,7 @@ public final class CombatDispatch {
         this.recent = env.stores().recentAttackers();
         this.reflectMarks = env.stores().reflectMarks();
         this.outgoingDebuff = env.stores().outgoingDebuff();
+        this.vulnerability = env.stores().vulnerability();
         this.damageCap = env.stores().damageCap();
         this.suppression = env.stores().suppression();
         this.hitTempo = env.stores().hitTempo();
@@ -453,6 +456,16 @@ public final class CombatDispatch {
             suppression.consumeEventScoped(defenderPlayer.getUniqueId());
         }
 
+        // VULNERABILITY: the victim's own non-stacking fragility mark, folded once, OUTSIDE the defence-walk
+        // gate above — the mark's contract is every source, so a mob's hit and a PvE server both honour it.
+        // It rides the reduction bucket NEGATED rather than the outgoing one: the outgoing bucket is scaled by
+        // combat.attack-scale, so a +100% mark would land as +500% on this pack, while a −1.0 reduction is
+        // exactly x2.0 and additive with whatever armour the victim actually has.
+        VulnerabilityStore.Mark vuln = victimEntity instanceof Player marked
+                ? vulnerability.active(marked.getUniqueId(), now) : null;
+        if (vuln != null) {
+            sink.fold().addReduction(-vuln.percent() / 100.0);
+        }
         // Fold every damage contribution onto the event ONCE (§6.1). §5 cap first, then §3 hex-reflect off the
         // committed value; both deal retaliation via VICTIM-attributed sink.damage (ADR-0054: downstream
         // plugins see who dealt it); the EngineDamage frame keeps it from re-entering this handler.
@@ -470,6 +483,12 @@ public final class CombatDispatch {
             damageCap.recordLastTaken(capped.getUniqueId(), committed);
         }
         event.setDamage(committed);
+        if (vuln != null && !vuln.hitMessage().isEmpty() && victimEntity instanceof Player marked) {
+            // Reported at the hit the mark actually priced, and with the COMMITTED figure — the same rule
+            // REFLECT's line follows. Telling a marked player what the mark just cost them is the only way a
+            // hit that lands harder reads as the mark's doing rather than the attacker's gear.
+            sink.message(marked, HitFeedback.fill(vuln.hitMessage(), committed));
+        }
         // /se damagedebug: report the fold's actual buckets to toggled parties (both belong to this event's region).
         // getFinalDamage() reads the post-setDamage modifier chain — the health the victim actually loses — so the
         // readout exposes the server's whole post-fold pipeline (armor plugins included), not just our commit.
@@ -501,7 +520,7 @@ public final class CombatDispatch {
                     if (!hex.feedback().isEmpty()) {
                         // Emitted HERE, at the hit the reflect actually lands on — not when the window was armed —
                         // so the line reports the health this swing cost its owner (post-cap).
-                        sink.message(reflectedAttacker, ReflectFeedback.fill(hex.feedback(), back));
+                        sink.message(reflectedAttacker, HitFeedback.fill(hex.feedback(), back));
                     }
                 }
             }

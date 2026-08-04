@@ -86,7 +86,9 @@ class NewEffectEndToEndTest {
     /** The kinds wave 2d adds, in the same minimal authored form. */
     private static final List<String> WAVE_2D = List.of(
             "FACING_SET: { mode: away, anchor: activator, who: \"@Victim\" }",
-            "FALL_SHIELD: { window: 200, who: \"@Victim\" }");
+            "FALL_SHIELD: { window: 200, who: \"@Victim\" }",
+            "VULNERABILITY: { percent: 100, duration: 60, hit-message: \"hit\", "
+                    + "expiry-message: \"off\", who: \"@Victim\" }");
 
     @TempDir
     Path root;

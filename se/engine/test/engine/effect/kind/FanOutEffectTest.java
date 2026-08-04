@@ -272,7 +272,12 @@ class FanOutEffectTest {
                 // Wave 2d. The shield is armed on somebody ELSE, so the player-gate matters: a mob in the
                 // same resolved list has no store entry to carry and must contribute nothing.
                 playerOnly("FALL_SHIELD → fallShield(window)", new FallShieldEffect(),
-                        c -> c.with("window", 200), (s, p) -> verify(s).fallShield(p, 200)));
+                        c -> c.with("window", 200), (s, p) -> verify(s).fallShield(p, 200)),
+                playerOnly("VULNERABILITY → vulnerability(percent, duration, hit-message, expiry-message)",
+                        new VulnerabilityEffect(),
+                        c -> c.with("percent", 100.0).with("duration", 60)
+                                .with("hit-message", "marked for {damage}").with("expiry-message", "mark off"),
+                        (s, p) -> verify(s).vulnerability(p, 100.0, 60, "marked for {damage}", "mark off")));
     }
 
     /** The wave-1d.2 kinds whose fan-out shape is neither plain-entity nor plain-player. */

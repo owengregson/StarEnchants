@@ -1010,4 +1010,11 @@ public interface Sink {
      * carries no ability of its own here: the arming proc is somebody else's, which is the whole point.
      */
     void fallShield(Player target, int windowTicks);
+
+    /**
+     * Mark {@code target} to take {@code percent}% more damage from every source for {@code durationTicks} —
+     * {@code VULNERABILITY}. Non-stacking: a re-mark keeps the stronger window and the later expiry. The
+     * lapse notice is scheduled here, at the arm, because nothing else in the engine observes a window ending.
+     */
+    void vulnerability(Player target, double percent, int durationTicks, String hitMessage, String expiryMessage);
 }
