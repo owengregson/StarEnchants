@@ -37,9 +37,15 @@ import platform.sched.Scheduling;
  */
 public final class LegacyGearPoll {
 
-    /** Roll a durability hit's heroic save; restore the prior value on a save. Returns whether it restored. */
+    /**
+     * Roll a durability hit's heroic save; restore the prior value on a save. Returns whether it restored.
+     *
+     * <p>Carries the OWNING player like the other two subscribers do. Production runs exactly one poll, but this
+     * is the only subscriber that MUTATES the item, so a consumer that does not own every online player (the
+     * smoke harness runs a poll per check) has to be able to scope itself — and could not, without this.
+     */
     public interface HeroicSave {
-        boolean trySave(ItemStack item, short priorDamage);
+        boolean trySave(Player player, ItemStack item, short priorDamage);
     }
 
     /**
@@ -134,7 +140,7 @@ public final class LegacyGearPoll {
                     // The percent reads the PRIOR damage value, so it is the pre-wear figure the modern event carries.
                     fireItemDamage.fire(player, i != 0, dur - dmg[i], DurabilityPercent.of(dmg[i], max));
                 }
-                if (heroicSave != null && heroicSave.trySave(item, dmg[i])) { // (2) heroic save → restore
+                if (heroicSave != null && heroicSave.trySave(player, item, dmg[i])) { // (2) heroic save → restore
                     dur = dmg[i]; // record the POST-restore value so next tick sees no phantom delta
                     if (i == 0) {
                         heldSaved = true;
