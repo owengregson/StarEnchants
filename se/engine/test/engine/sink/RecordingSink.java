@@ -111,9 +111,12 @@ final class RecordingSink extends DispatchSinkBase {
         return false;
     }
 
+    /** Effective max health {@link #maxHealth} reports; a HEALTH_BOOST test drives it off the live amplifier. */
+    java.util.function.ToDoubleFunction<LivingEntity> effectiveMaxHealth = entity -> 20.0;
+
     @Override
     protected double maxHealth(LivingEntity entity) {
-        return 20.0;
+        return effectiveMaxHealth.applyAsDouble(entity);
     }
 
     @Override

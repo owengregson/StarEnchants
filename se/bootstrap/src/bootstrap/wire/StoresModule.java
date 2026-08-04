@@ -5,6 +5,7 @@ import engine.sink.DamageMarks;
 import engine.sink.FallingBlockCasts;
 import engine.sink.GuardianCasts;
 import engine.sink.OwnerZones;
+import engine.sink.ReducedPotions;
 import engine.sink.StackingDots;
 import engine.sink.TempEquip;
 import engine.sink.TurretCasts;
@@ -31,6 +32,7 @@ final class StoresModule {
                 .stop("temp equips", TempEquip::clearAll)                 // spooky's pumpkin helmet
                 .stop("decay ladders", StackingDots::clearAll)            // rot's per-victim STACKING_DOT stacks
                 .stop("turret casts", TurretCasts::clearAll)              // live TURRET_RING emplacements + their shots
+                .stop("potion reductions", ReducedPotions::clearAll)      // mortal coil's POTION_AMP_REDUCE claims
                 .build();
     }
 }

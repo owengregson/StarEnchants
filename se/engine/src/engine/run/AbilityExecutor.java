@@ -16,6 +16,7 @@ import engine.spec.TargetSpec;
 import engine.stores.SuppressionStore;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -108,7 +109,8 @@ public final class AbilityExecutor {
             try {
                 GateOutcome outcome = pipeline.evaluate(ability, activation);
                 if (outcome.activated()) {
-                    boolean faulted = runEffects(ability, context, sink, activation.activeGem(), activation.facts(), quarantine);
+                    boolean faulted = runEffects(ability, context, sink, activation.activeGem(), activation.facts(),
+                            quarantine, activation);
                     activated++;
                     notifyActivation(ability, context, stableKeys);
                     emitSoulRefund(ability, activation, context, sink);
@@ -209,7 +211,7 @@ public final class AbilityExecutor {
                 switch (outcome) {
                     case ACTIVATED -> {
                         boolean faulted = runEffects(ability, context, sink, activation.activeGem(),
-                                activation.facts(), quarantine);
+                                activation.facts(), quarantine, activation);
                         activated = true;
                         notifyActivation(ability, context, stableKeys);
                         emitSoulRefund(ability, activation, context, sink);
@@ -284,8 +286,11 @@ public final class AbilityExecutor {
             }
             Ability ability = abilities[id];
             try {
-                // No active gem: this run spends nothing, so a soul-reading effect must not see one.
-                if (runEffects(ability, context, sink, null, activation.facts(), quarantine)) {
+                // No active gem: this run spends nothing, so a soul-reading effect must not see one. No
+                // activation either: this run walked no gates, so its Activation carries no random-backed
+                // chance supplier (TriggerRunner.runForced deliberately builds none) and a partial defender
+                // window consulted with it would block deterministically rather than roll.
+                if (runEffects(ability, context, sink, null, activation.facts(), quarantine, null)) {
                     quarantine.recordFailure(id, ability.defId());
                 }
             } catch (Throwable failed) {
@@ -341,13 +346,23 @@ public final class AbilityExecutor {
         }
     }
 
-    // Returns true if any effect KIND threw (a genuine fault the quarantine counts). An unregistered head is
-    // warn-and-skip, NOT a fault — the ability still activates and its sibling effects run (§9).
+    /**
+     * Returns true if any effect KIND threw (a genuine fault the quarantine counts). An unregistered head is
+     * warn-and-skip, NOT a fault — the ability still activates and its sibling effects run (§9).
+     *
+     * <p>{@code gated} is the activation whose gate walk let this ability through, or {@code null} on the
+     * gateless re-execution path — the only thing it is read for here is the per-target-application defender
+     * consult, which belongs to a real gate walk.
+     */
     private boolean runEffects(Ability ability, ActivationContext context, SinkReadback sink, UUID activeGem,
-                               engine.condition.FactBuffer facts, AbilityQuarantine quarantine) {
+                               engine.condition.FactBuffer facts, AbilityQuarantine quarantine, Activation gated) {
         LinkedContent linked = this.linked; // read the volatile once per activation (atomic effect+selector pair)
         boolean faulted = false;
         ActorOrigin origin = null;
+        // HOISTED out of the target loop (owner ruling R-v): with no SUPPRESS_INCOMING window anywhere on the
+        // server this is the whole cost — two field reads for the activated ability, and the loop below is
+        // never entered.
+        boolean defenderWindows = gated != null && !ability.suppressImmune() && pipeline.anyDefenderWindows();
         for (CompiledEffect effect : ability.effects()) {
             try {
                 EffectKind kind = linked.effectFor(effect); // ADR-0039: dense-id dispatch, head-fallback only for -1
@@ -367,6 +382,9 @@ public final class AbilityExecutor {
                 if (selector == null) {
                     LOG.log(Level.WARNING, "no selector kind registered for head " + effect.target().head());
                 }
+                if (defenderWindows && !targets.isEmpty()) {
+                    targets = withoutDefendedTargets(ability, gated, targets);
+                }
                 EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets),
                         locationSlotMap(kind, locations), ability.level(), ability.defId(), activeGem, facts, origin);
                 // WAIT (§3.6): defer only this effect's world-mutation intents by its accumulated tick tier.
@@ -380,6 +398,39 @@ public final class AbilityExecutor {
             }
         }
         return faulted;
+    }
+
+    /**
+     * Gate 5 read one body at a time (owner ruling R-v): drop every resolved target carrying a defender-keyed
+     * {@code SUPPRESS_INCOMING} window against {@code ability}, so a chain hop onto a protected bystander is
+     * skipped the way the primary victim already is. Returns {@code targets} ITSELF when nothing matched —
+     * the ordinary case even on a server that has windows — so the hot path allocates only when it must.
+     *
+     * <p>Two bodies are deliberately never consulted here. The ACTIVATOR, because a defender window says what
+     * OTHERS may aim at its holder: filtering them would cut a mask wearer out of their own {@code who: @Self}
+     * lifesteal heal. And the PRIMARY VICTIM, because gate 5 already adjudicated them — a second consult would
+     * draw a second roll against one window, quietly squaring a partial mask's block rate.
+     */
+    private List<LivingEntity> withoutDefendedTargets(Ability ability, Activation act, List<LivingEntity> targets) {
+        List<LivingEntity> kept = null;
+        for (int i = 0; i < targets.size(); i++) {
+            LivingEntity target = targets.get(i);
+            UUID id = target.getUniqueId();
+            if (id.equals(act.actor()) || id.equals(act.victimId())
+                    || !pipeline.defenderBlocksTarget(ability, act, id)) {
+                if (kept != null) {
+                    kept.add(target);
+                }
+                continue;
+            }
+            if (kept == null) {
+                kept = new ArrayList<>(targets.size() - 1);
+                for (int before = 0; before < i; before++) {
+                    kept.add(targets.get(before));
+                }
+            }
+        }
+        return kept == null ? targets : kept;
     }
 
     /** Bind resolved entity targets to the effect's primary slot; empty map for effects that declare none. */

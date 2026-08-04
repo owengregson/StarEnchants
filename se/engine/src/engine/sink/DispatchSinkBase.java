@@ -1348,6 +1348,133 @@ public abstract class DispatchSinkBase implements SinkReadback {
         });
     }
 
+    /**
+     * ERA NOTE (probed, not assumed). The per-tick re-assert below is the SOLE enforcer on BOTH lanes, so
+     * this effect has no era seam at all — unlike {@link #potionLock}, which additionally cancels the modern
+     * {@code EntityPotionEffectEvent}. That event cannot help here: {@code javap} on paper-api 1.21.11 shows
+     * its only mutators are {@code setCancelled} and {@code setOverride} — there is no setter for the effect
+     * being applied — so the modern lane can DENY an application but not rewrite it down to a ceiling, and a
+     * denial is exactly the full strip this primitive exists to avoid. 1.8.8 (javap on craftbukkit
+     * 1.8.8-R0.1) carries every API the re-assert needs: {@code getActivePotionEffects},
+     * {@code removePotionEffect}, {@code addPotionEffect} and the 5-arg {@code PotionEffect} ctor with
+     * ambient/particles, and {@code MobEffectHealthBoost.a} clamps current health down to the new max on
+     * removal exactly as modern does. {@code LivingEntity#getPotionEffect(type)} is the one thing 1.8 lacks,
+     * which is why {@link #activeEffect} iterates instead.
+     */
+    @Override
+    public void potionAmpReduce(LivingEntity target, int potionEffectId, int amount, int durationTicks) {
+        if (amount <= 0 || durationTicks <= 0) {
+            return;
+        }
+        entityOp(target, () -> {
+            PotionEffectType type = potionEffect(potionEffectId);
+            if (type == null) {
+                return;
+            }
+            PotionEffect source = activeEffect(target, type);
+            if (source == null) {
+                return; // the ceiling is "source − amount"; with no source there is nothing to measure or sap
+            }
+            if (!ReducedPotions.arm(target.getUniqueId(), type.getName(), durationTicks * 50L)) { // ticks → ms
+                return; // a reduction is already running on this type — the incumbent holds (non-stacking)
+            }
+            int sourceAmplifier = source.getAmplifier();
+            int sourceDuration = source.getDuration();
+            boolean ambient = source.isAmbient();
+            boolean particles = source.hasParticles();
+            int ceiling = ReducedPotions.reduced(sourceAmplifier, amount);
+            capTo(target, type, ceiling);
+            // The re-assert IS the "capped at source − N" rule (see the era note): a driver that refreshes the
+            // buff at full strength inside the window is pulled back to the ceiling. It reads one collection
+            // and returns when the live amplifier is already at or under it, so it churns nothing.
+            TaskHandle[] handle = new TaskHandle[1];
+            handle[0] = Scheduling.repeatingEntity(target, 1L, 1L, () -> {
+                if (!target.isValid()) {
+                    if (handle[0] != null) {
+                        handle[0].cancel();
+                    }
+                    return;
+                }
+                capTo(target, type, ceiling);
+            });
+            // revertLater, not a bare timer: a victim who combat-logs mid-window gets the buff back BEFORE the
+            // playerdata save, so pressuring a log-out cannot make the sap permanent.
+            revertLater(target, durationTicks, () -> {
+                if (handle[0] != null) {
+                    handle[0].cancel();
+                }
+                ReducedPotions.release(target.getUniqueId(), type.getName());
+                restoreAmplifier(target, type, sourceAmplifier, sourceDuration, durationTicks, ambient, particles);
+            });
+        });
+    }
+
+    /**
+     * The live instance of {@code type} on {@code target}, or {@code null}. Iterates rather than calling
+     * {@code getPotionEffect(type)}, which is absent from the 1.8 API this shared base also compiles against.
+     */
+    private static PotionEffect activeEffect(LivingEntity target, PotionEffectType type) {
+        for (PotionEffect active : target.getActivePotionEffects()) {
+            if (type.equals(active.getType())) {
+                return active;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Put {@code type} on {@code target} at {@code amplifier} ({@code < 0} removes it outright), carrying
+     * current health across the swap.
+     *
+     * <p>The remove is NOT optional: an {@code addPotionEffect} over a live instance is refused outright by
+     * 1.8's {@code CraftLivingEntity} and loses vanilla's merge to a stronger one on modern, so a rewrite is
+     * always remove-then-add. That gap is what makes the health carry mandatory — vanilla clamps current
+     * health against the BASE max while the effect is off, so a bare remove-then-add costs the holder every
+     * bonus heart the source granted, which is the full-strip outcome this primitive exists to avoid. Capped
+     * by the NEW max, so the carry can only ever hold health down, never restore it.
+     */
+    private void rewritePotion(LivingEntity target, PotionEffectType type, int amplifier, int duration,
+                               boolean ambient, boolean particles) {
+        double health = target.getHealth();
+        target.removePotionEffect(type);
+        if (amplifier >= 0) {
+            target.addPotionEffect(new PotionEffect(type, duration, amplifier, ambient, particles));
+        }
+        target.setHealth(Math.max(0.0, Math.min(health, maxHealth(target))));
+    }
+
+    /**
+     * Hold {@code type} at {@code ceiling} on {@code target}, removing it outright at
+     * {@link ReducedPotions#DENIED}. A no-op while the live amplifier is already at or under the ceiling, so
+     * the per-tick re-assert does not rewrite (and re-send) the effect every tick.
+     */
+    private void capTo(LivingEntity target, PotionEffectType type, int ceiling) {
+        PotionEffect live = activeEffect(target, type);
+        if (live == null || live.getAmplifier() <= ceiling) {
+            return;
+        }
+        rewritePotion(target, type, ceiling, live.getDuration(), live.isAmbient(), live.hasParticles());
+    }
+
+    /**
+     * Give the source back at the window's close. Max health returns with it while current health stays where
+     * the sap left it — the measured downward-only clamp. A live instance keeps its own remaining duration so
+     * a restore never extends a buff that was about to lapse.
+     */
+    private void restoreAmplifier(LivingEntity target, PotionEffectType type, int amplifier,
+                                  int sourceDuration, int windowTicks, boolean ambient, boolean particles) {
+        if (!target.isValid()) {
+            return; // gone from the world; a quitting player is still valid here, which is the case that matters
+        }
+        PotionEffect live = activeEffect(target, type);
+        int duration = live != null ? live.getDuration()
+                : ReducedPotions.restoreDuration(sourceDuration, windowTicks);
+        if (duration == 0) {
+            return; // the source would have run out during the window; there is nothing left to give back
+        }
+        rewritePotion(target, type, amplifier, duration, ambient, particles);
+    }
+
     @Override
     public void freeze(LivingEntity target, int durationTicks, double dotPerTick, int dotPeriodTicks,
                        double slowPercent, boolean neutralizeFrostSlow, double breakoutChancePercent,

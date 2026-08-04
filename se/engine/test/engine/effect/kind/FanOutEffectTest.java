@@ -121,6 +121,11 @@ class FanOutEffectTest {
                         c -> c.with("effect", 5), (s, t) -> verify(s).removePotion(t, 5)),
                 entity("POTION_LOCK → potionLock(effect, ticks)", new PotionLockEffect(),
                         c -> c.with("effect", 5).with("ticks", 100), (s, t) -> verify(s).potionLock(t, 5, 100)),
+                // POTION_LOCK's partial sibling: every arg distinct, so a transposed amount/duration cannot pass.
+                entity("POTION_AMP_REDUCE → potionAmpReduce(effect, amount, duration)",
+                        new PotionAmpReduceEffect(),
+                        c -> c.with("effect", 5).with("amount", 2).with("duration", 48),
+                        (s, t) -> verify(s).potionAmpReduce(t, 5, 2, 48)),
                 // ADR-0065: distinct non-default args pin the param→intent wiring (a transposition fails).
                 entity("FREEZE → freeze(duration, dot, dot-period, slow, neutralize, attribution)",
                         new FreezeEffect(),
