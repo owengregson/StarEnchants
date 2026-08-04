@@ -219,7 +219,7 @@ effect MODIFY_EXP
   param mode ENUM optional min=- max=- enum=give,take,transfer handle=- default=give
 effect MODIFY_FOOD
   param amount INT optional min=0 max=- enum=- handle=- default=0
-  param mode ENUM optional min=- max=- enum=cancel-drain,give,scale-gain,take handle=- default=give
+  param mode ENUM optional min=- max=- enum=absolute,cancel-drain,give,scale-gain,take handle=- default=give
   param factor DOUBLE optional min=0 max=- enum=- handle=- default=1
   param duration TICKS optional min=0 max=- enum=- handle=- default=100
 effect MODIFY_HEALTH
@@ -265,6 +265,11 @@ effect PERIODIC_DAMAGE
   param duration TICKS optional min=0 max=- enum=- handle=- default=100
   param replace HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=
   param feedback STRING optional min=- max=- enum=- handle=- default=
+  param tick-sound HANDLE optional min=- max=- enum=- handle=SOUND default=-
+  param tick-volume DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param tick-pitch DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param tick-particle HANDLE optional min=- max=- enum=- handle=PARTICLE default=-
+  param tick-particle-count INT optional min=0 max=- enum=- handle=- default=1
 effect POTION
   param effect HANDLE required min=- max=- enum=- handle=POTION_EFFECT default=-
   param level INT required min=1 max=- enum=- handle=- default=-
