@@ -22,8 +22,11 @@ class ActorOriginDeclarationTest {
             }
         });
         assertEquals(
+                // FACING_SET joins for VELOCITY's reason: both measure a direction from an anchor whose
+                // default is the activator, and both must read the captured origin rather than the live actor.
                 new TreeSet<>(Set.of("PARTICLE_RING", "PARTICLE_LINE", "WALKER", "SPAWN_ENTITY",
-                        "SPAWN_SWARM", "TELEPORT_BEHIND", "TELEPORT", "VELOCITY", "CAGE", "BLINK")),
+                        "SPAWN_SWARM", "TELEPORT_BEHIND", "TELEPORT", "VELOCITY", "CAGE", "BLINK",
+                        "FACING_SET")),
                 flagged);
     }
 }

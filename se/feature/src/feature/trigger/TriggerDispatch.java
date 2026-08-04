@@ -269,6 +269,15 @@ public final class TriggerDispatch {
     }
 
     /**
+     * Spend {@code actor}'s armed {@code FALL_SHIELD}, if one is live — the caller cancels the fall damage when
+     * this returns true. Consumed BEFORE the fold rather than folded into it: the contract is one free fall,
+     * not a reduction, and a −100% fold would still leave the landing sound, the FALL walk and the item wear.
+     */
+    public boolean consumeFallShield(Player actor) {
+        return env.stores().fallShields().consume(actor.getUniqueId(), env.nowTicks().getAsLong());
+    }
+
+    /**
      * Fold ONLY the worn heroic reduction onto {@code event} — environmental damage with no trigger, softened
      * by heroic under {@code reduction-scope: ALL} (§F). Runs no trigger abilities.
      */

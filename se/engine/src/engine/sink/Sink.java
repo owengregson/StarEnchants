@@ -996,4 +996,18 @@ public interface Sink {
      */
     void rebindSummon(LivingEntity summon, Player owner, int entityTypeId, int ttlTicks, String name,
                       double health, double speed, java.util.List<Integer> effects, double rise);
+
+    /**
+     * Turn {@code target} to look at {@code reference} (or, with {@code away}, directly opposite it) WITHOUT
+     * moving them — {@code FACING_SET}. The position is re-used verbatim, so this is a rotation and never a
+     * displacement; a target sharing the reference's exact column keeps its current look rather than snapping
+     * to an arbitrary yaw.
+     */
+    void setFacing(LivingEntity target, Location reference, boolean away);
+
+    /**
+     * Arm {@code target}'s one-shot fall cancel for {@code windowTicks} — {@code FALL_SHIELD}. The target
+     * carries no ability of its own here: the arming proc is somebody else's, which is the whole point.
+     */
+    void fallShield(Player target, int windowTicks);
 }

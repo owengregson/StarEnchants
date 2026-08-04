@@ -170,7 +170,15 @@ public final class TriggerListeners implements Listener {
         boolean heroic = heroicAllScope.getAsBoolean();
         ActivationContext context = damaged(player, event);
         switch (event.getCause()) {
-            case FALL -> dispatch.fireDamage(player, dispatch.fall, dispatch.hurt, context, event, heroic);
+            case FALL -> {
+                // FALL_SHIELD is spent here, ahead of every walk: the shield's contract is that this landing
+                // never happened, so the FALL abilities it would otherwise proc must not see it either.
+                if (dispatch.consumeFallShield(player)) {
+                    event.setCancelled(true);
+                } else {
+                    dispatch.fireDamage(player, dispatch.fall, dispatch.hurt, context, event, heroic);
+                }
+            }
             case FIRE, FIRE_TICK, LAVA ->
                     dispatch.fireDamage(player, dispatch.fire, dispatch.hurt, context, event, heroic);
             // Every other cause: HURT alone, sharing one fold with the heroic-only reduction it subsumes here.
