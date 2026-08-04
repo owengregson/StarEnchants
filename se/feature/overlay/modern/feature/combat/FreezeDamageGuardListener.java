@@ -31,7 +31,7 @@ public final class FreezeDamageGuardListener implements Listener {
         if (event.getCause() != EntityDamageEvent.DamageCause.FREEZE) {
             return;
         }
-        if (FrozenTargets.isFrozen(event.getEntity().getUniqueId(), System.currentTimeMillis())) {
+        if (FrozenTargets.isFrozen(event.getEntity().getUniqueId())) {
             event.setCancelled(true); // the engine DoT is the only damage source for the window
         }
     }
@@ -39,8 +39,7 @@ public final class FreezeDamageGuardListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (!FrozenTargets.isFrozen(player.getUniqueId(), System.currentTimeMillis())
-                && FreezeLock.isLocked(player)) {
+        if (!FrozenTargets.isFrozen(player.getUniqueId()) && FreezeLock.isLocked(player)) {
             FreezeLock.lock(player, false);
             player.setFreezeTicks(0);
         }

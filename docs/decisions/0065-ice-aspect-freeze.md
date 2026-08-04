@@ -73,10 +73,10 @@ Freeze-tick facts (Mojang-mapped, 1.20.6 / 26.1.2 / Folia 1.20.6 / Folia 26.1.2 
    lands its hurt and tears the window down in the same task run — the tick count per window is exact on every
    version and on Folia. Gating the tick-lattice task on the wall clock instead provably drifts: catch-up
    bursts add a slot and an exactly-on-time server structurally drops the boundary slot (`now >= deadline`).
-   The wall-clock deadline survives only as the per-tick pin's and the damage guard's read (their call sites
-   have no tick anchor); under sustained lag those honestly stop early — a DoT slot is never lost. A `dot: 0`
-   window fires no hurts (no empty damage events / i-frames); durations that are not `dot-period` multiples
-   end at the last lattice slot (down-quantized) — authored durations are period multiples.
+   The per-tick pin and the damage guard read the SAME tick budget (see the amendment below — they originally
+   read the wall deadline, which blinded them in a laggy tail). A `dot: 0` window fires no hurts (no empty
+   damage events / i-frames); durations that are not `dot-period` multiples end at the last lattice slot
+   (down-quantized) — authored durations are period multiples.
 
 5. **Vanilla's frost slow is neutralized so the authored percent is the real slow.** At a full pin vanilla
    applies `−0.05` MOVEMENT_SPEED (≈50% ground slow) server-side and client-predicted. The sink applies a
@@ -114,3 +114,24 @@ Freeze-tick facts (Mojang-mapped, 1.20.6 / 26.1.2 / Folia 1.20.6 / Folia 26.1.2 
   phase; the shared i-frame window makes the net per-window damage identical, so it is the honest approximation.
 - The full-vignette client render while the local player burns cannot be proven from server jars; the live
   suite pins the synced server-side metadata, and one manual client eyeball is the honest final check.
+
+## Amendment (2026-08-03): liveness is tick space; the wall clock only reaps
+
+`FrozenTargets.isFrozen` now reads the TICK budget — the entry exists and `elapsedTicks < budgetTicks` — the
+same authority the DoT chain claims against, instead of `nowMs < deadlineMs`. Its `nowMs` parameter is gone.
+
+The original split was unsound. On 1.18.2+ the victim is pinned by Paper's freeze-tick lock for the full
+TICK-space window, but `FreezeDamageGuardListener.onFreezeDamage` — which cancels vanilla's fully-frozen
+1.0-every-40t self-hurt — gated on the WALL-clock read. Below 20 TPS a 60-tick window outlasts its 3000 ms
+deadline: the guard goes blind in the tail while the victim is still pinned, vanilla's self-hurt lands and
+arms i-frames with `lastHurt = 1.0`, and on ≤1.20.6 the next 2.0 DoT slot fires as a partial whose event base
+is `amount − lastHurt`. Symptom: an intermittent `freeze.*` failure on `folia:1.20.6` — the only matrix target
+with both the lag and the partial-hurt semantics. "Those honestly stop early" was wrong because the pin does
+NOT stop early: the lock outlives the deadline exactly as the chain does.
+
+The deadline stays on the window as the reaper for an entry whose chain died with its entity: `refresh`
+presumes a lapsed entry a dead chain and returns false, so the next `arm` tears it down and supersedes it.
+The other reclamation paths are unchanged (`clear` from the `EntityAddToWorldEvent` reconcile, the quit drain,
+`teardownAll`). On Paper the chain is a plain timer that always reaches its teardown, so no entry orphans at
+all; on Folia only a retired entity scheduler (mob death/unload) leaves one, and a dead mob's UUID is never
+read again.

@@ -1084,9 +1084,10 @@ public abstract class DispatchSinkBase implements SinkReadback {
         int period = Math.max(1, dotPeriodTicks);
         entityOp(target, () -> {
             UUID victim = target.getUniqueId();
-            // Wall-clock EXPECTATION of the window, read only by the pin task + damage guard (isFrozen);
-            // the DoT cadence and the teardown run in TICK space (the chain below claims a tick budget),
-            // so wall/tick drift — catch-up bursts, sustained lag — never adds or drops a DoT tick.
+            // Wall-clock EXPECTATION of the window, kept only to reap an entry whose chain died with its
+            // entity (a lapsed one never refreshes, so the arm below supersedes it). Cadence, teardown AND
+            // liveness all read the TICK budget, so drift — catch-up bursts, sustained lag — never adds or
+            // drops a DoT tick nor blinds the pin/guard while the victim is still pinned.
             long deadlineMs = System.currentTimeMillis() + durationTicks * 50L;
             UUID attackerId = attacker != null ? attacker.getUniqueId() : null;
             if (FrozenTargets.refresh(victim, durationTicks, deadlineMs, attackerId, attacker)) {
@@ -1128,7 +1129,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 // synced value is exactly max (§1.1). Skipped while burning — baseTick would zero it and
                 // replay the 1009 extinguish hiss every tick (§1.2); the visual drops until the fire ends.
                 tasks[1] = Scheduling.repeatingEntity(target, 1L, 1L, () -> {
-                    if (target.isValid() && FrozenTargets.isFrozen(victim, System.currentTimeMillis())) {
+                    if (target.isValid() && FrozenTargets.isFrozen(victim)) {
                         freezePin(target);
                     }
                 });

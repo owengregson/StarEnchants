@@ -383,7 +383,7 @@ public final class FreezeSuite implements Harness.Scenario {
                 // Poll until the freeze WINDOW is actually registered (the guard cancels off the SAME
                 // FrozenTargets.isFrozen read), not a fixed 5-tick wait: under CI load the arm map-write
                 // lands later than 5 ticks and the guard sees a not-yet-frozen victim — the flake.
-                awaitUntil(frozen, () -> FrozenTargets.isFrozen(frozenId, System.currentTimeMillis()), 0, 60, armed -> {
+                awaitUntil(frozen, () -> FrozenTargets.isFrozen(frozenId), 0, 60, armed -> {
                     h.guard(key, () -> {
                         if (!armed) {
                             throw new IllegalStateException("the freeze window never registered within 60 ticks");

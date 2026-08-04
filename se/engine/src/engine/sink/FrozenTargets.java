@@ -15,10 +15,10 @@ import platform.caps.Regions;
  * A re-proc REFRESHES (same generation, extended budget/deadline, new attacker) — never a second window
  * (owner rule).
  *
- * <p>Two clocks, one authority: the DoT chain claims its period slots against the TICK budget
- * ({@link #chainTick}) and disarms the entry itself, so wall/tick drift (catch-up bursts, sustained lag)
- * never adds or drops a DoT tick; the wall-clock deadline serves only {@link #isFrozen} — the per-tick
- * pin and the damage guard, whose call sites have no tick anchor.
+ * <p>One authority — TICK space: the DoT chain claims its period slots against the budget
+ * ({@link #chainTick}) and disarms the entry itself, and {@link #isFrozen} reads that same budget, so
+ * wall/tick drift (catch-up bursts, sustained lag) never adds or drops a DoT tick and never blinds the
+ * pin/guard mid-window. The wall-clock deadline only reaps an entry whose chain died with its entity.
  *
  * <p>The attacker handle is stored only to hand to vanilla as the damage source of a DoT tick
  * (never dereferenced — the ADR-0054 {@code hurt()} contract), so a cross-region attacker is safe.
@@ -28,6 +28,7 @@ public final class FrozenTargets {
     /** One live window. {@code teardown} is set right after arm (the sink owns the closure). */
     public static final class Window {
         final long generation;
+        /** Reaper only: a lapsed entry is presumed a dead chain, so {@link #refresh} lets the next arm supersede it. */
         volatile long deadlineMs;
         volatile UUID attackerId;
         volatile LivingEntity attacker;
@@ -130,15 +131,15 @@ public final class FrozenTargets {
     }
 
     /**
-     * Whether {@code victim} is inside a live window at {@code nowMs} — the wall-clock read for the
-     * per-tick pin and the damage guard. Never evicts: the owning chain disarms in tick space, so a
-     * wall-lapsed-but-still-ticking window (sustained lag) only drops the pin/guard early — it never
-     * costs a DoT slot. An entry whose chain died with its entity lingers until the next {@link #arm}
-     * for that victim or the disable sweep reclaims it.
+     * Whether {@code victim} is inside a live window — the liveness read for the per-tick pin and the damage
+     * guard, in TICK space: unspent budget is exactly the span Paper's freeze-tick lock keeps the victim
+     * pinned. Reading the wall deadline instead went blind in a laggy tail (60 game ticks outlast 3000 ms
+     * below 20 TPS) while the victim stayed pinned, letting vanilla's fully-frozen self-hurt through — its
+     * i-frames then partial the next DoT slot on ≤1.20.6. Never evicts; the owning chain disarms itself.
      */
-    public static boolean isFrozen(UUID victim, long nowMs) {
+    public static boolean isFrozen(UUID victim) {
         Window w = WINDOWS.get(victim);
-        return w != null && nowMs < w.deadlineMs;
+        return w != null && w.elapsedTicks < w.budgetTicks;
     }
 
     /** Drop the window iff still the {@code generation} one (a newer window survives a stale teardown). */
