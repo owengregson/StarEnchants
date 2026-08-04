@@ -47,8 +47,9 @@ class VarVocabularyTest {
         // wave 1b.3 (posthit.health + heldticks + actor/victim.souls + impactheight numbers,
         // victim.fromspawner flag, projectilekind string), wave 1c (equipchange string — the EQUIP_CHANGE
         // direction), wave 2b (item.durabilitypercent number — the ITEM_DAMAGE wear read), and wave 2c
-        // (victim.heroicpieces number — the worn heroic-armour piece count).
-        assertEquals(27, v.numberSlots());
+        // (victim.heroicpieces number — the worn heroic-armour piece count), and wave 2d
+        // (actor.heroicpieces + actor.y numbers — the actor-side piece tally and the absolute feet height).
+        assertEquals(29, v.numberSlots());
         assertEquals(21, v.flagSlots());
         assertEquals(13, v.stringSlots());
         assertEquals(VarKind.NUM, v.lookup("victim", "health").orElseThrow().kind());

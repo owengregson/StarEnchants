@@ -544,12 +544,14 @@ var actor.groundblock STR
 var actor.health NUM
 var actor.healthpercent NUM
 var actor.helditem STR
+var actor.heroicpieces NUM
 var actor.level NUM
 var actor.maxhealth NUM
 var actor.souls NUM
 var actor.totalexp NUM
 var actor.type STR
 var actor.world STR
+var actor.y NUM
 var attackerindex NUM
 var block.type STR
 var blocking BOOL

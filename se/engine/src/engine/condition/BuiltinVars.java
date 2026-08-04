@@ -105,6 +105,14 @@ public final class BuiltinVars {
                 // already uses: "wearing at least one heroic piece" is a gate no percentage can express, and a
                 // held heroic weapon is deliberately not one. 0 for a mob, and for a victimless activation.
                 .number("victim.heroicpieces")
+                // Wave 2d facts — appended (slots are append-only per §3.4).
+                // The ACTOR's own heroic-piece count, the same tally as its victim-side twin. An accumulator
+                // enchant reads its holder's own gear to price itself ("+N% per heroic piece worn"), which the
+                // victim-side fact cannot express from the wrong end of the hit.
+                .number("actor.heroicpieces")
+                // The actor's feet Y in world coordinates. Absolute, not relative: the consumers gate on a
+                // build height ("only below y=40"), which no differencing fact (%actor.belowvictim%) reaches.
+                .number("actor.y")
                 .build();
     }
 }

@@ -1481,12 +1481,14 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%actor.health%` | NUM |
 | `%actor.healthpercent%` | NUM |
 | `%actor.helditem%` | STR |
+| `%actor.heroicpieces%` | NUM |
 | `%actor.level%` | NUM |
 | `%actor.maxhealth%` | NUM |
 | `%actor.souls%` | NUM |
 | `%actor.totalexp%` | NUM |
 | `%actor.type%` | STR |
 | `%actor.world%` | STR |
+| `%actor.y%` | NUM |
 | `%attackerindex%` | NUM |
 | `%block.type%` | STR |
 | `%blocking%` | BOOL |
