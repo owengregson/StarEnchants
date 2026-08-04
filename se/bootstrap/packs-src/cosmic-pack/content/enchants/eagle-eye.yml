@@ -31,7 +31,8 @@ tier: epic
 # interaction-layer rule shared with Piercing (same read) and Arrow Deflect (the writer); nothing on this side.
 # No ally/PvP filter beyond the engine's global gates, matching the jar.
 # strings: none.
-# era: `CRIT_MAGIC` maps to 1.8's `magicCrit` through `Aliases.PARTICLE` (already carried).
+# era: `CRIT_MAGIC` is the 1.8 EnumParticle constant, so it resolves there directly; `Aliases.PARTICLE`
+# carries it forward to the modern `ENCHANTED_HIT`.
 # `ANVIL_BREAK` (1.8.9) is authored as `BLOCK_ANVIL_DESTROY`, the one spelling the pack carries for that
 # constant — `disarmor.yml` and `disintegrate.yml` ship it too, and the row `ANVIL_BREAK` ->
 # `BLOCK_ANVIL_DESTROY` is in `Aliases.SOUND`, so both lanes resolve. The character question the matrix

@@ -73,7 +73,11 @@ public final class Aliases {
             // practice — a 1.8 server resolves the token WATER directly (it has that constant too), so the
             // reverse scan never runs and a modern-authored WATER stays flowing there. It earns its place by
             // reading a 1.8-authored config on a modern server, which is the migrator's direction.
-            Map.entry("STATIONARY_WATER", "WATER"));
+            Map.entry("STATIONARY_WATER", "WATER"),
+            // The 1.13 flattening spelled out GOLD_ → GOLDEN_ on tools. The cosmic pack authors the modern
+            // pair (the KOTH set piece and both heroic weapon conversions), and 1.8 has only the short form.
+            Map.entry("GOLD_SWORD", "GOLDEN_SWORD"),
+            Map.entry("GOLD_AXE", "GOLDEN_AXE"));
 
     // 1.21.x dropped the GENERIC_ / HORSE_ / ZOMBIE_ prefixes on attribute keys.
     private static final Map<String, String> ATTRIBUTE = Map.ofEntries(

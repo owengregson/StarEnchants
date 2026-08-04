@@ -23,7 +23,7 @@ condition: "%victim.type% == \"PLAYER\" && %victim.var.hexed% != 1"
 # cancelled; REFLECT applies to landed hits only — noted by the matrix and accepted, not a deviation to fix.
 # strings: the two chat lines below plus the per-hit `§5* HEX [§c{damage}§5 DMG] *`, which REFLECT's
 # `feedback` sends to the afflicted with the returned health filled in (the jar's DecimalFormat `#.##`).
-# era: the witch particle is `WITCH_MAGIC` on 1.8.9, `SPELL_WITCH` after the flattening and `WITCH` after the
+# era: the witch particle is `SPELL_WITCH` on 1.8.9 (the jar spells it `WITCH_MAGIC`) and `WITCH` after the
 # 1.20.5 registry rename — `Aliases.PARTICLE` carries `SPELL_WITCH ↔ WITCH` and the resolver's reverse scan
 # makes it bidirectional, so the modern spelling loads on both lanes.
 levels:

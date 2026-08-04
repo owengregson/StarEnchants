@@ -17,7 +17,8 @@ tier: legendary
 # multiplied by Rage AND double-incremented the combo. The intended behaviour — echo hits excluded from Rage
 # — is the engine default (Rage's counter steps once per real swing), so nothing is authored for it here.
 # strings: none.
-# era: `RED_DUST` (1.8.9) <-> `REDSTONE` / `DUST` (1.20.5 flattening) via the resolver.
+# era: `REDSTONE` is the 1.8 EnumParticle constant (the jar spells it `RED_DUST`), and `Aliases.PARTICLE`
+# maps it forward to `DUST` (1.20.5 flattening).
 levels:
   # chance 2 x level (2/4/6 %).
   1:

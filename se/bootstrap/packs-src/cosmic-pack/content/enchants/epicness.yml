@@ -16,8 +16,8 @@ chance: 50  # flat 50 % at every level — level selects the cue pair, never the
 # interactions: none of its own. strings: none.
 # era: `CHICKEN_HURT` / `MAGMACUBE_WALK2` / `GHAST_SCREAM` (1.8.9) <-> `ENTITY_CHICKEN_HURT` /
 # `ENTITY_MAGMA_CUBE_SQUISH` / `ENTITY_GHAST_SCREAM` (modern) — all three legacy-sweep rows have LANDED in
-# `Aliases.SOUND`, so every cue resolves on the 1.8 lane. `WITCH_MAGIC` <-> `SPELL_WITCH` and `SLIME` <->
-# `ITEM_SLIME` are already in the particle table; CLOUD is era-neutral.
+# `Aliases.SOUND`, so every cue resolves on the 1.8 lane. `SPELL_WITCH` is the 1.8 EnumParticle constant and
+# `SLIME` <-> `ITEM_SLIME` is in the particle table; CLOUD is era-neutral.
 levels:
   1:
     effects:

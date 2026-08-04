@@ -21,7 +21,7 @@ condition: '%victim.type% == "PLAYER"'
 # the portal sound and the cloud puff at the origin, the witch swirl at the destination. The origin puff rides
 # the activation location; the destination swirl rides the body two ticks after the hop, the same delay the
 # engine's own blink arrival cue uses, so it lands where the wearer does.
-# era: WITCH_MAGIC and CLOUD are the 1.8 particle spellings (SPELL_WITCH resolves both ways, CLOUD is
+# era: SPELL_WITCH and CLOUD are the 1.8 EnumParticle constants (WITCH_MAGIC is the jar's name, CLOUD is
 # unchanged). PORTAL_TRIGGER is the 1.8 sound id and its resolver row landed in wave 2e.2 (closing the legacy
 # sweep), so the modern BLOCK_PORTAL_TRIGGER token this file authors resolves on the legacy lane too.
 levels:
