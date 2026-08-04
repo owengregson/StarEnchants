@@ -23,15 +23,15 @@ import schema.grammar.EffectLine;
  */
 final class EnchantDefReader {
 
-    private static final Set<String> ROOT_KEYS = ContentParse.withSoulKnobs(
+    private static final Set<String> ROOT_KEYS = ContentParse.withEnvelopeKnobs(
             "display", "description", "tier", "applies-to", "trigger", "disabled-worlds", "group",
             "repeat", "levels", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap",
             "soul-cost-decay-period", "no-souls-message", "condition",
             "requires", "blacklist", "removes-required", "suppress-immune");
-    private static final Set<String> LEVEL_KEYS = ContentParse.withSoulKnobs(
+    private static final Set<String> LEVEL_KEYS = ContentParse.withEnvelopeKnobs(
             "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
             "no-souls-message", "condition", "effects", "abilities");
-    private static final Set<String> ABILITY_KEYS = ContentParse.withSoulKnobs(
+    private static final Set<String> ABILITY_KEYS = ContentParse.withEnvelopeKnobs(
             "trigger", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap",
             "soul-cost-decay-period", "no-souls-message", "condition", "repeat", "effects");
 
@@ -179,6 +179,8 @@ final class EnchantDefReader {
                 knobNode(block, lvl, root, "soul-cost-carried"),
                 knobNode(block, lvl, root, "no-souls-sound"),
                 knobNode(block, lvl, root, "no-souls-particle"), diags);
+        String cdScopeEnchant = ContentParse.resolveCooldownScope(
+                knobNode(block, lvl, root, "cooldown-scope"), baseKey, diags);
         String condition = ContentParse.blankToNull(
                 ContentParse.resolveString(knobNode(block, lvl, root, "condition"), "condition", diags));
         // A block may retarget itself (an ATTACK enchant whose second block rides DEFENSE); absent → the enchant's.
@@ -201,7 +203,7 @@ final class EnchantDefReader {
                 condition,
                 effects,
                 baseKey,   // one suppression key: DISABLE_ENCHANT silences every block of the enchant
-                baseKey,   // one cooldown scope: blocks share the enchant's cooldown bucket
+                cdScopeEnchant, // blocks share the enchant's cooldown bucket unless one opts out
                 group,
                 null,
                 repeatTicks,

@@ -26,13 +26,13 @@ import schema.grammar.EffectLine;
  */
 final class MaskDefReader {
 
-    private static final Set<String> ROOT_KEYS = ContentParse.withSoulKnobs(
+    private static final Set<String> ROOT_KEYS = ContentParse.withEnvelopeKnobs(
             "display", "color", "head", "material", "description", "abilities",
             // single-ability shorthand (a mask with exactly one ability authors these at the top level):
             "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
             "no-souls-message",
             "condition", "effects");
-    private static final Set<String> ABILITY_KEYS = ContentParse.withSoulKnobs(
+    private static final Set<String> ABILITY_KEYS = ContentParse.withEnvelopeKnobs(
             "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
             "no-souls-message",
             "condition", "effects");
@@ -122,7 +122,9 @@ final class MaskDefReader {
         // mirroring the crystal reader; an authored group overrides the cooldown group.
         return new AbilityDef(
                 SourceKind.MASK, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, soulCost, triggers,
-                disabledWorlds, condition, effects, stableKey, stableKey, group, null, repeatTicks, fileSource, 0, false,
+                disabledWorlds, condition, effects, stableKey,
+                ContentParse.resolveCooldownScope(node, stableKey, diags),
+                group, null, repeatTicks, fileSource, 0, false,
                 chance.expr(), noSoulsMessage, soulKnobs.carried(), soulKnobs.sound(), soulKnobs.particle(),
                 soulCostGrowth, soulCostCap, soulCostDecayPeriod);
     }

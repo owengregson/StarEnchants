@@ -29,7 +29,7 @@ final class SetDefReader {
             "bonuses", "announce", "equip-message", "remove-message");
     private static final Set<String> ARMOR_KEYS = Set.of("lore", "enchants", "pieces");
     private static final Set<String> WEAPON_KEYS = Set.of("material", "name", "lore", "enchants");
-    private static final Set<String> BONUS_KEYS = ContentParse.withSoulKnobs(
+    private static final Set<String> BONUS_KEYS = ContentParse.withEnvelopeKnobs(
             "on", "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost",
             "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
             "no-souls-message", "condition", "effects");
@@ -214,7 +214,9 @@ final class SetDefReader {
         }
         return new AbilityDef(
                 SourceKind.SET, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, soulCost, triggers,
-                disabledWorlds, condition, effects, stableKey, stableKey, group, null, repeatTicks, fileSource,
+                disabledWorlds, condition, effects, stableKey,
+                ContentParse.resolveCooldownScope(node, stableKey, diags),
+                group, null, repeatTicks, fileSource,
                 Math.max(0, setPieces), false, chance.expr(), noSoulsMessage, soulKnobs.carried(), soulKnobs.sound(),
                 soulKnobs.particle(), soulCostGrowth, soulCostCap, soulCostDecayPeriod);
     }

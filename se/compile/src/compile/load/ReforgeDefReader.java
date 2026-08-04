@@ -27,13 +27,13 @@ import schema.grammar.EffectLine;
  */
 final class ReforgeDefReader {
 
-    private static final Set<String> ROOT_KEYS = ContentParse.withSoulKnobs(
+    private static final Set<String> ROOT_KEYS = ContentParse.withEnvelopeKnobs(
             "display", "color", "icon", "material", "type", "description", "abilities",
             // single-ability shorthand (a reforge whose whole behaviour is the active):
             "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
             "no-souls-message",
             "condition", "effects");
-    private static final Set<String> ABILITY_KEYS = ContentParse.withSoulKnobs(
+    private static final Set<String> ABILITY_KEYS = ContentParse.withEnvelopeKnobs(
             "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
             "no-souls-message",
             "condition", "effects");
@@ -165,7 +165,9 @@ final class ReforgeDefReader {
         // an authored group overriding the cooldown group — the mask reader shape.
         return new AbilityDef(
                 SourceKind.REFORGE, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, soulCost, triggers,
-                disabledWorlds, condition, effects, stableKey, stableKey, group, null, repeatTicks, fileSource, 0, false,
+                disabledWorlds, condition, effects, stableKey,
+                ContentParse.resolveCooldownScope(node, stableKey, diags),
+                group, null, repeatTicks, fileSource, 0, false,
                 chance.expr(), noSoulsMessage, soulKnobs.carried(), soulKnobs.sound(), soulKnobs.particle(),
                 soulCostGrowth, soulCostCap, soulCostDecayPeriod);
     }
