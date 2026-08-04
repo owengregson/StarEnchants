@@ -1,0 +1,65 @@
+# Matrix: 05-enchants-bows.md § Farcast
+display: "Farcast"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance to hurl an attacker off you when they hit,"
+  - "&elikelier the lower your own health falls."
+trigger: DEFENSE
+applies-to: [BOW]
+group: "rare"
+tier: rare
+# ACQUISITION IS NOT MATRIX-RECORDED for doc 05 (no `max/base/interval/weight/tier` line on any entry here).
+# Tier 3 (rare) and max 5 come from the codex's own registration appendix (`enchantments/bow`, tier 3, max 5,
+# base 17.0, interval 4.0); the tabulated five-rung chance curve corroborates the max. Ledgered under the
+# matrix maintenance queue: doc 05 owes the backfill.
+# This doc's ONLY defensive hook, and it needs no held-item gate: DEFENSE scans armour AND the held slot, so
+# holding the bow is enough, exactly as the jar's own equipment read was. DEFENSE needs a target, so the live
+# attacker the jar null-guarded is guaranteed by the trigger. Single-pass per D-001 (the jar's second pass was
+# a no-op behind that null guard anyway).
+# The matrix's VAR_SCALED_CHANCE gap is CLOSED — `chance:` takes an expression (wave 1a), so the health-scaled
+# roll ships as the real formula rather than the interim three-branch approximation the entry offers as a
+# fallback. `%actor.healthpercent%` is 0..100, hence the /100 to reach the jar's health RATIO; the engine
+# guards max health > 0, so the jar's divide-by-zero collapse to a flat 10 % is unreachable here.
+# D-05-3 (as-intended, FATAL in the jar): the Ender-Dragon exclusion guard is INVERTED — it demands the
+# DEFENDER be an Ender Dragon, so Farcast never fired for a player and the enchant was inert in PvP. Shipped
+# is the config text's promise ("Chance to knockback melee attackers … The lower your health, the higher the
+# chance"), with the curve below.
+# No damage-cause gate: the config text says "melee attackers" but the jar tests none, and the matrix records
+# none — so an arrow that lands on the holder can shove its archer too. Measured behaviour, kept.
+# VELOCITY mode=away with the default `activator` anchor is the defender->attacker shove: normalized direction
+# x 2.3, no added vertical, which is precisely what the jar computed by hand.
+# interactions: the jar's `pushAwayEntityEvent` anticheat stamp and its `inDungeonParkour` abort are
+# external-stack concerns the engine's knockback path already covers — nothing authored.
+# strings: none.
+# era: none (velocity + particle only).
+levels:
+  # chance = 10 + (2.5 x level) / max(0.25, health ratio) percentage points: at full health
+  # 12.5 / 15 / 17.5 / 20 / 22.5 % (L3 measures 17.500001 in float), at half health 15 / 20 / 25 / 30 / 35 %,
+  # and from 25 % health down — where the divisor clamps — 20 / 30 / 40 / 50 / 60 %. Push speed 2.3 flat.
+  1:
+    chance: "10 + 2.5 / max(0.25, %actor.healthpercent% / 100)"
+    effects:
+      # Recorded at +1y on the attacker; PARTICLE centres on the body and no attacker-scoped offset selector
+      # exists (cosmetic delta, the same one rage.yml records for its eye-height burst).
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3, who: "@Attacker" } }
+      - { VELOCITY: { mode: "away", strength: 2.3, who: "@Attacker" } }
+  2:
+    chance: "10 + 5 / max(0.25, %actor.healthpercent% / 100)"
+    effects:
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3, who: "@Attacker" } }
+      - { VELOCITY: { mode: "away", strength: 2.3, who: "@Attacker" } }
+  3:
+    chance: "10 + 7.5 / max(0.25, %actor.healthpercent% / 100)"
+    effects:
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3, who: "@Attacker" } }
+      - { VELOCITY: { mode: "away", strength: 2.3, who: "@Attacker" } }
+  4:
+    chance: "10 + 10 / max(0.25, %actor.healthpercent% / 100)"
+    effects:
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3, who: "@Attacker" } }
+      - { VELOCITY: { mode: "away", strength: 2.3, who: "@Attacker" } }
+  5:
+    chance: "10 + 12.5 / max(0.25, %actor.healthpercent% / 100)"
+    effects:
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3, who: "@Attacker" } }
+      - { VELOCITY: { mode: "away", strength: 2.3, who: "@Attacker" } }

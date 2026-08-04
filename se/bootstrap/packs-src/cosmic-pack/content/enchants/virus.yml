@@ -1,0 +1,77 @@
+# Matrix: 05-enchants-bows.md § Virus
+display: "Virus"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eInfect whoever you hit: every wither and"
+  - "&epoison tick they take bites harder, and"
+  - "&etheir regeneration can be torn off."
+trigger: [BOW, ATTACK]
+applies-to: [BOW]
+group: "uncommon"
+tier: uncommon
+# ACQUISITION IS NOT MATRIX-RECORDED for doc 05 (no `max/base/interval/weight/tier` line on any entry here).
+# The rung is the source registration's own tier 2 of the 1-8 ladder (codex registration appendix) and max 4
+# is the numbers ladder's four rungs. Reconcile at the matrix backfill.
+# Melee mirror: the application has no cause gate in the jar, so a melee swing with the bow in hand infects
+# exactly as an arrow does — both damage triggers on both abilities.
+# TWO abilities because only ONE of them rolls: the jar writes the infection metadata BEFORE and OUTSIDE its
+# roll, so the mark lands on 100 % of hits and only the regeneration strip is chance-gated. Copied.
+# DOT_AMPLIFY_MARK is the matrix's gap, shipped in wave 1d: a timed mark multiplying the bearer's INCOMING
+# wither/poison damage from every source, not just this shooter's. `causes: dot` is the both-value (the jar
+# consumed WITHER and POISON); re-marking refreshes the window outright, weaker factor included, which is
+# the jar's unconditional re-write — unlike §Unfocus, Virus has no already-active gate. The engine spec is
+# player-bearers-only, matching measured: the jar marked mobs and never consumed the mark for them.
+# A Virus-only bow adds NO damage of its own — it is a pure force multiplier. The intended combo is
+# §Explosive's Wither II and §Venom's Poison II (1.0 a tick in vanilla), which become 2.0-5.0 a tick under
+# the mark; any other wither/poison source is amplified just the same.
+# REMOVE_POTION strips ALL regeneration, golden-apple regen included — the jar's own reach, kept.
+# The jar amplified even already-cancelled DoT events (`ignoreCancelled=false`); SE runs its normal gate
+# order. Table-roll quirk: the measured `interval = 0.0` meant the table only ever rolled level 4 — catalog
+# plumbing with no expression here.
+# era: none. `SPELL_WITCH` crosses through the particle alias table;
+# `ENDERMAN_TELEPORT`->`ENTITY_ENDERMAN_TELEPORT` is a legacy-sweep alias row. The recorded +1 y offset and
+# 0.4 particle speed have no param (PARTICLE centres on the body), and SOUND has no `who`, so the recorded
+# victim cue plays at the impact.
+levels:
+  # Infection window 30 t per level (1.5 s per level) at a multiplier of `level + 1`; strip chance 15 x level
+  # (L3 measured 44.999999999999996, float noise on 45).
+  1:
+    abilities:
+      - chance: 100
+        effects:
+          - { DOT_AMPLIFY_MARK: { causes: "dot", factor: 2, duration: 30, who: "@Victim" } }
+      - chance: 15
+        effects:
+          - { REMOVE_POTION: { effect: "REGENERATION", who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 25, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.6, pitch: 2.0 } }
+  2:
+    abilities:
+      - chance: 100
+        effects:
+          - { DOT_AMPLIFY_MARK: { causes: "dot", factor: 3, duration: 60, who: "@Victim" } }
+      - chance: 30
+        effects:
+          - { REMOVE_POTION: { effect: "REGENERATION", who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 25, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.6, pitch: 2.0 } }
+  3:
+    abilities:
+      - chance: 100
+        effects:
+          - { DOT_AMPLIFY_MARK: { causes: "dot", factor: 4, duration: 90, who: "@Victim" } }
+      - chance: 45
+        effects:
+          - { REMOVE_POTION: { effect: "REGENERATION", who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 25, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.6, pitch: 2.0 } }
+  4:
+    abilities:
+      - chance: 100
+        effects:
+          - { DOT_AMPLIFY_MARK: { causes: "dot", factor: 5, duration: 120, who: "@Victim" } }
+      - chance: 60
+        effects:
+          - { REMOVE_POTION: { effect: "REGENERATION", who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 25, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 0.6, pitch: 2.0 } }

@@ -1,0 +1,205 @@
+# Matrix: 02-enchants-armor-m-z.md § Spirits
+display: "Spirits"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA melee hit you take can call a spirit that"
+  - "&epulses health into your allies while it lives."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "epic"
+tier: epic
+# The player-damager half of the jar's gate ships as `%victim.type%` — on a DEFENSE pass the "victim" IS the
+# attacker, which is how `enchants/guardians` (the same jar condition) already reads it. The matrix records
+# this fact as missing and widens to mob melee; the widening is not needed.
+# Chance is a flat 2 % at every level: the jar clamps `0.01 + 0.05 x level` down to 0.02 everywhere, and the
+# nullifying clamp is the deliberate, measured value.
+# Blaze HP is 50 + level x 10, count 1 (2 at L10 — `level / 10` integer division), lifetime 200 t, and the
+# buff ladder is FIRE_RESISTANCE always, REGENERATION L4+, INCREASE_DAMAGE L6+, SPEED L8+, DAMAGE_RESISTANCE
+# L10 — all level I, held for the blaze's whole life. `targeting: false` is what keeps a spirit off players;
+# the L6+ Strength/Speed buffs are decorative on a summon that never acquires a target (measured).
+# The heal pulse is the summon payload: a SECOND ability of this enchant on the SUMMON_PAYLOAD trigger, run by
+# the OWNER once per ally the blaze's box admits (actor = the wearer, victim = that ally, activation anchored
+# at the blaze). The ALLIES filter is the ordinary selector filter, and the payload box never admits the owner
+# — the jar's exact-ALLY test, which never heals the summoner either.
+# KNOWN INERT until the per-ability cooldown-scope opt-out lands: every block of an enchant shares one cooldown
+# bucket, so the 200 t re-arm this proc takes covers the blaze's whole 200 t life and gate 6 denies every pulse
+# (the same starvation `enchants/rocket-escape`'s FALL companion carries — recorded in deferred-content.md).
+# era: `IRONGOLEM_DEATH` / `ORB_PICKUP` are the 1.8.9 spellings of ENTITY_IRON_GOLEM_DEATH (`mob.irongolem.death`)
+# and ENTITY_EXPERIENCE_ORB_PICKUP (`random.orb`), but `Aliases.SOUND` carries NEITHER pair today, so neither cue
+# resolves on the legacy lane until both rows land — they are owed on deferred-content.md's legacy-sweep list.
+# SPELL/FLAME/HEART resolve on both eras (1.8 takes particles by NMS name, not a Bukkit enum).
+# A 1.8 blaze carries its own AI quirks, but a non-targeting one never reaches its fireball path.
+levels:
+  1:
+    abilities:
+      - chance: 2
+        cooldown: 200
+        condition: "%damagecause% == \"ENTITY_ATTACK\" && %victim.type% == \"PLAYER\""
+        effects:
+          - { SPAWN_ENTITY: { type: "BLAZE", count: 1, ttl: 200, health: 60, owner: "activator", targeting: false, name: "§c§l{player}'s Spirit", effects: "FIRE_RESISTANCE", payload-phase: "periodic", payload-period: 84, payload-radius: 9, payload-filter: "ALLIES", payload-max-targets: 1, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL", count: 45, who: "@Self" } }
+          - { PARTICLE: { particle: "FLAME", count: 35, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }  # one cue a proc; L10's second blaze shares it
+      # The pulse: one activation an ally, so the heal, its cue and the ally burst are ordinary targeted effects.
+      - trigger: SUMMON_PAYLOAD
+        chance: 100
+        effects:
+          - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.3, pitch: 1.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "HEART", count: 15, who: "@Victim" } }
+          - { PARTICLE: { particle: "HEART", count: 20 } }  # at the blaze — the activation location of a payload
+  2:
+    abilities:
+      - chance: 2
+        cooldown: 200
+        condition: "%damagecause% == \"ENTITY_ATTACK\" && %victim.type% == \"PLAYER\""
+        effects:
+          - { SPAWN_ENTITY: { type: "BLAZE", count: 1, ttl: 200, health: 70, owner: "activator", targeting: false, name: "§c§l{player}'s Spirit", effects: "FIRE_RESISTANCE", payload-phase: "periodic", payload-period: 78, payload-radius: 10, payload-filter: "ALLIES", payload-max-targets: 1, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL", count: 45, who: "@Self" } }
+          - { PARTICLE: { particle: "FLAME", count: 35, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+      - trigger: SUMMON_PAYLOAD
+        chance: 100
+        effects:
+          - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.3, pitch: 1.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "HEART", count: 15, who: "@Victim" } }
+          - { PARTICLE: { particle: "HEART", count: 20 } }
+  3:
+    abilities:
+      - chance: 2
+        cooldown: 200
+        condition: "%damagecause% == \"ENTITY_ATTACK\" && %victim.type% == \"PLAYER\""
+        effects:
+          - { SPAWN_ENTITY: { type: "BLAZE", count: 1, ttl: 200, health: 80, owner: "activator", targeting: false, name: "§c§l{player}'s Spirit", effects: "FIRE_RESISTANCE", payload-phase: "periodic", payload-period: 72, payload-radius: 11, payload-filter: "ALLIES", payload-max-targets: 1, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL", count: 45, who: "@Self" } }
+          - { PARTICLE: { particle: "FLAME", count: 35, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+      - trigger: SUMMON_PAYLOAD
+        chance: 100
+        effects:
+          - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.3, pitch: 1.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "HEART", count: 15, who: "@Victim" } }
+          - { PARTICLE: { particle: "HEART", count: 20 } }
+  4:
+    abilities:
+      - chance: 2
+        cooldown: 200
+        condition: "%damagecause% == \"ENTITY_ATTACK\" && %victim.type% == \"PLAYER\""
+        effects:
+          - { SPAWN_ENTITY: { type: "BLAZE", count: 1, ttl: 200, health: 90, owner: "activator", targeting: false, name: "§c§l{player}'s Spirit", effects: "FIRE_RESISTANCE,REGENERATION", payload-phase: "periodic", payload-period: 66, payload-radius: 12, payload-filter: "ALLIES", payload-max-targets: 1, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL", count: 45, who: "@Self" } }
+          - { PARTICLE: { particle: "FLAME", count: 35, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+      - trigger: SUMMON_PAYLOAD
+        chance: 100
+        effects:
+          - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.3, pitch: 1.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "HEART", count: 15, who: "@Victim" } }
+          - { PARTICLE: { particle: "HEART", count: 20 } }
+  5:
+    abilities:
+      - chance: 2
+        cooldown: 200
+        condition: "%damagecause% == \"ENTITY_ATTACK\" && %victim.type% == \"PLAYER\""
+        effects:
+          - { SPAWN_ENTITY: { type: "BLAZE", count: 1, ttl: 200, health: 100, owner: "activator", targeting: false, name: "§c§l{player}'s Spirit", effects: "FIRE_RESISTANCE,REGENERATION", payload-phase: "periodic", payload-period: 60, payload-radius: 13, payload-filter: "ALLIES", payload-max-targets: 1, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL", count: 45, who: "@Self" } }
+          - { PARTICLE: { particle: "FLAME", count: 35, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+      - trigger: SUMMON_PAYLOAD
+        chance: 100
+        effects:
+          - { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.3, pitch: 1.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "HEART", count: 15, who: "@Victim" } }
+          - { PARTICLE: { particle: "HEART", count: 20 } }
+  6:
+    abilities:
+      - chance: 2
+        cooldown: 200
+        condition: "%damagecause% == \"ENTITY_ATTACK\" && %victim.type% == \"PLAYER\""
+        effects:
+          - { SPAWN_ENTITY: { type: "BLAZE", count: 1, ttl: 200, health: 110, owner: "activator", targeting: false, name: "§c§l{player}'s Spirit", effects: "FIRE_RESISTANCE,REGENERATION,INCREASE_DAMAGE", payload-phase: "periodic", payload-period: 54, payload-radius: 14, payload-filter: "ALLIES", payload-max-targets: 1, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL", count: 45, who: "@Self" } }
+          - { PARTICLE: { particle: "FLAME", count: 35, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+      # Heal 2 HP from L6: the jar's `5 / 2` integer halving, which parks L9-10 at 2 HP too (measured).
+      - trigger: SUMMON_PAYLOAD
+        chance: 100
+        effects:
+          - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.3, pitch: 1.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "HEART", count: 15, who: "@Victim" } }
+          - { PARTICLE: { particle: "HEART", count: 20 } }
+  7:
+    abilities:
+      - chance: 2
+        cooldown: 200
+        condition: "%damagecause% == \"ENTITY_ATTACK\" && %victim.type% == \"PLAYER\""
+        effects:
+          - { SPAWN_ENTITY: { type: "BLAZE", count: 1, ttl: 200, health: 120, owner: "activator", targeting: false, name: "§c§l{player}'s Spirit", effects: "FIRE_RESISTANCE,REGENERATION,INCREASE_DAMAGE", payload-phase: "periodic", payload-period: 48, payload-radius: 15, payload-filter: "ALLIES", payload-max-targets: 2, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL", count: 45, who: "@Self" } }
+          - { PARTICLE: { particle: "FLAME", count: 35, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+      - trigger: SUMMON_PAYLOAD
+        chance: 100
+        effects:
+          - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.3, pitch: 1.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "HEART", count: 15, who: "@Victim" } }
+          - { PARTICLE: { particle: "HEART", count: 20 } }
+  8:
+    abilities:
+      - chance: 2
+        cooldown: 200
+        condition: "%damagecause% == \"ENTITY_ATTACK\" && %victim.type% == \"PLAYER\""
+        effects:
+          - { SPAWN_ENTITY: { type: "BLAZE", count: 1, ttl: 200, health: 130, owner: "activator", targeting: false, name: "§c§l{player}'s Spirit", effects: "FIRE_RESISTANCE,REGENERATION,INCREASE_DAMAGE,SPEED", payload-phase: "periodic", payload-period: 42, payload-radius: 16, payload-filter: "ALLIES", payload-max-targets: 2, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL", count: 45, who: "@Self" } }
+          - { PARTICLE: { particle: "FLAME", count: 35, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+      - trigger: SUMMON_PAYLOAD
+        chance: 100
+        effects:
+          - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.3, pitch: 1.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "HEART", count: 15, who: "@Victim" } }
+          - { PARTICLE: { particle: "HEART", count: 20 } }
+  9:
+    abilities:
+      - chance: 2
+        cooldown: 200
+        condition: "%damagecause% == \"ENTITY_ATTACK\" && %victim.type% == \"PLAYER\""
+        effects:
+          - { SPAWN_ENTITY: { type: "BLAZE", count: 1, ttl: 200, health: 140, owner: "activator", targeting: false, name: "§c§l{player}'s Spirit", effects: "FIRE_RESISTANCE,REGENERATION,INCREASE_DAMAGE,SPEED", payload-phase: "periodic", payload-period: 36, payload-radius: 17, payload-filter: "ALLIES", payload-max-targets: 2, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL", count: 45, who: "@Self" } }
+          - { PARTICLE: { particle: "FLAME", count: 35, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+      - trigger: SUMMON_PAYLOAD
+        chance: 100
+        effects:
+          - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.3, pitch: 1.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "HEART", count: 15, who: "@Victim" } }
+          - { PARTICLE: { particle: "HEART", count: 20 } }
+  10:
+    abilities:
+      - chance: 2
+        cooldown: 200
+        condition: "%damagecause% == \"ENTITY_ATTACK\" && %victim.type% == \"PLAYER\""
+        effects:
+          - { SPAWN_ENTITY: { type: "BLAZE", count: 2, ttl: 200, health: 150, owner: "activator", targeting: false, name: "§c§l{player}'s Spirit", effects: "FIRE_RESISTANCE,REGENERATION,INCREASE_DAMAGE,SPEED,DAMAGE_RESISTANCE", payload-phase: "periodic", payload-period: 30, payload-radius: 18, payload-filter: "ALLIES", payload-max-targets: 2, who: "@Self" } }
+          - { PARTICLE: { particle: "SPELL", count: 45, who: "@Self" } }
+          - { PARTICLE: { particle: "FLAME", count: 35, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+      # Both blazes carry the same payload, so a two-spirit escort pulses each ally twice a period (measured).
+      - trigger: SUMMON_PAYLOAD
+        chance: 100
+        effects:
+          - { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.3, pitch: 1.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "HEART", count: 15, who: "@Victim" } }
+          - { PARTICLE: { particle: "HEART", count: 20 } }

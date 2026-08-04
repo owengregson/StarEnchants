@@ -1,0 +1,50 @@
+# Matrix: 05-enchants-bows.md § Pacify
+display: "Pacify"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eAn arrow — or a swing with the bow in hand —"
+  - "&eleaves a player unable to build Rage."
+trigger: [BOW, ATTACK]
+applies-to: [BOW]
+# tier: doc 05 carries no acquisition rows (every other matrix doc records max/base/interval/weight/tier in
+# its numbers block; 05 was never backfilled), so the rung the pack ALREADY ships for this enchant carries
+# forward unchanged rather than being invented here. Max level 4 comes from the chance ladder itself.
+group: "rare"
+tier: rare
+condition: "%victim.type% == \"PLAYER\""
+# Melee mirror: the jar's impact pipeline accepts ENTITY_ATTACK as well as PROJECTILE, so a swing with the
+# bow in hand pacifies too. Authored as the enchant's trigger LIST with a plain per-level `effects:` block —
+# reforged.yml documents that shape: one ability inherits the whole list, so both triggers share one roll and
+# one cooldown bucket, which is the jar's single shared proc path (a per-trigger sibling pair, as blind.yml
+# and deathbringer.yml ship, would be two independent ability keys for one code path).
+# The payload is a suppression of the victim's Rage, full-form key as devour.yml and rage.yml already spell
+# it. Rage is the sole consumer of the jar's noRageUntil stamp; the DISTINCT recent-Rage stamp that makes a
+# victim immune to Sniper is written by Rage itself (sniper.yml reads it as `%victim.var.raged%`) and is NOT
+# written here — the two keys must not be conflated.
+# Recorded coarseness, not a stop: scope=ENCHANT parks EVERY Rage ability on the victim for the window, so
+# besides the stack accumulation the jar blocked, rage.yml's HURT reset row is parked too — a combo banked
+# before the window survives damage taken inside it. Same suppression-granularity limit the devour.yml +
+# rage.yml partial row in deferred-content.md already records; blocking Rage wholesale IS the enchant's
+# intent, only the reset row rides along.
+# Re-application overwrites rather than extends: SUPPRESS's timed window refreshes, matching the jar's
+# unconditional rewrite of the expiry stamp.
+# strings: none (no sounds, no particles either). era: none.
+levels:
+  # chance `0.5 + 0.125 x level` = 62.5/75/87.5/100 % (at level 4 the jar rolls `Math.random() < 1.0`, which
+  # always passes — a guaranteed proc, copied as 100); lockout 750 x L ms = 15 x L t.
+  1:
+    chance: 62.5
+    effects:
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 15, mode: "timed", who: "@Victim" } }
+  2:
+    chance: 75
+    effects:
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 30, mode: "timed", who: "@Victim" } }
+  3:
+    chance: 87.5
+    effects:
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 45, mode: "timed", who: "@Victim" } }
+  4:
+    chance: 100
+    effects:
+      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 60, mode: "timed", who: "@Victim" } }

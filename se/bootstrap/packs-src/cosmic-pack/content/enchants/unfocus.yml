@@ -1,0 +1,73 @@
+# Matrix: 05-enchants-bows.md § Unfocus
+display: "Unfocus"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA hit can unfocus a player, halving"
+  - "&ethe damage their own arrows deal."
+trigger: [BOW, ATTACK]
+applies-to: [BOW]
+group: "epic"
+tier: epic
+condition: "%victim.type% == \"PLAYER\""
+# ACQUISITION IS NOT MATRIX-RECORDED for doc 05 (no `max/base/interval/weight/tier` line on any entry here).
+# The rung is the source registration's own tier 4 of the 1-8 ladder (codex registration appendix) and max 5
+# is the numbers ladder's five rungs. Reconcile at the matrix backfill.
+# Melee mirror: the jar's application has no cause gate, so a melee swing with the bow in hand unfocuses
+# too — one ability carrying BOTH damage triggers, the shape §Blind and §Deathbringer already ship.
+# The matrix's two gaps BOTH shipped and the entry is a straight drop-in: OUTGOING_DEBUFF's `cause` is the
+# OUTGOING_DEBUFF_CAUSE_FILTER (it prices only the debuffed player's own PROJECTILE hits and leaves their
+# melee alone — the jar halved any projectile they threw, not only bow shots, which is exactly what
+# `projectile` means here), and its `feedback` is MARK_CONSUME_FEEDBACK, the line the jar sends on EVERY hit
+# the window prices (up to 10 s of chat spam at level 5 — strings never deviate, so the spam ships).
+# One semantics delta, recorded: the jar BLOCKS re-application while a window is live (a level-1 proc locks
+# out a level-5 proc for its 2 s), where OUTGOING_DEBUFF keeps the stronger window and the later expiry. The
+# penalty is a level-independent flat 50 %, so "stronger" never differs — the only visible difference is
+# that a later proc EXTENDS a live window instead of being refused.
+# The jar's `unfocusEnchantmentLevel` stamp is written and never read (dead state) and is dropped.
+# The jar halved at HIGHEST before Sniper/Longbow multiplied at MONITOR, and halved even already-cancelled
+# hits (`ignoreCancelled=false`); SE folds by the engine's damage-stacking rules and runs its normal gate
+# order. Table-roll quirk: the measured `interval = 0.0` meant the table only ever rolled level 5 — catalog
+# plumbing with no expression here.
+# era: `PORTAL_TRIGGER`->`BLOCK_PORTAL_TRIGGER` and `ARROW_HIT`->`ENTITY_ARROW_HIT` are legacy-sweep alias
+# rows. SOUND has no `who`: the recorded victim cue and shooter cue both play at the impact, where both
+# parties are standing anyway.
+levels:
+  # Chance `0.5 x level` vs [0,1) — levels 2-5 are guaranteed. The codex marks the guarantee and gives no
+  # different intent, so it is copied as measured (no ledger row). Duration 2 s per level = 40 t per level;
+  # the message renders that same second count, and MESSAGE binds {ATTACKER}/{VICTIM} only, so each level
+  # carries the number the jar would have printed.
+  1:
+    chance: 50
+    effects:
+      - { OUTGOING_DEBUFF: { percent: 50, duration: 40, cause: "projectile", feedback: "§2** UNFOCUSED [50% BOW DMG] **", who: "@Victim" } }
+      - { MESSAGE: { text: "§2** UNFOCUS [2s] **", who: "@Victim" } }
+      - { SOUND: { sound: "BLOCK_PORTAL_TRIGGER", volume: 1.2, pitch: 0.6 } }
+      - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.2, pitch: 2.5 } }
+  2:
+    chance: 100
+    effects:
+      - { OUTGOING_DEBUFF: { percent: 50, duration: 80, cause: "projectile", feedback: "§2** UNFOCUSED [50% BOW DMG] **", who: "@Victim" } }
+      - { MESSAGE: { text: "§2** UNFOCUS [4s] **", who: "@Victim" } }
+      - { SOUND: { sound: "BLOCK_PORTAL_TRIGGER", volume: 1.2, pitch: 0.6 } }
+      - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.2, pitch: 2.5 } }
+  3:
+    chance: 100
+    effects:
+      - { OUTGOING_DEBUFF: { percent: 50, duration: 120, cause: "projectile", feedback: "§2** UNFOCUSED [50% BOW DMG] **", who: "@Victim" } }
+      - { MESSAGE: { text: "§2** UNFOCUS [6s] **", who: "@Victim" } }
+      - { SOUND: { sound: "BLOCK_PORTAL_TRIGGER", volume: 1.2, pitch: 0.6 } }
+      - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.2, pitch: 2.5 } }
+  4:
+    chance: 100
+    effects:
+      - { OUTGOING_DEBUFF: { percent: 50, duration: 160, cause: "projectile", feedback: "§2** UNFOCUSED [50% BOW DMG] **", who: "@Victim" } }
+      - { MESSAGE: { text: "§2** UNFOCUS [8s] **", who: "@Victim" } }
+      - { SOUND: { sound: "BLOCK_PORTAL_TRIGGER", volume: 1.2, pitch: 0.6 } }
+      - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.2, pitch: 2.5 } }
+  5:
+    chance: 100
+    effects:
+      - { OUTGOING_DEBUFF: { percent: 50, duration: 200, cause: "projectile", feedback: "§2** UNFOCUSED [50% BOW DMG] **", who: "@Victim" } }
+      - { MESSAGE: { text: "§2** UNFOCUS [10s] **", who: "@Victim" } }
+      - { SOUND: { sound: "BLOCK_PORTAL_TRIGGER", volume: 1.2, pitch: 0.6 } }
+      - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.2, pitch: 2.5 } }

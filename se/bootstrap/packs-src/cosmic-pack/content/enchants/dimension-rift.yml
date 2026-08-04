@@ -1,0 +1,89 @@
+# Matrix: 05-enchants-bows.md § Dimension Rift
+display: "Dimension Rift"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eAn arrow can tear the ground under a player open —"
+  - "&esoul sand underfoot, webs strung through the hole."
+trigger: [BOW, BOW_FIRE]
+applies-to: [BOW]
+group: "epic"
+tier: epic
+# ACQUISITION IS NOT MATRIX-RECORDED for doc 05 (no `max/base/interval/weight/tier` line on any entry here).
+# Tier 4 (epic) and max 4 come from the codex's own registration appendix (`enchantments/bow`, tier 4, max 4,
+# base 17.0, interval 4.0); the four-rung numbers ladder corroborates the max. Ledgered under the matrix
+# maintenance queue: doc 05 owes the backfill.
+# Melee mirror: NO — the jar gates on a projectile damager, so the BOW trigger stands alone (a bow swung as a
+# club never rifts). Players only, per the recorded condition.
+# The matrix's TEMP_BLOCK_FILL_CHANCE gap is CLOSED: `fill-chance` shipped in wave 1, so the ragged web layer
+# is one scattered BOX rather than a per-column roll the ability level cannot express. Its per-coordinate
+# stability (re-stamping the same ground extends the same field) is engine policy, not the jar's per-hit roll —
+# a second rift on the same spot re-lays the same holes.
+# Placement: the jar anchored even footprints OFF-centre (offsets 0…1) where a SE BOX is centred on the
+# target, a <=1-block delta on the 2-wide rungs. Revert, the protected-material skip (chests, SOUL_SAND, webs,
+# BEDROCK, both portal blocks) and the disable-time restore are all TempBlockLedger-native — nothing authored.
+# PENDING WAVE-1F/2 SURFACE — the REVERT HOOK is NOT authored here. The matrix's `TEMP_BLOCK_REVERT_HOOK`
+# carries `REMOVE_POTION(effect=JUMP_BOOST)` + `VELOCITY(mode=add, y=0.5)` for players within 2 blocks of each
+# restored block, and nothing on the frozen surface schedules effects at ledger-revert time (`wait:` fires on
+# a fixed offset from the activation, not on the ledger's own restore, and it cannot re-select by proximity to
+# the restored blocks). What ships is the trap itself; what is missing is the pop-and-strip as it closes.
+# Ledgered under deferred-content.md's partial-entry table.
+# interactions: the jar's placement gates (a `world_koth` victim world, a `dungeon` shooter world, "not a
+# normal faction claim" AND "inside a named WorldGuard region" — contradictory in open wilderness, which is why
+# the enchant hardly ever fired) are server-stack wiring, not enchant behaviour: they map to the engine
+# protection gate plus interaction-layer world rules. Nothing authored on this side.
+# strings: none.
+# era: `COBWEB` is the modern handle and `Aliases.MATERIAL` already carries the 1.8.9 `WEB` pairing;
+# `SOUL_SAND`, `SPELL_WITCH` and `PORTAL` all resolve on 1.8.9 (SPELL_WITCH renames at 1.20.5, resolver).
+levels:
+  # Chance 5/10/15/20 % (L3 measured 15.000000000000002); footprint (W x D) 2x2 / 2x2 / 2x3 / 3x3; revert at
+  # level*15+40 = 55/70/85/100 t; web fill 10/20/30/40 % of the columns (L3 measured 30.000000000000004).
+  # Particle counts are AGGREGATES: the jar burst 10 PORTAL per placed soul-sand column and 10 SPELL_WITCH per
+  # placed web, and no primitive fires per placed block. PORTAL = 10 x every column (the soul-sand BOX is
+  # airOnly:false, so every column places): 4/4/6/9 columns -> 40/40/60/90. SPELL_WITCH = 10 x the EXPECTED
+  # webs (columns x fill-chance): 0.4/0.8/1.8/3.6 -> 4/8/18/36. Both fire once, centred on the victim, where
+  # the jar scattered them column by column.
+  1:
+    abilities:
+      - { trigger: BOW_FIRE, chance: 100, effects: [ { PARTICLE: { particle: "SPELL_WITCH", count: 16 } } ] }
+      - trigger: BOW
+        chance: 5
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { TEMP_BLOCK: { shape: "BOX", material: "SOUL_SAND", width: 2, depth: 2, height: 1, dy: -1, ticks: 55, airOnly: false, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 40, who: "@Victim" } }
+          - { TEMP_BLOCK: { shape: "BOX", material: "COBWEB", width: 2, depth: 2, height: 1, dy: 0, ticks: 55, airOnly: true, fill-chance: 10, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 4, who: "@Victim" } }
+  2:
+    abilities:
+      - { trigger: BOW_FIRE, chance: 100, effects: [ { PARTICLE: { particle: "SPELL_WITCH", count: 16 } } ] }
+      - trigger: BOW
+        chance: 10
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { TEMP_BLOCK: { shape: "BOX", material: "SOUL_SAND", width: 2, depth: 2, height: 1, dy: -1, ticks: 70, airOnly: false, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 40, who: "@Victim" } }
+          - { TEMP_BLOCK: { shape: "BOX", material: "COBWEB", width: 2, depth: 2, height: 1, dy: 0, ticks: 70, airOnly: true, fill-chance: 20, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 8, who: "@Victim" } }
+  3:
+    abilities:
+      - { trigger: BOW_FIRE, chance: 100, effects: [ { PARTICLE: { particle: "SPELL_WITCH", count: 16 } } ] }
+      - trigger: BOW
+        chance: 15
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          # The z-range widens first (2x3), the x-range only at level 4 — the jar's own growth order.
+          - { TEMP_BLOCK: { shape: "BOX", material: "SOUL_SAND", width: 2, depth: 3, height: 1, dy: -1, ticks: 85, airOnly: false, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, who: "@Victim" } }
+          - { TEMP_BLOCK: { shape: "BOX", material: "COBWEB", width: 2, depth: 3, height: 1, dy: 0, ticks: 85, airOnly: true, fill-chance: 30, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 18, who: "@Victim" } }
+  4:
+    abilities:
+      - { trigger: BOW_FIRE, chance: 100, effects: [ { PARTICLE: { particle: "SPELL_WITCH", count: 16 } } ] }
+      - trigger: BOW
+        chance: 20
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { TEMP_BLOCK: { shape: "BOX", material: "SOUL_SAND", width: 3, depth: 3, height: 1, dy: -1, ticks: 100, airOnly: false, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 90, who: "@Victim" } }
+          - { TEMP_BLOCK: { shape: "BOX", material: "COBWEB", width: 3, depth: 3, height: 1, dy: 0, ticks: 100, airOnly: true, fill-chance: 40, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 36, who: "@Victim" } }

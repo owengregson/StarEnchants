@@ -1,0 +1,79 @@
+# Matrix: 05-enchants-bows.md § Infernal
+display: "Infernal"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eYour arrows scorch what they hit and"
+  - "&elight a small ring where they land."
+trigger: [BOW, ATTACK, PROJECTILE_LAND]
+applies-to: [BOW]
+group: "rare"
+tier: rare
+# ACQUISITION IS NOT MATRIX-RECORDED for doc 05 (no `max/base/interval/weight/tier` line on any entry here).
+# The rung is the source registration's own tier 3 of the 1-8 ladder (codex registration appendix) and max 3
+# is the numbers ladder's three rungs. Reconcile at the matrix backfill.
+# PENDING PRIMITIVE — the burning-arrow half (`<level>*60` fire ticks on the loosed shot) is NOT authored: the
+# shipped PROJECTILE_DRESSING rides an ENTITY on the arrow and carries no fire param. Same stop as §Hellfire,
+# recorded once in deferred-content.md (partial entries). The direct hit and the landing ring are whole.
+# Melee mirror: yes, with zero guards (codex explicit) — the direct-hit ability is authored once per trigger.
+# 100 % everywhere; no rolls, no cooldown.
+# IGNITE is absolute on BOTH halves here, which is exactly the jar: unlike §Hellfire's landing pool, Infernal's
+# ring SETS fire ticks, so it can shorten a longer burn and a volley never stacks.
+# The landing set is living entities minus owner/allies (mobs included, no Ender Dragon carve-out) —
+# `filter=ENEMIES`; the jar's spectator/do_not_clear metadata exclusions are the engine's own gates.
+# The jar's tier registry lists this one as retired from enchant-table rolls (twice) while the handler stays
+# wired: catalog trivia, fully functional wherever the enchant is present.
+# Fire damage is not Virus-amplified (Virus keys WITHER and POISON causes only).
+# era: PROJECTILE_LAND is inert on 1.8.9 (the era's hit event cannot report a landing block), so the ring half
+# never fires there — the legacy sweep owns any heuristic. FLAME exists on 1.8; no sounds to alias.
+levels:
+  1:
+    abilities:
+      - trigger: BOW
+        chance: 100
+        effects:
+          - { IGNITE: { duration: 20, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+      - trigger: ATTACK
+        chance: 100
+        effects:
+          - { IGNITE: { duration: 20, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+      - trigger: PROJECTILE_LAND
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "FLAME", count: 20 } }
+          - { IGNITE: { duration: 20, who: "@Aoe{r=1, filter=ENEMIES}" } }
+  2:
+    abilities:
+      - trigger: BOW
+        chance: 100
+        effects:
+          - { IGNITE: { duration: 40, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+      - trigger: ATTACK
+        chance: 100
+        effects:
+          - { IGNITE: { duration: 40, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+      - trigger: PROJECTILE_LAND
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "FLAME", count: 20 } }
+          - { IGNITE: { duration: 40, who: "@Aoe{r=2, filter=ENEMIES}" } }
+  3:
+    abilities:
+      - trigger: BOW
+        chance: 100
+        effects:
+          - { IGNITE: { duration: 60, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+      - trigger: ATTACK
+        chance: 100
+        effects:
+          - { IGNITE: { duration: 60, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+      - trigger: PROJECTILE_LAND
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "FLAME", count: 20 } }
+          - { IGNITE: { duration: 60, who: "@Aoe{r=3, filter=ENEMIES}" } }

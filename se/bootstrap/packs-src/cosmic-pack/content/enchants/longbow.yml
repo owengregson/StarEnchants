@@ -1,0 +1,83 @@
+# Matrix: 05-enchants-bows.md § Longbow
+display: "Longbow"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eYou hit far harder against anyone"
+  - "&eholding a bow of their own."
+trigger: [BOW, ATTACK]
+applies-to: [BOW]
+group: "epic"
+tier: epic
+# ACQUISITION IS NOT MATRIX-RECORDED for doc 05 (no `max/base/interval/weight/tier` line on any entry here).
+# The rung is the source registration's own tier 4 of the 1-8 ladder (codex registration appendix) and max 4
+# is the numbers ladder's four rungs. Reconcile at the matrix backfill.
+# The victim's held item IS the only gate — no distance term, despite the name — and the jar's own test is a
+# substring, so a CROSSBOW holder trips it too on versions that have one. Kept verbatim as `contains "BOW"`.
+# Melee mirror: yes (codex explicit — meleeing a bow-holder doubles the melee hit at L4), one ability per
+# trigger. 100 % proc, no cooldown.
+# The jar's multiplier composes MULTIPLICATIVELY with §Sniper and multiplies §Unfocus's already-halved value
+# (`base / 2 * sniperMult * longbowMult`, all MONITOR-stage). SE's damage fold is additive by engine invariant,
+# so the three compose by summed percentage points instead — an engine-wide ruling (the ADR-0050 family),
+# recorded here and not ledgered per-enchant.
+# SOUND plays at the activation location rather than to the victim alone (the effect has no recipient param);
+# the jar's victim-only cue is a cosmetic delta. The jar's NPE on null mob equipment has no analogue — the
+# engine's var read is null-safe.
+# era: `ARROW_HIT` is the 1.8-era spelling of ENTITY_ARROW_HIT — the matrix marks the entry era-clean, but
+# the resolver's alias table does not carry the pair yet; row owed in the legacy sweep (deferred-content.md).
+levels:
+  1:
+    abilities:
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.helditem% contains \"BOW\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 25 } }  # x1.25
+          - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.0, pitch: 0.4 } }
+      - trigger: ATTACK
+        chance: 100
+        condition: "%victim.helditem% contains \"BOW\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 25 } }
+          - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.0, pitch: 0.4 } }
+  2:
+    abilities:
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.helditem% contains \"BOW\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 50 } }  # x1.5
+          - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.0, pitch: 0.4 } }
+      - trigger: ATTACK
+        chance: 100
+        condition: "%victim.helditem% contains \"BOW\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 50 } }
+          - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.0, pitch: 0.4 } }
+  3:
+    abilities:
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.helditem% contains \"BOW\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 75 } }  # x1.75
+          - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.0, pitch: 0.4 } }
+      - trigger: ATTACK
+        chance: 100
+        condition: "%victim.helditem% contains \"BOW\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 75 } }
+          - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.0, pitch: 0.4 } }
+  4:
+    abilities:
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.helditem% contains \"BOW\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }  # x2.0
+          - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.0, pitch: 0.4 } }
+      - trigger: ATTACK
+        chance: 100
+        condition: "%victim.helditem% contains \"BOW\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 100 } }
+          - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.0, pitch: 0.4 } }

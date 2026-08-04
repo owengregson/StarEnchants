@@ -1,0 +1,48 @@
+# Matrix: 05-enchants-bows.md § Arrow Lifesteal
+display: "Arrow Lifesteal"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance for an arrow that lands"
+  - "&eto mend the archer who loosed it."
+trigger: [BOW, ATTACK]
+applies-to: [BOW]
+group: "epic"
+tier: epic
+# ACQUISITION IS NOT MATRIX-RECORDED for doc 05 — unlike docs 01-04, no entry here carries the
+# `max N; base X, interval Y; weight W; tier T` line. Tier 4 (epic) and max 5 come from the codex's own
+# registration appendix (`enchantments/bow`, tier 4, max 5, base 10.0, interval 8.0), which the max-5 numbers
+# ladder here corroborates. Ledgered under the matrix maintenance queue: doc 05 owes the backfill.
+# No guards anywhere in the jar: no player-victim check, no damage floor, no cooldown — the roll IS the gate.
+# Melee mirror (corpus note): the jar's impact pipeline accepts ENTITY_ATTACK as well as PROJECTILE, so
+# clubbing with the bow heals exactly as an arrow does. Authored as the sibling ATTACK ability with identical
+# params, the shape deathbringer.yml and blind.yml already ship.
+# D-05-1 (as-intended): the jar SET health to min(floor(health) + level, floor(maxHealth)), so the archer's own
+# fractional health silently ate part of the heal and a fractional max truncated the cap. Shipped is the flat
+# +level heal — MODIFY_HEALTH give already clamps at true max, which is the whole of the intended clamp (the
+# same reading lifesteal.yml ships for its D-03-8).
+# interactions: none — the enchant touches no shared state.
+# strings: none.
+# era: none (a pure health write).
+levels:
+  # Chance 10/20/30 % and then FLAT 30 % (`level > 3 ? 0.3 : 0.1 * level`); L3's measured double is
+  # 0.30000000000000004, one FP epsilon above L4/L5 and the same value in play. Heal is +level HP.
+  1:
+    abilities:
+      - { trigger: BOW, chance: 10, effects: [ { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } } ] }
+      - { trigger: ATTACK, chance: 10, effects: [ { MODIFY_HEALTH: { amount: 1, mode: "give", who: "@Self" } } ] }
+  2:
+    abilities:
+      - { trigger: BOW, chance: 20, effects: [ { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } } ] }
+      - { trigger: ATTACK, chance: 20, effects: [ { MODIFY_HEALTH: { amount: 2, mode: "give", who: "@Self" } } ] }
+  3:
+    abilities:
+      - { trigger: BOW, chance: 30, effects: [ { MODIFY_HEALTH: { amount: 3, mode: "give", who: "@Self" } } ] }
+      - { trigger: ATTACK, chance: 30, effects: [ { MODIFY_HEALTH: { amount: 3, mode: "give", who: "@Self" } } ] }
+  4:
+    abilities:
+      - { trigger: BOW, chance: 30, effects: [ { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } } ] }
+      - { trigger: ATTACK, chance: 30, effects: [ { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } } ] }
+  5:
+    abilities:
+      - { trigger: BOW, chance: 30, effects: [ { MODIFY_HEALTH: { amount: 5, mode: "give", who: "@Self" } } ] }
+      - { trigger: ATTACK, chance: 30, effects: [ { MODIFY_HEALTH: { amount: 5, mode: "give", who: "@Self" } } ] }

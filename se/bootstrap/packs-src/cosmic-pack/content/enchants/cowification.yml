@@ -1,0 +1,102 @@
+# Matrix: 05-enchants-bows.md § Cowification
+display: "Cowification"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eYour arrows fly with a cow aboard and burst"
+  - "&eon landing, leaving everything near it reeling."
+trigger: [BOW, ATTACK, BOW_FIRE, PROJECTILE_LAND]
+applies-to: [BOW]
+group: "uncommon"
+tier: uncommon
+# ACQUISITION IS NOT MATRIX-RECORDED for doc 05 (no `max/base/interval/weight/tier` line on any entry here).
+# Tier 2 (uncommon) and max 3 come from the codex's own registration appendix (`enchantments/bow`, tier 2,
+# max 3, base 15.0, interval 5.0), and the three-rung numbers ladder corroborates the max. Ledgered under the
+# matrix maintenance queue: doc 05 owes the backfill.
+# Retired from the jar's tier rolls while the handler stayed wired: acquisition/progression metadata, not
+# runtime behaviour, so the port keeps it live exactly as confusion.yml does.
+# FOUR abilities, three activation sites — the launch rider, the direct-hit pair (chance-gated debuff +
+# unrolled particle, mirrored onto ATTACK per the corpus melee-mirror note) and the landing AoE.
+# POTION level is 1-based, so the recorded Nausea II is `level: 2` (confusion.yml ships the same reading).
+# Rider slot: ONE rider per shot, and a second PROJECTILE_DRESSING on the same shot replaces the first. The
+# jar's priority — Explosive's wither skull wins, the cow stands down when the bow carries both — has NO
+# content-side expression on the frozen surface (it would need an actor-side held-enchant-level fact, the same
+# wave-1f fact the metaphysical/sticky consumer rows wait on). Recorded, not a stop: both riders are pure
+# scenery, so whichever the dispatch order lands is cosmetic either way.
+# Rider hit semantics: the jar cancelled + zeroed damage dealt TO the cow and played ENTITY_COW_HURT 1.0/0.7
+# to whoever struck it. The `invulnerable` window below is the cancel half; the striker cue has no expression
+# (rider lifecycle is engine-owned) — cosmetic, recorded here rather than ledgered.
+# PROJECTILE_LAND delta: the engine fires it only for a WORLD landing (an entity hit is BOW's, and dispatching
+# both would double-proc), where the jar ran its AoE on entity strikes too. On a direct hit the victim still
+# takes the direct-hit pair; only the bystander splash is lost on that path.
+# AoE shape/target deltas the matrix already records: the jar's volume is a CUBE of half-extent `level`, SE's
+# is a sphere of r=`level` (radius exact, shape differs), and `filter=ENEMIES` is hostile mobs + non-allied
+# players where the jar nauseated every living entity but the owner and allies — passive animals now escape.
+# No spectator / Ender Dragon filter here (unlike Explosive), matching the jar. Ally exclusion IS the engine
+# ally gate; the landing AoE also rides the engine protection gate per target, where the jar checked the
+# landing point alone.
+# strings: none.
+# era: the 1.8.9 mount API takes a single passenger — engine-owned, the rider effect falls back accordingly.
+# PROJECTILE_LAND is INERT on 1.8.9 (the era seam cannot tell a landing from an entity hit, nor read the hit
+# point), so the landing AoE simply never runs on the legacy fork; the direct-hit pair and the rider both do.
+# `EXPLOSION_LARGE` renames at 1.20.5 (resolver). `ENTITY_COW_AMBIENT`/`ENTITY_COW_HURT` are the modern
+# spellings of 1.8's `COW_IDLE`/`COW_HURT` and are NOT yet in `Aliases.SOUND` — legacy-sweep alias rows.
+levels:
+  # Direct chance 10/20/30 % (L3 measured 30.000000000000004); direct Nausea II 20/40/60 t; AoE radius 1/2/3
+  # (the jar's cube half-extent); AoE Nausea II 25/50/75 t. Cow lifetime and invuln window are 200 t flat.
+  1:
+    abilities:
+      - { trigger: BOW_FIRE, chance: 100, effects: [ { PROJECTILE_DRESSING: { type: "COW", ttl: 200, invulnerable: 200, no-pickup: true } } ] }
+      - trigger: [BOW, ATTACK]
+        chance: 10
+        effects:
+          - { POTION: { effect: "CONFUSION", level: 2, duration: 20, who: "@Victim" } }
+          # Recorded victim-only; SOUND has no `who` and plays at the activation location, so the cue is
+          # audible to everyone in earshot. Delivery delta, not a volume one.
+          - { SOUND: { sound: "ENTITY_COW_AMBIENT", volume: 1.0, pitch: 0.75 } }
+      # Outside the roll in the jar: the burst plays on every hit, procced or not.
+      - trigger: [BOW, ATTACK]
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1, spread: 0, who: "@Victim" } }
+      - trigger: PROJECTILE_LAND
+        chance: 100
+        effects:
+          - { SOUND: { sound: "ENTITY_COW_HURT", volume: 1.0, pitch: 0.85 } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 8 } }
+          - { POTION: { effect: "CONFUSION", level: 2, duration: 25, who: "@Aoe{r=1,filter=ENEMIES}" } }
+  2:
+    abilities:
+      - { trigger: BOW_FIRE, chance: 100, effects: [ { PROJECTILE_DRESSING: { type: "COW", ttl: 200, invulnerable: 200, no-pickup: true } } ] }
+      - trigger: [BOW, ATTACK]
+        chance: 20
+        effects:
+          - { POTION: { effect: "CONFUSION", level: 2, duration: 40, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_COW_AMBIENT", volume: 1.0, pitch: 0.75 } }
+      - trigger: [BOW, ATTACK]
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1, spread: 0, who: "@Victim" } }
+      - trigger: PROJECTILE_LAND
+        chance: 100
+        effects:
+          - { SOUND: { sound: "ENTITY_COW_HURT", volume: 1.0, pitch: 0.85 } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 8 } }
+          - { POTION: { effect: "CONFUSION", level: 2, duration: 50, who: "@Aoe{r=2,filter=ENEMIES}" } }
+  3:
+    abilities:
+      - { trigger: BOW_FIRE, chance: 100, effects: [ { PROJECTILE_DRESSING: { type: "COW", ttl: 200, invulnerable: 200, no-pickup: true } } ] }
+      - trigger: [BOW, ATTACK]
+        chance: 30
+        effects:
+          - { POTION: { effect: "CONFUSION", level: 2, duration: 60, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_COW_AMBIENT", volume: 1.0, pitch: 0.75 } }
+      - trigger: [BOW, ATTACK]
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1, spread: 0, who: "@Victim" } }
+      - trigger: PROJECTILE_LAND
+        chance: 100
+        effects:
+          - { SOUND: { sound: "ENTITY_COW_HURT", volume: 1.0, pitch: 0.85 } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 8 } }
+          - { POTION: { effect: "CONFUSION", level: 2, duration: 75, who: "@Aoe{r=3,filter=ENEMIES}" } }

@@ -1,0 +1,141 @@
+# Matrix: 05-enchants-bows.md § Teleportation
+display: "Teleportation"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eShoot an ally to blink to them."
+  - "&eThe arrow itself does nothing."
+trigger: [BOW_FIRE, BOW]
+applies-to: [BOW]
+group: "rare"
+tier: rare
+# ACQUISITION IS NOT MATRIX-RECORDED for doc 05 (no `max/base/interval/weight/tier` line on any entry here).
+# The rung is the source registration's own tier 3 of the 1-8 ladder (codex registration appendix) and max 5
+# is the numbers ladder's five range rungs. Reconcile at the matrix backfill.
+# The matrix files the ally gate as the TARGET_RELATION_FACT gap; it SHIPPED in wave 1b as
+# `%victim.relation%` (ALLY | ENEMY | NEUTRAL through the one installed alliance hook), so the entry is a
+# drop-in. Every impact ability carries it.
+# The two impact abilities are a mutually exclusive PAIR on `%distance%` — the two-ability idiom §Bleed and
+# §Inversion already ship — because the jar cancels the hit and eats the arrow BEFORE it range-checks: a
+# too-far allied hit still deals zero, it just prints instead of blinking. Both arms therefore open with
+# CANCEL. Nothing is chance-gated and there is no cooldown of any kind: at level 5 this is an unlimited
+# 30-block blink, copied.
+# TELEPORT lands the shooter on the ally's position with the engine's own orientation semantics; the jar
+# preserved the shooter's pitch/yaw (camera untouched). Noted for the parity harness, not fought.
+# Carried by OTHER layers, nothing authored here: the jar's LOWEST-priority cancel suppressing every other
+# bow enchant on an allied hit (interaction-layer precedence, shared with §Healing); the End/KOTH rule that
+# refuses a PvP-enabled -> PvP-disabled transition and prints
+# `§c§l(!) §cYou cannot teleport from PvP-enabled to PvP-disabled with Teleportation in The End or KOTH.`
+# (world/region policy — recorded here so the string survives the port); the `cosmic-station-1` full
+# exemption (region policy); and the transient combat-tag exemption around the hop, which the engine's own
+# teleport path owns. Rank caps and the tier gates are the stack's normal validity filter.
+# Self-shot: the jar cancelled and played CAT_HISS 0.85/0.2. SE never dispatches an activation whose victim
+# IS the actor, so the branch and its cue are dropped — the same note §Healing carries.
+# era: none. `SPELL_WITCH` crosses through the particle alias table;
+# `ORB_PICKUP`->`ENTITY_EXPERIENCE_ORB_PICKUP` is a legacy-sweep alias row. SOUND has no `who`, so the
+# recorded shooter cue plays at the activation location (the ally's position, a block from where the shooter
+# is about to stand); PARTICLE's recorded +0.5 y and 0.5 speed have no param and the burst centres on the
+# body.
+levels:
+  # Range 6 x level blocks (the jar compares squared: 36/144/324/576/900); everything else is
+  # level-independent, 100 % on every qualifying hit. The misspelling "Teleporation" is the source's and is
+  # kept verbatim.
+  1:
+    abilities:
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\" && %distance% <= 6"
+        effects:
+          - { CANCEL: {} }
+          - { TELEPORT: { to: "VICTIM", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341 } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\" && %distance% > 6"
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§c§l(!) §cYour ally is too far away to teleport to with this level of Teleporation." } }
+      - trigger: BOW_FIRE
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
+  2:
+    abilities:
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\" && %distance% <= 12"
+        effects:
+          - { CANCEL: {} }
+          - { TELEPORT: { to: "VICTIM", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341 } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\" && %distance% > 12"
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§c§l(!) §cYour ally is too far away to teleport to with this level of Teleporation." } }
+      - trigger: BOW_FIRE
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
+  3:
+    abilities:
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\" && %distance% <= 18"
+        effects:
+          - { CANCEL: {} }
+          - { TELEPORT: { to: "VICTIM", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341 } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\" && %distance% > 18"
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§c§l(!) §cYour ally is too far away to teleport to with this level of Teleporation." } }
+      - trigger: BOW_FIRE
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
+  4:
+    abilities:
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\" && %distance% <= 24"
+        effects:
+          - { CANCEL: {} }
+          - { TELEPORT: { to: "VICTIM", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341 } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\" && %distance% > 24"
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§c§l(!) §cYour ally is too far away to teleport to with this level of Teleporation." } }
+      - trigger: BOW_FIRE
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
+  5:
+    abilities:
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\" && %distance% <= 30"
+        effects:
+          - { CANCEL: {} }
+          - { TELEPORT: { to: "VICTIM", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341 } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\" && %distance% > 30"
+        effects:
+          - { CANCEL: {} }
+          - { MESSAGE: { text: "§c§l(!) §cYour ally is too far away to teleport to with this level of Teleporation." } }
+      - trigger: BOW_FIRE
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
