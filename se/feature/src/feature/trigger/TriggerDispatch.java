@@ -149,7 +149,8 @@ public final class TriggerDispatch {
 
     /**
      * Fire MINE for a block break, then apply the drop read-backs to {@code event}: {@code cancelEvent}, plus
-     * {@code SMELT} / {@code TELEPORT_DROPS} (Cosmic Enchants-style parity). Runs on the block's region thread.
+     * {@code SMELT} / {@code TELEPORT_DROPS} (Cosmic Enchants-style parity) and the block's own XP yield. Runs
+     * on the block's region thread.
      */
     public void fireMine(Player actor, ActivationContext context, BlockBreakEvent event) {
         if (mine < 0) {
@@ -162,9 +163,27 @@ public final class TriggerDispatch {
         if (sink.cancelled()) {
             event.setCancelled(true);
         } else {
+            scaleBlockExp(event, sink.expMultiplier());
             MineDrops.apply(event, sink.smeltRequested(), sink.teleportDropsRequested(), hands, dropControl);
         }
         sink.flush();
+    }
+
+    /**
+     * The MINE half of {@code EXP_MULTIPLY}: scale the XP THIS BLOCK yields. Block-sourced XP has no other
+     * expression — {@code PlayerExpChangeEvent} carries no source, so the EXP_GAIN path cannot tell a mined
+     * block from a bottle, a furnace or a trade, and an author asking for "block XP only" has nowhere else to
+     * say it. Applied BEFORE the drop read-backs, so a TELEPORT_DROPS/SMELT hand-off carries the boosted figure.
+     *
+     * <p>Truncated, not rounded: the block's yield is a whole-orb quantity, and truncation is the ladder the
+     * port measured (a 7-XP block at ×1.25/1.5/1.75/2.0/2.25 gives 8/10/12/14/15). The EXP_GAIN path rounds
+     * instead — it scales an amount already granted, where the nearest whole XP is the honest reading.
+     */
+    private static void scaleBlockExp(BlockBreakEvent event, double multiplier) {
+        if (multiplier == 1.0) {
+            return;
+        }
+        event.setExpToDrop(Math.max(0, (int) (event.getExpToDrop() * multiplier)));
     }
 
     /**

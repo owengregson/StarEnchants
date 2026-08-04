@@ -105,7 +105,11 @@ public final class Aliases {
             Map.entry("MAGMACUBE_WALK2", "ENTITY_MAGMA_CUBE_SQUISH"),
             Map.entry("GHAST_SCREAM", "ENTITY_GHAST_SCREAM"),
             Map.entry("CREEPER_HISS", "ENTITY_CREEPER_PRIMED"),
-            Map.entry("WITHER_HURT", "ENTITY_WITHER_HURT"));
+            Map.entry("WITHER_HURT", "ENTITY_WITHER_HURT"),
+            // The 1.8 shoot pair: both constants renamed AND, for the ghast, changed noun — 1.8 named the
+            // cue after the projectile (GHAST_FIREBALL), the flattening after the act (ENTITY_GHAST_SHOOT).
+            Map.entry("GHAST_FIREBALL", "ENTITY_GHAST_SHOOT"),
+            Map.entry("WITHER_SHOOT", "ENTITY_WITHER_SHOOT"));
 
     /**
      * The COMPLETE 1.20.5 particle rename wave (Spigot flattened the enum), floor name → modern name,

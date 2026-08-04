@@ -59,9 +59,9 @@ public final class ReboundStore implements PlayerScoped {
     /**
      * The grade that answers an incoming enchant of rarity weight {@code tier}, or {@code null}. Precedence is
      * the GREATEST {@code tierMin} among the bands containing {@code tier} — which is exactly the matrix's
-     * exclusive chain "mastery (tier 8 only) → heroic (&le; 7) → normal (&le; 5), first match wins": the
-     * narrowest band that reaches this tier is the highest grade authored for it, so a wearer carrying all
-     * three uses exactly one branch even when a lower grade sits at a higher level.
+     * exclusive chain "mastery only → heroic and below → normal and below, first match wins": the narrowest
+     * band that reaches this weight is the highest grade authored for it, so a wearer carrying all three uses
+     * exactly one branch even when a lower grade sits at a higher level.
      */
     public Rule strongestFor(UUID player, int tier) {
         Map<Integer, Rule> grades = player == null ? null : armed.get(player);
