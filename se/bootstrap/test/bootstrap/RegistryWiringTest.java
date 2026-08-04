@@ -66,7 +66,8 @@ class RegistryWiringTest {
     /** The golden global listener registration sequence, all toggles on (§2 with EngineStoreListener after Immune,
      *  heroic-durability right after Heroic). Fold Events + the materialized guard/sweep, in registry order. */
     private static final List<String> GOLDEN_LISTENERS = List.of(
-            "CombatListener", "RageStacksListener", "ComboDotSyncListener", "EquipListener", "ArmourFeeder", "HandChangeFeeder",
+            "CombatListener", "RageStacksListener", "ComboDotSyncListener", "VanishListener",
+            "EquipListener", "ArmourFeeder", "HandChangeFeeder",
             "SoulListener", "SoulInteractListener", "SoulInventoryListener",
             "TriggerListeners", "PlacedBlockTracker", "ItemDamageSource", "FallingBlockListener",
             "GuardianHurtListener", "ProjectileLandListener",
@@ -84,7 +85,7 @@ class RegistryWiringTest {
             "SummonPayloadListener", // the detonate/death payload phases (the periodic one arms in the sink)
             "SummonStrikeListener", // the strike phase: an owned summon's melee hit runs the owner's IMPACT
             "IllusionCanonGuard", "MaskBreakSource", "MaskListener", "MaskRemoveListener", "MaskIllusionListener", "MobTargetGuard", "InvseeGuard",
-            "NearGuard", "SplashHealGuard",
+            "NearGuard", "SplashHealGuard", "SpawnerYieldListener",
             "ReforgeListener", "ReforgeUseListener", "ReforgeStrikeListener", "ReforgeTempoGuardListener", // ADR-0070/0071
             "ScrollListener", "HolyScrollListener", "NametagListener", "TrakListener", "ShotWeapons",
             "MenuListener", "GodlyTransmogListener");
@@ -146,6 +147,7 @@ class RegistryWiringTest {
         when(bindings.stationGuard(any())).thenReturn(new StationGuard());
         when(bindings.dispenseArmorGuard(any())).thenReturn(new DispenseArmorGuard()); // 1.8.4 dispenser head-equip guard
         when(bindings.weaponDamage()).thenReturn(feature.reforge.WeaponDamage.NONE); // ADR-0071 Javelin swing seam (JavelinService ctor)
+        when(bindings.playerVisibility(any())).thenReturn(engine.sink.PlayerVisibility.NONE); // VANISH join re-sync
 
         org.bukkit.plugin.java.JavaPlugin plugin = mock(org.bukkit.plugin.java.JavaPlugin.class);
         org.bukkit.Server server = mock(org.bukkit.Server.class);

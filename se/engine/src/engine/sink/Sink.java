@@ -1159,4 +1159,21 @@ public interface Sink {
      * authored gain / level-up lines (empty = silent).
      */
     void itemXpTrack(Player holder, int amount, int windowMinutes, String gainMessage, String levelUpMessage);
+
+    /**
+     * Paint a client-only block overlay over the qualifying surface of the {@code radius} patch around
+     * {@code origin} for {@code durationTicks} — {@code PHANTOM_BLOCKS}. {@code actor} and everyone allied to
+     * them see {@code allyMaterialId}; everyone else sees {@code enemyMaterialId}. The world is never written,
+     * so the patch survives no reload and blocks nothing: the revert simply re-sends the real ground.
+     */
+    void phantomBlocks(Location origin, Player actor, int radius, int allyMaterialId, int enemyMaterialId,
+                       int durationTicks);
+
+    /**
+     * Hide {@code subject} from every player for {@code durationTicks} — {@code VANISH}. The window ends early
+     * once {@code breakHits} of the subject's OWN hits land ({@code <= 0} = only the timer ends it); damage
+     * they TAKE never spends one. {@code varName} (empty = none) reads {@code 1} while the window is live. A
+     * re-proc REPLACES the window rather than extending it.
+     */
+    void vanish(Player subject, int durationTicks, int breakHits, String varName);
 }

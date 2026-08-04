@@ -14,6 +14,7 @@ import feature.mask.MaskService;
 import org.bukkit.event.Listener;
 import feature.mask.MobTargetGuard;
 import feature.mask.NearGuard;
+import feature.mask.SpawnerYieldListener;
 import feature.mask.SplashHealGuard;
 import feature.menu.Mintable;
 import item.head.IllusionMark;
@@ -53,6 +54,7 @@ final class MasksModule {
     private final InvseeGuard invseeGuard;
     private final NearGuard nearGuard;
     private final SplashHealGuard splashHealGuard;
+    private final SpawnerYieldListener spawnerYield;
 
     MasksModule(BootCore core, EquipModule equip) {
         this.core = core;
@@ -91,6 +93,9 @@ final class MasksModule {
         this.nearGuard = new NearGuard(wards, core.tick()::get, core.messages(),
                 () -> core.master().config().masks(), enabled);
         this.splashHealGuard = new SplashHealGuard(wards, core.tick()::get);
+        // The SPAWNER_YIELD worn channel's consumer (D-11-10): live worn state read per spawn, never cached.
+        this.spawnerYield = new SpawnerYieldListener(core.content(), core.worn(), core.stores().suppression(),
+                core.tick()::get, enabled, core.rolls(), core.triggers().idOf("PASSIVE").orElse(-1));
 
         this.mints = List.of(Mints.mask(masks, core.content()));
     }
@@ -112,6 +117,7 @@ final class MasksModule {
                 .events(invseeGuard)
                 .events(nearGuard)
                 .events(splashHealGuard)
+                .events(spawnerYield)
                 .menu(76, new feature.menu.MasksBrowserMenu(core.content(), masks, core.caps(), core.messages(),
                         core.menusHolder()::config, core.vanillaEnchants()))
                 .mints(mints)

@@ -117,7 +117,11 @@ class NewEffectEndToEndTest {
             "INVENTORY_CONVERT: { from: BUCKET, to: LAVA_BUCKET, limit: 1152, plain: true, "
                     + "protect-seconds: 60, count-var: converted }",
             "ITEM_XP_TRACK: { amount: 500, window: 1440, message: \"+{xp}\", "
-                    + "level-up-message: \"*** {level} ***\" }");
+                    + "level-up-message: \"*** {level} ***\" }",
+            "PHANTOM_BLOCKS: { radius: 4, material-ally: GLOWSTONE, material-enemy: END_STONE, duration: 100, "
+                    + "who: \"@Self\" }",
+            "VANISH: { duration: 60, break-hits: 2, var: feign.active, who: \"@Self\" }",
+            "SPAWNER_YIELD: { chance: 65, extra: 1, scope: chunk, radius: 16 }");
 
     @TempDir
     Path root;

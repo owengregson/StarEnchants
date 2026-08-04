@@ -4132,6 +4132,69 @@
       ]
     },
   {
+    "head": "PHANTOM_BLOCKS",
+    "doc": "Show every nearby player a client-only overlay across the qualifying surface of the (2*radius+1)^2 patch under each target for `duration` ticks: material-ally to the actor and anyone allied to them, material-enemy to everyone else. A column qualifies when its first solid block down from the target's own level is a full opaque cube with a passable cell above it — see-through floors, roofed columns and anything more than a few steps below are skipped. NOTHING is written to the world: the patch blocks no movement, breaks nothing and survives no reload, and the window's close re-sends the ground as it really is then (so a block mined meanwhile is not stranded). A viewer who relogs is served the true chunk by the server.",
+    "affinity": "REGION",
+    "usage": "{ PHANTOM_BLOCKS: { radius: <int[0..8]=3>, material-ally: <material=GLOWSTONE>, material-enemy: <material=END_STONE>, duration: <ticks[1..]=200> } }",
+    "example": "{ PHANTOM_BLOCKS: { radius: 4, material-ally: GLOWSTONE, material-enemy: END_STONE, duration: 100, who: \"@Self\" } }",
+    "params": [
+      {
+        "name": "radius",
+        "kind": "INT",
+        "label": "int[0..8]",
+        "required": false,
+        "default": "3",
+        "min": 0,
+        "max": 8,
+        "enum": [],
+        "handle": null,
+        "doc": "blocks each way from the target the overlay covers"
+        },
+      {
+        "name": "material-ally",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": false,
+        "default": "GLOWSTONE",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": "what the actor and their allies are shown"
+        },
+      {
+        "name": "material-enemy",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": false,
+        "default": "END_STONE",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": "what everyone else is shown"
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[1..]",
+        "required": false,
+        "default": "200",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "ticks before the real ground is sent back"
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
     "head": "POTION",
     "doc": "Apply a potion effect to the target(s) at the given LEVEL (1-based: level 1 = the I tier), for a duration in ticks. The effect name is resolved to a handle at compile time. On a HELD/PASSIVE source it is removed again when the item is unequipped (§B lifecycle).",
     "affinity": "TARGET_ENTITY",
@@ -4911,6 +4974,67 @@
         "selector": "HERE"
         }
       ]
+    },
+  {
+    "head": "SPAWNER_YIELD",
+    "doc": "While worn (PASSIVE): every spawner spawn near the wearer rolls `chance`% to add `extra` copies of the same mob at the same spot. `scope: chunk` counts a wearer standing in the spawn's own chunk; `scope: radius` counts one within `radius` blocks of it. The wearer test is asked PER SPAWN against live worn state, so walking away stops it immediately. Grants do NOT stack — two wearers at one spawner get the stronger one's yield, not both. The added copies spawn as CUSTOM, so they never re-trigger this and never count against the spawner's own budget.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ SPAWNER_YIELD: { chance: <double[0..100]=65>, extra: <int[1..8]=1>, scope: <enum{chunk|radius}=chunk>, radius: <double[0..]=16> } }",
+    "example": "{ SPAWNER_YIELD: { chance: 65, extra: 1, scope: chunk } }",
+    "params": [
+      {
+        "name": "chance",
+        "kind": "DOUBLE",
+        "label": "double[0..100]",
+        "required": false,
+        "default": "65",
+        "min": 0,
+        "max": 100,
+        "enum": [],
+        "handle": null,
+        "doc": "percent of spawns that come out multiplied"
+        },
+      {
+        "name": "extra",
+        "kind": "INT",
+        "label": "int[1..8]",
+        "required": false,
+        "default": "1",
+        "min": 1,
+        "max": 8,
+        "enum": [],
+        "handle": null,
+        "doc": "copies added on a winning roll"
+        },
+      {
+        "name": "scope",
+        "kind": "ENUM",
+        "label": "enum{chunk|radius}",
+        "required": false,
+        "default": "chunk",
+        "min": null,
+        "max": null,
+        "enum": [
+          "chunk",
+          "radius"
+          ],
+        "handle": null,
+        "doc": "where the wearer counts as present"
+        },
+      {
+        "name": "radius",
+        "kind": "DOUBLE",
+        "label": "double[0..]",
+        "required": false,
+        "default": "16",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "blocks, for scope: radius; ignored for scope: chunk"
+        }
+      ],
+    "targets": []
     },
   {
     "head": "SPAWN_ENTITY",
@@ -6712,6 +6836,57 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
+    "head": "VANISH",
+    "doc": "Hide the target from EVERY online player for `duration` ticks — a packet-level hide, so worn armour vanishes with the body. The window breaks early once `break-hits` of the target's own hits LAND (0 = never); damage they take never spends one, so hiding survives being hit but not hitting back. A player who joins mid-window is re-synced, so a vanish cannot be beaten by relogging. While it is live `var` reads 1, and it drops to 0 the moment it ends by any route (timer, hit, quit). A re-proc REPLACES the window: fresh duration, fresh hit allowance.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ VANISH: { duration: <ticks[1..]=30>, break-hits: <int[0..]=1>, var: <string=> } }",
+    "example": "{ VANISH: { duration: 60, break-hits: 2, var: feign.active, who: \"@Self\" } }",
+    "params": [
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[1..]",
+        "required": false,
+        "default": "30",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "ticks the target stays hidden from every player"
+        },
+      {
+        "name": "break-hits",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "1",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "landed outgoing hits the window absorbs before it breaks; 0 = only the timer ends it"
+        },
+      {
+        "name": "var",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "player variable reading 1 while the window is live; empty = none"
         }
       ],
     "targets": [

@@ -23,6 +23,7 @@ import engine.stores.ReflectMarksStore;
 import engine.stores.SoulExemptStore;
 import engine.stores.SuppressionStore;
 import engine.stores.TeleblockStore;
+import engine.stores.VanishStore;
 import engine.stores.VarStore;
 import engine.stores.FoodWindowStore;
 import engine.stores.MessageThrottleStore;
@@ -181,6 +182,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private static final int BLOCK_KILL_POLL_TICKS = 20;
     /** Max blocks a strike point drops looking for ground before it settles at the origin's level. */
     private static final int STRIKE_GROUND_DROP_LIMIT = 128;
+    /** Max blocks a phantom column drops looking for its surface — the turret budget: the ground under one
+     *  fight follows a slope and a staircase, but the overlay never reaches down a cliff into a different one. */
+    private static final int PHANTOM_GROUND_DROP_LIMIT = 4;
+    /** How far out a phantom overlay looks for viewers. Far enough that anyone who can resolve individual
+     *  blocks in the patch is painted; a client beyond it is reading terrain, not a fight. */
+    private static final double PHANTOM_VIEW_RANGE = 48.0;
     /** Max blocks a turret site drops looking for open ground before the site is skipped — a few steps, so a
      *  ring follows stairs and a slope but never reaches down a cliff to place a turret out of the fight. */
     private static final int TURRET_GROUND_DROP_LIMIT = 4;
@@ -230,6 +237,10 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final ReboundStore rebounds;
     /** The VIEWER_HIDE seam (the modern call needs a {@code Plugin} the engine may not hold). */
     private final PlayerVisibility visibility;
+    /** The PHANTOM_BLOCKS seam (1.8.9 has no {@code BlockData}, so the send cannot live in shared code). */
+    private final BlockVisibility blockVisibility;
+    /** VANISH windows — store-backed (unlike VIEWER_HIDE) so a landed hit can end one early. */
+    private final VanishStore vanishStore;
     /** The SUMMON_PAYLOAD seam a periodic summon pulses through (firing a trigger is the feature layer's). */
     private final SummonPayloads payloads;
     /** The per-site protection gate (gate 2's provider list), asked once per TURRET_RING emplacement. */
@@ -304,6 +315,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.headTrophies = env.stores().headTrophies();
         this.rebounds = env.stores().rebounds();
         this.visibility = env.visibility();
+        this.blockVisibility = env.blockVisibility();
+        this.vanishStore = env.stores().vanish();
         this.payloads = env.payloads();
         this.siteGate = env.siteGate();
         this.itemXp = env.itemXp();
@@ -737,6 +750,181 @@ public abstract class DispatchSinkBase implements SinkReadback {
                         visibility.setVisible(watcher, live, true);
                     }
                 });
+            });
+        }
+    }
+
+    @Override
+    public void phantomBlocks(Location origin, Player actor, int radius, int allyMaterialId, int enemyMaterialId,
+                              int durationTicks) {
+        if (origin == null || radius < 0 || durationTicks <= 0) {
+            return;
+        }
+        Material ally = material(allyMaterialId);
+        Material enemy = material(enemyMaterialId);
+        if (ally == null || enemy == null) {
+            return;
+        }
+        Location anchor = origin.clone(); // own the origin: a WAIT tier can defer this to a later tick
+        UUID actorId = actor == null ? null : actor.getUniqueId();
+        regionOp(anchor, () -> {
+            World world = anchor.getWorld();
+            // Gated ONCE for the whole patch, unlike TURRET_RING's per-site ask: nothing here is placed, moved
+            // or broken, so the only thing a claim boundary can object to is the illusion appearing at all.
+            if (world == null || !siteGate.allows(actorId, anchor)) {
+                return;
+            }
+            List<Location> patch = phantomSurface(world, anchor, radius);
+            if (patch.isEmpty()) {
+                return;
+            }
+            List<UUID> painted = new ArrayList<>();
+            for (Entity nearby : world.getNearbyEntities(anchor, PHANTOM_VIEW_RANGE, PHANTOM_VIEW_RANGE,
+                    PHANTOM_VIEW_RANGE)) {
+                if (!(nearby instanceof Player viewer)) {
+                    continue;
+                }
+                // ONE alliance concept: the same predicate the @Aoe{filter=ALLIES} selector reads, so a
+                // truce-or-better teammate sees the friendly face of the field and nobody else does.
+                boolean friendly = viewer.getUniqueId().equals(actorId) || Allies.allied(actor, viewer);
+                Material shown = friendly ? ally : enemy;
+                painted.add(viewer.getUniqueId());
+                // The viewer's own thread: a hidden/overlaid block set belongs to their connection, the
+                // VIEWER_HIDE rule. One packet per block — sendMultiBlockChange is absent on the 1.17.1 floor.
+                entityOp(viewer, () -> {
+                    for (Location at : patch) {
+                        blockVisibility.sendPhantom(viewer, at, shown);
+                    }
+                });
+            }
+            if (painted.isEmpty()) {
+                return;
+            }
+            // The revert re-reads the ground rather than replaying an arm-time snapshot: a block somebody mined
+            // during the window has already been sent to these clients for real, and resending a stale capture
+            // would strand THAT as the ghost. A client that relogs meanwhile is served the true chunk by the
+            // server, so a missed viewer needs no rejoin hook.
+            Scheduling.onRegionLater(anchor, durationTicks, () -> revertPhantom(patch, painted));
+        });
+    }
+
+    /** Phase 2: snapshot the live ground on its own region thread, then hand each viewer their own resend. */
+    private void revertPhantom(List<Location> patch, List<UUID> painted) {
+        List<BlockVisibility.Appearance> real = new ArrayList<>(patch.size());
+        for (Location at : patch) {
+            try {
+                real.add(blockVisibility.capture(at.getBlock()));
+            } catch (RuntimeException foreignRegion) {
+                Regions.swallowed("DispatchSinkBase.revertPhantom", foreignRegion);
+                return; // a re-partitioned patch reverts on the client's next chunk load instead
+            }
+        }
+        for (UUID id : painted) {
+            Player viewer = Bukkit.getPlayer(id);
+            if (viewer == null) {
+                continue; // gone: their next login is served the real world anyway
+            }
+            Scheduling.onEntity(viewer, () -> {
+                for (int i = 0; i < patch.size(); i++) {
+                    real.get(i).resend(viewer, patch.get(i));
+                }
+            });
+        }
+    }
+
+    /**
+     * The qualifying surface of the {@code (2*radius+1)²} patch centred on {@code anchor}: per column, the first
+     * block from the anchor's own level downward that is a full opaque cube with a passable cell above it — the
+     * contract's "solid, non-transparent, passable above". Columns the anchor's region does not own are SKIPPED
+     * rather than crossed: a client-only illusion is not worth a cross-region read, and Folia's grid rarely
+     * splits the ground under one fight.
+     */
+    private static List<Location> phantomSurface(World world, Location anchor, int radius) {
+        List<Location> out = new ArrayList<>();
+        int baseY = anchor.getBlockY();
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                try {
+                    Location surface = phantomColumn(world, anchor.getBlockX() + dx, baseY,
+                            anchor.getBlockZ() + dz);
+                    if (surface != null) {
+                        out.add(surface);
+                    }
+                } catch (RuntimeException foreignRegion) {
+                    Regions.swallowed("DispatchSinkBase.phantomSurface", foreignRegion);
+                }
+            }
+        }
+        return out;
+    }
+
+    /** One column's overlay block, or {@code null} when it offers no surface the overlay should claim. */
+    private static Location phantomColumn(World world, int x, int topY, int z) {
+        for (int drop = 0; drop <= PHANTOM_GROUND_DROP_LIMIT; drop++) {
+            int y = topY - drop;
+            Material type = world.getBlockAt(x, y, z).getType();
+            if (!type.isSolid()) {
+                continue;
+            }
+            // The FIRST solid block is this column's floor — anything under it is buried. A see-through floor
+            // (glass, a slab, a fence) is disqualified because an opaque phantom over it reads as a glitch
+            // rather than as terrain, which is the whole point of the illusion.
+            return type.isOccluding() && !world.getBlockAt(x, y + 1, z).getType().isSolid()
+                    ? new Location(world, x, y, z)
+                    : null;
+        }
+        return null;
+    }
+
+    @Override
+    public void vanish(Player subject, int durationTicks, int breakHits, String varName) {
+        if (subject == null || durationTicks <= 0) {
+            return;
+        }
+        UUID subjectId = subject.getUniqueId();
+        String var = varName == null ? "" : varName.trim();
+        // Built ONCE and stored with the window, so the timer, the exhausting hit, the quit sweep and a lapsed
+        // reader all end a vanish identically — there is no path that un-hides half the server.
+        Runnable restore = () -> {
+            showToEveryone(subjectId);
+            if (!var.isEmpty()) {
+                // No per-name clear exists on VarStore; a 1-tick "0" both reads false and evicts itself.
+                vars.set(subjectId, var, "0", nowTicks.getAsLong(), 1);
+            }
+        };
+        entityOp(subject, () -> {
+            long now = nowTicks.getAsLong();
+            long seq = vanishStore.open(subjectId, now, durationTicks, breakHits, restore);
+            if (!var.isEmpty()) {
+                vars.set(subjectId, var, "1", now, durationTicks);
+            }
+            for (Player watcher : List.copyOf(Bukkit.getOnlinePlayers())) {
+                if (watcher.getUniqueId().equals(subjectId)) {
+                    continue; // hiding someone from themselves blanks their own body for no gain
+                }
+                // The watcher's own thread: the hidden set belongs to their connection (the VIEWER_HIDE rule).
+                Scheduling.onEntity(watcher, () -> visibility.setVisible(watcher, subject, false));
+            }
+            Scheduling.onEntityLater(subject, durationTicks, () -> {
+                VanishStore.Window ended = vanishStore.close(subjectId, seq);
+                if (ended != null) {
+                    ended.restore().run();
+                }
+            });
+        });
+    }
+
+    /** Un-hide {@code subjectId} for every current viewer, re-resolving the body (a relog invalidates a handle). */
+    private void showToEveryone(UUID subjectId) {
+        for (Player watcher : List.copyOf(Bukkit.getOnlinePlayers())) {
+            if (watcher.getUniqueId().equals(subjectId)) {
+                continue;
+            }
+            Scheduling.onEntity(watcher, () -> {
+                Player live = Bukkit.getPlayer(subjectId);
+                if (live != null) {
+                    visibility.setVisible(watcher, live, true);
+                }
             });
         }
     }
