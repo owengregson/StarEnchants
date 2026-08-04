@@ -1,7 +1,9 @@
 package engine.sink;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Predicate;
 import org.bukkit.Location;
@@ -29,8 +31,12 @@ final class RecordingSink extends DispatchSinkBase {
 
     /** Cell → standable? Default: always safe. A test scripts a wall by returning false for its cells. */
     Predicate<Location> safe = loc -> true;
-    /** The type {@link #potionEffect(int)} returns for any id (a reeled-enemy Slowness in GrappleIntentTest). */
+    /** The type {@link #potionEffect(int)} returns for any unmapped id (a reeled-enemy Slowness in GrappleIntentTest). */
     PotionEffectType slowType;
+    /** Per-id potion types, so a loadout test can tell one entry of a summon's buffs from another. */
+    final Map<Integer, PotionEffectType> potions = new HashMap<>();
+    /** The type {@link #entityType(int)} returns for any id (the summon paths need a non-null one). */
+    EntityType spawnType;
 
     final List<Location> teleports = new ArrayList<>();
     final List<Location> dust = new ArrayList<>();
@@ -59,7 +65,7 @@ final class RecordingSink extends DispatchSinkBase {
 
     @Override
     protected PotionEffectType potionEffect(int id) {
-        return slowType;
+        return potions.getOrDefault(id, slowType);
     }
 
     // ── inert leaves (never exercised by these tests) ──
@@ -75,7 +81,7 @@ final class RecordingSink extends DispatchSinkBase {
 
     @Override
     protected EntityType entityType(int id) {
-        return null;
+        return spawnType;
     }
 
     @Override
