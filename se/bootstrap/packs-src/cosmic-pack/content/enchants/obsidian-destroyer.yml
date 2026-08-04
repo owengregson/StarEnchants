@@ -1,0 +1,61 @@
+# Matrix: 06-enchants-tools-heroic.md § Obsidian Destroyer
+display: "Obsidian Destroyer"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA punch at obsidian can shatter it outright,"
+  - "&einstead of the nine seconds it usually costs."
+# THE SWING, NOT THE BREAK. The whole point of the entry is skipping obsidian's ~9-second mining time, so a
+# hook that fires only once the break FINISHED is not this enchant — INTERACT_LEFT is the punch itself.
+trigger: INTERACT_LEFT
+# The jar's `pickaxe` item set: the 5 tiered pickaxes, the same set auto-smelt.yml and fuse.yml carry.
+applies-to: [PICKAXE]
+group: "uncommon"
+tier: uncommon
+# Matrix-06 records no tier for the tool enchants — only the enchant-table weight (6 here) — so the rung
+# comes from the codex's own tier table (`obsidiandestroyer` 2 = `uncommon`, lore colour `§a`), the same
+# source doc 05's files used for their unrecorded acquisition rows. Max 5; base 10.0, interval 10.0.
+# THE GATE IS WHAT MAKES THE ABILITY SAFE TO AUTHOR, and it only became writable in wave 2c. `onInteract`
+# now carries `PlayerInteractEvent#getClickedBlock` on all three interact triggers AND anchors the
+# activation LOCATION on that block, so `%block.type%` is the face the player hit and `@Here` resolves
+# there. Both halves matter: before the anchor moved, `@Here` on a click was the clicker's own FEET, and a
+# `BREAK_BLOCK` under a gate that never matched would either be dead or — with the gate dropped — a
+# 100 %-per-left-click hole in the world at level 5. With the block carried, `BREAK_BLOCK: @Here` under
+# `%block.type% == "OBSIDIAN"` can only ever break the one block that was clicked, and a punch at open air
+# carries no block at all, so the gate reads empty and nothing fires.
+condition: "%block.type% == \"OBSIDIAN\""
+# `drops: true` is the recorded behaviour and it respects the held pickaxe, so obsidian only yields its block
+# to a diamond-or-better tool exactly as vanilla mining would — the enchant sells the TIME, not the drop.
+# No durability cost (measured), and no cooldown: the chance ladder is the only pacing.
+# Not authored, owned by other layers: the Factions ownership / obby-destroy permission / war-zone veto chain
+# is the engine's protection hooks, and the matrix's "not in The End" clause is END-SUPPRESS, the tier world
+# rule that already covers every tier > 5 enchant (this one is tier 2, so the jar's extra hard-check here is
+# redundant against it either way). The jar's async faction lookup race and its null-faction NPE path are
+# quirks of that chain, not behaviour to port — the engine's checks are synchronous.
+# Single block per click, no radius: the volume selectors would be the wrong tool even now, since they carry
+# their own material lists but centre on the activation block, and one clicked block is exactly `@Here`.
+# strings: none.
+# era: none — obsidian and the left-click hook are identical on 1.8.9, and `getClickedBlock` is as old as the
+# event itself.
+levels:
+  # Chance 20 x level. L5 is exactly 1.00 and therefore always fires — a by-design cap the matrix does not
+  # ledger, so the 100 ships as the top rung rather than as a corrected curve (the telepathy.yml reading).
+  1:
+    chance: 20
+    effects:
+      - { BREAK_BLOCK: { drops: true } }
+  2:
+    chance: 40
+    effects:
+      - { BREAK_BLOCK: { drops: true } }
+  3:
+    chance: 60
+    effects:
+      - { BREAK_BLOCK: { drops: true } }
+  4:
+    chance: 80
+    effects:
+      - { BREAK_BLOCK: { drops: true } }
+  5:
+    chance: 100
+    effects:
+      - { BREAK_BLOCK: { drops: true } }

@@ -1,0 +1,146 @@
+# Matrix: 06-enchants-tools-heroic.md § Detonate
+display: "Detonate"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eEvery block you break takes a 3x3 slab of"
+  - "&ethe wall with it, deeper as the level climbs."
+trigger: MINE
+# The jar's 21-material `tools` set: the four TOOL families (5 pickaxes + 5 axes + 5 spades + 5 hoes) plus
+# the fishing rod the composite would drop — the item-set ruling's canonical spelling, shared with
+# haste.yml / oxygenate.yml / telepathy.yml. Fuse's own set is the 5 pickaxes only, which is why a
+# table-rolled Detonate axe can never be joined by the smelting pair (the acquisition quirk fuse.yml keeps).
+applies-to: [TOOL, FISHING_ROD]
+group: "epic"
+tier: epic
+# Matrix-06 records no tier for the tool enchants — only the enchant-table weight (6 here) — so the rung
+# comes from the codex's own tier table (`detonate` 4 = `epic`), the same source doc 05's files used for
+# their unrecorded acquisition rows. Fuse shares the rung. Max 9; base 10.0, interval 10.0.
+# THE ORIGIN-BLOCK DENY, the jar's own pre-check: mining a comparator or a sponge runs no explosion at all.
+# `contains` covers the comparator in one clause on BOTH lanes — 1.8 splits the block into
+# REDSTONE_COMPARATOR_ON / _OFF and the flattening collapses both to COMPARATOR, and `%block.type%` is the
+# server's own name for the mined block with no alias pass, so a name test has to span both spellings.
+condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\")"
+# THE VOLUME. `@Bore{half-width=1, half-height=1, depth=D}` is the matrix's face-oriented box: a 3x3
+# cross-section marched D layers into the face being mined, oriented from that face — which is D-06-2's
+# "orient from the mined face" for free, and closes the jar's never-cleared face cache along with the NPE it
+# threw for a player who had not clicked since the last restart. `depth` counts the activation block's own
+# layer, so a rung's volume is 9xD blocks; the recorded 10 / 19 / 28 "blocks touched" totals are those 9xD
+# plus the jar's origin re-process (D-06-3), which duplicated the drop of the block you actually mined on
+# EVERY swing and which the engine's break path does not do.
+# THE PER-BLOCK DENY LIST is the jar's 22-entry blacklist, and it is why this entry waited: without it a
+# 100 %-at-L3 proc eats BEDROCK, obsidian, fluids, doors, hoppers and anvils, which is a grief tool rather
+# than a mining enchant. `exclude-materials` (wave 2c) is that list, verbatim in the jar's source order,
+# with five entries the port drops for cause and each era-split entry written as a `1.8|modern` fallback
+# chain (the compiler takes the first name that exists on the running version, so one list serves both
+# lanes):
+#   - BEDROCK is listed TWICE in the jar (the codex calls the second comparison dead); once here.
+#   - SIGN and WOOD_DOOR are the 1.8 ITEM ids of the sign and the wooden door — a block never reports
+#     either, so both entries were dead in the jar too. The BLOCK ids (SIGN_POST, WOODEN_DOOR) are kept.
+#   - REDSTONE_COMPARATOR is likewise the 1.8 item id; the two block states (_ON / _OFF) are kept and both
+#     collapse onto COMPARATOR on modern.
+# What the deny list can NOT carry, recorded rather than approximated (all three are riders the deferral
+# ledger already tracks, not stops):
+#   - the TOOL-CLASS SUBLISTS. The jar gated 15 materials (stone, ores, spawners, netherrack…) to a pickaxe
+#     and 6 (dirt, sand, gravel, grass, mycelium, clay) to a spade; here every one of the 21 tools breaks
+#     everything the deny list allows, so a Detonate axe now clears ore and a Detonate hoe now breaks
+#     spawners. Widening, and the felt cost of not splitting the volume three ways.
+#   - the COMPARATOR/DIODE-ABOVE guard, which protected the block UNDERNEATH a comparator or repeater.
+#     Denying the repeater itself is a different rule, not that one, so nothing is authored for it.
+#   - the void-drops list is Atomic Detonate's, not this entry's (`BREAK_BLOCK.drops` is all-or-nothing).
+# DROP COMPOSITION, owned elsewhere and NOT authored here: Telepathy routing the volume's drops to the
+# inventory, and Auto Smelt + Fuse smelting iron/gold ore inside it, both read the MINE event's own block —
+# the volume's blocks are broken by the sink and drop where they stand. Auto Sell's payout is out entirely
+# by owner ruling R9 (economy note-only), which also retires D-06-4's `price x amount` half. D-06-4's other
+# half is fixed structurally: the jar kept only `getDrops()[0]` per block and silently voided rails; the
+# engine breaks naturally, so multi-drop blocks keep every stack and vanilla Fortune/Silk Touch apply.
+# Faction build permission, the war-zone veto and spawner bookkeeping are engine protection/break-pipeline
+# hooks, not enchant config.
+# strings: none player-visible (the jar's console tool-destroy line is not ported).
+# era: the deny list's 1.8 spellings ride the fallback chains above; `EXPLOSION_LARGE` is the 1.8-era
+# particle name of the jar's `LARGE_EXPLODE` and renames again at 1.20.5, both ends carried by
+# `Aliases.PARTICLE`. 1.8 has no off-hand, so face orientation is identical on both lanes.
+levels:
+  # THE DEPTH ROLL IS THE ONLY RANDOMNESS — there is no per-swing proc gate. Levels 1-2 roll the whole
+  # explosion (33 % / 66 %, else nothing but the vanilla break); 3, 6 and 9 are deterministic; 4, 5, 7 and 8
+  # roll an UPGRADE from the rung's floor depth to one layer more. That upgrade is two ORDERED abilities: the
+  # deeper volume first at the recorded chance, then the floor volume unconditionally. When the upgrade
+  # lands, the floor volume is already air (and AIR is on the deny list), so it breaks nothing a second time
+  # — the two rules compose into "deep on a hit, shallow otherwise" without a var to carry the roll.
+  # THE CUES RIDE THE UNCONDITIONAL RULE, once per explosion. The jar's own durability charge was +1 for the
+  # whole blast, not per block, so the ability that always fires is the one that pays it; on the rolled
+  # levels 1-2 the single rule carries it, so a failed roll costs nothing. Two gates on that charge are NOT
+  # ported: the jar took the point only from a PICKAXE, and only when no block in the volume had gone through
+  # a dropless break — so a Detonate spade now takes the same 1 point a pickaxe does, and a volume holding a
+  # dropless block still charges. The tool-destroy branch (destroy at max-1 durability with an ITEM_BREAK
+  # cue) is the vanilla behaviour the engine's own durability path already has.
+  # PARTICLE is one EXPLOSION_LARGE burst at the mined block, not the jar's burst PER broken block: the
+  # effect's `who` slot resolves ENTITIES, and a block-volume selector hands back locations, so a per-block
+  # spray has no spelling. Cosmetic, and the burst still reads as the blast going off.
+  1:
+    abilities:
+      - chance: 33
+        effects:
+          - { BREAK_BLOCK: { drops: true, who: "@Bore{half-width=1, half-height=1, depth=1, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+          - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
+  2:
+    abilities:
+      - chance: 66
+        effects:
+          - { BREAK_BLOCK: { drops: true, who: "@Bore{half-width=1, half-height=1, depth=1, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+          - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
+  3:
+    abilities:
+      - effects:
+          - { BREAK_BLOCK: { drops: true, who: "@Bore{half-width=1, half-height=1, depth=1, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+          - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
+  4:
+    abilities:
+      - chance: 33
+        effects:
+          - { BREAK_BLOCK: { drops: true, who: "@Bore{half-width=1, half-height=1, depth=2, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+      - effects:
+          - { BREAK_BLOCK: { drops: true, who: "@Bore{half-width=1, half-height=1, depth=1, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+          - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
+  5:
+    abilities:
+      - chance: 66
+        effects:
+          - { BREAK_BLOCK: { drops: true, who: "@Bore{half-width=1, half-height=1, depth=2, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+      - effects:
+          - { BREAK_BLOCK: { drops: true, who: "@Bore{half-width=1, half-height=1, depth=1, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+          - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
+  6:
+    abilities:
+      - effects:
+          - { BREAK_BLOCK: { drops: true, who: "@Bore{half-width=1, half-height=1, depth=2, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+          - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
+  7:
+    abilities:
+      - chance: 33
+        effects:
+          - { BREAK_BLOCK: { drops: true, who: "@Bore{half-width=1, half-height=1, depth=3, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+      - effects:
+          - { BREAK_BLOCK: { drops: true, who: "@Bore{half-width=1, half-height=1, depth=2, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+          - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
+  8:
+    abilities:
+      - chance: 66
+        effects:
+          - { BREAK_BLOCK: { drops: true, who: "@Bore{half-width=1, half-height=1, depth=3, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+      - effects:
+          - { BREAK_BLOCK: { drops: true, who: "@Bore{half-width=1, half-height=1, depth=2, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+          - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
+  9:
+    abilities:
+      - effects:
+          - { BREAK_BLOCK: { drops: true, who: "@Bore{half-width=1, half-height=1, depth=3, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+          - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
