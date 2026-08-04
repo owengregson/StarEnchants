@@ -693,6 +693,58 @@ class ModeDispatchEffectTest {
                 }));
     }
 
+    /**
+     * Wave 2d {@code FACING_SET}. Its mode reaches the Sink as a bare boolean, so a flipped branch turns every
+     * fear proc into a taunt with nothing else to notice; and the anchor picks WHICH combat party the look is
+     * measured from, so a row per anchor pins that a mis-read enum does not silently fall back to the actor.
+     * The unresolved-anchor row is the guard: "away from nothing" has no direction, so it must be a silent
+     * no-op rather than an arbitrary spin.
+     */
+    @TestFactory
+    List<DynamicTest> facingSetAnchorAndMode() {
+        return List.of(
+                facingRow("FACING_SET toward the activator origin", "toward", "activator", false),
+                facingRow("FACING_SET away from the activator origin", "away", "activator", true),
+                facingRow("FACING_SET away from the attacker", "away", "attacker", true),
+                facingRow("FACING_SET toward the victim", "toward", "victim", false),
+                dynamicTest("FACING_SET with an unresolvable anchor turns nobody", () -> {
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("mode", "away").with("anchor", "attacker") // no attacker on this activation
+                            .targets("who", mock(LivingEntity.class));
+                    Sink sink = mock(Sink.class);
+                    new FacingSetEffect().run(ctx, sink);
+                    verifyNoInteractions(sink);
+                }));
+    }
+
+    private static DynamicTest facingRow(String label, String mode, String anchor, boolean away) {
+        return dynamicTest(label, () -> {
+            Location at = mock(Location.class);
+            LivingEntity first = mock(LivingEntity.class);
+            LivingEntity second = mock(LivingEntity.class);
+            FakeEffectCtx ctx = FakeEffectCtx.create()
+                    .with("mode", mode).with("anchor", anchor).targets("who", first, second);
+            switch (anchor) {
+                case "attacker" -> {
+                    LivingEntity attacker = mock(LivingEntity.class);
+                    when(attacker.getLocation()).thenReturn(at);
+                    ctx.attacker(attacker);
+                }
+                case "victim" -> {
+                    LivingEntity victim = mock(LivingEntity.class);
+                    when(victim.getLocation()).thenReturn(at);
+                    ctx.victim(victim);
+                }
+                default -> ctx.actorOrigin(at);
+            }
+            Sink sink = mock(Sink.class);
+            new FacingSetEffect().run(ctx, sink);
+            verify(sink).setFacing(first, at, away);
+            verify(sink).setFacing(second, at, away); // two targets: a broken fan-out loop cannot pass
+            verifyNoMoreInteractions(sink);
+        });
+    }
+
     private static DynamicTest walkerRow(String label, String replace, int mode) {
         return dynamicTest(label, () -> {
             LivingEntity who = mock(LivingEntity.class);

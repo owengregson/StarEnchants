@@ -83,6 +83,11 @@ class NewEffectEndToEndTest {
             "SOUL_TRANSFER: { cap: 50, ratio: 0.5, overflow: mint, who: \"@Victim\" }",
             "PROC_REBOUND: { chance: 4, tier-min: 6, tier-max: 7, who: \"@Self\" }");
 
+    /** The kinds wave 2d adds, in the same minimal authored form. */
+    private static final List<String> WAVE_2D = List.of(
+            "FACING_SET: { mode: away, anchor: activator, who: \"@Victim\" }",
+            "FALL_SHIELD: { window: 200, who: \"@Victim\" }");
+
     @TempDir
     Path root;
 
@@ -105,6 +110,11 @@ class NewEffectEndToEndTest {
     @TestFactory
     Stream<DynamicTest> everyWave2bKindCompilesToItsOwnRegistryId() {
         return compilesToItsOwnRegistryId(WAVE_2B);
+    }
+
+    @TestFactory
+    Stream<DynamicTest> everyWave2dKindCompilesToItsOwnRegistryId() {
+        return compilesToItsOwnRegistryId(WAVE_2D);
     }
 
     private Stream<DynamicTest> compilesToItsOwnRegistryId(List<String> wave) {

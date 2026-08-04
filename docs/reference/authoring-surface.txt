@@ -85,12 +85,17 @@ effect EXPLODE
 effect EXP_MULTIPLY
   param factor DOUBLE optional min=0 max=- enum=- handle=- default=2.0
 effect EXTINGUISH
+effect FACING_SET
+  param mode ENUM optional min=- max=- enum=away,toward handle=- default=toward
+  param anchor ENUM optional min=- max=- enum=activator,attacker,victim handle=- default=activator
 effect FALLING_BLOCK
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
   param radius INT optional min=0 max=4 enum=- handle=- default=1
   param height INT optional min=0 max=12 enum=- handle=- default=4
   param ttl TICKS optional min=0 max=- enum=- handle=- default=40
   param carry DOUBLE optional min=- max=- enum=- handle=- default=0
+effect FALL_SHIELD
+  param window TICKS optional min=1 max=- enum=- handle=- default=200
 effect FILL_OXYGEN
   param amount TICKS optional min=0 max=- enum=- handle=- default=0
 effect FIREWORK

@@ -1095,6 +1095,52 @@
       ]
     },
   {
+    "head": "FACING_SET",
+    "doc": "Turn each target to face toward (or away from) the anchor, without moving them. Pitch is set too, so an anchor above or below is genuinely looked at. A target sharing the anchor's exact column keeps its current look — there is no direction to turn to — and an activation whose anchor does not resolve turns nobody.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ FACING_SET: { mode: <enum{toward|away}=toward>, anchor: <enum{activator|attacker|victim}=activator> } }",
+    "example": "{ FACING_SET: { mode: away, anchor: activator, who: \"@AOE{radius: 8, filter: ENEMIES}\" } }",
+    "params": [
+      {
+        "name": "mode",
+        "kind": "ENUM",
+        "label": "enum{toward|away}",
+        "required": false,
+        "default": "toward",
+        "min": null,
+        "max": null,
+        "enum": [
+          "toward",
+          "away"
+          ],
+        "handle": null,
+        "doc": "whether the target ends up looking at the anchor or directly away from it"
+        },
+      {
+        "name": "anchor",
+        "kind": "ENUM",
+        "label": "enum{activator|attacker|victim}",
+        "required": false,
+        "default": "activator",
+        "min": null,
+        "max": null,
+        "enum": [
+          "activator",
+          "attacker",
+          "victim"
+          ],
+        "handle": null,
+        "doc": "which combat party the direction is measured from"
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
     "head": "FALLING_BLOCK",
     "doc": "Spawn a (2*radius+1)² grid of falling blocks `height` blocks above each target (removed after `ttl` if they never land). A landing block fires the actor's IMPACT abilities on what it hit; `carry` is forwarded to that impact as %damage% (set carry: \"%damage%\").",
     "affinity": "REGION",
@@ -1160,6 +1206,33 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
+    "head": "FALL_SHIELD",
+    "doc": "Arm a ONE-SHOT cancel of each target's next fall damage within `window` ticks. The target need not carry any enchant — this is how a proc that displaces someone pays for their landing. Re-arming refreshes the window; it never banks a second shield.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ FALL_SHIELD: { window: <ticks[1..]=200> } }",
+    "example": "{ FALL_SHIELD: { window: 200, who: \"@AOE{radius: 8, filter: ENEMIES}\" } }",
+    "params": [
+      {
+        "name": "window",
+        "kind": "TICKS",
+        "label": "ticks[1..]",
+        "required": false,
+        "default": "200",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "how long the unspent shield waits for a fall"
         }
       ],
     "targets": [

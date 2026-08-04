@@ -268,6 +268,17 @@ Put out the target's fire.
 - _target_ `who`: selector `SELF`
 - _example_: `{ EXTINGUISH: {} }`
 
+### FACING_SET
+
+Turn each target to face toward (or away from) the anchor, without moving them. Pitch is set too, so an anchor above or below is genuinely looked at. A target sharing the anchor's exact column keeps its current look — there is no direction to turn to — and an activation whose anchor does not resolve turns nobody.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ FACING_SET: { mode: <enum{toward|away}=toward>, anchor: <enum{activator|attacker|victim}=activator> } }`
+- _param_ `mode` `enum{toward|away}` — whether the target ends up looking at the anchor or directly away from it
+- _param_ `anchor` `enum{activator|attacker|victim}` — which combat party the direction is measured from
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ FACING_SET: { mode: away, anchor: activator, who: "@AOE{radius: 8, filter: ENEMIES}" } }`
+
 ### FALLING_BLOCK
 
 Spawn a (2*radius+1)² grid of falling blocks `height` blocks above each target (removed after `ttl` if they never land). A landing block fires the actor's IMPACT abilities on what it hit; `carry` is forwarded to that impact as %damage% (set carry: "%damage%").
@@ -281,6 +292,16 @@ Spawn a (2*radius+1)² grid of falling blocks `height` blocks above each target 
 - _param_ `carry` `double`
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ FALLING_BLOCK: { material: GRASS_BLOCK, radius: 1, height: 4, carry: "%damage%", who: "@Victim" } }`
+
+### FALL_SHIELD
+
+Arm a ONE-SHOT cancel of each target's next fall damage within `window` ticks. The target need not carry any enchant — this is how a proc that displaces someone pays for their landing. Re-arming refreshes the window; it never banks a second shield.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ FALL_SHIELD: { window: <ticks[1..]=200> } }`
+- _param_ `window` `ticks[1..]` — how long the unspent shield waits for a fall
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ FALL_SHIELD: { window: 200, who: "@AOE{radius: 8, filter: ENEMIES}" } }`
 
 ### FILL_OXYGEN
 

@@ -135,6 +135,9 @@ public final class BuiltinEffects {
                 .register(new SoulModeDisableEffect())   // force a player out of active soul mode
                 .register(new SoulTransferEffect())      // steal souls from a victim's gems, credit a fraction
                 .register(new ProcReboundEffect())       // Enchant Reflect: re-run an incoming proc with roles swapped
+                // Cosmic-port wave 2d. APPENDED, never inserted (ADR-0039 dense kind ids).
+                .register(new FacingSetEffect())         // Horrify: turn a body toward/away from a reference
+                .register(new FallShieldEffect())        // one-shot fall cancel on an arbitrary player
                 .build();
     }
 }

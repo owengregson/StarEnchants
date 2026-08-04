@@ -160,6 +160,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private DamageFold activeFold;
 
     private final TeleblockStore teleblock;
+    private final engine.stores.FallShieldStore fallShields;
     private final ImmuneStore immune;
     private final WardStore ward; // ADR-0053 mask ward flags
     private final FoodWindowStore foodWindows; // MODIFY_FOOD armed hunger windows
@@ -242,6 +243,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.knockback = env.stores().knockback();
         this.keepOnDeath = env.stores().keepOnDeath();
         this.teleblock = env.stores().teleblock();
+        this.fallShields = env.stores().fallShields();
         this.immune = env.stores().immune();
         this.ward = env.stores().ward();
         this.foodWindows = env.stores().foodWindows();
@@ -3531,5 +3533,39 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     /** Remove the Quickening attack-speed modifier (HIT_TEMPO/ADR-0071); base = recorded no-op (see above). */
     protected void clearTempoAttackSpeed(Player target) {
+    }
+
+    @Override
+    public void setFacing(LivingEntity target, Location reference, boolean away) {
+        if (target == null || reference == null || reference.getWorld() == null) {
+            return;
+        }
+        // The reference location is CAPTURED by the effect on the firing thread; only the rotation itself runs
+        // on the target's own thread, so nothing here reads a second entity across a region.
+        entityOp(target, () -> {
+            Location at = target.getLocation();
+            if (at.getWorld() == null || !at.getWorld().equals(reference.getWorld())) {
+                return; // a cross-world reference has no meaningful direction
+            }
+            Vector toward = reference.toVector().subtract(at.toVector());
+            if (away) {
+                toward.multiply(-1);
+            }
+            if (toward.lengthSquared() < 1.0E-6) {
+                return; // same column: setDirection would snap to an arbitrary yaw rather than turn anything
+            }
+            at.setDirection(toward);
+            target.teleport(at); // same block, new look — the only way to push a rotation to the client
+        });
+    }
+
+    @Override
+    public void fallShield(Player target, int windowTicks) {
+        if (target == null) {
+            return;
+        }
+        // Per-player one-shot flag consumed by the fall-damage listener (a separate Bukkit event). UUID
+        // captured here, concurrent store, no entity read → Folia-safe inline on the firing thread.
+        fallShields.arm(target.getUniqueId(), nowTicks.getAsLong(), windowTicks);
     }
 }

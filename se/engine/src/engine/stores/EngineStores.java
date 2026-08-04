@@ -23,7 +23,7 @@ public record EngineStores(
         DisarmWindowStore disarmWindows, HeldSlotStore heldSlots, SoulTotalStore soulTotals,
         DotAmplifyStore dotAmplify, HeadTrophyStore headTrophies, FoodWindowStore foodWindows,
         MessageThrottleStore messageThrottle, SoulEscalationStore soulEscalation,
-        DotSuppressionStore dotSuppression, ReboundStore rebounds) {
+        DotSuppressionStore dotSuppression, ReboundStore rebounds, FallShieldStore fallShields) {
 
     public EngineStores {
         Objects.requireNonNull(vars, "vars");
@@ -53,6 +53,7 @@ public record EngineStores(
         Objects.requireNonNull(soulEscalation, "soulEscalation");
         Objects.requireNonNull(dotSuppression, "dotSuppression");
         Objects.requireNonNull(rebounds, "rebounds");
+        Objects.requireNonNull(fallShields, "fallShields");
     }
 
     /** A fresh aggregate with every store newly constructed (the composition-root default). */
@@ -65,7 +66,7 @@ public record EngineStores(
                 new DisarmWindowStore(), new HeldSlotStore(), new SoulTotalStore(),
                 new DotAmplifyStore(), new HeadTrophyStore(), new FoodWindowStore(),
                 new MessageThrottleStore(), new SoulEscalationStore(), new DotSuppressionStore(),
-                new ReboundStore());
+                new ReboundStore(), new FallShieldStore());
     }
 
     /** Every store as the {@link PlayerScoped} seam, in sweep order. */
@@ -73,7 +74,7 @@ public record EngineStores(
         return List.of(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns, combo, why,
                 recentAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks, ward, hitTempo, battery,
                 disarmWindows, heldSlots, soulTotals, dotAmplify, headTrophies, foodWindows,
-                messageThrottle, soulEscalation, dotSuppression, rebounds);
+                messageThrottle, soulEscalation, dotSuppression, rebounds, fallShields);
     }
 
     /**
@@ -90,11 +91,14 @@ public record EngineStores(
      *
      * <p>{@link ReboundStore} joins them as worn-derived state: the equip walk re-arms it on rejoin, so a
      * retained rule could only outlive the armour that granted it.
+     *
+     * <p>{@link FallShieldStore} joins them for the {@link DotSuppressionStore} reason: it BENEFITS its holder,
+     * and the fall it was armed for does not survive the logout, so retaining it is free fall immunity.
      */
     public List<PlayerScoped> quitVolatile() {
         return List.of(vars, knockback, keepOnDeath, immune, combo, why, recentAttackers, damageCap, rageStacks,
                 ward, hitTempo, battery, disarmWindows, heldSlots, soulTotals, foodWindows, messageThrottle,
-                soulEscalation, dotSuppression, rebounds);
+                soulEscalation, dotSuppression, rebounds, fallShields);
     }
 
     /**
