@@ -330,6 +330,13 @@ effect SPAWN_ENTITY
   param speed DOUBLE optional min=0 max=- enum=- handle=- default=0
   param name STRING optional min=- max=- enum=- handle=- default=
   param effects HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=
+  param payload-phase ENUM optional min=- max=- enum=death,detonate,none,periodic handle=- default=none
+  param payload-period TICKS optional min=0 max=- enum=- handle=- default=40
+  param payload-radius DOUBLE optional min=0 max=- enum=- handle=- default=4
+  param payload-height DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param payload-filter ENUM optional min=- max=- enum=ALL,ALLIES,ENEMIES,MOBS,MONSTERS,PLAYERS handle=- default=ALL
+  param payload-max-targets INT optional min=0 max=- enum=- handle=- default=0
+  param scatter INT optional min=0 max=8 enum=- handle=- default=0
 effect SPAWN_SWARM
   param type HANDLE required min=- max=- enum=- handle=ENTITY_TYPE default=-
   param count INT optional min=1 max=- enum=- handle=- default=1
@@ -339,6 +346,8 @@ effect SPAWN_SWARM
   param speed DOUBLE optional min=0 max=1 enum=- handle=- default=1
   param cloud BOOL optional min=- max=- enum=- handle=- default=false
   param cloud-range DOUBLE optional min=1 max=- enum=- handle=- default=16
+  param name STRING optional min=- max=- enum=- handle=- default=
+  param effects HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=
 effect STRIP_SCROLL
   param scroll ENUM optional min=- max=- enum=HOLY,WHITE handle=- default=HOLY
   param hand BOOL optional min=- max=- enum=- handle=- default=true
@@ -491,6 +500,7 @@ trigger PASSIVE
 trigger PROJECTILE_LAND
 trigger PROXIMITY_EVENT
 trigger REPEATING
+trigger SUMMON_PAYLOAD
 trigger TRIDENT
 trigger USE
 [operators]

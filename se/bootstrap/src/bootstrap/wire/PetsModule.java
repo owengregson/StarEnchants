@@ -22,9 +22,10 @@ import platform.sched.Scheduling;
  * Pets (ADR-0052): a leveling head-item content family on the shared engine. The {@code features.pets}
  * toggle is LIVE (listeners register regardless and short-circuit on the flag — a pet is a content item,
  * the use-items/crystals rule). Wires the right-click claim + death teardown, kill/XP leveling, the
- * ADR-0041 Pet Food gesture, hotbar-change refreshes, the summon-flag guard, the per-minute sweep (passive
- * exp + hotbar-drift reconcile), and the pet / pet-food mints. The armed-window store and the sweep's
- * fingerprints are per-player state, cleared by the quit sweep; the summon registry clears on disable.
+ * ADR-0041 Pet Food gesture, hotbar-change refreshes, the summon-flag guard, the summon-payload phases, the
+ * per-minute sweep (passive exp + hotbar-drift reconcile), and the pet / pet-food mints. The armed-window
+ * store and the sweep's fingerprints are per-player state, cleared by the quit sweep; the summon registry
+ * clears on disable.
  */
 final class PetsModule {
 
@@ -81,7 +82,8 @@ final class PetsModule {
                         () -> core.items().config().petFoodOrDefault(), core.messages(), core.particleFx(),
                         core.sounds(), equip.refresher(), enabled))
                 .events(new PetHotbarListener(core.petCodec(), equip.refresher(), enabled))
-                .events(new PetSummonListener(enabled))
+                .events(new PetSummonListener(core.summonPayloads(), enabled))
+                .events(new feature.summon.SummonPayloadListener(core.summonPayloads(), enabled))
                 .install("water-speed refresh hook", () -> equip.onRefresh(waterSpeed::refresh))
                 .menu(75, new feature.menu.PetsBrowserMenu(core.content(), pets,
                         () -> core.master().config().pets(), core.caps(), core.messages(),

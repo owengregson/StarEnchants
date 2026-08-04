@@ -323,10 +323,12 @@ public interface Sink {
      * via a per-tick velocity damp on its own entity scheduler. Tracked in {@link SwarmSpawns} for the
      * disable sweep. {@code cloudOwner} non-null arms the ADR-0068 attacker cloud for that player (the
      * summons orbit the most-recent nearby attacker's facing pillar within {@code cloudRange} blocks);
-     * null = plain ADR-0060 behaviour.
+     * null = plain ADR-0060 behaviour. {@code name} and {@code effects} are the same naming/loadout styling
+     * {@link #spawnSummon} and {@link #guard} apply, so all three spawners differ only in placement.
      */
     void spawnSwarm(Location origin, int entityTypeId, int count, double radius, double rise,
-                    int ttlTicks, double speedFraction, Player cloudOwner, double cloudRange);
+                    int ttlTicks, double speedFraction, Player cloudOwner, double cloudRange,
+                    String name, java.util.List<Integer> effects);
 
     /**
      * Spawn ONE falling block of an interned material at {@code at} that never drops an item or hurts entities

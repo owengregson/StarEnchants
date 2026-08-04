@@ -29,6 +29,8 @@ public final class SpawnSwarmEffect implements EffectKind {
             .param("speed", D.DOUBLE.range(0, 1).def(1))
             .param("cloud", D.BOOL.def(false))
             .param("cloud-range", D.DOUBLE.min(1).def(16))
+            .param("name", D.STRING.def(""), "custom name shown above each summon")
+            .param("effects", D.potionEffects().def(""), "potion effects held for each summon's whole life")
             .affinity(Affinity.REGION)
             .actorOrigin()
             .doc("Summon count entities of type evenly spaced on a radius-block ring around the activator, "
@@ -37,7 +39,10 @@ public final class SpawnSwarmEffect implements EffectKind {
                     + "AI speed via a per-tick velocity damp (Bat-style AI ignores the speed attribute). "
                     + "cloud: true makes the summons orbit the 1x2x1 pillar directly in front of "
                     + "whoever attacked the activator most recently within cloud-range blocks (vision cloud); with no "
-                    + "such attacker they keep vanilla AI. While clouding, the orbit's own pacing overrides speed.")
+                    + "such attacker they keep vanilla AI. While clouding, the orbit's own pacing overrides speed. "
+                    + "name is shown above each summon and effects is a comma-separated potion loadout held "
+                    + "for its whole life, each entry optionally levelled with NAME*LEVEL (SPEED*3) — the same "
+                    + "styling GUARD and SPAWN_ENTITY take.")
             .example("{ SPAWN_SWARM: { type: BAT, count: 10, radius: 0.5, ttl: 300, speed: 0.5 } }")
             .build();
 
@@ -57,6 +62,7 @@ public final class SpawnSwarmEffect implements EffectKind {
         }
         sink.spawnSwarm(origin, ctx.integer("type"), ctx.integer("count"), ctx.dbl("radius"),
                 ctx.dbl("rise"), ctx.integer("ttl"), ctx.dbl("speed"),
-                ctx.bool("cloud") ? ctx.actor() : null, ctx.dbl("cloud-range"));
+                ctx.bool("cloud") ? ctx.actor() : null, ctx.dbl("cloud-range"),
+                ctx.str("name"), ctx.ids("effects"));
     }
 }

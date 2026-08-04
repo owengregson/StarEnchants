@@ -27,8 +27,8 @@ class SummonPayloadTargetsTest {
     private static final Location CENTER = mock(Location.class);
 
     private static SummonFlags payload(double radius, double height, String filter, int maxTargets) {
-        return new SummonFlags(false, false, false, false, false, false, false, 0.0, "", List.of(),
-                "detonate", 40, radius, height, filter, maxTargets, 0);
+        return SummonFlags.NONE.withPayload(
+                SummonFlags.PHASE_DETONATE, 40, radius, height, filter, maxTargets, 0);
     }
 
     private static Entity summon(List<Entity> nearby, double rx, double ry) {

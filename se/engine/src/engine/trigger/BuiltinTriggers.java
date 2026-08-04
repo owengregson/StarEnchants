@@ -66,6 +66,9 @@ public final class BuiltinTriggers {
                 // wearer reacts. The subject rides the activation as the victim, so range and relation are
                 // authored as %distance% / %victim.relation% conditions. Appended last.
                 .register(new Trigger("PROXIMITY_EVENT", Direction.NEUTRAL, false, true, true))
+                // Fired by the summon-payload service at a summon's detonate/death/periodic phase; runs the
+                // OWNER's abilities once per entity in the payload box, victim = that target. Appended last.
+                .register(new Trigger("SUMMON_PAYLOAD", Direction.NEUTRAL, false, true, true))
                 .build();
     }
 }

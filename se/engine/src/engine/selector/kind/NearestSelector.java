@@ -13,7 +13,7 @@ public final class NearestSelector implements SelectorKind {
 
     static final SelectorSpec SPEC = SelectorSpec.of("NEAREST")
             .param("r", D.DOUBLE.min(0).def(5), "search radius in blocks")
-            .param("filter", D.enumSetOf("ALL", "PLAYERS", "MONSTERS", "MOBS", "ENEMIES", "ALLIES").def("ALL"),
+            .param("filter", D.enumSetOf(Targets.names()).def("ALL"),
                     "which entities to consider; A+B keeps only what both admit")
             .doc("The single nearest living entity within r blocks (optionally filtered), except the activator. "
                     + "filter admits a + conjunction (ENEMIES+PLAYERS = hostile players only).")

@@ -20,17 +20,27 @@ import org.bukkit.entity.Slime;
  * {@code ENEMIES}/{@code ALLIES} additionally consult the {@link Allies} soft-hook; with no team bridge
  * installed every other player is an enemy (vanilla free-for-all PvP).
  */
-final class Targets {
+public final class Targets {
 
     private Targets() {
     }
 
     /** A validated {@code filter}: one {@link Filter}, or a conjunction of several. */
-    interface Match {
+    public interface Match {
         boolean accepts(Player actor, LivingEntity entity);
     }
 
-    enum Filter implements Match {
+    /** The allowed {@code filter} spellings, for the {@code D.enumSetOf} declaration of every consumer. */
+    public static String[] names() {
+        Filter[] all = Filter.values();
+        String[] names = new String[all.length];
+        for (int i = 0; i < all.length; i++) {
+            names[i] = all[i].name();
+        }
+        return names;
+    }
+
+    public enum Filter implements Match {
         ALL,
         PLAYERS,
         /** Every hostile mob (see {@link #isHostile}). */
@@ -83,7 +93,11 @@ final class Targets {
      * The single-value path allocates nothing; only a composed filter builds an array, once per resolve.
      */
     static Match of(SelectorCtx ctx) {
-        String raw = ctx.args().str("filter");
+        return of(ctx.args().str("filter"));
+    }
+
+    /** The same validated filter from a raw value — the summon-payload box reads it off {@code SummonFlags}. */
+    public static Match of(String raw) {
         return raw.indexOf('+') < 0 ? single(raw) : conjunction(raw);
     }
 

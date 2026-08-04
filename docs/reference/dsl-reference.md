@@ -393,7 +393,7 @@ Singularity (reforges): throw a particle beam onto the block in your sights (max
 
 ### GUARD
 
-Summon count guardian mobs of type at the activation location, each targeting the attacker, auto-removed after ttl ticks (default 200; 0 = permanent); optional custom name. health sets each guard's starting and maximum health, speed multiplies its vanilla movement speed, and effects is a comma-separated potion loadout held for the guard's whole life (all at level 1). A targeted SPAWN_ENTITY for retaliation — author on DEFENSE.
+Summon count guardian mobs of type at the activation location, each targeting the attacker, auto-removed after ttl ticks (default 200; 0 = permanent); optional custom name. health sets each guard's starting and maximum health, speed multiplies its vanilla movement speed, and effects is a comma-separated potion loadout held for the guard's whole life, each entry optionally levelled with NAME*LEVEL (SPEED*3). A targeted SPAWN_ENTITY for retaliation — author on DEFENSE.
 
 - _affinity_: `REGION`
 - _usage_: `{ GUARD: { type: <entity_type>, count: <int[1..]=1>, ttl: <ticks[0..]=200>, name: <string=>, health: <double[0..]=0>, speed: <double[0..]=0>, effects: <potion_effect list=> } }`
@@ -919,10 +919,10 @@ Play a sound at the activation location, or at each entity in `who` when given �
 
 ### SPAWN_ENTITY
 
-Spawn count entities of type at the target's (or activation) location; ttl ticks until removal (0 = permanent), optional starting health, and owner=activator to tame an owned summon to the activator. ADR-0052 summon flags: powered charges a creeper; ai=false disables mob AI; targeting=false stops the summon acquiring targets; saddled + mount=activator make a horse-type rideable and seat the activator; detonate=PLAYER_HIT makes a creeper explode ONLY when a player hits it (it never self-detonates); invincible=true zeroes all damage to the summon (it cannot die but still takes hits and knockback); speed is a multiplier on the spawned entity's vanilla movement-speed base (0 = untouched); name is shown above each summon and effects is a comma-separated potion loadout held for its whole life (all at level 1) — the same styling GUARD takes, so the choice between the two is only about targeting. Replaces SPAWN/TNT.
+Spawn count entities of type at the target's (or activation) location; ttl ticks until removal (0 = permanent), optional starting health, and owner=activator to tame an owned summon to the activator. ADR-0052 summon flags: powered charges a creeper; ai=false disables mob AI; targeting=false stops the summon acquiring targets; saddled + mount=activator make a horse-type rideable and seat the activator; detonate=PLAYER_HIT makes a creeper explode ONLY when a player hits it (it never self-detonates); invincible=true zeroes all damage to the summon (it cannot die but still takes hits and knockback); speed is a multiplier on the spawned entity's vanilla movement-speed base (0 = untouched); name is shown above each summon and effects is a comma-separated potion loadout held for its whole life, each entry optionally levelled with NAME*LEVEL (SPEED*3) — the same styling GUARD takes, so the choice between the two is only about targeting. payload-phase attaches the owner's SUMMON_PAYLOAD abilities to a point in the summon's life: detonate REPLACES the vanilla explosion (no terrain damage, no vanilla entity damage), death fires as it dies, and periodic pulses every payload-period ticks. The payload runs once per entity in a payload-radius x payload-height box around the summon (height 0 reuses the radius), filtered by payload-filter and capped nearest-first by payload-max-targets; a payload needs owner=activator, since the owner is who runs it. scatter spreads the summons over a random offset, air-scanned so none spawns inside terrain. Replaces SPAWN/TNT.
 
 - _affinity_: `REGION`
-- _usage_: `{ SPAWN_ENTITY: { type: <entity_type>, count: <int[1..]=1>, ttl: <ticks[0..]=0>, health: <double[0..]=0>, owner: <enum{none|activator}=none>, powered: <bool=false>, ai: <bool=true>, targeting: <bool=true>, saddled: <bool=false>, mount: <enum{none|activator}=none>, detonate: <enum{NONE|PLAYER_HIT}=NONE>, invincible: <bool=false>, speed: <double[0..]=0>, name: <string=>, effects: <potion_effect list=> } }`
+- _usage_: `{ SPAWN_ENTITY: { type: <entity_type>, count: <int[1..]=1>, ttl: <ticks[0..]=0>, health: <double[0..]=0>, owner: <enum{none|activator}=none>, powered: <bool=false>, ai: <bool=true>, targeting: <bool=true>, saddled: <bool=false>, mount: <enum{none|activator}=none>, detonate: <enum{NONE|PLAYER_HIT}=NONE>, invincible: <bool=false>, speed: <double[0..]=0>, name: <string=>, effects: <potion_effect list=>, payload-phase: <enum{none|detonate|death|periodic}=none>, payload-period: <ticks[0..]=40>, payload-radius: <double[0..]=4>, payload-height: <double[0..]=0>, payload-filter: <enum set{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}=ALL>, payload-max-targets: <int[0..]=0>, scatter: <int[0..8]=0> } }`
 - _param_ `type` `entity_type`
 - _param_ `count` `int[1..]`
 - _param_ `ttl` `ticks[0..]`
@@ -938,15 +938,22 @@ Spawn count entities of type at the target's (or activation) location; ttl ticks
 - _param_ `speed` `double[0..]`
 - _param_ `name` `string` — custom name shown above each summon
 - _param_ `effects` `potion_effect list` — potion effects held for the summon's whole life
+- _param_ `payload-phase` `enum{none|detonate|death|periodic}` — when the summon runs its owner's SUMMON_PAYLOAD abilities
+- _param_ `payload-period` `ticks[0..]` — ticks between payload pulses (periodic phase only)
+- _param_ `payload-radius` `double[0..]` — XZ half-extent of the payload's target box
+- _param_ `payload-height` `double[0..]` — Y half-extent; 0 reuses payload-radius
+- _param_ `payload-filter` `enum set{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}` — which entities the payload targets; A+B keeps only what both admit
+- _param_ `payload-max-targets` `int[0..]` — nearest-first cap on payload targets (0 = all)
+- _param_ `scatter` `int[0..8]` — spread each summon over a random ±N XZ offset, air-scanned (0 = the exact point)
 - _target_ `who`: selector `SELF`
 - _example_: `{ SPAWN_ENTITY: { type: WOLF, count: 1, ttl: 0, health: 0, owner: activator } }`
 
 ### SPAWN_SWARM
 
-Summon count entities of type evenly spaced on a radius-block ring around the activator, raised rise blocks (chest height), each facing directly outward, with VANILLA AI, auto-removed after ttl ticks. speed < 1 slows each to that fraction of its vanilla AI speed via a per-tick velocity damp (Bat-style AI ignores the speed attribute). cloud: true makes the summons orbit the 1x2x1 pillar directly in front of whoever attacked the activator most recently within cloud-range blocks (vision cloud); with no such attacker they keep vanilla AI. While clouding, the orbit's own pacing overrides speed.
+Summon count entities of type evenly spaced on a radius-block ring around the activator, raised rise blocks (chest height), each facing directly outward, with VANILLA AI, auto-removed after ttl ticks. speed < 1 slows each to that fraction of its vanilla AI speed via a per-tick velocity damp (Bat-style AI ignores the speed attribute). cloud: true makes the summons orbit the 1x2x1 pillar directly in front of whoever attacked the activator most recently within cloud-range blocks (vision cloud); with no such attacker they keep vanilla AI. While clouding, the orbit's own pacing overrides speed. name is shown above each summon and effects is a comma-separated potion loadout held for its whole life, each entry optionally levelled with NAME*LEVEL (SPEED*3) — the same styling GUARD and SPAWN_ENTITY take.
 
 - _affinity_: `REGION`
-- _usage_: `{ SPAWN_SWARM: { type: <entity_type>, count: <int[1..]=1>, radius: <double[0..]=0.5>, rise: <double[0..]=1.2>, ttl: <ticks[0..]=300>, speed: <double[0..1]=1>, cloud: <bool=false>, cloud-range: <double[1..]=16> } }`
+- _usage_: `{ SPAWN_SWARM: { type: <entity_type>, count: <int[1..]=1>, radius: <double[0..]=0.5>, rise: <double[0..]=1.2>, ttl: <ticks[0..]=300>, speed: <double[0..1]=1>, cloud: <bool=false>, cloud-range: <double[1..]=16>, name: <string=>, effects: <potion_effect list=> } }`
 - _param_ `type` `entity_type`
 - _param_ `count` `int[1..]`
 - _param_ `radius` `double[0..]`
@@ -955,6 +962,8 @@ Summon count entities of type evenly spaced on a radius-block ring around the ac
 - _param_ `speed` `double[0..1]`
 - _param_ `cloud` `bool`
 - _param_ `cloud-range` `double[1..]`
+- _param_ `name` `string` — custom name shown above each summon
+- _param_ `effects` `potion_effect list` — potion effects held for each summon's whole life
 - _example_: `{ SPAWN_SWARM: { type: BAT, count: 10, radius: 0.5, ttl: 300, speed: 0.5 } }`
 
 ### STRIP_SCROLL
@@ -1366,6 +1375,7 @@ The event that fires an ability (an enchant/set/crystal's `trigger:`). Triggers 
 | `EQUIP_CHANGE` | NEUTRAL | false | true | false |
 | `PROJECTILE_LAND` | NEUTRAL | false | true | false |
 | `PROXIMITY_EVENT` | NEUTRAL | false | true | true |
+| `SUMMON_PAYLOAD` | NEUTRAL | false | true | true |
 
 ## Conditions
 

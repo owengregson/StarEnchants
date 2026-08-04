@@ -177,6 +177,7 @@ public final class BootCore {
     private final SpecRegistry migrateSpecs;
     private final CombatDispatch dispatch;
     private final TriggerDispatch triggerDispatch;
+    private feature.summon.SummonPayloadService summonPayloads; // built after triggerDispatch, read only at runtime
 
     /** Build the whole substrate for {@code plugin} — the old onEnable construction, relocated verbatim. */
     public static BootCore boot(JavaPlugin plugin) {
@@ -520,7 +521,10 @@ public final class BootCore {
                 // re-derived from live worn state on each ask (the LightningBoost rule).
                 feature.trigger.WornPotionGrants.fn(content, worn, stores.suppression(), tick::get,
                         triggers.idOf("HELD").orElse(-1), triggers.idOf("PASSIVE").orElse(-1),
-                        this::potionHandle));
+                        this::potionHandle),
+                // SUMMON_PAYLOAD: the periodic pulse's only way back to the feature layer; the service itself
+                // is built below (it needs the TriggerDispatch this env feeds).
+                (summon, flags) -> summonPayloads.fire(summon, flags));
         // mcMMO friendly-fire gate — ONE alliance predicate feeding both consumers. Combat suppression has
         // always used it; the targeting filters (@Aoe{filter=ENEMIES|ALLIES}) never had it installed, so they
         // treated a party-mate as an enemy while the damage gate spared them. Same predicate, both sides.
@@ -549,6 +553,9 @@ public final class BootCore {
         // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.
         this.triggerDispatch = new TriggerDispatch(executor, bindings.sinkFactory(), bindings.actorProbe(), content,
                 worn, triggers, soulService::bindingFor, sinkEnv, hands, dropControl);
+        // Assigned only now: the payload service needs the dispatch, which needs the env the seam above rides.
+        // Nothing can spawn a summon before boot finishes, so the deferred write is never read early.
+        this.summonPayloads = new feature.summon.SummonPayloadService(triggerDispatch);
         // On a clean swap the reloader rebinds the compiler per reload (not constant) so a newly registered add-on
         // head compiles; the resolver is reused, so the §9 handle round-trip holds (ADR-0038).
         this.compilerFactory = () -> ContentCompiler.production(resolvers, effectRegistry.get());
@@ -674,6 +681,8 @@ public final class BootCore {
     public CombatDispatch dispatch() { return dispatch; }
 
     public TriggerDispatch triggerDispatch() { return triggerDispatch; }
+
+    public feature.summon.SummonPayloadService summonPayloads() { return summonPayloads; }
 
     /** The feature-neutral onDisable steps (the sink-static and driver stops are the modules' own). */
     public List<FeatureModule.Stop> coreStops() {

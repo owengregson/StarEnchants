@@ -66,6 +66,7 @@ import platform.sched.TaskHandle;
 import platform.text.Colors;
 import platform.text.Numbers;
 import platform.text.Tokens;
+import schema.spec.PotionLoadout;
 
 /**
  * The era-neutral core of the concrete {@link Sink} — the single mutation boundary and the only engine code
@@ -188,6 +189,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final HeadTrophyStore headTrophies;
     /** The VIEWER_HIDE seam (the modern call needs a {@code Plugin} the engine may not hold). */
     private final PlayerVisibility visibility;
+    /** The SUMMON_PAYLOAD seam a periodic summon pulses through (firing a trigger is the feature layer's). */
+    private final SummonPayloads payloads;
 
     /** The event's own entity (the combat victim), whose zero-WAIT health writes run inline at flush (ADR-0051). */
     private LivingEntity eventEntity;
@@ -248,6 +251,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.dotAmplify = env.stores().dotAmplify();
         this.headTrophies = env.stores().headTrophies();
         this.visibility = env.visibility();
+        this.payloads = env.payloads();
         this.fold = new DamageFold();
     }
 
@@ -1171,8 +1175,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
         }
         // The conversion half: the vanilla DoT this burn replaces is stripped and denied for the whole window,
         // so the two never tick side by side. potionLock owns the deny loop and its own teardown.
-        for (int effectId : replaced) {
-            potionLock(target, effectId, durationTicks);
+        for (int packed : replaced) {
+            potionLock(target, PotionLoadout.id(packed), durationTicks); // a POTION_EFFECT list is always packed
         }
         int period = Math.max(1, periodTicks);
         String line = feedback == null ? "" : Colors.translate(feedback);
@@ -1789,49 +1793,116 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 return;
             }
             for (int i = 0; i < count; i++) {
-                Entity spawned = spawnTyped(world, origin, entityTypeId);
-                if (spawned == null) {
-                    continue; // unresolvable type on this version — the §9 compile warn already fired
+                if (flags.scatter() <= 0) {
+                    spawnOne(world, origin, entityTypeId, ttlTicks, health, ownerId, activator, flags);
+                    continue;
                 }
-                if (health > 0 && spawned instanceof LivingEntity living) {
-                    applySpawnHealth(living, health);
-                }
-                if (flags.powered() && spawned instanceof Creeper creeper) {
-                    creeper.setPowered(true); // stable Bukkit API across the whole range incl. 1.8
-                }
-                if (flags.noAi() && spawned instanceof LivingEntity living) {
-                    applyNoAi(living);
-                }
-                if (flags.saddled() && spawned instanceof LivingEntity living) {
-                    applySaddle(living);
-                }
-                if (flags.speedMultiplier() > 0 && spawned instanceof LivingEntity living) {
-                    applySpawnSpeed(living, flags.speedMultiplier());
-                }
-                if (spawned instanceof LivingEntity living) {
-                    applySummonEffects(living, flags.effects());
-                }
-                applyGuardName(spawned, flags.name());
-                if (ownerId != null) {
-                    GuardianCasts.bind(spawned.getUniqueId(), ownerId);
-                    if (spawned instanceof Tameable tame) {
-                        tame.setOwner(Bukkit.getOfflinePlayer(ownerId));
-                        tame.setTamed(true);
-                    }
-                }
-                if (flags.tracked()) {
-                    // The summon-guard listener enforces no-target + hit-gated detonation from this registry.
-                    PetSummons.bind(spawned.getUniqueId(), flags);
-                }
-                if (flags.mountActivator() && activator != null) {
-                    try {
-                        mountEntity(spawned, activator); // spawn is at the activator, so co-region in practice
-                    } catch (RuntimeException unreadable) {
-                        Regions.swallowed("DispatchSinkBase.spawnSummon.mount", unreadable);
-                    }
-                }
-                bindSummonTtl(spawned, ttlTicks);
+                // The offset is rolled here, but the air scan and the spawn run on the OFFSET cell's own
+                // region: a ±8-block hop can cross a Folia region boundary, where a block read would throw.
+                Location candidate = origin.clone().add(
+                        scatterOffset(flags.scatter()), 0, scatterOffset(flags.scatter()));
+                Scheduling.onRegion(candidate, () -> spawnOne(world, scatterSpot(candidate),
+                        entityTypeId, ttlTicks, health, ownerId, activator, flags));
             }
+        });
+    }
+
+    /** How far above/below the cast the scatter scan looks for a free cell before falling back to the origin. */
+    private static final int SCATTER_SCAN_UP = 3;
+    private static final int SCATTER_SCAN_DOWN = 4;
+
+    /** A uniform offset in {@code [-scatter, +scatter]} — the no-arg-bound TLR draw is the JDG-safe shape. */
+    private static int scatterOffset(int scatter) {
+        return ThreadLocalRandom.current().nextInt(2 * scatter + 1) - scatter;
+    }
+
+    /**
+     * The cell a scattered summon drops into: the first standable one scanning DOWN from just above the cast,
+     * so a TNT never materialises inside stone. Fails OPEN to {@code candidate} itself — a walled-in cast must
+     * still produce its summon rather than silently dropping it, and only that column is ours to spawn in
+     * (we are on ITS region, which the cast's own may not be).
+     */
+    private Location scatterSpot(Location candidate) {
+        for (int dy = SCATTER_SCAN_UP; dy >= -SCATTER_SCAN_DOWN; dy--) {
+            Location cell = candidate.clone().add(0, dy, 0);
+            if (isSafeDestination(cell, null)) {
+                return cell;
+            }
+        }
+        return candidate;
+    }
+
+    /** One flagged summon at {@code where} — every ADR-0052 flag plus the payload arm. */
+    private void spawnOne(World world, Location where, int entityTypeId, int ttlTicks, double health,
+                          UUID ownerId, Player activator, SummonFlags flags) {
+        Entity spawned = spawnTyped(world, where, entityTypeId);
+        if (spawned == null) {
+            return; // unresolvable type on this version — the §9 compile warn already fired
+        }
+        if (health > 0 && spawned instanceof LivingEntity living) {
+            applySpawnHealth(living, health);
+        }
+        if (flags.powered() && spawned instanceof Creeper creeper) {
+            creeper.setPowered(true); // stable Bukkit API across the whole range incl. 1.8
+        }
+        if (flags.noAi() && spawned instanceof LivingEntity living) {
+            applyNoAi(living);
+        }
+        if (flags.saddled() && spawned instanceof LivingEntity living) {
+            applySaddle(living);
+        }
+        if (flags.speedMultiplier() > 0 && spawned instanceof LivingEntity living) {
+            applySpawnSpeed(living, flags.speedMultiplier());
+        }
+        if (spawned instanceof LivingEntity living) {
+            applySummonEffects(living, flags.effects());
+        }
+        applyGuardName(spawned, flags.name());
+        if (ownerId != null) {
+            GuardianCasts.bind(spawned.getUniqueId(), ownerId);
+            if (spawned instanceof Tameable tame) {
+                tame.setOwner(Bukkit.getOfflinePlayer(ownerId));
+                tame.setTamed(true);
+            }
+        }
+        if (flags.tracked()) {
+            // The summon-guard listener enforces no-target + hit-gated detonation from this registry, and
+            // every payload phase looks the summon up in it.
+            PetSummons.bind(spawned.getUniqueId(), flags);
+        }
+        if (flags.payloadOn(SummonFlags.PHASE_PERIODIC)) {
+            armPayloadPulse(spawned, flags, payloads);
+        }
+        if (flags.mountActivator() && activator != null) {
+            try {
+                mountEntity(spawned, activator); // spawn is at the activator, so co-region in practice
+            } catch (RuntimeException unreadable) {
+                Regions.swallowed("DispatchSinkBase.spawnSummon.mount", unreadable);
+            }
+        }
+        bindSummonTtl(spawned, ttlTicks);
+    }
+
+    /**
+     * The periodic payload phase: the summon runs its owner's SUMMON_PAYLOAD abilities every
+     * {@code payloadPeriod} ticks on its OWN entity scheduler (the armSwarmSteer shape). Self-cancels when the
+     * entity dies/despawns — on Paper the fallback scheduler does not stop on entity removal; on Folia it does,
+     * so the guard covers both — and forgets the registries it was spawned into on the way out.
+     */
+    private static void armPayloadPulse(Entity spawned, SummonFlags flags, SummonPayloads payloads) {
+        long period = Math.max(1, flags.payloadPeriod());
+        TaskHandle[] handle = new TaskHandle[1];
+        handle[0] = Scheduling.repeatingEntity(spawned, period, period, () -> {
+            if (!spawned.isValid()) {
+                UUID id = spawned.getUniqueId();
+                GuardianCasts.forget(id);
+                PetSummons.forget(id);
+                if (handle[0] != null) {
+                    handle[0].cancel();
+                }
+                return;
+            }
+            payloads.fire(spawned, flags);
         });
     }
 
@@ -1855,7 +1926,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void spawnSwarm(Location origin, int entityTypeId, int count, double radius, double rise,
-                           int ttlTicks, double speedFraction, Player cloudOwner, double cloudRange) {
+                           int ttlTicks, double speedFraction, Player cloudOwner, double cloudRange,
+                           String name, List<Integer> effects) {
         Location center = origin.clone(); // own the spawn point: a WAIT tier can defer this to a later tick
         regionOp(center, () -> {
             World world = center.getWorld();
@@ -1892,6 +1964,10 @@ public abstract class DispatchSinkBase implements SinkReadback {
                     // on its first tick. No-TTL swarms keep vanilla rules: nothing else would reap them.
                     living.setRemoveWhenFarAway(false);
                 }
+                if (spawned instanceof LivingEntity living) {
+                    applySummonEffects(living, effects); // the same loadout helper GUARD/SPAWN_ENTITY use
+                }
+                applyGuardName(spawned, name);
                 SwarmSpawns.bind(spawned);
                 if (cloud) {
                     SwarmClouds.track(ownerId, spawned);
@@ -2002,14 +2078,16 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     /**
-     * Hold {@code effects} on a fresh summon at level 1 for a duration no summon outlives — the loadout is part
-     * of what the summon IS, so it must not lapse mid-life and leave a weaker one behind.
+     * Hold {@code effects} on a fresh summon for a duration no summon outlives — the loadout is part of what the
+     * summon IS, so it must not lapse mid-life and leave a weaker one behind. Each entry carries its own level
+     * in the packed id ({@link PotionLoadout}).
      */
     private void applySummonEffects(LivingEntity living, List<Integer> effects) {
         for (int i = 0; i < effects.size(); i++) {
-            PotionEffectType type = potionEffect(effects.get(i));
+            int packed = effects.get(i);
+            PotionEffectType type = potionEffect(PotionLoadout.id(packed));
             if (type != null) {
-                living.addPotionEffect(new PotionEffect(type, Integer.MAX_VALUE, 0));
+                living.addPotionEffect(new PotionEffect(type, Integer.MAX_VALUE, PotionLoadout.amp(packed)));
             }
         }
     }

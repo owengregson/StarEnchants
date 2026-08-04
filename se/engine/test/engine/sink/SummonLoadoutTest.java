@@ -64,7 +64,6 @@ class SummonLoadoutTest {
     void tearDown() {
         PetSummons.clearAll();
         GuardianCasts.clearAll();
-        SwarmSpawns.clearAll();
     }
 
     @Test
@@ -140,8 +139,7 @@ class SummonLoadoutTest {
 
     /** SPAWN_ENTITY's defaults with a periodic payload armed — the shape the sink routes off the plain path. */
     private static SummonFlags periodic() {
-        return new SummonFlags(false, false, false, false, false, false, false, 0.0, "", List.of(),
-                "periodic", 40, 4.0, 0.0, "ALL", 0, 0);
+        return SummonFlags.NONE.withPayload(SummonFlags.PHASE_PERIODIC, 40, 4.0, 0.0, "ALL", 0, 0);
     }
 
     @Test
@@ -159,7 +157,6 @@ class SummonLoadoutTest {
 
     /** SPAWN_ENTITY's defaults with scatter armed. */
     private static SummonFlags scattered() {
-        return new SummonFlags(false, false, false, false, false, false, false, 0.0, "", List.of(),
-                "none", 40, 4.0, 0.0, "ALL", 0, 3);
+        return SummonFlags.NONE.withPayload(SummonFlags.PHASE_NONE, 40, 4.0, 0.0, "ALL", 0, 3);
     }
 }

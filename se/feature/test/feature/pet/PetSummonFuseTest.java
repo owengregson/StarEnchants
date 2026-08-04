@@ -68,8 +68,8 @@ class PetSummonFuseTest {
     }
 
     private static SummonFlags flags(String phase) {
-        return new SummonFlags(false, false, false, false, false, true, false, 0.0, "", List.of(),
-                phase, 40, 4.0, 0.0, "ALL", 0, 0);
+        return SummonFlags.of(false, false, false, false, false, true /* detonateOnPlayerHit */, false,
+                0.0, "", List.of()).withPayload(phase, 40, 4.0, 0.0, "ALL", 0, 0);
     }
 
     @Test
