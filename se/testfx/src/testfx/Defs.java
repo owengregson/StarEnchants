@@ -62,6 +62,7 @@ public final class Defs {
         private double soulCostGrowth = 1.0;
         private int soulCostCap = 0;
         private int soulCostDecayPeriod = 0;
+        private boolean cooldownPerVictim = false;
 
         public AbilityBuilder sourceKind(SourceKind sourceKind) {
             this.sourceKind = sourceKind;
@@ -218,6 +219,12 @@ public final class Defs {
             return this;
         }
 
+        /** Key the cooldown on the victim rather than the coarse target bucket ({@code cooldown-per-victim}). */
+        public AbilityBuilder cooldownPerVictim(boolean cooldownPerVictim) {
+            this.cooldownPerVictim = cooldownPerVictim;
+            return this;
+        }
+
         public AbilityDef build() {
             List<EffectLine> lines = effects;
             if (rawEffects != null) {
@@ -230,7 +237,7 @@ public final class Defs {
                     triggers, worldBlacklist, conditionExpr, lines, suppressKey, cdScopeEnchant, cdScopeGroup,
                     cdScopeType, repeatTicks, source, setPieces, suppressImmune, chanceExpr, noSoulsMessage,
                     soulCostCarried, noSoulsSound, noSoulsParticle,
-                    soulCostGrowth, soulCostCap, soulCostDecayPeriod);
+                    soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim);
         }
     }
 
@@ -264,6 +271,7 @@ public final class Defs {
         private double soulCostGrowth = 1.0;
         private int soulCostCap = 0;
         private int soulCostDecayPeriod = 0;
+        private boolean cooldownPerVictim = false;
 
         public LoweredBuilder sourceKind(SourceKind sourceKind) {
             this.sourceKind = sourceKind;
@@ -415,12 +423,18 @@ public final class Defs {
             return this;
         }
 
+        /** Key the cooldown on the victim rather than the coarse target bucket ({@code cooldown-per-victim}). */
+        public LoweredBuilder cooldownPerVictim(boolean cooldownPerVictim) {
+            this.cooldownPerVictim = cooldownPerVictim;
+            return this;
+        }
+
         public LoweredAbility build() {
             return new LoweredAbility(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost,
                     triggers, worldBlacklist, condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup,
                     cdScopeType, repeatTicks, affinity, source, setPieces, suppressImmune, loweredChanceExpr,
                     noSoulsMessage, soulCostCarried, noSoulsSound, noSoulsParticle,
-                    soulCostGrowth, soulCostCap, soulCostDecayPeriod);
+                    soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim);
         }
     }
 }

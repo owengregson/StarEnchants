@@ -181,6 +181,8 @@ final class EnchantDefReader {
                 knobNode(block, lvl, root, "no-souls-particle"), diags);
         String cdScopeEnchant = ContentParse.resolveCooldownScope(
                 knobNode(block, lvl, root, "cooldown-scope"), baseKey, diags);
+        boolean cooldownPerVictim = ContentParse.resolveCooldownPerVictim(
+                knobNode(block, lvl, root, "cooldown-per-victim"), diags);
         String condition = ContentParse.blankToNull(
                 ContentParse.resolveString(knobNode(block, lvl, root, "condition"), "condition", diags));
         // A block may retarget itself (an ATTACK enchant whose second block rides DEFENSE); absent → the enchant's.
@@ -217,7 +219,8 @@ final class EnchantDefReader {
                 soulKnobs.particle(),
                 soulCostGrowth,
                 soulCostCap,
-                soulCostDecayPeriod);
+                soulCostDecayPeriod,
+                cooldownPerVictim);
     }
 
     /** The node a knob is read from: the innermost scope that declares it — block, then level, then file root. */

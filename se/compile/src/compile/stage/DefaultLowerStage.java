@@ -170,7 +170,8 @@ public final class DefaultLowerStage implements LowerStage {
                 envelopeHandle(def.noSoulsParticle(), HandleCategory.PARTICLE, "no-souls-particle", def, diags),
                 def.soulCostGrowth(),
                 def.soulCostCap(),
-                def.soulCostDecayPeriod());
+                def.soulCostDecayPeriod(),
+                def.cooldownPerVictim());
     }
 
     /**

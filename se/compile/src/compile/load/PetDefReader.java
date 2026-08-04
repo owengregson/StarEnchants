@@ -226,7 +226,8 @@ final class PetDefReader {
                 SourceKind.PET, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, soulCost,
                 List.of(trigger), disabledWorlds, condition, effects, "pet:" + key, cdScope, null, null,
                 repeatTicks, node.source(), 0, false, chance.expr(), noSoulsMessage, soulKnobs.carried(),
-                soulKnobs.sound(), soulKnobs.particle(), soulCostGrowth, soulCostCap, soulCostDecayPeriod);
+                soulKnobs.sound(), soulKnobs.particle(), soulCostGrowth, soulCostCap, soulCostDecayPeriod,
+                ContentParse.resolveCooldownPerVictim(node, diags));
         out.add(ability);
         return ability;
     }

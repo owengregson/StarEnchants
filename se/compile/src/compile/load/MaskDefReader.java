@@ -126,7 +126,8 @@ final class MaskDefReader {
                 ContentParse.resolveCooldownScope(node, stableKey, diags),
                 group, null, repeatTicks, fileSource, 0, false,
                 chance.expr(), noSoulsMessage, soulKnobs.carried(), soulKnobs.sound(), soulKnobs.particle(),
-                soulCostGrowth, soulCostCap, soulCostDecayPeriod);
+                soulCostGrowth, soulCostCap, soulCostDecayPeriod,
+                ContentParse.resolveCooldownPerVictim(node, diags));
     }
 
     private static String orEmpty(String value) {

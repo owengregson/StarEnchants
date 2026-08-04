@@ -218,6 +218,7 @@ final class SetDefReader {
                 ContentParse.resolveCooldownScope(node, stableKey, diags),
                 group, null, repeatTicks, fileSource,
                 Math.max(0, setPieces), false, chance.expr(), noSoulsMessage, soulKnobs.carried(), soulKnobs.sound(),
-                soulKnobs.particle(), soulCostGrowth, soulCostCap, soulCostDecayPeriod);
+                soulKnobs.particle(), soulCostGrowth, soulCostCap, soulCostDecayPeriod,
+                ContentParse.resolveCooldownPerVictim(node, diags));
     }
 }

@@ -54,6 +54,7 @@ public final class Abilities {
         private double soulCostGrowth = 1.0;
         private int soulCostCap = 0;
         private int soulCostDecayPeriod = 0;
+        private boolean cooldownPerVictim = false;
 
         public Builder id(int id) {
             this.id = id;
@@ -196,12 +197,18 @@ public final class Abilities {
             return this;
         }
 
+        /** Key the cooldown on the victim rather than the coarse target bucket ({@code cooldown-per-victim}). */
+        public Builder cooldownPerVictim(boolean cooldownPerVictim) {
+            this.cooldownPerVictim = cooldownPerVictim;
+            return this;
+        }
+
         public Ability build() {
             return new Ability(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost,
                     worldBlacklist, condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup,
                     cdScopeType, suppressKey, setPieces, suppressImmune, factMask, chanceExpr, noSoulsMessage,
                     soulCostCarried, noSoulsSound, noSoulsParticle,
-                    soulCostGrowth, soulCostCap, soulCostDecayPeriod);
+                    soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim);
         }
     }
 }

@@ -35,6 +35,7 @@ import compile.model.cond.NumExpr;
  * @param soulCostGrowth factor {@link #soulCost} compounds by per successful charge; {@code 1.0} = static, and the hot path short-circuits on it
  * @param soulCostCap    ceiling on the escalated cost; {@code 0} = uncapped
  * @param soulCostDecayPeriod ticks per escalation step shed since the actor's last charge of THIS ability; {@code 0} = never decays
+ * @param cooldownPerVictim when {@code true} gate 6 keys the cooldown on the activation's victim rather than the coarse player/mob target bucket, so one target's window never throttles a strike on another ({@code cooldown-per-victim: true}); {@code false} = today's shared bucket
  */
 public record Ability(
         int id,
@@ -64,7 +65,8 @@ public record Ability(
         int noSoulsParticle,
         double soulCostGrowth,
         int soulCostCap,
-        int soulCostDecayPeriod) {
+        int soulCostDecayPeriod,
+        boolean cooldownPerVictim) {
 
     /** Back-compat construction for a constant {@code chance:} — the hot-path fast case. */
     public Ability(int id, int defId, SourceKind sourceKind, int triggerMask, int level, double baseChance,
@@ -74,7 +76,7 @@ public record Ability(
                    FactMask factMask) {
         this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
                 condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
-                suppressKey, setPieces, suppressImmune, factMask, null, null, false, -1, -1, 1.0, 0, 0);
+                suppressKey, setPieces, suppressImmune, factMask, null, null, false, -1, -1, 1.0, 0, 0, false);
     }
 
     /** No derived fact mask — populate everything (the safe default for hand-built test abilities). */
@@ -84,7 +86,7 @@ public record Ability(
                    int cdScopeGroup, int cdScopeType, int suppressKey, int setPieces) {
         this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
                 condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
-                suppressKey, setPieces, false, FactMask.ALL, null, null, false, -1, -1, 1.0, 0, 0);
+                suppressKey, setPieces, false, FactMask.ALL, null, null, false, -1, -1, 1.0, 0, 0, false);
     }
 
     public boolean firesOn(int triggerId) {
