@@ -553,6 +553,23 @@ public interface Sink {
      */
     void removeSoulsFrom(Player target, int amount);
 
+    /**
+     * Force {@code target} out of active soul mode (SOUL_MODE_DISABLE) — the state lives in the soul system's
+     * own store, so this is a pure write into it plus that system's deactivate feedback. Routed to the target's
+     * own thread (settling an owed spend write-throughs their gems' PDC); a no-op without a soul system or on a
+     * target who is not in soul mode.
+     */
+    void disableSoulMode(Player target);
+
+    /**
+     * Take up to {@code cap} souls out of {@code victim}'s gems and credit {@code actor} with
+     * {@code floor(ratio * stolen)}, destroying the remainder (SOUL_TRANSFER). {@code mintWhenNone} gives the
+     * actor a fresh gem carrying the credit when they carry none; otherwise the credit is lost. Two players on
+     * two regions, so the collaborator owns the hop: the drain runs on the VICTIM's thread (their gems' PDC)
+     * and the credit is deferred to the actor's. A no-op without a soul system or on a victim with no souls.
+     */
+    void transferSouls(Player actor, Player victim, int cap, double ratio, boolean mintWhenNone);
+
     // ── Variable intents (per-player named vars, read back in later conditions as %name%) ──
 
     /** Set {@code target}'s named variable to {@code value}; {@code ttlTicks <= 0} = no expiry (SET_VAR). */

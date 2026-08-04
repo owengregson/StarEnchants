@@ -131,6 +131,9 @@ public final class BuiltinEffects {
                 .register(new ProjectileDressingEffect()) // rider on the BOW_FIRE projectile (inline read-back)
                 .register(new HeadTrophyEffect())        // arm a templated player-head drop on the victim's next death
                 .register(new SummonRebindEffect())      // replace an owned summon with a fresh upgraded one
+                // Cosmic-port wave 2b. APPENDED, never inserted (ADR-0039 dense kind ids).
+                .register(new SoulModeDisableEffect())   // force a player out of active soul mode
+                .register(new SoulTransferEffect())      // steal souls from a victim's gems, credit a fraction
                 .build();
     }
 }

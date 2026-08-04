@@ -77,6 +77,11 @@ class NewEffectEndToEndTest {
             "HEAD_TROPHY: { name: \"Skull of {VICTIM}\", who: \"@Victim\" }",
             "SUMMON_REBIND: { type: IRON_GOLEM, ttl: 600, who: \"@Victim\" }");
 
+    /** The kinds wave 2b adds, in the same minimal authored form. */
+    private static final List<String> WAVE_2B = List.of(
+            "SOUL_MODE_DISABLE: { who: \"@Victim\" }",
+            "SOUL_TRANSFER: { cap: 50, ratio: 0.5, overflow: mint, who: \"@Victim\" }");
+
     @TempDir
     Path root;
 
@@ -93,8 +98,17 @@ class NewEffectEndToEndTest {
 
     @TestFactory
     Stream<DynamicTest> everyNewKindCompilesToItsOwnRegistryId() {
+        return compilesToItsOwnRegistryId(WAVE_1D2);
+    }
+
+    @TestFactory
+    Stream<DynamicTest> everyWave2bKindCompilesToItsOwnRegistryId() {
+        return compilesToItsOwnRegistryId(WAVE_2B);
+    }
+
+    private Stream<DynamicTest> compilesToItsOwnRegistryId(List<String> wave) {
         EffectRegistry registry = BuiltinEffects.registry();
-        return WAVE_1D2.stream().map(authored -> {
+        return wave.stream().map(authored -> {
             String head = authored.substring(0, authored.indexOf(':'));
             return DynamicTest.dynamicTest(head, () -> {
                 Snapshot snap = load(head.toLowerCase(Locale.ROOT).replace('_', '-'), authored);
@@ -278,6 +292,61 @@ class NewEffectEndToEndTest {
         assertEquals(150, sink.projectileDressing().ttlTicks());
         assertEquals(40, sink.projectileDressing().invulnerableTicks());
         assertTrue(sink.projectileDressing().noPickup());
+    }
+
+    @Test
+    void theSoulOpsReachTheirCollaboratorWithTheAuthoredTerms() throws Exception {
+        // Wave 2b. Both soul ops write state the engine does not own — the whole intent leaves through SoulDebit,
+        // so a store assertion is impossible and only the collaborator's arguments prove the compile landed. The
+        // ratio is the dangerous one: dropped, a steal silently becomes lossless and doubles the soul economy.
+        RecordingSouls souls = new RecordingSouls();
+        Player actor = mock(Player.class);
+        Player victim = mock(Player.class);
+        when(actor.getUniqueId()).thenReturn(ACTOR);
+        when(victim.getUniqueId()).thenReturn(UUID.randomUUID());
+
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().souls(souls).build());
+        runOn(load("trap", "SOUL_MODE_DISABLE: { who: \"@Victim\" }"), "trap", sink, actor, victim);
+        sink.flush();
+        assertEquals(victim, souls.disabled, "the victim, not the actor, is the one forced out");
+
+        sink = new ModernDispatchSink(handles, Envs.sink().souls(souls).build());
+        runOn(load("siphon", "SOUL_TRANSFER: { cap: 75, ratio: 0.5, overflow: discard, who: \"@Victim\" }"),
+                "siphon", sink, actor, victim);
+        sink.flush();
+        assertEquals(75, souls.cap);
+        assertEquals(0.5, souls.ratio);
+        assertFalse(souls.mint, "overflow: discard must not reach the collaborator as a mint");
+        assertEquals(actor, souls.creditTo);
+        assertEquals(victim, souls.stealFrom);
+    }
+
+    /** Captures the terms the two wave-2b soul ops hand the feature soul system. */
+    private static final class RecordingSouls implements engine.sink.SoulDebit {
+        private Player disabled;
+        private Player creditTo;
+        private Player stealFrom;
+        private int cap;
+        private double ratio;
+        private boolean mint = true;
+
+        @Override
+        public void debit(Player holder, UUID gemId, int amount) {
+        }
+
+        @Override
+        public void disableSoulMode(Player target) {
+            disabled = target;
+        }
+
+        @Override
+        public void transferSouls(Player actor, Player victim, int cap, double ratio, boolean mintWhenNone) {
+            this.creditTo = actor;
+            this.stealFrom = victim;
+            this.cap = cap;
+            this.ratio = ratio;
+            this.mint = mintWhenNone;
+        }
     }
 
     private void run(String key, String authored, EngineStores stores, Player actor, Player victim)

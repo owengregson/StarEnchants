@@ -28,6 +28,25 @@ public interface SoulDebit {
     default void debitTarget(Player target, int amount) {
     }
 
+    /**
+     * Force {@code target} out of active soul mode ({@code SOUL_MODE_DISABLE}): settle any owed drain to their
+     * gems, drop the pool, and send the soul system's own deactivate feedback. No-op when they are not in soul
+     * mode. Like {@link #debit}, MUST run on {@code target}'s own thread — settling writes gem PDC. Defaults to
+     * a no-op so the functional-interface lambdas and {@link #NONE} keep compiling.
+     */
+    default void disableSoulMode(Player target) {
+    }
+
+    /**
+     * Drain up to {@code cap} souls from {@code victim}'s gems and credit {@code actor}
+     * {@code floor(ratio * stolen)}, destroying the rest ({@code SOUL_TRANSFER}). Unlike {@link #debit} this is
+     * NOT gated on soul mode — a steal reads the gems, not the switch. MUST be called on {@code victim}'s own
+     * thread; the implementation owns the hop to {@code actor}'s thread for the credit half, since the two
+     * players' inventories are two regions. Defaults to a no-op so {@link #NONE} keeps compiling.
+     */
+    default void transferSouls(Player actor, Player victim, int cap, double ratio, boolean mintWhenNone) {
+    }
+
     /** No soul system wired — every debit is a no-op. */
     SoulDebit NONE = (holder, gemId, amount) -> { };
 }
