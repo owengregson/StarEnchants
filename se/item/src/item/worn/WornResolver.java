@@ -279,10 +279,19 @@ public final class WornResolver {
                 // ADR-0074: one helmet may carry a COMPOSITE — several child masks folded into one entry
                 // ("a+b", the multi-crystal packing). Every child resolves and fires as if IT were the worn
                 // mask, which is the whole contract; the additive fold sums any overlap (ADR-0012).
+                java.util.Set<String> seenChildren = new java.util.HashSet<>();
                 for (String maskKey : item.codec.MaskItemData.componentsOf(combat.maskKey())) {
                     int id = keys.idOf(maskKey);
                     if (id < 0) {
                         continue; // a child whose content went away on reload — the siblings still fire
+                    }
+                    // A repeated child is ONE identity, not two sources: firing it twice would run the same
+                    // ability twice per trigger — two chance rolls, two cues. The fold gesture already refuses
+                    // duplicates; this is the belt for an entry that arrived some other way (an admin-set blob,
+                    // an item from before the refusal), and it is why the mask branch dedupes where the enchant
+                    // one deliberately does not — an enchant on two PIECES is genuinely two sources.
+                    if (!seenChildren.add(maskKey)) {
+                        continue;
                     }
                     firing.add(id);
                     // A multi-ability mask keys its further bonuses <key>/a1, /a2, … (dense, no gaps), exactly

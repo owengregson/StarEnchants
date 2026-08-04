@@ -89,10 +89,21 @@ precisely because it is a match key and never a cooldown scope (ADR-0050 R4).
 
 So: `EffectCtx.sourceGroup()` fed from `Ability.cdScopeGroup()`, one int through each carrier,
 and `TriggerRunner.runGrouped`. `-1` is unscoped and runs the whole roster, so nothing authored
-today changes. All three feeders carry it — falling blocks in the `Cast`, turrets on the
-EMPLACEMENT (a turret outlives its activation and re-reads its owner per shot, so a captured
-group would scope only the first), summon couriers on `SummonFlags` (the strike rung forgets
-the registries before it dispatches).
+today changes. All three feeders carry it — falling blocks in the `Cast`, summon couriers on
+`SummonFlags` (the strike rung forgets `GuardianCasts` BEFORE it dispatches, so the group cannot
+live there), and turrets in the volley chain's own re-arming closure beside the owner and profile
+it already carried. A turret outlives its activation, but a captured `int` is correct for every
+shot where a per-shot registry read would fail OPEN — a missed row scopes nothing and fires the
+whole roster, which is the exact bug being fixed.
+
+**The group is a COARSE identity, deliberately.** It is the authored `group:` — the conflict-matrix
+group for enchants and sets, the bare def stem for masks and crystals — so scoping is per-GROUP,
+not per-feature. `tombstone.yml` declares `group: "mastery"`, so its anvil field will still fire
+every other `mastery` enchant's IMPACT abilities. That is a large improvement on firing EVERY
+IMPACT ability and it is the only identity an arm and its payload share, but it is not exact, and
+a pack wanting exactness gives the pair its own group. The three scope kinds also share one
+interner, so a mask and a crystal with the same stem intern the same id; unqualified by
+construction, and worth knowing before relying on the filter for isolation.
 
 ### 5. The three small surfaces
 

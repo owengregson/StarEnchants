@@ -11,30 +11,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * The TURRET_RING registry: the once-only IMPACT claim, and the scoping group's trip from the emplacement to
- * the shot that strikes (ADR-0074). A turret OUTLIVES the activation that placed it — its volley task re-reads
- * the owner rather than holding one — so the group has to be readable from the emplacement at each shot, which
- * is why it is stored per turret rather than captured by the task.
+ * The TURRET_RING registry: the once-only IMPACT claim, and the scoping group a shot carries to its strike
+ * (ADR-0074). The group is CAPTURED by the volley chain's own re-arming closure — beside the owner and the
+ * profile it already carried — never stored on the emplacement and re-read, because a missed registry read
+ * would fail OPEN and fire the owner's whole IMPACT roster.
  */
 class TurretCastsTest {
 
     @AfterEach
     void clean() {
         TurretCasts.clearAll();
-    }
-
-    @Test
-    void theRingsGroupIsReadableFromTheEmplacementAtEveryVolley() {
-        UUID turret = UUID.randomUUID();
-        TurretCasts.bindTurret(turret, 12);
-        assertEquals(12, TurretCasts.groupOf(turret));
-        // Read twice: the volley re-arms itself on a jittered period, so a one-shot read would scope the first
-        // shot and leave every later one firing the owner's whole IMPACT roster.
-        assertEquals(12, TurretCasts.groupOf(turret));
-
-        TurretCasts.forgetTurret(turret);
-        assertEquals(-1, TurretCasts.groupOf(turret), "a retired emplacement scopes nothing");
-        assertEquals(-1, TurretCasts.groupOf(UUID.randomUUID()), "and neither does an unknown entity");
     }
 
     @Test
@@ -63,20 +49,18 @@ class TurretCastsTest {
     }
 
     @Test
-    void theUngroupedBindsStayUnscoped() {
-        UUID turret = UUID.randomUUID();
+    void theUngroupedBindStaysUnscoped() {
         UUID shot = UUID.randomUUID();
-        TurretCasts.bindTurret(turret);
         TurretCasts.bindShot(shot, UUID.randomUUID());
-        assertEquals(-1, TurretCasts.groupOf(turret));
-        assertEquals(-1, TurretCasts.claimImpact(shot).sourceGroup());
+        assertEquals(-1, TurretCasts.claimImpact(shot).sourceGroup(),
+                "a ring armed by an ungrouped ability fires the whole roster, exactly as before the scoping");
     }
 
     @Test
     void bothHalvesShieldTerrainAndClearTogether() {
         UUID turret = UUID.randomUUID();
         UUID shot = UUID.randomUUID();
-        TurretCasts.bindTurret(turret, 1);
+        TurretCasts.bindTurret(turret);
         TurretCasts.bindShot(shot, UUID.randomUUID(), 1);
         assertTrue(TurretCasts.neverGriefs(turret));
         assertTrue(TurretCasts.neverGriefs(shot));
