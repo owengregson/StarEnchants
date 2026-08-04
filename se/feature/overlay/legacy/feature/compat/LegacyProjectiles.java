@@ -36,16 +36,14 @@ public final class LegacyProjectiles implements Projectiles {
     public void landing(ProjectileHitEvent event, Consumer<Location> land) {
         // 1.8's hit event fires pre-branch and pre-move (see Projectiles#landing), so the answer is a tick away,
         // not absent. Arrows only: a thrown projectile or fireball is already dead when its event fires.
-        if (!(event.getEntity() instanceof Arrow arrow)) {
+        if (!(event.getEntity() instanceof Arrow arrow) || !(arrow.getShooter() instanceof Player shooter)) {
             return;
         }
         Scheduling.onEntityLater(arrow, 1L, () -> {
             // A lodged arrow is still alive and now sits at the impact; one that hit an entity was die()d, which
-            // is exactly the discrimination the event could not make — BOW already dispatched that hit.
-            if (!arrow.isValid() || !((CraftArrow) arrow).getHandle().isInGround()) {
-                return;
-            }
-            if (event.getEntity().getShooter() instanceof Player shooter && shooter.isOnline()) {
+            // is exactly the discrimination the event could not make — BOW already dispatched that hit. The
+            // shooter re-check is the deferral's own cost: a tick of real time is long enough to log off.
+            if (shooter.isOnline() && arrow.isValid() && ((CraftArrow) arrow).getHandle().isInGround()) {
                 land.accept(arrow.getLocation());
             }
         });
