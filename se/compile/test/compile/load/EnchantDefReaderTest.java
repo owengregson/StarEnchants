@@ -350,6 +350,51 @@ class EnchantDefReaderTest {
     }
 
     @Test
+    void cooldownPerVictimThreadsFromYamlAndInheritsThroughTheCascade() {
+        // Thundering Blow's opt-in: the cooldown keys on the victim instead of the coarse mob/player bucket.
+        // Like every other envelope knob it must ride the block → level → root cascade, and stay false unauthored.
+        Diagnostics diags = new Diagnostics();
+        IntSupplier ids = counter();
+        String levelYaml = """
+            trigger: ATTACK
+            cooldown: 50
+            levels:
+              1: { cooldown-per-victim: true, effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        String rootYaml = """
+            trigger: ATTACK
+            cooldown: 50
+            cooldown-per-victim: true
+            levels:
+              1: { effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        String blockYaml = """
+            trigger: ATTACK
+            cooldown: 50
+            levels:
+              1:
+                abilities:
+                  - { effects: [{ HEAL: { amount: 2 } }] }
+                  - { cooldown-per-victim: true, effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        List<AbilityDef> defs = new ArrayList<>();
+        defs.addAll(EnchantDefReader.read("enchants/level", root(levelYaml, diags), ids, diags).abilities());
+        defs.addAll(EnchantDefReader.read("enchants/inherited", root(rootYaml, diags), ids, diags).abilities());
+        defs.addAll(EnchantDefReader.read("enchants/blocks", root(blockYaml, diags), ids, diags).abilities());
+
+        Snapshot snap = Compiler.of(MapSpecRegistry.of(heal())).compile(defs, 1, diags);
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        assertTrue(snap.byStableKey("enchants/level/1").cooldownPerVictim(),
+                "the flag must survive reader → lower → resolve → erase");
+        assertTrue(snap.byStableKey("enchants/inherited/1").cooldownPerVictim(),
+                "the root knob is the level's default, like every other envelope knob");
+        // Per-block: only the opted-in block keys per victim; its sibling keeps the coarse bucket.
+        assertFalse(snap.byStableKey("enchants/blocks/1").cooldownPerVictim());
+        assertTrue(snap.byStableKey("enchants/blocks/1/a1").cooldownPerVictim());
+    }
+
+    @Test
     void escalatingSoulCostKnobsThreadFromYamlToTheCompiledAbility() {
         // The same producer seam as no-souls-message, for the three knobs only gate 10 reads: a stage that
         // rebuilds the record field-by-field drops them with no diagnostic. Three distinct non-default values
@@ -496,7 +541,7 @@ class EnchantDefReaderTest {
                 d.cdScopeEnchant(), d.cdScopeGroup(), d.cdScopeType(), d.repeatTicks(),
                 Source.ofFile("normalised.yml"), d.setPieces(), d.suppressImmune(), d.chanceExpr(),
                 d.noSoulsMessage(), d.soulCostCarried(), d.noSoulsSound(), d.noSoulsParticle(),
-                d.soulCostGrowth(), d.soulCostCap(), d.soulCostDecayPeriod());
+                d.soulCostGrowth(), d.soulCostCap(), d.soulCostDecayPeriod(), d.cooldownPerVictim());
     }
 
     /** Effect lines by head + named args; their embedded Source tracks the line they were written on. */

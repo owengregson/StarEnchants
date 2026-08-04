@@ -34,6 +34,8 @@ import java.util.List;
  * @param soulCostGrowth  factor {@link #soulCost} is multiplied by per successful charge; {@code 1.0} = static
  * @param soulCostCap     ceiling on the escalated cost; {@code 0} = uncapped
  * @param soulCostDecayPeriod ticks per escalation step shed since the last charge; {@code 0} = never decays
+ * @param cooldownPerVictim whether the cooldown keys on the VICTIM rather than the coarse player/mob target
+ *                        bucket; {@code false} = today's shared bucket
  */
 public record AbilityDef(
         SourceKind sourceKind,
@@ -62,7 +64,8 @@ public record AbilityDef(
         String noSoulsParticle,
         double soulCostGrowth,
         int soulCostCap,
-        int soulCostDecayPeriod) {
+        int soulCostDecayPeriod,
+        boolean cooldownPerVictim) {
 
     public AbilityDef {
         triggers = List.copyOf(triggers);
@@ -78,7 +81,7 @@ public record AbilityDef(
                       boolean suppressImmune) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 conditionExpr, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks,
-                source, setPieces, suppressImmune, null, null, false, null, null, 1.0, 0, 0);
+                source, setPieces, suppressImmune, null, null, false, null, null, 1.0, 0, 0, false);
     }
 
     /** Back-compat construction defaulting {@code suppressImmune=false} — only enchants author it today. */
@@ -88,6 +91,6 @@ public record AbilityDef(
                       String cdScopeGroup, String cdScopeType, int repeatTicks, Source source, int setPieces) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 conditionExpr, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks,
-                source, setPieces, false, null, null, false, null, null, 1.0, 0, 0);
+                source, setPieces, false, null, null, false, null, null, 1.0, 0, 0, false);
     }
 }

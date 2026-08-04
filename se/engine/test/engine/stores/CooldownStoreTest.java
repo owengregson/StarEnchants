@@ -61,6 +61,73 @@ class CooldownStoreTest {
     }
 
     @Test
+    void perVictimKeysAreADimensionOfTheirOwnNotExtraKeyBits() {
+        // `cooldown-per-victim`: each victim gets its own window under the SAME packed scope key. A victim
+        // hashed into the packed long instead would collide silently — a phantom cooldown on an unrelated mob.
+        UUID victimA = UUID.randomUUID();
+        UUID victimB = UUID.randomUUID();
+        long scope = CooldownStore.key(0, 7, 0);
+        store.arm(p, victimA, scope, 0L, 100);
+        assertFalse(store.ready(p, victimA, scope, 0L));
+        assertTrue(store.ready(p, victimB, scope, 0L)); // a second victim carries its own window
+        assertTrue(store.ready(p, scope, 0L));          // and the coarse bucket is untouched
+        store.arm(p, scope, 0L, 100);
+        assertTrue(store.ready(p, victimB, scope, 0L), "the coarse bucket must not block a per-victim key");
+    }
+
+    @Test
+    void perVictimReserveAndReleaseTouchOnlyThatVictimsWindow() {
+        // The atomic reserve/release contract has to hold in the new dimension too: routing either half to the
+        // coarse map would arm (or roll back) a window the gate never checked.
+        UUID victimA = UUID.randomUUID();
+        UUID victimB = UUID.randomUUID();
+        long scope = CooldownStore.key(0, 7, 0);
+        assertEquals(0L, store.tryAcquire(p, victimA, scope, 100L, 40)); // reserved to 140
+        assertEquals(40L, store.tryAcquire(p, victimA, scope, 100L, 40)); // same victim: held
+        assertEquals(0L, store.tryAcquire(p, victimB, scope, 100L, 40)); // other victim: free
+        assertTrue(store.ready(p, scope, 100L), "no reservation leaked into the coarse bucket");
+        store.release(p, victimA, scope, 140L);
+        assertTrue(store.ready(p, victimA, scope, 100L));
+        assertFalse(store.ready(p, victimB, scope, 100L), "a release must not clear a sibling victim");
+    }
+
+    @Test
+    void evictElapsedReclaimsPerVictimEntriesSoAKillFarmCannotLeak() {
+        // Without this the store retains one entry per mob a player ever hit — and mobs die and never return,
+        // so nothing would ever read (and lazily evict) those keys again.
+        UUID q = UUID.randomUUID();
+        long scope = CooldownStore.key(0, 7, 0);
+        UUID live = UUID.randomUUID();
+        for (int i = 0; i < 8; i++) {
+            store.arm(p, UUID.randomUUID(), scope, 0L, 40); // expire at 40
+        }
+        store.arm(p, live, scope, 0L, 200);
+        store.arm(q, UUID.randomUUID(), scope, 0L, 40);
+        assertEquals(9, store.trackedVictims(p));
+
+        store.evictElapsed(p, 100L); // the quit sweep
+        assertEquals(1, store.trackedVictims(p), "an emptied victim map is dropped, not left as an empty shell");
+        assertFalse(store.ready(p, live, scope, 100L), "a live window survives the sweep");
+
+        store.evictElapsed(100L); // the periodic all-players sweep
+        assertEquals(0, store.trackedVictims(q));
+        assertEquals(1, store.trackedVictims(p));
+        store.evictElapsed(300L);
+        assertEquals(0, store.trackedVictims(p), "once every window has elapsed the player is dropped entirely");
+    }
+
+    @Test
+    void clearForgetsPerVictimWindowsToo() {
+        UUID victim = UUID.randomUUID();
+        store.arm(p, victim, 1L, 0L, 100);
+        store.clear(p);
+        assertTrue(store.ready(p, victim, 1L, 0L));
+        store.arm(p, victim, 1L, 0L, 100);
+        store.clearAll();
+        assertTrue(store.ready(p, victim, 1L, 0L));
+    }
+
+    @Test
     void clearForgetsOnePlayerAndClearAllForgetsEveryone() {
         UUID q = UUID.randomUUID();
         store.arm(p, 1L, 0L, 100);

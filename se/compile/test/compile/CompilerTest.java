@@ -181,6 +181,23 @@ class CompilerTest {
     }
 
     @Test
+    void theCooldownPerVictimOptInSurvivesTheLowerResolveEraseSeam() {
+        // A dropped flag reverts gate 6 to the coarse mob/player bucket with no diagnostic: the ability still
+        // fires, just on the wrong (shared) window — invisible outside actual play.
+        Diagnostics diags = new Diagnostics();
+        Snapshot snap = Compiler.of(MapSpecRegistry.of(heal())).compile(List.of(
+                        Defs.ability().stableKey("ench/pervictim").defId(1).cooldown(50).cooldownPerVictim(true)
+                                .effects(line("HEAL:1", "enchants.yml", 1)).build(),
+                        Defs.ability().stableKey("ench/shared").defId(2).cooldown(50)
+                                .effects(line("HEAL:1", "enchants.yml", 2)).build()),
+                3, diags);
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        assertTrue(snap.byStableKey("ench/pervictim").cooldownPerVictim());
+        assertFalse(snap.byStableKey("ench/shared").cooldownPerVictim(),
+                "unauthored keeps today's shared bucket");
+    }
+
+    @Test
     void theSoulEnvelopeKnobsSurviveTheLowerResolveEraseSeam() {
         // The same def-level pin, for the three knobs added alongside no-souls-message. soul-cost-carried is
         // the dangerous one: dropped, gate 10 silently reverts to active-gem-only and the ability just stops

@@ -321,6 +321,8 @@ final class ContentParse {
 
     private static final String COOLDOWN_SCOPE = "cooldown-scope";
 
+    private static final String COOLDOWN_PER_VICTIM = "cooldown-per-victim";
+
     /** The one accepted {@code cooldown-scope} value; anything else is an {@code E_ENUM}. */
     private static final String COOLDOWN_SCOPE_NONE = "none";
 
@@ -342,6 +344,16 @@ final class ContentParse {
                         + raw + "'", node.sourceOf(COOLDOWN_SCOPE),
                 "drop the key to keep the shared cooldown bucket");
         return defaultScope;
+    }
+
+    /**
+     * Whether gate 6 keys this ability's cooldown on the VICTIM instead of the coarse player/mob target bucket
+     * — the opt-in a per-target throttle (Thundering Blow) needs, since the coarse bucket lets the first mob in
+     * a pack lock out every other. Absent or unparseable is {@code false}, today's shared bucket.
+     */
+    static boolean resolveCooldownPerVictim(YamlNode node, Diagnostics diags) {
+        return boolOr(resolveString(node, COOLDOWN_PER_VICTIM, diags), false, COOLDOWN_PER_VICTIM,
+                DiagCode.W_LOAD_BOOL, node.sourceOf(COOLDOWN_PER_VICTIM), diags);
     }
 
     /**
@@ -371,17 +383,21 @@ final class ContentParse {
                 blankToNull(resolveString(particle, "no-souls-particle", diags)));
     }
 
-    /** {@code keys} plus the soul envelope (accepted wherever {@code no-souls-message} is) and the scope opt-out. */
+    /** {@code keys} plus the soul envelope (accepted wherever {@code no-souls-message} is) and the cooldown knobs. */
     static Set<String> withEnvelopeKnobs(String... keys) {
         List<String> all = new ArrayList<>(List.of(keys));
         all.addAll(SOUL_KNOB_KEYS);
         return withCooldownScope(all.toArray(new String[0]));
     }
 
-    /** {@code keys} plus {@code cooldown-scope} — accepted by every reader, soul envelope or not. */
+    /**
+     * {@code keys} plus the cooldown-envelope knobs ({@code cooldown-scope}, {@code cooldown-per-victim}) —
+     * accepted by every reader, soul envelope or not.
+     */
     static Set<String> withCooldownScope(String... keys) {
         List<String> all = new ArrayList<>(List.of(keys));
         all.add(COOLDOWN_SCOPE);
+        all.add(COOLDOWN_PER_VICTIM);
         return Set.copyOf(all);
     }
 }
