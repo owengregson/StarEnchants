@@ -433,6 +433,25 @@ class FactPopulatorTest {
         verify(a, never()).getHealth();
     }
 
+    // ── item.durabilitypercent: measured at the ITEM_DAMAGE site, where the exact damaged stack is in hand.
+
+    @Test
+    void itemDurabilityPercentRidesTheItemDamageContext() {
+        int slot = num("item", "durabilitypercent");
+        FactBuffer f = populator.populate(ActivationContext.itemDamage(actor(), 1.0, true, 6.25), 0L,
+                new FactMask(1L << slot, 0L, 0L));
+        assertEquals(6.25, f.number(slot));
+    }
+
+    @Test
+    void itemDurabilityPercentStaysZeroOnEveryOtherTrigger() {
+        // Absent is NaN, not 0 — an activation carrying no damaged item must not read as "nearly spent" and
+        // let a repair guard fire off an unrelated swing.
+        int slot = num("item", "durabilitypercent");
+        assertEquals(0.0, populator.populate(new ActivationContext(actor(), null, null, null), 0L,
+                new FactMask(1L << slot, 0L, 0L)).number(slot));
+    }
+
     @Test
     void comboStaysUnsourcedAtZero() {
         // combo is declared so conditions referencing it compile, but no combat-streak tracker exists.

@@ -52,6 +52,7 @@ final class ReloadModule {
             core.executor().bindQuarantine(BootCore.quarantineFor(published.snapshot())); // §10 fresh per snapshot
             core.stores().why().generation(published.snapshot().generation()); // ADR-0045: rebind gen post-reload
             core.executor().bindContent(core.effectRegistry().get()); // ADR-0038/0039: atomic effect+selector pair
+            core.dispatch().bindTiers(BootCore.tierWeightsFor(published)); // PROC_REBOUND tier index, per snapshot
             core.plugin().getServer().getPluginManager().callEvent(new StarEnchantsReloadEvent(
                     published.snapshot().generation(), published.snapshot().abilityCount()));
             if (core.master().config().reload().reResolvePlayers()) { // §L config.yml reload.re-resolve-players

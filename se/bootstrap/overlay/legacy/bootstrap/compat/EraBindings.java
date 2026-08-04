@@ -247,14 +247,15 @@ public final class EraBindings implements EraServices {
 
     /**
      * ITEM_DAMAGE source (§4/§6): the gear-poll durability-rise subscriber fires it; no Bukkit event on 1.8.
-     * ADR-0049: carries the durability points as {@code %damage%} and armor-vs-held as {@code %itemdamage.armor%}.
+     * ADR-0049: carries the durability points as {@code %damage%} and armor-vs-held as {@code %itemdamage.armor%},
+     * plus the poll's pre-wear {@code %item.durabilitypercent%} reading.
      * The Cancellable is null — legacy observes the loss AFTER the fact, so a SUPPRESS/cancel on ITEM_DAMAGE cannot
      * apply (the heroic restore is the separate {@code heroicDurabilitySave} subscriber; no restore shim here).
      */
     @Override
     public Listener itemDamageSource(TriggerDispatch dispatch) {
-        gearPoll.fireItemDamage((player, armor, delta) -> dispatch.fire(player, dispatch.itemDamage,
-                new ActivationContext(player, null, null, player.getLocation(), delta, null, 0, "", armor, 0, 0), null));
+        gearPoll.fireItemDamage((player, armor, delta, percent) -> dispatch.fire(player, dispatch.itemDamage,
+                ActivationContext.itemDamage(player, delta, armor, percent), null));
         return NoopListener.INSTANCE;
     }
 

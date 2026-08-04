@@ -80,7 +80,8 @@ class NewEffectEndToEndTest {
     /** The kinds wave 2b adds, in the same minimal authored form. */
     private static final List<String> WAVE_2B = List.of(
             "SOUL_MODE_DISABLE: { who: \"@Victim\" }",
-            "SOUL_TRANSFER: { cap: 50, ratio: 0.5, overflow: mint, who: \"@Victim\" }");
+            "SOUL_TRANSFER: { cap: 50, ratio: 0.5, overflow: mint, who: \"@Victim\" }",
+            "PROC_REBOUND: { chance: 4, tier-min: 6, tier-max: 7, who: \"@Self\" }");
 
     @TempDir
     Path root;

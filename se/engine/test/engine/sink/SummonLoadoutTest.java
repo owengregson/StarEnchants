@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -14,18 +15,22 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
 import platform.sched.Scheduling;
+import platform.text.Colors;
 import schema.spec.PotionLoadout;
 import testfx.Envs;
 import testfx.RecordingSchedulerBackend;
@@ -104,6 +109,23 @@ class SummonLoadoutTest {
         verify(spawned).addPotionEffect(applied.capture());
         assertEquals(speed, applied.getValue().getType());
         assertEquals(1, applied.getValue().getAmplifier());
+    }
+
+    @Test
+    void aSummonNamesOwnerTokenIsFilledFromTheOwnerTheSpawnerThreads() {
+        // The owner reaches the nameplate only if the spawner passes it down; dropping it anywhere silently
+        // strips {OWNER} from every summon instead of failing, and no unit below the sink can see the name.
+        UUID ownerId = UUID.randomUUID();
+        Player owner = mock(Player.class);
+        when(owner.getName()).thenReturn("Notch");
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(() -> Bukkit.getPlayer(ownerId)).thenReturn(owner);
+
+            sink.guard(null, at, 1, 1, 0, "&b&l{OWNER}'s Guardian", ownerId, 0.0, 0.0, List.of());
+            sink.flush();
+        }
+
+        verify(spawned).setCustomName(Colors.translate("&b&lNotch's Guardian"));
     }
 
     @Test

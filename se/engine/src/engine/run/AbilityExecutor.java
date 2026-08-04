@@ -238,12 +238,46 @@ public final class AbilityExecutor {
     }
 
     /** {@code enchants/venom/1} → {@code enchants/venom}; level-less sources (crystals, sets) pass through. */
-    private static String baseKey(String stableKey, int level) {
+    public static String baseKey(String stableKey, int level) {
         if (stableKey == null || level <= 0) {
             return stableKey;
         }
         String suffix = "/" + level;
         return stableKey.endsWith(suffix) ? stableKey.substring(0, stableKey.length() - suffix.length()) : stableKey;
+    }
+
+    /**
+     * The GATELESS re-execution entry point (PROC_REBOUND): run {@code candidateIds}' effects against
+     * {@code context} without walking the pipeline. Every one of these abilities ALREADY passed its own
+     * gates on the attacker's walk and was vetoed at gate 9 only so the reflector could take it — re-gating
+     * would re-roll its chance, evaluate its condition against the REFLECTOR's facts, reserve a cooldown
+     * under a key they do not own, and debit their souls.
+     *
+     * <p>Unlike {@link #runLifecycle} this is a real activation: it carries the caller's populated
+     * {@link engine.condition.FactBuffer} and honours each effect's {@code cumulativeWaitTicks}. It does NOT
+     * notify the {@link ActivationListener} — the public event and the {@code /se why} record already name
+     * the attacker's activation, and announcing it again as the reflector's would credit them an enchant
+     * they do not carry. Does NOT flush; the caller flushes once.
+     */
+    public void runForced(Ability[] abilities, int[] candidateIds, Activation activation,
+                          ActivationContext context, SinkReadback sink) {
+        AbilityQuarantine quarantine = this.quarantine;
+        for (int id : candidateIds) {
+            if (id < 0 || id >= abilities.length || quarantine.isDisabled(id)) {
+                continue; // stale/foreign id, or disabled for the life of this snapshot (§10)
+            }
+            Ability ability = abilities[id];
+            try {
+                // No active gem: this run spends nothing, so a soul-reading effect must not see one.
+                if (runEffects(ability, context, sink, null, activation.facts(), quarantine)) {
+                    quarantine.recordFailure(id, ability.defId());
+                }
+            } catch (Throwable failed) {
+                LOG.log(Level.WARNING, "forced ability " + quarantine.describe(ability.defId())
+                        + " failed during execution", failed);
+                quarantine.recordFailure(id, ability.defId());
+            }
+        }
     }
 
     /**

@@ -1806,7 +1806,7 @@
         "max": null,
         "enum": [],
         "handle": null,
-        "doc": ""
+        "doc": "custom name shown above each guard; {OWNER} fills in the summoner"
         },
       {
         "name": "health",
@@ -3525,6 +3525,57 @@
       ]
     },
   {
+    "head": "PROC_REBOUND",
+    "doc": "While worn, give incoming enchant activations a chance to be taken off you and re-run with the roles swapped — the attacker eats their own proc, and it is NOT applied to you for that hit. Gated by the attacking enchant's rarity-tier weight (tier-min..tier-max) and by level: this enchant's level must be at least the incoming one's. Several worn grades compose — the one whose band reaches the incoming tier with the highest tier-min wins. A maintained PASSIVE marker, armed on equip and lifted on unequip. Player-only.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ PROC_REBOUND: { chance: <double[0..100]>, tier-max: <int[0..]>, tier-min: <int[0..]=0> } }",
+    "example": "{ PROC_REBOUND: { chance: 4, tier-min: 6, tier-max: 7, who: \"@Self\" } }",
+    "params": [
+      {
+        "name": "chance",
+        "kind": "DOUBLE",
+        "label": "double[0..100]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": 100,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "tier-max",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": true,
+        "default": null,
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "tier-min",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
     "head": "PROJECTILE",
     "doc": "Launch count projectiles of a type from the activator's eye (covers SPAWN_ARROWS via the ARROW type). For an explosive projectile, yield sets the blast (-1 = vanilla default) and incendiary lights fires.",
     "affinity": "TARGET_ENTITY",
@@ -4295,7 +4346,7 @@
         "max": null,
         "enum": [],
         "handle": null,
-        "doc": "custom name shown above each summon"
+        "doc": "custom name shown above each summon; {OWNER} fills in the summoner"
         },
       {
         "name": "effects",
@@ -4526,7 +4577,7 @@
         "max": null,
         "enum": [],
         "handle": null,
-        "doc": "custom name shown above each summon"
+        "doc": "custom name shown above each summon; {OWNER} fills in the summoner"
         },
       {
         "name": "effects",
@@ -4590,7 +4641,7 @@
     "doc": "Replace each target summon the activator OWNS with a fresh one of type, rise blocks above it: the old body is removed silently (no death, no drops, no kill credit) and the replacement spawns at full health with a restarted ttl. health, speed, name and effects are GUARD's loadout params. A summon the activator does not own is skipped — pair with CONVERT_SUMMON to take ownership first.",
     "affinity": "TARGET_ENTITY",
     "usage": "{ SUMMON_REBIND: { type: <entity_type>, ttl: <ticks[0..]=600>, name: <string=>, health: <double[0..]=0>, speed: <double[0..]=0>, effects: <potion_effect list=>, rise: <double[0..8]=2> } }",
-    "example": "{ SUMMON_REBIND: { type: IRON_GOLEM, ttl: 600, health: 90, name: \"&b&l{ATTACKER}'s Guardian\" } }",
+    "example": "{ SUMMON_REBIND: { type: IRON_GOLEM, ttl: 600, health: 90, name: \"&b&l{OWNER}'s Guardian\" } }",
     "params": [
       {
         "name": "type",
@@ -4626,7 +4677,7 @@
         "max": null,
         "enum": [],
         "handle": null,
-        "doc": ""
+        "doc": "custom name shown above the replacement; {OWNER} fills in the summoner"
         },
       {
         "name": "health",
@@ -6418,6 +6469,10 @@
   {
     "name": "isblock",
     "type": "BOOL"
+    },
+  {
+    "name": "item.durabilitypercent",
+    "type": "NUM"
     },
   {
     "name": "itemdamage.armor",

@@ -44,12 +44,14 @@ public final class LegacyGearPoll {
 
     /**
      * ITEM_DAMAGE feed (ADR-0049): a durability hit on {@code player}, where {@code armor} is whether it was a worn
-     * armor piece (vs the held item) and {@code delta} is the observed durability points lost. Legacy cannot CANCEL
-     * the loss (the poll observes AFTER the fact); a SUPPRESS/cancel on ITEM_DAMAGE simply won't apply on 1.8 — the
-     * heroic RESTORE is a separate subscriber and no restore shim is built here.
+     * armor piece (vs the held item), {@code delta} is the observed durability points lost, and {@code percent} is
+     * {@code %item.durabilitypercent%} — measured against the PRIOR damage value, so the 1.8 lane reports the same
+     * pre-wear reading the modern event does even though the poll only sees the loss afterwards. Legacy cannot
+     * CANCEL the loss; a SUPPRESS/cancel on ITEM_DAMAGE simply won't apply on 1.8 — the heroic RESTORE is a
+     * separate subscriber and no restore shim is built here.
      */
     public interface ItemDamageFeed {
-        void fire(Player player, boolean armor, int delta);
+        void fire(Player player, boolean armor, int delta, double percent);
     }
 
     /** Slots scanned per player: index 0 = held, 1..4 = the four armour pieces. */
@@ -129,7 +131,8 @@ public final class LegacyGearPoll {
             if (type == types[i] && Objects.equals(ident, ids[i]) && max > 0 && dur > dmg[i]) {
                 if (fireItemDamage != null) {
                     // (1) ITEM_DAMAGE before any restore; slot 0 = held (not armor), slots 1..4 = armor; delta = points lost.
-                    fireItemDamage.fire(player, i != 0, dur - dmg[i]);
+                    // The percent reads the PRIOR damage value, so it is the pre-wear figure the modern event carries.
+                    fireItemDamage.fire(player, i != 0, dur - dmg[i], DurabilityPercent.of(dmg[i], max));
                 }
                 if (heroicSave != null && heroicSave.trySave(item, dmg[i])) { // (2) heroic save → restore
                     dur = dmg[i]; // record the POST-restore value so next tick sees no phantom delta

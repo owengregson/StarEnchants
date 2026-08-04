@@ -26,7 +26,7 @@ public final class GuardEffect implements EffectKind {
             .param("type", D.entityType())
             .param("count", D.INT.min(1).def(1))
             .param("ttl", D.TICKS.def(200))
-            .param("name", D.STRING.def(""))
+            .param("name", D.STRING.def(""), "custom name shown above each guard; {OWNER} fills in the summoner")
             .param("health", D.DOUBLE.min(0).def(0), "starting (and maximum) health; 0 keeps the vanilla one")
             .param("speed", D.DOUBLE.min(0).def(0), "movement-speed multiplier; 0 keeps the vanilla one")
             .param("effects", D.potionEffects().def(""), "potion effects held for the guard's whole life")

@@ -194,6 +194,7 @@ public final class FactPopulator {
     private final int impactHeightSlot;      // projectile height above the struck entity's feet (from the context)
     private final int projectileKindSlot;    // ARROW/FIREBALL/THROWN/OTHER (from the context)
     private final int equipChangeSlot;       // EQUIP/UNEQUIP on an EQUIP_CHANGE activation (from the context)
+    private final int itemDurabilitySlot;    // ITEM_DAMAGE: the damaged item's remaining durability % (from the context)
 
     /** Search radius for {@code %nearbyenemies%}, in blocks. */
     private static final double NEARBY_RADIUS = 8.0;
@@ -294,6 +295,7 @@ public final class FactPopulator {
         this.impactHeightSlot = slot(vocabulary, "impactheight", VarKind.NUM);
         this.projectileKindSlot = slot(vocabulary, "projectilekind", VarKind.STR);
         this.equipChangeSlot = slot(vocabulary, "equipchange", VarKind.STR);
+        this.itemDurabilitySlot = slot(vocabulary, "item.durabilitypercent", VarKind.NUM);
     }
 
     /**
@@ -486,6 +488,13 @@ public final class FactPopulator {
         }
         if (itemDamageArmorSlot >= 0 && mask.readsFlag(itemDamageArmorSlot)) {
             facts.setFlag(itemDamageArmorSlot, context.itemDamageArmor());
+        }
+        // The durability read is taken at the ITEM_DAMAGE site off the exact damaged stack, so nothing is read
+        // from a live item here. NaN means "no damaged item on this activation" (every other trigger, and an
+        // item with no durability bar) and the slot keeps its cleared 0 — a reading of 0 means SPENT.
+        if (itemDurabilitySlot >= 0 && mask.readsNum(itemDurabilitySlot)
+                && !Double.isNaN(context.itemDurabilityPercent())) {
+            facts.setNumber(itemDurabilitySlot, context.itemDurabilityPercent());
         }
         // Projectile geometry is likewise differenced by the dispatcher on the firing thread, so no live
         // projectile is read here and no Folia guard is needed.

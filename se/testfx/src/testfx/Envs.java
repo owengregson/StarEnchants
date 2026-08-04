@@ -192,7 +192,7 @@ public final class Envs {
                             new HeldSlotStore(), new SoulTotalStore(), new engine.stores.DotAmplifyStore(),
                             new engine.stores.HeadTrophyStore(), new engine.stores.FoodWindowStore(),
                             new engine.stores.MessageThrottleStore(), new engine.stores.SoulEscalationStore(),
-                            new engine.stores.DotSuppressionStore());
+                            new engine.stores.DotSuppressionStore(), new engine.stores.ReboundStore());
             return SinkEnv.of(economy, souls, stores, nowTicks, player -> { }, () -> 0,
                     GearProtection.NONE, lightningBoost, PlayerVisibility.NONE, permanentPotions, payloads);
         }

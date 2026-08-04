@@ -1,6 +1,7 @@
 package engine.pipeline;
 
 import engine.condition.FactBuffer;
+import engine.interact.ReboundPlan;
 import engine.interact.SuppressionSet;
 import java.util.Objects;
 import java.util.UUID;
@@ -25,6 +26,8 @@ public final class Activation {
     private final UUID activeGem;
     private final Location location;
     private final int targetBucket;
+    private final UUID victimId;
+    private final ReboundPlan rebound;
 
     private Activation(Builder b) {
         this.actor = Objects.requireNonNull(b.actor, "actor");
@@ -37,6 +40,8 @@ public final class Activation {
         this.activeGem = b.activeGem;
         this.location = b.location;
         this.targetBucket = b.targetBucket;
+        this.victimId = b.victimId;
+        this.rebound = b.rebound;
     }
 
     /**
@@ -103,6 +108,25 @@ public final class Activation {
     }
 
     /**
+     * The other combat party's entity id, or {@code null} on a non-combat activation — the identity behind
+     * {@link #targetBucket}'s coarse player/mob split, for the gates that need to tell two victims apart
+     * ({@code cooldown-per-victim}). A UUID, never a handle: the pipeline stays Bukkit-free and this is read
+     * on whichever region thread the gate walk runs on.
+     */
+    public UUID victimId() {
+        return victimId;
+    }
+
+    /**
+     * The victim's rebound arbiter for this hit (PROC_REBOUND), or {@code null} — attached ONLY to the
+     * attack-side activation, since on the defence walk it would claim the victim's own abilities. Read by
+     * {@link ReboundGate} at gate 9.
+     */
+    public ReboundPlan rebound() {
+        return rebound;
+    }
+
+    /**
      * Builds an {@link Activation}. Defaults keep tests/non-combat triggers terse: empty
      * {@link FactBuffer}/{@link SuppressionSet}, no soul mode, and a chance roll that always returns
      * {@code 0.0} so any positive chance passes — production MUST install a random-backed roll.
@@ -119,6 +143,8 @@ public final class Activation {
         private UUID activeGem;
         private Location location;
         private int targetBucket;
+        private UUID victimId;
+        private ReboundPlan rebound;
 
         private Builder(UUID actor, int worldId, int triggerId, long nowTicks) {
             this.actor = actor;
@@ -157,6 +183,18 @@ public final class Activation {
         /** The cooldown target bucket (1 = player other-party, 0 = mob / non-combat) — gates 6 + 11. */
         public Builder targetBucket(int targetBucket) {
             this.targetBucket = targetBucket;
+            return this;
+        }
+
+        /** The other combat party's entity id; {@code null} (the default) on a non-combat activation. */
+        public Builder victimId(UUID victimId) {
+            this.victimId = victimId;
+            return this;
+        }
+
+        /** The victim's PROC_REBOUND arbiter; {@code null} (the default) everywhere but the attack walk. */
+        public Builder rebound(ReboundPlan rebound) {
+            this.rebound = rebound;
             return this;
         }
 

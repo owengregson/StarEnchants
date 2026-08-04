@@ -57,6 +57,27 @@ public interface SinkReadback extends Sink {
     default void eventEntity(LivingEntity entity) {
     }
 
+    /**
+     * Open the PROC_REBOUND window: subsequent {@link #fold()} contributions accumulate against the ORIGINAL
+     * ATTACKER instead of the incoming event, so a re-executed damage-mod is felt by the person who threw it
+     * (ADR-0054 stands — no second dispatch pass, no re-entry). Close it with {@link #endRebound()}.
+     * A no-op default: a sink that carries no second accumulator simply never rebounds.
+     */
+    default void beginRebound() {
+    }
+
+    /** Close the PROC_REBOUND window — contributions return to the incoming event's fold. */
+    default void endRebound() {
+    }
+
+    /**
+     * The marginal damage the rebound window accumulated over {@code base}, for the dispatcher to commit
+     * against the attacker; {@code 0} when nothing rebounded. Read once, after the walks.
+     */
+    default double reboundContribution(double base) {
+        return 0.0;
+    }
+
     /** Schedule every deferred intent on its owning thread; call once after the gate walk. Idempotent. */
     void flush();
 

@@ -134,6 +134,7 @@ public final class BuiltinEffects {
                 // Cosmic-port wave 2b. APPENDED, never inserted (ADR-0039 dense kind ids).
                 .register(new SoulModeDisableEffect())   // force a player out of active soul mode
                 .register(new SoulTransferEffect())      // steal souls from a victim's gems, credit a fraction
+                .register(new ProcReboundEffect())       // Enchant Reflect: re-run an incoming proc with roles swapped
                 .build();
     }
 }

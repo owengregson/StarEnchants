@@ -400,7 +400,7 @@ Summon count guardian mobs of type at the activation location, each targeting th
 - _param_ `type` `entity_type`
 - _param_ `count` `int[1..]`
 - _param_ `ttl` `ticks[0..]`
-- _param_ `name` `string`
+- _param_ `name` `string` — custom name shown above each guard; {OWNER} fills in the summoner
 - _param_ `health` `double[0..]` — starting (and maximum) health; 0 keeps the vanilla one
 - _param_ `speed` `double[0..]` — movement-speed multiplier; 0 keeps the vanilla one
 - _param_ `effects` `potion_effect list` — potion effects held for the guard's whole life
@@ -781,6 +781,18 @@ Strip a potion effect from the target(s) and continuously deny it for `ticks` �
 - _target_ `who`: selector `SELF`
 - _example_: `{ POTION_LOCK: { effect: SPEED, ticks: 100, who: "@Victim" } }`
 
+### PROC_REBOUND
+
+While worn, give incoming enchant activations a chance to be taken off you and re-run with the roles swapped — the attacker eats their own proc, and it is NOT applied to you for that hit. Gated by the attacking enchant's rarity-tier weight (tier-min..tier-max) and by level: this enchant's level must be at least the incoming one's. Several worn grades compose — the one whose band reaches the incoming tier with the highest tier-min wins. A maintained PASSIVE marker, armed on equip and lifted on unequip. Player-only.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ PROC_REBOUND: { chance: <double[0..100]>, tier-max: <int[0..]>, tier-min: <int[0..]=0> } }`
+- _param_ `chance` `double[0..100]`
+- _param_ `tier-max` `int[0..]`
+- _param_ `tier-min` `int[0..]`
+- _target_ `who`: selector `SELF`
+- _example_: `{ PROC_REBOUND: { chance: 4, tier-min: 6, tier-max: 7, who: "@Self" } }`
+
 ### PROJECTILE
 
 Launch count projectiles of a type from the activator's eye (covers SPAWN_ARROWS via the ARROW type). For an explosive projectile, yield sets the blast (-1 = vanilla default) and incendiary lights fires.
@@ -962,7 +974,7 @@ Spawn count entities of type at the target's (or activation) location; ttl ticks
 - _param_ `detonate` `enum{NONE|PLAYER_HIT}`
 - _param_ `invincible` `bool`
 - _param_ `speed` `double[0..]`
-- _param_ `name` `string` — custom name shown above each summon
+- _param_ `name` `string` — custom name shown above each summon; {OWNER} fills in the summoner
 - _param_ `effects` `potion_effect list` — potion effects held for the summon's whole life
 - _param_ `payload-phase` `enum{none|detonate|death|periodic}` — when the summon runs its owner's SUMMON_PAYLOAD abilities
 - _param_ `payload-period` `ticks[0..]` — ticks between payload pulses (periodic phase only)
@@ -988,7 +1000,7 @@ Summon count entities of type evenly spaced on a radius-block ring around the ac
 - _param_ `speed` `double[0..1]`
 - _param_ `cloud` `bool`
 - _param_ `cloud-range` `double[1..]`
-- _param_ `name` `string` — custom name shown above each summon
+- _param_ `name` `string` — custom name shown above each summon; {OWNER} fills in the summoner
 - _param_ `effects` `potion_effect list` — potion effects held for each summon's whole life
 - _example_: `{ SPAWN_SWARM: { type: BAT, count: 10, radius: 0.5, ttl: 300, speed: 0.5 } }`
 
@@ -1011,13 +1023,13 @@ Replace each target summon the activator OWNS with a fresh one of type, rise blo
 - _usage_: `{ SUMMON_REBIND: { type: <entity_type>, ttl: <ticks[0..]=600>, name: <string=>, health: <double[0..]=0>, speed: <double[0..]=0>, effects: <potion_effect list=>, rise: <double[0..8]=2> } }`
 - _param_ `type` `entity_type`
 - _param_ `ttl` `ticks[0..]`
-- _param_ `name` `string`
+- _param_ `name` `string` — custom name shown above the replacement; {OWNER} fills in the summoner
 - _param_ `health` `double[0..]` — starting (and maximum) health; 0 keeps the vanilla one
 - _param_ `speed` `double[0..]` — movement-speed multiplier; 0 keeps the vanilla one
 - _param_ `effects` `potion_effect list` — potion effects held for the replacement's whole life
 - _param_ `rise` `double[0..8]` — blocks above the old body to place the replacement
 - _target_ `who`: selector `VICTIM`
-- _example_: `{ SUMMON_REBIND: { type: IRON_GOLEM, ttl: 600, health: 90, name: "&b&l{ATTACKER}'s Guardian" } }`
+- _example_: `{ SUMMON_REBIND: { type: IRON_GOLEM, ttl: 600, health: 90, name: "&b&l{OWNER}'s Guardian" } }`
 
 ### SUPPRESS
 
@@ -1484,6 +1496,7 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%heldticks%` | NUM |
 | `%impactheight%` | NUM |
 | `%isblock%` | BOOL |
+| `%item.durabilitypercent%` | NUM |
 | `%itemdamage.armor%` | BOOL |
 | `%nearbyallies%` | NUM |
 | `%nearbyenemies%` | NUM |

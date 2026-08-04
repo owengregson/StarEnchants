@@ -117,6 +117,7 @@ class EngineStoresTest {
         s.messageThrottle().tryEmit(id, 0L, 300);
         s.soulEscalation().step(id, CooldownStore.key(0, 1), 0L, 0);
         s.dotSuppression().suppress(id, DotSuppressionStore.CAUSE_WITHER, 0L, 100);
+        s.rebounds().arm(id, 1, 4, 5.0, 0, 5);
 
         assertEquals("1", s.vars().get(id, "x", 0L));
         assertTrue(s.suppression().isSuppressed(id, 1L, 0L));
@@ -133,6 +134,7 @@ class EngineStoresTest {
         assertFalse(s.messageThrottle().tryEmit(id, 0L, 300)); // armed by the emit above
         assertEquals(1, s.soulEscalation().steps(id, CooldownStore.key(0, 1), 0L, 0));
         assertTrue(s.dotSuppression().suppressed(id, 0L, DotSuppressionStore.CAUSE_WITHER));
+        assertTrue(s.rebounds().armed(id));
 
         s.clearAll(id);
 
@@ -153,5 +155,7 @@ class EngineStoresTest {
         assertTrue(s.messageThrottle().tryEmit(id, 0L, 300));
         assertEquals(0, s.soulEscalation().steps(id, CooldownStore.key(0, 1), 0L, 0)); // back to the base price
         assertFalse(s.dotSuppression().suppressed(id, 0L, DotSuppressionStore.CAUSE_WITHER));
+        // A worn marker with no expiry: a missed clear would outlive the armour that granted it.
+        assertFalse(s.rebounds().armed(id));
     }
 }
