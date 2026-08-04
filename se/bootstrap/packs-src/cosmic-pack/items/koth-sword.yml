@@ -1,0 +1,19 @@
+# Matrix: 10-armor-sets.md § KOTH — the SET SWORD likeness.
+# THE JAR NEVER BUILT THIS ITEM. Both KOTH weapons are minted by an external plugin (codex UNRESOLVED); the
+# set listener reads only their identity tags, so the codex records NO display string, NO lore block and NO
+# enchant loadout for either. The matrix's ruling is that the port defines the weapons or gates the riders on
+# the reforge-era heroic weapons — this pack defines them, minimally:
+#   - the NAME extends the recorded piece-name pattern with `Sword` in the {Piece} slot (port-chosen, and the
+#     only invented string in this set);
+#   - no lore and no vanilla enchants are authored, because inventing a `KOTH WEAPON BONUS` block would be
+#     authoring strings the codex does not hold.
+# The rider itself IS authored, on content/sets/koth.yml as the `on: weapon` bonus (+7.5 % against players
+# while the set is complete). `on: weapon` is the held-identity gate: `%actor.helditem%` is only ever a
+# material name and could never express the jar's item tag. Identity is the set-weapon PDC stamp, so it is
+# unforgeable and survives a heroic reforge.
+# ERA: `GOLDEN_SWORD` resolves to 1.8's `GOLD_SWORD` through the alias resolver.
+type: set-piece
+set: sets/koth
+slot: weapon
+material: GOLDEN_SWORD
+name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nSword§r"

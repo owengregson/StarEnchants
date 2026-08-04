@@ -1,0 +1,86 @@
+# Matrix: 10-armor-sets.md § Necromancer — ability set ("M-Kit"), frame per § Ghost and §A.10-A.15, §C.3-C.5.
+# Family (§A): completion is all-or-nothing at 4/4 (no 2/3-piece tiers), identity is engine PDC + WornState
+# (the jar's forgeable lore matching and its 30 s stale-cache window are infrastructure-class bugs, not ported),
+# and there are NO cooldowns anywhere.
+#
+# An ability set has no set proc: every "Necromancer ability" is a mastery enchant rolled onto the pieces at
+# mint, decomposed in matrix/07. What the SET carries is the heroic M-Kit tier's flat incoming reduction, the
+# halved armour values, and the guaranteed boots roll.
+display: "§2§lNecromancer"
+# display colour is the set's own piece branding (§2); a set display name is matrix-recorded only for
+# Architect, where it deliberately disagrees with its items.
+# description: not matrix-recorded (factual paraphrase)
+description: "§2A Mastery Kit — the power is in the mastery enchants rolled onto the pieces, not in a set proc."
+complete: 4
+# Equipping is silent: the ability sets carry an empty equip description (measured), so no announce and no
+# equip/remove line.
+announce: false
+armor:
+  # Matrix (§ Ghost, the frame this set is identical to): Unbreaking III + Protection IV on every piece.
+  enchants:
+    UNBREAKING: 3
+    PROTECTION: 4
+  # Matrix-recorded physical facts with NO authoring surface today — a set carries ONE armor.lore for all four
+  # pieces, a piece takes only material + name (SetDefReader MEMBER_KEYS), and neither a leather dye nor a
+  # custom armour value / durability has a home — so they are recorded here instead of lost:
+  #   dye #00FF00 (Bukkit GREEN — brighter than the Necromancer shard's own dye, a measured mismatch, kept)
+  #   per-piece flavour (verbatim, incl. `magick` and the chestplate's missing full stop):
+  #     helmet     "§7§oA floating skull imbued with" / "§7§oevil enchantments and demonic energy."
+  #     chestplate "§7§oSpider Silk woven robes that camouflage" / "§7§ointo the darkness of the night"
+  #     leggings   "§7§oOnce tormented by death, it now" / "§7§oloyally serves and protects you."
+  #     boots      "§7§oA good luck charm for those who are" / "§7§omasters of the dark magick of necromancy."
+  #   per-piece heroic append (lore: below carries only its piece-independent tail):
+  #     helmet "§7+2 Armor Value" / "§7810 Durability"    chestplate "§7+4 Armor Value" / "§71000 Durability"
+  #     leggings "§7+3 Armor Value" / "§7935 Durability"  boots "§7+2 Armor Value" / "§7686 Durability"
+  #   armour values halved by the M-Kit rule: 2/4/3/2 (11 across the set, against 20 for non-M-Kit gear)
+  #   per-piece M-Kit incoming reduction: chest 16 %, legs 13 %, boots 8 %, helm 8 % — folded into the single
+  #     completion bonus below, at the measured full-set total
+  #   boots carry `Gears` at MAX, guaranteed (armor.enchants above is set-wide and would stamp all four)
+  #   per-piece custom-enchant rosters, each rolled at the family's nearly-maxed draw min(M, max(1, M-2) + rand(3))
+  #   over the entry's own max level M (the `N base` count draws from a codex-side base roster the matrix does
+  #   not enumerate):
+  #     helmet     8 base + 60 % Valor/Angelic/Tank + 20 % Paladin Armored + 17.5 % Alien Implants
+  #     chestplate 9 base + 60 %x3 + 20 % Paladin Armored + 17.5 % Godly Overload + 22.5 % Planetary
+  #                Deathbringer + 22.5 % Divine Enlighted + 15 % Vengeful Diminish
+  #     leggings   8 base (adds `Spirits` against Ghost's 7) + 60 %x3 + 20 % Paladin Armored + 30 % Immortal
+  #     boots      8 base + Gears max + 60 %x3 + 20 % Paladin Armored + 22.5 % Ethereal Dodge + 35 % Phoenix
+  #                re-roll (which OVERWRITES the base roll — measured) + 12.5 % Guided Rocket Escape
+  lore:
+    - ""
+    - "§4This armor is stronger than diamond."
+  pieces:
+    helmet:     { material: LEATHER_HELMET,     name: "§2§lSkull of Souls" }
+    chestplate: { material: LEATHER_CHESTPLATE, name: "§2§lRobe of the Necromancer" }
+    leggings:   { material: LEATHER_LEGGINGS,   name: "§2§lTattered Wrappings of Death" }
+    boots:      { material: LEATHER_BOOTS,      name: "§2§lDemon Foot" }
+# Behaviours. The jar grants the M-Kit reduction PER WORN PIECE (§C.3-C.5); the engine gates a set bonus on
+# completion, so the four component stats fold into this one 4/4 bonus at their measured full-set 45 %.
+# Additive here, multiplicative in the jar (project-wide damage model, a global ADR — not a per-item deviation).
+# The only delta is partial wear: two worn pieces pay 16+13 in the jar and nothing here until the fourth lands.
+# `items/heroic.yml` carries ONE flat percent for every heroic piece, not a per-slot ladder — the day such a
+# ladder lands this row must go, or the two channels double-count.
+bonuses:
+  - on: armor
+    trigger: DEFENSE
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 45 } }
+# Mastery pool (matrix/07; 2 drawn without replacement, 50 % each): Mortal Coil, Soul Siphon, Rot and Decay,
+# Demonic Gateway. Recorded, not referenced: a set file has no root key for a pool, the draw belongs to the
+# minter, and three of the four are still unauthored in this pack.
+#
+# Interaction-layer rules the set decomposition does NOT own, recorded but not authored here:
+#  * piece identity is data (a per-set NBT tag in the jar -> engine PDC component); pieces refuse normal enchant
+#    books unless the book carries a matching Mastery Shard (§C.9: 100 % apply, one of each set per book).
+#    Armor Crystals CAN be applied to M-Kit gear that carries no blocked mastery enchant (§A.15).
+#  * an Anti-M-Kit Crystal (Necromancer) on ANY single worn piece of a victim cancels this set's mastery-pool
+#    procs outright — 100 %, no roll (the crystal's percent is only its apply chance). Owned by the crystals family.
+#  * Rot and Decay (this pool) is the enchant Mother of Yijki's World Ender claims immunity to; that suppression
+#    rule is recorded on the Mother of Yijki entry.
+#  * heroic pieces negate an enemy's Infinite Luck at 12.5 % per piece — ledger D-10-1 (the jar counts them from
+#    the Infinite Luck holder's own armour, a self-negation; the port counts the attacker's). Only Ghost's legs
+#    can roll Infinite Luck, so this set meets the rule from the other side.
+#  * outpost world gates (TRAINEE/VANILLA/HERO, §A.8) block set bonuses; off by default in the port — a server
+#    that wants them adds `disabled-worlds:` to the bonus above.
+# era: leather dye is era-safe on both lanes; the extra armour value needs defence mods on 1.8.9 (no armour
+# attribute); the nearly-maxed roll distribution is reproduced by the pack minter, not by item data.

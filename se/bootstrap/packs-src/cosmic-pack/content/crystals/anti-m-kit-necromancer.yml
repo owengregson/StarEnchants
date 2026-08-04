@@ -1,0 +1,26 @@
+# Matrix: 10-armor-sets.md § Necromancer (Anti-M-Kit Crystal; the codex numbers this §C.6 in prose under a
+# `### C.2` heading — source-side numbering drift, recorded by the matrix, not resolved here)
+# Same shape as anti-m-kit-ghost.yml, over the Necromancer pool: one worn copy cancels all four of that set's
+# mastery procs aimed at the wearer, 100%, no roll. The crystal's advertised percent is its APPLY chance.
+display: "Anti-M-Kit (Necromancer)"
+# description: not matrix-recorded (factual paraphrase; `§2` is the Necromancer set's own colour)
+description:
+  - "§2§lANTI-M-KIT CRYSTAL BONUS"
+  - "§2* Negates all Necromancer M-Kit abilities used against you"
+  - "§2* Anti-M-Kit Crystal is not stackable"
+tier: mastery  # (port-chosen) see anti-m-kit-ghost.yml
+applies-to: [ARMOR]
+stackable: false
+# Construction, the re-arm cadence and the residual-window bound: see anti-m-kit-ghost.yml.
+# POOL (matrix § Necromancer): Mortal Coil, Soul Siphon, Rot and Decay, Demonic Gateway. Three of the four
+# are still deferred (deferred-content.md, batch 07) — inert keys until those files land.
+# Cross-ref: Rot and Decay is also the enchant Yijki's World Ender claims immunity to; that suppression is a
+# held-weapon rule recorded on the Mother of Yijki set entry and is a separate mechanism from this crystal.
+abilities:
+  - trigger: REPEATING
+    repeat: 20
+    effects:
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/mortal-coil", duration: 60, who: "@Self" } }
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/soul-siphon", duration: 60, who: "@Self" } }
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/rot-and-decay", duration: 60, who: "@Self" } }
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/demonic-gateway", duration: 60, who: "@Self" } }

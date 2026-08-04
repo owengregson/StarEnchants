@@ -1,0 +1,87 @@
+# Matrix: 10-armor-sets.md § Architect — ability set ("M-Kit"), frame per § Ghost and §A.10-A.15, §C.3-C.5.
+# Family (§A): completion is all-or-nothing at 4/4 (no 2/3-piece tiers), identity is engine PDC + WornState
+# (the jar's forgeable lore matching and its 30 s stale-cache window are infrastructure-class bugs, not ported),
+# and there are NO cooldowns anywhere.
+#
+# Byte-identical to Death Knight in every particular the matrix records — piece names, empty flavour, dye,
+# armour values, durability, rosters, probabilities, the 45 % reduction and the mastery pool. Set IDENTITY is
+# the only runtime distinction (the class is a line-for-line copy, measured), so this file repeating
+# sets/death-knight.yml IS the likeness, not a duplication to collapse.
+display: "§b§lArchitect"
+# The set display is AQUA while its ITEMS keep blue Death Knight branding — measured, reproduced.
+# description: not matrix-recorded (factual paraphrase)
+description: "§bA Mastery Kit — the power is in the mastery enchants rolled onto the pieces, not in a set proc."
+complete: 4
+# Equipping is silent: the ability sets carry an empty equip description (measured), so no announce and no
+# equip/remove line.
+announce: false
+armor:
+  # Matrix (§ Ghost, the frame this set is identical to): Unbreaking III + Protection IV on every piece.
+  enchants:
+    UNBREAKING: 3
+    PROTECTION: 4
+  # Matrix-recorded physical facts with NO authoring surface today — a set carries ONE armor.lore for all four
+  # pieces, a piece takes only material + name (SetDefReader MEMBER_KEYS), and neither a leather dye nor a
+  # custom armour value / durability has a home — so they are recorded here instead of lost:
+  #   dye #2239B9 (decimal 2243001, deep royal blue) — Death Knight's dye, shared; the Architect Mastery Shard
+  #     is visually identical to Death Knight's apart from its name
+  #   NO flavour lore on any piece (as Death Knight, measured), so the whole lore block is the heroic append
+  #     and lore: below carries only its piece-independent tail
+  #   per-piece heroic append:
+  #     helmet "§7+2 Armor Value" / "§7810 Durability"    chestplate "§7+4 Armor Value" / "§71000 Durability"
+  #     leggings "§7+3 Armor Value" / "§7935 Durability"  boots "§7+2 Armor Value" / "§7686 Durability"
+  #   armour values halved by the M-Kit rule: 2/4/3/2 (11 across the set, against 20 for non-M-Kit gear)
+  #   per-piece M-Kit incoming reduction: chest 16 %, legs 13 %, boots 8 %, helm 8 % — folded into the single
+  #     completion bonus below, at the measured full-set total
+  #   boots carry `Gears` at MAX, guaranteed (armor.enchants above is set-wide and would stamp all four)
+  #   per-piece custom-enchant rosters, each rolled at the family's nearly-maxed draw min(M, max(1, M-2) + rand(3))
+  #   over the entry's own max level M (the `N base` count draws from a codex-side base roster the matrix does
+  #   not enumerate):
+  #     helmet     9 base + 60 % Valor/Angelic/Tank + 20 % Paladin Armored + 17.5 % Alien Implants
+  #                + 35 % Immortal
+  #     chestplate 9 base + 60 %x3 + 20 % Paladin Armored + 17.5 % Godly Overload + 22.5 % Planetary
+  #                Deathbringer + 22.5 % Divine Enlighted + 15 % Vengeful Diminish
+  #     leggings   8 base + 60 %x3 + 20 % Paladin Armored + 30 % Immortal
+  #     boots      8 base + Gears max + 60 % Valor/Angelic ONLY + 20 % Paladin Armored + 22.5 % Ethereal Dodge
+  #                + 12.5 % Guided Rocket Escape, and no Phoenix re-roll — the missing Tank roll travels with
+  #                the copy, as does Immortal on two pieces (35 % helm, 30 % legs)
+  lore:
+    - ""
+    - "§4This armor is stronger than diamond."
+  pieces:
+    helmet:     { material: LEATHER_HELMET,     name: "§9§lCrown of the Lich King" }
+    chestplate: { material: LEATHER_CHESTPLATE, name: "§9§lDeath Knight Platebody" }
+    leggings:   { material: LEATHER_LEGGINGS,   name: "§9§lDeath Knight Leggings" }
+    boots:      { material: LEATHER_BOOTS,      name: "§9§lBoots of the Scourge" }
+# Behaviours. The jar grants the M-Kit reduction PER WORN PIECE (§C.3-C.5); the engine gates a set bonus on
+# completion, so the four component stats fold into this one 4/4 bonus at their measured full-set 45 %.
+# Additive here, multiplicative in the jar (project-wide damage model, a global ADR — not a per-item deviation).
+# The only delta is partial wear: two worn pieces pay 16+13 in the jar and nothing here until the fourth lands.
+# `items/heroic.yml` carries ONE flat percent for every heroic piece, not a per-slot ladder — the day such a
+# ladder lands this row must go, or the two channels double-count.
+bonuses:
+  - on: armor
+    trigger: DEFENSE
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 45 } }
+# Mastery pool (matrix/07; 2 drawn without replacement, 50 % each): Chain Lifesteal, Death Pact, Tombstone,
+# Permafrost — identical to Death Knight's, and that sharing is what leaves the Anti-M-Kit question open below.
+#
+# Interaction-layer rules the set decomposition does NOT own, recorded but not authored here:
+#  * piece identity is data (a per-set NBT tag in the jar -> engine PDC component); pieces refuse normal enchant
+#    books unless the book carries a matching Mastery Shard (§C.9: 100 % apply, one of each set per book).
+#    Armor Crystals CAN be applied to M-Kit gear that carries no blocked mastery enchant (§A.15).
+#  * Anti-M-Kit interplay is codex-UNRESOLVED and needs an owner ruling: the shared pool's enchants almost
+#    certainly tag as DEATH KNIGHT's, which would leave an Architect Anti-M-Kit Crystal inert against them. The
+#    port either tags the shared pool per-set (both crystals live) or replicates the likely-inert measured
+#    wiring. Nothing is authored either way — the crystals family owns the cancel.
+#  * heroic pieces negate an enemy's Infinite Luck at 12.5 % per piece — ledger D-10-1 (the jar counts them from
+#    the Infinite Luck holder's own armour, a self-negation; the port counts the attacker's). Only Ghost's legs
+#    can roll Infinite Luck, so this set meets the rule from the other side.
+#  * Death Knight and Architect pieces never combine into one set: matching is by set identity, not by the
+#    (identical) piece names.
+#  * outpost world gates (TRAINEE/VANILLA/HERO, §A.8) block set bonuses; off by default in the port — a server
+#    that wants them adds `disabled-worlds:` to the bonus above.
+# era: leather dye is era-safe on both lanes; the extra armour value needs defence mods on 1.8.9 (no armour
+# attribute); the nearly-maxed roll distribution is reproduced by the pack minter, not by item data.

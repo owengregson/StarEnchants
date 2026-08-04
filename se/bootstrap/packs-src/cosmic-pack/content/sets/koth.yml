@@ -1,0 +1,166 @@
+# Matrix: 10-armor-sets.md § KOTH
+# ── FAMILY FACTS (matrix 10 §A) ────────────────────────────────────────────────────────────────────────────
+# Completion is ALL-OR-NOTHING at 4/4 worn pieces (no 2/3-piece tiers; two plain sets can never both be
+# active), identity is engine PDC + WornState (the jar's lore forgery and 30 s stale cache are
+# infrastructure-class and not replicated), each set hook fires ONCE per hit (attacker pass, then victim
+# pass), and the family has NO cooldowns — every proc is an independent per-hit roll. The jar's composition
+# is multiplicative; this port folds every percent into the project-wide ADDITIVE damage fold (global ADR).
+# Outpost world gates (§A.8) are an interaction-layer rule, OFF BY DEFAULT here; the seam is `disabled-worlds`.
+# ── THIS SET ───────────────────────────────────────────────────────────────────────────────────────────────
+# The glass cannon: the highest PvE multiplier in the family, a solid PvP fold, no defensive component AT ALL
+# (measured), plus two quality-of-life grants. Its two weapons are minted by an external plugin in the jar —
+# only their identity tags are read — so the port defines them here.
+# INFINITE LUCK: no check on any hook (shared with Dragon Slayer — the only two damage sets without one).
+# HEROIC: the pieces are minted as Heroic RED LEATHER out of the box, with armour 3/8/6/3 (NOT halved, unlike
+# the M-Kit ability sets) and durability 810/1000/935/686. That feeds the non-M-Kit heroic reduction ladder
+# (chest 10 %, legs 8 %, boots/helm 4.5 %; full set 27 %) and the outpost-holder incoming amplification
+# drawback (external server system). None of that is authorable on a set def — the leather dye, the per-slot
+# armour values and the out-of-the-box heroic stamp are recorded in items/koth-<piece>.yml and in
+# deferred-content.md, NOT re-expressed as set bonuses (they belong to the heroic item layer, and a
+# DAMAGE_MOD here would double-count the day items/heroic.yml lands).
+# KOTH is excluded from Heroic Upgrade minting in the jar (a KOTH upgrade silently mints Ranger — measured
+# support-item rule, owned by the heroic/support batch).
+# CRYSTALS (crystals family owns these; recorded for the reader): DAMAGE_MOD(side=attack, amount=5) per
+# crystal-bearing piece against players and amount=12.5 per piece against non-players — four pieces reproduce
+# this set's own two multipliers exactly.
+# ── PHYSICAL LIKENESS ──────────────────────────────────────────────────────────────────────────────────────
+# `armor.lore` / `armor.enchants` are SHARED by all four pieces and `pieces:` carries material + name only,
+# so the per-piece facts are recorded here and in items/koth-<piece>.yml. No piece carries flavour lore.
+#   rosters — EVERY entry at MAX level, no random rolls anywhere on this set (measured), so the family's
+#   nearly-maxed formula does not apply here:
+#     helmet  Drunk, Deathbringer, Enlighted, Armored, Tank, Angelic, Implants
+#     chest   Blood Lust, Overload, Deathbringer, Enlighted, Armored, Angelic, Tank, Dodge
+#     legs    Clarity, Deathbringer, Enlighted, Armored, Tank, Angelic, Valor, Cactus — plus the set's ONE
+#             probability, 7.5 % Nature Wrath (max)
+#     boots   Deathbringer, Enlighted, Gears, Armored, Tank, Angelic, Rocket Escape
+#   (`Blood Lust` is a batch-01 stop and is not in this pack yet.)
+#   red-dyed leather, and per-slot armour / durability helm 3/810, chest 8/1000, legs 6/935, boots 3/686.
+display: "§f§l§k;§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k;§r"  # the `;`-bookended banner variant (the piece names use the `!` one — two banners exist, each reproduced where it appears)
+# description: not matrix-recorded (factual paraphrase)
+description: "§dThe spoils of the hill — enormous damage to anything that moves, a cleanse every second, no fall damage, and no protection at all."
+complete: 4
+announce: true
+# Equip message, 5 lines verbatim. The lore reads `PvE Damage` and the equip line `PvE damage` — both are
+# verbatim, the difference is the jar's. No removal line is recorded, so `remove-message` is left unset.
+equip-message: "§d§lKOTH SET BONUS\n§d§l * §d+20% PvP DMG\n§d§l * §d+50% PvE damage\n§d§l * §dAuto Bless\n§d§l * §dNo Fall Damage"
+armor:
+  # Protection V + Unbreaking III (shared with Dragon Slayer; every other set is Protection IV).
+  enchants:
+    PROTECTION: 5
+    UNBREAKING: 3
+  # The lore block verbatim, including its leading blank line and the missing full stop after "items".
+  # NOT AUTHORED, recorded here: the claim footer
+  #   (blank)
+  #   §b§l(!) §bClaimed by §d§l{player}§b on §d§n{date}
+  # (unclaimed reads `§b§l(!) §bClaimed on §d§n{date}`; date format `EEE MM/dd/yy`). Both tokens are fed by
+  # the external KOTH event system — the set-lore renderer binds neither, and a literal would print the brace
+  # text on every piece. Recorded in deferred-content.md rather than faked.
+  # The last two lines are the HEROIC APPENDED BLOCK's piece-independent tail. These pieces are minted heroic
+  # out of the box, so the matrix records the block on them exactly as it does on the M-Kit sets, and the four
+  # ability sets carry the same two lines on their own `armor.lore` for the same reason. The `§7+{armor} Armor
+  # Value` / `§7{durability} Durability` pair is per piece (3/8/6/3, 810/1000/935/686) and has no home here —
+  # it is recorded with the pieces in items/koth-<piece>.yml. `items/heroic.yml`'s `lore-line` cannot supply
+  # this either: it stamps on a successful UPGRADE, and KOTH is excluded from Heroic Upgrade minting.
+  lore:
+    - ""
+    - "§d§lKOTH SET BONUS"
+    - "§d§l* §d+20% PvP Damage"
+    - "§d§l* §d+50% PvE Damage"
+    - "§d§l* §dAuto Bless"
+    - "§d§l* §dNo Fall Damage"
+    - "§7(§7§oRequires all 4 koth items§7)"
+    - ""
+    - "§4This armor is stronger than diamond."
+  # Piece-name pattern `… §f§l§n{Piece}§r` with the `!`-bookended banner; `§k` magic text renders on both
+  # eras. Red-dyed leather is the recorded likeness — the dye has no knob on `pieces:` (material + name only),
+  # so the colour is recorded in the items/ files.
+  pieces:
+    helmet:     { material: LEATHER_HELMET,     name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nHelmet§r" }
+    chestplate: { material: LEATHER_CHESTPLATE, name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nChestplate§r" }
+    leggings:   { material: LEATHER_LEGGINGS,   name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nLeggings§r" }
+    boots:      { material: LEATHER_BOOTS,      name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nBoots§r" }
+# THE SWORD. Gold tools on both eras (`GOLDEN_SWORD` resolves to 1.8's `GOLD_SWORD` through the alias
+# resolver). The jar mints this weapon in an external plugin and reads only its identity tag, so the matrix
+# records NO display string and NO enchant loadout for it: the name below extends the recorded piece-name
+# pattern with `Sword` in the {Piece} slot (port-chosen, flagged), and the `enchants:` block is deliberately
+# absent rather than invented. Engine identity is the set-weapon PDC stamp, so it is not forgeable and it
+# survives a heroic reforge.
+# No `lore:` either: every OTHER set's weapon carries a recorded `<SET> WEAPON BONUS` block, and KOTH's has
+# none because the jar never built the item. Writing one would be authoring strings the codex does not hold,
+# so the weapon ships with the pattern-derived name and nothing else.
+weapon:
+  material: GOLDEN_SWORD
+  name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nSword§r"
+bonuses:
+  # 1. +20% outgoing vs players.
+  - on: armor
+    trigger: ATTACK
+    chance: 100
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 20 } }
+  # 2. +50% outgoing vs everything else — the highest PvE multiplier in the family.
+  - on: armor
+    trigger: ATTACK
+    chance: 100
+    condition: "%victim.type% != \"PLAYER\""
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 50 } }
+  # 3. No fall damage. Unconditional, no roll — as with the rest of this set's utility, the jar puts no world
+  # gate on it.
+  - on: armor
+    trigger: FALL
+    chance: 100
+    effects:
+      - { CANCEL: {} }
+  # 4. AUTO BLESS — one cleanse per second while the set is complete. The cleanse semantics are single-sourced
+  # from the Blessed axe enchant (matrix/04): exactly ONE harmful effect type per pass, whichever the server
+  # enumerates first, over what is effectively the jar's 9-type debuff list (BLINDNESS, CONFUSION, HARM,
+  # HUNGER, POISON, SLOW, SLOW_DIGGING, WEAKNESS, WITHER = the HARMFUL category), so no potion type is named
+  # and the row carries no era exposure.
+  # THREE recorded clauses are NOT authored here (deferred-content.md):
+  #   - the jar's 100 t initial delay: `repeat:` schedules its first fire one period out, so the first
+  #     cleanse lands at 20 t instead of 100 t;
+  #   - the rest of the shared bless routine (the `bleedstacks` counter reset + the 0.2 walk-speed restore)
+  #     which blessed.yml runs on ITS proc — matrix/10 decomposes this hook as the cleanse alone, and pinning
+  #     a walk speed every second would clobber every other speed effect on the wearer once a second;
+  #   - the `§e§l** BLESSED **` line, which matrix/04 records as throttled to one per 160 t FOR KOTH WEARERS
+  #     (cleanse unthrottled). That throttle is a set-membership condition with no fact on the surface, it is
+  #     already recorded on blessed.yml, and an untuned line here would print on the wearer's screen 3x per
+  #     minute forever.
+  - on: armor
+    trigger: REPEATING
+    repeat: 20
+    chance: 100
+    effects:
+      - { CURE: { category: "HARMFUL", count: 1, who: "@Self" } }
+  # 5. The sword rider: +7.5% more, PvP only, while the set is complete AND the KOTH sword is held. `on:
+  # weapon` IS the held-identity gate — `%actor.helditem%` is only ever a material name, so it could never
+  # express the jar's item tag.
+  - on: weapon
+    trigger: ATTACK
+    chance: 100
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 7.5 } }
+  # 6. NOT AUTHORED — the KOTH AXE rider (deferred-content.md). Held with the set complete, it strips armour
+  # on a player hit: the jar rolls 50 % per slot for -2 or -3 durability (50/50), expected 5/hit, which
+  # decomposes as `[chance 50] DURABILITY(target=armor, mode=damage, amount=2)` plus `[chance 25]
+  # DURABILITY(target=armor, mode=damage, amount=1)` on `%victim.type% == "PLAYER"`. Every effect it needs
+  # exists; what does not is a SECOND set weapon — `weapon:` is one member per set def, and the axe's
+  # identity is a distinct item. The one alternative on the surface, gating on `%actor.helditem%
+  # matchesregex ".*_AXE$"`, would hand the strip to ANY axe a KOTH wearer picks up (a Yeti Maul included),
+  # which is a play change, not a translation. Closes with a multi-weapon set surface.
+# era: `§k` magic text renders on both eras and LeatherArmorMeta dye is era-safe; the gold weapons are
+# `GOLD_SWORD` / `GOLD_AXE` on 1.8 and `GOLDEN_*` on modern (the resolver takes either spelling, so the
+# modern one is authored per pack convention); the extra armour value beyond the leather base needs the
+# engine's heroic defence mods on 1.8.9, which has no `generic.armor` attribute.
+# Interaction-layer rules the set decomposition does NOT own, recorded but not authored here:
+#  * NO Infinite Luck check on any hook (shared with Dragon Slayer).
+#  * the Armor Crystal route above, owned by the crystals family (content/crystals/koth.yml).
+#  * the heroic per-piece reduction (27 % full set) and the outpost-holder incoming amplification — the
+#    heroic/support layers own both; heroic pieces also negate an enemy's Infinite Luck at 12.5 % per piece
+#    (ledger D-10-1: the jar counts them off the Infinite Luck holder's own armour, the port off the
+#    attacker's).
+#  * KOTH is excluded from Heroic Upgrade minting (a KOTH upgrade silently mints Ranger — support-item rule).
+#  * outpost world gates block set bonuses; off by default in the port.

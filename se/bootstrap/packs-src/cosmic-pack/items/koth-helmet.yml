@@ -1,0 +1,41 @@
+# Matrix: 10-armor-sets.md § KOTH — the HELMET likeness.
+# WHY THIS FILE EXISTS: a set def shares `armor.lore` / `armor.enchants` across all four pieces and its
+# `pieces:` members carry material + name only, so the per-piece roster, the leather dye, the out-of-the-box
+# heroic stamp and the per-slot armour/durability values have nowhere to live on content/sets/koth.yml.
+# Recorded here until a set-piece surface exists (deferred-content.md); ItemsLoader does not yet claim
+# `type: set-piece`.
+# IDENTITY: engine PDC set stamp (the jar matched plain-set pieces by forgeable lore — infrastructure-class).
+type: set-piece
+set: sets/koth
+slot: helmet
+material: LEATHER_HELMET
+name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nHelmet§r"
+# No flavour lore on any KOTH piece — the shared bonus block (on the set def) is the whole lore, plus the
+# heroic block below. `§k` magic text renders on both eras; LeatherArmorMeta dye is era-safe.
+color: "red"   # red-dyed leather (no hex recorded in the matrix); `pieces:` has no colour knob
+enchants:
+  PROTECTION: 5
+  UNBREAKING: 3
+# MINTED HEROIC OUT OF THE BOX, non-M-Kit tier: armour value 3 (NOT halved) and 810 durability, which feed
+# the 4.5 % per-piece heroic reduction (full set 27 %) and the outpost-holder incoming amplification
+# (external system). The engine's heroic layer carries ONE flat percent for every heroic piece, not a
+# per-slot ladder, and beyond the leather base an extra armour value needs the engine's defence mods on
+# 1.8.9 (no `generic.armor` attribute pre-1.9). Recorded, not authored — see deferred-content.md.
+armor-value: 3
+durability: 810
+heroic: true
+heroic-lore:
+  - ""
+  - "§7+3 Armor Value"
+  - "§7810 Durability"
+  - "§4This armor is stronger than diamond."
+# THE MINT: every roster entry at MAX level, NO random rolls anywhere on this set (measured) — so no
+# nearly-maxed formula applies here, unlike the rest of the family.
+roster:
+  - "Drunk (max)"
+  - "Deathbringer (max)"
+  - "Enlighted (max)"
+  - "Armored (max)"
+  - "Tank (max)"
+  - "Angelic (max)"
+  - "Implants (max)"

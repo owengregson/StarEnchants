@@ -1,0 +1,85 @@
+# Matrix: 10-armor-sets.md § Phantom — plain diamond set; melee-only offence, no defensive half.
+# Family (§A): completion is all-or-nothing at 4/4 (no 2/3-piece tiers), identity is engine PDC + WornState
+# (the jar's forgeable lore matching and its 30 s stale-cache window are infrastructure-class bugs, not ported),
+# and there are NO cooldowns anywhere — every proc below is an independent per-hit roll.
+display: "§c§lPhantom"
+# description: not matrix-recorded (factual paraphrase)
+description: "§cThe regalia of the Phantom — every melee strike lands for a quarter more, and the Scythe adds its own cut."
+complete: 4
+announce: true
+# Equip line verbatim (`sets.message-uppercase: false` in this pack keeps it exact). No remove line is
+# matrix-recorded, so none is authored.
+equip-message: "§c§lPHANTOM SET BONUS: §c+25% DMG"
+armor:
+  # Matrix: every piece is diamond, Durability III + Protection IV.
+  enchants:
+    UNBREAKING: 3
+    PROTECTION: 4
+  # The shared bonus block, verbatim. Two matrix-recorded physical facts have NO authoring surface today —
+  # a set carries ONE armor.lore for all four pieces and a piece takes only material + name (SetDefReader
+  # MEMBER_KEYS) — so they are recorded here instead of lost:
+  #   per-piece flavour:
+  #     helmet     "§cThe fabled hood of the Phantom."
+  #     chestplate "§cThe legendary shroud of the Phantom."
+  #     leggings   "§cThe demonic robe of the Phantom."
+  #     boots      "§cThe silent sandals of the Phantom."
+  #   per-piece custom-enchant rosters, each rolled nearly-maxed as min(M, max(1,M-2)+rand(3)) over M:
+  #     hood    Deathbringer, Drunk, Enlighted, Implants, Tank, Armored, Angelic
+  #     shroud  Overload, Blood Lust, Enlighted, Armored, Tank, Dodge, Angelic
+  #     robeset Deathbringer, Clarity, Enlighted, Obsidianshield, Tank, Armored, Angelic, Cactus
+  #     sandals Gears, Enlighted, Deathbringer, Rocket Escape, Springs, Armored, Tank
+  lore:
+    - "§c§lPHANTOM SET BONUS"
+    - "§cDeal +25% damage to all enemies."
+    - "§7(§oRequires all 4 phantom items.§7)"
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "§c§lPhantom Hood" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "§c§lPhantom Shroud" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "§c§lPhantom Robeset" }
+    boots:      { material: DIAMOND_BOOTS,      name: "§c§lPhantom Sandals" }
+weapon:
+  enchants:
+    SHARPNESS: 5
+    UNBREAKING: 3
+  material: DIAMOND_SWORD
+  name: "§c§lPhantom Scythe"
+  lore:
+    - "§7An eerie blade designed to"
+    - "§7cut through the enemies."
+    - ""
+    - "§c§lPHANTOM WEAPON BONUS"
+    - "§cDeal +10% damage to all enemies."
+    - "§7(§7§oRequires all 4 phantom items.§7)"
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the Scythe held (main hand),
+# gated by PDC identity — so the bonus survives a Heroic Sword reforge exactly as the jar's item tag did.
+bonuses:
+  # The set strips the WEARER's own Resistance on both sides before any damage maths, so the multiplier lands
+  # on an unblunted hit. Unconditional in the jar — it fires even inside a world-blocked region, ahead of every
+  # gate (measured quirk; the outpost world gates themselves are interaction-layer and off by default here).
+  - on: armor
+    trigger: DEFENSE
+    chance: 100
+    effects:
+      - { REMOVE_POTION: { effect: DAMAGE_RESISTANCE, who: "@Self" } }
+  # ATTACK is melee only — the jar never routes projectiles to this set, and BOW is a separate trigger here.
+  - on: armor
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { REMOVE_POTION: { effect: DAMAGE_RESISTANCE, who: "@Self" } }
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 25 } }
+  # Held-weapon rider. Set ×1.25 and Scythe ×1.1 compose multiplicatively in the jar (×1.375 measured); the
+  # engine folds them additively to ×1.35 per the project-wide damage model (global ADR, not a per-item deviation).
+  - on: weapon
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 10 } }
+# era: none beyond the family norms — diamond armour and a diamond-sword scythe are native to both eras, and
+# the set carries no sound or particle.
+# Interaction-layer rules the set decomposition does NOT own, recorded but not authored here:
+#  * victim Infinite Luck >= 3 suppresses the outgoing bonus (the highest threshold of any set).
+#  * Armor Crystal route (§A.7/§C.1): DAMAGE_MOD(side=attack, amount=5) per crystal-bearing non-set piece,
+#    n = 1..4 → ×1.05..×1.20; no defensive half. Owned by the crystals family.
+#  * outpost world gates (TRAINEE/VANILLA/HERO) block the ATTACK side only; off by default in the port.
+#  * victim heroic reduction and the external faction upgrade stack multiplicatively in the jar.

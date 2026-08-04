@@ -1,0 +1,40 @@
+# Matrix: 10-armor-sets.md § Dragon Slayer (crystal route, family preamble §A.7/§C.1)
+# The one crystal in the family whose advertised numbers all match measured behaviour at one piece: -5%
+# incoming and +3% PvP outgoing per crystal-bearing piece, plus a 10% cancel of an incoming Silence or Ice
+# Aspect proc. The set's own full-set negation flags and this crystal's roll are independent mechanisms in
+# the jar and both can be live at once (measured) — nothing here suppresses the set half.
+display: "Dragon Slayer"
+# description: not matrix-recorded (factual paraphrase; percents and colour from the set's `§e` bonus block)
+description:
+  - "§e§lDRAGON SLAYER CRYSTAL BONUS"
+  - "§e* +3% PvP Damage"
+  - "§e* -5% Incoming Damage"
+  - "§e* 10% Silence and Ice Aspect Negation"
+  - "§e* Dragon Slayer Crystal is stackable"
+tier: legendary  # (port-chosen) see phantom.yml
+applies-to: [ARMOR]
+stackable: true
+# The cancel is defender-keyed: SUPPRESS_INCOMING, not SUPPRESS. A defensive SUPPRESS is keyed on the
+# activator and can only be armed from a DEFENSE pass that runs AFTER the attack pass, so it always leaks
+# the opening proc — the exact hit this exists to stop. The window is held open by a REPEATING re-arm
+# (PASSIVE is a start/stop lifecycle, fired once at equip, so a window armed there would expire mid-wear);
+# `repeat: 20` under `duration: 60` bounds the residual cancel after the crystal comes off at 3 s.
+# The block lines are the matrix's verbatim crystal strings, sent to the protected wearer at the block.
+# NOT expressible: per-piece scaling of the 10% (four pieces should read 40%). A suppression window is keyed
+# per (holder, scope, key), so a second crystal re-arms the same window rather than compounding it, and no
+# fact counts crystal-bearing pieces — recorded in deferred-content.md. The damage halves scale exactly.
+abilities:
+  - trigger: DEFENSE
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 5 } }
+  - condition: "%victim.type% == \"PLAYER\""
+    trigger: ATTACK
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 3 } }
+  - trigger: REPEATING
+    repeat: 20
+    effects:
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/silence", chance: 10, duration: 60, who: "@Self",
+                               consumed-message-actor: "§e§l* DRAGON SLAYER CRYSTAL [§7Silence blocked§e§l] *" } }
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/ice-aspect", chance: 10, duration: 60, who: "@Self",
+                               consumed-message-actor: "§e§l* DRAGON SLAYER CRYSTAL [§7Ice Aspect blocked§e§l] *" } }

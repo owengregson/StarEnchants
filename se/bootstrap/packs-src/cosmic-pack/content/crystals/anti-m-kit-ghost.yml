@@ -1,0 +1,35 @@
+# Matrix: 10-armor-sets.md § Ghost (Anti-M-Kit Crystal; the codex numbers this §C.6 in prose under a `### C.2`
+# heading — source-side numbering drift, recorded by the matrix, not resolved here)
+# The counter-crystal to an ability set: on ANY ONE worn piece of the wearer it cancels that set's four
+# mastery-pool procs aimed at them OUTRIGHT — 100%, no roll. The percent a player sees on this crystal is its
+# APPLY chance (the family-wide 20% gamble on the likeness, items/crystal.yml), never a proc chance.
+display: "Anti-M-Kit (Ghost)"
+# description: not matrix-recorded (factual paraphrase; `§3` is the Ghost set's own colour)
+description:
+  - "§3§lANTI-M-KIT CRYSTAL BONUS"
+  - "§3* Negates all Ghost M-Kit abilities used against you"
+  - "§3* Anti-M-Kit Crystal is not stackable"
+tier: mastery  # (port-chosen) the matrix records no crystal rarity; the rung it answers is the mastery tier
+applies-to: [ARMOR]
+# One worn copy is the whole effect (100%, no roll), so a second adds nothing and says so: a non-stackable
+# crystal contributes once per wearer and cannot merge with another of its own kind (ADR-0035).
+stackable: false
+# Defender-keyed by construction: SUPPRESS_INCOMING blocks an ability whose ENCHANT matches the key whenever
+# it lands on the holder — including the opening proc of an engagement, which a defensive SUPPRESS (keyed on
+# the activator, armed only after the attack pass) can never reach. `chance` defaults to 100, which
+# short-circuits the draw: the matrix's "outright, no roll".
+# Maintained-while-worn is a REPEATING re-arm rather than PASSIVE — PASSIVE is a start/stop lifecycle fired
+# once at equip, so a window armed there would expire mid-wear. `repeat: 20` under a `duration: 60` window
+# holds it open continuously and bounds the residual immunity after the crystal comes off at 3 s.
+# POOL (matrix § Ghost): Horrify, Feign Death, Poltergeist, Mark of the Beast. Three of the four are still
+# deferred (deferred-content.md, batch 07) — their keys are authored now and are inert strings until those
+# files land, at which point this crystal is complete without being touched. The key is the enchant's file
+# STEM under `enchants/`, the same spelling every SUPPRESS in this pack uses.
+abilities:
+  - trigger: REPEATING
+    repeat: 20
+    effects:
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/horrify", duration: 60, who: "@Self" } }
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/feign-death", duration: 60, who: "@Self" } }
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/poltergeist", duration: 60, who: "@Self" } }
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/mark-of-the-beast", duration: 60, who: "@Self" } }

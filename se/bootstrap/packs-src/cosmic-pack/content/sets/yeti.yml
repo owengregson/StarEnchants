@@ -1,0 +1,107 @@
+# Matrix: 10-armor-sets.md § Yeti — plain diamond set; a symmetric ±10 % fold plus an armour-shredding Maul.
+# Family (§A): 4/4 completion, PDC identity, no cooldowns — every proc is an independent per-hit roll.
+display: "§b§lYeti"
+# description: not matrix-recorded (factual paraphrase)
+description: "§bThe pelt of the Yeti — you hit a tenth harder, take a tenth less, and the Maul shreds what armour is left."
+complete: 4
+announce: true
+# Equip line verbatim, WHITE (§f) rather than the set's aqua — a measured jar quirk, reproduced. No remove
+# line is matrix-recorded, so none is authored.
+equip-message: "§f§lYETI SET BONUS: §f+10% ATK / -10% DMG"
+armor:
+  # Family norm: diamond pieces, Durability III + Protection IV.
+  enchants:
+    UNBREAKING: 3
+    PROTECTION: 4
+  # Shared bonus block, verbatim. Per-piece flavour is matrix-recorded but unauthorable (one armor.lore for
+  # all four pieces; a piece takes only material + name), so it is recorded here:
+  #   helmet     "§bThe savage mask of the Yeti."
+  #   chestplate "§bThe impermeable chestplate of the Yeti."
+  #   leggings   "§bThe cozy yet monstrous legs of the Yeti."
+  #   boots      "§bBigfoot has nothing on these boots."
+  # Per-piece custom-enchant rosters are likewise unauthorable; the codex quirk worth carrying is that the
+  # HELMET roster lists `Armored` twice and the second roll wins. Purely cosmetic quirks are not replicated:
+  # the jar double-transmogs chest/legs/boots against the helmet's single, but the engine renders lore from
+  # state, so there is nothing to double.
+  lore:
+    - "§b§lYETI SET BONUS"
+    - "§b§l* §bDeal +10% damage to all enemies."
+    - "§b§l* §bEnemies deal 10% less damage to you."
+    - "§7(§oRequires all 4 yeti items.§7)"
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "§b§lYeti Facemask" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "§b§lBloody Yeti Torso" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "§b§lFuzzy Yeti Leggings" }
+    boots:      { material: DIAMOND_BOOTS,      name: "§b§lBig-Yeti Boots" }
+weapon:
+  # Silence and Lifesteal are minted at their pack maxima (4 and 5). Both declare `applies-to: [SWORD…]` while
+  # the Maul is an axe — applies-to gates the APPLY path only, so a minted copy still fires. The 25 % chance of
+  # a Demonic Lifesteal roll (uniform 1..max) is dropped rather than minted at the top of its band the way
+  # Ranger's bow rosters are: demonic-lifesteal `requires` Lifesteal and `removes-required` strips it on apply,
+  # so the pair can never sit on one item — and a presence gamble has no mint surface either way.
+  enchants:
+    SHARPNESS: 5
+    UNBREAKING: 3
+    enchants/silence: 4
+    enchants/lifesteal: 5
+  material: DIAMOND_AXE
+  name: "§b§lYeti Maul"
+  lore:
+    - "§7A penetrating axe used by a Yeti."
+    - ""
+    - "§b§lYETI WEAPON BONUS"
+    - "§bDeal +75% Durability Damage."
+    - "§bDeal +7.5% DMG to enemies"
+    - "§bBypass 50% of Heroic Armor"
+    - "§7(§7§oRequires all 4 yeti items.§7)"
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the Maul held (main hand).
+# The jar accepted the Maul's diamond-axe form ONLY, so a Heroic Axe reforge silently voided every branch
+# below; the port gates on PDC identity, so the branches survive the reforge (as intended, with the reforge family).
+bonuses:
+  # −10 % incoming, all sources (the jar routes everything through entity-attack). The wearer's own Resistance
+  # is stripped first so the fold lands on an unblunted hit.
+  - on: armor
+    trigger: DEFENSE
+    chance: 100
+    effects:
+      - { REMOVE_POTION: { effect: DAMAGE_RESISTANCE, who: "@Self" } }
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 10 } }
+  - on: armor
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { REMOVE_POTION: { effect: DAMAGE_RESISTANCE, who: "@Self" } }
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 10 } }
+  # Armour strip, players only. The jar rolls 75 % per armour SLOT independently (expected 3 pieces a hit);
+  # one whole-set roll at the same 75 % carries the same expected value, differing only in distribution
+  # (all four or none, instead of a per-slot mix).
+  - on: weapon
+    trigger: ATTACK
+    chance: 75
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { DURABILITY: { target: armor, mode: damage, amount: 1, select: whole-set, who: "@Victim" } }
+  # D-10-2 (as-intended): the lore's +7.5 % DMG. The measured jar multiplier is ×(2.075 + 0.03 × victimHeroicPieces)
+  # — i=0..4 → ×2.075/×2.105/×2.135/×2.165/×2.195 — a codex-flagged stray `+1.0` term that more than doubles damage.
+  - on: weapon
+    trigger: ATTACK
+    chance: 100
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 7.5 } }
+  # D-10-2 (as-intended): "Bypass 50% of Heroic Armor" decomposed as a 50 % roll to ignore the victim's heroic
+  # reduction outright, the only expression the engine has for a half-bypass.
+  - on: weapon
+    trigger: ATTACK
+    chance: 50
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { IGNORE_HEROIC: {} }
+# era: the armour strip must route through the item-damage layer on both eras; fake players on the 1.8
+# harness need a synthetic PlayerItemDamageEvent (tester facts). Nothing else here is era-sensitive.
+# Interaction-layer rules the set decomposition does NOT own, recorded but not authored here:
+#  * victim Infinite Luck >= 1 suppresses the outgoing bonus (the lowest threshold, shared with Ranger).
+#  * Armor Crystal route (§A.7): DAMAGE_MOD(side=attack, amount=2.5) AND DAMAGE_MOD(side=defense, amount=2.5)
+#    per crystal-bearing non-set piece (4 → ×1.10 out / ×0.90 in). Owned by the crystals family.
+#  * the armour strip feeds the durability system — Repair Guard / Hardened interplay per the enchant docs.
+#  * outpost world gates block BOTH hooks; off by default in the port.
