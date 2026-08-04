@@ -1,0 +1,159 @@
+# Matrix: 05-enchants-bows.md § Eagle Eye
+display: "Eagle Eye"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eArrows chew through a player's armor,"
+  - "&eand the longer the shot the deeper the bite."
+trigger: [BOW, ATTACK]
+applies-to: [BOW]
+group: "epic"
+tier: epic
+# ACQUISITION IS NOT MATRIX-RECORDED for doc 05 (no `max/base/interval/weight/tier` line on any entry here).
+# Tier 4 (epic) and max 5 come from the codex's own registration appendix (`enchantments/bow`, tier 4, max 5,
+# base 15.0, interval 5.0); the five-rung chance ladder corroborates the max. Ledgered under the matrix
+# maintenance queue: doc 05 owes the backfill.
+# Melee mirror (corpus note): the jar's impact hook has no cause gate, so a bow swung as a club chips armour
+# too. Both damage triggers ride ONE ability set here (the inherited `trigger:` list): the payload is four
+# MUTUALLY EXCLUSIVE distance branches, and splitting each per trigger would double eight blocks a level for
+# no behavioural difference — an activation walks exactly one trigger and rolls the branch it matches once.
+# Players only, per the recorded condition.
+# D-05-2 (as-intended): the jar COMPUTED the distance curve (+1 at each of distance^2 >= 100/400/1024, cap 4)
+# and then never read it — measured behaviour is a flat 1 point per piece at every distance and level. Shipped
+# is the curve, which is what the config text promises ("deal 1-4 durability damage… the further away, the
+# more"). `%distance%` is the actor<->victim distance in BLOCKS, so the jar's squared thresholds become the
+# 10 / 20 / 32 block bands below.
+# `select` is left at its `whole-set` default: the damage lands on every worn piece, matching the jar's four
+# per-piece calls. A piece driven past max durability breaks on the engine's own break semantics (the jar
+# deleted it and played ITEM_BREAK 3.0/0.8 — the cue is engine-owned, not authored here).
+# Cooldown: NONE, which is the measured default. The jar's `level*200` ms victim-keyed window reads the
+# victim's `lastArrowDamageEvent` stamp, and the only writer anywhere in the corpus is the armour enchant
+# Arrow Deflect — no Arrow Deflect on the victim, no cooldown at all. That cross-enchant window is an
+# interaction-layer rule shared with Piercing (same read) and Arrow Deflect (the writer); nothing on this side.
+# No ally/PvP filter beyond the engine's global gates, matching the jar.
+# strings: none.
+# era: `CRIT_MAGIC` maps to 1.8's `magicCrit` through `Aliases.PARTICLE` (already carried).
+# `BLOCK_ANVIL_DESTROY` is the modern spelling of 1.8's `ANVIL_BREAK` and is NOT in `Aliases.SOUND` — a
+# legacy-sweep alias row. Note the batch-03 row for disarmor/disintegrate spells the same 1.8 constant's
+# modern half `BLOCK_ANVIL_BREAK`; the two disagree and the sweep has to settle which constant the modern
+# range actually exposes (the matrix records DESTROY here).
+levels:
+  # Chance 25/30/35/40/45 % (`0.05*level + 0.2`; L2/L3 measure 30.000000000000004 / 35.000000000000003) —
+  # level-scoped, so all four distance branches share the single roll the jar made before branching.
+  # Durability damage per worn piece: 1 under 10 blocks, 2 to 20, 3 to 32, 4 beyond — level-independent.
+  1:
+    chance: 25
+    abilities:
+      - condition: "%victim.type% == \"PLAYER\" && %distance% < 10"
+        effects:
+          - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }
+          - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
+          # The jar played this to the ATTACKER at the victim's location; SOUND has no `who`, so it plays at
+          # the activation location for everyone in earshot (delivery delta, recorded).
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
+      - condition: "%victim.type% == \"PLAYER\" && %distance% >= 10 && %distance% < 20"
+        effects:
+          - { DURABILITY: { amount: 2, target: "armor", mode: "damage", who: "@Victim" } }
+          - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
+      - condition: "%victim.type% == \"PLAYER\" && %distance% >= 20 && %distance% < 32"
+        effects:
+          - { DURABILITY: { amount: 3, target: "armor", mode: "damage", who: "@Victim" } }
+          - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
+      - condition: "%victim.type% == \"PLAYER\" && %distance% >= 32"
+        effects:
+          - { DURABILITY: { amount: 4, target: "armor", mode: "damage", who: "@Victim" } }
+          - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
+  2:
+    chance: 30
+    abilities:
+      - condition: "%victim.type% == \"PLAYER\" && %distance% < 10"
+        effects:
+          - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }
+          - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
+      - condition: "%victim.type% == \"PLAYER\" && %distance% >= 10 && %distance% < 20"
+        effects:
+          - { DURABILITY: { amount: 2, target: "armor", mode: "damage", who: "@Victim" } }
+          - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
+      - condition: "%victim.type% == \"PLAYER\" && %distance% >= 20 && %distance% < 32"
+        effects:
+          - { DURABILITY: { amount: 3, target: "armor", mode: "damage", who: "@Victim" } }
+          - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
+      - condition: "%victim.type% == \"PLAYER\" && %distance% >= 32"
+        effects:
+          - { DURABILITY: { amount: 4, target: "armor", mode: "damage", who: "@Victim" } }
+          - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
+  3:
+    chance: 35
+    abilities:
+      - condition: "%victim.type% == \"PLAYER\" && %distance% < 10"
+        effects:
+          - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }
+          - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
+      - condition: "%victim.type% == \"PLAYER\" && %distance% >= 10 && %distance% < 20"
+        effects:
+          - { DURABILITY: { amount: 2, target: "armor", mode: "damage", who: "@Victim" } }
+          - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
+      - condition: "%victim.type% == \"PLAYER\" && %distance% >= 20 && %distance% < 32"
+        effects:
+          - { DURABILITY: { amount: 3, target: "armor", mode: "damage", who: "@Victim" } }
+          - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
+      - condition: "%victim.type% == \"PLAYER\" && %distance% >= 32"
+        effects:
+          - { DURABILITY: { amount: 4, target: "armor", mode: "damage", who: "@Victim" } }
+          - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
+  4:
+    chance: 40
+    abilities:
+      - condition: "%victim.type% == \"PLAYER\" && %distance% < 10"
+        effects:
+          - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }
+          - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
+      - condition: "%victim.type% == \"PLAYER\" && %distance% >= 10 && %distance% < 20"
+        effects:
+          - { DURABILITY: { amount: 2, target: "armor", mode: "damage", who: "@Victim" } }
+          - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
+      - condition: "%victim.type% == \"PLAYER\" && %distance% >= 20 && %distance% < 32"
+        effects:
+          - { DURABILITY: { amount: 3, target: "armor", mode: "damage", who: "@Victim" } }
+          - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
+      - condition: "%victim.type% == \"PLAYER\" && %distance% >= 32"
+        effects:
+          - { DURABILITY: { amount: 4, target: "armor", mode: "damage", who: "@Victim" } }
+          - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
+  5:
+    chance: 45
+    abilities:
+      - condition: "%victim.type% == \"PLAYER\" && %distance% < 10"
+        effects:
+          - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }
+          - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
+      - condition: "%victim.type% == \"PLAYER\" && %distance% >= 10 && %distance% < 20"
+        effects:
+          - { DURABILITY: { amount: 2, target: "armor", mode: "damage", who: "@Victim" } }
+          - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
+      - condition: "%victim.type% == \"PLAYER\" && %distance% >= 20 && %distance% < 32"
+        effects:
+          - { DURABILITY: { amount: 3, target: "armor", mode: "damage", who: "@Victim" } }
+          - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
+      - condition: "%victim.type% == \"PLAYER\" && %distance% >= 32"
+        effects:
+          - { DURABILITY: { amount: 4, target: "armor", mode: "damage", who: "@Victim" } }
+          - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }

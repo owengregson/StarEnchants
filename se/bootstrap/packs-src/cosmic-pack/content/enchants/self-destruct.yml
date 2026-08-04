@@ -1,0 +1,92 @@
+# Matrix: 02-enchants-armor-m-z.md § Self Destruct
+display: "Self Destruct"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA killing blow will not save you — it scatters"
+  - "&eprimed TNT and takes them with you."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "uncommon"
+tier: uncommon
+# The wearer is neither healed nor saved: the incoming damage stands (measured — contrast Plague Carrier's
+# deliberate finish and Smoke Bomb's cancel).
+# The recorded 200 t re-arm rides a SET_VAR marker rather than `cooldown:`, because every ability of one
+# enchant shares ONE cooldown bucket (EnchantDefReader: "one cooldown scope") and a zero-cooldown block still
+# RESPECTS a bucket its sibling armed. A 200 t cooldown on the proc would therefore swallow the TNT payload
+# outright — the fuse is 4 s — and, since a detonate phase has already cancelled the vanilla blast, the
+# charges would land as duds. The marker gates the same 10 s without touching that bucket. It is reachable:
+# a save on the same set (Phoenix, Smoke Bomb) can leave the wearer alive past a hit this gate called lethal.
+# STOP, recorded in deferred-content.md: the per-level FUSE ladder (100/80/60 t) is not authorable. The
+# summon surface has no fuse param, and `ttl` is a DESPAWN — any ttl at or under vanilla's 80 t fuse removes
+# the TNT before it can explode, so an authored 60 t would make L3 inert. All three levels ship on the
+# vanilla 4 s fuse (ttl omitted = never force-removed; a primed TNT always leaves by exploding).
+# ENGINE SEAM (reported, not authorable around): a summon payload runs the OWNER's abilities out of their
+# LIVE WornState, and this wearer is usually dead before the 4 s fuse burns out. Death drops the armour, the
+# armour-change feeder (modern) / gear poll (1.8) refreshes off that drop and respawn refreshes again — so
+# the charge most likely goes off for an owner who no longer carries Self Destruct, the payload resolves
+# nothing, and the cancelled vanilla explosion leaves a dud. Same seam as plague-carrier.yml; the fix is
+# engine-side (pin the payload's abilities to the SPAWNING activation).
+# Interactions carried by the OTHER side, nothing authored here: PvP-region and per-victim relation checks
+# (truce+ skipped) are the relation layer, spectators are already skipped by the payload's own target scan,
+# and the TNT is tagged no-loot by the engine summon rule. The jar resolved its owner BY NAME, so a logged-off
+# owner dropped the ally filter entirely; engine ownership is identity-based and that bug is not replicated.
+# Ledger D-02-8 (as-intended): victims are pushed at 1.7 away from the blast. The jar inverted the push
+# arguments and shoved the TNT instead (bytecode-confirmed), so its victims took none.
+# era: PRIMED_TNT and TNT both resolve on every version through the one alias row; EXPLODE is the 1.8 sound
+# id, authored as ENTITY_GENERIC_EXPLODE, and LARGE_EXPLODE as EXPLOSION_LARGE — both already aliased.
+levels:
+  # TNT count int(2.5 x level) = 2/5/7, and the warning radius is that same int(2.5 x level).
+  # The payload is flat at every level: 16.0 damage, 40 t of fire, a 1.7 push, no terrain damage.
+  1:
+    abilities:
+      - condition: "%damage% >= %actor.health% && %selfdestruct.armed% != 1"
+        effects:
+          - { SET_VAR: { name: "selfdestruct.armed", value: "1", ttl: 200, who: "@Self" } }
+          # MESSAGE only ever reaches players, so the recorded non-ally warning needs no PLAYERS conjunction.
+          - { MESSAGE: { text: "§c§l(!) §c{ATTACKER}'s Self-Destruct was activated, RUN!", who: "@Aoe{r=2, filter=ENEMIES}" } }
+          # owner: activator is what makes the payload runnable at all — the owner is who runs it. scatter
+          # spreads each charge over a random ±3 XZ offset with an air scan, so none materialises inside
+          # terrain (the jar drew 1..3 per axis; the engine's draw includes 0).
+          - { SPAWN_ENTITY: { type: "PRIMED_TNT", count: 2, scatter: 3, owner: "activator", payload-phase: "detonate", payload-radius: 2, payload-height: 2, payload-filter: "ENEMIES", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 2.0, pitch: 0.75 } }
+      - trigger: SUMMON_PAYLOAD
+        # One activation per entity in the box, actor = the wearer, victim = that entity, anchored at the
+        # charge — so the push measures from the blast (anchor: activator IS the activation origin here) and
+        # the cues sit on it. The phase replaces the vanilla explosion outright: no terrain damage, and every
+        # bit of the blast's bite is authored below.
+        effects:
+          - { DAMAGE: { amount: 16.0, who: "@Victim" } }
+          - { IGNITE: { duration: 40, who: "@Victim" } }
+          - { VELOCITY: { mode: "away", strength: 1.7, anchor: "activator", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 1.0, pitch: 1.0 } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3 } }
+  2:
+    abilities:
+      - condition: "%damage% >= %actor.health% && %selfdestruct.armed% != 1"
+        effects:
+          - { SET_VAR: { name: "selfdestruct.armed", value: "1", ttl: 200, who: "@Self" } }
+          - { MESSAGE: { text: "§c§l(!) §c{ATTACKER}'s Self-Destruct was activated, RUN!", who: "@Aoe{r=5, filter=ENEMIES}" } }
+          - { SPAWN_ENTITY: { type: "PRIMED_TNT", count: 5, scatter: 3, owner: "activator", payload-phase: "detonate", payload-radius: 2, payload-height: 2, payload-filter: "ENEMIES", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 2.0, pitch: 0.75 } }
+      - trigger: SUMMON_PAYLOAD
+        effects:
+          - { DAMAGE: { amount: 16.0, who: "@Victim" } }
+          - { IGNITE: { duration: 40, who: "@Victim" } }
+          - { VELOCITY: { mode: "away", strength: 1.7, anchor: "activator", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 1.0, pitch: 1.0 } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3 } }
+  3:
+    abilities:
+      - condition: "%damage% >= %actor.health% && %selfdestruct.armed% != 1"
+        effects:
+          - { SET_VAR: { name: "selfdestruct.armed", value: "1", ttl: 200, who: "@Self" } }
+          - { MESSAGE: { text: "§c§l(!) §c{ATTACKER}'s Self-Destruct was activated, RUN!", who: "@Aoe{r=7, filter=ENEMIES}" } }
+          - { SPAWN_ENTITY: { type: "PRIMED_TNT", count: 7, scatter: 3, owner: "activator", payload-phase: "detonate", payload-radius: 2, payload-height: 2, payload-filter: "ENEMIES", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 2.0, pitch: 0.75 } }
+      - trigger: SUMMON_PAYLOAD
+        effects:
+          - { DAMAGE: { amount: 16.0, who: "@Victim" } }
+          - { IGNITE: { duration: 40, who: "@Victim" } }
+          - { VELOCITY: { mode: "away", strength: 1.7, anchor: "activator", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 1.0, pitch: 1.0 } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3 } }

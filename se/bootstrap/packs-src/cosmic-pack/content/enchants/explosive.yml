@@ -1,0 +1,115 @@
+# Matrix: 05-enchants-bows.md § Explosive
+display: "Explosive"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eArrows carry a wither skull and rot whoever they find —"
+  - "&ethe one they hit, and everyone around where they land."
+trigger: [BOW, ATTACK, BOW_FIRE, PROJECTILE_LAND]
+applies-to: [BOW]
+group: "uncommon"
+tier: uncommon
+# ACQUISITION IS NOT MATRIX-RECORDED for doc 05 (no `max/base/interval/weight/tier` line on any entry here).
+# Tier 2 (uncommon) and max 5 come from the codex's own registration appendix (`enchantments/bow`, tier 2,
+# max 5, base 15.0, interval 5.0); the five Wither durations and five AoE radii corroborate the max. A cheap
+# rung for a 100 % Wither II splash — the jar's own placement, kept. Doc 05 owes the backfill (ledgered).
+# THREE activation sites: the launch rider, the direct hit (mirrored onto ATTACK per the corpus melee-mirror
+# note — the jar's impact hook has no cause gate), and the landing AoE. No rolls anywhere: every application
+# is 100 % once its gate passes. No sounds anywhere. No damage modification — the Wither ticks ARE the damage.
+# POTION level is 1-based, so the recorded Wither II is `level: 2`.
+# RIDER CAVEAT (recorded, ledgered as a partial): the jar spawned the skull with `yield=0` and
+# `incendiary=false` so it was pure scenery that never detonated. PROJECTILE_DRESSING carries no yield /
+# incendiary knobs, and its `invulnerable` / `no-pickup` guards only apply to a LivingEntity rider — a
+# WITHER_SKULL is not one, so the rider keeps vanilla wither-skull behaviour until those knobs exist. `ttl` and
+# `invulnerable` are left at the effect defaults because the jar records no lifetime of its own: the skull is
+# removed the moment the arrow stops flying, which the effect already does natively.
+# Rider slot: ONE per shot. Explosive wins it in the jar — Cowification and Venom check for Explosive and
+# stand down, Explosive makes no reciprocal check — and that priority has no content-side expression on the
+# frozen surface (it needs the actor-side held-enchant-level fact of wave 1f). Recorded on both files;
+# cosmetic either way, since a dressing rider is scenery.
+# PROJECTILE_LAND delta: the engine fires it only for a WORLD landing (an entity hit is BOW's, and dispatching
+# both would double-proc), where the jar ran the AoE on entity strikes too. A direct hit still withers its
+# victim; only the bystander splash is lost on that path.
+# AoE deltas the matrix records: cube half-extent `level` in the jar vs SE's sphere r=`level` (radius exact,
+# shape differs); `filter=ENEMIES` is hostile mobs + non-allied players, so the jar's spectator exclusion is
+# the engine's own gate while its Ender Dragon exclusion is NOT reproduced (the dragon counts as hostile).
+# The jar checked the protection gate at the landing point only, so a target standing in a safe zone beside
+# the impact still got withered; SE gates per target — delta noted for the parity harness.
+# interactions: VIRUS multiplies every Wither tick this applies (the DOT_AMPLIFY_MARK consumer side lives on
+# virus.yml, nothing authored here).
+# strings: none.
+# era: a WITHER_SKULL rider exists on 1.8.9 and mounts through the single-passenger API (engine-owned, same
+# hazard as Cowification's cow); WITHER is fine on 1.8; `EXPLOSION_LARGE` renames at 1.20.5 (resolver).
+# PROJECTILE_LAND is INERT on 1.8.9 (the era seam cannot tell a landing from an entity hit, nor read the hit
+# point), so the landing AoE never runs on the legacy fork — the direct hit and the rider both do.
+levels:
+  # Wither II for 20 t a level, direct AND in the splash: 20/40/60/80/100 t. AoE radius = level: 1/2/3/4/5.
+  1:
+    abilities:
+      - { trigger: BOW_FIRE, chance: 100, effects: [ { PROJECTILE_DRESSING: { type: "WITHER_SKULL" } } ] }
+      - trigger: [BOW, ATTACK]
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { POTION: { effect: "WITHER", level: 2, duration: 20, who: "@Victim" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1, spread: 0, who: "@Victim" } }
+      - trigger: PROJECTILE_LAND
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 8 } }
+          - { POTION: { effect: "WITHER", level: 2, duration: 20, who: "@Aoe{r=1,filter=ENEMIES}" } }
+  2:
+    abilities:
+      - { trigger: BOW_FIRE, chance: 100, effects: [ { PROJECTILE_DRESSING: { type: "WITHER_SKULL" } } ] }
+      - trigger: [BOW, ATTACK]
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { POTION: { effect: "WITHER", level: 2, duration: 40, who: "@Victim" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1, spread: 0, who: "@Victim" } }
+      - trigger: PROJECTILE_LAND
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 8 } }
+          - { POTION: { effect: "WITHER", level: 2, duration: 40, who: "@Aoe{r=2,filter=ENEMIES}" } }
+  3:
+    abilities:
+      - { trigger: BOW_FIRE, chance: 100, effects: [ { PROJECTILE_DRESSING: { type: "WITHER_SKULL" } } ] }
+      - trigger: [BOW, ATTACK]
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { POTION: { effect: "WITHER", level: 2, duration: 60, who: "@Victim" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1, spread: 0, who: "@Victim" } }
+      - trigger: PROJECTILE_LAND
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 8 } }
+          - { POTION: { effect: "WITHER", level: 2, duration: 60, who: "@Aoe{r=3,filter=ENEMIES}" } }
+  4:
+    abilities:
+      - { trigger: BOW_FIRE, chance: 100, effects: [ { PROJECTILE_DRESSING: { type: "WITHER_SKULL" } } ] }
+      - trigger: [BOW, ATTACK]
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { POTION: { effect: "WITHER", level: 2, duration: 80, who: "@Victim" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1, spread: 0, who: "@Victim" } }
+      - trigger: PROJECTILE_LAND
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 8 } }
+          - { POTION: { effect: "WITHER", level: 2, duration: 80, who: "@Aoe{r=4,filter=ENEMIES}" } }
+  5:
+    abilities:
+      - { trigger: BOW_FIRE, chance: 100, effects: [ { PROJECTILE_DRESSING: { type: "WITHER_SKULL" } } ] }
+      - trigger: [BOW, ATTACK]
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { POTION: { effect: "WITHER", level: 2, duration: 100, who: "@Victim" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1, spread: 0, who: "@Victim" } }
+      - trigger: PROJECTILE_LAND
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 8 } }
+          - { POTION: { effect: "WITHER", level: 2, duration: 100, who: "@Aoe{r=5,filter=ENEMIES}" } }

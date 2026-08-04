@@ -1,0 +1,83 @@
+# Matrix: 05-enchants-bows.md § Venom
+display: "Venom"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eYour arrows carry poison — into whoever"
+  - "&ethey hit, and out across where they land."
+trigger: [BOW_FIRE, BOW, ATTACK, PROJECTILE_LAND]
+applies-to: [BOW]
+group: "rare"
+tier: rare
+# ACQUISITION IS NOT MATRIX-RECORDED for doc 05 (no `max/base/interval/weight/tier` line on any entry here).
+# The rung is the source registration's own tier 3 of the 1-8 ladder (codex registration appendix) and max 3
+# is the numbers ladder's three rungs. Reconcile at the matrix backfill.
+# Three abilities: the launch rider, the direct hit, and the landing AoE. The direct hit carries BOTH damage
+# triggers — the jar guards it with nothing at all (no roll, no player check, no cause gate), so a melee
+# swing with the bow in hand poisons exactly as an arrow does.
+# Venom is SILENT: no sound and no particle anywhere in the entry, the only bow enchant with neither.
+# Copied — nothing is added to fill the gap.
+# The rider is a pure visual marker (the jar span a 0-XP orb and hung it off the arrow). PROJECTILE_DRESSING
+# has no experience param; a plain orb spawn carries no XP payload, which is what the jar's explicit
+# setExperience(0) produced — flagged for the live sweep, not compensated. `ttl` covers any rider, but
+# `invulnerable` / `no-pickup` are LivingEntity-only guards in the sink and an orb is not one, so both are
+# inert here — the same caveat §Explosive records for its wither skull. Left at their defaults either way. The jar STOOD DOWN its rider when
+# Explosive shared the item (one passenger slot); the engine owns that collision itself — one rider per shot,
+# a second dressing replaces the first — so no held-enchant condition is authored (none exists).
+# D-05-7 (as-intended): the landing AoE is DEAD in the jar — its loop tests the ARROW for player-ness
+# instead of the candidate, so the body is unreachable and Venom's area poison never applies. Shipped as the
+# author meant it, matching §Explosive's landing AoE, which tests the candidate: the same Poison II on enemy
+# players within `level` blocks of the impact. `ENEMIES+PLAYERS` is the filter conjunction for "hostile
+# players only" — the engine's ally hook carries the rest of the jar's PvP filtering.
+# Poison cannot kill in vanilla (it floors at 1 health) — a vanilla rule, noted for the parity harness.
+# §Virus multiplies every Poison tick this applies (x2-x5); that fold lives on the Virus mark, not here.
+# era: PROJECTILE_LAND is INERT on 1.8.9 — the legacy seam cannot tell a world landing from an entity hit,
+# so it never fires there rather than double-dispatching every hit BOW already handled; the landing AoE is
+# therefore a modern-only half until the legacy sweep settles a heuristic. The XP-orb rider has client-side
+# magnet/render quirks when mounted on 1.8.9 — visual only, verify in the sweep. POISON and EXPERIENCE_ORB
+# both resolve on every era.
+levels:
+  # Poison II for 25 t per level (1.25/2.5/3.75 s), 100 % on every hit, on the direct target and inside the
+  # landing radius alike; the AoE radius IS the level in blocks. POTION `level` is 1-based, so level 2 is the
+  # II tier.
+  1:
+    abilities:
+      - trigger: BOW_FIRE
+        chance: 100
+        effects:
+          - { PROJECTILE_DRESSING: { type: "EXPERIENCE_ORB", ttl: 200, invulnerable: 200, no-pickup: true } }
+      - trigger: [BOW, ATTACK]
+        chance: 100
+        effects:
+          - { POTION: { effect: "POISON", level: 2, duration: 25, who: "@Victim" } }
+      - trigger: PROJECTILE_LAND
+        chance: 100
+        effects:
+          - { POTION: { effect: "POISON", level: 2, duration: 25, who: "@Aoe{r=1, filter=ENEMIES+PLAYERS}" } }
+  2:
+    abilities:
+      - trigger: BOW_FIRE
+        chance: 100
+        effects:
+          - { PROJECTILE_DRESSING: { type: "EXPERIENCE_ORB", ttl: 200, invulnerable: 200, no-pickup: true } }
+      - trigger: [BOW, ATTACK]
+        chance: 100
+        effects:
+          - { POTION: { effect: "POISON", level: 2, duration: 50, who: "@Victim" } }
+      - trigger: PROJECTILE_LAND
+        chance: 100
+        effects:
+          - { POTION: { effect: "POISON", level: 2, duration: 50, who: "@Aoe{r=2, filter=ENEMIES+PLAYERS}" } }
+  3:
+    abilities:
+      - trigger: BOW_FIRE
+        chance: 100
+        effects:
+          - { PROJECTILE_DRESSING: { type: "EXPERIENCE_ORB", ttl: 200, invulnerable: 200, no-pickup: true } }
+      - trigger: [BOW, ATTACK]
+        chance: 100
+        effects:
+          - { POTION: { effect: "POISON", level: 2, duration: 75, who: "@Victim" } }
+      - trigger: PROJECTILE_LAND
+        chance: 100
+        effects:
+          - { POTION: { effect: "POISON", level: 2, duration: 75, who: "@Aoe{r=3, filter=ENEMIES+PLAYERS}" } }

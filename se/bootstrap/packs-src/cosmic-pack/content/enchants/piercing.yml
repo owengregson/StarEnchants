@@ -1,0 +1,56 @@
+# Matrix: 05-enchants-bows.md § Piercing
+display: "Piercing"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eEvery hit on a player bites a little deeper,"
+  - "&earrow or swing."
+trigger: [BOW, ATTACK]
+applies-to: [BOW]
+# tier: doc 05 records no acquisition rows (see pacify.yml), so the rung the pack already ships carries
+# forward. Max level 5 comes from the bonus ladder.
+group: "epic"
+tier: epic
+chance: 100  # no roll anywhere in the entry — every qualifying hit folds
+condition: "%victim.type% == \"PLAYER\""
+# Melee mirror via the trigger list (the reforged.yml shape, reasoned in pacify.yml): one ability, one roll,
+# the jar's single shared impact path.
+# D-05-5 (as-intended): the jar dealt the bonus as a same-tick SEPARATE damage() with no damager, inside the
+# victim's arrow immunity window, so it was swallowed almost every time (net about zero) and re-fired the
+# victim's defensive pass with a null attacker. The engine folds bonuses into the triggering event, so the
+# shipped row is an in-event DAMAGE_MOD — never swallowed, never re-entrant.
+# interactions: the jar's cooldown read a victim-keyed arrow-damage stamp (level x 200 ms) that ONLY the
+# armor enchant Arrow Deflect ever writes — with no Arrow Deflect on the victim there is no cooldown at all,
+# which is the measured default and what ships here (no `cooldown:`). Eagle Eye reads the same stamp; the
+# window is one interaction-layer rule shared by both readers and its single writer, not enchant behavior.
+# strings: none.
+# era: `ARROW_HIT` is the 1.8-era spelling of ENTITY_ARROW_HIT — the matrix marks the entry era-clean, but
+# the resolver's alias table does not carry the pair yet; row owed in the legacy sweep (deferred-content.md).
+levels:
+  # bonus 2.5 pp per level = 2.5/5/7.5/10/12.5 % of the triggering hit. The SOUND rides the activation
+  # location (the hit) — the jar played it to the attacker at the attacker's own location, and SOUND has no
+  # per-target form; the CRIT burst's recorded 0.5 particle speed has no surface param (both cosmetic).
+  1:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 2.5 } }
+      - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.2, pitch: 0.6 } }
+      - { PARTICLE: { particle: "CRIT", count: 20, who: "@Victim" } }
+  2:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }
+      - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.2, pitch: 0.6 } }
+      - { PARTICLE: { particle: "CRIT", count: 20, who: "@Victim" } }
+  3:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 7.5 } }
+      - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.2, pitch: 0.6 } }
+      - { PARTICLE: { particle: "CRIT", count: 20, who: "@Victim" } }
+  4:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }
+      - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.2, pitch: 0.6 } }
+      - { PARTICLE: { particle: "CRIT", count: 20, who: "@Victim" } }
+  5:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12.5 } }
+      - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.2, pitch: 0.6 } }
+      - { PARTICLE: { particle: "CRIT", count: 20, who: "@Victim" } }

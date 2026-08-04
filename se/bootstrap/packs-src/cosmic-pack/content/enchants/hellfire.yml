@@ -1,0 +1,152 @@
+# Matrix: 05-enchants-bows.md § Hellfire
+display: "Hellfire"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eYour arrows set what they hit ablaze and"
+  - "&eburst into a pool of fire where they land."
+trigger: [BOW, ATTACK, PROJECTILE_LAND]
+applies-to: [BOW]
+group: "uncommon"
+tier: uncommon
+# The rung is carried forward from the Hellfire the pack already shipped — matrix 05 records no acquisition
+# row for any bow entry (the backfill covered doc 01 only, tracked in deferred-content.md). It reads low for a
+# five-level enchant that lights a 10-block pool; the acquisition backfill settles it.
+# PENDING PRIMITIVE — the flaming-arrow half is NOT authored here. The matrix's BOW_FIRE row dresses the loosed
+# arrow with `2147483647` fire ticks (a permanently burning arrow, level-independent); the shipped
+# PROJECTILE_DRESSING rides an ENTITY on the shot and carries no fire, and IGNITE cannot address a projectile.
+# Recorded in deferred-content.md (partial entries) with §Infernal, which waits on the same param. Everything
+# else below is whole — the direct-hit burn and the landing pool never depended on it.
+# Melee mirror: yes — the jar's impact pipeline accepts ENTITY_ATTACK, so the direct-hit ability is authored
+# twice, once per trigger (the Deathbringer/Blind shape). Player victims were additionally gated on can-see +
+# survival gamemode; those are the engine's global vanish/gamemode gates, not enchant behavior.
+# IGNITE on the direct hit matches the jar's absolute `setFireTicks` — a re-hit can SHORTEN a longer burn.
+# The landing AoE is the one place they diverge: the jar ADDS `fireTicks + i*20` there, so a multi-arrow volley
+# stacked burns; IGNITE is absolute, so the longest single arrow wins instead of the sum. Recorded delta.
+# `filter=ENEMIES+PLAYERS` is the jar's AoE set exactly: a trailing player-type test excluded mobs, and the
+# owner/ally/vanish/freeze filters are the engine's own gates.
+# The AoE damage is attributed to the shooter, so it carries kill credit; the jar fired it 1 t later as an
+# unattributed hit with none. Both are armor-reduced and neither re-enters the enchant pipeline — the credit is
+# the only difference, recorded rather than reproduced (a `wait: 1` here would push the whole tail of the list).
+# Particle speeds (0.15 / 0.5 / 0.25) have no authoring surface; counts and the spread default carry the burst.
+# The jar's `world_duels2` halving (radius and damage) is server-world wiring, not enchant behavior — an
+# interaction-layer world rule if it is ever wanted. Fire damage is NOT Virus-amplified (Virus keys WITHER and
+# POISON causes only). Removing the spent arrow on landing is engine cleanup, nothing to author.
+# era: PROJECTILE_LAND is inert on 1.8.9 — the era's hit event cannot report a landing block, so the pool half
+# simply never fires there (the legacy sweep owns any heuristic). Permanently burning arrows render fine on 1.8;
+# `BLOCK_FIRE_AMBIENT` is the 1.8 `FIRE` sound (alias row owed); LAVA/FLAME/EXPLOSION_LARGE all exist on 1.8.
+levels:
+  1:
+    abilities:
+      - trigger: BOW
+        chance: 100
+        effects:
+          - { IGNITE: { duration: 40, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 30, who: "@Victim" } }
+          - { PARTICLE: { particle: "LAVA", count: 20, who: "@Victim" } }
+      - trigger: ATTACK
+        chance: 100
+        effects:
+          - { IGNITE: { duration: 40, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 30, who: "@Victim" } }
+          - { PARTICLE: { particle: "LAVA", count: 20, who: "@Victim" } }
+      - trigger: PROJECTILE_LAND
+        chance: 100
+        effects:
+          - { SOUND: { sound: "BLOCK_FIRE_AMBIENT", volume: 1.0, pitch: 0.85 } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 8 } }
+          - { PARTICLE: { particle: "FLAME", count: 45 } }
+          - { IGNITE: { duration: 20, who: "@Aoe{r=2, filter=ENEMIES+PLAYERS}" } }
+          - { DAMAGE: { amount: 2.0, who: "@Aoe{r=2, filter=ENEMIES+PLAYERS}" } }
+          - { PARTICLE: { particle: "LAVA", count: 16, who: "@Aoe{r=2, filter=ENEMIES+PLAYERS}" } }
+  2:
+    abilities:
+      - trigger: BOW
+        chance: 100
+        effects:
+          - { IGNITE: { duration: 80, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 30, who: "@Victim" } }
+          - { PARTICLE: { particle: "LAVA", count: 20, who: "@Victim" } }
+      - trigger: ATTACK
+        chance: 100
+        effects:
+          - { IGNITE: { duration: 80, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 30, who: "@Victim" } }
+          - { PARTICLE: { particle: "LAVA", count: 20, who: "@Victim" } }
+      - trigger: PROJECTILE_LAND
+        chance: 100
+        effects:
+          - { SOUND: { sound: "BLOCK_FIRE_AMBIENT", volume: 1.0, pitch: 0.85 } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 8 } }
+          - { PARTICLE: { particle: "FLAME", count: 45 } }
+          - { IGNITE: { duration: 40, who: "@Aoe{r=4, filter=ENEMIES+PLAYERS}" } }
+          - { DAMAGE: { amount: 3.0, who: "@Aoe{r=4, filter=ENEMIES+PLAYERS}" } }
+          - { PARTICLE: { particle: "LAVA", count: 16, who: "@Aoe{r=4, filter=ENEMIES+PLAYERS}" } }
+  3:
+    abilities:
+      - trigger: BOW
+        chance: 100
+        effects:
+          - { IGNITE: { duration: 120, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 30, who: "@Victim" } }
+          - { PARTICLE: { particle: "LAVA", count: 20, who: "@Victim" } }
+      - trigger: ATTACK
+        chance: 100
+        effects:
+          - { IGNITE: { duration: 120, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 30, who: "@Victim" } }
+          - { PARTICLE: { particle: "LAVA", count: 20, who: "@Victim" } }
+      - trigger: PROJECTILE_LAND
+        chance: 100
+        effects:
+          - { SOUND: { sound: "BLOCK_FIRE_AMBIENT", volume: 1.0, pitch: 0.85 } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 8 } }
+          - { PARTICLE: { particle: "FLAME", count: 45 } }
+          - { IGNITE: { duration: 60, who: "@Aoe{r=6, filter=ENEMIES+PLAYERS}" } }
+          - { DAMAGE: { amount: 4.0, who: "@Aoe{r=6, filter=ENEMIES+PLAYERS}" } }
+          - { PARTICLE: { particle: "LAVA", count: 16, who: "@Aoe{r=6, filter=ENEMIES+PLAYERS}" } }
+  4:
+    abilities:
+      - trigger: BOW
+        chance: 100
+        effects:
+          - { IGNITE: { duration: 160, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 30, who: "@Victim" } }
+          - { PARTICLE: { particle: "LAVA", count: 20, who: "@Victim" } }
+      - trigger: ATTACK
+        chance: 100
+        effects:
+          - { IGNITE: { duration: 160, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 30, who: "@Victim" } }
+          - { PARTICLE: { particle: "LAVA", count: 20, who: "@Victim" } }
+      - trigger: PROJECTILE_LAND
+        chance: 100
+        effects:
+          - { SOUND: { sound: "BLOCK_FIRE_AMBIENT", volume: 1.0, pitch: 0.85 } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 8 } }
+          - { PARTICLE: { particle: "FLAME", count: 45 } }
+          - { IGNITE: { duration: 80, who: "@Aoe{r=8, filter=ENEMIES+PLAYERS}" } }
+          - { DAMAGE: { amount: 5.0, who: "@Aoe{r=8, filter=ENEMIES+PLAYERS}" } }
+          - { PARTICLE: { particle: "LAVA", count: 16, who: "@Aoe{r=8, filter=ENEMIES+PLAYERS}" } }
+  5:
+    abilities:
+      - trigger: BOW
+        chance: 100
+        effects:
+          - { IGNITE: { duration: 200, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 30, who: "@Victim" } }
+          - { PARTICLE: { particle: "LAVA", count: 20, who: "@Victim" } }
+      - trigger: ATTACK
+        chance: 100
+        effects:
+          - { IGNITE: { duration: 200, who: "@Victim" } }
+          - { PARTICLE: { particle: "FLAME", count: 30, who: "@Victim" } }
+          - { PARTICLE: { particle: "LAVA", count: 20, who: "@Victim" } }
+      - trigger: PROJECTILE_LAND
+        chance: 100
+        effects:
+          - { SOUND: { sound: "BLOCK_FIRE_AMBIENT", volume: 1.0, pitch: 0.85 } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 8 } }
+          - { PARTICLE: { particle: "FLAME", count: 45 } }
+          - { IGNITE: { duration: 100, who: "@Aoe{r=10, filter=ENEMIES+PLAYERS}" } }
+          - { DAMAGE: { amount: 6.0, who: "@Aoe{r=10, filter=ENEMIES+PLAYERS}" } }
+          - { PARTICLE: { particle: "LAVA", count: 16, who: "@Aoe{r=10, filter=ENEMIES+PLAYERS}" } }

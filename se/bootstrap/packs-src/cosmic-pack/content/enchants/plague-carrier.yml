@@ -1,0 +1,180 @@
+# Matrix: 02-enchants-armor-m-z.md § Plague Carrier
+display: "Plague Carrier"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA killing blow finishes you off and leaves a plague:"
+  - "&epoison for everyone near, and charged creepers to carry it."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "uncommon"
+tier: uncommon
+# The hostile-players-only payload is the filter conjunction smoke-bomb.yml already ships for the same
+# FILTER_COMPOSE note: ENEMIES+PLAYERS keeps only what BOTH admit.
+# The recorded 200 t re-arm is NOT authored, for two reasons that both hold: the wearer is deliberately
+# finished off on every proc (the KILL below is unconditional), so a re-arm window can never be reached; and
+# a cooldown here would gate the CREEPER PAYLOAD too — every ability of one enchant shares one cooldown
+# bucket (EnchantDefReader: "one cooldown scope"), and a zero-cooldown block still RESPECTS a bucket a
+# sibling armed, so the detonations inside those 10 s would all be swallowed.
+# ENGINE SEAM (reported, not authorable around): a summon payload runs the OWNER's abilities out of their
+# LIVE WornState, and this wearer is dead before the first creeper reaches anyone. Death drops the armour,
+# the armour-change feeder (modern) / gear poll (1.8) refreshes off that drop and respawn refreshes again —
+# so by the time a creeper goes off its owner most likely carries no Plague Carrier, the payload resolves
+# nothing, and the phase has already cancelled the vanilla blast. The fix is engine-side: pin the payload's
+# abilities to the SPAWNING activation instead of re-reading the owner. Recorded in deferred-content.md.
+# Interactions carried by the OTHER side, nothing authored here: the death burst respects relations
+# (truce+ skipped) while the creeper payload hits everyone including allies — the jar's measured asymmetry,
+# left for the relation layer to keep or normalise (payload-filter: ALL below is that half). Summons drop no
+# loot and give no XP (engine summon rule), and the engine's 50-per-chunk summon cap applies.
+# era: a charged creeper is 1.8-safe; CREEPER_HISS is the 1.8 sound id, authored as its modern spelling
+# ENTITY_CREEPER_PRIMED — that alias row is the one the ledger still lists as UNVERIFIED. EXPLODE and
+# LARGE_EXPLODE carry their own alias rows (ENTITY_GENERIC_EXPLODE / EXPLOSION_LARGE) and CLOUD resolves on
+# both eras.
+levels:
+  # Radius round(1.5 x level) = 2/3/5/6/8/9/11/12 and creepers radius/2 (integer) = 1/1/2/3/4/4/5/6.
+  # Death burst: Poison for (2 + level) x 20 t, I until L7 and II from there.
+  # Payload: (level x 2) x 20 t at amplifier 0/0/0/1/1/1/1/2 — POTION `level` is 1-based, so those are
+  # levels 1/1/1/2/2/2/2/3 — with Blindness from L3, Weakness from L6 and Slowness only at L8.
+  1:
+    abilities:
+      - condition: "%damage% >= %actor.health%"
+        effects:
+          - { MESSAGE: { text: "§d§l(!) §d{ATTACKER} has died, and was a Plague Carrier! RUN!", who: "@Aoe{r=2, filter=ENEMIES+PLAYERS}" } }
+          - { POTION: { effect: "POISON", level: 1, duration: 60, who: "@Aoe{r=2, filter=ENEMIES+PLAYERS}" } }
+          # owner: activator is what makes the payload runnable at all — the owner is who runs it. The
+          # creepers keep their AI and their own fuse; the phase only replaces what the blast DOES.
+          - { SPAWN_ENTITY: { type: "CREEPER", count: 1, powered: true, owner: "activator", name: "§dPlague Carrier", payload-phase: "detonate", payload-radius: 2.5, payload-height: 2, payload-filter: "ALL", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 2.0, pitch: 0.75 } }  # ADR-0066 plays one sound id at most once per event, so the recorded per-victim copy (volume 1.6) collapses into this one
+          - { PARTICLE: { particle: "CLOUD", count: 75, who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 20, who: "@Self" } }  # the per-spawn burst: every creeper spawns at this one point and the engine has no per-summon cue hook, so one copy stands for all of them
+          # Authored LAST: the wearer is deliberately finished off (the incoming hit is NOT cancelled), and a
+          # dead actor is a poor host for the lines and bursts above.
+          - { KILL: { who: "@Self" } }
+      - trigger: SUMMON_PAYLOAD
+        # One activation per entity in the box, actor = the wearer, victim = that entity, anchored at the
+        # creeper — so @Victim is who the blast caught and the cues below sit at the blast.
+        effects:
+          - { POTION: { effect: "POISON", level: 1, duration: 40, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3 } }
+  2:
+    abilities:
+      - condition: "%damage% >= %actor.health%"
+        effects:
+          - { MESSAGE: { text: "§d§l(!) §d{ATTACKER} has died, and was a Plague Carrier! RUN!", who: "@Aoe{r=3, filter=ENEMIES+PLAYERS}" } }
+          - { POTION: { effect: "POISON", level: 1, duration: 80, who: "@Aoe{r=3, filter=ENEMIES+PLAYERS}" } }
+          - { SPAWN_ENTITY: { type: "CREEPER", count: 1, powered: true, owner: "activator", name: "§dPlague Carrier", payload-phase: "detonate", payload-radius: 2.5, payload-height: 2, payload-filter: "ALL", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 2.0, pitch: 0.75 } }
+          - { PARTICLE: { particle: "CLOUD", count: 75, who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 20, who: "@Self" } }
+          - { KILL: { who: "@Self" } }
+      - trigger: SUMMON_PAYLOAD
+        effects:
+          - { POTION: { effect: "POISON", level: 1, duration: 80, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3 } }
+  3:
+    abilities:
+      - condition: "%damage% >= %actor.health%"
+        effects:
+          - { MESSAGE: { text: "§d§l(!) §d{ATTACKER} has died, and was a Plague Carrier! RUN!", who: "@Aoe{r=5, filter=ENEMIES+PLAYERS}" } }
+          - { POTION: { effect: "POISON", level: 1, duration: 100, who: "@Aoe{r=5, filter=ENEMIES+PLAYERS}" } }
+          - { SPAWN_ENTITY: { type: "CREEPER", count: 2, powered: true, owner: "activator", name: "§dPlague Carrier", payload-phase: "detonate", payload-radius: 2.5, payload-height: 2, payload-filter: "ALL", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 2.0, pitch: 0.75 } }
+          - { PARTICLE: { particle: "CLOUD", count: 75, who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 20, who: "@Self" } }
+          - { KILL: { who: "@Self" } }
+      - trigger: SUMMON_PAYLOAD
+        effects:
+          - { POTION: { effect: "POISON", level: 1, duration: 120, who: "@Victim" } }
+          - { POTION: { effect: "BLINDNESS", level: 1, duration: 120, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3 } }
+  4:
+    abilities:
+      - condition: "%damage% >= %actor.health%"
+        effects:
+          - { MESSAGE: { text: "§d§l(!) §d{ATTACKER} has died, and was a Plague Carrier! RUN!", who: "@Aoe{r=6, filter=ENEMIES+PLAYERS}" } }
+          - { POTION: { effect: "POISON", level: 1, duration: 120, who: "@Aoe{r=6, filter=ENEMIES+PLAYERS}" } }
+          - { SPAWN_ENTITY: { type: "CREEPER", count: 3, powered: true, owner: "activator", name: "§dPlague Carrier", payload-phase: "detonate", payload-radius: 2.5, payload-height: 2, payload-filter: "ALL", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 2.0, pitch: 0.75 } }
+          - { PARTICLE: { particle: "CLOUD", count: 75, who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 20, who: "@Self" } }
+          - { KILL: { who: "@Self" } }
+      - trigger: SUMMON_PAYLOAD
+        effects:
+          - { POTION: { effect: "POISON", level: 2, duration: 160, who: "@Victim" } }
+          - { POTION: { effect: "BLINDNESS", level: 2, duration: 160, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3 } }
+  5:
+    abilities:
+      - condition: "%damage% >= %actor.health%"
+        effects:
+          - { MESSAGE: { text: "§d§l(!) §d{ATTACKER} has died, and was a Plague Carrier! RUN!", who: "@Aoe{r=8, filter=ENEMIES+PLAYERS}" } }
+          - { POTION: { effect: "POISON", level: 1, duration: 140, who: "@Aoe{r=8, filter=ENEMIES+PLAYERS}" } }
+          - { SPAWN_ENTITY: { type: "CREEPER", count: 4, powered: true, owner: "activator", name: "§dPlague Carrier", payload-phase: "detonate", payload-radius: 2.5, payload-height: 2, payload-filter: "ALL", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 2.0, pitch: 0.75 } }
+          - { PARTICLE: { particle: "CLOUD", count: 75, who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 20, who: "@Self" } }
+          - { KILL: { who: "@Self" } }
+      - trigger: SUMMON_PAYLOAD
+        effects:
+          - { POTION: { effect: "POISON", level: 2, duration: 200, who: "@Victim" } }
+          - { POTION: { effect: "BLINDNESS", level: 2, duration: 200, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3 } }
+  6:
+    abilities:
+      - condition: "%damage% >= %actor.health%"
+        effects:
+          - { MESSAGE: { text: "§d§l(!) §d{ATTACKER} has died, and was a Plague Carrier! RUN!", who: "@Aoe{r=9, filter=ENEMIES+PLAYERS}" } }
+          - { POTION: { effect: "POISON", level: 1, duration: 160, who: "@Aoe{r=9, filter=ENEMIES+PLAYERS}" } }
+          - { SPAWN_ENTITY: { type: "CREEPER", count: 4, powered: true, owner: "activator", name: "§dPlague Carrier", payload-phase: "detonate", payload-radius: 2.5, payload-height: 2, payload-filter: "ALL", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 2.0, pitch: 0.75 } }
+          - { PARTICLE: { particle: "CLOUD", count: 75, who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 20, who: "@Self" } }
+          - { KILL: { who: "@Self" } }
+      - trigger: SUMMON_PAYLOAD
+        effects:
+          - { POTION: { effect: "POISON", level: 2, duration: 240, who: "@Victim" } }
+          - { POTION: { effect: "BLINDNESS", level: 2, duration: 240, who: "@Victim" } }
+          - { POTION: { effect: "WEAKNESS", level: 2, duration: 240, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3 } }
+  7:
+    abilities:
+      - condition: "%damage% >= %actor.health%"
+        effects:
+          - { MESSAGE: { text: "§d§l(!) §d{ATTACKER} has died, and was a Plague Carrier! RUN!", who: "@Aoe{r=11, filter=ENEMIES+PLAYERS}" } }
+          - { POTION: { effect: "POISON", level: 2, duration: 180, who: "@Aoe{r=11, filter=ENEMIES+PLAYERS}" } }
+          - { SPAWN_ENTITY: { type: "CREEPER", count: 5, powered: true, owner: "activator", name: "§dPlague Carrier", payload-phase: "detonate", payload-radius: 2.5, payload-height: 2, payload-filter: "ALL", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 2.0, pitch: 0.75 } }
+          - { PARTICLE: { particle: "CLOUD", count: 75, who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 20, who: "@Self" } }
+          - { KILL: { who: "@Self" } }
+      - trigger: SUMMON_PAYLOAD
+        effects:
+          - { POTION: { effect: "POISON", level: 2, duration: 280, who: "@Victim" } }
+          - { POTION: { effect: "BLINDNESS", level: 2, duration: 280, who: "@Victim" } }
+          - { POTION: { effect: "WEAKNESS", level: 2, duration: 280, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3 } }
+  8:
+    abilities:
+      - condition: "%damage% >= %actor.health%"
+        effects:
+          - { MESSAGE: { text: "§d§l(!) §d{ATTACKER} has died, and was a Plague Carrier! RUN!", who: "@Aoe{r=12, filter=ENEMIES+PLAYERS}" } }
+          - { POTION: { effect: "POISON", level: 2, duration: 200, who: "@Aoe{r=12, filter=ENEMIES+PLAYERS}" } }
+          - { SPAWN_ENTITY: { type: "CREEPER", count: 6, powered: true, owner: "activator", name: "§dPlague Carrier", payload-phase: "detonate", payload-radius: 2.5, payload-height: 2, payload-filter: "ALL", who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_CREEPER_PRIMED", volume: 2.0, pitch: 0.75 } }
+          - { PARTICLE: { particle: "CLOUD", count: 75, who: "@Self" } }
+          - { PARTICLE: { particle: "CLOUD", count: 20, who: "@Self" } }
+          - { KILL: { who: "@Self" } }
+      - trigger: SUMMON_PAYLOAD
+        effects:
+          - { POTION: { effect: "POISON", level: 3, duration: 320, who: "@Victim" } }
+          - { POTION: { effect: "BLINDNESS", level: 3, duration: 320, who: "@Victim" } }
+          - { POTION: { effect: "WEAKNESS", level: 3, duration: 320, who: "@Victim" } }
+          - { POTION: { effect: "SLOWNESS", level: 3, duration: 320, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3 } }

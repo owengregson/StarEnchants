@@ -1,0 +1,138 @@
+# Matrix: 05-enchants-bows.md § Teleblock
+display: "Teleblock"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eSpends souls on the shot. A player you"
+  - "&ehit cannot teleport for a while, and"
+  - "&eloses the pearls they were carrying."
+trigger: [BOW_FIRE, BOW]
+applies-to: [BOW]
+group: "soul"
+tier: soul
+# ACQUISITION IS NOT MATRIX-RECORDED for doc 05 (no `max/base/interval/weight/tier` line on any entry here),
+# but this entry is the one exception: the matrix names it a tier-6 soul enchant outright, and the source
+# registration agrees. Max 5 is the numbers ladder's five rungs. Reconcile at the matrix backfill.
+# Tier 6 is the soul rung, and the matrix's "inert in The End" is the tier-6 WORLD rule — server/interaction
+# policy, not this file: `disabled-worlds:` names literal worlds and no pack knows what the End is called on
+# a given stack.
+# WHERE THE SOULS ARE CHARGED. The jar bills at LAUNCH and stamps the arrow "this shot was funded", so an
+# unfunded shot lands with no teleblock at all. The frozen surface has no per-arrow stamp — a BOW ability
+# resolves off the bow, not off the arrow's payload — so the charge rides the IMPACT ability as `soul-cost`,
+# the engine's one soul gate: soul mode + cross-gem balance + an atomic all-or-nothing spend, refused before
+# any effect runs. Souls per LANDED shot, the all-or-nothing rule and the silent refusal all match the jar;
+# the single delta is its charge-on-a-miss, recorded in deferred-content.md rather than reproduced. Billing
+# at launch instead would leave the impact ability ungated and hand a free teleblock to a shooter with an
+# empty gem — the one outcome a tier-6 soul enchant must never have.
+# The launch cues keep their own funded gate, `%actor.souls% >= 6 x level` (souls TOTALLED across carried
+# gems). No fact exposes soul MODE, so a player carrying gems while out of soul mode still sees the cast cue
+# on a shot that will refuse at impact. Cosmetic only.
+# Every immunity lives on the OTHER side and nothing is authored here: the full RANGER set and the GLITCH
+# mask are total (docs 10-11), Ranger bonus crystals roll 20 % per owned crystal and answer with
+# `§a§l* RANGER CRYSTAL [§7Immune to Teleblock§a§l] *` (crystal layer), and the Anti Teleblock pet CURES a
+# live block rather than preventing one (doc 12). The every-100th-soul line `§e§l** SOULS: §n{SOULS}§e§l **`
+# is the souls layer's own feedback rule, not this enchant's.
+# REMOVE_ITEM has no name filter: the jar skipped any renamed pearl stack and never scanned armour slots.
+# The armour half is moot (pearls do not live there); the renamed-stack exemption is an engine-semantics
+# delta, recorded, not gapped.
+# The jar teleblocked even already-cancelled hits (`ignoreCancelled=false`) and stamped ANY projectile loosed
+# while holding the bow; SE runs its normal gate order and BOW_FIRE is bow-shot-only. Neither is ported.
+# era: `ENDERMAN_HIT`->`ENTITY_ENDERMAN_HURT` and `EAT`->`ENTITY_GENERIC_EAT` are legacy-sweep alias rows
+# (the EAT row is also owed by Paradox, batch 02); `SPELL_WITCH` already crosses eras through the particle
+# table. The block itself is the SE `TELEBLOCK` effect (the jar delegated enforcement to an external combat
+# plugin — UNRESOLVED in the codex): SE stops ender pearls AND chorus fruit, and chorus fruit does not exist
+# on 1.8.9, so the legacy fork blocks pearls only — the same enchant, one fewer escape to deny. The recorded +1 y offset and 0.5 particle speed have no param — PARTICLE centres on the body — and
+# SOUND has no `who`, so the recorded per-recipient cues play at the activation location: the launch cue at
+# the shooter, the impact cue at the victim, which is where the jar put them anyway.
+levels:
+  # Souls 6 x level, pearls 3 x level. The duration is the AS-INTENDED `5000 + level*3000` ms = 8/11/14/17/20 s
+  # (D-05-6; the jar's operator precedence measured 3.005-15.005 s). The message keeps the jar's SEPARATE
+  # string-concat bug verbatim (`"[" + 5 + i*3 + "s]"` prints [53s]…[515s]) — the intended [8s]…[20s]
+  # rendering needs an owner ruling. Its `[-0ep]` slot is the remaining-pearl SHORTFALL, `0` whenever the
+  # victim carried enough, which is the only value MESSAGE can render: {ATTACKER}/{VICTIM} are its whole
+  # token set. The measured `interval = 0.0` is enchant-table plumbing (the table only ever rolled level 5)
+  # and has no expression here.
+  1:
+    abilities:
+      - trigger: BOW_FIRE
+        chance: 100
+        condition: "%actor.souls% >= 6"
+        effects:
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 65, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 0.4, pitch: 0.2 } }
+      - trigger: BOW
+        chance: 100
+        soul-cost: 6
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { TELEBLOCK: { duration: 160, who: "@Victim" } }
+          - { REMOVE_ITEM: { material: "ENDER_PEARL", count: 3, who: "@Victim" } }
+          - { MESSAGE: { text: "§5** TELEBLOCK [53s] [-0ep] **", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ENDERMAN_HURT", volume: 0.75, pitch: 0.6 } }
+  2:
+    abilities:
+      - trigger: BOW_FIRE
+        chance: 100
+        condition: "%actor.souls% >= 12"
+        effects:
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 65, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 0.4, pitch: 0.2 } }
+      - trigger: BOW
+        chance: 100
+        soul-cost: 12
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { TELEBLOCK: { duration: 220, who: "@Victim" } }
+          - { REMOVE_ITEM: { material: "ENDER_PEARL", count: 6, who: "@Victim" } }
+          - { MESSAGE: { text: "§5** TELEBLOCK [56s] [-0ep] **", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ENDERMAN_HURT", volume: 0.75, pitch: 0.6 } }
+  3:
+    abilities:
+      - trigger: BOW_FIRE
+        chance: 100
+        condition: "%actor.souls% >= 18"
+        effects:
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 65, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 0.4, pitch: 0.2 } }
+      - trigger: BOW
+        chance: 100
+        soul-cost: 18
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { TELEBLOCK: { duration: 280, who: "@Victim" } }
+          - { REMOVE_ITEM: { material: "ENDER_PEARL", count: 9, who: "@Victim" } }
+          - { MESSAGE: { text: "§5** TELEBLOCK [59s] [-0ep] **", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ENDERMAN_HURT", volume: 0.75, pitch: 0.6 } }
+  4:
+    abilities:
+      - trigger: BOW_FIRE
+        chance: 100
+        condition: "%actor.souls% >= 24"
+        effects:
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 65, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 0.4, pitch: 0.2 } }
+      - trigger: BOW
+        chance: 100
+        soul-cost: 24
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { TELEBLOCK: { duration: 340, who: "@Victim" } }
+          - { REMOVE_ITEM: { material: "ENDER_PEARL", count: 12, who: "@Victim" } }
+          - { MESSAGE: { text: "§5** TELEBLOCK [512s] [-0ep] **", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ENDERMAN_HURT", volume: 0.75, pitch: 0.6 } }
+  5:
+    abilities:
+      - trigger: BOW_FIRE
+        chance: 100
+        condition: "%actor.souls% >= 30"
+        effects:
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 65, who: "@Self" } }
+          - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 0.4, pitch: 0.2 } }
+      - trigger: BOW
+        chance: 100
+        soul-cost: 30
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { TELEBLOCK: { duration: 400, who: "@Victim" } }
+          - { REMOVE_ITEM: { material: "ENDER_PEARL", count: 15, who: "@Victim" } }
+          - { MESSAGE: { text: "§5** TELEBLOCK [515s] [-0ep] **", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ENDERMAN_HURT", volume: 0.75, pitch: 0.6 } }

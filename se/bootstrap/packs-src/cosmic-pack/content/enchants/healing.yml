@@ -1,0 +1,171 @@
+# Matrix: 05-enchants-bows.md § Healing
+display: "Healing"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eAn arrow into an ally heals them instead of"
+  - "&ehurting them, and mends your own armor."
+trigger: [BOW, BOW_FIRE]
+applies-to: [BOW]
+group: "common"
+tier: common
+# ACQUISITION IS NOT MATRIX-RECORDED for doc 05 (no `max/base/interval/weight/tier` line on any entry here).
+# The rung is the source registration's own tier 1 of the 1-8 ladder (codex registration appendix) and max 4
+# is the numbers ladder's four rungs. Reconcile at the matrix backfill.
+# The ally gate rides each ability rather than the file root: `%victim.relation%` is empty with no victim, so a
+# root-level condition would also kill the BOW_FIRE launch cue, which has no combat party at all. The relation
+# fact answers ALLY | ENEMY | NEUTRAL — the jar's check was one-directional and same-faction, SE's ally model is
+# symmetric (recorded delta, nothing to author).
+# CANCEL zeroes the allied arrow. The jar cancelled at LOWEST, so no OTHER bow enchant procced on an allied hit;
+# that precedence is an interaction-layer rule (Healing's CANCEL suppresses same-hit abilities), recorded here
+# and authored on neither side. Self-shot never reaches this file — SE does not dispatch BOW with victim == actor
+# — so the jar's self-shot cat hiss is dropped.
+# Melee mirror: NO. The jar gated on a projectile damager, so meleeing an ally with the bow heals nothing.
+# The heal roll is the jar's `nextInt(2*level) + level` — a uniform INTEGER in [level, 3*level-1] — authored as
+# `floor(rand(L, 3L))`, since rand's upper bound is exclusive: 1-2 / 2-5 / 3-8 / 4-11.
+# The `healing_absorb` flag is the jar's branch marker: the Absorption roll sets it and the overheal branch skips
+# when it is live. Recorded approximation: SET_VAR rides the Sink and flushes after the pass, so a same-hit read
+# sees the PRE-hit value — at L3+ a full-health ally can take both the Absorption and the Health Boost on the
+# ~15/30 % of hits the roll lands. The flag still does its job across the 2 t window it was authored with.
+# The overheal branch is gated on full health per the codex quirk ("HEALTH_BOOST only ever lands on an
+# already-full-health ally"); the jar's exact test is `health + roll > maxHealth`, which needs var arithmetic
+# over the roll — accepted as the matrix accepts it.
+# The armor repair lands on the SHOOTER (`@Self`), bytecode-verified measured behavior. The codex flags it as a
+# probable copy/paste slip but gives no ruling, so measured behavior ships — flagged for owner review, NOT
+# ledgered as a deviation.
+# The emerald crack burst is `count: 8` (port-chosen): the jar plays world effect 2001, which carries no count.
+# SOUND has no `who`: the recorded shooter-only chime plays at the impact instead, where the healed ally is
+# standing (the same cosmetic delta §Piercing and §Unfocus already carry).
+# era: `BLOCK_CRACK` with block data exists on 1.8.9 (`blockcrack_133_0`) and EMERALD_BLOCK/ABSORPTION/
+# HEALTH_BOOST all predate it; `ENTITY_EXPERIENCE_ORB_PICKUP` is the 1.8 `ORB_PICKUP` sound (alias row owed).
+levels:
+  1:
+    abilities:
+      # A — the allied arrow is voided, with the pickup chime and an emerald burst on the ally.
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\""
+        effects:
+          - { CANCEL: {} }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341 } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "EMERALD_BLOCK", count: 8, who: "@Victim" } }
+      # C — the heal itself, only for an ally who is actually hurt.
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\" && %victim.healthpercent% < 100"
+        effects:
+          - { MODIFY_HEALTH: { amount: "floor(rand(1, 3))", mode: "give", who: "@Victim" } }  # integer 1-2
+      # D — the overheal branch: a full-health ally banks the hearts as Health Boost instead.
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\" && %victim.healthpercent% >= 100 && %healing_absorb% != 1"
+        effects:
+          - { POTION: { effect: "HEALTH_BOOST", level: 1, duration: 100, who: "@Victim" } }
+      # E — one durability point back on the shooter's most damaged worn piece.
+      - trigger: BOW
+        chance: 25
+        condition: "%victim.relation% == \"ALLY\""
+        effects:
+          - { DURABILITY: { amount: 1, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      # F — the launch cue; no victim exists yet, so no ally gate.
+      - trigger: BOW_FIRE
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "EMERALD_BLOCK", count: 8, who: "@Self" } }
+  2:
+    abilities:
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\""
+        effects:
+          - { CANCEL: {} }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341 } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "EMERALD_BLOCK", count: 8, who: "@Victim" } }
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\" && %victim.healthpercent% < 100"
+        effects:
+          - { MODIFY_HEALTH: { amount: "floor(rand(2, 6))", mode: "give", who: "@Victim" } }  # integer 2-5
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\" && %victim.healthpercent% >= 100 && %healing_absorb% != 1"
+        effects:
+          - { POTION: { effect: "HEALTH_BOOST", level: 2, duration: 120, who: "@Victim" } }
+      - trigger: BOW
+        chance: 50
+        condition: "%victim.relation% == \"ALLY\""
+        effects:
+          - { DURABILITY: { amount: 1, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      - trigger: BOW_FIRE
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "EMERALD_BLOCK", count: 8, who: "@Self" } }
+  3:
+    abilities:
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\""
+        effects:
+          - { CANCEL: {} }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341 } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "EMERALD_BLOCK", count: 8, who: "@Victim" } }
+      # B — the Absorption branch, absent below L3 (chance 15 x (level - 2)).
+      - trigger: BOW
+        chance: 15
+        condition: "%victim.relation% == \"ALLY\""
+        effects:
+          - { SET_VAR: { name: "healing_absorb", value: "1", ttl: 2, who: "@Self" } }
+          - { POTION: { effect: "ABSORPTION", level: 1, duration: 80, who: "@Victim" } }
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\" && %victim.healthpercent% < 100"
+        effects:
+          - { MODIFY_HEALTH: { amount: "floor(rand(3, 9))", mode: "give", who: "@Victim" } }  # integer 3-8
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\" && %victim.healthpercent% >= 100 && %healing_absorb% != 1"
+        effects:
+          - { POTION: { effect: "HEALTH_BOOST", level: 3, duration: 140, who: "@Victim" } }
+      - trigger: BOW
+        chance: 75
+        condition: "%victim.relation% == \"ALLY\""
+        effects:
+          - { DURABILITY: { amount: 1, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      - trigger: BOW_FIRE
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "EMERALD_BLOCK", count: 8, who: "@Self" } }
+  4:
+    abilities:
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\""
+        effects:
+          - { CANCEL: {} }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341 } }
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "EMERALD_BLOCK", count: 8, who: "@Victim" } }
+      # L4 Absorption chance is the measured `30.000000000000004`.
+      - trigger: BOW
+        chance: 30
+        condition: "%victim.relation% == \"ALLY\""
+        effects:
+          - { SET_VAR: { name: "healing_absorb", value: "1", ttl: 2, who: "@Self" } }
+          - { POTION: { effect: "ABSORPTION", level: 2, duration: 100, who: "@Victim" } }
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\" && %victim.healthpercent% < 100"
+        effects:
+          - { MODIFY_HEALTH: { amount: "floor(rand(4, 12))", mode: "give", who: "@Victim" } }  # integer 4-11
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\" && %victim.healthpercent% >= 100 && %healing_absorb% != 1"
+        effects:
+          - { POTION: { effect: "HEALTH_BOOST", level: 4, duration: 160, who: "@Victim" } }
+      - trigger: BOW
+        chance: 100
+        condition: "%victim.relation% == \"ALLY\""
+        effects:
+          - { DURABILITY: { amount: 1, target: "armor", mode: "restore", select: "most-damaged", who: "@Self" } }
+      - trigger: BOW_FIRE
+        chance: 100
+        effects:
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "EMERALD_BLOCK", count: 8, who: "@Self" } }

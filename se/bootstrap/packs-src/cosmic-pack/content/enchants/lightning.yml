@@ -1,0 +1,63 @@
+# Matrix: 05-enchants-bows.md § Lightning
+display: "Lightning"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance to call a bolt down on any"
+  - "&eplayer you hit."
+trigger: [BOW, ATTACK]
+applies-to: [BOW]
+group: "common"
+tier: common
+# ACQUISITION IS NOT MATRIX-RECORDED for doc 05 (no `max/base/interval/weight/tier` line on any entry here).
+# The rung is the source registration's own tier 1 of the 1-8 ladder (codex registration appendix) and max 3
+# is the numbers ladder's three rungs. Reconcile at the matrix backfill.
+# Players only. The jar rolled BEFORE the type test, so a wasted roll on a mob was invisible — outcome-identical
+# to SE's condition-then-chance order, recorded and not reproduced.
+# Melee mirror: yes — one ability per trigger, the shape §Deathbringer and §Blind already ship.
+# D-05-4 (as-intended): the jar dealt its 5.0 as a fresh ENTITY_ATTACK with the shooter as damager, which
+# re-entered the WHOLE enchant pipeline (bounded only by immunity ticks and the roll) — a bolt could chain every
+# other on-hit enchant a second time. The as-intended reading is a single, non-re-entrant 5.0 bonus, which is
+# what LIGHTNING is: engine effects never re-dispatch abilities.
+# The engine bolt is the safe one (no fire, no block ignition, no mob conversion), matching the jar's
+# effect-only strike; the thunder crack is vanilla-side.
+# Catalog trivia, not an engine matter: the jar's table entry has `interval = 0.0`, so the enchant table only
+# ever rolled level 3 — levels 1-2 came from books/scrolls. Copied to the tier config, nothing to author here.
+# era: the effect-only strike exists on 1.8.9 identically; no hazard.
+levels:
+  1:
+    abilities:
+      - trigger: BOW
+        chance: 10
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { LIGHTNING: { damage: 5.0, who: "@Victim" } }
+      - trigger: ATTACK
+        chance: 10
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { LIGHTNING: { damage: 5.0, who: "@Victim" } }
+  2:
+    abilities:
+      - trigger: BOW
+        chance: 20
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { LIGHTNING: { damage: 5.0, who: "@Victim" } }
+      - trigger: ATTACK
+        chance: 20
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { LIGHTNING: { damage: 5.0, who: "@Victim" } }
+  3:
+    # L3 chance is the measured `30.000000000000004`; damage is flat 5.0 at every level.
+    abilities:
+      - trigger: BOW
+        chance: 30
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { LIGHTNING: { damage: 5.0, who: "@Victim" } }
+      - trigger: ATTACK
+        chance: 30
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { LIGHTNING: { damage: 5.0, who: "@Victim" } }

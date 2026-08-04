@@ -1,0 +1,77 @@
+# Matrix: 05-enchants-bows.md § Sniper
+display: "Sniper"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eAn arrow that lands high on the body hits"
+  - "&efor a headshot multiplier."
+trigger: BOW
+applies-to: [BOW]
+# tier: doc 05 records no acquisition rows (see pacify.yml), so the rung the pack already ships carries
+# forward. Max level 5 comes from the multiplier ladder.
+group: "legendary"
+tier: legendary
+# Melee mirror: NO. The jar gates on a projectile damager, and BOW is the projectile trigger — the headshot
+# test is closed twice over, since `%impactheight%` is 0 on any non-projectile activation.
+# The matrix's PROJECTILE_HIT_HEIGHT gap is CLOSED on the shipped surface: `%impactheight%` is differenced at
+# the hit site as the projectile's Y minus the struck entity's feet Y, which is exactly the recorded test —
+# the ARROW's position, not a hitbox intersection, so a steep arrow can still headshot a torso hit (kept).
+# Rage immunity: the matrix names the jar key `effectedByRage`, but the shipped writer publishes ONE 200 ms
+# victim stamp — rage.yml's `raged` (4 t, written on a banking hit), which execute.yml already reads for its
+# own exclusion. Same window, same subject, so the immunity reads that mark here rather than inventing a
+# second key nothing writes.
+condition: "%impactheight% > 1.9 && %victim.var.raged% == 0"
+# Catalog rules owed to doc 06, not authorable here: an item carrying Lethal Sniper rejects Sniper, and
+# Lethal Sniper requires Sniper V. Both live on Lethal Sniper's own file (`requires:` / `blacklist:`) when
+# doc 06 ships — a dangling reference to an unshipped enchant is not authored on this side.
+# Composition with Longbow / Unfocus: the jar stacked those multiplicatively at MONITOR, the engine folds
+# every contribution additively into one hit (Longbow's interaction note; nothing to author here).
+# strings: verbatim per level below — the raw `Double.toString` of the multiplier is preserved, and the
+# `+<n>x` reads like an addition but IS the total multiplier. Victim-only: the shooter gets no feedback.
+# Config text promises "up to 3.5x" where the implementation caps at 3.1x — text drift, behavior copied.
+# era: `REDSTONE_BLOCK` is fine on 1.8.9; `HURT_FLESH` is the 1.8-era spelling of ENTITY_PLAYER_HURT — the
+# matrix marks the entry era-clean, but the resolver's alias table does not carry the pair yet; row owed in
+# the legacy sweep (deferred-content.md).
+levels:
+  # chance `0.35 + 0.075 x level` = 42.5/50/57.5/65/72.5 % (L4 measured `0.6499999999999999`, one ULP below
+  # 0.65 — the exact 65 ships, the difference is sub-observable); multiplier 1 + 0.42 x level → an additive
+  # fold of 42 pp per level. The SOUND rides the activation location, which on a BOW hit IS the victim, so
+  # the recorded victim-side cue lands where it should. The block-crack burst is repeated `max(1, level/2)`
+  # times in the jar — 1/1/1/2/2, visually identical to a single call, copied as-is with no intended change.
+  1:
+    chance: 42.5
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 42 } }  # x1.42 outgoing
+      - { MESSAGE: { text: "§c§l*** HEADSHOT [+1.42x DMG] ***", who: "@Victim" } }
+      - { SOUND: { sound: "ENTITY_PLAYER_HURT", volume: 2.0, pitch: 0.3 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }  # recorded at eye height; PARTICLE centres on the body (cosmetic delta)
+  2:
+    chance: 50
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 84 } }  # x1.8399999999999999 outgoing
+      - { MESSAGE: { text: "§c§l*** HEADSHOT [+1.8399999999999999x DMG] ***", who: "@Victim" } }
+      - { SOUND: { sound: "ENTITY_PLAYER_HURT", volume: 2.0, pitch: 0.3 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }
+  3:
+    chance: 57.5
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 126 } }  # x2.26 outgoing
+      - { MESSAGE: { text: "§c§l*** HEADSHOT [+2.26x DMG] ***", who: "@Victim" } }
+      - { SOUND: { sound: "ENTITY_PLAYER_HURT", volume: 2.0, pitch: 0.3 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }
+  4:
+    chance: 65
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 168 } }  # x2.6799999999999997 outgoing
+      - { MESSAGE: { text: "§c§l*** HEADSHOT [+2.6799999999999997x DMG] ***", who: "@Victim" } }
+      - { SOUND: { sound: "ENTITY_PLAYER_HURT", volume: 2.0, pitch: 0.3 } }
+      # Two bursts from level 4: the jar's `max(1, level/2)` repeat count, copied literally.
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }
+  5:
+    chance: 72.5
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 210 } }  # x3.1 outgoing
+      - { MESSAGE: { text: "§c§l*** HEADSHOT [+3.1x DMG] ***", who: "@Victim" } }
+      - { SOUND: { sound: "ENTITY_PLAYER_HURT", volume: 2.0, pitch: 0.3 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }

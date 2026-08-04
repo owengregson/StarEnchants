@@ -1,0 +1,113 @@
+# Matrix: 02-enchants-armor-m-z.md § Undead Ruse
+display: "Undead Ruse"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA melee hit you take can raise a ring of minions"
+  - "&eand drop you out of your attacker's sight."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "rare"
+tier: rare
+# The player-damager half of the jar's gate ships as `%victim.type%` — on a DEFENSE pass the "victim" IS the
+# attacker, the same reading `enchants/guardians` already carries. The matrix records that fact as missing and
+# widens to mob melee; the widening is not needed.
+condition: "%damagecause% == \"ENTITY_ATTACK\" && %victim.type% == \"PLAYER\""
+# Chance is 1/2/3/4 % and then clamped flat at 4 % from L5 up (measured, shipped as measured), and the jar
+# takes no cooldown at all — only the engine's 50-summons-a-chunk guard bounds a busy fight.
+# Zombie count is the jar's random 1..ceil(level / 2) flattened to a fixed 1/1/2/2/3/3/4/4/5/5 (D-02-12), and
+# a minion is permanent (ttl 0) on both eras, exactly as the jar left it. The ring replaces the jar's spawn
+# stacked at one crosshair point, which could bury a minion in a wall; radius and rise are SPAWN_SWARM's own,
+# since the matrix records no ring numbers.
+# The buff ladder is the matrix's amplifiers read as levels (amp 0/1/2 = level I/II/III): SPEED I always,
+# II from L4, III from L7; INCREASE_DAMAGE III from L5; FAST_DIGGING III from L8 — all permanent.
+# The vanish window is the INTENDED (zombies x 20) + 20 t; the jar's flat 20 t is its own loop counter already
+# decremented to zero (D-02-13). The reappear burst rides that window as a `wait:` on the last line, so it must
+# stay last — a wait tier accumulates down the effect list.
+# GAP, recorded in deferred-content.md: SPAWN_SWARM takes no `owner`, so these minions get no identity binding
+# and vanilla AI happily turns them on the wearer standing in the middle of their own ring. The jar's minions
+# never hurt (or target) their summoner; SPAWN_ENTITY/GUARD both bind an owner and the summon-target guard
+# reads it, so this closes with one `owner` param on SPAWN_SWARM.
+# era: `WITCH_MAGIC` is the 1.8.9 spelling of SPELL_WITCH (and `WITCH` after the 1.20.5 rename) — the particle
+# alias table carries it both ways; INCREASE_DAMAGE / FAST_DIGGING are the legacy potion ids, which resolve on
+# every lane.
+levels:
+  1:
+    chance: 1
+    effects:
+      - { SPAWN_SWARM: { type: "ZOMBIE", count: 1, ttl: 0, name: "§d§l{player}'s Undead Minion", effects: "SPEED" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self" } }
+      - { VIEWER_HIDE: { duration: 40, viewer: "attacker", who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self", wait: 40 } }  # on reappear
+  2:
+    chance: 2
+    effects:
+      - { SPAWN_SWARM: { type: "ZOMBIE", count: 1, ttl: 0, name: "§d§l{player}'s Undead Minion", effects: "SPEED" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self" } }
+      - { VIEWER_HIDE: { duration: 40, viewer: "attacker", who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self", wait: 40 } }
+  3:
+    chance: 3
+    effects:
+      - { SPAWN_SWARM: { type: "ZOMBIE", count: 2, ttl: 0, name: "§d§l{player}'s Undead Minion", effects: "SPEED" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self" } }
+      - { VIEWER_HIDE: { duration: 60, viewer: "attacker", who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self", wait: 60 } }
+  4:
+    chance: 4
+    effects:
+      - { SPAWN_SWARM: { type: "ZOMBIE", count: 2, ttl: 0, name: "§d§l{player}'s Undead Minion", effects: "SPEED*2" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self" } }
+      - { VIEWER_HIDE: { duration: 60, viewer: "attacker", who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self", wait: 60 } }
+  5:
+    chance: 4  # the jar's min(level, 4) clamp holds from here up
+    effects:
+      - { SPAWN_SWARM: { type: "ZOMBIE", count: 3, ttl: 0, name: "§d§l{player}'s Undead Minion", effects: "SPEED*2,INCREASE_DAMAGE*3" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self" } }
+      - { VIEWER_HIDE: { duration: 80, viewer: "attacker", who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self", wait: 80 } }
+  6:
+    chance: 4
+    effects:
+      - { SPAWN_SWARM: { type: "ZOMBIE", count: 3, ttl: 0, name: "§d§l{player}'s Undead Minion", effects: "SPEED*2,INCREASE_DAMAGE*3" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self" } }
+      - { VIEWER_HIDE: { duration: 80, viewer: "attacker", who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self", wait: 80 } }
+  7:
+    chance: 4
+    effects:
+      - { SPAWN_SWARM: { type: "ZOMBIE", count: 4, ttl: 0, name: "§d§l{player}'s Undead Minion", effects: "SPEED*3,INCREASE_DAMAGE*3" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self" } }
+      - { VIEWER_HIDE: { duration: 100, viewer: "attacker", who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self", wait: 100 } }
+  8:
+    chance: 4
+    effects:
+      - { SPAWN_SWARM: { type: "ZOMBIE", count: 4, ttl: 0, name: "§d§l{player}'s Undead Minion", effects: "SPEED*3,INCREASE_DAMAGE*3,FAST_DIGGING*3" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self" } }
+      - { VIEWER_HIDE: { duration: 100, viewer: "attacker", who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self", wait: 100 } }
+  9:
+    chance: 4
+    effects:
+      - { SPAWN_SWARM: { type: "ZOMBIE", count: 5, ttl: 0, name: "§d§l{player}'s Undead Minion", effects: "SPEED*3,INCREASE_DAMAGE*3,FAST_DIGGING*3" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self" } }
+      - { VIEWER_HIDE: { duration: 120, viewer: "attacker", who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self", wait: 120 } }
+  10:
+    chance: 4
+    effects:
+      - { SPAWN_SWARM: { type: "ZOMBIE", count: 5, ttl: 0, name: "§d§l{player}'s Undead Minion", effects: "SPEED*3,INCREASE_DAMAGE*3,FAST_DIGGING*3" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self" } }
+      - { VIEWER_HIDE: { duration: 120, viewer: "attacker", who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self", wait: 120 } }

@@ -1,0 +1,91 @@
+# Matrix: 02-enchants-armor-m-z.md § Phoenix
+display: "Phoenix"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA killing blow is refused and your souls"
+  - "&ebuy back full health — at double the price each time."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "soul"
+tier: soul
+# Every damage cause qualifies — the lethal-hit gate IS the whole activation. Same spelling resilience.yml
+# ships from this doc; the post-mitigation %posthit.health% form is deliberately not substituted, since the
+# matrix prices the save off the incoming hit.
+condition: "%damage% >= %actor.health%"
+# Phoenix is the one enchant exempt from the corpus's defensive-proc suppression (the layer rule
+# `phoenix-immune-to-defense-suppression` silence.yml already names). The matrix decomposes that as a second
+# PASSIVE ability carrying SUPPRESS_IMMUNE, but that primitive immunises the WEARER — every enchant they own
+# would stop being silenceable. `suppress-immune` is the enchant-scoped form, which is what "the one enchant
+# exempt" means, so the save survives a Silence/Tombstone window and nothing else changes.
+suppress-immune: true
+# The D-02 soul ladder: 500 base, doubled on each successful charge, ceilinged at 8000
+# (500/1000/2000/4000/8000 — the fifth proc and every one after it pay 8000), with one step shed per 10 min
+# of quiet back down to the base. The counter is keyed on the enchant's cooldown scope, so the three levels
+# share ONE ladder per player.
+soul-cost: 500
+soul-cost-growth: 2
+soul-cost-cap: 8000
+soul-cost-decay-period: 12000
+# The gem is a wallet, not a switch: matrix 07's cross-cutting Soul Mode section lists the mode's consumers
+# (Soul Trap, Hero Killer, Sabotage, Divine Immolation, Teleblock, Nature's Wrath, Paradox) and Phoenix is not
+# among them — a last-stand save that only fired in soul mode would never fire.
+soul-cost-carried: true
+no-souls-message: "§c§l** OUT OF SOULS **"  # the engine's 300 t throttle IS the recorded 15 s
+# {cost} and {souls} stay UNBOUND. MESSAGE substitutes {ATTACKER}/{VICTIM} and nothing else — its text takes
+# no author-defined token and no %fact% interpolation — so neither the escalated price (store state) nor the
+# post-spend balance can be rendered. Recorded verbatim, the same treatment paradox.yml gives this pair.
+# {ATTACKER} is the engine's bound name token for the ACTIVATING player, which on a DEFENSE pass is the
+# wearer — the matrix's {owner}. @AllPlayers excludes the activator, so the broadcast never doubles the
+# wearer's own lines.
+# Interactions carried by the OTHER side, nothing authored here: a Death Knight mask on the attacker blocks
+# the save 50 % of the time (masks doc 11) and the jar still burns the full cooldown on a blocked save
+# (measured, kept) — with it go `§c§l* PHOENIX BLOCKED [§7{attacker}§c§l] *` to the owner and
+# `§c§l* DEATH KNIGHT MASK [§7{owner}'s Phoenix Blocked§c§l] *` to the attacker. The jar's
+# armor-value > 25 self-disable is an artifact of its own lethal-gate arithmetic; the %damage% gate has no
+# such hole, so it is not ported.
+# era: ENDERDRAGON_GROWL is the 1.8 sound id and already carries its alias row
+# (ENDERDRAGON_GROWL -> ENTITY_ENDER_DRAGON_GROWL); FLAME and LAVA resolve on both eras. No new debt.
+levels:
+  # Cooldown (4 - level) minutes; everything else is flat across the three levels.
+  1:
+    cooldown: 3600
+    effects:
+      - { CANCEL: {} }
+      - { MODIFY_HEALTH: { amount: "%actor.maxhealth%", mode: "set", who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 1.0, pitch: 1.25 } }  # world-audible at the wearer — the recorded nearby copy is this same play
+      - { PARTICLE: { particle: "FLAME", count: 80, who: "@Self" } }
+      - { PARTICLE: { particle: "LAVA", count: 20, who: "@Self" } }
+      - { MESSAGE: { text: "" } }
+      - { MESSAGE: { text: "§6§l*** §nPHOENIX SOUL§6§l ***" } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems" } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+      - { MESSAGE: { text: "" } }
+      - { MESSAGE: { text: "§c§l*** PHOENIX SOUL (§7{ATTACKER}, -{cost} souls§c§l) ***", who: "@AllPlayers{r=48}" } }
+  2:
+    cooldown: 2400
+    effects:
+      - { CANCEL: {} }
+      - { MODIFY_HEALTH: { amount: "%actor.maxhealth%", mode: "set", who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 1.0, pitch: 1.25 } }
+      - { PARTICLE: { particle: "FLAME", count: 80, who: "@Self" } }
+      - { PARTICLE: { particle: "LAVA", count: 20, who: "@Self" } }
+      - { MESSAGE: { text: "" } }
+      - { MESSAGE: { text: "§6§l*** §nPHOENIX SOUL§6§l ***" } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems" } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+      - { MESSAGE: { text: "" } }
+      - { MESSAGE: { text: "§c§l*** PHOENIX SOUL (§7{ATTACKER}, -{cost} souls§c§l) ***", who: "@AllPlayers{r=48}" } }
+  3:
+    cooldown: 1200
+    effects:
+      - { CANCEL: {} }
+      - { MODIFY_HEALTH: { amount: "%actor.maxhealth%", mode: "set", who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 1.0, pitch: 1.25 } }
+      - { PARTICLE: { particle: "FLAME", count: 80, who: "@Self" } }
+      - { PARTICLE: { particle: "LAVA", count: 20, who: "@Self" } }
+      - { MESSAGE: { text: "" } }
+      - { MESSAGE: { text: "§6§l*** §nPHOENIX SOUL§6§l ***" } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems" } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+      - { MESSAGE: { text: "" } }
+      - { MESSAGE: { text: "§c§l*** PHOENIX SOUL (§7{ATTACKER}, -{cost} souls§c§l) ***", who: "@AllPlayers{r=48}" } }
