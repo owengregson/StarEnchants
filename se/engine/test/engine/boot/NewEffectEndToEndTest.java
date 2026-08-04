@@ -161,6 +161,12 @@ class NewEffectEndToEndTest {
         assertTrue(stores.foodWindows().cancelsDrain(ACTOR, 0L));
         assertEquals(2.5, stores.foodWindows().gainFactor(ACTOR, 0L), "the two windows are independent");
         assertFalse(stores.foodWindows().cancelsDrain(ACTOR, 40L), "half-open: the expiry tick is free");
+
+        run("absolute", "MODIFY_FOOD: { mode: absolute, factor: 1.75, duration: 80, who: \"@Self\" }",
+                stores, actor, null);
+        assertEquals(1.75, stores.foodWindows().absoluteFactor(ACTOR, 0L));
+        assertEquals(2.5, stores.foodWindows().gainFactor(ACTOR, 0L),
+                "absolute is its own slot, not a re-arm of scale-gain");
     }
 
     @Test

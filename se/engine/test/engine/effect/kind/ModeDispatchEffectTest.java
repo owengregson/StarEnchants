@@ -260,10 +260,15 @@ class ModeDispatchEffectTest {
                 foodPlayer("FOOD cancel-drain → the other window type, factor unused",
                         c -> c.with("mode", "cancel-drain").with("duration", 40L),
                         (s, p) -> verify(s).foodWindow(p, 1, 40, 0.0)),
+                foodPlayer("FOOD absolute → the third window type, carrying the factor",
+                        c -> c.with("mode", "absolute").with("factor", 1.75).with("duration", 80L),
+                        (s, p) -> verify(s).foodWindow(p, 2, 80, 1.75)),
                 foodLiving("FOOD on a non-player → skipped (no hunger bar)",
                         c -> c.with("amount", 6).with("mode", "give"), (s, t) -> { }),
                 foodLiving("FOOD scale-gain on a non-player → skipped",
-                        c -> c.with("mode", "scale-gain").with("factor", 2.0), (s, t) -> { }));
+                        c -> c.with("mode", "scale-gain").with("factor", 2.0), (s, t) -> { }),
+                foodLiving("FOOD absolute on a non-player → skipped",
+                        c -> c.with("mode", "absolute").with("factor", 1.75), (s, t) -> { }));
     }
 
     /** One player target under "who", ctx seeded from MODIFY_FOOD's own declared defaults. */
