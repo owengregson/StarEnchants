@@ -705,21 +705,28 @@ batch recorded as a comment inside those files.
   distinct, each checked against the real Spigot 1.8.8 `Sound` enum and both committed
   modern fixtures) found four that reach the 1.8 lane through neither a direct constant
   nor an alias row, because no row here ever listed them:
-  `FIZZ→BLOCK_FIRE_EXTINGUISH` (Clarity, batch 01 — that entry's ONLY sound, so the
+  ~~`FIZZ→BLOCK_FIRE_EXTINGUISH`~~ (Clarity, batch 01 — that entry's ONLY sound, so the
   scrub fires silently there, the same failure Permafrost and Soul Trap had),
-  `DIG_WOOL→BLOCK_WOOL_BREAK` (Cactus, batch 01 — the cue `mighty-cactus.yml` already
+  ~~`DIG_WOOL→BLOCK_WOOL_BREAK`~~ (Cactus, batch 01 — the cue `mighty-cactus.yml` already
   points at as the family's one piece of era debt),
-  `IRONGOLEM_DEATH→ENTITY_IRON_GOLEM_DEATH` (Guardians and Spirits — Spirits' era note
+  ~~`IRONGOLEM_DEATH→ENTITY_IRON_GOLEM_DEATH`~~ (Guardians and Spirits — Spirits' era note
   named the pair while listing only its ORB_PICKUP sibling as owed) and
-  `WITHER_DEATH→ENTITY_WITHER_DEATH` (`sets/mother-of-yijki` — whose era note claimed
+  ~~`WITHER_DEATH→ENTITY_WITHER_DEATH`~~ (`sets/mother-of-yijki` — whose era note claimed
   the resolver carried both wither cues when only `WITHER_SPAWN` is there). Two of the
   four silence the SIGNATURE pack as well, which this audit scoped to cosmic-pack and so
   did not name: `BLOCK_FIRE_EXTINGUISH` is also `enchants/auto-smelt`'s cue and
   `ENTITY_WITHER_DEATH` also `sets/spooky`'s and `sets/reaper`'s, so the four rows buy
-  back eight files (five cosmic, three signature), not five. All four
-  1.8 keys are present in the 1.8.8 enum and all four modern values in both fixtures,
-  and none of the eight strings collides with an existing row, so they land exactly as
-  the rest did. Recorded in each file. The lesson for whoever closes this next: walk the
+  back eight files (five cosmic, three signature), not five.
+  **ALL FOUR LANDED in the legacy sweep**, era-verified rather than list-verified: each
+  1.8 key re-javap'd out of the real Spigot 1.8.8 `Sound` enum
+  (`FIZZ`=`random.fizz`, `DIG_WOOL`=`dig.cloth`, `IRONGOLEM_DEATH`=`mob.irongolem.death`,
+  `WITHER_DEATH`=`mob.wither.death`, read off `CraftSound`'s own table), each modern value
+  grepped verbatim out of BOTH committed fixtures, and neither key nor value colliding with
+  a row already in the map, so the reverse scan stays deterministic. Recorded in each file.
+  The sweep re-ran the audit the way this entry's lesson demands — walking the 100 distinct
+  sound tokens BOTH packs author against the 1.8.8 enum and the alias table — and found no
+  fifth cosmic-pack gap: every other unbridged token is signature-pack and names a cue with
+  no 1.8 ancestor at all. The lesson stands for whoever closes the next one: walk the
   CONTENT's authored tokens, not this list.
   The rows it covered, all now landed (kept for provenance — each names the content it
   was silencing):
@@ -782,22 +789,29 @@ batch recorded as a comment inside those files.
   owed here: both are shipped, and the `enchants/demonic-gateway` /
   `enchants/feign-death` rows above still carry the stale "carries neither"
   claim in their prose;
-  **`ANVIL_BREAK` collision — SETTLED on `BLOCK_ANVIL_BREAK`.** The batch-05
-  Eagle Eye row used to map the same 1.8 `ANVIL_BREAK` to
-  `BLOCK_ANVIL_DESTROY`, on the premise that only one of the two modern names
-  exists. That premise is FALSE: `test-fixtures/handles/sounds-1.21.11.txt` and
-  `sounds-26.1.2.txt` (javap'd from the reference-cache paper-api jars) both
-  carry `BLOCK_ANVIL_BREAK` **and** `BLOCK_ANVIL_DESTROY`, so
-  `ModernHandleEraTest` passes either spelling and cannot arbitrate. Settled by
-  convention on the batch-03 spelling — one spelling pack-wide —
-  and `eagle-eye.yml` was flipped to `BLOCK_ANVIL_BREAK` (its 20 SOUND lines and
-  its era comment). Left for the sweep to confirm against a real jar: 1.8's
-  `ANVIL_BREAK` is `random.anvil_break`, whose modern id is `block.anvil.destroy`
-  (= `BLOCK_ANVIL_DESTROY`), while `BLOCK_ANVIL_BREAK` is `block.anvil.break`
-  — if the cue's character matters, the sweep flips all three files together
-  and rewrites the alias row to match. The row itself has LANDED on the settled
-  spelling, so the legacy lane resolves today; only the character question is
-  still open.
+  **`ANVIL_BREAK` collision — RESOLVED on `BLOCK_ANVIL_DESTROY`.** The row was
+  settled by convention on `BLOCK_ANVIL_BREAK` (one spelling pack-wide, the
+  batch-03 one) because both modern constants exist in
+  `test-fixtures/handles/sounds-1.21.11.txt` and `sounds-26.1.2.txt`, so
+  `ModernHandleEraTest` passes either and cannot arbitrate. The character
+  question it left for the sweep is answered, and it answers AGAINST the
+  convention: the two are different cues, so fidelity decides.
+  Evidence, all four legs read off real jars rather than a rename table —
+  1.8.8 `CraftSound` gives `ANVIL_BREAK` = `random.anvil_break`; 1.8.8's anvil
+  step sound (`Block$3`) answers `dig.stone` for `getBreakSound()`, so
+  `random.anvil_break` is NOT that era's block-break cue but its shatter;
+  paper-api gives `BLOCK_ANVIL_BREAK` = `block.anvil.break` and
+  `BLOCK_ANVIL_DESTROY` = `block.anvil.destroy`; and modern NMS puts
+  `SoundEvents.ANVIL_BREAK` in `SoundType.ANVIL`'s BREAK slot (the mining break
+  that inherited `dig.stone`) while `AnvilBlock.onBrokenAfterFall` fires the
+  level event that plays `block.anvil.destroy`. So `BLOCK_ANVIL_DESTROY` is the
+  descendant of the cue the jar named and `BLOCK_ANVIL_BREAK` a lighter,
+  unrelated one — the settled row had the two lanes playing different sounds.
+  The sweep flipped the row and all three authors together, keeping one spelling
+  pack-wide: `eagle-eye.yml` (20 SOUND lines), `disarmor.yml` (8) and
+  `disintegrate.yml` (4), each era comment rewritten with the reason so the
+  spelling is not "corrected" back. `ANVIL_LAND` is untouched — its own row
+  already maps to `BLOCK_ANVIL_LAND`, and both are `random.anvil_land`'s line.
   **The pets batch (12) adds six sound rows and rides two more.** Every sound in
   that codex is a 1.7/1.8 name and every pet file authors the modern spelling per
   pack convention, so each missing pair is a cue that plays on ONE era tree:
@@ -828,6 +842,39 @@ batch recorded as a comment inside those files.
   SKIN and is a codex question, not an engine one. The alias is worth landing
   regardless — an untextured head is the intended fallback, a sheet of paper is
   not.
+
+- **`PROJECTILE_LAND` on 1.8.9 — CLOSED by the legacy sweep, arrows only.** The
+  trigger shipped modern-only (wave 2c, ADR-0044 seam `feature.compat.Projectiles`)
+  because 1.8.8's `ProjectileHitEvent` carries only the projectile, and
+  `EntityArrow` fires it BEFORE branching on the hit entity and before moving the
+  arrow to the impact — so during the event neither the landing point nor the
+  entity-vs-block discrimination is readable, and the leaf answered "no landing".
+  Five cosmic enchants author the trigger (Cowification, Hellfire, Explosive, Venom,
+  Infernal) and were silently half-dead on the legacy lane. The bytecode says the
+  answer is one tick away rather than absent: the block branch writes the hit tile,
+  pulls the arrow back along its flight, sets `inGround` and ends the tick at the
+  impact, while an entity hit has already `die()`d the arrow. So the seam changed
+  from "answer now or decline" to a callback, and the legacy leaf probes the arrow's
+  in-ground flag on its own entity scheduler one tick on — no new abstraction, no
+  tracking store, no hot-path work, and modern stays byte-identical (its four unit
+  tests are unchanged). Residual, recorded rather than papered over: on 1.8 the
+  trigger fires for ARROWS only. A thrown projectile or fireball is already `dead`
+  when its hit event fires, so nothing survives to probe; covering those would need
+  a per-projectile damage flag fed from a combat listener, which is a real tracking
+  store for zero authored content. All five authors are bow enchants and
+  `PROJECTILE_DRESSING` attaches a rider rather than replacing the arrow, so every
+  authored case is an arrow. The five files' era comments are corrected.
+- **The mask/crystal amethyst gesture cues — CLOSED as verified, unchanged.**
+  `items/crystal.yml` and `items/mask.yml` author `block.amethyst_block.chime` /
+  `block.amethyst_cluster.break`, 1.17+ handles, and both files claimed those
+  "warn-skip on the legacy fork". They do not warn. Item-likeness cues are raw
+  strings that no stage handle-resolves, so there is no load-time gate; at use time
+  `feature.compat.Sounds` finds no constant of that name, the legacy key fallback is
+  `KeySoundFallback.NONE`, and the cue is dropped with no log at all. The gesture is
+  unaffected — the cue plays after the commit — so a 1.8.9 apply or remove is simply
+  mute. The cues are KEPT modern rather than degraded to a 1.8 stand-in, which would
+  change the sound everywhere the pack actually plays it; both era comments now state
+  the verified outcome instead of the warn-skip claim.
 
 - **Found by the masks batch (11) — three engine findings no content file could
   close.**
