@@ -225,7 +225,8 @@ effect,
 `WORN_COMPOSITE` (11 — multi-mask; irreducible core mask feature),
 `INVENTORY_CONVERT` (12 — lava + water pets), `ITEM_XP_TRACK` (12 — the pet
 XP/level infrastructure; every pet entry consumes it), `%actor.y%` position fact
-(11). **All but `WORN_COMPOSITE` SHIPPED by wave 2d.2.** Three carry a design
+(11). **All SHIPPED — the pool is drained: every item but `WORN_COMPOSITE` by wave 2d.2,
+and that one in wave 2e.2.** Three carry a design
 call worth reading before authoring against them. `SPAWNER_YIELD` is a worn
 CHANNEL, not an activation — nothing procs a spawner firing, and the intended
 per-spawn wearer test is precisely what an armed window would turn back into the
@@ -234,8 +235,12 @@ the recorded milliseconds, because the item store has no 64-bit surface and a
 seconds epoch overflows an int in 2038. `INVENTORY_CONVERT` ships the INTENDED
 cap-straddling direction, not the measured inversion. **`WORN_COMPOSITE` STOPPED
 in wave 2d.2** on a contradiction inside its own matrix entry — def-declared
-children versus per-item children — with three options and three attendant
-rulings recorded in `deferred-content.md` § Engine follow-up pool.
+children versus per-item children — and was **RULED PER-ITEM and SHIPPED in wave
+2e.2** (ADR-0074), built as the Multi Crystal shape: the children pack into the
+helmet's existing `maskKey` as one `"a+b"` entry, so the codec is untouched and
+there is no container def at all. The 2d.2 costing assumed per-item children
+needed a new `CombatState` component; the crystal precedent had already answered
+that, which is what collapsed the option's price.
 
 ## Excluded by owner ruling R9 (2026-08-02): economy is note-only
 
