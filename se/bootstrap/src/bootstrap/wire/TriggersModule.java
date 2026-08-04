@@ -33,7 +33,7 @@ final class TriggersModule {
                 // ITEM_DAMAGE source (§4): modern PlayerItemDamageEvent listener; on 1.8 an inert listener.
                 .events(core.bindings().itemDamageSource(core.triggerDispatch()))
                 // A landing FALLING_BLOCK fires the IMPACT trigger on whoever it hit (druid Terrablender grass rain).
-                .events(new FallingBlockListener(core.triggerDispatch()))
+                .events(new FallingBlockListener(core.triggerDispatch(), core.sinkEnv().nowTicks()))
                 // A hit on a summoned guardian fires GUARDIAN_HURT on its owner (ADR-0049 Blood Link).
                 .events(new GuardianHurtListener(core.triggerDispatch()))
                 // A player's projectile coming down fires PROJECTILE_LAND at the impact (landing-AoE bows);

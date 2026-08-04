@@ -76,6 +76,11 @@ final class RecordingSink extends DispatchSinkBase {
     }
 
     @Override
+    protected void particleDirect(Location at, int particleId, int count, double spread) {
+        bursts.add(new Burst(null, particleId, count));
+    }
+
+    @Override
     protected PotionEffectType potionEffect(int id) {
         return potions.getOrDefault(id, slowType);
     }

@@ -560,6 +560,11 @@ public final class ModernDispatchSink extends DispatchSinkBase {
     }
 
     @Override
+    protected void particleDirect(Location at, int particleId, int count, double spread) {
+        spawnParticleAt(at, particleId, count, -1, spread, spread, spread);
+    }
+
+    @Override
     public void dust(Location at, int particleId, int r, int g, int b, float size, int count) {
         regionOp(at, () -> dustDirect(at, particleId, r, g, b, size, count));
     }

@@ -340,6 +340,34 @@ public interface Sink {
     void fallingBlock(Location at, int materialId, int ttlTicks, UUID owner, UUID target, double carriedDamage);
 
     /**
+     * Rain a whole {@link BlockFieldProfile} field of {@link #fallingBlock} cosmetics on {@code center} — the
+     * shaped intent to {@code fallingBlock}'s per-position primitive, exactly as {@link #tempBox} is to
+     * {@link #tempBlock}. ONE intent per target rather than one per block: the layer count, the per-layer step,
+     * the per-position density draw and the palette pick are all RANDOM, and randomness belongs on this side of
+     * the boundary; the sink also re-keys each column to its own region, which a 9-wide field needs on Folia.
+     *
+     * <p>{@code palette} is one or more interned materials, drawn per block (a single-entry palette is
+     * byte-identical to a plain material). {@code carriedDamage}, the profile's re-hit ceiling and its
+     * kill-material counterplay all ride each spawned block to its landing.
+     */
+    void fallingBlockField(Location center, java.util.List<Integer> palette, BlockFieldProfile profile,
+                           int ttlTicks, UUID owner, UUID target, double carriedDamage);
+
+    /**
+     * Sample {@code profile.points()} ground points around {@code origin}, telegraph each one NOW, warn every
+     * body {@code profile.filter()} admits within {@code profile.targetRange()}, and after
+     * {@code profile.delayTicks()} strike each stored point — DELAYED_STRIKE_FIELD.
+     *
+     * <p>The points are independent and never de-duplicated: a body standing where two of them overlap is struck
+     * by both. Every phase runs on the POINT's own region thread (the {@link #tempBox} re-key rule), because a
+     * point offset several blocks from the caster can sit in another Folia region, and phase 2 fires a whole
+     * delay later — by which time the caster may be gone entirely. {@code warning} is sent as-is apart from its
+     * {@code caster} token.
+     */
+    void delayedStrikeField(Location origin, Player caster, StrikeFieldProfile profile, FieldCue telegraph,
+                            FieldCue strike, boolean lightning, String warning);
+
+    /**
      * Summon {@code count} guardian mobs of an interned type at {@code at}, each set to target
      * {@code target} (the attacker) if it is a mob (GUARD). {@code ttlTicks > 0} auto-removes each after
      * that many ticks; a non-blank {@code name} is shown above each. A targeted superset of

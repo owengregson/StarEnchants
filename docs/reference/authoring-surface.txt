@@ -53,6 +53,28 @@ effect DAMAGE_SCALE
   param mode ENUM optional min=- max=- enum=add,flat handle=- default=add
   param per DOUBLE required min=- max=- enum=- handle=- default=-
   param cap DOUBLE optional min=0 max=- enum=- handle=- default=0
+effect DELAYED_STRIKE_FIELD
+  param points INT optional min=1 max=64 enum=- handle=- default=16
+  param offset-min INT optional min=0 max=64 enum=- handle=- default=2
+  param offset-max INT optional min=0 max=64 enum=- handle=- default=9
+  param delay TICKS optional min=1 max=- enum=- handle=- default=20
+  param hit-radius DOUBLE optional min=0 max=- enum=- handle=- default=1.4142135623730951
+  param target-range DOUBLE optional min=0 max=- enum=- handle=- default=32
+  param filter ENUM optional min=- max=- enum=ALL,ALLIES,ENEMIES,MOBS,MONSTERS,PLAYERS handle=- default=ENEMIES
+  param damage DOUBLE optional min=0 max=- enum=- handle=- default=16
+  param health-floor DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param warning STRING optional min=- max=- enum=- handle=- default=
+  param cue-sound HANDLE optional min=- max=- enum=- handle=SOUND default=-
+  param cue-volume DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param cue-pitch DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param cue-particle HANDLE optional min=- max=- enum=- handle=PARTICLE default=-
+  param cue-particle-count INT optional min=0 max=- enum=- handle=- default=1
+  param strike-sound HANDLE optional min=- max=- enum=- handle=SOUND default=-
+  param strike-volume DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param strike-pitch DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param strike-particle HANDLE optional min=- max=- enum=- handle=PARTICLE default=-
+  param strike-particle-count INT optional min=0 max=- enum=- handle=- default=1
+  param lightning BOOL optional min=- max=- enum=- handle=- default=true
 effect DESPAWN
 effect DIG_HOME
   param window TICKS optional min=0 max=- enum=- handle=- default=600
@@ -91,10 +113,23 @@ effect FACING_SET
   param anchor ENUM optional min=- max=- enum=activator,attacker,victim handle=- default=activator
 effect FALLING_BLOCK
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-
+  param material2 HANDLE optional min=- max=- enum=- handle=MATERIAL default=-
+  param material3 HANDLE optional min=- max=- enum=- handle=MATERIAL default=-
+  param material4 HANDLE optional min=- max=- enum=- handle=MATERIAL default=-
   param radius INT optional min=0 max=4 enum=- handle=- default=1
-  param height INT optional min=0 max=12 enum=- handle=- default=4
+  param height INT optional min=0 max=64 enum=- handle=- default=4
   param ttl TICKS optional min=0 max=- enum=- handle=- default=40
   param carry DOUBLE optional min=- max=- enum=- handle=- default=0
+  param layers-min INT optional min=1 max=8 enum=- handle=- default=1
+  param layers-max INT optional min=1 max=8 enum=- handle=- default=1
+  param layer-step-min INT optional min=0 max=24 enum=- handle=- default=0
+  param layer-step-max INT optional min=0 max=24 enum=- handle=- default=0
+  param density DOUBLE optional min=0 max=100 enum=- handle=- default=100
+  param damage-percent DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param health-cap DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param rehit-max INT optional min=0 max=- enum=- handle=- default=0
+  param rehit-window TICKS optional min=0 max=- enum=- handle=- default=200
+  param kill-material HANDLE optional min=- max=- enum=- handle=MATERIAL default=-
 effect FALL_SHIELD
   param window TICKS optional min=1 max=- enum=- handle=- default=200
 effect FILL_OXYGEN

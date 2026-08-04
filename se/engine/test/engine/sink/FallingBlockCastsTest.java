@@ -57,4 +57,39 @@ class FallingBlockCastsTest {
         assertNull(cast.owner());
         assertEquals(1.0, cast.damage());
     }
+
+    @Test
+    void theRehitCeilingIsAFixedBucketSharedByEveryWearerRainingOnOneVictim() {
+        UUID victim = UUID.randomUUID();
+        UUID block = UUID.randomUUID();
+        FallingBlockCasts.bind(block, UUID.randomUUID(), victim, 3.0, 4, 200);
+        FallingBlockCasts.Cast cast = FallingBlockCasts.onLand(block);
+
+        // Driven through the CAST, so a ceiling dropped anywhere in the bind → landing plumbing fails here too.
+        // Four blocks land at once — conceptually from four DIFFERENT wearers' fields, which a victim-keyed
+        // bucket cannot tell apart, and must not: a crowd may not multiply one victim's damage ceiling.
+        for (int wearer = 1; wearer <= 4; wearer++) {
+            assertTrue(FallingBlockCasts.claimHit(victim, cast.rehitMax(), cast.rehitWindowTicks(), 0L),
+                    "impact " + wearer + " is inside the ceiling");
+        }
+        assertFalse(FallingBlockCasts.claimHit(victim, cast.rehitMax(), cast.rehitWindowTicks(), 0L));
+        assertFalse(FallingBlockCasts.claimHit(victim, cast.rehitMax(), cast.rehitWindowTicks(), 199L),
+                "the bucket is anchored at the FIRST claim, so the window runs from there...");
+        assertTrue(FallingBlockCasts.claimHit(victim, cast.rehitMax(), cast.rehitWindowTicks(), 200L),
+                "...and re-anchors only once it has fully elapsed (a fixed bucket, not a sliding one)");
+        assertTrue(FallingBlockCasts.claimHit(UUID.randomUUID(), 4, 200, 0L), "another victim has their own bucket");
+    }
+
+    @Test
+    void anUnprofiledGridCarriesNoCeilingAndBooksNothing() {
+        UUID block = UUID.randomUUID();
+        FallingBlockCasts.bind(block, UUID.randomUUID(), UUID.randomUUID(), 1.0); // today's plain grid
+        FallingBlockCasts.Cast cast = FallingBlockCasts.onLand(block);
+        assertEquals(0, cast.rehitMax(), "an unprofiled grid stays uncapped, exactly as it was before the field");
+
+        UUID victim = UUID.randomUUID();
+        for (int landing = 0; landing < 50; landing++) {
+            assertTrue(FallingBlockCasts.claimHit(victim, cast.rehitMax(), cast.rehitWindowTicks(), 0L));
+        }
+    }
 }
