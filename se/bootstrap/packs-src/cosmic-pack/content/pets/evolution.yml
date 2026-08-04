@@ -24,8 +24,7 @@
 # string of the three that CAN render truthfully. `evofired` is the 1-tick marker that keeps that refusal off
 # a successful use — the token is armed in the same activation, and SET_VAR writes straight through.
 # era: `LAVA_POP` is the 1.7/1.8 spelling; the modern name ships per the pack convention and
-# `LAVA_POP`->`BLOCK_LAVA_POP` has no row in `Aliases.SOUND` yet (owed with Lava's, legacy sweep), so the cue
-# is silent on the legacy lane until it lands. No other hazard.
+# `LAVA_POP`->`BLOCK_LAVA_POP` is in `Aliases.SOUND`, so the cue plays on both lanes. No other hazard.
 display: "Evolution Pet"
 color: "&e"
 type: ACTIVE

@@ -33,10 +33,10 @@
 # jar's scheduled `§c§lPET: /sh sell ability expired!` has no counterpart: the only line the surface could
 # close a window with is the universal `pets.message-on-end`, which this pack blanks (it would fire on every
 # pet's refusal branches too, and a per-pet expiry string has no home). Recorded, not faked.
-# era: `DIG_SNOW` is the 1.7/1.8 name of the snow-break cue and has NO row in the sound alias table — the
-# modern spelling is authored here per pack convention and the alias row is owed (a token that resolves on
-# only one era tree is a blocking diagnostic there). `WITHER_SHOOT → ENTITY_WITHER_SHOOT` already resolves
-# both ways. `SKULL_ITEM:3 → PLAYER_HEAD` and the head texture are the shared pet likeness's problem.
+# era: `DIG_SNOW` is the 1.7/1.8 name of the snow-break cue; the modern spelling is authored here per pack
+# convention and `Aliases.SOUND` carries the row, as it does `WITHER_SHOOT → ENTITY_WITHER_SHOOT`. The head
+# is the shared pet likeness's problem: with no `head:` the era seam is never reached, so 1.8 takes
+# `ItemFactory`'s `PLAYER_HEAD → SKULL_ITEM` degradation (data 0, a skeleton skull) and the skin stays owed.
 # FOLDER HARMONISATION (owner ruling): '&' colour form, own Cooldown block, spectator refusal as its own ability.
 display: "Stronghold Sell Pet"
 color: "&e"

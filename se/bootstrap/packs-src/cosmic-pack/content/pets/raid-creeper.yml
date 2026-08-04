@@ -34,9 +34,8 @@
 # The pet is listed in the Mystery Pet Box's lore at a 0 % chance and is not obtainable from it (ruling R3
 # leaves the box out of scope entirely).
 # era: creeper spawning is identical on both trees and the custom stats are external either way. `DIG_SNOW`
-# is the 1.7/1.8 snow-break cue and has NO row in the sound alias table — the modern spelling is authored per
-# pack convention and the alias row is owed (a token that resolves on only one era tree is a blocking
-# diagnostic there). `WITHER_SHOOT → ENTITY_WITHER_SHOOT` already resolves both ways.
+# is the 1.7/1.8 snow-break cue; the modern spelling is authored per pack convention and `Aliases.SOUND`
+# carries the row, as it does `WITHER_SHOOT → ENTITY_WITHER_SHOOT`.
 # FOLDER HARMONISATION (owner ruling): '&' colour form, own Cooldown block, spectator refusal as its own ability.
 display: "Raid Creeper Pet"
 color: "&e"

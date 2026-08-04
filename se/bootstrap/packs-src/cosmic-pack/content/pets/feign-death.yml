@@ -36,8 +36,8 @@
 # arm answers every use. The moment the store is sourced into the USE context the ladder works as recorded —
 # the shape is authored now so nothing here needs rewriting then.
 # era: `DIG_SNOW` / `WITHER_SHOOT` are the 1.8 spellings; the modern names ship per the pack convention.
-# `WITHER_SHOOT`->`ENTITY_WITHER_SHOOT` is already in `Aliases.SOUND`; `DIG_SNOW`->`BLOCK_SNOW_BREAK` is owed
-# (legacy sweep), so that one cue is silent on the legacy lane until it lands. Titles are fine on 1.8.9, and
+# `WITHER_SHOOT`->`ENTITY_WITHER_SHOOT` and `DIG_SNOW`->`BLOCK_SNOW_BREAK` are both in `Aliases.SOUND`, so
+# both cues play on the legacy lane. Titles are fine on 1.8.9, and
 # the hide itself is the primitive's own era seam (1.8 datawatcher vs modern metadata).
 display: "Feign Death Pet"
 color: "&e"
