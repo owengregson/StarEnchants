@@ -142,6 +142,29 @@ class WornResolverTest {
         assertEquals(2, worn.byTrigger(0).length); // lifesteal on two pieces → id 0 twice
     }
 
+    @Test
+    void flattenedEnchantLevelsReportTheHighestLevelWornAndZeroForAnAbsentOne() {
+        // %scope.enchlevel.<key>% is a lookup into this map, so the MAX across pieces must be decided HERE —
+        // the hit path never scans gear. Keys are the lower-cased stem of enchants/<stem>/<level>.
+        StableKeyIndex keys = new StableKeyIndex(List.of("enchants/solitude/1", "enchants/solitude/4"));
+        Ability[] abilities = {ability(0, 1 << 0), ability(1, 1 << 0)};
+        WornState worn = resolver().resolveFrom(
+                List.of(ench("enchants/solitude", 1), ench("enchants/solitude", 4)), keys, abilities, 1);
+
+        assertEquals(4, worn.enchantLevel("solitude"), "a higher-level piece wins over a lower-level one");
+        assertEquals(0, worn.enchantLevel("metaphysical"), "an enchant nobody wears reads 0");
+        // Both pieces still fire independently — the level map is a read-side view, not a dedup.
+        assertEquals(2, worn.byTrigger(0).length);
+    }
+
+    @Test
+    void anEnchantWhoseContentIsGoneContributesNoLevel() {
+        // The key resolves to -1, so the ability never fires — the level must read 0 to match.
+        WornState worn = resolver().resolveFrom(
+                List.of(new CombatState(Map.of("enchants/ghost", 9), List.of())), KEYS, ABILITIES, 1);
+        assertEquals(0, worn.enchantLevel("ghost"));
+    }
+
     // ── G01 hand attribution: an off-hand item never swings ──────────────────────────────────────
     // id 0 fires on ATTACK (trigger 0), id 1 fires on DEFENSE (trigger 1).
     private static final StableKeyIndex HAND_KEYS =

@@ -328,6 +328,42 @@ class FactPopulatorTest {
     }
 
     @Test
+    void enchantLevelReadsAreBoundPerSideAndCostNothingUntilAsked() {
+        // The keyed families own no fact slot, so they are BOUND, not populated: the installed source must not
+        // be consulted for an activation whose condition never mentions an enchant level.
+        UUID actorId = UUID.randomUUID();
+        UUID victimId = UUID.randomUUID();
+        Player a = actor();
+        when(a.getUniqueId()).thenReturn(actorId);
+        LivingEntity v = mock(LivingEntity.class);
+        when(v.getUniqueId()).thenReturn(victimId);
+        java.util.List<String> consulted = new java.util.ArrayList<>();
+        FactPopulator.enchantLevelSource((entity, key) -> {
+            consulted.add(key);
+            if (entity.equals(actorId)) {
+                return "solitude".equals(key) ? 3 : 0;
+            }
+            return entity.equals(victimId) && "metaphysical".equals(key) ? 1 : 0;
+        });
+        try {
+            FactPopulator pop = FactPopulator.builtin(new ModernActorProbe());
+
+            FactBuffer f = pop.populate(new ActivationContext(a, v, null, null), 0L, FactMask.NONE);
+            assertTrue(consulted.isEmpty(), "an unread enchlevel family must never consult the source");
+
+            assertEquals(3, f.actorEnchantLevel("solitude"));
+            assertEquals(1, f.victimEnchantLevel("metaphysical"));
+            assertEquals(0, f.actorEnchantLevel("metaphysical"), "an enchant the actor lacks reads 0");
+
+            // No victim on this activation: the victim side answers 0 rather than falling back to the actor's.
+            FactBuffer solo = pop.populate(new ActivationContext(a, null, null, null), 0L, FactMask.NONE);
+            assertEquals(0, solo.victimEnchantLevel("solitude"));
+        } finally {
+            FactPopulator.enchantLevelSource(null); // restore the zero source so other tests aren't perturbed
+        }
+    }
+
+    @Test
     void soulTotalsComeFromTheCachedStoreOnBothSides() {
         int actorSlot = num("actor", "souls");
         int victimSlot = num("victim", "souls");

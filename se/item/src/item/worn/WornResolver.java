@@ -189,6 +189,9 @@ public final class WornResolver {
         List<Integer> crystalIds = new ArrayList<>();
         List<Integer> wornSetIds = new ArrayList<>();
         List<String> heldWeaponSetKeys = new ArrayList<>(); // sets whose WEAPON this entity holds (§6.6)
+        // %scope.enchlevel.<key>%: flattened HERE, once per equip, so the hit-path read is a lookup and never
+        // a gear scan. Keyed by the lower-cased stem — the canonical form ConditionCompiler lowers a key to.
+        Map<String, Integer> enchantLevels = new java.util.HashMap<>();
         int omniCount = 0;
         HeroicStat heroic = HeroicStat.NONE;
         Features f = features.get(); // §L master toggles: a disabled feature's source is skipped
@@ -209,6 +212,8 @@ public final class WornResolver {
                     String levelKey = enchant.getKey() + "/" + enchant.getValue();
                     int id = keys.idOf(levelKey);
                     if (id >= 0) {
+                        // Highest level wins when the same enchant sits on two pieces at different levels.
+                        enchantLevels.merge(stemOf(enchant.getKey()), enchant.getValue(), Math::max);
                         firing.add(id);
                         // A multi-ability level keys its further blocks <base>/<level>/a1, /a2, … (dense, no
                         // gaps), exactly like a crystal/mask/reforge/set. Walk them so every block fires;
@@ -345,7 +350,14 @@ public final class WornResolver {
             }
         }
         return WornFlattener.flatten(generation, toIntArray(mergedIds), toIntArray(offhandIds), abilities,
-                triggerCount, activeSets, toIntArray(crystalIds), heroic, attackTrigger, defenseTrigger);
+                triggerCount, activeSets, toIntArray(crystalIds), heroic, attackTrigger, defenseTrigger,
+                enchantLevels);
+    }
+
+    /** The {@code <stem>} of a {@code <source>/<stem>} base key, lower-cased — the enchlevel lookup's key. */
+    private static String stemOf(String baseKey) {
+        int slash = baseKey.lastIndexOf('/');
+        return (slash < 0 ? baseKey : baseKey.substring(slash + 1)).toLowerCase(java.util.Locale.ROOT);
     }
 
     private static int[] toIntArray(List<Integer> values) {
