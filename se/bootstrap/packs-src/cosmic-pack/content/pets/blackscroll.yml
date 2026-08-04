@@ -44,9 +44,9 @@
 # items (black scroll / heroic black scroll) arrive with the pack's items batch; until then the charge simply
 # waits, which is exactly what it does between uses anyway.
 # era: none beyond the family notes. `LAVA_POP` and `ITEM_PICKUP` are 1.7/1.8 sound names, authored here in
-# their modern spellings (`BLOCK_LAVA_POP`, `ENTITY_ITEM_PICKUP`); NEITHER has an `Aliases.SOUND` row yet, so
-# both warn-skip on the legacy fork until the sweep adds `LAVA_POP → BLOCK_LAVA_POP` and
-# `ITEM_PICKUP → ENTITY_ITEM_PICKUP`. `SKULL_ITEM:3` → `PLAYER_HEAD` is the codec's own era seam.
+# their modern spellings (`BLOCK_LAVA_POP`, `ENTITY_ITEM_PICKUP`); `Aliases.SOUND` carries both rows
+# (`LAVA_POP → BLOCK_LAVA_POP`, `ITEM_PICKUP → ENTITY_ITEM_PICKUP`), so both play on the legacy fork.
+# `SKULL_ITEM:3` is the era seam's shape, but only for a pet that authors a `head:` — see `pet.yml`.
 # FOLDER HARMONISATION (owner ruling): '&' colour form, own Cooldown block, spectator refusal as its own ability.
 display: "Blackscroll Pet"
 color: "&e"

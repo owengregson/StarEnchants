@@ -62,7 +62,13 @@ public final class ItemFactory {
             Map.entry("SOUL_CAMPFIRE", "FURNACE"),          // 1.16+ item: Spell Grappler
             Map.entry("GLOW_BERRIES", "SPECKLED_MELON"),    // 1.17+ item: Berry Overdrive
             Map.entry("HEART_OF_THE_SEA", "PRISMARINE_SHARD"), // 1.13+ item: Star Battery
-            Map.entry("LIGHT_BLUE_CANDLE", "TORCH"));       // 1.17+ item: Spectral Javelin
+            Map.entry("LIGHT_BLUE_CANDLE", "TORCH"),        // 1.17+ item: Spectral Javelin
+            // The untextured-head default (ADR-0052): PetDefReader hands every pet PLAYER_HEAD, and a pet
+            // that authors no `head:` never reaches the era seam, so on 1.8 it minted as the generic PAPER
+            // fallback. Lossy in a way the others are not — this path carries no data value, so 1.8 renders
+            // the data-0 SKELETON skull rather than the player variant the seam's SKULL_ITEM:3 produces.
+            // A head-shaped trophy is the intended likeness; the skin is a codex question (deferred-content).
+            Map.entry("PLAYER_HEAD", "SKULL_ITEM"));
 
     /** The closest older-server equivalent of a newer material, or {@code null} if none is registered. */
     static String legacyFallback(String upperToken) {

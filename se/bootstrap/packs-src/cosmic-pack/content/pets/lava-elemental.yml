@@ -23,9 +23,8 @@
 # nothing to top up; the lore lines still ship verbatim and the numbers stay in the matrix entry. XP is
 # therefore the converted count alone.
 # era: `LAVA_POP` / `VILLAGER_NO` are the 1.7/1.8 spellings; the modern names ship per the pack convention and
-# `Aliases.SOUND` carries NEITHER row yet (`LAVA_POP`->`BLOCK_LAVA_POP`, `VILLAGER_NO`->`ENTITY_VILLAGER_NO`),
-# so both cues are silent on the legacy lane until the sweep lands them. BUCKET / LAVA_BUCKET are identical on
-# both trees.
+# `Aliases.SOUND` carries both rows (`LAVA_POP`->`BLOCK_LAVA_POP`, `VILLAGER_NO`->`ENTITY_VILLAGER_NO`),
+# so both cues play on the legacy lane. BUCKET / LAVA_BUCKET are identical on both trees.
 display: "Lava Elemental Pet"
 color: "&e"
 type: ACTIVE

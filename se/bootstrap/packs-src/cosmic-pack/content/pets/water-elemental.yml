@@ -10,9 +10,9 @@
 # The bucket budget is IDENTICAL to Lava's for half the XP (`level x 500` against `level x 1000`) — measured,
 # and kept: the same work is worth half as much on this pet.
 # era: `SPLASH` / `VILLAGER_NO` are the 1.8 spellings; the modern names ship per the pack convention.
-# `SPLASH`->`ENTITY_GENERIC_SPLASH` is already on the legacy-sweep list (matrix/04 § Blessed) and
-# `VILLAGER_NO`->`ENTITY_VILLAGER_NO` is owed with Lava's, so both cues are silent on the legacy lane until
-# the sweep lands them. BUCKET / WATER_BUCKET are identical on both trees.
+# `SPLASH`->`ENTITY_GENERIC_SPLASH` (matrix/04 § Blessed) and `VILLAGER_NO`->`ENTITY_VILLAGER_NO` both have
+# rows in `Aliases.SOUND`, so both cues play on the legacy lane. BUCKET / WATER_BUCKET are identical on both
+# trees.
 display: "Water Elemental Pet"
 color: "&e"
 type: ACTIVE

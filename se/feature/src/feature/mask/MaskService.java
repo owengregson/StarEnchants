@@ -112,7 +112,8 @@ public final class MaskService {
         if (stack == null) {
             // No texture (blank head / unsupported server): resolve the def's material token by NAME. The
             // fallback constant must exist on BOTH eras (the Material.CLOCK trap) — PAPER, not PLAYER_HEAD,
-            // which is absent on 1.8 (there the era seam above already built a SKULL_ITEM head).
+            // which is absent on 1.8. Every cosmic mask authors a blob, so this is the reflection-failed
+            // path here; ItemFactory degrades the PLAYER_HEAD token to SKULL_ITEM so it stays head-shaped.
             stack = ItemFactory.buildItem(first.material(), Material.PAPER, null, null);
         }
         // A mask activates APPLIED ONTO a helmet (its drag gesture), never worn as the raw head — deny client-side

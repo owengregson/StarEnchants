@@ -28,9 +28,9 @@
 # THE EXP-BAR bug (§A.5, D-12-2: integer division rendered it always empty below the cap and overflowing at
 # it) needs nothing authored — the engine's bar is proportional and clamps full.
 # era: `LAVA_POP` / `VILLAGER_NO` are the 1.7/1.8 spellings; the modern names ship per the pack convention and
-# `Aliases.SOUND` carries NEITHER row yet (`LAVA_POP`->`BLOCK_LAVA_POP`, `VILLAGER_NO`->`ENTITY_VILLAGER_NO`),
-# so both cues are silent on the legacy lane until the sweep lands them. `SKULL_ITEM:3` -> `PLAYER_HEAD` is
-# the mint's own era seam. No other hazard.
+# `Aliases.SOUND` carries both rows (`LAVA_POP`->`BLOCK_LAVA_POP`, `VILLAGER_NO`->`ENTITY_VILLAGER_NO`),
+# so both cues play on the legacy lane. `SKULL_ITEM:3` is the era seam's shape, but only for a pet that
+# authors a `head:` — see `pet.yml`. No other hazard.
 display: "Anti Teleblock Pet"
 color: "&e"
 type: ACTIVE

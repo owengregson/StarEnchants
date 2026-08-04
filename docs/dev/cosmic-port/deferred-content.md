@@ -723,10 +723,12 @@ batch recorded as a comment inside those files.
   `WITHER_DEATH`=`mob.wither.death`, read off `CraftSound`'s own table), each modern value
   grepped verbatim out of BOTH committed fixtures, and neither key nor value colliding with
   a row already in the map, so the reverse scan stays deterministic. Recorded in each file.
-  The sweep re-ran the audit the way this entry's lesson demands — walking the 100 distinct
+  The sweep re-ran the audit the way this entry's lesson demands — walking the distinct
   sound tokens BOTH packs author against the 1.8.8 enum and the alias table — and found no
   fifth cosmic-pack gap: every other unbridged token is signature-pack and names a cue with
-  no 1.8 ancestor at all. The lesson stands for whoever closes the next one: walk the
+  no 1.8 ancestor at all. Re-walked after the pets batch landed (104 distinct tokens, 46 of
+  them cosmic-pack `SOUND:` effect args), which added the six rows recorded below and
+  nothing else. The lesson stands for whoever closes the next one: walk the
   CONTENT's authored tokens, not this list.
   The rows it covered, all now landed (kept for provenance — each names the content it
   was silencing):
@@ -815,14 +817,23 @@ batch recorded as a comment inside those files.
   **The pets batch (12) adds six sound rows and rides two more.** Every sound in
   that codex is a 1.7/1.8 name and every pet file authors the modern spelling per
   pack convention, so each missing pair is a cue that plays on ONE era tree:
-  `DIG_SNOW→BLOCK_SNOW_BREAK` (Stronghold Sell, Feign Death, Raid Creeper, Vile
+  ~~`DIG_SNOW→BLOCK_SNOW_BREAK`~~ (Stronghold Sell, Feign Death, Raid Creeper, Vile
   Creeper, Gaia — the widest of the six, and Gaia also rides it),
-  `LAVA_POP→BLOCK_LAVA_POP` (Lava Elemental, Anti Teleblock, Evolution,
+  ~~`LAVA_POP→BLOCK_LAVA_POP`~~ (Lava Elemental, Anti Teleblock, Evolution,
   Alchemist, Blackscroll, Enchanter, Banner),
-  `VILLAGER_NO→ENTITY_VILLAGER_NO` (Anti Teleblock, Lava Elemental, Water
-  Elemental), `ITEM_PICKUP→ENTITY_ITEM_PICKUP` (Alchemist, Banner, Blackscroll,
-  Enchanter), `NOTE_PLING→BLOCK_NOTE_BLOCK_PLING` and
-  `VILLAGER_YES→ENTITY_VILLAGER_YES` (Tesla, XP Booster). Water Elemental rides
+  ~~`VILLAGER_NO→ENTITY_VILLAGER_NO`~~ (Anti Teleblock, Lava Elemental, Water
+  Elemental), ~~`ITEM_PICKUP→ENTITY_ITEM_PICKUP`~~ (Alchemist, Banner, Blackscroll,
+  Enchanter), ~~`NOTE_PLING→BLOCK_NOTE_BLOCK_PLING`~~ and
+  ~~`VILLAGER_YES→ENTITY_VILLAGER_YES`~~ (Tesla, XP Booster).
+  **ALL SIX LANDED in the legacy sweep**, held to the same bar as its own four: each
+  key re-javap'd out of the real Spigot 1.8.8 `Sound` enum with its id read off
+  `CraftSound`'s table (`dig.snow`, `liquid.lavapop`, `mob.villager.no`,
+  `mob.villager.yes`, `note.pling`, and `random.pop` for `ITEM_PICKUP` — the one that
+  changed noun rather than shape), each modern value grepped out of both committed
+  fixtures, no key or value colliding with a row already in the map. Two of the six
+  buy back the SIGNATURE pack as well (`BLOCK_LAVA_POP` and `ENTITY_ITEM_PICKUP`), and
+  with them cosmic-pack's `SOUND:` effect args resolve on 1.8.9 in full: 46 distinct
+  tokens, 0 unresolvable. Water Elemental rides
   the existing `SPLASH→ENTITY_GENERIC_SPLASH` row (Blessed, batch 04) and
   Tesla/XP Booster the existing `ORB_PICKUP→ENTITY_EXPERIENCE_ORB_PICKUP` one
   (Healing, batch 05). `ANVIL_LAND`, `ENDERDRAGON_GROWL` and `WITHER_SHOOT` are
@@ -842,6 +853,22 @@ batch recorded as a comment inside those files.
   SKIN and is a codex question, not an engine one. The alias is worth landing
   regardless — an untextured head is the intended fallback, a sheet of paper is
   not.
+  **SHAPE HALF LANDED in the legacy sweep, with one correction to this row and one
+  residue.** The correction: `Aliases.MATERIAL` is the wrong map — `ItemFactory`'s
+  mint path never consults it (it goes `Material.getMaterial` → `matchMaterial` →
+  its own `LEGACY_FALLBACK`), so an `Aliases` row would not have fired at all. The
+  row landed in `LEGACY_FALLBACK`, which is where the other newer→older mint
+  degradations live and is dormant on the modern lane by construction. The residue:
+  that path carries a Material and no DATA VALUE, and 1.8's `SKULL_ITEM` at data 0
+  is the SKELETON skull — the player variant is `SKULL_ITEM:3`, which only
+  `LegacyTexturedHeads` mints and which it refuses to build without a blob. So a
+  1.8 pet is now a head-shaped trophy of the wrong species rather than a sheet of
+  paper. Making it the right species is a seam question, not a table one: either
+  `TexturedHeads.head` grows a blank-blob branch returning a bare `SKULL_ITEM:3`
+  (it currently answers `null`, and `MaskService` shares that contract), or the
+  profiles are recovered and the whole question dissolves. Recorded, not chosen.
+  `MaskService` is unaffected either way — every cosmic mask authors a blob, so it
+  only reaches this path if the reflection itself fails.
 
 - **`PROJECTILE_LAND` on 1.8.9 — CLOSED by the legacy sweep, arrows only.** The
   trigger shipped modern-only (wave 2c, ADR-0044 seam `feature.compat.Projectiles`)
@@ -876,16 +903,19 @@ batch recorded as a comment inside those files.
   change the sound everywhere the pack actually plays it; both era comments now state
   the verified outcome instead of the warn-skip claim.
 
-- **`barbarian.yml`'s D-04-4 note contradicts `tank.yml` — needs the codex.** The
-  deviation note says the jar's measured gate was `contains("_AXE")`, "which counts
-  every PICKAXE holder as an axe holder". It does not: `"DIAMOND_PICKAXE"` has one
-  underscore and it sits before `PICKAXE`, so `_AXE` is not a substring — which is
-  exactly what `tank.yml`'s own era line asserts ("pickaxes never match") while
-  shipping `contains` for the same suffix. Either the jar's gate was `contains("AXE")`
-  without the underscore (in which case the note's spelling is wrong and the
-  `matchesregex` choice is still right), or the note's consequence is wrong and the
-  regex is unmotivated. Not resolvable from the tree — it needs the codex, so the
-  era clause was corrected around it and the deviation claim left alone.
+- **~~`barbarian.yml`'s D-04-4 note contradicts `tank.yml`~~ — CLOSED against the
+  codex: there is no deviation.** The note said the jar's `contains("_AXE")` gate
+  "counts every PICKAXE holder as an axe holder". It cannot: `"DIAMOND_PICKAXE"` has
+  one underscore and it sits before `PICKAXE`, so `_AXE` is not a substring — which
+  is what `tank.yml`'s era line already asserted while shipping `contains` for the
+  same suffix. The owner read the codex (`04-enchants-axes.md § Barbarian`, line
+  386): the gate really is `getItemInHand().getType().name().contains("_AXE")`, and
+  no Material name on either era carries `_AXE` other than terminally. So the
+  authored `matchesregex ".*_AXE$"` selects exactly the measured set and D-04-4's
+  premise was false. The row stays in `deviations.md`, struck and restated as a
+  verified NON-deviation so nobody re-derives the claim; `barbarian.yml`'s note now
+  says the regex is legibility, not a correction. `tank.yml` was right and is
+  untouched.
 
 - **STOP — the 1.8.9 lane has no era gate, and the signature pack cannot publish
   there.** Found while re-walking the content for the four alias rows above, and
@@ -896,11 +926,12 @@ batch recorded as a comment inside those files.
   costs the whole library, not one effect. That test has no legacy twin. Resolving
   every `SOUND:` effect token the shipped content authors through the production
   `HandleResolver` + `Aliases` against the real Spigot 1.8.8 `Sound` enum:
-  `cosmic-pack` is CLEAN (40 distinct tokens, 0 unresolvable — this sweep's four
-  rows and the anvil flip closed the last of it), the default catalogue had exactly
+  `cosmic-pack` is CLEAN (46 distinct tokens, 0 unresolvable — this sweep's four
+  rows, the pets batch's six and the anvil flip closed the last of it), the default
+  catalogue had exactly
   one (`BLOCK_ANVIL_PLACE`, fixed here as a `FALLBACKS_1_8` lossy degradation to
   1.8's `ANVIL_LAND`, which is the constant that owns `random.anvil_land` and so
-  cannot be an `Aliases` row), and `signature-pack` has **55 of 72** — beacons,
+  cannot be an `Aliases` row), and `signature-pack` has **53 of 72** — beacons,
   bells, shields, vexes, witches, illusioners, the 1.9 attack cues. Every one of
   those refuses the signature pack's publish on a 1.8.9 server. It has never been
   caught because the legacy smoke compiles its own inline library rather than the

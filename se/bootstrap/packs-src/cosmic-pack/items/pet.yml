@@ -6,6 +6,11 @@
 # {DESCRIPTION} its ability body (which carries the family's own `§7§f§lAbility` / `§7§f§lCooldown` headers
 # and cooldown value line — those are per-pet here, not template text), {LEVEL} / {MAX_LEVEL} / {EXP} /
 # {EXP_NEXT} the stored progress, {EXP_BAR} the progress meter, {TIME_FORMATTED} the live bracket's cooldown.
+# era: no pet authors a `head:` (the codex carries the profile, not the base64), so none reaches the textured
+# era seam and every one mints from `PetDefReader`'s default `PLAYER_HEAD` token instead. That token is
+# modern-only, so the 1.8 lane takes `ItemFactory`'s `PLAYER_HEAD → SKULL_ITEM` degradation — head-shaped, but
+# data 0, i.e. the skeleton skull rather than the seam's `SKULL_ITEM:3` player variant. Recovering the
+# seventeen profiles fixes both lanes at once and is a codex question (deferred-content.md).
 type: pet
 
 # The name is the source's, verbatim: `§e§lLava Elemental Pet§7 [LVL 1]`. `{COLOR}` is the pet's `&e` and the

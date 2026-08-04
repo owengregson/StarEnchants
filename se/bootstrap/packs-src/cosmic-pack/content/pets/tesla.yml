@@ -23,10 +23,8 @@
 # free activation cannot raise the next one). The jar had no escalation to freeze; this pack does
 # (`enchants/phoenix`), and freezing it is the only coherent reading of a waived charge.
 # era: `ORB_PICKUP` / `NOTE_PLING` / `VILLAGER_YES` are the 1.7/1.8 spellings and the modern names ship per the
-# pack convention; `Aliases.SOUND` carries none of the three rows yet (`ORB_PICKUP`->
-# `ENTITY_EXPERIENCE_ORB_PICKUP` is already on the legacy-sweep list, `NOTE_PLING`->`BLOCK_NOTE_BLOCK_PLING`
-# and `VILLAGER_YES`->`ENTITY_VILLAGER_YES` are owed), so those cues are silent on the legacy lane until the
-# sweep lands them. Nothing else era-sensitive — souls are engine state on both trees.
+# pack convention; `Aliases.SOUND` carries all three rows, so every cue plays on both lanes. Nothing else
+# era-sensitive — souls are engine state on both trees.
 display: "Tesla Pet"
 color: "&e"
 type: ACTIVE

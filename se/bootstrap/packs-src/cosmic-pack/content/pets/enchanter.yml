@@ -47,9 +47,8 @@
 # next roll at this site whatever that roll returns, which is the same rule one gate later — the exact
 # ordering belongs to the book-apply gate when it lands.
 # era: none beyond the family notes. `LAVA_POP` and `ITEM_PICKUP` are 1.7/1.8 sound names, authored in their
-# modern spellings (`BLOCK_LAVA_POP`, `ENTITY_ITEM_PICKUP`); NEITHER has an `Aliases.SOUND` row yet, so both
-# warn-skip on the legacy fork until the sweep adds `LAVA_POP → BLOCK_LAVA_POP` and
-# `ITEM_PICKUP → ENTITY_ITEM_PICKUP`.
+# modern spellings (`BLOCK_LAVA_POP`, `ENTITY_ITEM_PICKUP`); `Aliases.SOUND` carries both rows
+# (`LAVA_POP → BLOCK_LAVA_POP`, `ITEM_PICKUP → ENTITY_ITEM_PICKUP`), so both play on the legacy fork.
 # FOLDER HARMONISATION (owner ruling): '&' colour form, own Cooldown block, spectator refusal as its own ability.
 display: "Enchanter Pet"
 color: "&e"

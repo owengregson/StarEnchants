@@ -64,8 +64,8 @@
 # global PvP gates, and the koth-world short release depends on a named external world — recorded, not ported.
 # era: legacy particle names `LARGE_EXPLODE`/`SPELL` author as `EXPLOSION_LARGE`/`SPELL`, and `DIG_SNOW`,
 # `WITHER_SHOOT` and `ENDERDRAGON_GROWL` as their modern spellings. `WITHER_SHOOT` and `ENDERDRAGON_GROWL`
-# already have `Aliases.SOUND` rows; `DIG_SNOW → BLOCK_SNOW_BREAK` does NOT, so that one cue warn-skips on the
-# legacy fork until the sweep adds it. FREEZE's powder-snow presentation is 1.17+, so the legacy overlay falls
+# already have `Aliases.SOUND` rows, and so does `DIG_SNOW → BLOCK_SNOW_BREAK`, so every cue plays on the
+# legacy fork. FREEZE's powder-snow presentation is 1.17+, so the legacy overlay falls
 # back to its potion-root form (the seam `nature-wrath.yml` records).
 # FOLDER HARMONISATION (owner ruling): '&' colour form, own Cooldown block, spectator refusal as its own ability.
 display: "Gaia Pet"

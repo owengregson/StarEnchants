@@ -136,7 +136,9 @@ public final class PetService {
         if (stack == null) {
             // No texture (blank head / unsupported server): resolve the def's material token by NAME. The
             // fallback constant must exist on BOTH eras (the Material.CLOCK trap) — PAPER, not PLAYER_HEAD,
-            // which is absent on 1.8 (there the era seam above already built a SKULL_ITEM head).
+            // which is absent on 1.8. A blank blob never reaches the era seam, so the default PLAYER_HEAD
+            // token is what has to land there: ItemFactory degrades it to SKULL_ITEM (data 0, so a skeleton
+            // skull rather than the seam's SKULL_ITEM:3) and PAPER stays the last resort.
             stack = ItemFactory.buildItem(def.material(), Material.PAPER, null, null);
         }
         headEquip.unwearable(stack); // a pet activates from the HOTBAR, never the helmet slot — deny client-side (1.8.4)
