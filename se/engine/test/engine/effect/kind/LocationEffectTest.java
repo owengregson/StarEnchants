@@ -103,8 +103,19 @@ class LocationEffectTest {
                     FakeEffectCtx ctx = FakeEffectCtx.create().locations("at", a, b).with("drops", false);
                     Sink sink = mock(Sink.class);
                     new BreakBlockEffect().run(ctx, sink);
-                    verify(sink).breakBlock(a, false);
-                    verify(sink).breakBlock(b, false);
+                    // drops=false carries an EMPTY void list: the exception list only means anything against
+                    // a yielding break, and passing it through would let a stray id read as "also void".
+                    verify(sink).breakBlock(a, false, List.of());
+                    verify(sink).breakBlock(b, false, List.of());
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("BREAK_BLOCK void-materials rides a YIELDING break as the per-block exception", () -> {
+                    Location a = mock(Location.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().locations("at", a)
+                            .with("drops", true).with("void-materials", List.of(4, 11));
+                    Sink sink = mock(Sink.class);
+                    new BreakBlockEffect().run(ctx, sink);
+                    verify(sink).breakBlock(a, true, List.of(4, 11));
                     verifyNoMoreInteractions(sink);
                 }),
                 dynamicTest("BREAK_BLOCK with no target locations → no-op", () -> {

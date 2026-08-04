@@ -372,7 +372,12 @@ public interface Sink {
     void blockChange(Location at, int blockDataId);
 
     /** Break the block at {@code at}; {@code drops} controls whether it yields its drops (BREAK_BLOCK). */
-    void breakBlock(Location at, boolean drops);
+    void breakBlock(Location at, boolean drops, java.util.List<Integer> voidMaterialIds);
+
+    /** {@link #breakBlock(Location, boolean, java.util.List)} with no per-material exceptions (the add-on SPI form). */
+    default void breakBlock(Location at, boolean drops) {
+        breakBlock(at, drops, java.util.List.of());
+    }
 
     /**
      * Lay a temporary platform of a material in the block layer beneath {@code center}, out to

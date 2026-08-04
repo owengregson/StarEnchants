@@ -2277,18 +2277,30 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void breakBlock(Location at, boolean drops) {
+    public void breakBlock(Location at, boolean drops, java.util.List<Integer> voidMaterialIds) {
         regionOp(at, () -> {
             Block block = at.getBlock();
             if (isAir(block.getType())) {
                 return;
             }
-            if (drops) {
+            // The void list is read HERE and not at the effect: only the region thread that owns the block
+            // knows what it actually is, so a per-material exception cannot be decided at activation time.
+            if (drops && !voids(block.getType(), voidMaterialIds)) {
                 block.breakNaturally(); // yields the block's natural drops at its location
             } else {
                 block.setType(Material.AIR);
             }
         });
+    }
+
+    /** Whether {@code type} is on the authored void list (interned material ids, resolved on this thread). */
+    private boolean voids(Material type, java.util.List<Integer> voidMaterialIds) {
+        for (int id : voidMaterialIds) {
+            if (type == material(id)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

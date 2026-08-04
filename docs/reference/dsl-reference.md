@@ -40,11 +40,12 @@ Blink (reforges): instantly teleport up to distance blocks along your facing if 
 
 ### BREAK_BLOCK
 
-Break the target block(s) (default @Here; drops=false clears). @Vein/@Tunnel/@Trench for shapes.
+Break the target block(s) (default @Here; drops=false clears). @Vein/@Tunnel/@Trench/@Bore for shapes. void-materials is the per-block exception to `drops`: the listed types are destroyed dropless while everything else in the same volume still yields, which is how a bulk excavator keeps the ore and voids the stone.
 
 - _affinity_: `REGION`
-- _usage_: `{ BREAK_BLOCK: { drops: <bool=true> } }`
+- _usage_: `{ BREAK_BLOCK: { drops: <bool=true>, void-materials: <material list=> } }`
 - _param_ `drops` `bool`
+- _param_ `void-materials` `material list` — these block types break WITHOUT drops even when drops is true (empty = none)
 - _target_ `at`: selector `HERE`
 - _example_: `{ BREAK_BLOCK: { drops: true } }`
 
@@ -252,7 +253,7 @@ Create an explosion at the target.
 
 ### EXP_MULTIPLY
 
-Multiply the XP gained (EXP_GAIN trigger) by a factor.
+Multiply the XP gained by a factor, on EXP_GAIN and on MINE. EXP_GAIN scales the amount already granted and ROUNDS to the nearest whole XP; MINE scales the broken block's own yield and TRUNCATES, because a block yields whole orbs.
 
 - _affinity_: `CONTEXT_LOCAL`
 - _usage_: `{ EXP_MULTIPLY: { factor: <double[0..]=2.0> } }`
@@ -1323,12 +1324,16 @@ The first solid block along the activator's line of sight, within distance.
 
 ### BORE
 
-A half-width x half-height cross-section centred on the activation block, repeated depth layers into the mined face. depth=1 is a flat face; materials keeps only the listed block types and exclude-materials drops them, both written [STONE,DIRT] so the comma survives the selector body. A type on both lists is dropped.
+A half-width x half-height cross-section centred on the activation block, repeated depth layers into the mined face. depth=1 is a flat face; materials keeps only the listed block types and exclude-materials drops them, both written [STONE,DIRT] so the comma survives the selector body. A type on both lists is dropped. left/right/up/down override their axis's half-* for an ASYMMETRIC cross-section — the only way to reach an even width or height (left=1, right=2 is 4 blocks across).
 
-- _usage_: `{ BORE: { half-width: <int[0..]=1>, half-height: <int[0..]=1>, depth: <int[1..]=1>, materials: <material list=>, exclude-materials: <material list=> } }`
+- _usage_: `{ BORE: { half-width: <int[0..]=1>, half-height: <int[0..]=1>, depth: <int[1..]=1>, left: <int[-1..]=-1>, right: <int[-1..]=-1>, up: <int[-1..]=-1>, down: <int[-1..]=-1>, materials: <material list=>, exclude-materials: <material list=> } }`
 - _param_ `half-width` `int[0..]` — half the cross-section across (1 = 3 blocks wide)
 - _param_ `half-height` `int[0..]` — half the cross-section up and down (1 = 3 blocks tall)
 - _param_ `depth` `int[1..]` — layers into the face, counting the activation block's own
+- _param_ `left` `int[-1..]` — blocks left of centre; -1 = half-width
+- _param_ `right` `int[-1..]` — blocks right of centre; -1 = half-width
+- _param_ `up` `int[-1..]` — blocks above centre; -1 = half-height
+- _param_ `down` `int[-1..]` — blocks below centre; -1 = half-height
 - _param_ `materials` `material list` — keep only these block types (empty = every block)
 - _param_ `exclude-materials` `material list` — drop these block types (empty = drop none)
 - _example_: `@Bore{half-width=1, half-height=1, depth=3, exclude-materials=[BEDROCK,OBSIDIAN]}`
