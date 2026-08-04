@@ -205,16 +205,23 @@ public record MasterConfig(FeaturesSection features, CombatSection combat, Minin
      * {@code near}-warded players. Setting {@code near-commands: []} disables the interception entirely (the
      * modernize-freely-but-opt-in divergence knob) — an empty list is honoured, not defaulted.
      *
+     * <p>{@code maxMerge} is the composite cap (ADR-0074), the {@code crystals.max-merge} knob's twin: how many
+     * child masks may be folded into ONE mask, and therefore onto one helmet. {@code 1} disables folding
+     * entirely — a mask-onto-mask gesture is then always refused, and masks behave exactly as they did before
+     * composites existed.
+     *
      * @param nearCommands the command names {@code NearGuard} intercepts (no leading slash); {@code []} disables it
      * @param nearRadius   the radius (blocks) the owned {@code /near} listing scans
+     * @param maxMerge     how many masks may fold into one composite; {@code 1} = no folding
      */
-    public record MasksSection(List<String> nearCommands, int nearRadius) {
+    public record MasksSection(List<String> nearCommands, int nearRadius, int maxMerge) {
         public MasksSection {
             nearCommands = List.copyOf(nearCommands);
+            maxMerge = Math.max(1, maxMerge); // a cap below one would refuse the plain mask itself
         }
 
         public static MasksSection defaults() {
-            return new MasksSection(List.of("near"), 200);
+            return new MasksSection(List.of("near"), 200, 2);
         }
     }
 

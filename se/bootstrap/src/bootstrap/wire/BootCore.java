@@ -397,6 +397,7 @@ public final class BootCore {
                 .withCrystalLine(() -> items.config().crystalOrDefault().loreWhileOnItem())        // §E on-gear line
                 .withCrystalLineMulti(() -> items.config().crystalOrDefault().loreWhileOnItemMulti()) // §E merged
                 .withMaskLine(() -> items.config().maskOrDefault().loreWhileOnItem()) // ADR-0053 on-helmet mask line
+                .withMaskLineMulti(() -> items.config().maskOrDefault().loreWhileOnItemMulti()) // ADR-0074 composite
                 .withReforgeLine(() -> items.config().reforgeOrDefault().loreWhileOnItem()), // ADR-0070 on-weapon line
                 store); // ADR-0044 the item-data store backs the renderer's composer-migration marker
         this.itemGroups = ItemGroups.standard();                 // §I shared by the enchanter + trak gems

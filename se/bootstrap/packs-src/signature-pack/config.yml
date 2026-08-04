@@ -183,6 +183,10 @@ pets:
 masks:
   near-commands: ["near"]   # command names NearGuard intercepts (no leading slash); [] disables the interception
   near-radius: 200          # radius in blocks the owned /near listing scans
+  # How many masks may FOLD into one multi-mask (ADR-0074), and so onto one helmet: drag a mask onto another to
+  # combine them — every folded mask's abilities resolve as if it alone were worn, and the worn illusion shows the
+  # first one's face. 1 disables folding entirely. The crystals.max-merge knob's twin.
+  max-merge: 2
 
 # Weapon Reforges (ADR-0070). A reforge drag-applies onto a WEAPON (one socket per weapon — the ONLY knob
 # here decides what counts as a weapon) and its signature ability fires on SHIFT + Right Click while that

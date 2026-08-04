@@ -63,8 +63,10 @@ class MaskServiceTest {
     /** Test-owned likeness — distinctive shapes so a template/token mix-up cannot pass. */
     private static final MaskItemConfig LIKENESS = new MaskItemConfig(
             "{COLOR}[{NAME}]",
+            "{COLOR}<{NAME}>", // the composite name template — a distinct frame, so a mixed-up branch shows
             List.of("{DESCRIPTION}", "applies {APPLIES}", "bonus {NAME_UPPER}"),
             "on {NAME}",
+            "on many {NAME}",
             true,
             new SoundCue("cue.apply", 1.0f, 1.0f),
             new SoundCue("cue.remove", 1.0f, 1.0f));
@@ -82,6 +84,15 @@ class MaskServiceTest {
         public ItemStack head(String base64) {
             askedBase64 = base64;
             return head;
+        }
+    }
+
+    /** A seam handing back a FRESH stack per call — a split mints TWO items, and one shared mock would let the
+     *  second stamp overwrite the first, hiding a real mix-up behind a fixture artefact. */
+    private static final class FreshHeads implements TexturedHeads {
+        @Override
+        public ItemStack head(String base64) {
+            return stackWithMeta(mock(ItemMeta.class));
         }
     }
 
@@ -109,6 +120,19 @@ class MaskServiceTest {
             trigger: ATTACK
             effects: [{ HEAL: { amount: 1 } }]
             """, StandardCharsets.UTF_8);
+        // A SECOND mask, so a composite has two real children with distinct colours, displays and blocks —
+        // enough that a fold rendering only one of them, or reading them in one colour, fails visibly.
+        Path second = root.resolve("masks/blaze.yml");
+        Files.writeString(second, """
+            display: "Blaze"
+            color: "&c"
+            head: "YmxhemU="
+            material: GOLDEN_HELMET
+            description:
+              - "&c&lBLAZE MASK"
+            trigger: ATTACK
+            effects: [{ HEAL: { amount: 2 } }]
+            """, StandardCharsets.UTF_8);
         Library lib = LibraryLoader.load(root,
                 Compiler.of(MapSpecRegistry.of(ParamSpec.of("HEAL").param("amount", D.DOUBLE.min(0)).build())), 1);
         holder = new ContentHolder(lib);
@@ -134,7 +158,8 @@ class MaskServiceTest {
                 () -> ItemEnchanter.DEFAULT_MAX_MERGE,
                 () -> compile.load.MasterConfig.ReforgesSection.defaults().weaponGroups(),
                 messages, item.mint.VanillaEnchants.NONE);
-        return new MaskService(maskCodec, enchanter, holder, () -> cfg, heads, item.head.HeadEquip.NONE, messages);
+        return new MaskService(maskCodec, enchanter, holder, () -> cfg, () -> 2, heads,
+                item.head.HeadEquip.NONE, messages);
     }
 
     /** A mocked stack with a mocked meta, so the decorate path (setDisplayName/setLore) is capturable. */
@@ -272,9 +297,138 @@ class MaskServiceTest {
         assertEquals(messages.format("mask.none"), out.message());
     }
 
+    // ── ADR-0074 composites: mask-onto-mask folds, the extractor splits, and the fold wears one face ──
+
+    /** A stamped mask cursor (amount 1) carrying {@code entry} — a plain key or a folded one. */
+    private ItemStack maskItem(String entry) {
+        ItemStack stack = mock(ItemStack.class);
+        when(stack.getAmount()).thenReturn(1);
+        maskCodec.stamp(stack, entry);
+        return stack;
+    }
+
+    @Test
+    void maskOntoMaskFoldsWithTheCursorOnTopAndKeepsTheTargetsFace() {
+        FixedHeads heads = new FixedHeads(stackWithMeta(mock(ItemMeta.class)));
+        MaskService service = service(heads);
+
+        GestureOutcome out = service.interact(maskItem("masks/blaze"), maskItem(MASK));
+
+        assertTrue(out.commit());
+        assertTrue(out.consumeCursor(), "the folded-in mask is spent, like a merged crystal");
+        assertEquals("masks/midas+masks/blaze", maskCodec.keyOf(out.newTarget()),
+                "the TARGET keeps its place and the cursor lands on top");
+        // The composite wears the FIRST child's face (owner ruling): folding Blaze onto Midas must not repaint
+        // the wearer as Blaze, or the gesture would silently change what they look like.
+        assertEquals("aGVhZA==", heads.askedBase64);
+        assertEquals(LIKENESS.soundApply(), out.cue().sound());
+    }
+
+    @Test
+    void aFoldPastTheCapIsRefusedAndSpendsNothing() {
+        MaskService service = service(new FixedHeads(stackWithMeta(mock(ItemMeta.class))));
+        ItemStack cursor = maskItem("masks/blaze");
+
+        GestureOutcome out = service.interact(cursor, maskItem("masks/midas+masks/blaze")); // 2 + 1 > cap 2
+
+        assertFalse(out.commit());
+        assertFalse(out.consumeCursor(), "a refused fold must never eat the mask it refused");
+        assertEquals(messages.format("mask.merge-cap", "MAX", 2), out.message());
+    }
+
+    @Test
+    void aStackedFoldTargetIsRefused() {
+        MaskService service = service(new FixedHeads(stackWithMeta(mock(ItemMeta.class))));
+        ItemStack stacked = maskItem("masks/midas");
+        when(stacked.getAmount()).thenReturn(3); // which of the three would the fold land on?
+
+        GestureOutcome out = service.interact(maskItem("masks/blaze"), stacked);
+
+        assertFalse(out.commit());
+        assertEquals(messages.format("mask.merge-single"), out.message());
+    }
+
+    @Test
+    void theExtractorSplitsTheTopmostChildBackOff() {
+        // Folding is a 100%-commit gesture that spends the cursor, so it has to be undoable — otherwise a
+        // mis-fold is permanent. The Multi Crystal split (ADR-0035 §3), for masks.
+        MaskService service = service(new FreshHeads());
+
+        GestureOutcome out = service.split(maskItem("masks/midas+masks/blaze"));
+
+        assertTrue(out.commit());
+        assertEquals("masks/midas", maskCodec.keyOf(out.newTarget()), "the item becomes the remainder");
+        assertEquals("masks/blaze", maskCodec.keyOf(out.produced()), "the topmost child comes back");
+    }
+
+    @Test
+    void theExtractorDeclinesAPlainMask() {
+        MaskService service = service(new FixedHeads(stackWithMeta(mock(ItemMeta.class))));
+        assertFalse(service.carriesComposite(maskItem(MASK)), "one child is nothing to split");
+        assertTrue(service.carriesComposite(maskItem("masks/midas+masks/blaze")));
+
+        GestureOutcome out = service.split(maskItem(MASK));
+        assertFalse(out.commit());
+        assertEquals(messages.format("mask.split-not-multi"), out.message());
+    }
+
+    @Test
+    void applyingACompositeStampsTheWholeEntryAndPopsItBackWhole() {
+        MaskService service = service(new FixedHeads(stackWithMeta(mock(ItemMeta.class))));
+        ItemStack helmet = gear(Material.DIAMOND_HELMET, 1);
+
+        GestureOutcome applied = service.interact(maskItem("masks/midas+masks/blaze"), helmet);
+        assertTrue(applied.commit());
+        assertEquals("masks/midas+masks/blaze", combatCodec.read(helmet).maskKey(),
+                "one socket, one entry — a composite is still ONE occupancy");
+
+        // The whole-entry convention: a composite comes back as ONE composite, never N loose masks to re-fold.
+        GestureOutcome popped = service.remove(helmet);
+        assertTrue(popped.commit());
+        assertEquals("masks/midas+masks/blaze", maskCodec.keyOf(popped.produced()));
+        assertNull(combatCodec.read(helmet).maskKey());
+    }
+
+    @Test
+    void aCompositeRendersEveryChildInItsOwnColour() {
+        ItemMeta meta = mock(ItemMeta.class);
+        MaskService service = service(new FixedHeads(stackWithMeta(meta)));
+
+        service.mint("masks/midas+masks/blaze");
+
+        // The composite template ({COLOR}<{NAME}>), {COLOR} from the FIRST child, {NAME} reading both children
+        // each in its own colour — one {COLOR} cannot style N names, which is why the multi path differs.
+        // The template opens with {COLOR}, not a literal &-code, so StyledNames finds no leading run and the
+        // gap is a bare ", " — each child then supplies its own colour, which is the whole point.
+        verify(meta).setDisplayName(Colors.translate("&6<&6&lMidas, &c&lBlaze>"));
+        verify(meta).setLore(List.of(
+                Colors.translate("&6&lMIDAS MASK"),
+                Colors.translate("&6* Negates enemy heroic armor."),
+                "",                                   // one blank line between the stacked blocks
+                Colors.translate("&c&lBLAZE MASK"),
+                "applies " + ItemGroups.kindsLabel(List.of("HELMET")),
+                // NAME_UPPER upper-cases each child's WORDS, never the colour codes around them.
+                Colors.translate("bonus &6&lMIDAS, &c&lBLAZE")));
+    }
+
+    @Test
+    void applyingACompositeWithAStaleChildIsRefusedWhole() {
+        // Half a composite is not a smaller composite: applying one whose second child no longer compiles would
+        // silently drop an ability the wearer paid for, so the whole apply is refused.
+        MaskService service = service(new FixedHeads(stackWithMeta(mock(ItemMeta.class))));
+        ItemStack helmet = gear(Material.DIAMOND_HELMET, 1);
+
+        GestureOutcome out = service.interact(maskItem("masks/midas+masks/gone"), helmet);
+
+        assertFalse(out.commit());
+        assertEquals(messages.format("mask.no-such", "KEY", "masks/gone"), out.message());
+        assertNull(combatCodec.read(helmet).maskKey());
+    }
+
     @Test
     void mutedSoundsProduceNoCue() {
-        MaskItemConfig muted = new MaskItemConfig(LIKENESS.name(), LIKENESS.lore(), LIKENESS.loreWhileOnItem(),
+        MaskItemConfig muted = new MaskItemConfig(LIKENESS.name(), LIKENESS.nameMulti(), LIKENESS.lore(),
+                LIKENESS.loreWhileOnItem(), LIKENESS.loreWhileOnItemMulti(),
                 false, LIKENESS.soundApply(), LIKENESS.soundRemove());
         MaskService service = service(new FixedHeads(stackWithMeta(null)), muted);
 

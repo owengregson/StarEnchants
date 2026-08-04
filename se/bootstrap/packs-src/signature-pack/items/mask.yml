@@ -15,6 +15,12 @@ type: mask
 # The minted mask item's display name. {COLOR} already carries the mask's own &, so the template supplies only
 # the &l bold and the trailing " Mask" (e.g. "&8&lAgent Mask").
 name: "{COLOR}&l{NAME} Mask"
+# Once a mask folds MORE than one child (drag a mask onto another mask, up to config.yml masks.max-merge) it
+# takes these templates instead — "Agent Mask" becomes "Multi-Mask (Agent, Blaze)" (ADR-0074, the Multi Crystal
+# precedent). Here {NAME} reads EVERY folded mask, comma-joined, each in its own colour, and {DESCRIPTION}
+# stacks every child's block with a blank line between. {COLOR} is the FIRST child's — the face the illusion
+# wears. Each defaults to its single-mask form, so deleting these lines gives one uniform name again.
+name-multi: "&f&lMulti-Mask ({NAME}&r&f&l)"
 lore:
   - "&eOverrides the visual appearance of a helmet and imbues it with magic mask abilities."
   - ""
@@ -28,6 +34,8 @@ lore:
 # LoreComposer section). {NAME} expands here to the mask's colour-styled display, so a masked helmet always shows
 # which mask it carries.
 lore-while-on-item: "&6&lMask Equipped ({NAME}&r&6&l)"
+# The same line on a helmet carrying a FOLDED mask; {NAME} lists every child.
+lore-while-on-item-multi: "&6&lMulti-Mask Equipped ({NAME}&r&6&l)"
 # Apply / remove gesture sounds (namespaced keys, valid across the version range) — the SAME amethyst cues the
 # crystal likeness carries, since masks share the crystal drag-apply gesture family. apply plays on a successful
 # drag-onto-helmet; remove plays when a right-click pops the mask back off.

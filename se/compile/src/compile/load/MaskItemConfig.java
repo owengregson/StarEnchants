@@ -20,21 +20,28 @@ import java.util.Objects;
  * @param soundApply      cue played when a mask is applied to a helmet
  * @param soundRemove     cue played when a mask is popped back off
  */
-public record MaskItemConfig(String name, List<String> lore, String loreWhileOnItem, boolean sounds,
+public record MaskItemConfig(String name, String nameMulti, List<String> lore, String loreWhileOnItem,
+                             String loreWhileOnItemMulti, boolean sounds,
                              SoundCue soundApply, SoundCue soundRemove) {
 
     public MaskItemConfig {
         Objects.requireNonNull(name, "name");
+        Objects.requireNonNull(nameMulti, "nameMulti");
         lore = List.copyOf(lore);
         Objects.requireNonNull(loreWhileOnItem, "loreWhileOnItem");
+        Objects.requireNonNull(loreWhileOnItemMulti, "loreWhileOnItemMulti");
         Objects.requireNonNull(soundApply, "soundApply");
         Objects.requireNonNull(soundRemove, "soundRemove");
     }
 
     public static MaskItemConfig defaults() {
+        // The multi templates default to their single counterparts: an unconfigured pack renders ONE uniform
+        // name for plain and folded masks alike, and only an author who wants "Multi-Mask" spells it out.
         return new MaskItemConfig(
                 "{COLOR}&l{NAME} Mask",
+                "{COLOR}&l{NAME} Mask",
                 List.of(),
+                "&6&lMask Equipped ({NAME}&r&6&l)",
                 "&6&lMask Equipped ({NAME}&r&6&l)",
                 true,
                 new SoundCue("block.amethyst_block.chime", 1.0f, 1.0f),

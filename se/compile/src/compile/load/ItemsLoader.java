@@ -286,10 +286,18 @@ public final class ItemsLoader {
     private static MaskItemConfig readMask(YamlNode root, Diagnostics diags) {
         MaskItemConfig d = MaskItemConfig.defaults();
         YamlNode sounds = root.child("sounds");
+        String name = orDefault(root.string("name"), d.name());
+        // A COMPOSITE mask's name / on-helmet line (ADR-0074). Each defaults to its single-mask counterpart, so a
+        // pack that doesn't set 'name-multi' keeps ONE uniform name across plain and folded masks — the crystal
+        // cascade (ADR-0035) verbatim.
+        String nameMulti = orDefault(root.string("name-multi"), name);
+        String onItem = orDefault(root.string("lore-while-on-item"), d.loreWhileOnItem());
         return new MaskItemConfig(
-                orDefault(root.string("name"), d.name()),
+                name,
+                nameMulti,
                 root.has("lore") ? root.stringList("lore") : d.lore(),
-                orDefault(root.string("lore-while-on-item"), d.loreWhileOnItem()),
+                onItem,
+                orDefault(root.string("lore-while-on-item-multi"), onItem),
                 root.has("sounds") && sounds.has("enabled")
                         ? !"false".equalsIgnoreCase(sounds.string("enabled")) : d.sounds(),
                 SoundCue.fromField(sounds, "apply", d.soundApply(), diags),

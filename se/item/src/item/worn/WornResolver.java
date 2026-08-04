@@ -276,13 +276,19 @@ public final class WornResolver {
             // ONLY — never crystalIds/set/heroic accounting (a mask is its own source kind). Helmets are armour,
             // never off-hand, so `!offhand` always holds here; the guard keeps that intent explicit.
             if (f.masks() && combat.maskKey() != null && !offhand) {
-                int id = keys.idOf(combat.maskKey());
-                if (id >= 0) {
+                // ADR-0074: one helmet may carry a COMPOSITE — several child masks folded into one entry
+                // ("a+b", the multi-crystal packing). Every child resolves and fires as if IT were the worn
+                // mask, which is the whole contract; the additive fold sums any overlap (ADR-0012).
+                for (String maskKey : item.codec.MaskItemData.componentsOf(combat.maskKey())) {
+                    int id = keys.idOf(maskKey);
+                    if (id < 0) {
+                        continue; // a child whose content went away on reload — the siblings still fire
+                    }
                     firing.add(id);
                     // A multi-ability mask keys its further bonuses <key>/a1, /a2, … (dense, no gaps), exactly
                     // like a crystal/set (ADR-0034/0035). Walk them so every bonus fires.
                     for (int n = 1; ; n++) {
-                        int extra = keys.idOf(combat.maskKey() + "/a" + n);
+                        int extra = keys.idOf(maskKey + "/a" + n);
                         if (extra < 0) {
                             break;
                         }

@@ -109,6 +109,7 @@ public final class ApplySuite implements Harness.Scenario {
         h.expect("item.apply.removeEnchant");
         h.expect("item.apply.extractCrystal");
         h.expect("item.apply.extractCrystalWholeEntry");
+        h.expect("item.apply.compositeMaskWholeEntry");
         h.expect("item.apply.removesRequired");
         h.expect("item.apply.removesRequired.netZeroSlots");
         h.expect("item.apply.mintSet");
@@ -227,6 +228,32 @@ public final class ApplySuite implements Harness.Scenario {
             }
             if (!codec.read(sword).crystals().isEmpty()) {
                 throw new IllegalStateException("the slot should free — no crystal should remain, was: " + codec.read(sword).crystals());
+            }
+        });
+
+        h.guard("item.apply.compositeMaskWholeEntry", () -> {
+            // ADR-0074 against the REAL PDC: a folded mask is ONE entry in the helmet's blob ("a+b"), so it is
+            // one occupancy — and it pops back off WHOLE, never as the first child with the rest lost. Live
+            // because the contract is a delimiter surviving a serialize/deserialize round trip through the
+            // era-owned item store, which only a booted server exercises.
+            ItemStack helmet = new ItemStack(Material.DIAMOND_HELMET);
+            String folded = "masks/blaze+masks/agent";
+            if (!enchanter.applyMask(helmet, folded).ok()) {
+                throw new IllegalStateException("setup: the composite did not apply");
+            }
+            if (!folded.equals(codec.read(helmet).maskKey())) {
+                throw new IllegalStateException("the folded entry did not survive the PDC round trip: "
+                        + codec.read(helmet).maskKey());
+            }
+            if (enchanter.checkMask(helmet, "masks/midas").ok()) {
+                throw new IllegalStateException("a helmet wearing a composite still has its ONE socket filled");
+            }
+            var popped = enchanter.removeMask(helmet);
+            if (!popped.ok() || !folded.equals(popped.poppedEntry())) {
+                throw new IllegalStateException("remove did not pop the whole composite: " + popped.poppedEntry());
+            }
+            if (codec.read(helmet).maskKey() != null) {
+                throw new IllegalStateException("the socket should free, was: " + codec.read(helmet).maskKey());
             }
         });
 
