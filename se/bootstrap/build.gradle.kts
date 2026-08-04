@@ -41,11 +41,22 @@ sourceSets["main"].java.srcDir(if (legacyTarget) "overlay/legacy" else "overlay/
 // packs-src/<name>/ and is zipped at build time into packs/<name>.zip inside the jar, so the source is
 // diffable in PRs while the shipped/on-disk artifact is the chosen ZIP format. First boot extracts the
 // zip via packs/index.txt; /se pack apply swaps it over the live config. Add a pack by registering a
-// Zip task here and listing its archive in resources/packs/index.txt. Reproducible (sorted entries,
-// zeroed timestamps) so a given source tree yields a byte-identical archive.
+// Zip task here, folding it into processResources below, listing its archive in resources/packs/index.txt,
+// and adding its row to ShippedPackManifestDriftTest. Reproducible (sorted entries, zeroed timestamps)
+// so a given source tree yields a byte-identical archive.
 val packSignaturePack = tasks.register<Zip>("packSignaturePack") {
     from(layout.projectDirectory.dir("packs-src/signature-pack"))
     archiveFileName.set("signature-pack.zip")
+    destinationDirectory.set(layout.buildDirectory.dir("generated-packs"))
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
+}
+
+// The Cosmic Pack: the classic Cosmic experience, ported number-exact. Shipped as an APPLYABLE PRESET —
+// signature-pack stays the boot default, and this one is swapped in with /se pack apply cosmic-pack.
+val packCosmicPack = tasks.register<Zip>("packCosmicPack") {
+    from(layout.projectDirectory.dir("packs-src/cosmic-pack"))
+    archiveFileName.set("cosmic-pack.zip")
     destinationDirectory.set(layout.buildDirectory.dir("generated-packs"))
     isPreserveFileTimestamps = false
     isReproducibleFileOrder = true
@@ -99,7 +110,7 @@ tasks.register<Test>("regenDocs") {
     filter {
         includeTestsMatching("*SurfaceCatalogDriftTest")
         includeTestsMatching("*ContentIndexDriftTest")
-        includeTestsMatching("*SignaturePackFingerprintDriftTest")
+        includeTestsMatching("*ShippedPackManifestDriftTest")
     }
     systemProperty("se.doc.regen", "true")
     systemProperty("se.index.regen", "true") // ContentIndexDriftTest's regen flag
@@ -113,10 +124,12 @@ tasks.register<Test>("regenDocs") {
 tasks.named<Test>("test") {
     inputs.files(rootProject.file("website/src/data/surface.json"))
         .withPropertyName("surfaceGolden").optional()
-    // The signature-pack manifest golden (ADR-0046): read via a repo-root walk, so declare it content-hashed or a
-    // hand-edited stamp is hidden FROM-CACHE by SignaturePackFingerprintDriftTest — the same §M drift hole.
-    inputs.files(layout.projectDirectory.file("packs-src/signature-pack/pack.yml"))
-        .withPropertyName("signaturePackManifest").optional()
+    // The shipped pack trees (ADR-0023/0046): read via a repo-root walk, so declare them content-hashed or a
+    // hand-edited stamp — or a pack file added without a regen, since ShippedPackManifestDriftTest stamps the
+    // file count too — is hidden FROM-CACHE. The same §M drift hole. The whole tree, not just each pack.yml:
+    // the pack validation tests read the trees off the same walk.
+    inputs.files(layout.projectDirectory.dir("packs-src"))
+        .withPropertyName("shippedPackTrees").optional()
 }
 
 // Stamp the build version into plugin.yml's ${version} placeholder, and fold the built config-pack
@@ -128,6 +141,9 @@ tasks.named<ProcessResources>("processResources") {
         expand("version" to pluginVersion)
     }
     from(packSignaturePack) {
+        into("packs")
+    }
+    from(packCosmicPack) {
         into("packs")
     }
 }
