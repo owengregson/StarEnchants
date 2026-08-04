@@ -3529,7 +3529,7 @@
     "doc": "While worn, give incoming enchant activations a chance to be taken off you and re-run with the roles swapped — the attacker eats their own proc, and it is NOT applied to you for that hit. Gated by the attacking enchant's tier WEIGHT — the number its rung carries in tiers.yml, not a rung index — which must fall in tier-min..tier-max, and by level: this enchant's level must be at least the incoming one's. Several worn grades compose — the one whose band reaches the incoming weight with the highest tier-min wins. A maintained PASSIVE marker, armed on equip and lifted on unequip. Player-only.",
     "affinity": "CONTEXT_LOCAL",
     "usage": "{ PROC_REBOUND: { chance: <double[0..100]>, tier-max: <int[0..]>, tier-min: <int[0..]=0> } }",
-    "example": "{ PROC_REBOUND: { chance: 4, tier-min: 60, tier-max: 70, who: \"@Self\" } }",
+    "example": "{ PROC_REBOUND: { chance: 4, tier-min: 10, tier-max: 70, who: \"@Self\" } }",
     "params": [
       {
         "name": "chance",

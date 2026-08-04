@@ -21,9 +21,11 @@ import org.bukkit.entity.Player;
  *
  * <p>The band is compared against the incoming enchant's tier WEIGHT — the number its rung carries in
  * {@code tiers.yml}, not a 0-based rung index. On the shipped ascending-by-ten ladder (common 10 … heroic 70,
- * mastery 80) the matrix's exclusive grade chain is authored as mastery {@code 80..80}, heroic {@code 60..70},
- * normal {@code 0..50}; a pack that re-weights its ladder re-bands with it. A source carrying no tier at all
- * (pets, reforges, masks) weighs {@code -1}, which no band containing 0 reaches, so it is never rebounded.
+ * mastery 80) the matrix's exclusive grade chain is authored as mastery {@code 80..80}, heroic {@code 10..70},
+ * normal {@code 0..50}; a pack that re-weights its ladder re-bands with it. The grades OVERLAP deliberately —
+ * a heroic reflector answers everything up to heroic, and only loses to mastery — which is what makes the
+ * chain exclusive under the tier-min rule below. A source carrying no tier at all (pets, reforges, masks)
+ * weighs {@code -1}, which no band containing 0 reaches, so it is never rebounded.
  *
  * <p>{@code tier-min} exists so that chain composes without any engine notion of grade: the dispatch picks the
  * armed grade with the greatest {@code tier-min} whose band contains the incoming weight — which is exactly
@@ -49,7 +51,7 @@ public final class ProcReboundEffect implements EffectKind {
                     + "enchant's level must be at least the incoming one's. Several worn grades compose — the "
                     + "one whose band reaches the incoming weight with the highest tier-min wins. "
                     + "A maintained PASSIVE marker, armed on equip and lifted on unequip. Player-only.")
-            .example("{ PROC_REBOUND: { chance: 4, tier-min: 60, tier-max: 70, who: \"@Self\" } }")
+            .example("{ PROC_REBOUND: { chance: 4, tier-min: 10, tier-max: 70, who: \"@Self\" } }")
             .build();
 
     @Override

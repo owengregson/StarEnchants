@@ -791,7 +791,7 @@ While worn, give incoming enchant activations a chance to be taken off you and r
 - _param_ `tier-max` `int[0..]`
 - _param_ `tier-min` `int[0..]`
 - _target_ `who`: selector `SELF`
-- _example_: `{ PROC_REBOUND: { chance: 4, tier-min: 60, tier-max: 70, who: "@Self" } }`
+- _example_: `{ PROC_REBOUND: { chance: 4, tier-min: 10, tier-max: 70, who: "@Self" } }`
 
 ### PROJECTILE
 

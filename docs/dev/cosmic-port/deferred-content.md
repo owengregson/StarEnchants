@@ -99,19 +99,17 @@ come back.
   WEIGHT (`TierRegistry.Tier.weight()`), so the bands are 0..50 / 10..70 / 80..80
   on this pack's ladder — the surface's `tier-min: 6, tier-max: 7` example reads
   as rung numbers and would answer for nothing on any real ladder.
-- **Wave 2c queue.** `ProcReboundEffect`'s own documentation contradicts the
-  contract it ships: the class javadoc tells an author to "author mastery as
-  `8..8`, heroic as `6..7`, normal as `0..5`" and the `.example(...)` spells
-  `tier-min: 6, tier-max: 7`
-  (`se/engine/src/engine/effect/kind/ProcReboundEffect.java:23-26,46`), but the
-  bands are compared against the incoming enchant's rarity-tier WEIGHT
-  (`TierRegistry.Tier.weight()`), so on this pack's ladder those same three
-  grades are `0..50` / `10..70` / `80..80` and a literal `6..7` band answers for
-  nothing at all — the trap both reflect files had to be authored around (rows
-  above). An engine-DOC fix only, no behaviour: the effect's `.doc()`/`.example()`
-  feed `docs/reference/dsl-reference.md` and
-  `docs/reference/authoring-surface.txt`, so both are regenerated when it is
-  touched.
+- ~~**Wave 2c queue.** `ProcReboundEffect`'s own documentation contradicts the
+  contract it ships~~ **FIXED in wave 2c.** The class javadoc told an author to
+  "author mastery as `8..8`, heroic as `6..7`, normal as `0..5`" and the
+  `.example(...)` spelled `tier-min: 6, tier-max: 7`, but the bands are compared
+  against the incoming enchant's rarity-tier WEIGHT (`TierRegistry.Tier.weight()`),
+  so a literal `6..7` band answered for nothing at all — the trap both reflect
+  files had to be authored around (rows above). Both now name the weight
+  explicitly and spell this pack's ladder (`0..50` / `10..70` / `80..80`), and
+  the javadoc states WHY the grades overlap: the tier-min precedence rule is
+  what makes an overlapping chain exclusive. Doc-only, no behaviour;
+  `dsl-reference.md` and `authoring-surface.txt` regenerated.
 - **Wave 1f (small):** ~~victim worn-enchant-level fact and its actor-side twin~~
   **SHIPPED** as `%victim.enchlevel.<stem>%` / `%actor.enchlevel.<stem>%`, keyed
   on the file stem and reading a level of 0 for an enchant nobody carries. It
