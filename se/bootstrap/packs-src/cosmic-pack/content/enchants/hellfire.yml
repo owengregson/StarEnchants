@@ -31,8 +31,10 @@ tier: uncommon
 # The jar's `world_duels2` halving (radius and damage) is server-world wiring, not enchant behavior — an
 # interaction-layer world rule if it is ever wanted. Fire damage is NOT Virus-amplified (Virus keys WITHER and
 # POISON causes only). Removing the spent arrow on landing is engine cleanup, nothing to author.
-# era: PROJECTILE_LAND is inert on 1.8.9 — the era's hit event cannot report a landing block, so the pool half
-# simply never fires there (the legacy sweep owns any heuristic). Permanently burning arrows render fine on 1.8;
+# era: PROJECTILE_LAND is live on 1.8.9 for arrows — the era's hit event fires before the arrow branches or
+# moves, so the seam probes its in-ground flag a tick later instead (a lodged arrow landed; a die()d one was
+# the entity hit BOW already took). This pool is arrow-borne, so the half runs on both lanes.
+# Permanently burning arrows render fine on 1.8;
 # `BLOCK_FIRE_AMBIENT` is the 1.8 `FIRE` sound and carries its alias row (wave 2e.2, closing the legacy
 # sweep); LAVA/FLAME/EXPLOSION_LARGE all exist on 1.8.
 levels:

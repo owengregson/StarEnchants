@@ -41,8 +41,8 @@ tier: uncommon
 # strings: none.
 # era: a WITHER_SKULL rider exists on 1.8.9 and mounts through the single-passenger API (engine-owned, same
 # hazard as Cowification's cow); WITHER is fine on 1.8; `EXPLOSION_LARGE` renames at 1.20.5 (resolver).
-# PROJECTILE_LAND is INERT on 1.8.9 (the era seam cannot tell a landing from an entity hit, nor read the hit
-# point), so the landing AoE never runs on the legacy fork — the direct hit and the rider both do.
+# PROJECTILE_LAND is LIVE on 1.8.9 for arrows — the era's hit event fires before the arrow branches or moves,
+# so the seam probes its in-ground flag a tick later; the landing AoE, the direct hit and the rider all run.
 levels:
   # Wither II for 20 t a level, direct AND in the splash: 20/40/60/80/100 t. AoE radius = level: 1/2/3/4/5.
   1:

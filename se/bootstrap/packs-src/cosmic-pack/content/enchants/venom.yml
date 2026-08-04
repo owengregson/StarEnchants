@@ -30,9 +30,9 @@ tier: rare
 # players only" — the engine's ally hook carries the rest of the jar's PvP filtering.
 # Poison cannot kill in vanilla (it floors at 1 health) — a vanilla rule, noted for the parity harness.
 # §Virus multiplies every Poison tick this applies (x2-x5); that fold lives on the Virus mark, not here.
-# era: PROJECTILE_LAND is INERT on 1.8.9 — the legacy seam cannot tell a world landing from an entity hit,
-# so it never fires there rather than double-dispatching every hit BOW already handled; the landing AoE is
-# therefore a modern-only half until the legacy sweep settles a heuristic. The XP-orb rider has client-side
+# era: PROJECTILE_LAND is LIVE on 1.8.9 for arrows — the era's hit event fires before the arrow branches or
+# moves, so the legacy seam probes its in-ground flag a tick later (a lodged arrow landed; a die()d one was
+# the entity hit BOW already took) and the landing AoE runs on both lanes. The XP-orb rider has client-side
 # magnet/render quirks when mounted on 1.8.9 — visual only, verify in the sweep. POISON and EXPERIENCE_ORB
 # both resolve on every era.
 levels:

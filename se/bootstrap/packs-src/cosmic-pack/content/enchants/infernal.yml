@@ -23,8 +23,9 @@ tier: rare
 # The jar's tier registry lists this one as retired from enchant-table rolls (twice) while the handler stays
 # wired: catalog trivia, fully functional wherever the enchant is present.
 # Fire damage is not Virus-amplified (Virus keys WITHER and POISON causes only).
-# era: PROJECTILE_LAND is inert on 1.8.9 (the era's hit event cannot report a landing block), so the ring half
-# never fires there — the legacy sweep owns any heuristic. FLAME exists on 1.8; no sounds to alias.
+# era: PROJECTILE_LAND is live on 1.8.9 for arrows — the era's hit event fires before the arrow branches or
+# moves, so the seam probes its in-ground flag a tick later instead; the ring is arrow-borne and runs on both
+# lanes. FLAME exists on 1.8; no sounds to alias.
 levels:
   1:
     abilities:
