@@ -48,6 +48,23 @@ class ModernHandleEraTest {
         compileClean(Path.of("resources/content"), era, 60);
     }
 
+    /**
+     * Every SOUND alias TARGET must name a constant the modern era really has. The shipped-content sweeps
+     * above only reach rows some config happens to author, so a mistyped target on a legacy-sweep row would
+     * ship dark: the legacy spelling would resolve to nothing forever, on every era.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {"1.21.11", "26.1.2"})
+    void everySoundAliasTargetExistsOnModernEra(String era) {
+        Set<String> sounds = constants("sounds-" + era + ".txt");
+        String missing = Aliases.forCategory(HandleCategory.SOUND).entrySet().stream()
+                .filter(e -> !sounds.contains(e.getValue()))
+                .map(e -> e.getKey() + " -> " + e.getValue())
+                .sorted()
+                .collect(Collectors.joining(", "));
+        assertTrue(missing.isEmpty(), () -> "sound alias targets absent on " + era + ": " + missing);
+    }
+
     private static void compileClean(Path content, String era, int minAbilities) {
         assertTrue(Files.isDirectory(content), "content not found from " + Path.of("").toAbsolutePath());
         Compiler compiler = ContentCompiler.production(eraResolvers(era));
