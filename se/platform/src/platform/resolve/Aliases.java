@@ -108,7 +108,11 @@ public final class Aliases {
             Map.entry("FIREWORK_LAUNCH", "ENTITY_FIREWORK_ROCKET_LAUNCH"),
             Map.entry("FIREWORK_TWINKLE2", "ENTITY_FIREWORK_ROCKET_TWINKLE_FAR"),
             Map.entry("FIREWORK_BLAST", "ENTITY_FIREWORK_ROCKET_BLAST"),
-            Map.entry("ANVIL_BREAK", "BLOCK_ANVIL_BREAK"),
+            // 1.8's ANVIL_BREAK is random.anvil_break — the SHATTER, not a block break: 1.8's anvil step
+            // sound answers dig.stone for getBreakSound(). Modern block.anvil.break took over that mining
+            // break (SoundType.ANVIL's break slot) and block.anvil.destroy the shatter (AnvilBlock fires it
+            // after a fall), so DESTROY is the descendant and BREAK a different, lighter cue.
+            Map.entry("ANVIL_BREAK", "BLOCK_ANVIL_DESTROY"),
             Map.entry("PISTON_EXTEND", "BLOCK_PISTON_EXTEND"),
             Map.entry("DRINK", "ENTITY_GENERIC_DRINK"),
             Map.entry("ZOMBIE_PIG_ANGRY", "ENTITY_ZOMBIFIED_PIGLIN_ANGRY"),
@@ -152,7 +156,15 @@ public final class Aliases {
             // The zombie-door trio, all three words reordered by the flattening and trivially cross-wired:
             // METAL is the iron-door ATTACK, WOOD the wooden-door ATTACK, WOODBREAK (above) the wooden BREAK.
             Map.entry("ZOMBIE_METAL", "ENTITY_ZOMBIE_ATTACK_IRON_DOOR"),
-            Map.entry("ZOMBIE_WOOD", "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR"));
+            Map.entry("ZOMBIE_WOOD", "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR"),
+            // Wave 2e.3's four: found by walking the CONTENT's authored tokens instead of this list, which
+            // had only ever been closed against itself. Each key is in the real Spigot 1.8.8 Sound enum and
+            // each value in both committed modern fixtures, none colliding with a row above. Clarity and
+            // Permafrost-style single-cue files sit behind two of them, so the proc was wholly silent.
+            Map.entry("FIZZ", "BLOCK_FIRE_EXTINGUISH"),
+            Map.entry("DIG_WOOL", "BLOCK_WOOL_BREAK"),
+            Map.entry("IRONGOLEM_DEATH", "ENTITY_IRON_GOLEM_DEATH"),
+            Map.entry("WITHER_DEATH", "ENTITY_WITHER_DEATH"));
 
     /**
      * The COMPLETE 1.20.5 particle rename wave (Spigot flattened the enum), floor name → modern name,

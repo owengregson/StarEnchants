@@ -23,15 +23,16 @@ condition: "%victim.type% == \"PLAYER\" && %victim.health% <= 10.0"
 # The jar's three stacked world-effect 2001 bursts at y+0/+1/+2 collapse into the single body-centred burst
 # below, spread-y 1.5 covering the same column.
 # {ATTACKER} and {VICTIM} are the engine's bound MESSAGE combat-party tokens, not unfilled placeholders.
-# era: ANVIL_BREAK (legacy) <-> BLOCK_ANVIL_BREAK (modern) — the legacy-sweep row has LANDED in
-# `Aliases.SOUND`, so the cue resolves on the 1.8 lane. World-effect 2001 maps to BLOCK_CRACK plus
-# block data, present on 1.8.9.
+# era: ANVIL_BREAK (legacy) <-> BLOCK_ANVIL_DESTROY (modern) — DESTROY, not BREAK, because 1.8's
+# `random.anvil_break` is the shatter and modern `block.anvil.break` is the block-mining cue 1.8 answered
+# with `dig.stone`. The row is in `Aliases.SOUND`, so the cue resolves on the 1.8 lane. World-effect 2001
+# maps to BLOCK_CRACK plus block data, present on 1.8.9.
 levels:
   1:
     chance: "0.25 - 0.25 * %victim.enchlevel.sticky%"
     effects:
       - { REMOVE_ARMOR: { who: "@Victim" } }
-      - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 1.0, pitch: 0.6 } }
+      - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 1.0, pitch: 0.6 } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_ORE", count: 24, spread: 0.4, spread-y: 1.5, who: "@Victim" } }
       - { MESSAGE: { text: "", who: "@Victim" } }
       - { MESSAGE: { text: "", who: "@Victim" } }
@@ -46,7 +47,7 @@ levels:
     chance: "0.5 - 0.25 * %victim.enchlevel.sticky%"
     effects:
       - { REMOVE_ARMOR: { who: "@Victim" } }
-      - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 1.0, pitch: 0.6 } }
+      - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 1.0, pitch: 0.6 } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_ORE", count: 24, spread: 0.4, spread-y: 1.5, who: "@Victim" } }
       - { MESSAGE: { text: "", who: "@Victim" } }
       - { MESSAGE: { text: "", who: "@Victim" } }
@@ -61,7 +62,7 @@ levels:
     chance: "0.75 - 0.25 * %victim.enchlevel.sticky%"
     effects:
       - { REMOVE_ARMOR: { who: "@Victim" } }
-      - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 1.0, pitch: 0.6 } }
+      - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 1.0, pitch: 0.6 } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_ORE", count: 24, spread: 0.4, spread-y: 1.5, who: "@Victim" } }
       - { MESSAGE: { text: "", who: "@Victim" } }
       - { MESSAGE: { text: "", who: "@Victim" } }
@@ -76,7 +77,7 @@ levels:
     chance: "1.0 - 0.25 * %victim.enchlevel.sticky%"
     effects:
       - { REMOVE_ARMOR: { who: "@Victim" } }
-      - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 1.0, pitch: 0.6 } }
+      - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 1.0, pitch: 0.6 } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_ORE", count: 24, spread: 0.4, spread-y: 1.5, who: "@Victim" } }
       - { MESSAGE: { text: "", who: "@Victim" } }
       - { MESSAGE: { text: "", who: "@Victim" } }
@@ -91,7 +92,7 @@ levels:
     chance: "1.25 - 0.25 * %victim.enchlevel.sticky%"
     effects:
       - { REMOVE_ARMOR: { who: "@Victim" } }
-      - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 1.0, pitch: 0.6 } }
+      - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 1.0, pitch: 0.6 } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_ORE", count: 24, spread: 0.4, spread-y: 1.5, who: "@Victim" } }
       - { MESSAGE: { text: "", who: "@Victim" } }
       - { MESSAGE: { text: "", who: "@Victim" } }
@@ -106,7 +107,7 @@ levels:
     chance: "1.5 - 0.25 * %victim.enchlevel.sticky%"
     effects:
       - { REMOVE_ARMOR: { who: "@Victim" } }
-      - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 1.0, pitch: 0.6 } }
+      - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 1.0, pitch: 0.6 } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_ORE", count: 24, spread: 0.4, spread-y: 1.5, who: "@Victim" } }
       - { MESSAGE: { text: "", who: "@Victim" } }
       - { MESSAGE: { text: "", who: "@Victim" } }
@@ -121,7 +122,7 @@ levels:
     chance: "1.75 - 0.25 * %victim.enchlevel.sticky%"
     effects:
       - { REMOVE_ARMOR: { who: "@Victim" } }
-      - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 1.0, pitch: 0.6 } }
+      - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 1.0, pitch: 0.6 } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_ORE", count: 24, spread: 0.4, spread-y: 1.5, who: "@Victim" } }
       - { MESSAGE: { text: "", who: "@Victim" } }
       - { MESSAGE: { text: "", who: "@Victim" } }
@@ -136,7 +137,7 @@ levels:
     chance: "2.0 - 0.25 * %victim.enchlevel.sticky%"
     effects:
       - { REMOVE_ARMOR: { who: "@Victim" } }
-      - { SOUND: { sound: "BLOCK_ANVIL_BREAK", volume: 1.0, pitch: 0.6 } }
+      - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 1.0, pitch: 0.6 } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_ORE", count: 24, spread: 0.4, spread-y: 1.5, who: "@Victim" } }
       - { MESSAGE: { text: "", who: "@Victim" } }
       - { MESSAGE: { text: "", who: "@Victim" } }

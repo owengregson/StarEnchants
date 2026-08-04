@@ -14,9 +14,8 @@ levels:
     effects:
       - { DAMAGE: { amount: 0.5, who: "@Attacker" } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "CACTUS", count: 8, who: "@Self" } }
-      # the 1.8.9 cactus break cue is the legacy cloth/dig.cloth family (`DIG_WOOL`), which `Aliases.SOUND`
-      # does NOT carry — so this cue is silent on 1.8 until that row lands (one of four the wave-2e.2 sweep
-      # missed; mighty-cactus.yml points here, and the row is re-ledgered on the legacy list)
+      # the 1.8.9 cactus break cue is the legacy cloth family (`DIG_WOOL` = `dig.cloth`), which `Aliases.SOUND`
+      # carries — so this plays on both lanes (mighty-cactus.yml points here for the pair)
       - { SOUND: { sound: "BLOCK_WOOL_BREAK", volume: 1, pitch: 1 } }
   2:
     condition: "%victim.type% == \"PLAYER\""
