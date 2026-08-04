@@ -155,6 +155,7 @@ public final class BuiltinEffects {
                 .register(new PhantomBlocksEffect())     // Rot and Decay: per-viewer client-only ground overlay
                 .register(new VanishEffect())            // Feign Death: hide from all, broken by your own landed hits
                 .register(new SpawnerYieldEffect())      // Bunny mask: worn channel read at each spawner spawn
+                .register(new PotionAmpReduceEffect())   // Mortal Coil: sap LEVELS off a live buff, give them back
                 .build();
     }
 }

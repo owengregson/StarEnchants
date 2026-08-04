@@ -188,7 +188,12 @@ effect-chain param type, and `PERIODIC_DAMAGE`'s `tick-*` cues are the precedent
 `DEFENDER_KEYED_SUPPRESSION` (11 — the incoming-direction complement of the
 SuppressionStore). `VULNERABILITY` and `DEFENDER_KEYED_SUPPRESSION` **SHIPPED in
 wave 2d** (the latter as the head `SUPPRESS_INCOMING`, which names the authored
-act beside `SUPPRESS`/`SUPPRESS_IMMUNE` rather than the mechanism).
+act beside `SUPPRESS`/`SUPPRESS_IMMUNE` rather than the mechanism), refined in
+wave 2d.2 to a per-TARGET-APPLICATION consult so a chain hop onto a protected
+bystander is skipped too. `POTION_AMP_REDUCE` **SHIPPED in wave 2d.2** with no era
+seam: its enforcement is the per-tick re-assert on both lanes, because
+`EntityPotionEffectEvent` can only cancel an application, never rewrite its
+amplifier, and a cancel is the full strip the primitive exists to avoid.
 
 **Small effects:** `FACING_SET` (07 — irreducible in-place yaw/pitch set),
 `FALL_SHIELD` (07 — one-shot fall cancel on an arbitrary player),

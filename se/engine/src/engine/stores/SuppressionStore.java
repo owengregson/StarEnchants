@@ -83,7 +83,9 @@ public final class SuppressionStore implements RetainedStore {
      *
      * <p>The chance is rolled at the CONSULT, not the arm, which is the whole reason the activator-side
      * {@link #immuneChance} could not be reused: an ability's own chance gate rolls once when the window is
-     * created, and "50% of incoming mastery procs" needs a roll per incoming proc.
+     * created, and "50% of incoming mastery procs" needs a roll per incoming proc. There are two consults —
+     * gate 5 for the activation's primary victim, and gate 12's target loop for every OTHER body an effect
+     * resolves onto (the chain hops) — and each draws exactly once per (window, target application).
      */
     private final Map<UUID, Map<Long, Defender>> defenderByPlayer = new ConcurrentHashMap<>();
     /** The KIND-scoped half of {@link #defenderByPlayer}, split for the same fast-path reason. */
@@ -593,10 +595,21 @@ public final class SuppressionStore implements RetainedStore {
     }
 
     /**
+     * Whether ANY defender-keyed window exists on the whole server — the hoist for gate 12's per-target
+     * consult, read ONCE per activated ability so the executor never enters its target loop (nor pays a
+     * lookup per target) while nobody is wearing one. The same two emptiness reads {@link #defenderBlocks}
+     * fast-paths on, lifted out of the loop.
+     */
+    public boolean anyDefenderWindows() {
+        return !defenderByPlayer.isEmpty() || !defenderKindByPlayer.isEmpty();
+    }
+
+    /**
      * The defender-keyed window on {@code defender} that silences {@code ability}, or {@code null}. Each
      * candidate window rolls its OWN chance through {@code roll} (a {@code [0,100)} draw) — per incoming
-     * activation, which is exactly what the activator-side immunity cannot express, since an ability's chance
-     * gate rolls once when the window is armed.
+     * TARGET APPLICATION, which is exactly what the activator-side immunity cannot express, since an
+     * ability's chance gate rolls once when the window is armed. Callers must consult each defender at most
+     * once per activation, or one window would get several draws at the same thing.
      *
      * <p>Walks {@link #suppressesAny}'s scope order (enchant, group, type, then effect kinds) so both
      * directions agree on which key names a block. Returning the matched window rather than a bare boolean is

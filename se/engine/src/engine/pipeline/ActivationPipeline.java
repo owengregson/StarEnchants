@@ -144,7 +144,10 @@ public final class ActivationPipeline {
         // 5b. DEFENDER-KEYED suppression: the same gate read from the other end. The window lives on the
         //     VICTIM, so "Immune to X" holds against the opening proc of an engagement — a who=@Attacker
         //     SUPPRESS armed from DEFENSE always misses it, because the attack pass resolves first. Each
-        //     window rolls its own chance HERE, per incoming activation, which an arm-time roll cannot express.
+        //     window rolls its own chance HERE, which an arm-time roll cannot express.
+        //     This adjudicates the PRIMARY VICTIM only, and it is the strong arm: the whole activation stops,
+        //     the cooldown is released and the cue fires. Every other body an effect later resolves onto is
+        //     adjudicated one at a time by gate 12 (defenderBlocksTarget), which can only drop a target.
         SuppressionStore.Matched defended =
                 suppression.defenderBlocks(ability, act.victimId(), act.nowTicks(), act.chanceRoll());
         if (defended != null) {
@@ -239,6 +242,30 @@ public final class ActivationPipeline {
         // A defender-keyed block names its window WITHOUT re-rolling: the roll was already spent deciding the
         // block, and drawing again to decide what to print could answer differently (or find nothing at all).
         return own != null ? own : suppression.defenderFeedback(ability, act.victimId(), act.nowTicks());
+    }
+
+    /**
+     * Whether any defender-keyed {@code SUPPRESS_INCOMING} window exists on the server at all — the HOIST for
+     * {@link #defenderBlocksTarget}, read once per activated ability so a server with nobody wearing one never
+     * enters the executor's per-target loop and pays exactly what it paid before the loop existed.
+     */
+    public boolean anyDefenderWindows() {
+        return suppression.anyDefenderWindows();
+    }
+
+    /**
+     * Whether a defender-keyed window on {@code target} silences {@code ability} aimed at THEM — gate 5's
+     * consult asked about one body instead of about the activation, so gate 12 can drop a protected CHAIN HOP
+     * from an effect's resolved target list (owner ruling R-v; the Necromancer mask is skipped as a Chain
+     * Lifesteal target, not just as its primary victim).
+     *
+     * <p>Rolls the window's chance, so a caller must ask at most ONCE per (activation, target): the primary
+     * victim is gate 5's, and asking again here would give one window two draws at one hit. Unlike gate 5 this
+     * cannot suppress the ACTIVATION — it removes a body from one effect's list, and the ability stays
+     * ACTIVATED with its cooldown armed and its souls spent, which is exactly what happened.
+     */
+    public boolean defenderBlocksTarget(Ability ability, Activation act, UUID target) {
+        return suppression.defenderBlocks(ability, target, act.nowTicks(), act.chanceRoll()) != null;
     }
 
     /**

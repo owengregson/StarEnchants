@@ -121,7 +121,8 @@ class NewEffectEndToEndTest {
             "PHANTOM_BLOCKS: { radius: 4, material-ally: GLOWSTONE, material-enemy: END_STONE, duration: 100, "
                     + "who: \"@Self\" }",
             "VANISH: { duration: 60, break-hits: 2, var: feign.active, who: \"@Self\" }",
-            "SPAWNER_YIELD: { chance: 65, extra: 1, scope: chunk, radius: 16 }");
+            "SPAWNER_YIELD: { chance: 65, extra: 1, scope: chunk, radius: 16 }",
+            "POTION_AMP_REDUCE: { effect: HEALTH_BOOST, amount: 2, duration: 48, who: \"@Victim\" }");
 
     @TempDir
     Path root;

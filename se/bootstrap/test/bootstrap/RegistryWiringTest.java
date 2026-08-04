@@ -94,7 +94,7 @@ class RegistryWiringTest {
             "REPEATING tasks", "HELD/PASSIVE buffs", "maintained passives", "EQUIP_CHANGE tracking", // equip
             "soul aura task",                                                 // souls
             "frozen windows",                                                 // controls (ADR-0065)
-            "falling-block casts", "guardian casts", "combat tags", "damage marks", "owner zones", "temp equips", "decay ladders", "turret casts", // stores
+            "falling-block casts", "guardian casts", "combat tags", "damage marks", "owner zones", "temp equips", "decay ladders", "turret casts", "potion reductions", // stores
             "pet summon registry", "bat swarms", "bat cloud targets", "pet armed windows", "pet shared-use gate", "pet home windows", "pet home visuals", // pets (0052/0059/0060/0061/0068/0070)
             "mask illusions", "mask provocations",                            // masks (ADR-0053)
             "gravity wells", "castling channels", "javelin flights", "control locks", // reforges (ADR-0070/0071 Plan B)

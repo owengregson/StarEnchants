@@ -335,6 +335,10 @@ effect POTION
   param effect HANDLE required min=- max=- enum=- handle=POTION_EFFECT default=-
   param level INT required min=1 max=- enum=- handle=- default=-
   param duration TICKS required min=0 max=- enum=- handle=- default=-
+effect POTION_AMP_REDUCE
+  param effect HANDLE required min=- max=- enum=- handle=POTION_EFFECT default=-
+  param amount INT optional min=1 max=- enum=- handle=- default=1
+  param duration TICKS optional min=0 max=- enum=- handle=- default=60
 effect POTION_LOCK
   param effect HANDLE required min=- max=- enum=- handle=POTION_EFFECT default=-
   param ticks TICKS optional min=0 max=- enum=- handle=- default=100

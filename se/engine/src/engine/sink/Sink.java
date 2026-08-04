@@ -219,6 +219,20 @@ public interface Sink {
     void potionLock(LivingEntity target, int potionEffectId, int durationTicks);
 
     /**
+     * Sap {@code amount} LEVELS off {@code target}'s live instance of an interned potion effect for
+     * {@code durationTicks}, then give the source back (POTION_AMP_REDUCE — Mortal Coil's heart drain). The
+     * partial sibling of {@link #potionLock}: the type stays on at {@code source − amount}, every
+     * re-application inside the window is held to that same ceiling, and a reduction that would leave nothing
+     * denies the type for the window instead. With no live instance at the arm there is no source to measure a
+     * ceiling against, so nothing is armed. Non-stacking per (target, type) — see {@link ReducedPotions}.
+     *
+     * <p>On HEALTH_BOOST the current-health clamp is DOWNWARD-ONLY, and only by what was actually taken: the
+     * holder's health rides the rewrite so the drop equals the levels removed, and the give-back at expiry
+     * restores max health while leaving current health where the clamp left it.
+     */
+    void potionAmpReduce(LivingEntity target, int potionEffectId, int amount, int durationTicks);
+
+    /**
      * Freeze {@code target} for {@code durationTicks} (FREEZE — Ice Aspect, ADR-0065): freeze ticks pinned
      * at max (the vanilla powder-snow visual; Paper's freeze-tick lock where available, a per-tick re-pin on
      * the 1.17.1 floor; a recorded no-op on 1.8.9), an attacker-attributed DoT of
@@ -1106,8 +1120,10 @@ public interface Sink {
 
     /**
      * Arm a DEFENDER-KEYED suppression window on {@code target} — {@code SUPPRESS_INCOMING}. Same keying as
-     * {@link #suppress}, opposite direction: gate 5 consults this one with the activation's VICTIM id, so it
-     * blocks what others aim at {@code target}. {@code chance} is rolled at each incoming activation.
+     * {@link #suppress}, opposite direction: it is consulted with the id of whoever an ability is landing on,
+     * so it blocks what others aim at {@code target} — gate 5 for the activation's primary victim (the whole
+     * activation stops) and gate 12 for each further body an effect resolves onto (that body alone is
+     * skipped). {@code chance} is rolled at each incoming target application.
      */
     void suppressIncoming(Player target, int scopeKind, int scopeId, int durationTicks, int chance, int byDefId,
                           UUID by, String actorMessage, String victimMessage, int soundId);

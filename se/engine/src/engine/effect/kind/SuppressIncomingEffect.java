@@ -13,17 +13,19 @@ import schema.spec.D;
 
 /**
  * {@code SUPPRESS_INCOMING} — the defender-keyed complement of {@link SuppressEffect}. The window lives on
- * the holder and gate 5 consults it with the ACTIVATION's victim id, so it silences what other people aim at
- * them rather than what they themselves do.
+ * the holder and is consulted per TARGET APPLICATION, so it silences what other people aim at them rather
+ * than what they themselves do. Two consults: gate 5 with the activation's victim id, which stops the whole
+ * activation, and gate 12 over each effect's remaining resolved targets, which drops a protected CHAIN HOP
+ * from that effect's list while the activation stands (owner ruling R-v).
  *
  * <p>{@code SUPPRESS} cannot express "immune to X" from the defender's seat. Its window is keyed on the
  * activator, so the only way to arm one on an attacker is {@code who: "@Attacker"} from a DEFENSE ability —
  * and the attack pass resolves before the defence pass, so that always misses the opening proc of every
  * engagement. The immunity would leak exactly the hit it exists to stop.
  *
- * <p>{@code chance} rolls per INCOMING activation, not once at the arm. An ability's own chance gate rolls
- * when the window is created, which cannot say "half the mastery procs aimed at me fizzle" — the roll has to
- * happen at each thing it might fizzle. A {@code chance} of 100 short-circuits the draw entirely.
+ * <p>{@code chance} rolls per INCOMING target application, not once at the arm. An ability's own chance gate
+ * rolls when the window is created, which cannot say "half the mastery procs aimed at me fizzle" — the roll
+ * has to happen at each thing it might fizzle. A {@code chance} of 100 short-circuits the draw entirely.
  *
  * <p>Maintained-while-worn is the shape every consumer wants, so a re-arm only EXTENDS the window: a PASSIVE
  * ability can re-arm on every lifecycle tick without churning it.
@@ -35,16 +37,18 @@ public final class SuppressIncomingEffect implements EffectKind {
             .param("key", D.STRING)
             .param("duration", D.TICKS.def(200))
             .param("chance", D.INT.range(1, 100).def(100),
-                    "percent rolled per incoming activation; 100 is absolute")
+                    "percent rolled per incoming target application; 100 is absolute")
             // Consume-time feedback, as on SUPPRESS: emitted when the window BLOCKS, not when it is armed.
             .param("consumed-message-actor", D.STRING.def(""), "line to the protected holder, when it blocks")
             .param("consumed-message-victim", D.STRING.def(""), "line to the blocked activator, when it blocks")
             .param("consumed-sound", D.sound().optional(), "cue played at the block; omit for silence")
             .target("who", T.SELF)
             .affinity(Affinity.CONTEXT_LOCAL)
-            .doc("Make each target IMMUNE to abilities aimed at them: for `duration` ticks, an activation "
-                    + "whose enchant/group/type (or, with scope KIND, whose effect head) matches `key` is "
-                    + "blocked at gate 5 when it targets the holder. `chance` rolls per incoming activation. "
+            .doc("Make each target IMMUNE to abilities aimed at them: for `duration` ticks, an ability whose "
+                    + "enchant/group/type (or, with scope KIND, whose effect head) matches `key` is blocked "
+                    + "whenever it lands on the holder. Aimed at them directly it is stopped outright; when "
+                    + "they are merely one of several bodies a chain or area effect resolved onto, they alone "
+                    + "are skipped and the rest still take it. `chance` rolls per incoming target application. "
                     + "The mirror of SUPPRESS, which silences what its target DOES; this silences what is done "
                     + "TO them, including the opening proc a defensive SUPPRESS can never reach. Re-arming "
                     + "extends the window, so a PASSIVE may hold it open.")

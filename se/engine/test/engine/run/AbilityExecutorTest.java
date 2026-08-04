@@ -3,10 +3,13 @@ package engine.run;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import compile.model.Ability;
 import compile.model.Affinity;
@@ -19,6 +22,7 @@ import engine.effect.kind.IgniteEffect;
 import engine.interact.SoulSpender;
 import engine.pipeline.Activation;
 import engine.pipeline.ActivationPipeline;
+import engine.pipeline.GateOutcome;
 import engine.selector.SelectorRegistry;
 import engine.selector.kind.SelfSelector;
 import engine.selector.kind.VictimSelector;
@@ -26,6 +30,9 @@ import engine.sink.ModernDispatchSink;
 import engine.sink.SinkReadback;
 import engine.stores.CooldownStore;
 import engine.stores.SuppressionStore;
+import engine.stores.WhyRecorder;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -354,6 +361,183 @@ class AbilityExecutorTest {
 
         verify(sink).outOfSoulsNotice(actor, null, 7, 3);
         verifyNoMoreInteractions(sink);
+    }
+
+    // ── SUPPRESS_INCOMING per TARGET APPLICATION (owner ruling R-v) ──────────────────────────────
+    //
+    // Gate 5 adjudicates the activation's primary victim; everything an effect ALSO resolves onto — the
+    // chain hops — is adjudicated one body at a time here, and a block drops that body only.
+
+    @Test
+    void aDefendedChainHopIsSkippedWhileTheOtherHopsStillTakeIt() {
+        // The gap this closes: keyed on the activation alone, a Necromancer-mask wearer is only skipped when
+        // the swing was aimed at THEM. Standing two blocks away, the chain reached them anyway.
+        LivingEntity first = target();
+        LivingEntity masked = target();
+        LivingEntity last = target();
+        SuppressionStore suppression = new SuppressionStore();
+        suppression.defend(masked.getUniqueId(), CooldownStore.key(ScopeKinds.ENCHANT, 5), 0L, 100, 100, -1, null);
+        AbilityExecutor chained = chainExecutor(suppression, WhyRecorder.NONE, first, masked, last);
+        ModernDispatchSink sink = sink();
+
+        int activated = chained.run(new Ability[] {chainAbility()}, new int[] {0}, activation(),
+                context(mock(Player.class), null), sink, KEYS);
+        sink.flush();
+
+        assertEquals(1, activated);
+        verify(first).setFireTicks(60);
+        verify(last).setFireTicks(60);
+        verify(masked, never()).setFireTicks(anyInt());
+    }
+
+    @Test
+    void everyChainHopDefendedStillLeavesTheAbilityActivated() {
+        // The semantic call: a per-target veto can only remove bodies. Gates 6/10 already armed the cooldown
+        // and spent the souls, and /se why must keep reporting what actually happened — ACTIVATED, not a
+        // retroactive SUPPRESSED, which would also contradict the cooldown the walk really did arm.
+        LivingEntity one = target();
+        LivingEntity two = target();
+        SuppressionStore suppression = new SuppressionStore();
+        for (LivingEntity blocked : List.of(one, two)) {
+            suppression.defend(blocked.getUniqueId(), CooldownStore.key(ScopeKinds.ENCHANT, 5), 0L, 100, 100,
+                    -1, null);
+        }
+        List<Integer> verdicts = new ArrayList<>();
+        WhyRecorder recorder = (actor, now, trigger, defId, verdict, pA, pB) -> verdicts.add(verdict);
+        AbilityExecutor chained = chainExecutor(suppression, recorder, one, two);
+        ModernDispatchSink sink = sink();
+
+        int activated = chained.run(new Ability[] {chainAbility()}, new int[] {0}, activation(),
+                context(mock(Player.class), null), sink, KEYS);
+        sink.flush();
+
+        assertEquals(1, activated);
+        assertEquals(List.of(GateOutcome.ACTIVATED.ordinal()), verdicts);
+        verify(one, never()).setFireTicks(anyInt());
+        verify(two, never()).setFireTicks(anyInt());
+    }
+
+    @Test
+    void theActivatorIsNeverFilteredOutOfTheirOwnAbility() {
+        // A defender window says what OTHERS may aim at its holder. Consulting it for the activator would cut
+        // a mask wearer out of their own who=@Self lifesteal heal — the same key, the same scope, their gear.
+        Player actor = mock(Player.class);
+        when(actor.getUniqueId()).thenReturn(ACTOR);
+        SuppressionStore suppression = new SuppressionStore();
+        suppression.defend(ACTOR, CooldownStore.key(ScopeKinds.ENCHANT, 5), 0L, 100, 100, -1, null);
+        AbilityExecutor gated = executorWith(suppression, SoulSpender.NONE);
+        Ability selfHeal = Abilities.ability().trigger(TRIGGER).cooldownScope(5, -1, -1)
+                .effects(igniteEffect("SELF", 60, Affinity.TARGET_ENTITY)).build();
+
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
+        assertEquals(1, gated.run(new Ability[] {selfHeal}, new int[] {0}, activation(), context(actor, null),
+                sink, KEYS));
+        sink.flush();
+
+        verify(actor).setFireTicks(60);
+    }
+
+    @Test
+    void thePrimaryVictimIsAdjudicatedOnceAtGateFiveAndNeverRolledAgain() {
+        // Two consults against one window would square a partial mask's block rate. The third draw here WOULD
+        // block (0.0 < 50), so re-consulting the victim is directly observable.
+        LivingEntity victim = target();
+        SuppressionStore suppression = new SuppressionStore();
+        suppression.defend(victim.getUniqueId(), CooldownStore.key(ScopeKinds.ENCHANT, 5), 0L, 100, 50, -1, null);
+        AbilityExecutor chained = chainExecutor(suppression, WhyRecorder.NONE, victim);
+        List<Double> draws = List.of(90.0, 0.0, 0.0); // gate 5b lets it through, gate 8 passes, then nothing
+        int[] next = {0};
+        Activation act = Activation.builder(ACTOR, 0, TRIGGER, 0L)
+                .victimId(victim.getUniqueId())
+                .chanceRoll(() -> draws.get(next[0]++)).build();
+        ModernDispatchSink sink = sink();
+
+        assertEquals(1, chained.run(new Ability[] {chainAbility()}, new int[] {0}, act,
+                context(mock(Player.class), victim), sink, KEYS));
+        sink.flush();
+
+        verify(victim).setFireTicks(60);
+        assertEquals(2, next[0], "one draw at gate 5b, one at gate 8 — the target loop must not draw again");
+    }
+
+    @Test
+    void withNoDefenderWindowAnywhereTheTargetLoopIsNeverEntered() {
+        // The hoist (owner ruling R-v: keep the cost profile). A server with nobody wearing SUPPRESS_INCOMING
+        // must pay what it paid before this existed: the chance gate's single draw and nothing else.
+        LivingEntity one = target();
+        LivingEntity two = target();
+        AbilityExecutor chained = chainExecutor(new SuppressionStore(), WhyRecorder.NONE, one, two);
+        int[] draws = {0};
+        Activation act = Activation.builder(ACTOR, 0, TRIGGER, 0L).chanceRoll(() -> {
+            draws[0]++;
+            return 0.0;
+        }).build();
+        ModernDispatchSink sink = sink();
+
+        assertEquals(1, chained.run(new Ability[] {chainAbility()}, new int[] {0}, act,
+                context(mock(Player.class), null), sink, KEYS));
+        sink.flush();
+
+        verify(one).setFireTicks(60);
+        verify(two).setFireTicks(60);
+        assertEquals(1, draws[0], "gate 8 only — neither gate 5b nor the per-target consult read the store");
+    }
+
+    /** The chain fixture's ability: scoped so a defender window keyed to ENCHANT id 5 matches it. */
+    private static Ability chainAbility() {
+        return Abilities.ability().trigger(TRIGGER).cooldownScope(5, -1, -1)
+                .effects(igniteEffect(FixedTargets.HEAD, 60, Affinity.TARGET_ENTITY)).build();
+    }
+
+    private AbilityExecutor chainExecutor(SuppressionStore suppression, WhyRecorder recorder,
+                                          LivingEntity... chain) {
+        return new AbilityExecutor(
+                EffectRegistry.builder().register(new IgniteEffect()).build(),
+                SelectorRegistry.builder().register(new SelfSelector()).register(new VictimSelector())
+                        .register(new FixedTargets(chain)).build(),
+                new ActivationPipeline(new CooldownStore(), SoulSpender.NONE, suppression,
+                        ActivationPipeline.Guard.ALLOW, ActivationPipeline.Guard.ALLOW, recorder),
+                AreaScan.NONE);
+    }
+
+    private ModernDispatchSink sink() {
+        return new ModernDispatchSink(handles, Envs.sink().build());
+    }
+
+    /** A distinct body the executor can identify; the sink applies IGNITE straight onto it. */
+    private static LivingEntity target() {
+        LivingEntity entity = mock(LivingEntity.class);
+        when(entity.getUniqueId()).thenReturn(UUID.randomUUID());
+        return entity;
+    }
+
+    /**
+     * Test-owned multi-target selector: the executor's per-target filter is what is under test, so the chain
+     * is handed in directly rather than mocked out of an area scan. Its list is IMMUTABLE, which also pins
+     * that the filter never writes back into the selector's own result.
+     */
+    private static final class FixedTargets implements engine.selector.SelectorKind {
+
+        static final String HEAD = "FIXTURE_CHAIN";
+
+        private static final engine.spec.SelectorSpec SPEC = engine.spec.SelectorSpec.of(HEAD)
+                .doc("test fixture").example("@FixtureChain").build();
+
+        private final List<LivingEntity> chain;
+
+        FixedTargets(LivingEntity... chain) {
+            this.chain = List.of(chain);
+        }
+
+        @Override
+        public engine.spec.SelectorSpec spec() {
+            return SPEC;
+        }
+
+        @Override
+        public List<LivingEntity> resolve(engine.selector.SelectorCtx ctx) {
+            return chain;
+        }
     }
 
     private AbilityExecutor executorWith(SuppressionStore suppression, SoulSpender spender) {

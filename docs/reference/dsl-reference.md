@@ -885,6 +885,18 @@ Apply a potion effect to the target(s) at the given LEVEL (1-based: level 1 = th
 - _target_ `who`: selector `SELF`
 - _example_: `{ POTION: { effect: STRENGTH, level: 1, duration: 100 } }`
 
+### POTION_AMP_REDUCE
+
+Reduce the LEVEL of a potion effect the target already has by `amount` for `duration` ticks, then restore it. Re-applications during the window are held to the same reduced ceiling, and a reduction that leaves nothing denies the effect for the window. A target without the effect is untouched. Unlike POTION_LOCK this takes only part of the buff, so a Health Boost VI sapped by 2 keeps four of its six tiers.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ POTION_AMP_REDUCE: { effect: <potion_effect>, amount: <int[1..]=1>, duration: <ticks[0..]=60> } }`
+- _param_ `effect` `potion_effect`
+- _param_ `amount` `int[1..]` — levels to sap; at or above the source the effect is denied
+- _param_ `duration` `ticks[0..]`
+- _target_ `who`: selector `SELF`
+- _example_: `{ POTION_AMP_REDUCE: { effect: HEALTH_BOOST, amount: 2, duration: 48, who: "@Victim" } }`
+
 ### POTION_LOCK
 
 Strip a potion effect from the target(s) and continuously deny it for `ticks` — any re-application during the window is refused, so it cannot be maintained by a passive buff. Default target self.
@@ -1244,14 +1256,14 @@ Make the target(s) immune to suppression (DISABLE_ENCHANT/GROUP/TYPE) while worn
 
 ### SUPPRESS_INCOMING
 
-Make each target IMMUNE to abilities aimed at them: for `duration` ticks, an activation whose enchant/group/type (or, with scope KIND, whose effect head) matches `key` is blocked at gate 5 when it targets the holder. `chance` rolls per incoming activation. The mirror of SUPPRESS, which silences what its target DOES; this silences what is done TO them, including the opening proc a defensive SUPPRESS can never reach. Re-arming extends the window, so a PASSIVE may hold it open.
+Make each target IMMUNE to abilities aimed at them: for `duration` ticks, an ability whose enchant/group/type (or, with scope KIND, whose effect head) matches `key` is blocked whenever it lands on the holder. Aimed at them directly it is stopped outright; when they are merely one of several bodies a chain or area effect resolved onto, they alone are skipped and the rest still take it. `chance` rolls per incoming target application. The mirror of SUPPRESS, which silences what its target DOES; this silences what is done TO them, including the opening proc a defensive SUPPRESS can never reach. Re-arming extends the window, so a PASSIVE may hold it open.
 
 - _affinity_: `CONTEXT_LOCAL`
 - _usage_: `{ SUPPRESS_INCOMING: { scope: <enum{ENCHANT|GROUP|TYPE|KIND}>, key: <string>, duration: <ticks[0..]=200>, chance: <int[1..100]=100>, consumed-message-actor: <string=>, consumed-message-victim: <string=>, consumed-sound: <sound> } }`
 - _param_ `scope` `enum{ENCHANT|GROUP|TYPE|KIND}`
 - _param_ `key` `string`
 - _param_ `duration` `ticks[0..]`
-- _param_ `chance` `int[1..100]` — percent rolled per incoming activation; 100 is absolute
+- _param_ `chance` `int[1..100]` — percent rolled per incoming target application; 100 is absolute
 - _param_ `consumed-message-actor` `string` — line to the protected holder, when it blocks
 - _param_ `consumed-message-victim` `string` — line to the blocked activator, when it blocks
 - _param_ `consumed-sound` `sound` — cue played at the block; omit for silence

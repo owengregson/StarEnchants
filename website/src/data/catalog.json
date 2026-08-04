@@ -4246,6 +4246,57 @@
       ]
     },
   {
+    "head": "POTION_AMP_REDUCE",
+    "doc": "Reduce the LEVEL of a potion effect the target already has by `amount` for `duration` ticks, then restore it. Re-applications during the window are held to the same reduced ceiling, and a reduction that leaves nothing denies the effect for the window. A target without the effect is untouched. Unlike POTION_LOCK this takes only part of the buff, so a Health Boost VI sapped by 2 keeps four of its six tiers.",
+    "affinity": "TARGET_ENTITY",
+    "usage": "{ POTION_AMP_REDUCE: { effect: <potion_effect>, amount: <int[1..]=1>, duration: <ticks[0..]=60> } }",
+    "example": "{ POTION_AMP_REDUCE: { effect: HEALTH_BOOST, amount: 2, duration: 48, who: \"@Victim\" } }",
+    "params": [
+      {
+        "name": "effect",
+        "kind": "HANDLE",
+        "label": "potion_effect",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "POTION_EFFECT",
+        "doc": ""
+        },
+      {
+        "name": "amount",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": false,
+        "default": "1",
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "levels to sap; at or above the source the effect is denied"
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "60",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
     "head": "POTION_LOCK",
     "doc": "Strip a potion effect from the target(s) and continuously deny it for `ticks` — any re-application during the window is refused, so it cannot be maintained by a passive buff. Default target self.",
     "affinity": "TARGET_ENTITY",
@@ -6025,7 +6076,7 @@
     },
   {
     "head": "SUPPRESS_INCOMING",
-    "doc": "Make each target IMMUNE to abilities aimed at them: for `duration` ticks, an activation whose enchant/group/type (or, with scope KIND, whose effect head) matches `key` is blocked at gate 5 when it targets the holder. `chance` rolls per incoming activation. The mirror of SUPPRESS, which silences what its target DOES; this silences what is done TO them, including the opening proc a defensive SUPPRESS can never reach. Re-arming extends the window, so a PASSIVE may hold it open.",
+    "doc": "Make each target IMMUNE to abilities aimed at them: for `duration` ticks, an ability whose enchant/group/type (or, with scope KIND, whose effect head) matches `key` is blocked whenever it lands on the holder. Aimed at them directly it is stopped outright; when they are merely one of several bodies a chain or area effect resolved onto, they alone are skipped and the rest still take it. `chance` rolls per incoming target application. The mirror of SUPPRESS, which silences what its target DOES; this silences what is done TO them, including the opening proc a defensive SUPPRESS can never reach. Re-arming extends the window, so a PASSIVE may hold it open.",
     "affinity": "CONTEXT_LOCAL",
     "usage": "{ SUPPRESS_INCOMING: { scope: <enum{ENCHANT|GROUP|TYPE|KIND}>, key: <string>, duration: <ticks[0..]=200>, chance: <int[1..100]=100>, consumed-message-actor: <string=>, consumed-message-victim: <string=>, consumed-sound: <sound> } }",
     "example": "{ SUPPRESS_INCOMING: { scope: GROUP, key: lifesteal, duration: 100, who: \"@Self\" } }",
@@ -6081,7 +6132,7 @@
         "max": 100,
         "enum": [],
         "handle": null,
-        "doc": "percent rolled per incoming activation; 100 is absolute"
+        "doc": "percent rolled per incoming target application; 100 is absolute"
         },
       {
         "name": "consumed-message-actor",
