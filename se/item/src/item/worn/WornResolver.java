@@ -116,6 +116,9 @@ public final class WornResolver {
         // off-hand slot, which never swings, so its attacker-direction procs are dropped downstream. Stays at the
         // full size on 1.8 (no off-hand slot) → no off-hand region → today's behaviour bit-for-bit.
         int offhandFrom = -1;
+        // %victim.heroicpieces% counts WORN ARMOUR only, so it is tallied HERE — `combats` keeps no slot
+        // provenance, and a heroic sword in hand must not read as a worn armour piece.
+        int heroicPieces = 0;
         for (int slot = 0; slot < gear.length; slot++) { // 0-3 armour, 4 main hand, 5 off-hand (EquipSource contract)
             if (slot == ARMOR_SLOTS + 1 && offhandFrom < 0) {
                 offhandFrom = combats.size(); // the off-hand slot begins here, whether or not it holds anything
@@ -127,7 +130,11 @@ public final class WornResolver {
             if (slot >= ARMOR_SLOTS && isArmorMaterial(piece)) {
                 continue;
             }
+            int before = combats.size();
             addCombat(piece, combats);
+            if (slot < ARMOR_SLOTS && combats.size() > before && !combats.get(before).heroic().isZero()) {
+                heroicPieces++;
+            }
         }
         if (offhandFrom < 0) {
             offhandFrom = combats.size(); // no off-hand slot in the equipment array (1.8)
@@ -135,7 +142,7 @@ public final class WornResolver {
         // ADR-0052: the hotbar-pet keys, decided wholly by the pets feature (bracket + armed gate + toggle).
         List<String> petKeys = petSource.liveKeys(entity);
         return resolveFrom(combats, offhandFrom, petKeys, snapshot.stableKeys(), snapshot.abilities(),
-                snapshot.generation());
+                snapshot.generation(), heroicPieces);
     }
 
     /** Equipment-array index where the hand slots begin; indices below this are the four armour slots. */
@@ -184,6 +191,12 @@ public final class WornResolver {
      */
     WornState resolveFrom(List<CombatState> combats, int offhandFrom, List<String> petKeys, StableKeyIndex keys,
                           Ability[] abilities, int generation) {
+        return resolveFrom(combats, offhandFrom, petKeys, keys, abilities, generation, 0);
+    }
+
+    /** As above, with the caller's count of WORN ARMOUR pieces carrying a heroic upgrade (slot provenance). */
+    WornState resolveFrom(List<CombatState> combats, int offhandFrom, List<String> petKeys, StableKeyIndex keys,
+                          Ability[] abilities, int generation, int heroicPieces) {
         List<Integer> mergedIds = new ArrayList<>();   // armour + main-hand sourced ids
         List<Integer> offhandIds = new ArrayList<>();  // off-hand sourced ids (attack-direction dropped by flatten)
         List<Integer> crystalIds = new ArrayList<>();
@@ -351,7 +364,7 @@ public final class WornResolver {
         }
         return WornFlattener.flatten(generation, toIntArray(mergedIds), toIntArray(offhandIds), abilities,
                 triggerCount, activeSets, toIntArray(crystalIds), heroic, attackTrigger, defenseTrigger,
-                enchantLevels);
+                enchantLevels, f.heroic() ? heroicPieces : 0); // one toggle gates the stat and the count alike
     }
 
     /** The {@code <stem>} of a {@code <source>/<stem>} base key, lower-cased — the enchlevel lookup's key. */

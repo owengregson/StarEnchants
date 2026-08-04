@@ -22,10 +22,12 @@ public final class BoreSelector implements SelectorKind {
             .param("half-height", D.INT.min(0).def(1), "half the cross-section up and down (1 = 3 blocks tall)")
             .param("depth", D.INT.min(1).def(1), "layers into the face, counting the activation block's own")
             .param("materials", D.materials().def(""), "keep only these block types (empty = every block)")
+            .param("exclude-materials", D.materials().def(""), "drop these block types (empty = drop none)")
             .doc("A half-width x half-height cross-section centred on the activation block, repeated depth "
                     + "layers into the mined face. depth=1 is a flat face; materials keeps only the listed "
-                    + "block types, written [STONE,DIRT] so the comma survives the selector body.")
-            .example("@Bore{half-width=1, half-height=1, depth=3, materials=[STONE,DEEPSLATE]}")
+                    + "block types and exclude-materials drops them, both written [STONE,DIRT] so the comma "
+                    + "survives the selector body. A type on both lists is dropped.")
+            .example("@Bore{half-width=1, half-height=1, depth=3, exclude-materials=[BEDROCK,OBSIDIAN]}")
             .build();
 
     @Override
@@ -47,6 +49,7 @@ public final class BoreSelector implements SelectorKind {
         int halfHeight = ctx.integer("half-height");
         int depth = ctx.integer("depth");
         List<Integer> materials = ctx.args().ids("materials");
+        List<Integer> excluded = ctx.args().ids("exclude-materials");
         List<Location> out = new ArrayList<>((2 * halfWidth + 1) * (2 * halfHeight + 1) * depth);
         for (int layer = 0; layer < depth; layer++) {
             for (int dw = -halfWidth; dw <= halfWidth; dw++) {
@@ -55,7 +58,7 @@ public final class BoreSelector implements SelectorKind {
                             (double) (forward[0] * layer + w[0] * dw + h[0] * dh),
                             (double) (forward[1] * layer + w[1] * dw + h[1] * dh),
                             (double) (forward[2] * layer + w[2] * dw + h[2] * dh));
-                    if (ctx.materialMatches(at, materials)) {
+                    if (ctx.materialMatches(at, materials, excluded)) {
                         out.add(at);
                     }
                 }

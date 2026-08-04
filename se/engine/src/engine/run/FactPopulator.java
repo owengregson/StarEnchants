@@ -4,7 +4,7 @@ import compile.cond.VarBinding;
 import compile.cond.VarKind;
 import compile.model.FactMask;
 import engine.condition.BuiltinVars;
-import engine.condition.EnchantLevelSource;
+import engine.condition.WornFactSource;
 import engine.condition.EnchantLevels;
 import engine.condition.FactBuffer;
 import engine.condition.PotionLevels;
@@ -119,12 +119,12 @@ public final class FactPopulator {
 
         @Override
         public int actorLevel(String key) {
-            return actor == null ? 0 : enchantLevelSource.levelOf(actor, key);
+            return actor == null ? 0 : wornFactSource.levelOf(actor, key);
         }
 
         @Override
         public int victimLevel(String key) {
-            return victim == null ? 0 : enchantLevelSource.levelOf(victim, key);
+            return victim == null ? 0 : wornFactSource.levelOf(victim, key);
         }
     }
 
@@ -151,14 +151,15 @@ public final class FactPopulator {
     }
 
     /**
-     * {@code %scope.enchlevel.<key>%} soft hook: boot-installed by the composition root, the only layer where
-     * the worn-state store is visible ({@code se-engine} has no {@code se-item} dependency).
+     * The worn-gear facts' soft hook ({@code %scope.enchlevel.<key>%}, {@code %victim.heroicpieces%}):
+     * boot-installed by the composition root, the only layer where the worn-state store is visible
+     * ({@code se-engine} has no {@code se-item} dependency).
      */
-    private static volatile EnchantLevelSource enchantLevelSource = EnchantLevelSource.NONE;
+    private static volatile WornFactSource wornFactSource = WornFactSource.NONE;
 
     /** A {@code null} resets to the zero source. */
-    public static void enchantLevelSource(EnchantLevelSource source) {
-        enchantLevelSource = source == null ? EnchantLevelSource.NONE : source;
+    public static void wornFactSource(WornFactSource source) {
+        wornFactSource = source == null ? WornFactSource.NONE : source;
     }
     private final List<ActorNum> actorNum = new ArrayList<>();
     private final List<ActorFlag> actorFlag = new ArrayList<>();
@@ -195,6 +196,7 @@ public final class FactPopulator {
     private final int projectileKindSlot;    // ARROW/FIREBALL/THROWN/OTHER (from the context)
     private final int equipChangeSlot;       // EQUIP/UNEQUIP on an EQUIP_CHANGE activation (from the context)
     private final int itemDurabilitySlot;    // ITEM_DAMAGE: the damaged item's remaining durability % (from the context)
+    private final int victimHeroicPiecesSlot; // worn heroic armour pieces on the victim (from the worn-fact source)
 
     /** Search radius for {@code %nearbyenemies%}, in blocks. */
     private static final double NEARBY_RADIUS = 8.0;
@@ -296,6 +298,7 @@ public final class FactPopulator {
         this.projectileKindSlot = slot(vocabulary, "projectilekind", VarKind.STR);
         this.equipChangeSlot = slot(vocabulary, "equipchange", VarKind.STR);
         this.itemDurabilitySlot = slot(vocabulary, "item.durabilitypercent", VarKind.NUM);
+        this.victimHeroicPiecesSlot = slot(vocabulary, "victim.heroicpieces", VarKind.NUM);
     }
 
     /**
@@ -404,6 +407,11 @@ public final class FactPopulator {
                 // victim vars above: no entity read beyond getUniqueId(), so a cross-region victim still resolves.
                 if (victimId != null && victimSoulsSlot >= 0 && mask.readsNum(victimSoulsSlot)) {
                     facts.setNumber(victimSoulsSlot, soulTotals.current(victimId));
+                }
+                // %victim.heroicpieces%: the count flattened onto the victim's WornState, by UUID — same rule
+                // again, so a heroic-gated ability prices a cross-region victim without touching them.
+                if (victimId != null && victimHeroicPiecesSlot >= 0 && mask.readsNum(victimHeroicPiecesSlot)) {
+                    facts.setNumber(victimHeroicPiecesSlot, wornFactSource.heroicPieces(victimId));
                 }
             }
         }

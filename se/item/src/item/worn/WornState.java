@@ -25,6 +25,9 @@ import java.util.Map;
  *                                read; {@code null} means "populate everything" (hand-built test states)
  * @param enchantLevels           lower-cased enchant stem &rarr; highest level worn, flattened once here so
  *                                {@code %scope.enchlevel.<key>%} is a lookup and never a gear scan
+ * @param heroicPieces            how many WORN ARMOUR pieces carry a heroic upgrade (0..4), counted once here
+ *                                for {@code %victim.heroicpieces%}. A count, not the {@link #heroic} sum: two
+ *                                pieces at 10 % and one at 20 % are the same stat and a different gate
  */
 public record WornState(
         int gen,
@@ -35,9 +38,18 @@ public record WornState(
         int[] combatAttack,
         int[] combatDefense,
         FactMask[] triggerFactMask,
-        Map<String, Integer> enchantLevels) {
+        Map<String, Integer> enchantLevels,
+        int heroicPieces) {
 
     private static final int[] NO_IDS = new int[0];
+
+    /** No heroic piece count — {@link #heroicPieces} then reports 0. */
+    public WornState(int gen, BitSet activeSets, int[] activeCrystalAbilityIds, HeroicStat heroic,
+                     int[][] byTrigger, int[] combatAttack, int[] combatDefense, FactMask[] triggerFactMask,
+                     Map<String, Integer> enchantLevels) {
+        this(gen, activeSets, activeCrystalAbilityIds, heroic, byTrigger, combatAttack, combatDefense,
+                triggerFactMask, enchantLevels, 0);
+    }
 
     /** No flattened enchant levels — {@link #enchantLevel} then reports 0 for every key. */
     public WornState(int gen, BitSet activeSets, int[] activeCrystalAbilityIds, HeroicStat heroic,

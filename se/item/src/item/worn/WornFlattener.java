@@ -66,6 +66,16 @@ public final class WornFlattener {
                                     int triggerCount, BitSet activeSets, int[] crystalAbilityIds,
                                     HeroicStat heroic, IntPredicate attackTrigger,
                                     IntPredicate defenseTrigger, Map<String, Integer> enchantLevels) {
+        return flatten(gen, mainIds, offhandIds, abilities, triggerCount, activeSets, crystalAbilityIds,
+                heroic, attackTrigger, defenseTrigger, enchantLevels, 0);
+    }
+
+    /** As above, carrying the resolver's count of worn armour pieces that hold a heroic upgrade. */
+    public static WornState flatten(int gen, int[] mainIds, int[] offhandIds, Ability[] abilities,
+                                    int triggerCount, BitSet activeSets, int[] crystalAbilityIds,
+                                    HeroicStat heroic, IntPredicate attackTrigger,
+                                    IntPredicate defenseTrigger, Map<String, Integer> enchantLevels,
+                                    int heroicPieces) {
         List<List<Integer>> perTrigger = new ArrayList<>(triggerCount);
         FactMask[] triggerMask = new FactMask[triggerCount];
         for (int t = 0; t < triggerCount; t++) {
@@ -125,8 +135,8 @@ public final class WornFlattener {
         for (int t = 0; t < triggerCount; t++) {
             byTrigger[t] = toIntArray(perTrigger.get(t));
         }
-        return new WornState(gen, activeSets, crystalAbilityIds.clone(), heroic,
-                byTrigger, toIntArray(attack), toIntArray(defense), triggerMask, Map.copyOf(enchantLevels));
+        return new WornState(gen, activeSets, crystalAbilityIds.clone(), heroic, byTrigger,
+                toIntArray(attack), toIntArray(defense), triggerMask, Map.copyOf(enchantLevels), heroicPieces);
     }
 
     private static int[] toIntArray(List<Integer> list) {

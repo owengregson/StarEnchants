@@ -109,14 +109,16 @@ class ModuleTreeGateTest {
      * SpawnInvulnerability#resolved is adjudicated (ADR-0071 amendments): a per-JVM reflective MEMO of the
      * 1.16.5–1.20.6 companion-timer field — no boot-time install, no teardown, derived purely from the handle
      * class; volatile only for safe cross-thread publication of the resolved Field.
-     * FactPopulator#enchantLevelSource is adjudicated: the {@code %scope.enchlevel.<key>%} worn-level hook, the
-     * FactPopulator#entityTypeResolver idiom exactly — the populator is constructed inside the dispatchers, so
-     * the composition root (the only layer where the engine reader and the item store meet) has no instance to
-     * wire; a stateless read-only lookup with no teardown.
+     * FactPopulator#wornFactSource is adjudicated: the worn-gear fact hook ({@code %scope.enchlevel.<key>%},
+     * {@code %victim.heroicpieces%}), the FactPopulator#entityTypeResolver idiom exactly — the populator is
+     * constructed inside the dispatchers, so the composition root (the only layer where the engine reader and
+     * the item store meet) has no instance to wire; a stateless read-only lookup with no teardown. It is ONE
+     * hook for the whole family on purpose: a second static per worn fact would grow this set without adding
+     * a single new consideration to adjudicate.
      */
     private static final Set<String> FROZEN_STATICS = Set.of(
             "CombatDispatch#friendlyFire",
-            "FactPopulator#enchantLevelSource",
+            "FactPopulator#wornFactSource",
             "FactPopulator#entityTypeResolver",
             "ItemFactory#customItemResolver",
             "ItemFactory#itemWrapWidth",

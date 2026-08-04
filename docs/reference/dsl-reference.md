@@ -1273,14 +1273,15 @@ The first solid block along the activator's line of sight, within distance.
 
 ### BORE
 
-A half-width x half-height cross-section centred on the activation block, repeated depth layers into the mined face. depth=1 is a flat face; materials keeps only the listed block types, written [STONE,DIRT] so the comma survives the selector body.
+A half-width x half-height cross-section centred on the activation block, repeated depth layers into the mined face. depth=1 is a flat face; materials keeps only the listed block types and exclude-materials drops them, both written [STONE,DIRT] so the comma survives the selector body. A type on both lists is dropped.
 
-- _usage_: `{ BORE: { half-width: <int[0..]=1>, half-height: <int[0..]=1>, depth: <int[1..]=1>, materials: <material list=> } }`
+- _usage_: `{ BORE: { half-width: <int[0..]=1>, half-height: <int[0..]=1>, depth: <int[1..]=1>, materials: <material list=>, exclude-materials: <material list=> } }`
 - _param_ `half-width` `int[0..]` — half the cross-section across (1 = 3 blocks wide)
 - _param_ `half-height` `int[0..]` — half the cross-section up and down (1 = 3 blocks tall)
 - _param_ `depth` `int[1..]` — layers into the face, counting the activation block's own
 - _param_ `materials` `material list` — keep only these block types (empty = every block)
-- _example_: `@Bore{half-width=1, half-height=1, depth=3, materials=[STONE,DEEPSLATE]}`
+- _param_ `exclude-materials` `material list` — drop these block types (empty = drop none)
+- _example_: `@Bore{half-width=1, half-height=1, depth=3, exclude-materials=[BEDROCK,OBSIDIAN]}`
 
 ### ENTITYINSIGHT
 
@@ -1346,29 +1347,32 @@ The activating player themself.
 
 ### TRENCH
 
-The square of blocks perpendicular to the look direction, centred on the activation block. materials keeps only the listed block types, written [STONE,DIRT] so the comma survives the selector body.
+The square of blocks perpendicular to the look direction, centred on the activation block. materials keeps only the listed block types and exclude-materials drops them, both written [STONE,DIRT] so the comma survives the selector body. A type on both lists is dropped.
 
-- _usage_: `{ TRENCH: { radius: <int[0..]=1>, materials: <material list=> } }`
+- _usage_: `{ TRENCH: { radius: <int[0..]=1>, materials: <material list=>, exclude-materials: <material list=> } }`
 - _param_ `radius` `int[0..]` — half-width of the face (1 = 3x3)
 - _param_ `materials` `material list` — keep only these block types (empty = every block)
+- _param_ `exclude-materials` `material list` — drop these block types (empty = drop none)
 - _example_: `@Trench{radius=1}`
 
 ### TUNNEL
 
-The blocks directly ahead of the activation block, along the look direction. materials keeps only the listed block types, written [STONE,DIRT] so the comma survives the selector body.
+The blocks directly ahead of the activation block, along the look direction. materials keeps only the listed block types and exclude-materials drops them, both written [STONE,DIRT] so the comma survives the selector body. A type on both lists is dropped.
 
-- _usage_: `{ TUNNEL: { depth: <int[1..]=3>, materials: <material list=> } }`
+- _usage_: `{ TUNNEL: { depth: <int[1..]=3>, materials: <material list=>, exclude-materials: <material list=> } }`
 - _param_ `depth` `int[1..]` — blocks ahead along the look direction
 - _param_ `materials` `material list` — keep only these block types (empty = every block)
+- _param_ `exclude-materials` `material list` — drop these block types (empty = drop none)
 - _example_: `@Tunnel{depth=4}`
 
 ### VEIN
 
-Up to `limit` blocks contiguous with and matching the activation block (vein miner). materials restricts which struck blocks vein at all, written [IRON_ORE,GOLD_ORE] so the comma survives the selector body.
+Up to `limit` blocks contiguous with and matching the activation block (vein miner). materials restricts which struck blocks vein at all and exclude-materials names ones that never do, both written [IRON_ORE,GOLD_ORE] so the comma survives the selector body. Both gate the STRUCK block, since the fill is same-material by construction.
 
-- _usage_: `{ VEIN: { limit: <int[1..]=64>, materials: <material list=> } }`
+- _usage_: `{ VEIN: { limit: <int[1..]=64>, materials: <material list=>, exclude-materials: <material list=> } }`
 - _param_ `limit` `int[1..]` — max blocks in the vein
 - _param_ `materials` `material list` — only vein these block types (empty = whatever was struck)
+- _param_ `exclude-materials` `material list` — never vein these block types (empty = none)
 - _example_: `@Vein{limit=32}`
 
 ### VICTIM
@@ -1517,6 +1521,7 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%victim.health%` | NUM |
 | `%victim.healthpercent%` | NUM |
 | `%victim.helditem%` | STR |
+| `%victim.heroicpieces%` | NUM |
 | `%victim.inzone%` | BOOL |
 | `%victim.maxhealth%` | NUM |
 | `%victim.mobtype%` | STR |

@@ -462,6 +462,7 @@ selector BORE
   param half-height INT optional min=0 max=- enum=- handle=- default=1
   param depth INT optional min=1 max=- enum=- handle=- default=1
   param materials HANDLE optional min=- max=- enum=- handle=MATERIAL default=
+  param exclude-materials HANDLE optional min=- max=- enum=- handle=MATERIAL default=
 selector ENTITYINSIGHT
   param r DOUBLE optional min=0 max=- enum=- handle=- default=16
 selector EYEHEIGHT
@@ -479,12 +480,15 @@ selector SELF
 selector TRENCH
   param radius INT optional min=0 max=- enum=- handle=- default=1
   param materials HANDLE optional min=- max=- enum=- handle=MATERIAL default=
+  param exclude-materials HANDLE optional min=- max=- enum=- handle=MATERIAL default=
 selector TUNNEL
   param depth INT optional min=1 max=- enum=- handle=- default=3
   param materials HANDLE optional min=- max=- enum=- handle=MATERIAL default=
+  param exclude-materials HANDLE optional min=- max=- enum=- handle=MATERIAL default=
 selector VEIN
   param limit INT optional min=1 max=- enum=- handle=- default=64
   param materials HANDLE optional min=- max=- enum=- handle=MATERIAL default=
+  param exclude-materials HANDLE optional min=- max=- enum=- handle=MATERIAL default=
 selector VICTIM
 [triggers]
 trigger ATTACK
@@ -580,6 +584,7 @@ var victim.gliding BOOL
 var victim.health NUM
 var victim.healthpercent NUM
 var victim.helditem STR
+var victim.heroicpieces NUM
 var victim.inzone BOOL
 var victim.maxhealth NUM
 var victim.mobtype STR
