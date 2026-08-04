@@ -921,6 +921,20 @@ public interface Sink {
     void convertSummons(Player ringer, double radius, int whiffSoundId);
 
     /**
+     * Sweep the summons around {@code actor} (SUMMON_PURGE) — {@link #convertSummons}' inverse. Every entity
+     * within {@code radius} that {@code GuardianCasts} attributes to a player, and whose owner
+     * {@link SummonPurgeFilter#purges} does not spare, is DESPAWNED (no drops, no experience, no death event)
+     * after both registries forget it, with each burst ({@code particleId}/{@code extraParticleId}
+     * {@code < 0} = none) left where it stood. Unattributable entities — wild mobs, and summons spawned with
+     * {@code owner=none} — are nobody's summons and are untouched; an invincible summon (ADR-0052) is spared
+     * exactly as {@link #despawn} spares it. Runs on the actor's thread; each removal hops to the summon's own
+     * scheduler.
+     */
+    void purgeSummons(Player actor, double radius, String filter, int particleId, int particleCount,
+                      double particleSpread, int extraParticleId, int extraParticleCount,
+                      double extraParticleSpread);
+
+    /**
      * Break every confining trap structure currently on {@code actor} (TRAP_BREAK): each structure
      * registered in the env's {@code TrapStructures} whose victims include the actor or whose bounds
      * contain them has ALL its tiles early-restored intact through {@code TempBlockLedger.reclaim} on

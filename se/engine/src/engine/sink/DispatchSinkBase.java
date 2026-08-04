@@ -2,6 +2,7 @@ package engine.sink;
 
 import compile.model.ScopeKinds;
 import engine.interact.DamageFold;
+import engine.selector.kind.Allies;
 import engine.selector.kind.Targets;
 import engine.stores.BatteryStore;
 import engine.stores.CooldownStore;
@@ -1571,6 +1572,56 @@ public abstract class DispatchSinkBase implements SinkReadback {
             // The authored ring sound alone reads as success; an empty ring must sound like an empty ring
             // (in real PvE almost nothing nearby is a registry summon — this was the dominant outcome).
             playCueInline(ringer.getLocation(), whiffSoundId, 0.8f, 0.55f);
+        }
+    }
+
+    @Override
+    public void purgeSummons(Player actor, double radius, String filter, int particleId, int particleCount,
+                             double particleSpread, int extraParticleId, int extraParticleCount,
+                             double extraParticleSpread) {
+        if (actor == null) {
+            return;
+        }
+        // convertSummons' region-safety exactly (this is its inverse): a CONTEXT_LOCAL self ability already
+        // runs on the actor's OWN region thread, so snapshot the ring and de-register INLINE — a purged summon
+        // must stop answering GuardianCasts the instant the sweep decides it, and a plan-deferred entityOp
+        // lands NEXT TICK on Folia. Only the removal + its puff hop to the summon's own scheduler.
+        UUID actorId = actor.getUniqueId();
+        for (Entity near : new ArrayList<>(actor.getNearbyEntities(radius, radius, radius))) {
+            UUID id = near.getUniqueId();
+            UUID ownerId = GuardianCasts.owner(id);
+            if (ownerId == null) {
+                continue; // not attributable to a player: a wild mob is nobody's summon to purge
+            }
+            Player owner = Bukkit.getPlayer(ownerId);
+            boolean online = owner != null;
+            if (!SummonPurgeFilter.purges(filter, ownerId.equals(actorId), online,
+                    online && Allies.allied(actor, owner))) {
+                continue;
+            }
+            SummonFlags flags = PetSummons.flags(id);
+            if (flags != null && flags.invincible()) {
+                continue; // an invincible summon outlives a purge exactly as it outlives DESPAWN and KILL
+            }
+            // Registries first, then the removal — the summon-path invariant: a forgotten entry can never
+            // outlive its entity, so an id reused by a later spawn cannot inherit a stale owner.
+            GuardianCasts.forget(id);
+            PetSummons.forget(id);
+            Scheduling.onEntity(near, () -> {
+                if (near.isValid()) {
+                    Location where = near.getLocation();
+                    puff(where, particleId, particleCount, particleSpread);
+                    puff(where, extraParticleId, extraParticleCount, extraParticleSpread);
+                }
+                near.remove();
+            });
+        }
+    }
+
+    /** One despawn burst on an already-owned thread (the dustDirect idiom); an absent handle is no burst. */
+    private void puff(Location at, int particleId, int count, double spread) {
+        if (at != null && particleId >= 0 && count > 0) {
+            particleDirect(at, particleId, count, spread);
         }
     }
 

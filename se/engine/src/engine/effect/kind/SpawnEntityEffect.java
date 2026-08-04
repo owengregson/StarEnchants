@@ -37,14 +37,16 @@ public final class SpawnEntityEffect implements EffectKind {
             .param("speed", D.DOUBLE.min(0).def(0))
             .param("name", D.STRING.def(""), "custom name shown above each summon; {OWNER} fills in the summoner")
             .param("effects", D.potionEffects().def(""), "potion effects held for the summon's whole life")
-            .param("payload-phase", D.enumOf("none", "detonate", "death", "periodic").def("none"),
-                    "when the summon runs its owner's SUMMON_PAYLOAD abilities")
+            .param("payload-phase", D.enumOf("none", "detonate", "death", "periodic", "strike").def("none"),
+                    "when the summon runs its owner's abilities (strike runs IMPACT, the rest SUMMON_PAYLOAD)")
             .param("payload-period", D.TICKS.def(40), "ticks between payload pulses (periodic phase only)")
             .param("payload-radius", D.DOUBLE.min(0).def(4), "XZ half-extent of the payload's target box")
             .param("payload-height", D.DOUBLE.min(0).def(0), "Y half-extent; 0 reuses payload-radius")
             .param("payload-filter", D.enumSetOf(Targets.names()).def("ALL"),
                     "which entities the payload targets; A+B keeps only what both admit")
             .param("payload-max-targets", D.INT.min(0).def(0), "nearest-first cap on payload targets (0 = all)")
+            .param("payload-consume", D.BOOL.def(true), "strike phase only: the hit also despawns the summon")
+            .param("payload-cancel", D.BOOL.def(true), "strike phase only: the summon's own melee damage is dropped")
             .param("scatter", D.INT.range(0, 8).def(0),
                     "spread each summon over a random ±N XZ offset, air-scanned (0 = the exact point)")
             .target("who", T.SELF)
@@ -68,8 +70,15 @@ public final class SpawnEntityEffect implements EffectKind {
                     + "entity in a payload-radius x payload-height box around the summon (height 0 reuses "
                     + "the radius), filtered by payload-filter and capped nearest-first by "
                     + "payload-max-targets; a payload needs owner=activator, since the owner is who runs "
-                    + "it. scatter spreads the summons over a random offset, air-scanned so none spawns "
-                    + "inside terrain. Replaces SPAWN/TNT.")
+                    + "it. payload-phase=strike is the odd rung out: it fires when the summon lands a MELEE "
+                    + "hit on a player (its projectiles never count) and runs the owner's IMPACT abilities "
+                    + "on the player struck, NOT their SUMMON_PAYLOAD ones — so the box params above do not "
+                    + "apply and the target is always the one player hit. payload-cancel drops the summon's "
+                    + "own melee damage so only the authored IMPACT lands, and payload-consume despawns the "
+                    + "summon on that hit, which makes it a one-shot courier: exactly one strike per summon, "
+                    + "never a second. Visuals for the strike belong on those IMPACT abilities, where they "
+                    + "are fully authored. scatter spreads the summons over a random offset, air-scanned so "
+                    + "none spawns inside terrain. Replaces SPAWN/TNT.")
             .example("{ SPAWN_ENTITY: { type: WOLF, count: 1, ttl: 0, health: 0, owner: activator } }")
             .build();
 
@@ -104,6 +113,8 @@ public final class SpawnEntityEffect implements EffectKind {
                 ctx.dbl("payload-height"),
                 ctx.str("payload-filter"),
                 ctx.integer("payload-max-targets"),
+                ctx.bool("payload-consume"),
+                ctx.bool("payload-cancel"),
                 ctx.integer("scatter"));
         Location origin = ctx.actorOrigin(); // hoisted: fresh instance per call (ADR-0043)
         boolean any = false;

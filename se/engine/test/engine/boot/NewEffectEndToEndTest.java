@@ -100,7 +100,12 @@ class NewEffectEndToEndTest {
                     + "health-floor: 1, filter: ENEMIES, target-range: 32, warning: \"incoming\", "
                     + "cue-sound: ENTITY_WITHER_SPAWN, cue-particle: SPELL_WITCH, cue-particle-count: 32, "
                     + "strike-sound: ENTITY_WITHER_DEATH, strike-particle: EXPLOSION_LARGE, "
-                    + "strike-particle-count: 4, who: \"@Self\" }");
+                    + "strike-particle-count: 4, who: \"@Self\" }",
+            // SUMMON_STRIKE_PAYLOAD is a SPAWN_ENTITY payload-phase rung, not a head — its dense id is
+            // SPAWN_ENTITY's, already covered; only the purge is a kind of its own.
+            "SUMMON_PURGE: { radius: 15, filter: not-own-or-ally-or-offline, particle: LARGE_SMOKE, "
+                    + "particle-count: 10, particle-spread: 0.3, extra-particle: SPELL_WITCH, "
+                    + "extra-particle-count: 12, extra-particle-spread: 0.7, who: \"@Self\" }");
 
     @TempDir
     Path root;

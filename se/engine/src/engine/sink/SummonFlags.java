@@ -22,30 +22,35 @@ import java.util.List;
  *                            {@code GenericAttributes.MOVEMENT_SPEED} instance
  * @param name                custom name shown above the summon ({@code &}-colour codes); empty = unnamed
  * @param effects             potion loadout held for the summon's whole life, packed id+level per entry
- * @param payloadPhase        when the {@code SUMMON_PAYLOAD} trigger fires: {@code none|detonate|death|periodic}
+ * @param payloadPhase        when the payload fires: {@code none|detonate|death|periodic|strike}
  * @param payloadPeriod       ticks between pulses on the {@code periodic} phase
  * @param payloadRadius       XZ half-extent of the payload's target box
  * @param payloadHeight       Y half-extent; 0 means "use {@link #payloadRadius}"
  * @param payloadFilter       the {@code engine.selector.kind.Targets} filter vocabulary, {@code A+B} admitted
  * @param payloadMaxTargets   nearest-first cap on the payload's targets (0 = unlimited)
+ * @param payloadConsume      {@code strike} phase only: the hit the summon lands also despawns it
+ * @param payloadCancel       {@code strike} phase only: the summon's own melee damage is cancelled
  * @param scatter             each summon lands at a random ±N XZ offset, air-scanned (0 = the exact point)
  */
 public record SummonFlags(boolean powered, boolean noAi, boolean noTarget, boolean saddled,
                           boolean mountActivator, boolean detonateOnPlayerHit, boolean invincible,
                           double speedMultiplier, String name, List<Integer> effects,
                           String payloadPhase, int payloadPeriod, double payloadRadius, double payloadHeight,
-                          String payloadFilter, int payloadMaxTargets, int scatter) {
+                          String payloadFilter, int payloadMaxTargets, boolean payloadConsume,
+                          boolean payloadCancel, int scatter) {
 
     /** The payload phase that arms nothing — {@code SPAWN_ENTITY}'s {@code payload-phase} default. */
     public static final String PHASE_NONE = "none";
     public static final String PHASE_DETONATE = "detonate";
     public static final String PHASE_DEATH = "death";
     public static final String PHASE_PERIODIC = "periodic";
+    /** The odd rung out: it runs the owner's {@code IMPACT} abilities, not their {@code SUMMON_PAYLOAD} ones. */
+    public static final String PHASE_STRIKE = "strike";
 
     /** Mirrors every {@code SPAWN_ENTITY} spec default, so an unconfigured spawn still reports {@link #none()}. */
     public static final SummonFlags NONE =
             new SummonFlags(false, false, false, false, false, false, false, 0.0, "", List.of(),
-                    PHASE_NONE, 40, 4.0, 0.0, "ALL", 0, 0);
+                    PHASE_NONE, 40, 4.0, 0.0, "ALL", 0, true, true, 0);
 
     /** The ADR-0052 flag set with no payload and no scatter — every payload component at its spec default. */
     public static SummonFlags of(boolean powered, boolean noAi, boolean noTarget, boolean saddled,
@@ -54,18 +59,26 @@ public record SummonFlags(boolean powered, boolean noAi, boolean noTarget, boole
         return new SummonFlags(powered, noAi, noTarget, saddled, mountActivator, detonateOnPlayerHit,
                 invincible, speedMultiplier, name, effects, NONE.payloadPhase(), NONE.payloadPeriod(),
                 NONE.payloadRadius(), NONE.payloadHeight(), NONE.payloadFilter(), NONE.payloadMaxTargets(),
-                NONE.scatter());
+                NONE.payloadConsume(), NONE.payloadCancel(), NONE.scatter());
     }
 
-    /** This flag set with a payload armed — the {@code SPAWN_ENTITY} payload params, in spec order. */
+    /** This flag set with a payload armed — the payload params every phase shares, in spec order. */
     public SummonFlags withPayload(String phase, int period, double radius, double height,
                                    String filter, int maxTargets, int scatter) {
         return new SummonFlags(powered, noAi, noTarget, saddled, mountActivator, detonateOnPlayerHit,
                 invincible, speedMultiplier, name, effects, phase, period, radius, height, filter,
-                maxTargets, scatter);
+                maxTargets, payloadConsume, payloadCancel, scatter);
     }
 
-    /** Whether this summon runs its owner's {@code SUMMON_PAYLOAD} abilities at some point in its life. */
+    /** This flag set with the {@link #PHASE_STRIKE} pair overridden — the rung's own params, as {@code withPayload}. */
+    public SummonFlags withStrike(boolean consume, boolean cancel) {
+        return new SummonFlags(powered, noAi, noTarget, saddled, mountActivator, detonateOnPlayerHit,
+                invincible, speedMultiplier, name, effects, payloadPhase, payloadPeriod, payloadRadius,
+                payloadHeight, payloadFilter, payloadMaxTargets, consume, cancel, scatter);
+    }
+
+    /** Whether this summon runs a payload — its owner's {@code SUMMON_PAYLOAD} abilities, or on the
+     *  {@link #PHASE_STRIKE} rung their {@code IMPACT} ones — at some point in its life. */
     public boolean payloadArmed() {
         return !PHASE_NONE.equalsIgnoreCase(payloadPhase);
     }

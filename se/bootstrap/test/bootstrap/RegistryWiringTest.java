@@ -81,6 +81,7 @@ class RegistryWiringTest {
             "SlotListener", "UnopenedBookListener", "UseItemListener", "UseItemConsumeListener",
             "PetUseListener", "PetLevelListener", "PetFoodListener", "PetHotbarListener", "PetSummonListener",
             "SummonPayloadListener", // the detonate/death payload phases (the periodic one arms in the sink)
+            "SummonStrikeListener", // the strike phase: an owned summon's melee hit runs the owner's IMPACT
             "IllusionCanonGuard", "MaskBreakSource", "MaskListener", "MaskRemoveListener", "MaskIllusionListener", "MobTargetGuard", "InvseeGuard",
             "NearGuard", "SplashHealGuard",
             "ReforgeListener", "ReforgeUseListener", "ReforgeStrikeListener", "ReforgeTempoGuardListener", // ADR-0070/0071
