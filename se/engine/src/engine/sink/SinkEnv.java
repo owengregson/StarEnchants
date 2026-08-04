@@ -32,7 +32,8 @@ import platform.economy.EconomyService;
  * per-boot {@link TrapStructures} registry (ADR-0071), shared so a confining placement and its Turnkey break
  * (separate events) see the same structures. {@code permanentPotions} is the ADR-0072 cleanse seam, riding the
  * env for the same reason {@code movementExemption} does — instance wiring, not a mutable static installer.
- * All shared via the env like the stores, never a mutable static.
+ * {@code siteGate} is the per-site protection seam for the same reason. All shared via the env like the
+ * stores, never a mutable static.
  */
 public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
                       Consumer<Player> movementExemption, TempBlockLedger<BlockState> tempBlocks,
@@ -40,7 +41,7 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
                       DoubleSupplier moneyInterestCap, GearProtection gearProtection,
                       ToDoubleFunction<UUID> lightningBoost, TrapStructures trapStructures,
                       PlayerVisibility visibility, PermanentPotions permanentPotions,
-                      SummonPayloads payloads) {
+                      SummonPayloads payloads, SiteGate siteGate) {
 
     public SinkEnv {
         Objects.requireNonNull(economy, "economy");
@@ -59,6 +60,7 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
         Objects.requireNonNull(visibility, "visibility");
         Objects.requireNonNull(permanentPotions, "permanentPotions");
         Objects.requireNonNull(payloads, "payloads");
+        Objects.requireNonNull(siteGate, "siteGate");
     }
 
     /** The four-arg shape every non-root site used before the exemption rode the env — no-op movement hook. */
@@ -112,17 +114,30 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
     }
 
     /**
-     * The full shape: {@code payloads} is the {@code SUMMON_PAYLOAD} seam a periodic summon pulses through —
-     * firing a trigger is the feature layer's business, so the sink only holds the call
-     * ({@link SummonPayloads#NONE} = no payload ever runs).
+     * The {@code payloads} shape: the {@code SUMMON_PAYLOAD} seam a periodic summon pulses through — firing a
+     * trigger is the feature layer's business, so the sink only holds the call ({@link SummonPayloads#NONE} =
+     * no payload ever runs).
      */
     public static SinkEnv of(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
                              Consumer<Player> movementExemption, DoubleSupplier moneyInterestCap,
                              GearProtection gearProtection, ToDoubleFunction<UUID> lightningBoost,
                              PlayerVisibility visibility, PermanentPotions permanentPotions,
                              SummonPayloads payloads) {
+        return of(economy, souls, stores, nowTicks, movementExemption, moneyInterestCap, gearProtection,
+                lightningBoost, visibility, permanentPotions, payloads, SiteGate.ALLOW_ALL);
+    }
+
+    /**
+     * The full shape: {@code siteGate} is the composed protection gate a multi-site placement asks about EACH
+     * of its spots ({@link SiteGate#ALLOW_ALL} = nothing is ever protected).
+     */
+    public static SinkEnv of(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
+                             Consumer<Player> movementExemption, DoubleSupplier moneyInterestCap,
+                             GearProtection gearProtection, ToDoubleFunction<UUID> lightningBoost,
+                             PlayerVisibility visibility, PermanentPotions permanentPotions,
+                             SummonPayloads payloads, SiteGate siteGate) {
         return new SinkEnv(economy, souls, stores, nowTicks, movementExemption, BukkitBlockOps.ledger(),
                 new TrailWalker(), new TimedRevert(), new DotParkLedger(), moneyInterestCap, gearProtection,
-                lightningBoost, new TrapStructures(), visibility, permanentPotions, payloads);
+                lightningBoost, new TrapStructures(), visibility, permanentPotions, payloads, siteGate);
     }
 }

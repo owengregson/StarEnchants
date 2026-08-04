@@ -50,6 +50,8 @@ public final class Aliases {
             Map.entry("ZOMBIE_PIGMAN", "ZOMBIFIED_PIGLIN"),
             Map.entry("SNOWMAN", "SNOW_GOLEM"),
             Map.entry("MUSHROOM_COW", "MOOSHROOM"),
+            // 1.20.5 renamed the constant to match the vanilla id; the floor (and 1.17–1.20.4) still says ENDER_.
+            Map.entry("ENDER_CRYSTAL", "END_CRYSTAL"),
             // PRIMED_TNT (floor) → TNT (modern); one entry resolves both spellings on both eras
             // (HandleResolver also matches a modern token against an older server).
             Map.entry("PRIMED_TNT", "TNT"));

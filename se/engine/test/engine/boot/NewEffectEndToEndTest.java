@@ -105,7 +105,13 @@ class NewEffectEndToEndTest {
             // SPAWN_ENTITY's, already covered; only the purge is a kind of its own.
             "SUMMON_PURGE: { radius: 15, filter: not-own-or-ally-or-offline, particle: LARGE_SMOKE, "
                     + "particle-count: 10, particle-spread: 0.3, extra-particle: SPELL_WITCH, "
-                    + "extra-particle-count: 12, extra-particle-spread: 0.7, who: \"@Self\" }");
+                    + "extra-particle-count: 12, extra-particle-spread: 0.7, who: \"@Self\" }",
+            "TURRET_RING: { type: ENDER_CRYSTAL, count: 5, ring-radius: 8, ttl: 300, acquire-range: 11, "
+                    + "initial-delay: 30, period-min: 8, period-max: 13, filter: ENEMIES, "
+                    + "projectile: WITHER_SKULL, projectile-speed: 0.065, spawn-sound: ENTITY_GHAST_SHOOT, "
+                    + "spawn-volume: 3.0, spawn-pitch: 0.9, spawn-particle: FLAME, spawn-particle-count: 24, "
+                    + "spawn-lightning: true, despawn-particle: SPELL_WITCH, despawn-particle-count: 16, "
+                    + "despawn-particle-spread: 0.75, who: \"@Self\" }");
 
     @TempDir
     Path root;

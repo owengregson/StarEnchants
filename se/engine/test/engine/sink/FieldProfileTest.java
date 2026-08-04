@@ -10,10 +10,10 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * The two field profiles' PURE decisions — the layer/density/offset draws and the payload arithmetic that the
- * sink would otherwise only exercise against a booted server. Every draw here is scripted rather than seeded, so
- * each expectation is hand-computed from the profile's own rule and a scripted value outside the bound the
- * profile computed fails loudly (which pins the bound too).
+ * The field profiles' PURE decisions — the layer/density/offset draws, the ring geometry and refire jitter, and
+ * the payload arithmetic that the sink would otherwise only exercise against a booted server. Every draw here is
+ * scripted rather than seeded, so each expectation is hand-computed from the profile's own rule and a scripted
+ * value outside the bound the profile computed fails loudly (which pins the bound too).
  */
 class FieldProfileTest {
 
@@ -97,6 +97,83 @@ class FieldProfileTest {
             assertEquals(1.0, FIELD.struckHealth(10.0), "below the threshold it can only ever reach the floor");
             // Points are never de-duplicated, so the floor is what has to hold — not a single-hit budget.
             assertEquals(1.0, FIELD.struckHealth(FIELD.struckHealth(FIELD.struckHealth(20.0))));
+        }
+    }
+
+    @Nested
+    class TurretRing {
+
+        /** The ported ring at its top level: 5 emplacements at radius 8, 15s, 11-block reach, refire 8..13t. */
+        private static final TurretRingProfile RING =
+                new TurretRingProfile(0, 5, 8.0, 300, 11.0, 30, 8, 13, 1, 0.065, "ENEMIES");
+
+        @Test
+        void theRingIsEvenlySpacedAtTheAuthoredRadius() {
+            // Four sites is the case whose offsets are exact quarters, so the formula is checkable by hand.
+            TurretRingProfile quad = new TurretRingProfile(0, 4, 8.0, 300, 11.0, 30, 8, 13, 1, 0.065, "ENEMIES");
+
+            assertArrayEquals(new double[] {0.0, 8.0}, quad.siteOffset(0), 1e-9);
+            assertArrayEquals(new double[] {-8.0, 0.0}, quad.siteOffset(1), 1e-9);
+            assertArrayEquals(new double[] {0.0, -8.0}, quad.siteOffset(2), 1e-9);
+            assertArrayEquals(new double[] {8.0, 0.0}, quad.siteOffset(3), 1e-9);
+        }
+
+        @Test
+        void everySiteOfAnyRingSitsExactlyOnTheRadiusAndNoTwoShareASpot() {
+            // The invariant a bad angle step would break without moving the four-site case: an odd count has no
+            // hand-checkable offsets, but "on the circle, evenly" still pins it.
+            for (int i = 0; i < 5; i++) {
+                double[] a = RING.siteOffset(i);
+                assertEquals(8.0, Math.hypot(a[0], a[1]), 1e-9, "site " + i + " is off the ring");
+                for (int j = i + 1; j < 5; j++) {
+                    double[] b = RING.siteOffset(j);
+                    assertTrue(Math.hypot(a[0] - b[0], a[1] - b[1]) > 1e-6,
+                            "sites " + i + " and " + j + " landed on the same spot");
+                }
+            }
+        }
+
+        @Test
+        void theRefireDrawSpansTheAuthoredRangeInclusivelyAtBothEnds() {
+            // 8 + draw(bound 6): a bound of 5 would make 13 unreachable, and the scripted draw pins it.
+            assertEquals(8, RING.drawPeriod(new ScriptedRandom(new int[] {0})));
+            assertEquals(13, RING.drawPeriod(new ScriptedRandom(new int[] {5})));
+        }
+
+        @Test
+        void aReversedOrDegenerateRangeIsOrderedAndAFixedPeriodCostsNoDraw() {
+            TurretRingProfile reversed =
+                    new TurretRingProfile(0, 5, 8.0, 300, 11.0, 30, 13, 8, 1, 0.065, "ENEMIES");
+            assertEquals(8, reversed.drawPeriod(new ScriptedRandom(new int[] {0})));
+
+            TurretRingProfile fixed = new TurretRingProfile(0, 5, 8.0, 300, 11.0, 30, 10, 10, 1, 0.065, "ENEMIES");
+            assertEquals(10, fixed.drawPeriod(new NeverDrawn()), "a fixed beat must not perturb the shared RNG");
+        }
+
+        @Test
+        void acquisitionIsSquaredAndInclusiveAtTheRange() {
+            assertTrue(RING.inAcquireRange(0.0));
+            assertTrue(RING.inAcquireRange(121.0), "a body exactly at acquire-range is acquirable");
+            assertFalse(RING.inAcquireRange(121.001));
+        }
+
+        @Test
+        void theTurretPicksTheNearestCandidateStillInsideItsRange() {
+            // Distinct values in a non-sorted order, so a "first candidate" or "last candidate" bug fails.
+            assertEquals(1, RING.nearest(new double[] {50.0, 4.0, 9.0}));
+            assertEquals(1, RING.nearest(new double[] {200.0, 121.0}), "the boundary body is still a target");
+        }
+
+        @Test
+        void anEmptyOrEntirelyOutOfRangeSweepAcquiresNothing() {
+            // -1, never 0: a turret with nothing to shoot must hold fire rather than shoot the first body found.
+            assertEquals(-1, RING.nearest(new double[0]));
+            assertEquals(-1, RING.nearest(new double[] {121.001, 400.0}));
+        }
+
+        @Test
+        void tiedCandidatesKeepTheFirstSoAStandoffDoesNotFlicker() {
+            assertEquals(0, RING.nearest(new double[] {9.0, 9.0}));
         }
     }
 
