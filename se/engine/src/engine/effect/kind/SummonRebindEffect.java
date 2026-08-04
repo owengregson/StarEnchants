@@ -24,7 +24,7 @@ public final class SummonRebindEffect implements EffectKind {
     public static final EffectSpec SPEC = EffectSpec.of("SUMMON_REBIND")
             .param("type", D.entityType())
             .param("ttl", D.TICKS.def(600))
-            .param("name", D.STRING.def(""))
+            .param("name", D.STRING.def(""), "custom name shown above the replacement; {OWNER} fills in the summoner")
             .param("health", D.DOUBLE.min(0).def(0), "starting (and maximum) health; 0 keeps the vanilla one")
             .param("speed", D.DOUBLE.min(0).def(0), "movement-speed multiplier; 0 keeps the vanilla one")
             .param("effects", D.potionEffects().def(""), "potion effects held for the replacement's whole life")
@@ -37,7 +37,7 @@ public final class SummonRebindEffect implements EffectKind {
                     + "effects are GUARD's loadout params. A summon the activator does not own is skipped — "
                     + "pair with CONVERT_SUMMON to take ownership first.")
             .example("{ SUMMON_REBIND: { type: IRON_GOLEM, ttl: 600, health: 90, "
-                    + "name: \"&b&l{ATTACKER}'s Guardian\" } }")
+                    + "name: \"&b&l{OWNER}'s Guardian\" } }")
             .build();
 
     @Override

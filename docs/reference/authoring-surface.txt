@@ -277,6 +277,10 @@ effect POTION
 effect POTION_LOCK
   param effect HANDLE required min=- max=- enum=- handle=POTION_EFFECT default=-
   param ticks TICKS optional min=0 max=- enum=- handle=- default=100
+effect PROC_REBOUND
+  param chance DOUBLE required min=0 max=100 enum=- handle=- default=-
+  param tier-max INT required min=0 max=- enum=- handle=- default=-
+  param tier-min INT optional min=0 max=- enum=- handle=- default=0
 effect PROJECTILE
   param type HANDLE required min=- max=- enum=- handle=ENTITY_TYPE default=-
   param count INT optional min=1 max=- enum=- handle=- default=1
@@ -555,6 +559,7 @@ var gliding BOOL
 var heldticks NUM
 var impactheight NUM
 var isblock BOOL
+var item.durabilitypercent NUM
 var itemdamage.armor BOOL
 var nearbyallies NUM
 var nearbyenemies NUM

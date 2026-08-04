@@ -658,6 +658,19 @@ public interface Sink {
     void suppressImmune(Player target, int chance);
 
     /**
+     * Arm {@code holder}'s PROC_REBOUND grade for {@code defId} (Enchant Reflect): while it stands, an
+     * attacker's activating enchant whose rarity-tier weight falls in {@code [tierMin, tierMax]} and whose
+     * level is at most {@code level} has a {@code chancePercent} chance to be taken off the holder and
+     * re-executed with the roles swapped. A maintained PASSIVE marker — armed on equip, lifted on unequip by
+     * the HELD/PASSIVE lifecycle — so it can never leak. Player-only; keyed per def, so several worn grades
+     * coexist and the dispatch picks one by precedence.
+     */
+    void armRebound(Player holder, int defId, int level, double chancePercent, int tierMin, int tierMax);
+
+    /** Lift {@code holder}'s PROC_REBOUND grade for {@code defId} (the unequip half of {@link #armRebound}). */
+    void disarmRebound(Player holder, int defId);
+
+    /**
      * Send {@code message} to the player with this UUID, or nothing if they are offline. The by-UUID form
      * exists because a gate-verdict emit reaches the party that armed a window, whose live handle the
      * blocked activation does not hold.

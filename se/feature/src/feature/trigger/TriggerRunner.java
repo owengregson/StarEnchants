@@ -4,6 +4,7 @@ import compile.model.Ability;
 import compile.model.FactMask;
 import compile.model.Snapshot;
 import compile.model.StableKeyIndex;
+import engine.interact.ReboundPlan;
 import engine.pipeline.Activation;
 import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
@@ -67,12 +68,23 @@ public final class TriggerRunner {
     public void run(Ability[] abilities, int generation, int worldId, int triggerId, boolean attackSide,
                     Player actor, ActivationContext context, SinkReadback sink, StableKeyIndex stableKeys,
                     boolean applyHeroic) {
+        run(abilities, generation, worldId, triggerId, attackSide, actor, context, sink, stableKeys,
+                applyHeroic, null);
+    }
+
+    /**
+     * As {@link #run} but carrying the VICTIM's PROC_REBOUND arbiter, which gate 9 consults per ability
+     * (ReboundGate). Attack side ONLY — on the defence walk the plan would claim the victim's own abilities.
+     */
+    public void run(Ability[] abilities, int generation, int worldId, int triggerId, boolean attackSide,
+                    Player actor, ActivationContext context, SinkReadback sink, StableKeyIndex stableKeys,
+                    boolean applyHeroic, ReboundPlan rebound) {
         WornState wornState = worn.get(actor.getUniqueId());
         if (wornState == null || wornState.gen() != generation) {
             return; // unresolved or stale across a reload — contribute nothing
         }
         runResolved(abilities, generation, worldId, triggerId, attackSide, actor, context, sink, stableKeys,
-                wornState, wornState.byTrigger(triggerId), applyHeroic);
+                wornState, wornState.byTrigger(triggerId), applyHeroic, rebound);
     }
 
     /**
@@ -101,7 +113,7 @@ public final class TriggerRunner {
             return; // gone or stale — a repeating task no-ops until re-armed
         }
         runResolved(abilities, generation, worldId, triggerId, attackSide, actor, context, sink, stableKeys,
-                wornState, candidates, true);
+                wornState, candidates, true, null);
     }
 
     /**
@@ -123,7 +135,8 @@ public final class TriggerRunner {
                 .chanceRoll(() -> ThreadLocalRandom.current().nextDouble() * 100.0)
                 .facts(factPopulator.populate(context, now, FactMask.ALL))
                 .location(context.location())
-                .targetBucket(context.victim() instanceof Player ? 1 : 0);
+                .targetBucket(context.victim() instanceof Player ? 1 : 0)
+                .victimId(context.victim() == null ? null : context.victim().getUniqueId());
         soulBinder.apply(actor).ifPresent(binding -> builder.soulMode(binding.marker()));
         executor.run(abilities, candidates, builder.build(), context, sink, stableKeys);
     }
@@ -143,14 +156,38 @@ public final class TriggerRunner {
                 .chanceRoll(() -> ThreadLocalRandom.current().nextDouble() * 100.0)
                 .facts(factPopulator.populate(context, now, FactMask.ALL))
                 .location(context.location())
-                .targetBucket(context.victim() instanceof Player ? 1 : 0);
+                .targetBucket(context.victim() instanceof Player ? 1 : 0)
+                .victimId(context.victim() == null ? null : context.victim().getUniqueId());
         soulBinder.apply(actor).ifPresent(binding -> builder.soulMode(binding.marker()));
         return executor.runUse(abilities, candidates, builder.build(), context, sink, stableKeys);
     }
 
+    /**
+     * The COLD swapped re-execution entry point (PROC_REBOUND): run the abilities gate 9 took off the
+     * reflector against a context whose roles are swapped. No worn lookup (these ids are the ATTACKER's
+     * abilities, which the reflector does not carry and never will), no heroic fold (the reflector's heroic
+     * armour is already priced on the incoming hit), and no soul binding — nothing here is charged to
+     * anyone. Resolves the FULL {@link FactMask}: a cold path, so a safe superset beats gating on a mask
+     * built for a walk this run is not part of. The CALLER owns the sink lifecycle and the rebound window.
+     */
+    public void runForced(Ability[] abilities, int worldId, int triggerId, Player actor,
+                          ActivationContext context, SinkReadback sink, int[] candidates) {
+        if (candidates.length == 0) {
+            return;
+        }
+        long now = nowTicks.getAsLong();
+        Activation activation = Activation.builder(actor.getUniqueId(), worldId, triggerId, now)
+                .facts(factPopulator.populate(context, now, FactMask.ALL))
+                .location(context.location())
+                .targetBucket(context.victim() instanceof Player ? 1 : 0)
+                .victimId(context.victim() == null ? null : context.victim().getUniqueId())
+                .build();
+        executor.runForced(abilities, candidates, activation, context, sink);
+    }
+
     private void runResolved(Ability[] abilities, int generation, int worldId, int triggerId, boolean attackSide,
                              Player actor, ActivationContext context, SinkReadback sink, StableKeyIndex stableKeys,
-                             WornState wornState, int[] candidates, boolean applyHeroic) {
+                             WornState wornState, int[] candidates, boolean applyHeroic, ReboundPlan rebound) {
         if (applyHeroic) {
             if (attackSide) {
                 // Attacker-side heroic weapon damage stays on the PLAIN adders — IGNORE_HEROIC negates only
@@ -180,7 +217,9 @@ public final class TriggerRunner {
                 .location(context.location()) // captured on the firing thread → safe for the gate-2 guard
                 // Cooldown buckets: the other combat party's kind (player vs mob) routes the cooldown, so an
                 // ability proc'd on a mob and on a player run on two independent cooldowns (gates 6 + 11).
-                .targetBucket(context.victim() instanceof Player ? 1 : 0);
+                .targetBucket(context.victim() instanceof Player ? 1 : 0)
+                .victimId(context.victim() == null ? null : context.victim().getUniqueId())
+                .rebound(rebound); // gate 9: null everywhere but the attack walk of a hit on a rebound wearer
         soulBinder.apply(actor).ifPresent(binding -> builder.soulMode(binding.marker()));
         executor.run(abilities, candidates, builder.build(), context, sink, stableKeys);
     }

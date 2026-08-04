@@ -35,7 +35,7 @@ public final class SpawnEntityEffect implements EffectKind {
             .param("detonate", D.enumOf("NONE", "PLAYER_HIT").def("NONE"))
             .param("invincible", D.BOOL.def(false))
             .param("speed", D.DOUBLE.min(0).def(0))
-            .param("name", D.STRING.def(""), "custom name shown above each summon")
+            .param("name", D.STRING.def(""), "custom name shown above each summon; {OWNER} fills in the summoner")
             .param("effects", D.potionEffects().def(""), "potion effects held for the summon's whole life")
             .param("payload-phase", D.enumOf("none", "detonate", "death", "periodic").def("none"),
                     "when the summon runs its owner's SUMMON_PAYLOAD abilities")

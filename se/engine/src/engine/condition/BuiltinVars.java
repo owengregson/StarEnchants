@@ -95,6 +95,11 @@ public final class BuiltinVars {
                 // Wave 1c fact — appended (slots are append-only per §3.4). EQUIP | UNEQUIP on an EQUIP_CHANGE
                 // activation, empty everywhere else: one trigger fires both directions, and the ability branches.
                 .string("equipchange")
+                // Wave 2b fact — appended (slots are append-only per §3.4). The damaged item's REMAINING
+                // durability as a percent of its effective max (0–100), read at the ITEM_DAMAGE site where the
+                // exact stack is in hand and measured BEFORE that wear lands — %damage% carries the points
+                // about to be lost, so an author can price either side. 0 on every other trigger.
+                .number("item.durabilitypercent")
                 .build();
     }
 }

@@ -3,6 +3,7 @@ package feature.combat;
 import compile.load.ContentHolder;
 import compile.model.Ability;
 import compile.model.Snapshot;
+import engine.interact.ReboundPlan;
 import engine.run.AbilityExecutor;
 import engine.run.ActivationContext;
 import engine.run.ActorProbe;
@@ -20,6 +21,7 @@ import engine.stores.DamageCapStore;
 import engine.stores.DisarmWindowStore;
 import engine.stores.HitTempoStore;
 import engine.stores.OutgoingDebuffStore;
+import engine.stores.ReboundStore;
 import engine.stores.RecentAttackersStore;
 import engine.stores.ReflectMarksStore;
 import engine.stores.SuppressionStore;
@@ -30,8 +32,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
+import java.util.function.ToIntFunction;
 import org.bukkit.Location;
 import feature.compat.Projectiles;
 import org.bukkit.entity.Entity;
@@ -69,6 +73,7 @@ public final class CombatDispatch {
     private final HitTempoStore hitTempo;           // Quickening tempo window + per-victim stolen stamps
     private final BatteryStore battery;             // Supernova core (banked, discharged on the next hit)
     private final DisarmWindowStore disarmWindows;  // the Unhanding one-shot window
+    private final ReboundStore rebounds;            // PROC_REBOUND worn grades (Enchant Reflect)
     private final LongSupplier nowTicks;
     private final java.util.function.DoubleSupplier maxBonusDamage;    // §L config.yml combat.max-bonus-damage (<0 = uncapped)
     private final java.util.function.DoubleSupplier maxBonusReduction; // §L config.yml combat.max-bonus-reduction (<0 = uncapped)
@@ -154,6 +159,7 @@ public final class CombatDispatch {
         this.hitTempo = env.stores().hitTempo();
         this.battery = env.stores().battery();
         this.disarmWindows = env.stores().disarmWindows();
+        this.rebounds = env.stores().rebounds();
         this.nowTicks = env.nowTicks();
         this.maxBonusDamage = caps.maxBonusDamage();
         this.maxBonusReduction = caps.maxBonusReduction();
@@ -176,6 +182,20 @@ public final class CombatDispatch {
     /** The combo-DoT paced release (ADR-0069) — read by the ControlsModule install; internal composition. */
     public ComboDotRelease dotRelease() {
         return dotRelease;
+    }
+
+    /**
+     * PROC_REBOUND's tier lookup: an ability id → its source's rarity-tier WEIGHT, precomputed per snapshot
+     * by the composition root and rebound on every reload swap. Derived data, never a compile-model field —
+     * and never {@code Library.tierOf}, whose own comment says "never combat" (it linear-scans the catalog).
+     * The inert default returns {@code -1} (no tier), which no rebound band contains, so a dispatch nobody
+     * bound simply never rebounds.
+     */
+    private volatile ToIntFunction<Ability> tierWeights = ability -> -1;
+
+    /** Bind the per-snapshot tier index; call at boot AND on every reload swap. */
+    public void bindTiers(ToIntFunction<Ability> tierWeights) {
+        this.tierWeights = Objects.requireNonNull(tierWeights, "tierWeights");
     }
 
     // /se damagedebug (ADR-0050 R3): owned here so the readout sees the same fold/caps this dispatch commits.
@@ -307,6 +327,7 @@ public final class CombatDispatch {
         // Attack side: self = attacker, target = victim.
         UUID comboActor = null;      // set iff combo.hit ran — a cancelled event rolls the streak back below
         Object comboMark = null;
+        ReboundPlan rebound = null;  // PROC_REBOUND: set iff the victim has a grade armed; read at the commit below
         if (damager instanceof Player attackerPlayer && contextEnabled(victimIsPlayer) && !friendly) {
             int attackId = attackTrigger(projectiles, rawDamager, attackTriggerId, bowTriggerId, tridentTriggerId);
             comboActor = attackerPlayer.getUniqueId();
@@ -363,15 +384,39 @@ public final class CombatDispatch {
                 }
             }
             int attackerRecent = recent.distinctCount(attackerPlayer.getUniqueId(), now); // how many are ganking the attacker (Anti Gank)
+            // PROC_REBOUND (Enchant Reflect): a player victim wearing a grade may take an activating enchant off
+            // this walk at gate 9 (ReboundGate) and re-run it with the roles swapped. One map probe on an empty
+            // store is what a server with no rebound content pays; the plan itself is built only for a wearer.
+            if (victimEntity instanceof Player reflector && rebounds.armed(reflector.getUniqueId())) {
+                rebound = new ReboundPlan(rebounds, reflector.getUniqueId(), tierWeights,
+                        () -> ThreadLocalRandom.current().nextDouble() * 100.0);
+            }
             ActivationContext attackCtx = new ActivationContext(attackerPlayer, victim, null, at, incomingDamage,
                     null, streak, causeName, false, attackerRecent, 0, Double.NaN, impactHeight, projectileKind);
             runner.run(abilities, snapshot.generation(), worldId, attackId, true, attackerPlayer, attackCtx, sink,
-                    snapshot.stableKeys());
+                    snapshot.stableKeys(), true, rebound);
             // §8 ECHO_STRIKE (Double Strike): re-run the attacker walk EXACTLY once over the same event/sink/fold.
             // Checked once → run once, so a second ECHO_STRIKE proc in the echo pass cannot request a third pass.
+            // The echo pass carries the SAME plan, so its activations are rolled for the rebound independently —
+            // two activations of one enchant are two chances to have it turned around, which is what the roll means.
             if (sink.echoRequested()) {
                 runner.run(abilities, snapshot.generation(), worldId, attackId, true, attackerPlayer, attackCtx, sink,
-                        snapshot.stableKeys());
+                        snapshot.stableKeys(), true, rebound);
+            }
+            if (rebound != null && rebound.claimedAny() && victimEntity instanceof Player reflector) {
+                // The swapped run: actor = the reflector, victim = the attacker who threw the proc. GATELESS —
+                // every claimed ability already passed its own chance/cooldown/condition/soul gates on the walk
+                // above, and re-gating would charge them to someone who does not own the enchant. Damage-mod
+                // contributions land on the sink's attacker-directed fold, committed once at the bottom of this
+                // method; ADR-0054's stand-down is untouched, so nothing re-enters this handler.
+                int reflectorRecent = recent.distinctCount(reflector.getUniqueId(), now);
+                int reflectorAttackerIndex = recent.indexOf(reflector.getUniqueId(), attackerId, now);
+                ActivationContext swapped = new ActivationContext(reflector, attacker, attacker, at, incomingDamage,
+                        null, 0, causeName, false, reflectorRecent, reflectorAttackerIndex, Double.NaN,
+                        impactHeight, projectileKind);
+                sink.beginRebound();
+                runner.runForced(abilities, worldId, attackId, reflector, swapped, sink, rebound.claimed());
+                sink.endRebound();
             }
         }
         // Defense side: self = victim, target = attacker.
@@ -422,6 +467,17 @@ public final class CombatDispatch {
                 victimEntity instanceof Player vp ? vp : null,
                 incomingDamage, sink.fold(), attackScale.getAsDouble(), folded, committed,
                 event.getFinalDamage(), sink.cancelled());
+        // PROC_REBOUND: the marginal damage the swapped run added, priced through the rebound fold's own
+        // arithmetic (caps + attack-scale) so a rebounded +50% is felt exactly as the incoming hit would have
+        // felt it. Committed as a bounded SECOND application through sink.damage — which routes via
+        // EngineDamage, so the frame keeps it out of onDamage. Owner-accepted cost: this is a separate hit
+        // with its own immunity frame and death credit, not literally the attacker's swing turned around.
+        if (rebound != null && rebound.claimedAny() && attacker != null) {
+            double back = sink.reboundContribution(incomingDamage);
+            if (back > 0) {
+                sink.damage(attacker, back, victim);
+            }
+        }
         // §3 REFLECT (Hex): a marked attacker takes a fraction of the committed damage back onto themselves.
         if (damager instanceof Player reflectedAttacker && attacker != null) {
             ReflectMarksStore.Mark hex = reflectMarks.active(reflectedAttacker.getUniqueId(), now);

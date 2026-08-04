@@ -36,12 +36,16 @@ import org.bukkit.entity.Player;
  *                        (ARROW/FIREBALL/THROWN/OTHER); empty for a non-projectile activation
  * @param equipChange     {@code EQUIP} or {@code UNEQUIP} on an EQUIP_CHANGE activation ({@code %equipchange%});
  *                        empty everywhere else, so an unrelated trigger can never satisfy a direction gate
+ * @param itemDurabilityPercent on an ITEM_DAMAGE activation, the damaged item's REMAINING durability as a percent
+ *                        of its effective max ({@code %item.durabilitypercent%}), measured on the firing thread
+ *                        from that exact stack. {@link Double#NaN} everywhere else (and for an item that carries
+ *                        no durability bar), where the fact stays 0
  */
 public record ActivationContext(Player actor, LivingEntity victim, LivingEntity attacker, Location location,
                                 double damage, Block block, int combo, String damageCauseName,
                                 boolean itemDamageArmor, int recentAttackers, int attackerIndex,
                                 double vanillaFinalDamage, double impactHeight, String projectileKind,
-                                String equipChange) {
+                                String equipChange, double itemDurabilityPercent) {
 
     public ActivationContext {
         damageCauseName = damageCauseName == null ? "" : damageCauseName;
@@ -55,7 +59,7 @@ public record ActivationContext(Player actor, LivingEntity victim, LivingEntity 
                              boolean itemDamageArmor, int recentAttackers, int attackerIndex,
                              double vanillaFinalDamage, double impactHeight, String projectileKind) {
         this(actor, victim, attacker, location, damage, block, combo, damageCauseName, itemDamageArmor,
-                recentAttackers, attackerIndex, vanillaFinalDamage, impactHeight, projectileKind, "");
+                recentAttackers, attackerIndex, vanillaFinalDamage, impactHeight, projectileKind, "", Double.NaN);
     }
 
     /** Combat payload with the ADR-0049 gank/cause/item-damage facts but no pending damage or projectile. */
@@ -87,12 +91,22 @@ public record ActivationContext(Player actor, LivingEntity victim, LivingEntity 
     public ActivationContext withCombatFacts(String damageCauseName, int recentAttackers, int attackerIndex) {
         return new ActivationContext(actor, victim, attacker, location, damage, block, combo,
                 damageCauseName, itemDamageArmor, recentAttackers, attackerIndex, vanillaFinalDamage,
-                impactHeight, projectileKind, equipChange);
+                impactHeight, projectileKind, equipChange, itemDurabilityPercent);
     }
 
     /** The EQUIP_CHANGE payload: an equipment transition on {@code actor}, no combat and no position of its own. */
     public static ActivationContext equipChange(Player actor, String direction) {
         return new ActivationContext(actor, null, null, actor.getLocation(), 0.0, null, 0, "", false, 0, 0,
-                Double.NaN, 0.0, "", direction);
+                Double.NaN, 0.0, "", direction, Double.NaN);
+    }
+
+    /**
+     * The ITEM_DAMAGE payload, built by whichever era source observed the wear: {@code points} of durability
+     * lost ({@code %damage%}), whether it was a worn armour piece ({@code %itemdamage.armor%}), and the item's
+     * remaining durability ({@code %item.durabilitypercent%}; {@link Double#NaN} when it carries no bar).
+     */
+    public static ActivationContext itemDamage(Player actor, double points, boolean armor, double durabilityPercent) {
+        return new ActivationContext(actor, null, null, actor.getLocation(), points, null, 0, "", armor, 0, 0,
+                Double.NaN, 0.0, "", "", durabilityPercent);
     }
 }

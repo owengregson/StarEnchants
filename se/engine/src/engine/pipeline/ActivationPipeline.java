@@ -14,6 +14,7 @@ import engine.stores.SuppressionStore;
 import engine.stores.WhyRecorder;
 import engine.stores.WhyRing;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * The activation pipeline: the fixed Cosmic Enchants-style gate sequence (docs/architecture.md §3.3),
@@ -254,17 +255,29 @@ public final class ActivationPipeline {
      * arm its whole GROUP — locking out cooldown-0 same-group siblings (rage, armored) fight-long (ADR-0050 R4).
      */
     private long blockedCooldown(Ability ability, Activation act) {
-        return scopeRemaining(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, act);
+        return scopeRemaining(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, ability, act);
     }
 
-    private long scopeRemaining(int scopeId, int scopeKind, Activation act) {
+    private long scopeRemaining(int scopeId, int scopeKind, Ability ability, Activation act) {
         if (scopeId < 0) {
             return 0; // no cooldown on this scope
         }
         // Cooldowns route by target bucket (mob vs player): proccing on a mob never spends the player route's cooldown.
-        long rem = cooldowns.remainingTicks(act.actor(),
+        long rem = cooldowns.remainingTicks(act.actor(), victimDimension(ability, act),
                 CooldownStore.key(scopeKind, scopeId, act.targetBucket()), act.nowTicks());
         return rem == 0 ? 0 : (rem << 32) | (WhyRing.packScope(0, scopeKind, scopeId) & 0xFFFF_FFFFL);
+    }
+
+    /**
+     * The cooldown dimension this activation keys in: the victim for a {@code cooldown-per-victim} ability,
+     * else {@code null} — the coarse player/mob bucket every other ability shares.
+     *
+     * <p>A per-victim ability with NO victim (a non-combat trigger) deliberately falls back to the coarse
+     * bucket: the authored cooldown still holds, where keying on nothing at all would silently disable it and
+     * let the ability fire every tick.
+     */
+    private static UUID victimDimension(Ability ability, Activation act) {
+        return ability.cooldownPerVictim() ? act.victimId() : null;
     }
 
     /**
@@ -284,7 +297,7 @@ public final class ActivationPipeline {
             return 0; // no cooldown on this scope
         }
         // Cooldowns route by target bucket (mob vs player): proccing on a mob never spends the player route's cooldown.
-        long rem = cooldowns.tryAcquire(act.actor(),
+        long rem = cooldowns.tryAcquire(act.actor(), victimDimension(ability, act),
                 CooldownStore.key(scopeKind, scopeId, act.targetBucket()), act.nowTicks(), ability.cooldownTicks());
         return rem == 0 ? 0 : (rem << 32) | (WhyRing.packScope(0, scopeKind, scopeId) & 0xFFFF_FFFFL);
     }
@@ -297,7 +310,8 @@ public final class ActivationPipeline {
     private void releaseScope(int scopeId, int scopeKind, Ability ability, Activation act) {
         // Only a positive-duration scope wrote a reservation; the reserved expiry is recomputable (no carried state).
         if (scopeId >= 0 && ability.cooldownTicks() > 0) {
-            cooldowns.release(act.actor(), CooldownStore.key(scopeKind, scopeId, act.targetBucket()),
+            cooldowns.release(act.actor(), victimDimension(ability, act),
+                    CooldownStore.key(scopeKind, scopeId, act.targetBucket()),
                     act.nowTicks() + ability.cooldownTicks());
         }
     }
@@ -346,6 +360,9 @@ public final class ActivationPipeline {
      * for cooldowns (the four armour copies and every level of one enchant share one price ladder) and stays
      * stable across reload and relog. Scope-less sources fall back to their suppression key, then their defId,
      * each in its own namespace so two interners cannot collide into one ladder.
+     *
+     * <p>Deliberately blind to the target bucket and to {@code cooldown-per-victim}: the ladder is per-actor-
+     * per-ability, so switching targets must not rewind an escalating price.
      */
     private static long escalationScope(Ability ability) {
         if (ability.cdScopeEnchant() >= 0) {

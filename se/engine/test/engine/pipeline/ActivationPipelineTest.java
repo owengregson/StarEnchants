@@ -71,6 +71,7 @@ class ActivationPipelineTest {
         int suppressKey = -1;
         NumExpr chanceExpr = null;
         boolean soulCostCarried = false;
+        boolean cooldownPerVictim = false;
 
         Ability build() {
             return Abilities.ability().triggerMask(triggerMask).level(level).chance(baseChance)
@@ -80,6 +81,7 @@ class ActivationPipelineTest {
                     .soulCostDecayPeriod(soulCostDecayPeriod)
                     .condition(condition).cooldownScope(cdEnchant, cdGroup, cdType).suppressKey(suppressKey)
                     .soulCostCarried(soulCostCarried)
+                    .cooldownPerVictim(cooldownPerVictim)
                     .build();
         }
     }
@@ -507,6 +509,91 @@ class ActivationPipelineTest {
         assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(optedOut.build(), act().build())); // same tick
         assertTrue(cooldowns.ready(ACTOR, CooldownStore.key(0, 4, 0), 100L), "the shared bucket was never armed");
         assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(sibling.build(), act().build()));
+    }
+
+    @Test
+    void perVictimCooldownGivesEachVictimItsOwnWindow() {
+        // Thundering Blow's shape: a 50-tick cooldown that must throttle repeat strikes on ONE target without
+        // the coarse mob/player bucket letting the first mob hit lock out every other mob in the pack.
+        UUID victimA = UUID.randomUUID();
+        UUID victimB = UUID.randomUUID();
+        Ab a = new Ab();
+        a.cdEnchant = 1;
+        a.cooldownTicks = 40;
+        a.cooldownPerVictim = true;
+
+        assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(a.build(), act().victimId(victimA).build()));
+        assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(a.build(), act().victimId(victimB).build()));
+        assertEquals(GateOutcome.ON_COOLDOWN, pipeline.evaluate(a.build(), act().victimId(victimA).build()));
+        // The {TIME_FORMATTED} read-back must land on the key the gate reserved, per victim.
+        assertEquals(40L, pipeline.remainingCooldownTicks(a.build(), act().victimId(victimA).build()));
+        assertEquals(0L, pipeline.remainingCooldownTicks(a.build(),
+                Activation.builder(ACTOR, 3, 0, 140L).victimId(victimA).build()));
+    }
+
+    @Test
+    void aNonPerVictimAbilityStillSharesOneBucketAcrossVictims() {
+        // The default must stay byte-identical: without the opt-in, every mob shares the bucket-0 route.
+        Ab a = new Ab();
+        a.cdEnchant = 1;
+        a.cooldownTicks = 40;
+
+        assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(a.build(), act().victimId(UUID.randomUUID()).build()));
+        assertEquals(GateOutcome.ON_COOLDOWN, pipeline.evaluate(a.build(), act().victimId(UUID.randomUUID()).build()));
+    }
+
+    @Test
+    void aPerVictimAbilityWithNoVictimFallsBackToTheCoarseBucket() {
+        // A non-combat trigger carries no victim. Falling back to the coarse bucket keeps the authored cooldown
+        // enforced; the alternative (no key at all) would silently disable it and let the ability fire every tick.
+        Ab a = new Ab();
+        a.cdEnchant = 1;
+        a.cooldownTicks = 40;
+        a.cooldownPerVictim = true;
+
+        assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(a.build(), act().build()));
+        assertEquals(GateOutcome.ON_COOLDOWN, pipeline.evaluate(a.build(), act().build()));
+        assertFalse(cooldowns.ready(ACTOR, CooldownStore.key(0, 1, 0), 100L));
+    }
+
+    @Test
+    void perVictimChanceFailReleasesThatVictimsReservationNotTheCoarseOne() {
+        // The rollback has to name the same key the reservation used; releasing the coarse key instead would
+        // leave the victim's window armed and turn a sub-100% proc into a one-shot-per-window ability.
+        UUID victim = UUID.randomUUID();
+        Ab a = new Ab();
+        a.cdEnchant = 3;
+        a.cooldownTicks = 40;
+        a.baseChance = 50.0;
+        a.cooldownPerVictim = true;
+
+        assertEquals(GateOutcome.CHANCE_FAILED,
+                pipeline.evaluate(a.build(), act().victimId(victim).chanceRoll(() -> 75.0).build()));
+        assertEquals(GateOutcome.ACTIVATED,
+                pipeline.evaluate(a.build(), act().victimId(victim).chanceRoll(() -> 25.0).build()));
+        assertTrue(cooldowns.ready(ACTOR, CooldownStore.key(0, 3, 0), 100L),
+                "the coarse bucket is never touched by a per-victim ability");
+    }
+
+    @Test
+    void aPerVictimCooldownDoesNotResetTheSoulCostLadderPerVictim() {
+        // The escalation counter is per-actor-per-ability: folding the victim into it would let a player reset
+        // an escalating price just by switching targets.
+        Ab a = new Ab();
+        a.cdEnchant = 4;
+        a.cooldownPerVictim = true;
+        a.soulCost = 500;
+        a.soulCostGrowth = 2.0;
+        spender.balance = 1_000_000;
+
+        int before = spender.balance;
+        assertEquals(GateOutcome.ACTIVATED,
+                pipeline.evaluate(a.build(), act().victimId(UUID.randomUUID()).soulMode(ACTOR).build()));
+        assertEquals(500, before - spender.balance);
+        before = spender.balance;
+        assertEquals(GateOutcome.ACTIVATED,
+                pipeline.evaluate(a.build(), act().victimId(UUID.randomUUID()).soulMode(ACTOR).build()));
+        assertEquals(1000, before - spender.balance, "a fresh victim must not rewind the ladder");
     }
 
     @Test

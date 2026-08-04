@@ -159,6 +159,28 @@ public final class DamageFold {
         return Math.max(0.0, Math.max(0.0, mitigated) + effectiveDamage) * finalFactor;
     }
 
+    /**
+     * The MARGINAL damage this fold's contributions add over {@code base} — what a rebound-direction fold
+     * (PROC_REBOUND) commits against the original attacker. Folded through the same arithmetic as
+     * {@link #apply}, so a rebounded +50% is felt exactly as the incoming hit would have felt it (caps and
+     * {@code attack-scale} included). Clamped at zero: a net-negative re-execution returns nothing rather
+     * than healing its target.
+     */
+    public double contribution(double base) {
+        return Math.max(0.0, apply(base) - base);
+    }
+
+    /**
+     * Adopt {@code source}'s per-event LIMITS — the combat caps and {@code attack-scale} — so a second,
+     * differently-directed fold prices its contributions under the identical economy. Contributions and the
+     * self-malus factor are deliberately NOT copied: those belong to the hit that accumulated them.
+     */
+    public void adoptLimits(DamageFold source) {
+        this.maxBonusOutgoing = source.maxBonusOutgoing;
+        this.maxBonusReduction = source.maxBonusReduction;
+        this.attackScale = source.attackScale;
+    }
+
     /** Reset every bucket for reuse on the next event. */
     public void reset() {
         flatDamage = 0.0;

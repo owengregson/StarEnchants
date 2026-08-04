@@ -29,7 +29,7 @@ public final class SpawnSwarmEffect implements EffectKind {
             .param("speed", D.DOUBLE.range(0, 1).def(1))
             .param("cloud", D.BOOL.def(false))
             .param("cloud-range", D.DOUBLE.min(1).def(16))
-            .param("name", D.STRING.def(""), "custom name shown above each summon")
+            .param("name", D.STRING.def(""), "custom name shown above each summon; {OWNER} fills in the summoner")
             .param("effects", D.potionEffects().def(""), "potion effects held for each summon's whole life")
             .affinity(Affinity.REGION)
             .actorOrigin()

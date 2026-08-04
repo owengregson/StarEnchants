@@ -489,4 +489,57 @@ class DamageFoldTest {
         assertEquals(1.0, f.finalFactor(), EPS);
         assertEquals(4.0, f.apply(4.0), EPS);
     }
+
+    // ── contribution(): the rebound-direction read (PROC_REBOUND) ──
+
+    @Test
+    void contributionIsTheMarginalDamageOverTheBase() {
+        DamageFold f = new DamageFold();
+        f.addOutgoing(0.50);
+        assertEquals(5.0, f.contribution(10.0), EPS); // 15 folded − 10 base
+    }
+
+    @Test
+    void contributionOfAnEmptyFoldIsZero() {
+        // The commit site reads this on every hit that claimed anything; a re-execution whose effects were
+        // all intents (POTION, SPAWN) must return nothing rather than a phantom rebound.
+        assertEquals(0.0, new DamageFold().contribution(10.0), EPS);
+    }
+
+    @Test
+    void contributionClampsANetNegativeFoldToZero() {
+        DamageFold f = new DamageFold();
+        f.addReduction(0.40);
+        assertEquals(0.0, f.contribution(10.0), EPS, "a rebounded reduction must not heal its target");
+    }
+
+    @Test
+    void contributionIsPricedByAttackScaleExactlyAsTheIncomingFoldIs() {
+        // The whole point of folding the rebound rather than committing the raw percent: at attack-scale 5
+        // a +50% enchant is worth +250% of the base on the incoming hit, and must be worth the same rebounded.
+        DamageFold incoming = new DamageFold();
+        incoming.attackScale(5.0);
+        incoming.addOutgoing(0.50);
+        DamageFold rebound = new DamageFold();
+        rebound.adoptLimits(incoming);
+        rebound.addOutgoing(0.50);
+
+        assertEquals(incoming.apply(10.0) - 10.0, rebound.contribution(10.0), EPS);
+        assertEquals(25.0, rebound.contribution(10.0), EPS); // 10 × 0.5 × 5
+    }
+
+    @Test
+    void adoptLimitsCarriesTheCapsButNoContributionOrSelfMalus() {
+        DamageFold incoming = new DamageFold();
+        incoming.caps(0.20, -1.0);
+        incoming.attackScale(2.0);
+        incoming.addOutgoing(0.50);   // must NOT travel
+        incoming.mulFinal(0.5);       // the attacker's own self-malus must NOT price the rebound
+        DamageFold rebound = new DamageFold();
+        rebound.adoptLimits(incoming);
+        rebound.addOutgoing(0.50);
+
+        assertEquals(1.0, rebound.finalFactor(), EPS);
+        assertEquals(4.0, rebound.contribution(10.0), EPS); // 10 × min(0.5, 0.20) × 2
+    }
 }

@@ -14,6 +14,7 @@ import engine.stores.ImmuneStore;
 import engine.stores.KeepOnDeathStore;
 import engine.stores.KnockbackControlStore;
 import engine.stores.OutgoingDebuffStore;
+import engine.stores.ReboundStore;
 import engine.stores.RecentAttackersStore;
 import engine.stores.ReflectMarksStore;
 import engine.stores.SuppressionStore;
@@ -150,6 +151,13 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final PermanentPotions permanentPotions;
     private final DispatchPlan plan = new DispatchPlan();
     private final DamageFold fold;
+    /**
+     * PROC_REBOUND's attacker-directed accumulator. Allocated only when a rebound actually runs, and
+     * {@link #activeFold} is what {@link #fold()} returns — a field read, so the common path pays neither an
+     * allocation nor a branch.
+     */
+    private DamageFold reboundFold;
+    private DamageFold activeFold;
 
     private final TeleblockStore teleblock;
     private final ImmuneStore immune;
@@ -193,6 +201,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final DotSuppressionStore dotSuppression;
     /** HEAD_TROPHY arms, spent by the victim's next death. */
     private final HeadTrophyStore headTrophies;
+    /** PROC_REBOUND worn grades, consulted by the combat dispatch when someone hits the holder. */
+    private final ReboundStore rebounds;
     /** The VIEWER_HIDE seam (the modern call needs a {@code Plugin} the engine may not hold). */
     private final PlayerVisibility visibility;
     /** The SUMMON_PAYLOAD seam a periodic summon pulses through (firing a trigger is the feature layer's). */
@@ -257,9 +267,11 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.dotAmplify = env.stores().dotAmplify();
         this.dotSuppression = env.stores().dotSuppression();
         this.headTrophies = env.stores().headTrophies();
+        this.rebounds = env.stores().rebounds();
         this.visibility = env.visibility();
         this.payloads = env.payloads();
         this.fold = new DamageFold();
+        this.activeFold = this.fold;
     }
 
     // ── Read-backs (called by the firing system, never by an effect) ─────────────────────────────
@@ -267,7 +279,31 @@ public abstract class DispatchSinkBase implements SinkReadback {
     /** The damage arbiter for this event; the trigger listener folds it onto the event once (§6.1). */
     @Override
     public DamageFold fold() {
-        return fold;
+        return activeFold;
+    }
+
+    /**
+     * PROC_REBOUND: route subsequent fold contributions to the attacker-directed accumulator, which inherits
+     * the incoming hit's caps and {@code attack-scale} so a rebounded percent is priced identically. The
+     * accumulator is created here, on the cold branch — a hit that never rebounds allocates nothing.
+     */
+    @Override
+    public void beginRebound() {
+        if (reboundFold == null) {
+            reboundFold = new DamageFold();
+        }
+        reboundFold.adoptLimits(fold);
+        activeFold = reboundFold;
+    }
+
+    @Override
+    public void endRebound() {
+        activeFold = fold;
+    }
+
+    @Override
+    public double reboundContribution(double base) {
+        return reboundFold == null ? 0.0 : reboundFold.contribution(base);
     }
 
     /** Whether an effect asked for the triggering event to be cancelled (§3.6 event control). */
@@ -448,32 +484,32 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void addOutgoingDamage(double percent) {
-        fold.addOutgoing(percent);
+        activeFold.addOutgoing(percent);
     }
 
     @Override
     public void addDamageReduction(double percent) {
-        fold.addReduction(percent);
+        activeFold.addReduction(percent);
     }
 
     @Override
     public void addFlatDamage(double amount) {
-        fold.addFlatDamage(amount);
+        activeFold.addFlatDamage(amount);
     }
 
     @Override
     public void addFlatReduction(double amount) {
-        fold.addFlatReduction(amount);
+        activeFold.addFlatReduction(amount);
     }
 
     @Override
     public void addHeroicReduction(double percent) {
-        fold.addHeroicReduction(percent);
+        activeFold.addHeroicReduction(percent);
     }
 
     @Override
     public void addHeroicFlatReduction(double amount) {
-        fold.addHeroicFlatReduction(amount);
+        activeFold.addHeroicFlatReduction(amount);
     }
 
     // ── Entity intents ───────────────────────────────────────────────────────────────────────────
@@ -493,7 +529,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
             // a rider on a dodged/cancelled hit dies with its hit — same-hit means same fate.
             // EFFECTIVE units (ADR-0055): the authored amount is what the old bare hurt delivered
             // pre-armor — never the scaled flat bucket, whose attack-scale ride made riders land ~5x.
-            fold.addEffectiveDamage(amount);
+            activeFold.addEffectiveDamage(amount);
             return;
         }
         entityOp(target, () -> hurtOrPark(target, amount, attacker));
@@ -508,7 +544,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
             // Same-hit rider (ADR-0054, as damage above; EFFECTIVE units per ADR-0055). The firing thread
             // owns the event entity by definition (the ADR-0051 argument), so the max-health read is
             // region-correct inline.
-            fold.addEffectiveDamage(maxHealth(target) * percentOfMax / 100.0);
+            activeFold.addEffectiveDamage(maxHealth(target) * percentOfMax / 100.0);
             return;
         }
         // The max-health read and the damage both run on the target's own thread (entityOp) — never a cross-region
@@ -1899,7 +1935,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         if (spawned instanceof LivingEntity living) {
             applySummonEffects(living, flags.effects());
         }
-        applyGuardName(spawned, flags.name());
+        applyGuardName(spawned, flags.name(), ownerId);
         if (ownerId != null) {
             GuardianCasts.bind(spawned.getUniqueId(), ownerId);
             if (spawned instanceof Tameable tame) {
@@ -2009,7 +2045,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 if (spawned instanceof LivingEntity living) {
                     applySummonEffects(living, effects); // the same loadout helper GUARD/SPAWN_ENTITY use
                 }
-                applyGuardName(spawned, name);
+                applyGuardName(spawned, name, ownerId);
                 SwarmSpawns.bind(spawned);
                 if (cloud) {
                     SwarmClouds.track(ownerId, spawned);
@@ -2099,7 +2135,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
                     }
                     applySummonEffects(living, effects);
                 }
-                applyGuardName(spawned, name);
+                applyGuardName(spawned, name, owner);
                 if (owner != null) {
                     GuardianCasts.bind(spawned.getUniqueId(), owner); // ADR-0049: a hit on the guard fires the owner's GUARDIAN_HURT
                 }
@@ -2134,12 +2170,29 @@ public abstract class DispatchSinkBase implements SinkReadback {
         }
     }
 
-    /** Apply an optional custom name (with {@code &}-colour codes) to a freshly-summoned guard. */
-    private static void applyGuardName(Entity entity, String name) {
+    /**
+     * Apply an optional custom name (with {@code &}-colour codes and the {@code {OWNER}} token) to a
+     * freshly-summoned guard. Substitution runs BEFORE translation so a colour code the author wrote around
+     * the token still applies to the filled name.
+     */
+    private static void applyGuardName(Entity entity, String name, UUID owner) {
         if (name != null && !name.isEmpty()) {
-            entity.setCustomName(Colors.translate(name));
+            entity.setCustomName(Colors.translate(SummonNames.fill(name, ownerName(name, owner))));
             entity.setCustomNameVisible(true);
         }
+    }
+
+    /**
+     * The summon owner's display name, resolved ONLY when {@code name} actually carries the token — an
+     * untokened spawn must not pay a player lookup. Online-only: an offline profile fetch can block, and a
+     * summon whose owner has logged out simply reads empty.
+     */
+    private static String ownerName(String name, UUID owner) {
+        if (owner == null || !SummonNames.carriesOwner(name)) {
+            return "";
+        }
+        Player player = Bukkit.getPlayer(owner);
+        return player == null ? "" : player.getName();
     }
 
     @Override
@@ -2942,6 +2995,22 @@ public abstract class DispatchSinkBase implements SinkReadback {
         }
     }
 
+    @Override
+    public void armRebound(Player holder, int defId, int level, double chancePercent, int tierMin, int tierMax) {
+        if (holder != null) {
+            // Worn marker in the shared ReboundStore, consulted when someone hits the holder. The UUID is
+            // captured here → Folia-safe on the firing thread (no cross-region entity read, no scheduler hop).
+            rebounds.arm(holder.getUniqueId(), defId, level, chancePercent, tierMin, tierMax);
+        }
+    }
+
+    @Override
+    public void disarmRebound(Player holder, int defId) {
+        if (holder != null) {
+            rebounds.disarm(holder.getUniqueId(), defId);
+        }
+    }
+
     // ── Event control ──────────────────────────────────────────────────────────────────────────
 
     @Override
@@ -2963,7 +3032,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void ignoreHeroic() {
-        fold.ignoreHeroic(); // per-hit fold scratch: the commit drops the victim's heroic buckets (ADR-0053)
+        activeFold.ignoreHeroic(); // per-hit fold scratch: the commit drops the victim's heroic buckets (ADR-0053)
     }
 
     @Override

@@ -15,6 +15,7 @@ import compile.load.MasterConfigHolder;
 import compile.load.MasterConfigLoader;
 import compile.load.MenusHolder;
 import compile.load.MenusLoader;
+import compile.load.TierRegistry;
 import compile.model.Ability;
 import compile.model.Snapshot;
 import engine.boot.ContentCompiler;
@@ -65,6 +66,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.function.ToIntFunction;
 import java.util.logging.Level;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -455,7 +457,8 @@ public final class BootCore {
                 () -> master.config().messageOnActivate(), () -> master.config().pets(), content);
         this.executor = new AbilityExecutor(effects, BuiltinSelectors.registry(),
                 new ActivationPipeline(stores.cooldowns(), soulService, stores.suppression(), protectionGuard,
-                        ActivationPipeline.Guard.ALLOW, stores.why(), // ADR-0045: record every gate walk
+                        engine.pipeline.ReboundGate.INSTANCE, // gate 9: PROC_REBOUND's veto (Enchant Reflect)
+                        stores.why(), // ADR-0045: record every gate walk
                         stores.soulEscalation()),
                 areaScan(bindings), (key, ability, context) -> {
                     if (key == null) {
@@ -556,6 +559,9 @@ public final class BootCore {
                         () -> master.config().combat().attackScale(),             // §L combat.attack-scale (live, ADR-0050 R2)
                         () -> master.config().combat().pvp(),                     // §L combat.pvp gate (live)
                         () -> master.config().combat().pve()), projectiles);      // §L combat.pve gate (live)
+        // PROC_REBOUND's tier index: built ONCE per snapshot here (and rebound by the reload module), never
+        // read out of the Library on a hit.
+        this.dispatch.bindTiers(tierWeightsFor(content.library()));
         // Non-combat triggers (MINE/KILL/FALL/FIRE/INTERACT*) — the events CombatDispatch does not cover.
         this.triggerDispatch = new TriggerDispatch(executor, bindings.sinkFactory(), bindings.actorProbe(), content,
                 worn, triggers, soulService::bindingFor, sinkEnv, hands, dropControl);
@@ -698,6 +704,32 @@ public final class BootCore {
     /** A fresh quarantine for {@code snapshot}: dense-id fault counters keyed to this snapshot's SourceMap/keys. */
     public static AbilityQuarantine quarantineFor(Snapshot snapshot) {
         return new AbilityQuarantine(snapshot.sourceMap(), snapshot.stableKeys(), QUARANTINE_THRESHOLD);
+    }
+
+    /**
+     * PROC_REBOUND's hot-path tier lookup for {@code library}: ability id → its source's rarity-tier WEIGHT
+     * ({@code -1} for a source with no tier — pets, reforges, masks — which no band contains, so those are
+     * never rebounded). Derived data, built ONCE per snapshot at the same swap hook that rebinds the
+     * quarantine and the effect kinds, because this is the only layer where the {@link Library} and the
+     * {@link Snapshot} are both in hand. {@code Library.tierOf} is a linear catalog scan whose own comment
+     * says "never combat", so the whole point is that the gate reads an array instead.
+     */
+    public static ToIntFunction<Ability> tierWeightsFor(Library library) {
+        Snapshot snapshot = library.snapshot();
+        Ability[] abilities = snapshot.abilities();
+        int[] weights = new int[abilities.length];
+        for (int id = 0; id < abilities.length; id++) {
+            // The stable key carries the level suffix; the tier belongs to the BASE content key (one rule,
+            // AbilityExecutor's, so a key that resolves for /se why resolves here identically).
+            String tier = library.tierOf(
+                    AbilityExecutor.baseKey(snapshot.stableKeys().keyOf(id), abilities[id].level()));
+            TierRegistry.Tier resolved = tier == null ? null : library.tiers().tier(tier);
+            weights[id] = resolved == null ? -1 : resolved.weight();
+        }
+        return ability -> {
+            int id = ability.id();
+            return id >= 0 && id < weights.length ? weights[id] : -1;
+        };
     }
 
     /**
