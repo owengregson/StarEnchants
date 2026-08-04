@@ -228,12 +228,17 @@ public final class LibraryLoader {
         for (SetDef set : sets) {
             checkSetEnchantRefs(set, set.armorEnchants(), byKey, diags);
             checkSetEnchantRefs(set, set.weaponEnchants(), byKey, diags);
+            // Per-piece rosters are references too: a slot's own entries are validated exactly like the
+            // shared ones, so a typo on one boot cannot slip through because its three siblings are clean.
+            for (SetDef.Member member : set.armorMembers()) {
+                checkSetEnchantRefs(set, member.enchants(), byKey, diags);
+            }
         }
     }
 
-    private static void checkSetEnchantRefs(SetDef set, java.util.Map<String, Integer> enchants,
+    private static void checkSetEnchantRefs(SetDef set, java.util.Map<String, EnchantRoll> enchants,
             java.util.Map<String, EnchantDef> byKey, Diagnostics diags) {
-        for (java.util.Map.Entry<String, Integer> entry : enchants.entrySet()) {
+        for (java.util.Map.Entry<String, EnchantRoll> entry : enchants.entrySet()) {
             String ref = entry.getKey();
             if (!ref.startsWith("enchants/")) {
                 continue; // a vanilla enchant name — resolved at mint, not a library reference
@@ -243,9 +248,17 @@ public final class LibraryLoader {
                 diags.error(DiagCode.E_SET_ENCHANT_UNKNOWN,
                         "set '" + set.key() + "' applies unknown custom enchant '" + ref + "'",
                         set.source(), "the enchants: key must name an existing enchant (enchants/<id>) or a vanilla enchant name");
-            } else if (entry.getValue() < 1 || entry.getValue() > def.maxLevel()) {
+                continue;
+            }
+            // The whole BAND must be mintable, not just the level a draw happens to land on: a roll whose top
+            // exceeds the enchant's max would mint an undefined level on some fraction of pieces and pass
+            // review on the rest. Both ends are checked so the diagnostic names the real range.
+            EnchantRoll roll = entry.getValue();
+            if (roll.min() < 1 || roll.max() > def.maxLevel()) {
                 diags.error(DiagCode.E_SET_ENCHANT_LEVEL,
-                        "set '" + set.key() + "' applies '" + ref + "' at level " + entry.getValue()
+                        "set '" + set.key() + "' applies '" + ref + "' at level "
+                                + (roll.min() == roll.max() ? String.valueOf(roll.max())
+                                        : roll.min() + ".." + roll.max())
                                 + " (valid 1.." + def.maxLevel() + ")", set.source());
             }
         }

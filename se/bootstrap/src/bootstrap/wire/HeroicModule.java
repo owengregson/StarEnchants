@@ -23,7 +23,7 @@ final class HeroicModule {
         HeroicUpgradeCodec heroicCodec = new HeroicUpgradeCodec(ItemKeys.of().heroicUpgrade(), core.store());
         this.heroics = new HeroicService(heroicCodec, core.codec(), core.lore(),
                 () -> core.items().config().heroicOrDefault(), core.rolls(), core.messages(), core.itemGroups(),
-                core.bindings().vanillaStats());
+                core.heroicStamp()); // the stats writer the set minter shares (§F)
         this.mints = List.of(Mints.heroic(heroics));
     }
 

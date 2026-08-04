@@ -80,6 +80,27 @@ class ReboundPlanTest {
     }
 
     @Test
+    void aLevellessRuleAnswersItsWholeBandInsteadOfLosingToEveryEnchant() {
+        // A set/crystal/mask/pet bonus has no enchant level, so its reader passes AbilityDef.level = 0 and the
+        // rule arms at 0. Read as a grade, 0 loses to level 1 — every enchant level starts there — so the
+        // authored band would be inert on arrival. It is a LEVELLESS rule, not the weakest one.
+        store.arm(reflector, NORMAL, 0, 100.0, 0, 5);
+
+        assertTrue(planFor(3, alwaysRolls()).claim(incoming(7, 1)));
+        assertTrue(planFor(3, alwaysRolls()).claim(incoming(7, 10)));
+        // the band still bounds it — levelless is not unconditional
+        assertFalse(planFor(6, alwaysRolls()).claim(incoming(7, 1)));
+    }
+
+    @Test
+    void anEnchantArmedRuleKeepsItsLevelGateUnchanged() {
+        // The levelless reading must not leak into a real enchant level: 4 still refuses 5 and accepts 4.
+        store.arm(reflector, NORMAL, 4, 100.0, 0, 5);
+        assertFalse(planFor(3, alwaysRolls()).claim(incoming(7, 5)));
+        assertTrue(planFor(3, alwaysRolls()).claim(incoming(7, 4)));
+    }
+
+    @Test
     void theRollIsAgainstTheArmedGradesChanceAndIsDrawnOnlyOnceTheOtherGatesPass() {
         store.arm(reflector, NORMAL, 4, 5.0, 0, 5);
         AtomicInteger draws = new AtomicInteger();

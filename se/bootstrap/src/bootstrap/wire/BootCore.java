@@ -163,6 +163,7 @@ public final class BootCore {
     private final ItemGroups itemGroups;
     private final Consumer<ItemStack> recompose;
     private final Random rolls;
+    private final feature.heroic.HeroicStamp heroicStamp;
     private final VanillaEnchants vanillaEnchants;
     private final ItemEnchanter enchanter;
 
@@ -376,6 +377,11 @@ public final class BootCore {
                         return def != null ? def.armorLore() : java.util.List.of();
                     }
 
+                    @Override public java.util.List<String> armor(String setKey, String slotToken) {
+                        compile.load.SetDef def = content.library().setDefOf(setKey);
+                        return def != null ? def.armorLoreFor(slotToken) : java.util.List.of();
+                    }
+
                     @Override public java.util.List<String> weapon(String setKey) {
                         compile.load.SetDef def = content.library().setDefOf(setKey);
                         return def != null ? def.weaponLore() : java.util.List.of();
@@ -398,15 +404,21 @@ public final class BootCore {
         this.recompose = gear -> lore.apply(gear, codec.read(gear));
         // §6.6 set-piece base enchants resolve cross-version behind the era seam as instance wiring (ADR-0047).
         this.vanillaEnchants = new VanillaEnchants(bindings.enchantResolver());
+
+        // ONE RNG for every apply/mint economy — injected so rolls are stubbable (Rolls). Built before the
+        // enchanter: the set minter draws its roster levels from this same source (§6.6).
+        this.rolls = new Random();
+        // §F ONE heroic stats writer, shared by the upgrade gesture (HeroicModule) and by a set member minted
+        // `heroic: true` — so both grant exactly the tier the pack configured, from one place.
+        this.heroicStamp = new feature.heroic.HeroicStamp(() -> items.config().heroicOrDefault(),
+                bindings.vanillaStats(), codec, lore);
         this.enchanter = new ItemEnchanter(codec, lore, content, itemGroups,
                 () -> master.config().slots().base(),          // §H base enchant slots
                 () -> master.config().crystals().slots(),      // §E per-item crystal slots (entries)
                 () -> master.config().crystals().maxMerge(),   // §E components per entry (merge cap)
                 () -> master.config().reforges().weaponGroups(), // ADR-0070 reforge weapon-groups (apply gate)
-                messages, vanillaEnchants);                    // §L ApplyResult strings + §6.6 vanilla enchants
-
-        // ONE RNG for every apply/mint economy — injected so rolls are stubbable (Rolls).
-        this.rolls = new Random();
+                messages, vanillaEnchants,                     // §L ApplyResult strings + §6.6 vanilla enchants
+                rolls, heroicStamp);                           // §6.6 mint roster draws + §F minted-heroic pieces
 
         // Souls (§D): the per-player cross-gem SoulPool is the spend authority. The SoulService owns it and is
         // ALSO the pipeline's gate-10 SoulSpender, so a gate-10 spend and the holder-thread drain share one pool.
@@ -693,6 +705,9 @@ public final class BootCore {
     public Consumer<ItemStack> recompose() { return recompose; }
 
     public Random rolls() { return rolls; }
+
+    /** §F the one heroic stats writer — the upgrade gesture and the set minter share it. */
+    public feature.heroic.HeroicStamp heroicStamp() { return heroicStamp; }
 
     public VanillaEnchants vanillaEnchants() { return vanillaEnchants; }
 

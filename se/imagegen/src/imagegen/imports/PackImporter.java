@@ -81,9 +81,10 @@ public final class PackImporter {
         String simpleKey = def.key().startsWith(SET_PREFIX) ? def.key().substring(SET_PREFIX.length()) : def.key();
         List<ItemFixture> out = new ArrayList<>();
         for (SetDef.Member member : def.armorMembers()) {
-            CombatState state = new CombatState(custom(library, def.armorEnchants()), List.of(), def.key(), false);
+            Map<String, compile.load.EnchantRoll> roster = def.armorEnchantsFor(member.slot());
+            CombatState state = new CombatState(custom(library, roster), List.of(), def.key(), false);
             out.add(fixture("set-" + simpleKey + "-" + member.slot(), member, def,
-                    vanilla(library, def.armorEnchants()), renderer, state));
+                    vanilla(library, roster), renderer, state));
         }
         if (def.hasWeapon()) {
             CombatState state = new CombatState(custom(library, def.weaponEnchants()), List.of(), null, def.key(),
@@ -100,7 +101,7 @@ public final class PackImporter {
         String name = member.name() != null ? member.name() : def.display();
         List<String> lore = new ArrayList<>();
         vanillaEnchants.forEach((enchant, level) -> lore.add(VanillaEnchantLore.line(enchant, level)));
-        lore.addAll(renderer.lines(state));
+        lore.addAll(renderer.lines(state, member.slot()));
         return new ItemFixture(id, member.material(), name, lore);
     }
 
@@ -109,25 +110,34 @@ public final class PackImporter {
      * the renderer can name them. Identifying custom enchants by library membership (not a key-prefix guess)
      * keeps a vanilla name out of the combat state, where it would render as the unknown-enchant label.
      */
-    private static Map<String, Integer> custom(Library library, Map<String, Integer> configured) {
+    private static Map<String, Integer> custom(Library library, Map<String, compile.load.EnchantRoll> configured) {
         Map<String, Integer> out = new LinkedHashMap<>();
-        configured.forEach((ref, level) -> {
+        configured.forEach((ref, roll) -> {
             if (library.displayNameOf(ref) != null) {
-                out.put(ref, level);
+                out.put(ref, level(roll));
             }
         });
         return out;
     }
 
     /** The set's vanilla enchants (everything the library has no def for) — drawn by {@link VanillaEnchantLore}. */
-    private static Map<String, Integer> vanilla(Library library, Map<String, Integer> configured) {
+    private static Map<String, Integer> vanilla(Library library, Map<String, compile.load.EnchantRoll> configured) {
         Map<String, Integer> out = new LinkedHashMap<>();
-        configured.forEach((ref, level) -> {
+        configured.forEach((ref, roll) -> {
             if (library.displayNameOf(ref) == null) {
-                out.put(ref, level);
+                out.put(ref, level(roll));
             }
         });
         return out;
+    }
+
+    /**
+     * The level a fixture draws an entry at: the TOP of its band, always. Generated art must not depend on a
+     * roll — a chance-gated or banded entry would otherwise redraw every image differently each run, and the
+     * top of the band is the piece the catalogue is meant to advertise.
+     */
+    private static int level(compile.load.EnchantRoll roll) {
+        return roll.max();
     }
 
     /** A library-backed renderer mirroring {@code StarEnchantsPlugin}'s cold-apply wiring (names, tier colours, set lore). */
@@ -146,6 +156,11 @@ public final class PackImporter {
                     @Override public List<String> armor(String setKey) {
                         SetDef def = library.setDefOf(setKey);
                         return def != null ? def.armorLore() : List.of();
+                    }
+
+                    @Override public List<String> armor(String setKey, String slotToken) {
+                        SetDef def = library.setDefOf(setKey);
+                        return def != null ? def.armorLoreFor(slotToken) : List.of();
                     }
 
                     @Override public List<String> weapon(String setKey) {

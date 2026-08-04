@@ -416,6 +416,60 @@ class SuppressionStoreTest {
         assertTrue(store.isKindSuppressed(p, 2, 100L));
     }
 
+    /** A defender-keyed consult that never fails its draw, so a call sees exactly what is live. */
+    private static java.util.function.DoubleSupplier neverFails() {
+        return () -> -1.0;
+    }
+
+    @Test
+    void aSecondArmOnOneDefenderKeyNeverWeakensWhatIsAlreadyLive() {
+        // The shipped case: a set arms (ENCHANT, ice-aspect) at an absolute 100 and its OWN crystal re-arms the
+        // same triple at 10, from two independent abilities on the same repeat cadence. Keeping the later
+        // record whole left a wearer who completed the set AND carried its crystal permanently worse off than
+        // one wearing the set alone — 100% freeze immunity degraded to 10% — decided purely by arm order.
+        Ability incoming = scoped(4, -1, -1);
+        SuppressionStore.Feedback setLine =
+                new SuppressionStore.Feedback(p, "actor", "victim", SuppressionStore.Feedback.NO_SOUND);
+        long key = CooldownStore.key(ScopeKinds.ENCHANT, 4);
+
+        store.defend(p, key, 0L, 60, 100, 11, setLine);
+        store.defend(p, key, 0L, 60, 10, 22, null);
+        SuppressionStore.Matched governing = store.defenderBlocks(incoming, p, 20L, neverFails());
+        assertEquals(11, governing.byDefId(), "the stronger chance keeps its own attribution");
+        assertEquals(setLine, governing.feedback(), "and its own block line");
+
+        // …and the other arm order gives the identical answer, which is the whole point.
+        SuppressionStore reversed = new SuppressionStore();
+        reversed.defend(p, key, 0L, 60, 10, 22, null);
+        reversed.defend(p, key, 0L, 60, 100, 11, setLine);
+        SuppressionStore.Matched other = reversed.defenderBlocks(incoming, p, 20L, neverFails());
+        assertEquals(11, other.byDefId());
+        assertEquals(setLine, other.feedback());
+    }
+
+    @Test
+    void aStrongerButShorterArmKeepsTheLongerWindowItLandsOn() {
+        // Never-weaken is about BOTH axes: adopting the stronger chance must not shorten the live window, and
+        // extending it must not silently hand the extension the weaker chance.
+        Ability incoming = scoped(4, -1, -1);
+        long key = CooldownStore.key(ScopeKinds.ENCHANT, 4);
+        store.defend(p, key, 0L, 1000, 10, 22, null);
+        store.defend(p, key, 0L, 40, 100, 11, null);
+
+        assertEquals(11, store.defenderBlocks(incoming, p, 20L, neverFails()).byDefId());
+        assertEquals(11, store.defenderBlocks(incoming, p, 500L, neverFails()).byDefId(),
+                "the longer window survives the stronger arm");
+        assertEquals(null, store.defenderBlocks(incoming, p, 1000L, neverFails()),
+                "and still expires when the longest arm says it does");
+    }
+
+    @Test
+    void theSameNeverWeakenMergeGovernsAKindKeyedWindow() {
+        store.defendKind(p, 8, 0L, 60, 10, 22, null);
+        store.defendKind(p, 8, 0L, 60, 100, 11, null);
+        assertEquals(11, store.defenderBlocks(withKinds(8), p, 20L, neverFails()).byDefId());
+    }
+
     @Test
     void kindSuppressNotifiesTheMaintainedBuffListener() {
         // The PassiveEffectDriver mirror relies on onSuppress to drop a KIND-suppressed maintained POTION

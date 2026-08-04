@@ -27,8 +27,10 @@ import schema.spec.D;
  * rolls when the window is created, which cannot say "half the mastery procs aimed at me fizzle" — the roll
  * has to happen at each thing it might fizzle. A {@code chance} of 100 short-circuits the draw entirely.
  *
- * <p>Maintained-while-worn is the shape every consumer wants, so a re-arm only EXTENDS the window: a PASSIVE
- * ability can re-arm on every lifecycle tick without churning it.
+ * <p>Maintained-while-worn is the shape every consumer wants, so a re-arm never WEAKENS the window: a PASSIVE
+ * ability can re-arm on every lifecycle tick without churning it. Two DIFFERENT abilities arming the same
+ * scope+key on one holder — a set and its own matching crystal is the shipped case — resolve to the stronger
+ * chance over the later expiry, so which of them fired last in a cycle cannot decide what the holder gets.
  */
 public final class SuppressIncomingEffect implements EffectKind {
 

@@ -910,7 +910,7 @@ Strip a potion effect from the target(s) and continuously deny it for `ticks` �
 
 ### PROC_REBOUND
 
-While worn, give incoming enchant activations a chance to be taken off you and re-run with the roles swapped — the attacker eats their own proc, and it is NOT applied to you for that hit. Gated by the attacking enchant's tier WEIGHT — the number its rung carries in tiers.yml, not a rung index — which must fall in tier-min..tier-max, and by level: this enchant's level must be at least the incoming one's. Several worn grades compose — the one whose band reaches the incoming weight with the highest tier-min wins. A maintained PASSIVE marker, armed on equip and lifted on unequip. Player-only.
+While worn, give incoming enchant activations a chance to be taken off you and re-run with the roles swapped — the attacker eats their own proc, and it is NOT applied to you for that hit. Gated by the attacking enchant's tier WEIGHT — the number its rung carries in tiers.yml, not a rung index — which must fall in tier-min..tier-max, and by level: this enchant's level must be at least the incoming one's (a levelless source — set, crystal, mask, pet — has no level to compare and answers its whole band). Several worn grades compose — the one whose band reaches the incoming weight with the highest tier-min wins. A maintained PASSIVE marker, armed on equip and lifted on unequip. Player-only.
 
 - _affinity_: `CONTEXT_LOCAL`
 - _usage_: `{ PROC_REBOUND: { chance: <double[0..100]>, tier-max: <int[0..]>, tier-min: <int[0..]=0> } }`

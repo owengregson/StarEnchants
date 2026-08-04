@@ -185,7 +185,9 @@ class RegistryWiringTest {
         when(core.messages()).thenReturn(mock(platform.lang.Messages.class));
         when(core.menusHolder()).thenReturn(mock(compile.load.MenusHolder.class));
         when(core.contentRoot()).thenReturn(dataDir.resolve("content"));
-        when(core.codec()).thenReturn(mock(item.codec.CombatCodec.class));
+        item.codec.CombatCodec combatCodec = mock(item.codec.CombatCodec.class);
+        item.render.LoreRenderer loreRenderer = mock(item.render.LoreRenderer.class);
+        when(core.codec()).thenReturn(combatCodec);
         when(core.itemViews()).thenReturn(mock(item.view.ItemViewCache.class));
         when(core.worn()).thenReturn(mock(item.worn.WornStateStore.class));
         when(core.appliedSlot()).thenReturn(mock(item.codec.AppliedSlot.class));
@@ -199,10 +201,14 @@ class RegistryWiringTest {
                 mock(item.codec.ItemStateStore.class))); // ADR-0053 mask-item identity codec
         when(core.reforgeCodec()).thenReturn(new item.codec.ReforgeCodec(item.codec.ItemKeys.of(),
                 mock(item.codec.ItemStateStore.class))); // ADR-0070 reforge-item identity codec
-        when(core.lore()).thenReturn(mock(item.render.LoreRenderer.class));
+        when(core.lore()).thenReturn(loreRenderer);
         when(core.itemGroups()).thenReturn(ItemGroups.standard());
         when(core.recompose()).thenReturn(stack -> { });
         when(core.rolls()).thenReturn(new java.util.Random());
+        // §F the shared heroic stats writer — the upgrade module and the set minter take the same instance.
+        when(core.heroicStamp()).thenReturn(new feature.heroic.HeroicStamp(
+                compile.load.HeroicConfig::defaults, feature.heroic.VanillaStats.NONE,
+                combatCodec, loreRenderer));
         when(core.vanillaEnchants()).thenReturn(VanillaEnchants.NONE);
         when(core.enchanter()).thenReturn(mock(feature.apply.ItemEnchanter.class));
         when(core.soulModes()).thenReturn(new SoulModeStore());

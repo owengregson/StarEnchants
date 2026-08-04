@@ -17,7 +17,11 @@ import org.bukkit.entity.Player;
  * has no effects of its own; the whole behaviour lives in the combat dispatch.
  *
  * <p>The rebound LEVEL is this ability's own level, not a param: the matrix's gate is "rebound level &ge; the
- * incoming enchant's level", which is a comparison against the worn piece, not an authored number.
+ * incoming enchant's level", which is a comparison against the worn piece, not an authored number. A LEVELLESS
+ * source — a set bonus, a crystal, a mask, a pet — has no enchant level to state and arms at {@code 0}, which
+ * the gate reads as "no level bound" rather than as the lowest grade: such a rule answers every level its band
+ * reaches. Without that reading the level gate alone would make the whole authored band inert, because every
+ * enchant level starts at 1.
  *
  * <p>The band is compared against the incoming enchant's tier WEIGHT — the number its rung carries in
  * {@code tiers.yml}, not a 0-based rung index. On the shipped ascending-by-ten ladder (common 10 … heroic 70,
@@ -48,7 +52,8 @@ public final class ProcReboundEffect implements EffectKind {
                     + "the roles swapped — the attacker eats their own proc, and it is NOT applied to you for "
                     + "that hit. Gated by the attacking enchant's tier WEIGHT — the number its rung carries in "
                     + "tiers.yml, not a rung index — which must fall in tier-min..tier-max, and by level: this "
-                    + "enchant's level must be at least the incoming one's. Several worn grades compose — the "
+                    + "enchant's level must be at least the incoming one's (a levelless source — set, crystal, "
+                    + "mask, pet — has no level to compare and answers its whole band). Several worn grades compose — the "
                     + "one whose band reaches the incoming weight with the highest tier-min wins. "
                     + "A maintained PASSIVE marker, armed on equip and lifted on unequip. Player-only.")
             .example("{ PROC_REBOUND: { chance: 4, tier-min: 10, tier-max: 70, who: \"@Self\" } }")

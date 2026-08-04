@@ -33,7 +33,7 @@ final class SetDefReader {
             "on", "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost",
             "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
             "no-souls-message", "condition", "effects");
-    private static final Set<String> MEMBER_KEYS = Set.of("material", "name");
+    private static final Set<String> MEMBER_KEYS = Set.of("material", "name", "lore", "enchants", "color", "heroic");
 
     private SetDefReader() {
     }
@@ -67,19 +67,27 @@ final class SetDefReader {
         }
         ContentParse.warnUnknownKeys(armor, ARMOR_KEYS, diags);
         List<String> armorLore = armor.stringList("lore");
-        java.util.Map<String, Integer> armorEnchants = readEnchants(armor, baseKey, diags);
+        java.util.Map<String, EnchantRoll> armorEnchants = readEnchants(armor, baseKey, diags);
         List<SetDef.Member> armorMembers = new ArrayList<>();
         List<String> appliesTo = new ArrayList<>();
         for (YamlNode.Entry entry : armor.entries("pieces")) {
             ContentParse.warnUnknownKeys(entry.value(), MEMBER_KEYS, diags);
             String slot = entry.key();
-            String material = ContentParse.blankToNull(entry.value().string("material"));
-            String name = ContentParse.blankToNull(entry.value().string("name"));
+            YamlNode piece = entry.value();
+            String material = ContentParse.blankToNull(piece.string("material"));
+            String name = ContentParse.blankToNull(piece.string("name"));
             if (material == null) {
                 diags.error(DiagCode.E_LOAD_SET_MEMBER, "armour piece '" + slot + "' of '" + baseKey
-                        + "' must declare a 'material'", entry.value().sourceOf("material"));
+                        + "' must declare a 'material'", piece.sourceOf("material"));
             }
-            armorMembers.add(new SetDef.Member(slot, material, name));
+            // Per-piece refinements (all optional, all absent on a set authored before this surface): its own
+            // flavour lore above the shared block, its own roster entries after the shared ones, a leather dye,
+            // and whether the piece mints ALREADY heroic.
+            armorMembers.add(new SetDef.Member(slot, material, name, piece.stringList("lore"),
+                    readEnchants(piece, baseKey + " piece '" + slot + "'", diags),
+                    ContentParse.blankToNull(piece.string("color")),
+                    ContentParse.boolOr(piece.string("heroic"), false, "heroic", DiagCode.W_LOAD_BOOL,
+                            piece.sourceOf("heroic"), diags)));
             appliesTo.add(slot.toUpperCase(Locale.ROOT));
         }
         if (armorMembers.isEmpty()) {
@@ -95,7 +103,7 @@ final class SetDefReader {
         // Physical weapon (optional): material, name, lore, minted enchants. Its behaviour is an on:weapon bonus.
         SetDef.Member weapon = null;
         List<String> weaponLore = List.of();
-        java.util.Map<String, Integer> weaponEnchants = java.util.Map.of();
+        java.util.Map<String, EnchantRoll> weaponEnchants = java.util.Map.of();
         boolean hasWeaponItem = false;
         if (root.has("weapon")) {
             YamlNode weaponNode = root.child("weapon");
@@ -161,30 +169,77 @@ final class SetDefReader {
     }
 
     /**
-     * Parse an {@code enchants:} block ({@code ref: level}) — the enchants a minted piece carries (§6.6). A
-     * {@code enchants/<id>} ref is a custom plugin enchant (referential integrity is checked library-wide in
-     * {@code LibraryLoader}); any other key is a vanilla enchant NAME resolved cross-version at mint. A
-     * non-numeric level warns and is skipped. Insertion order is preserved.
+     * Parse an {@code enchants:} block — the mint roster a minted piece carries (§6.6). A {@code enchants/<id>}
+     * ref is a custom plugin enchant (referential integrity is checked library-wide in {@code LibraryLoader});
+     * any other key is a vanilla enchant NAME resolved cross-version at mint. Insertion order is preserved: it
+     * is the piece's enchant-lore order.
+     *
+     * <p>An entry is either a bare level ({@code PROTECTION: 5}) or a roll map — {@code { min: 2, max: 5 }},
+     * {@code { nearly-maxed: 4 }}, {@code { chance: 25, min: 1, max: 4 }}. A malformed entry warns by code and
+     * is SKIPPED rather than guessed: minting an enchant at a level nobody authored is worse than not minting it.
      */
-    private static java.util.Map<String, Integer> readEnchants(YamlNode block, String setKey, Diagnostics diags) {
-        java.util.Map<String, Integer> out = new java.util.LinkedHashMap<>();
+    private static java.util.Map<String, EnchantRoll> readEnchants(YamlNode block, String setKey, Diagnostics diags) {
+        java.util.Map<String, EnchantRoll> out = new java.util.LinkedHashMap<>();
         if (!block.has("enchants")) {
             return out;
         }
         for (YamlNode.Entry entry : block.entries("enchants")) {
-            String raw = entry.value().scalar();
-            if (raw == null) {
-                continue;
+            EnchantRoll roll = entry.value().isMapping()
+                    ? readRoll(entry.value(), setKey, entry.key(), diags)
+                    : readFixed(entry.value(), setKey, entry.key(), diags);
+            if (roll != null) {
+                out.put(entry.key(), roll);
             }
-            Integer level = ContentParse.parseInt(raw);
-            if (level == null) {
-                diags.warning(DiagCode.W_SET_ENCHANT, "set '" + setKey + "' enchant '" + entry.key()
-                        + "' level is not a number: " + raw, entry.value().source());
-                continue;
-            }
-            out.put(entry.key(), level);
         }
         return out;
+    }
+
+    /** The bare-level form: one integer, always minted, at exactly that level. */
+    private static EnchantRoll readFixed(YamlNode value, String setKey, String ref, Diagnostics diags) {
+        String raw = value.scalar();
+        if (raw == null) {
+            return null;
+        }
+        Integer level = ContentParse.parseInt(raw);
+        if (level == null) {
+            diags.warning(DiagCode.W_SET_ENCHANT, "set '" + setKey + "' enchant '" + ref
+                    + "' level is not a number: " + raw, value.source());
+            return null;
+        }
+        return EnchantRoll.fixed(level);
+    }
+
+    /**
+     * The roll form. {@code nearly-maxed: M} is the family's measured draw and fixes both bounds; otherwise
+     * {@code min}/{@code max} give a uniform band (equal bounds, or a lone {@code max}, degrade to FIXED so a
+     * band of one is not a needless draw). {@code chance} gates whether the entry mints at all.
+     */
+    private static EnchantRoll readRoll(YamlNode value, String setKey, String ref, Diagnostics diags) {
+        int chance = rollInt(value, "chance", 100, diags);
+        Integer nearlyMaxed = value.has("nearly-maxed")
+                ? ContentParse.parseInt(value.string("nearly-maxed")) : null;
+        if (value.has("nearly-maxed")) {
+            if (nearlyMaxed == null) {
+                diags.warning(DiagCode.W_SET_ENCHANT, "set '" + setKey + "' enchant '" + ref
+                        + "' nearly-maxed is not a number: " + value.string("nearly-maxed"), value.source());
+                return null;
+            }
+            return new EnchantRoll(Math.max(1, nearlyMaxed - 2), nearlyMaxed, chance, EnchantRoll.Mode.NEARLY_MAXED);
+        }
+        if (!value.has("max")) {
+            diags.warning(DiagCode.W_SET_ENCHANT, "set '" + setKey + "' enchant '" + ref
+                    + "' declares no level: a roll needs 'max' or 'nearly-maxed'", value.source());
+            return null;
+        }
+        int max = rollInt(value, "max", 1, diags);
+        int min = rollInt(value, "min", max, diags);
+        return new EnchantRoll(min, max, chance,
+                min >= max ? EnchantRoll.Mode.FIXED : EnchantRoll.Mode.UNIFORM);
+    }
+
+    private static int rollInt(YamlNode value, String key, int fallback, Diagnostics diags) {
+        return ContentParse.intOr(value.string(key), fallback, key, schema.diag.Severity.WARNING,
+                DiagCode.W_SET_ENCHANT, value.sourceOf(key), diags);
     }
 
     private static AbilityDef ability(String stableKey, YamlNode node, int setPieces, Source fileSource,
