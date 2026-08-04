@@ -426,6 +426,50 @@ class FactPopulatorTest {
     }
 
     @Test
+    void theHeldSetWeaponFlagIsTheActorsOwnWornStateAndIsMaskGated() {
+        // The point of the fact is that it reads flattened worn state rather than the live main hand: an
+        // %actor.helditem% comparison is a material name and can never tell one set's sword from another's.
+        int slot = slot("actor", "setweapon", VarKind.BOOL);
+        UUID actorId = UUID.randomUUID();
+        java.util.List<UUID> consulted = new java.util.ArrayList<>();
+        FactPopulator.wornFactSource(new engine.condition.WornFactSource() {
+            @Override
+            public int levelOf(UUID entity, String key) {
+                return 0;
+            }
+
+            @Override
+            public int heroicPieces(UUID entity) {
+                return 0;
+            }
+
+            @Override
+            public boolean holdsSetWeapon(UUID entity) {
+                consulted.add(entity);
+                return entity.equals(actorId);
+            }
+        });
+        try {
+            Player a = actor();
+            when(a.getUniqueId()).thenReturn(actorId);
+            FactPopulator pop = FactPopulator.builtin(new ModernActorProbe());
+
+            pop.populate(new ActivationContext(a, null, null, null), 0L, FactMask.NONE);
+            assertTrue(consulted.isEmpty(), "an unreferenced fact must never consult the source");
+
+            FactMask mask = new FactMask(0L, 1L << slot, 0L);
+            assertTrue(pop.populate(new ActivationContext(a, null, null, null), 0L, mask).flag(slot));
+            assertEquals(java.util.List.of(actorId), consulted, "the actor's own id, once");
+
+            Player other = actor();
+            when(other.getUniqueId()).thenReturn(UUID.randomUUID());
+            assertFalse(pop.populate(new ActivationContext(other, null, null, null), 0L, mask).flag(slot));
+        } finally {
+            FactPopulator.wornFactSource(null);
+        }
+    }
+
+    @Test
     void soulTotalsComeFromTheCachedStoreOnBothSides() {
         int actorSlot = num("actor", "souls");
         int victimSlot = num("victim", "souls");

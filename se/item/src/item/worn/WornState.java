@@ -28,6 +28,9 @@ import java.util.Map;
  * @param heroicPieces            how many WORN ARMOUR pieces carry a heroic upgrade (0..4), counted once here
  *                                for {@code %victim.heroicpieces%}. A count, not the {@link #heroic} sum: two
  *                                pieces at 10 % and one at 20 % are the same stat and a different gate
+ * @param holdsSetWeapon          whether the main hand holds the WEAPON of a set this wearer has COMPLETED —
+ *                                the same truth that gates an {@code on: weapon} bonus, resolved once here
+ *                                where slot provenance still exists, for {@code %actor.setweapon%}
  */
 public record WornState(
         int gen,
@@ -39,9 +42,18 @@ public record WornState(
         int[] combatDefense,
         FactMask[] triggerFactMask,
         Map<String, Integer> enchantLevels,
-        int heroicPieces) {
+        int heroicPieces,
+        boolean holdsSetWeapon) {
 
     private static final int[] NO_IDS = new int[0];
+
+    /** No held set weapon — {@link #holdsSetWeapon} then reports {@code false}. */
+    public WornState(int gen, BitSet activeSets, int[] activeCrystalAbilityIds, HeroicStat heroic,
+                     int[][] byTrigger, int[] combatAttack, int[] combatDefense, FactMask[] triggerFactMask,
+                     Map<String, Integer> enchantLevels, int heroicPieces) {
+        this(gen, activeSets, activeCrystalAbilityIds, heroic, byTrigger, combatAttack, combatDefense,
+                triggerFactMask, enchantLevels, heroicPieces, false);
+    }
 
     /** No heroic piece count — {@link #heroicPieces} then reports 0. */
     public WornState(int gen, BitSet activeSets, int[] activeCrystalAbilityIds, HeroicStat heroic,

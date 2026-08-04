@@ -76,6 +76,16 @@ public final class WornFlattener {
                                     HeroicStat heroic, IntPredicate attackTrigger,
                                     IntPredicate defenseTrigger, Map<String, Integer> enchantLevels,
                                     int heroicPieces) {
+        return flatten(gen, mainIds, offhandIds, abilities, triggerCount, activeSets, crystalAbilityIds,
+                heroic, attackTrigger, defenseTrigger, enchantLevels, heroicPieces, false);
+    }
+
+    /** As above, carrying whether the main hand holds the weapon of a set this wearer has completed. */
+    public static WornState flatten(int gen, int[] mainIds, int[] offhandIds, Ability[] abilities,
+                                    int triggerCount, BitSet activeSets, int[] crystalAbilityIds,
+                                    HeroicStat heroic, IntPredicate attackTrigger,
+                                    IntPredicate defenseTrigger, Map<String, Integer> enchantLevels,
+                                    int heroicPieces, boolean holdsSetWeapon) {
         List<List<Integer>> perTrigger = new ArrayList<>(triggerCount);
         FactMask[] triggerMask = new FactMask[triggerCount];
         for (int t = 0; t < triggerCount; t++) {
@@ -136,7 +146,8 @@ public final class WornFlattener {
             byTrigger[t] = toIntArray(perTrigger.get(t));
         }
         return new WornState(gen, activeSets, crystalAbilityIds.clone(), heroic, byTrigger,
-                toIntArray(attack), toIntArray(defense), triggerMask, Map.copyOf(enchantLevels), heroicPieces);
+                toIntArray(attack), toIntArray(defense), triggerMask, Map.copyOf(enchantLevels), heroicPieces,
+                holdsSetWeapon);
     }
 
     private static int[] toIntArray(List<Integer> list) {

@@ -342,9 +342,13 @@ public final class WornResolver {
             }
         }
         // on:weapon bonuses (<key>/w1, /w2, …), gated on BOTH the set being active AND its weapon held.
+        // The same condition is the %actor.setweapon% fact: an author reading it and an author writing
+        // `on: weapon` are asking the same question, so they are answered from one place.
+        boolean holdsSetWeapon = false;
         for (String weaponSetKey : heldWeaponSetKeys) {
             int parentSetId = keys.idOf(weaponSetKey);
             if (parentSetId >= 0 && parentSetId < abilities.length && activeSets.get(parentSetId)) {
+                holdsSetWeapon = true;
                 for (int n = 1; ; n++) {
                     int weaponAbilityId = keys.idOf(weaponSetKey + "/w" + n);
                     if (weaponAbilityId < 0) {
@@ -364,7 +368,8 @@ public final class WornResolver {
         }
         return WornFlattener.flatten(generation, toIntArray(mergedIds), toIntArray(offhandIds), abilities,
                 triggerCount, activeSets, toIntArray(crystalIds), heroic, attackTrigger, defenseTrigger,
-                enchantLevels, f.heroic() ? heroicPieces : 0); // one toggle gates the stat and the count alike
+                enchantLevels, f.heroic() ? heroicPieces : 0, // one toggle gates the stat and the count alike
+                f.sets() && holdsSetWeapon); // and the sets toggle gates the fact with the bonuses it mirrors
     }
 
     /** The {@code <stem>} of a {@code <source>/<stem>} base key, lower-cased — the enchlevel lookup's key. */

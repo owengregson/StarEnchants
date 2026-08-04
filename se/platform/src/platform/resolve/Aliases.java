@@ -113,7 +113,11 @@ public final class Aliases {
             // The 1.8 shoot pair: both constants renamed AND, for the ghast, changed noun — 1.8 named the
             // cue after the projectile (GHAST_FIREBALL), the flattening after the act (ENTITY_GHAST_SHOOT).
             Map.entry("GHAST_FIREBALL", "ENTITY_GHAST_SHOOT"),
-            Map.entry("WITHER_SHOOT", "ENTITY_WITHER_SHOOT"));
+            Map.entry("WITHER_SHOOT", "ENTITY_WITHER_SHOOT"),
+            // ZOMBIE_WOODBREAK is the door-BREAK cue; 1.8's near-twin ZOMBIE_WOOD is the door-ATTACK one
+            // (ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR) — the flattening reordered the words, easy to cross-wire.
+            Map.entry("ENDERMAN_TELEPORT", "ENTITY_ENDERMAN_TELEPORT"),
+            Map.entry("ZOMBIE_WOODBREAK", "ENTITY_ZOMBIE_BREAK_WOODEN_DOOR"));
 
     /**
      * The COMPLETE 1.20.5 particle rename wave (Spigot flattened the enum), floor name → modern name,

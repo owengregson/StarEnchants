@@ -34,6 +34,7 @@ public final class WornStates {
         private FactMask[] triggerFactMask = null;
         private final Map<String, Integer> enchantLevels = new LinkedHashMap<>();
         private int heroicPieces;
+        private boolean holdsSetWeapon;
 
         public Builder gen(int gen) {
             this.gen = gen;
@@ -108,9 +109,15 @@ public final class WornStates {
             return this;
         }
 
+        /** The {@code %actor.setweapon%} flag: the main hand holds a completed set's weapon. */
+        public Builder holdsSetWeapon(boolean holdsSetWeapon) {
+            this.holdsSetWeapon = holdsSetWeapon;
+            return this;
+        }
+
         public WornState build() {
             return new WornState(gen, activeSets, crystalAbilityIds, heroic, byTrigger, combatAttack,
-                    combatDefense, triggerFactMask, Map.copyOf(enchantLevels), heroicPieces);
+                    combatDefense, triggerFactMask, Map.copyOf(enchantLevels), heroicPieces, holdsSetWeapon);
         }
     }
 }
