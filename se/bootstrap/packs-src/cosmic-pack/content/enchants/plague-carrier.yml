@@ -27,9 +27,9 @@ tier: uncommon
 # loot and give no XP (engine summon rule), and the engine's 50-per-chunk summon cap applies.
 # era: a charged creeper is 1.8-safe; CREEPER_HISS is the 1.8 sound id, authored as its modern spelling
 # ENTITY_CREEPER_PRIMED — that alias row has LANDED in `Aliases.SOUND`, verified against both era constant
-# lists, so the burst plays on the legacy lane. EXPLODE and
-# LARGE_EXPLODE carry their own alias rows (ENTITY_GENERIC_EXPLODE / EXPLOSION_LARGE) and CLOUD resolves on
-# both eras.
+# lists, so the burst plays on the legacy lane. EXPLODE carries its sound row (ENTITY_GENERIC_EXPLODE);
+# `EXPLOSION_LARGE` is the 1.8 EnumParticle constant and the table maps it forward to the modern EXPLOSION.
+# CLOUD resolves on both eras.
 levels:
   # Radius round(1.5 x level) = 2/3/5/6/8/9/11/12 and creepers radius/2 (integer) = 1/1/2/3/4/4/5/6.
   # Death burst: Poison for (2 + level) x 20 t, I until L7 and II from there.

@@ -9,7 +9,7 @@ group: "legendary"
 tier: legendary
 # Periods are the as-intended ladder 300/150/100/75/60t (D-01-05); the measured 300/120/60/60/60t came from
 # `60 * (5 / level)` integer division. Radius = level. A vanished/frozen bystander only skips itself (D-01-06).
-# era: WITHER exists on 1.8.9; the LAVA particle is era-neutral; SPELL_WITCH is 1.8.9 `WITCH_MAGIC` (modern
+# era: WITHER exists on 1.8.9; the LAVA particle is era-neutral; SPELL_WITCH is the 1.8 EnumParticle constant (modern
 # `WITCH`) — resolver alias.
 levels:
   1:

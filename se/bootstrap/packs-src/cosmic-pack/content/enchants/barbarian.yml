@@ -15,8 +15,9 @@ condition: "%victim.helditem% matchesregex \".*_AXE$\""
 # No roll and no player gate — the bonus lands on every qualifying hit, mobs holding axes included.
 # Structural mirror of Insanity (victim holding a sword).
 # era: held material names differ per lane (1.8.9 WOOD_AXE/GOLD_AXE vs modern WOODEN_AXE/GOLDEN_AXE); the
-# `_AXE` suffix holds on both, which an exact-name list would not — that is why this gate is a regex and not
-# the `contains` idiom armored.yml/rage.yml use.
+# `_AXE` suffix holds on both, which an exact-name list would not. The regex rather than the `contains` idiom
+# armored.yml/rage.yml use is D-04-4's call above, not an era one — `contains` matches the same suffix on
+# either lane, as tank.yml ships.
 levels:
   # +5 pp per level; nothing else scales.
   1:

@@ -57,7 +57,7 @@ removes-required: true
 # era: `ZOMBIE_METAL`->`ENTITY_ZOMBIE_ATTACK_IRON_DOOR` (wave 2e.2) and `WITHER_SHOOT`->`ENTITY_WITHER_SHOOT`
 # (wave 2c) both carry alias rows now, as does `ORB_PICKUP`->`ENTITY_EXPERIENCE_ORB_PICKUP` (wave 2e.2, the
 # row Healing/Teleportation share) — so all three cues land on the 1.8 lane.
-# `WITCH_MAGIC`/`SPELL_WITCH` crosses through the particle alias table, and walk-speed roots behave
+# `SPELL_WITCH` is the 1.8 constant the table maps forward (the jar's name is `WITCH_MAGIC`), and walk-speed roots
 # identically on 1.8.9.
 levels:
   # Per level: grapple chance `6.6 x L`, grapple range `10 x L` blocks, pull cap `6.0 + 0.5 x L`, ally range

@@ -43,8 +43,8 @@ tier: mastery
 # records the same clause from its own side, and both Detonate entries are deferred on the block-material
 # filter, so no counterparty has anything to negotiate with.
 # numbers: level-independent (max 1). strings: none — completely silent, no message, sound or particle.
-# era: none — the jar's tools and drops are all 1.8.9-era, and the legacy GOLD_* / WOOD_* spellings ride the
-# resolver aliases wherever a shipped file names one.
+# era: none — this file names no material of its own. `Aliases.MATERIAL` carries the gold tool pair the pack
+# does author (`GOLD_SWORD`/`GOLD_AXE`); the wood spellings have no row because nothing here authors one.
 levels:
   # Max 1: the level exists only so the lore line renders `§4Auto Sell I` like every other enchant.
   1: { effects: [] }

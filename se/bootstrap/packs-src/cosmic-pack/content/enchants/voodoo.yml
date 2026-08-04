@@ -13,7 +13,7 @@ condition: '%damagecause% == "ENTITY_ATTACK"'
 # Durations are the original's truncated (int)(1.5 x level) seconds plus a 25-tick tail — the quarter-second
 # ends and the uneven +1s/+2s steps are the real values, shipped as measured.
 # Weakness I through L3, II from L4 (POTION level is 1-based: level 1 = the I tier).
-# era: MOB_SPELL is the 1.8 particle id (SPELL_MOB resolves both ways). The matrix records the swirl at the
+# era: SPELL_MOB is the 1.8 EnumParticle constant (MOB_SPELL is the jar's name). The matrix records the swirl at the
 # attacker's eye height; the engine centres an entity-targeted particle on the body.
 levels:
   1:

@@ -17,8 +17,8 @@ tier: rare
 # exclusion.
 condition: "%victim.type% == \"PLAYER\" && %victim.health% <= 8.0 && %victim.var.raged% == 0"
 # strings: none.
-# era: REDSTONE_WIRE is the particle's block-data handle — legacy block id 55, modern REDSTONE_WIRE block
-# state; the material resolver carries both spellings.
+# era: REDSTONE_WIRE is the particle's block-data handle — the same Material name on 1.8.9 and modern, so it
+# resolves directly and owes no alias row.
 levels:
   # chance 4 pp per level; the x3.0 multiplier is level-independent. The measured L3/L6 chances carry
   # float noise (0.12000000000000001 / 0.24000000000000002) — the exact 4 x L rungs ship.

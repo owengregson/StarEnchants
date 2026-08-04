@@ -32,7 +32,7 @@ condition: "%damagecause% == \"ENTITY_ATTACK\" && %victim.type% == \"PLAYER\""
 # and vanilla AI happily turns them on the wearer standing in the middle of their own ring. The jar's minions
 # never hurt (or target) their summoner; SPAWN_ENTITY/GUARD both bind an owner and the summon-target guard
 # reads it, so this closes with one `owner` param on SPAWN_SWARM — which also fills the nameplate above.
-# era: `WITCH_MAGIC` is the 1.8.9 spelling of SPELL_WITCH (and `WITCH` after the 1.20.5 rename) — the particle
+# era: `SPELL_WITCH` is the 1.8.9 constant (`WITCH_MAGIC` is the jar's name, `WITCH` the 1.20.5 rename) — the particle
 # alias table carries it both ways; INCREASE_DAMAGE / FAST_DIGGING are the legacy potion ids, which resolve on
 # every lane.
 levels:

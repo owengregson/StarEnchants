@@ -876,6 +876,17 @@ batch recorded as a comment inside those files.
   change the sound everywhere the pack actually plays it; both era comments now state
   the verified outcome instead of the warn-skip claim.
 
+- **`barbarian.yml`'s D-04-4 note contradicts `tank.yml` — needs the codex.** The
+  deviation note says the jar's measured gate was `contains("_AXE")`, "which counts
+  every PICKAXE holder as an axe holder". It does not: `"DIAMOND_PICKAXE"` has one
+  underscore and it sits before `PICKAXE`, so `_AXE` is not a substring — which is
+  exactly what `tank.yml`'s own era line asserts ("pickaxes never match") while
+  shipping `contains` for the same suffix. Either the jar's gate was `contains("AXE")`
+  without the underscore (in which case the note's spelling is wrong and the
+  `matchesregex` choice is still right), or the note's consequence is wrong and the
+  regex is unmotivated. Not resolvable from the tree — it needs the codex, so the
+  era clause was corrected around it and the deviation claim left alone.
+
 - **STOP — the 1.8.9 lane has no era gate, and the signature pack cannot publish
   there.** Found while re-walking the content for the four alias rows above, and
   recorded rather than fixed because the fix is an owner decision.

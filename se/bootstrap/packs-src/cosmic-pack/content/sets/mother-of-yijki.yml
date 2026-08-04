@@ -116,10 +116,10 @@ bonuses:
       - { DAMAGE_MOD: { side: attack, mode: add, amount: 20 } }
 # era: WITHER_SPAWN/WITHER_DEATH are the 1.8 sound names, authored modern (ENTITY_WITHER_*) as the rest of
 # this pack does; `Aliases.SOUND` carries both rows, so each half resolves back on 1.8.
-# The particles keep their classic names: WITCH_MAGIC
-# → SPELL_WITCH (WITCH on the modern registry), and LARGE_EXPLODE → EXPLOSION_LARGE (modern EXPLOSION — the
-# alias table gives EXPLOSION_EMITTER to 1.8's EXPLOSION_HUGE, one step up). The strike's
-# lightning is visual-only and must take the no-fire/no-damage path on both eras.
+# The particles keep their classic names: the jar's WITCH_MAGIC is 1.8's SPELL_WITCH (WITCH on the modern
+# registry), and its LARGE_EXPLODE is EXPLOSION_LARGE (modern EXPLOSION — the alias table gives
+# EXPLOSION_EMITTER to 1.8's EXPLOSION_HUGE, one step up). The strike's lightning is visual-only and must
+# take the no-fire/no-damage path on both eras.
 # Interaction-layer rules the strike-field decomposition does NOT own, recorded but not authored here:
 #  * target filters beyond filter=ENEMIES: victim Infinite Luck >= 4 excluded; faction TRUCE-or-better excluded;
 #    PvP-deny regions excluded.

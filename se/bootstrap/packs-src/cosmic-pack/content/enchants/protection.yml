@@ -18,7 +18,7 @@ tier: legendary
 # Allies are the relation layer's faction ally/member set (filter=ALLIES).
 # Mixed-level pieces genuinely multiply pulse streams in the jar; shipped highest-only per the standard
 # worn-state rule, recorded as a divergence candidate.
-# era: RED_DUST/SPELL are the 1.8 particle ids — authored as REDSTONE/SPELL, the cross-era spellings the
+# era: REDSTONE/SPELL are the 1.8 EnumParticle constants (the jar spells the first RED_DUST) — authored as the
 # particle resolver maps in both directions.
 levels:
   1:
