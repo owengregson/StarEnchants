@@ -1,0 +1,48 @@
+# Matrix: 03-enchants-swords.md § Skill Swipe
+display: "Skill Swipe"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance to swipe experience straight out of the"
+  - "&eplayer you hit, plus an orb of your own."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "uncommon"
+tier: uncommon
+condition: "%victim.type% == \"PLAYER\""
+# MODIFY_EXP mode=transfer moves at most what the victim actually holds — the primitive's clamp IS the jar's
+# `j - i < 0` clamp, so a poor victim simply loses everything they had.
+# Recorded delta: the jar skipped the WHOLE proc (orb included) against a zero-XP victim. Here the transfer
+# clamps to a no-op and the bonus orb still spawns. No victim-XP condition fact exists and the matrix does not
+# call it gap-worthy; the pair is non-XP-conserving in the jar too (the orb is free XP either way).
+# The orb is the jar's bonus drop, kept as measured; the jar placed it at the attacker's target block within a
+# block of them, which is a cosmetic placement delta against @Self.
+# interactions: none. strings: none.
+# era: none.
+levels:
+  1:
+    chance: 20
+    effects:
+      - { MODIFY_EXP: { amount: 6, mode: "transfer", who: "@Victim" } }
+      - { SPAWN_ENTITY: { type: "EXPERIENCE_ORB", count: 1, who: "@Self" } }
+  2:
+    chance: 40
+    effects:
+      - { MODIFY_EXP: { amount: 12, mode: "transfer", who: "@Victim" } }
+      - { SPAWN_ENTITY: { type: "EXPERIENCE_ORB", count: 1, who: "@Self" } }
+  3:
+    # Measured 0.6000000000000001 — binary noise on 3 x 0.2, shipped as the exact 60 it stands for.
+    chance: 60
+    effects:
+      - { MODIFY_EXP: { amount: 18, mode: "transfer", who: "@Victim" } }
+      - { SPAWN_ENTITY: { type: "EXPERIENCE_ORB", count: 1, who: "@Self" } }
+  4:
+    chance: 80
+    effects:
+      - { MODIFY_EXP: { amount: 24, mode: "transfer", who: "@Victim" } }
+      - { SPAWN_ENTITY: { type: "EXPERIENCE_ORB", count: 1, who: "@Self" } }
+  5:
+    # The formula's natural endpoint: 20 x 5 = 100, so the top level never rolls. Kept, no ledger row.
+    chance: 100
+    effects:
+      - { MODIFY_EXP: { amount: 30, mode: "transfer", who: "@Victim" } }
+      - { SPAWN_ENTITY: { type: "EXPERIENCE_ORB", count: 1, who: "@Self" } }

@@ -1,0 +1,274 @@
+# Matrix: 03-enchants-swords.md § Silence
+display: "Silence"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance to silence a player's defensive enchants;"
+  - "&eSolitude on the same weapon widens both the odds and the window."
+trigger: [ATTACK, BOW]
+applies-to: [SWORD, BOW]
+group: "legendary"
+tier: legendary
+# Solitude (same file family, HELD-source marker) is read as %solitude%, 0 when the weapon carries none. Both
+# the odds and the window ladder on it — chance (L+S) x 2 %, window (L+S) x 20 t — so the four blocks per
+# level ARE the S = 0..3 ladder. A condition takes at most one ':' clause and a clause never gates, so the
+# matrix's `+N %chance%` boosts are folded into each block's own chance instead: exactly one block is eligible
+# per hit, so it is still a single roll.
+# The suppression channel is the shared one: Mastery Tombstone (07) rides it, Phoenix carries a self-scoped
+# SUPPRESS_IMMUNE (layer rule `phoenix-immune-to-defense-suppression`), and the Dragon Slayer set's
+# immune_silence is SUPPRESS_IMMUNE(chance=75) — the measured 25% leak IS that primitive's per-suppression
+# roll. On such a block the ATTACKER sees `§c§l* SILENCE BLOCKED [§7{VICTIM}§c§l] *`; SUPPRESS_IMMUNE carries
+# no feedback hook on the frozen surface, so that line is recorded here and authored with the immunity side.
+# ENGINE SEAM (report, not a stop): scope=TYPE arms a window keyed on "DEFENSE", but no content ability
+# carries a type scope today (`cdScopeType` is null for every enchant/set/crystal — ADR-0016 deferred), so
+# gate 5 cannot match it yet. The corpus already commits to this shape: the eight maintained passives that
+# shipped in batches 1-2 carry `suppress-immune: true` precisely to survive it.
+# Ledger D-03-10: the jar ALSO gave a silenced victim x0.75 incoming damage — a reward for being silenced,
+# almost certainly an inverted sign. Suppression only ships; no damage modifier.
+# Single-pass per D-001: the jar's pass-2 50% environmental leak through a live Silence is a double-fire
+# artifact, so the window here is unconditional. SUPPRESS's timed window also refreshes cleanly, replacing the
+# jar's overlapping-proc bug where the first expiry task cut a refreshed silence short.
+# Solitude is UNSET today: solitude.yml shipped as a roster marker (SET_VAR has no un-hold teardown, so the
+# marker was withheld rather than shipped leaky). Until it lands, only the S = 0 block is ever eligible and
+# Silence runs its base ladder; the other three light up untouched the moment the marker writes.
+# The S = 0 test is a `!=` chain, not `< 1`: an UNSET actor-scoped var reads NaN (only the victim-scoped
+# %victim.var.x% arm coerces to 0), and every ordering comparison against NaN is false — the same reason
+# batch 1 wrote arrow-deflect/angelic as `!= 1`.
+# {SECONDS} is (L + S), a per-block constant, so it is inlined and the rendered line is byte-identical to the
+# matrix string `§5§l* SILENCED §7[{SECONDS}s] §5§l*`.
+# era: `WITHER_HURT` (1.8.9) <-> `ENTITY_WITHER_HURT` (flattened 1.13) needs a legacy alias row — Aliases.SOUND
+# does not carry it yet, so the cue would warn-skip on the legacy fork (parked on the deferred-content
+# legacy-sweep list). ENCHANTMENT_TABLE is the cross-era spelling the particle resolver maps (ENCHANT since the
+# 1.20.5 registry rename); PORTAL is fine on 1.8.9.
+levels:
+  1:
+    abilities:
+      # Solitude 0: chance 2%, window 20 t.
+      - chance: 2
+        condition: "%victim.type% == \"PLAYER\" && %solitude% != 1 && %solitude% != 2 && %solitude% != 3"
+        effects:
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 20, mode: "timed", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25 } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+          - { MESSAGE: { text: "§5§l* SILENCED §7[1s] §5§l*", who: "@Victim" } }
+          # The expiry burst repeats the pair LAST: a wait tier ACCUMULATES down the effect list, so only the
+          # first burst line carries the wait and the PORTAL line rides that same tier (a second wait: here
+          # would stack to 2x the window).
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim", wait: 20 } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+      # Solitude 1: chance 4%, window 40 t.
+      - chance: 4
+        condition: "%victim.type% == \"PLAYER\" && %solitude% == 1"
+        effects:
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 40, mode: "timed", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25 } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+          - { MESSAGE: { text: "§5§l* SILENCED §7[2s] §5§l*", who: "@Victim" } }
+          # The expiry burst repeats the pair LAST: a wait tier ACCUMULATES down the effect list, so only the
+          # first burst line carries the wait and the PORTAL line rides that same tier (a second wait: here
+          # would stack to 2x the window).
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim", wait: 40 } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+      # Solitude 2: chance 6%, window 60 t.
+      - chance: 6
+        condition: "%victim.type% == \"PLAYER\" && %solitude% == 2"
+        effects:
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 60, mode: "timed", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25 } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+          - { MESSAGE: { text: "§5§l* SILENCED §7[3s] §5§l*", who: "@Victim" } }
+          # The expiry burst repeats the pair LAST: a wait tier ACCUMULATES down the effect list, so only the
+          # first burst line carries the wait and the PORTAL line rides that same tier (a second wait: here
+          # would stack to 2x the window).
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim", wait: 60 } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+      # Solitude 3: chance 8%, window 80 t.
+      - chance: 8
+        condition: "%victim.type% == \"PLAYER\" && %solitude% == 3"
+        effects:
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25 } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+          - { MESSAGE: { text: "§5§l* SILENCED §7[4s] §5§l*", who: "@Victim" } }
+          # The expiry burst repeats the pair LAST: a wait tier ACCUMULATES down the effect list, so only the
+          # first burst line carries the wait and the PORTAL line rides that same tier (a second wait: here
+          # would stack to 2x the window).
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+  2:
+    abilities:
+      # Solitude 0: chance 4%, window 40 t.
+      - chance: 4
+        condition: "%victim.type% == \"PLAYER\" && %solitude% != 1 && %solitude% != 2 && %solitude% != 3"
+        effects:
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 40, mode: "timed", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25 } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+          - { MESSAGE: { text: "§5§l* SILENCED §7[2s] §5§l*", who: "@Victim" } }
+          # The expiry burst repeats the pair LAST: a wait tier ACCUMULATES down the effect list, so only the
+          # first burst line carries the wait and the PORTAL line rides that same tier (a second wait: here
+          # would stack to 2x the window).
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim", wait: 40 } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+      # Solitude 1: chance 6%, window 60 t.
+      - chance: 6
+        condition: "%victim.type% == \"PLAYER\" && %solitude% == 1"
+        effects:
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 60, mode: "timed", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25 } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+          - { MESSAGE: { text: "§5§l* SILENCED §7[3s] §5§l*", who: "@Victim" } }
+          # The expiry burst repeats the pair LAST: a wait tier ACCUMULATES down the effect list, so only the
+          # first burst line carries the wait and the PORTAL line rides that same tier (a second wait: here
+          # would stack to 2x the window).
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim", wait: 60 } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+      # Solitude 2: chance 8%, window 80 t.
+      - chance: 8
+        condition: "%victim.type% == \"PLAYER\" && %solitude% == 2"
+        effects:
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25 } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+          - { MESSAGE: { text: "§5§l* SILENCED §7[4s] §5§l*", who: "@Victim" } }
+          # The expiry burst repeats the pair LAST: a wait tier ACCUMULATES down the effect list, so only the
+          # first burst line carries the wait and the PORTAL line rides that same tier (a second wait: here
+          # would stack to 2x the window).
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+      # Solitude 3: chance 10%, window 100 t.
+      - chance: 10
+        condition: "%victim.type% == \"PLAYER\" && %solitude% == 3"
+        effects:
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 100, mode: "timed", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25 } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+          - { MESSAGE: { text: "§5§l* SILENCED §7[5s] §5§l*", who: "@Victim" } }
+          # The expiry burst repeats the pair LAST: a wait tier ACCUMULATES down the effect list, so only the
+          # first burst line carries the wait and the PORTAL line rides that same tier (a second wait: here
+          # would stack to 2x the window).
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim", wait: 100 } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+  3:
+    abilities:
+      # Solitude 0: chance 6%, window 60 t.
+      - chance: 6
+        condition: "%victim.type% == \"PLAYER\" && %solitude% != 1 && %solitude% != 2 && %solitude% != 3"
+        effects:
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 60, mode: "timed", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25 } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+          - { MESSAGE: { text: "§5§l* SILENCED §7[3s] §5§l*", who: "@Victim" } }
+          # The expiry burst repeats the pair LAST: a wait tier ACCUMULATES down the effect list, so only the
+          # first burst line carries the wait and the PORTAL line rides that same tier (a second wait: here
+          # would stack to 2x the window).
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim", wait: 60 } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+      # Solitude 1: chance 8%, window 80 t.
+      - chance: 8
+        condition: "%victim.type% == \"PLAYER\" && %solitude% == 1"
+        effects:
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25 } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+          - { MESSAGE: { text: "§5§l* SILENCED §7[4s] §5§l*", who: "@Victim" } }
+          # The expiry burst repeats the pair LAST: a wait tier ACCUMULATES down the effect list, so only the
+          # first burst line carries the wait and the PORTAL line rides that same tier (a second wait: here
+          # would stack to 2x the window).
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+      # Solitude 2: chance 10%, window 100 t.
+      - chance: 10
+        condition: "%victim.type% == \"PLAYER\" && %solitude% == 2"
+        effects:
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 100, mode: "timed", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25 } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+          - { MESSAGE: { text: "§5§l* SILENCED §7[5s] §5§l*", who: "@Victim" } }
+          # The expiry burst repeats the pair LAST: a wait tier ACCUMULATES down the effect list, so only the
+          # first burst line carries the wait and the PORTAL line rides that same tier (a second wait: here
+          # would stack to 2x the window).
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim", wait: 100 } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+      # Solitude 3: chance 12%, window 120 t.
+      - chance: 12
+        condition: "%victim.type% == \"PLAYER\" && %solitude% == 3"
+        effects:
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 120, mode: "timed", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25 } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+          - { MESSAGE: { text: "§5§l* SILENCED §7[6s] §5§l*", who: "@Victim" } }
+          # The expiry burst repeats the pair LAST: a wait tier ACCUMULATES down the effect list, so only the
+          # first burst line carries the wait and the PORTAL line rides that same tier (a second wait: here
+          # would stack to 2x the window).
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim", wait: 120 } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+  4:
+    abilities:
+      # Solitude 0: chance 8%, window 80 t.
+      - chance: 8
+        condition: "%victim.type% == \"PLAYER\" && %solitude% != 1 && %solitude% != 2 && %solitude% != 3"
+        effects:
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25 } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+          - { MESSAGE: { text: "§5§l* SILENCED §7[4s] §5§l*", who: "@Victim" } }
+          # The expiry burst repeats the pair LAST: a wait tier ACCUMULATES down the effect list, so only the
+          # first burst line carries the wait and the PORTAL line rides that same tier (a second wait: here
+          # would stack to 2x the window).
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+      # Solitude 1: chance 10%, window 100 t.
+      - chance: 10
+        condition: "%victim.type% == \"PLAYER\" && %solitude% == 1"
+        effects:
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 100, mode: "timed", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25 } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+          - { MESSAGE: { text: "§5§l* SILENCED §7[5s] §5§l*", who: "@Victim" } }
+          # The expiry burst repeats the pair LAST: a wait tier ACCUMULATES down the effect list, so only the
+          # first burst line carries the wait and the PORTAL line rides that same tier (a second wait: here
+          # would stack to 2x the window).
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim", wait: 100 } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+      # Solitude 2: chance 12%, window 120 t.
+      - chance: 12
+        condition: "%victim.type% == \"PLAYER\" && %solitude% == 2"
+        effects:
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 120, mode: "timed", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25 } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+          - { MESSAGE: { text: "§5§l* SILENCED §7[6s] §5§l*", who: "@Victim" } }
+          # The expiry burst repeats the pair LAST: a wait tier ACCUMULATES down the effect list, so only the
+          # first burst line carries the wait and the PORTAL line rides that same tier (a second wait: here
+          # would stack to 2x the window).
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim", wait: 120 } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+      # Solitude 3: chance 14%, window 140 t.
+      - chance: 14
+        condition: "%victim.type% == \"PLAYER\" && %solitude% == 3"
+        effects:
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 140, mode: "timed", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25 } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }
+          - { MESSAGE: { text: "§5§l* SILENCED §7[7s] §5§l*", who: "@Victim" } }
+          # The expiry burst repeats the pair LAST: a wait tier ACCUMULATES down the effect list, so only the
+          # first burst line carries the wait and the PORTAL line rides that same tier (a second wait: here
+          # would stack to 2x the window).
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 80, spread: 0.4, who: "@Victim", wait: 140 } }
+          - { PARTICLE: { particle: "PORTAL", count: 60, spread: 0.4, who: "@Victim" } }

@@ -1,0 +1,32 @@
+# Matrix: 03-enchants-swords.md § Greatsword
+display: "Greatsword"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eYou swing harder into an enemy who is"
+  - "&eholding a bow."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "rare"
+tier: rare
+# Exact match, not `contains`: the jar compared the victim's held type to "BOW" itself, so a crossbow or
+# trident holder is untouched on modern servers (measured). No chance roll — every qualifying hit lands it.
+condition: "%victim.helditem% == \"BOW\""
+# interactions: none. strings: none. era: none.
+levels:
+  # +5 pp per level: x1.05 / x1.1 / x1.15 / x1.2 / x1.25 vs a bow-holder (L3 measured as
+  # 1.1500000000000001 — float noise on the exact 15), x1.0 against anyone else.
+  1:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }
+  2:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }
+  3:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }
+  4:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 20 } }
+  5:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 25 } }

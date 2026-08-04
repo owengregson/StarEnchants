@@ -1,0 +1,75 @@
+# Matrix: 03-enchants-swords.md § Trap
+display: "Trap"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA melee hit can nail a player to the spot"
+  - "&efor a second and three quarters."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "rare"
+tier: rare
+# Players only, and never onto someone already trapped. The jar read the marker on the ATTACKER, which is the
+# same wrong-subject idiom deviations.md `D-06-17` already rules a bug on Heroic Titan Trap (a slowed attacker
+# can never proc); the intent there and here is anti-re-trap, so the guard is authored victim-side. The
+# matrix's attacker-side reading ("the attacker reads their own copy") is superseded for D-06-17's reason —
+# one ledger ruling, one idiom, both files. Consequence: a trapped player can still trap back, and a live
+# freeze is never re-armed mid-window.
+condition: "%victim.type% == \"PLAYER\" && %victim.var.trap.frozen% != 1"
+# PENDING WAVE-1F FACT — the Metaphysical rebate is NOT authored here. It needs the victim-side
+# worn-enchant-level fact the frozen surface does not carry (deferred-content.md already holds the
+# consumer-side row under `enchants/metaphysical`). When it lands, this ability gains:
+#   * `-2.5 %chance%` per Metaphysical level (Heroic Metaphysical writes the same worn state — highest-only,
+#     the two grades never sum);
+#   * the blocked-proc line `§8§l** METAPHYSICAL (§8Trap blocked!§l) **`, which doc 03 sends to the victim
+#     while matrix-02 files the same string under the attacker-side rule — recipient to settle then;
+#   * a 1 % floor on the effective chance (D-03-11). Measured: Metaphysical ≥ 2 against Trap I drives the
+#     chance NEGATIVE (−1 %), so it can never land, yet the jar still prints the blocked line on the
+#     would-be proc; the floor is the as-intended reading, matching Heroic Trap's own 0.01 chance floor.
+# Interactions carried by the OTHER side, nothing authored here: the Dragon Slayer set (`immune_freeze`) blocks
+# outright — no leak chance — with `§8§l* DRAGON SLAYER [§7Trap blocked!§8§l] *` (the set-side rule
+# `dragon-slayer-blocks-freeze`, shared with §IceAspect; armour-set doc 10), and the engine's native
+# activation-veto replaces the jar's cancellable proc event. Layer note for the Bleed port (axes doc): Bleed's
+# walk-speed slow made bleeding attackers fail the jar's `walk speed < 0.2` attacker gate, so Bleed extends the
+# attacker gate above with `%counter.bleed% >= 2`.
+# Overlapping freezes still free early: every MOVEMENT_SPEED grant registers its OWN timed revert, so the
+# first grant's t+35 restore ends a freeze a later one re-armed — the jar's behaviour, matched rather than
+# fixed (the matrix's "the timed modifier refreshes instead" does not hold; the engine has no refresh path).
+# Unreachable from Trap onto Trap now the guard is victim-side; it stands for any OTHER MOVEMENT_SPEED
+# source landing on a live freeze. The jar's
+# quit-reset and its op-exempt particle echo are plumbing artifacts, not ported.
+# era: block id 80 ↔ `SNOW_BLOCK`; walk-speed freezes behave identically on 1.8.9 (the sprint-jump creep the
+# codex notes is vanilla-era physics, not ours to replicate).
+levels:
+  # Freeze is 35 t and a FULL stop at every level; only the chance ladders (4/8/12 %, L3 measured
+  # `0.12000000000000001`).
+  1:
+    chance: 4
+    effects:
+      # The matrix writes this row as `MOVEMENT_SPEED(speed=-0.2)` — a delta off the vanilla 0.2 — but the
+      # primitive SETS walk speed, so the recorded end state ("walk speed to 0", full stop) is authored
+      # directly; -0.2 as an absolute would reverse the victim's controls instead of stopping them. The timed
+      # restore hands back the vanilla 0.2 default rather than the victim's prior speed (engine policy: a
+      # re-fire can never ratchet speed upward), so the jar's hard-coded 0.2F restore is reproduced, not closed.
+      - { MOVEMENT_SPEED: { speed: 0, ticks: 35, who: "@Victim" } }
+      - { SET_VAR: { name: "trap.frozen", value: "1", ttl: 35, who: "@Victim" } }
+      - { MESSAGE: { text: "§c§l(!) §cYou have been trapped by {ATTACKER}!", who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "SNOW_BLOCK", count: 8, who: "@Victim" } }
+      # Authored last because `wait:` accumulates down the effect list: everything above sits at t=0, so this
+      # release line lands at t=35 — the tick the freeze and the marker both expire.
+      - { MESSAGE: { text: "§a§l(!) §aYou are no longer trapped!", who: "@Victim", wait: 35 } }
+  2:
+    chance: 8
+    effects:
+      - { MOVEMENT_SPEED: { speed: 0, ticks: 35, who: "@Victim" } }
+      - { SET_VAR: { name: "trap.frozen", value: "1", ttl: 35, who: "@Victim" } }
+      - { MESSAGE: { text: "§c§l(!) §cYou have been trapped by {ATTACKER}!", who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "SNOW_BLOCK", count: 8, who: "@Victim" } }
+      - { MESSAGE: { text: "§a§l(!) §aYou are no longer trapped!", who: "@Victim", wait: 35 } }
+  3:
+    chance: 12
+    effects:
+      - { MOVEMENT_SPEED: { speed: 0, ticks: 35, who: "@Victim" } }
+      - { SET_VAR: { name: "trap.frozen", value: "1", ttl: 35, who: "@Victim" } }
+      - { MESSAGE: { text: "§c§l(!) §cYou have been trapped by {ATTACKER}!", who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "SNOW_BLOCK", count: 8, who: "@Victim" } }
+      - { MESSAGE: { text: "§a§l(!) §aYou are no longer trapped!", who: "@Victim", wait: 35 } }

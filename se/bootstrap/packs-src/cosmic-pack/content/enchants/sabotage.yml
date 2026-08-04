@@ -1,0 +1,109 @@
+# Matrix: 03-enchants-swords.md § Sabotage
+display: "Sabotage"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eEvery sword hit spends souls to sabotage the"
+  - "&etarget's escape gear for a second."
+trigger: ATTACK
+applies-to: [SWORD]  # the _SWORD helditem gate below means anything wider only mints duds
+group: "soul"
+tier: soul
+chance: 100  # no chance roll — every gated hit marks
+# Gate chain, identical to Divine Immolation's (both soul-tier sword enchants share it):
+#   held sword  +  no held-switch inside the last 5 t  +  a soul balance to spend.
+# The matrix records the item set only as the helditem test, and that test is `_SWORD` — so applies-to is
+# swords, matching Divine Immolation, the sword-scoped enchant the matrix anchors this gate chain to. A wider
+# set would let the enchant be minted onto axes and bows where the gate can never pass: a dud, not a widening.
+# The remaining two gates are interaction-layer, NOT authored here: soul-gem god mode being armed (REMOVE_SOULS
+# is itself a no-op outside soul mode) and a live Soul Trap debuff (axes doc) blocking soul enchants. The
+# global souls switch is the pack policy toggle in config.yml.
+condition: "%actor.helditem% contains \"_SWORD\" && %heldswitch% != 1 && %actor.souls% > 0"
+# Held-switch window: the matrix's companion rule (HELD -> a 5 t var) rather than the %heldticks% fact, which
+# reads 0 for a player who has not switched slots since login — with `>= 5` that would gate the enchant off
+# permanently for them, which the jar never did.
+# THE MARK IS NEVER THROTTLED, ONLY THE SPEND (measured). A `cooldown:` on the spend block would also throttle
+# the mark: every block of one enchant shares ONE cooldown bucket (the per-block opt-out is on the wave-1f
+# pool), so the spend paces itself with its own 20 t self-var window instead.
+# interactions: the consumer is Rocket Escape / Heroic Rocket Escape (armor docs). Inside this 1 s mark their
+# lethal save is blocked at 10% x the mark level and the wearer sees
+# `§c§l ** §7Rocket Escape:§c§l SABOTAGED **` (leading space verbatim) before dying. That roll reads the
+# wearer's OWN %sabotage% var, so it belongs to the Rocket Escape side — layer rule
+# `sabotage-blocks-rocket-escape`; nothing about it is authorable from here.
+# strings: none of its own (the consumer line above is armor-doc authored).
+# era: none.
+levels:
+  1:
+    abilities:
+      # The mark: level-valued, 1000 ms, on every gated hit.
+      - effects:
+          - { SET_VAR: { name: "sabotage", value: "1", ttl: 20, who: "@Victim" } }
+      # The spend: 8 souls, level-independent (Divine Immolation's is 20), at most once a second.
+      - condition: "%actor.helditem% contains \"_SWORD\" && %heldswitch% != 1 && %actor.souls% > 0 && %sabotage.spend% != 1"
+        effects:
+          - { REMOVE_SOULS: { amount: 8, who: "@Self" } }
+          - { SET_VAR: { name: "sabotage.spend", value: "1", ttl: 20, who: "@Self" } }
+      # Arms the 5 t post-switch window the gate above reads.
+      - trigger: HELD
+        condition: ""
+        effects:
+          - { SET_VAR: { name: "heldswitch", value: "1", ttl: 5, who: "@Self" } }
+  2:
+    abilities:
+      # The mark: level-valued, 1000 ms, on every gated hit.
+      - effects:
+          - { SET_VAR: { name: "sabotage", value: "2", ttl: 20, who: "@Victim" } }
+      # The spend: 8 souls, level-independent (Divine Immolation's is 20), at most once a second.
+      - condition: "%actor.helditem% contains \"_SWORD\" && %heldswitch% != 1 && %actor.souls% > 0 && %sabotage.spend% != 1"
+        effects:
+          - { REMOVE_SOULS: { amount: 8, who: "@Self" } }
+          - { SET_VAR: { name: "sabotage.spend", value: "1", ttl: 20, who: "@Self" } }
+      # Arms the 5 t post-switch window the gate above reads.
+      - trigger: HELD
+        condition: ""
+        effects:
+          - { SET_VAR: { name: "heldswitch", value: "1", ttl: 5, who: "@Self" } }
+  3:
+    abilities:
+      # The mark: level-valued, 1000 ms, on every gated hit.
+      - effects:
+          - { SET_VAR: { name: "sabotage", value: "3", ttl: 20, who: "@Victim" } }
+      # The spend: 8 souls, level-independent (Divine Immolation's is 20), at most once a second.
+      - condition: "%actor.helditem% contains \"_SWORD\" && %heldswitch% != 1 && %actor.souls% > 0 && %sabotage.spend% != 1"
+        effects:
+          - { REMOVE_SOULS: { amount: 8, who: "@Self" } }
+          - { SET_VAR: { name: "sabotage.spend", value: "1", ttl: 20, who: "@Self" } }
+      # Arms the 5 t post-switch window the gate above reads.
+      - trigger: HELD
+        condition: ""
+        effects:
+          - { SET_VAR: { name: "heldswitch", value: "1", ttl: 5, who: "@Self" } }
+  4:
+    abilities:
+      # The mark: level-valued, 1000 ms, on every gated hit.
+      - effects:
+          - { SET_VAR: { name: "sabotage", value: "4", ttl: 20, who: "@Victim" } }
+      # The spend: 8 souls, level-independent (Divine Immolation's is 20), at most once a second.
+      - condition: "%actor.helditem% contains \"_SWORD\" && %heldswitch% != 1 && %actor.souls% > 0 && %sabotage.spend% != 1"
+        effects:
+          - { REMOVE_SOULS: { amount: 8, who: "@Self" } }
+          - { SET_VAR: { name: "sabotage.spend", value: "1", ttl: 20, who: "@Self" } }
+      # Arms the 5 t post-switch window the gate above reads.
+      - trigger: HELD
+        condition: ""
+        effects:
+          - { SET_VAR: { name: "heldswitch", value: "1", ttl: 5, who: "@Self" } }
+  5:
+    abilities:
+      # The mark: level-valued, 1000 ms, on every gated hit.
+      - effects:
+          - { SET_VAR: { name: "sabotage", value: "5", ttl: 20, who: "@Victim" } }
+      # The spend: 8 souls, level-independent (Divine Immolation's is 20), at most once a second.
+      - condition: "%actor.helditem% contains \"_SWORD\" && %heldswitch% != 1 && %actor.souls% > 0 && %sabotage.spend% != 1"
+        effects:
+          - { REMOVE_SOULS: { amount: 8, who: "@Self" } }
+          - { SET_VAR: { name: "sabotage.spend", value: "1", ttl: 20, who: "@Self" } }
+      # Arms the 5 t post-switch window the gate above reads.
+      - trigger: HELD
+        condition: ""
+        effects:
+          - { SET_VAR: { name: "heldswitch", value: "1", ttl: 5, who: "@Self" } }

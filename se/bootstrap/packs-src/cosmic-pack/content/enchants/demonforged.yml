@@ -1,0 +1,35 @@
+# Matrix: 03-enchants-swords.md § Demonforged
+display: "Demonforged"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance to chip one random piece of"
+  - "&ea player's armor with every hit."
+trigger: ATTACK
+applies-to: [SWORD]
+group: "rare"
+tier: rare
+condition: "%victim.type% == \"PLAYER\""
+# D-03-2 (as-intended): the jar damaged the ATTACKER's own armor (verified in bytecode); the victim's set is
+# the intent and is what ships. `select: random-piece` is the uniform 25 %-per-slot draw the jar rolled, and
+# `skip-undamaged` mirrors its guard — a piece already at full durability is never scratched, and is out of
+# the pick entirely. 1 durability point, level-independent; chance 4/8/12/16 % (L3 measured
+# 0.12000000000000001). The jar's non-player-wielder CCE is a crash bug, not behavior; the engine is
+# player-scoped, so nothing is authored for it.
+# era: none.
+levels:
+  1:
+    chance: 4
+    effects:
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", select: "random-piece", skip-undamaged: true, who: "@Victim" } }
+  2:
+    chance: 8
+    effects:
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", select: "random-piece", skip-undamaged: true, who: "@Victim" } }
+  3:
+    chance: 12
+    effects:
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", select: "random-piece", skip-undamaged: true, who: "@Victim" } }
+  4:
+    chance: 16
+    effects:
+      - { DURABILITY: { amount: 1, target: "armor", mode: "damage", select: "random-piece", skip-undamaged: true, who: "@Victim" } }
