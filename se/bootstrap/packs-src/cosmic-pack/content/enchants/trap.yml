@@ -30,7 +30,8 @@ condition: "%victim.type% == \"PLAYER\" && %victim.var.trap.frozen% != 1"
 # `dragon-slayer-blocks-freeze`, shared with §IceAspect; armour-set doc 10), and the engine's native
 # activation-veto replaces the jar's cancellable proc event. Layer note for the Bleed port (axes doc): Bleed's
 # walk-speed slow made bleeding attackers fail the jar's `walk speed < 0.2` attacker gate, so Bleed extends the
-# attacker gate above with `%counter.bleed% >= 2`.
+# attacker gate above with `%victim.var.bleedstacks% >= 2` — `bleedstacks` is the counter bleed.yml publishes,
+# and that spelling is the published read.
 # Overlapping freezes still free early: every MOVEMENT_SPEED grant registers its OWN timed revert, so the
 # first grant's t+35 restore ends a freeze a later one re-armed — the jar's behaviour, matched rather than
 # fixed (the matrix's "the timed modifier refreshes instead" does not hold; the engine has no refresh path).

@@ -1,0 +1,33 @@
+# Matrix: 04-enchants-axes.md § Barbarian
+display: "Barbarian"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eYou hit harder against anyone who brought"
+  - "&ean axe to the fight."
+trigger: ATTACK
+applies-to: [AXE]
+group: "legendary"
+tier: legendary
+condition: "%victim.helditem% matchesregex \".*_AXE$\""
+# D-04-4 (as-intended): axe materials only. The measured gate was `contains("_AXE")`, which counts every
+# PICKAXE holder as an axe holder; `matchesregex` is a FULL match, so DIAMOND_PICKAXE (…CKAXE) fails it and
+# DIAMOND_AXE passes.
+# No roll and no player gate — the bonus lands on every qualifying hit, mobs holding axes included.
+# Structural mirror of Insanity (victim holding a sword).
+# era: held material names differ per lane (1.8.9 WOOD_AXE/GOLD_AXE vs modern WOODEN_AXE/GOLDEN_AXE); the
+# `_AXE` suffix holds on both, which an exact-name list would not — that is why this gate is a regex and not
+# the `contains` idiom armored.yml/rage.yml use.
+levels:
+  # +5 pp per level; nothing else scales.
+  1:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }
+  2:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }
+  3:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 15 } }
+  4:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 20 } }

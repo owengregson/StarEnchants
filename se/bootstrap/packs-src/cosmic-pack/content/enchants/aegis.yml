@@ -10,7 +10,8 @@ tier: legendary
 # era: CRIT_MAGIC is the classic-era particle name (modern ENCHANTED_HIT) — resolver alias; no other hazards.
 # D-01-01 (as-intended): reduce ANY attacker's hit once the unique-attacker count exceeds 8 - level; the
 # measured jar only reduced hits from attackers it had not yet tracked, never added them, and never seeded
-# the first window. %recentattackers% counts distinct attackers inside the engine's 100t window (level-independent).
+# the first window. %recentattackers% counts distinct attackers inside the engine's 200 t (10 s) window —
+# RecentAttackersStore.WINDOW_TICKS, level-independent.
 levels:
   1:
     condition: "%victim.type% == \"PLAYER\" && %recentattackers% > 7"

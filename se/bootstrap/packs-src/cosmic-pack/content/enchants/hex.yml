@@ -1,0 +1,72 @@
+# Matrix: 04-enchants-axes.md § Hex
+display: "Hex"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA hex turns a player's own swings back on them"
+  - "&efor a few seconds, up to a capped bite per hit."
+trigger: ATTACK
+applies-to: [AXE]
+group: "legendary"
+tier: legendary
+condition: "%victim.type% == \"PLAYER\" && %victim.var.hexed% != 1"
+# Players only, and never onto someone already hexed. Both matrix gaps are closed by the wave-1 surface:
+# VICTIM_VAR_FACT ships as `%victim.var.<name>%` (the re-proc guard below, victim-scoped so an unset read
+# coerces to 0 — `!= 1` is the shipped idiom for a flag), and REFLECT_CAP ships as REFLECT's own `cap` +
+# `feedback` params, so the flat per-hit ceiling and the per-hit line ride the primitive instead of a gap.
+# The jar expired the flag by timestamp comparison; `ttl` on the marker reproduces that window exactly, and
+# it is the SAME number as the reflect window, so flag and debuff always lapse on the same tick.
+# Durations are integer-divided in the jar (`2 + level/2` seconds → 2/3/3/4/4) and the chat line prints that
+# same truncated integer, so the truncation reads as designed and ships as measured — no ledger row.
+# {seconds} is a per-level constant, so it is inlined and each rendered line is byte-identical to the matrix
+# string `§5§l* HEX DEBUFF [§d§l{seconds}s§5§l] *`.
+# The jar's reflect listener omitted `ignoreCancelled` and fired self-damage on hits other plugins had
+# cancelled; REFLECT applies to landed hits only — noted by the matrix and accepted, not a deviation to fix.
+# strings: the two chat lines below plus the per-hit `§5* HEX [§c{damage}§5 DMG] *`, which REFLECT's
+# `feedback` sends to the afflicted with the returned health filled in (the jar's DecimalFormat `#.##`).
+# era: the witch particle is `WITCH_MAGIC` on 1.8.9, `SPELL_WITCH` after the flattening and `WITCH` after the
+# 1.20.5 registry rename — `Aliases.PARTICLE` carries `SPELL_WITCH ↔ WITCH` and the resolver's reverse scan
+# makes it bidirectional, so the modern spelling loads on both lanes.
+levels:
+  # Chance +2 pp a rung; window 2/3/3/4/4 s (40/60/60/80/80 t); per-hit cap `5 + max(0, level - 2)` = 5/5/6/7/8.
+  1:
+    chance: 2
+    effects:
+      - { SET_VAR: { name: "hexed", value: "1", ttl: 40, who: "@Victim" } }
+      - { REFLECT: { percent: 100, duration: 40, cap: 5, feedback: "§5* HEX [§c{damage}§5 DMG] *", who: "@Victim" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim" } }  # recorded at eye height; PARTICLE centres on the body (cosmetic delta)
+      - { MESSAGE: { text: "§5§l* HEX DEBUFF [§d§l2s§5§l] *", channel: "chat", who: "@Victim" } }
+      # Authored last because `wait:` accumulates down the list: everything above sits at t=0, so the
+      # fire-and-forget expiry notice lands on the tick the marker and the reflect window both lapse.
+      - { MESSAGE: { text: "§d§l* HEX OFF *", channel: "chat", who: "@Victim", wait: 40 } }
+  2:
+    chance: 4
+    effects:
+      - { SET_VAR: { name: "hexed", value: "1", ttl: 60, who: "@Victim" } }
+      - { REFLECT: { percent: 100, duration: 60, cap: 5, feedback: "§5* HEX [§c{damage}§5 DMG] *", who: "@Victim" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim" } }
+      - { MESSAGE: { text: "§5§l* HEX DEBUFF [§d§l3s§5§l] *", channel: "chat", who: "@Victim" } }
+      - { MESSAGE: { text: "§d§l* HEX OFF *", channel: "chat", who: "@Victim", wait: 60 } }
+  3:
+    chance: 6
+    effects:
+      - { SET_VAR: { name: "hexed", value: "1", ttl: 60, who: "@Victim" } }
+      - { REFLECT: { percent: 100, duration: 60, cap: 6, feedback: "§5* HEX [§c{damage}§5 DMG] *", who: "@Victim" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim" } }
+      - { MESSAGE: { text: "§5§l* HEX DEBUFF [§d§l3s§5§l] *", channel: "chat", who: "@Victim" } }
+      - { MESSAGE: { text: "§d§l* HEX OFF *", channel: "chat", who: "@Victim", wait: 60 } }
+  4:
+    chance: 8
+    effects:
+      - { SET_VAR: { name: "hexed", value: "1", ttl: 80, who: "@Victim" } }
+      - { REFLECT: { percent: 100, duration: 80, cap: 7, feedback: "§5* HEX [§c{damage}§5 DMG] *", who: "@Victim" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim" } }
+      - { MESSAGE: { text: "§5§l* HEX DEBUFF [§d§l4s§5§l] *", channel: "chat", who: "@Victim" } }
+      - { MESSAGE: { text: "§d§l* HEX OFF *", channel: "chat", who: "@Victim", wait: 80 } }
+  5:
+    chance: 10
+    effects:
+      - { SET_VAR: { name: "hexed", value: "1", ttl: 80, who: "@Victim" } }
+      - { REFLECT: { percent: 100, duration: 80, cap: 8, feedback: "§5* HEX [§c{damage}§5 DMG] *", who: "@Victim" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim" } }
+      - { MESSAGE: { text: "§5§l* HEX DEBUFF [§d§l4s§5§l] *", channel: "chat", who: "@Victim" } }
+      - { MESSAGE: { text: "§d§l* HEX OFF *", channel: "chat", who: "@Victim", wait: 80 } }
