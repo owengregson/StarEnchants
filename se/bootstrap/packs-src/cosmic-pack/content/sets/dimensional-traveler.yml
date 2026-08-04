@@ -1,0 +1,146 @@
+# Matrix: 10-armor-sets.md § Dimensional Traveler — plain diamond set, weaponless; the family's highest
+# unconditional multiplier and its heaviest area-denial proc, Dimensional Shift.
+# Family (§A): 4/4 completion, PDC identity, no cooldowns — the shift is an independent 1 % roll on EVERY
+# incoming hit.
+display: "§5§lDimensional Traveler"
+# description: not matrix-recorded (factual paraphrase)
+description: "§5The regalia of a dimension-walker — you hit harder than anyone in the family, and a rare blow against you tears the sky open on everyone near."
+complete: 4
+announce: true
+# Equip line verbatim, RED (§c) rather than the set's purple — as recorded. No remove line is matrix-recorded.
+equip-message: "§c§lDIMENSIONAL TRAVELER SET BONUS: §c+30% DMG"
+armor:
+  # This entry records neither a material nor a vanilla loadout, so it takes the plain-set family norm:
+  # diamond pieces, Durability III + Protection IV. (Leather is the ability-set tier; this is a plain set —
+  # the only weaponless one besides Dragon Slayer and KOTH.)
+  enchants:
+    UNBREAKING: 3
+    PROTECTION: 4
+  # Shared bonus block, verbatim. Per-piece flavour is matrix-recorded but unauthorable (one armor.lore for
+  # all four pieces; a piece takes only material + name), so it is recorded here — including the source's own
+  # `barer` typo, which would ship as written:
+  #   helmet     "§7A hood that fades in and out of" / "§7existence inside the dimension of the owner."
+  #   chestplate "§7A cross-dimensional chestplate" / "§7with impossibly infinite density" /
+  #              "§7and defensive properties."
+  #   leggings   "§7Robes that evade the 4th dimension and" / "§7are in a state of constant existence" /
+  #              "§7across all planets of reality."
+  #   boots      "§7Sandals capable of breaking through" / "§7dimensional barriers to allow the barer" /
+  #              "§7to perform impossible feats."
+  # The entry records no per-piece enchant roster and no set weapon, so nothing else is owed on the item side.
+  lore:
+    - "§5§lTRAVELER SET BONUS"
+    - "§5§l* §5You deal 30% more damage."
+    - "§5§l* §5Dimensional Shift Passive Ability"
+    - "§7(§oRequires all 4 dimensional traveler items.§7)"
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "§5§lInterdimensional Hood" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "§5§lChestplate of Ad Infinitum" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "§5§lTimeless Robes" }
+    boots:      { material: DIAMOND_BOOTS,      name: "§5§lWarp Speed Sandals" }
+# Behaviours: on:armor fires while the set is complete. There is no set weapon, so no on:weapon rung exists.
+# The set's OWN world gate (a substring test on the wearer's world, part of the decomposition) rides every
+# defensive rung; the family's outpost world gates are a different, interaction-layer rule and stay off.
+bonuses:
+  # +30 % outgoing, unconditional — and, uniquely in the family, with no Infinite Luck check (measured).
+  - on: armor
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }
+  # The defensive frame: inside a "dungeon" world the whole defensive side stops before anything runs, and
+  # otherwise the wearer's own Resistance is stripped so the set's own maths is the only one pricing the hit.
+  # DELTA: the engine's `contains` is case-INSENSITIVE (regionMatches(true, …)) where the jar's test was
+  # case-sensitive — a world named "Dungeon" is gated here and was not there.
+  - on: armor
+    trigger: DEFENSE
+    chance: 100
+    condition: "(%actor.world% contains \"dungeon\") : %stop%"
+    effects:
+      - { REMOVE_POTION: { effect: DAMAGE_RESISTANCE, who: "@Self" } }
+  # DIMENSIONAL SHIFT — 1 % per incoming hit: a 4 s full root on everyone within 25 blocks, blinded and
+  # slowed, under a two-material block storm.
+  # THE POLTERGEIST REBATE is authored here, as the deferred-content row owes this entry and on the idiom
+  # enchants/nature-wrath established by owner ruling: a rebate belongs to the roll it rebates, so
+  # poltergeist.yml publishes the level and the consumer rolls it — two mutually exclusive abilities whose
+  # chances sum to the recorded 1 %. D-07-13 makes the share a uniform 12.5 % per Poltergeist level, so it is
+  # 0.125 pp per level here. A victim wearing none reads a real 0 and the immune rung collapses to chance 0,
+  # so the ordinary case pays nothing for the split. (Mother of Yijki, the family's other Poltergeist
+  # consumer, cannot use this shape — its rebate sits per-strike INSIDE DELAYED_STRIKE_FIELD — so that file
+  # records the rule instead of authoring it.)
+  # THREE DELTAS, recorded rather than faked (the three nature-wrath.yml carries):
+  #  * SUBJECT — the roll reads ONE body, the DEFENSE pass's %victim% (the attacker who hit the wearer), where
+  #    the jar rolled per AoE member. Nothing on the surface filters a selector by a per-target fact.
+  #  * SCOPE — an immune roll therefore spares the WHOLE scan, not just the immune attacker.
+  #  * WINDOW — the jar's 8 000 ms immunity, which the falling blocks also honoured, has no expression; an
+  #    immune roll here simply means this activation never happens.
+  # The Clarity gate the matrix records on the BLINDNESS rung needs nothing authored: enchants/clarity is an
+  # autonomous 3-tick scrubber in this port, so a victim wearing it sheds the blindness on its own while the
+  # SLOW — never Clarity-gated, measured — stays.
+  # The +4 Y on the two cues is dropped: SOUND reads only the entity channel of `who`, so a location selector
+  # would silently move the cue off the victim to the activation point (the reflective-block.yml reading).
+  - on: armor
+    trigger: DEFENSE
+    chance: "1 - 0.125 * %victim.enchlevel.poltergeist%"
+    condition: "(%actor.world% contains \"dungeon\") : %stop%"
+    effects:
+      - { FREEZE: { duration: 80, dot: 0, slow: 100, who: "@Aoe{r=25, filter=ENEMIES}" } }
+      - { POTION: { effect: BLINDNESS, level: 1, duration: 60, who: "@Aoe{r=25, filter=ENEMIES}" } }
+      - { POTION: { effect: SLOW, level: 1, duration: 80, who: "@Aoe{r=25, filter=ENEMIES}" } }
+      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1.0, pitch: 1.1, who: "@Aoe{r=25, filter=ENEMIES}" } }
+      - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 1.0, pitch: 1.1, who: "@Aoe{r=25, filter=ENEMIES}" } }
+      # {ATTACKER} on a DEFENSE activation is the WEARER — the caster this line names. The jar's own §c is
+      # kept: it was always overridden by the relation colour that followed it, and no relation-colour token
+      # exists here, so this renders the jar's line minus that one overridden code point.
+      - { MESSAGE: { text: "§5§l** DIMENSIONAL SHIFT (§c{ATTACKER} [4s]§5§l) **", who: "@Aoe{r=25, filter=ENEMIES}" } }
+      # The block field in full: a 9×9 grid 10 above each victim, 3–4 layers each rising 12–19 per index, at
+      # 50 % density over a uniform END_STONE/NETHERRACK palette (≈142 blocks a target). damage-percent 15
+      # under health-cap 44 is the recorded 0.15 × min(maxhealth, 44) — 3.0 at 20 HP, 6.6 flat from 44 up —
+      # and rehit-max 4 per rehit-window 200 t is the ability's lethality ceiling (26.4 health per 10 s),
+      # shared across every wearer raining on one victim. COBWEB kills a block mid-flight: the counterplay.
+      # ttl: 100 is a port choice (the codex records none); blocks never place, by engine design.
+      - { FALLING_BLOCK: { material: END_STONE, material2: NETHERRACK, radius: 4, height: 10, ttl: 100,
+            layers-min: 3, layers-max: 4, layer-step-min: 12, layer-step-max: 19, density: 50,
+            damage-percent: 15, health-cap: 44, rehit-max: 4, rehit-window: 200, kill-material: COBWEB,
+            who: "@Aoe{r=25, filter=ENEMIES}" } }
+  # Poltergeist immune — the same roll spent on the blocked line instead of the shift. The consumer's own name
+  # is inlined ({source} has no token binding), which also makes the rendered line byte-identical.
+  - on: armor
+    trigger: DEFENSE
+    chance: "0.125 * %victim.enchlevel.poltergeist%"
+    condition: "(%actor.world% contains \"dungeon\") : %stop%"
+    effects:
+      - { MESSAGE: { text: "§4§l* POLTERGEIST [§7Immune: Dimensional Traveler§4§l] *", who: "@Victim" } }
+  # The field's landing payload. A landing block fires the actor's IMPACT abilities on what it hit and
+  # forwards the field's computed bite as %damage%; the engine spends the re-hit ceiling at the landing, so
+  # this rung is already capped at 4 hits per victim per 10 s. MODIFY_HEALTH take is the recorded RAW health
+  # subtraction — armour and protection never price it, and unlike Revenge of Yijki it CAN kill.
+  # NOT expressible: the profile's on-hit UNFREEZE. STATUS_CLEAR lifts TELEBLOCK / POTION_LOCK / DISARM and no
+  # head clears a FREEZE, so a victim the field re-hits stays rooted for the rest of the 80 t instead of being
+  # shaken loose. Recorded, not faked.
+  - on: armor
+    trigger: IMPACT
+    chance: 100
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { MODIFY_HEALTH: { amount: "%damage%", mode: take, who: "@Victim" } }
+      - { SOUND: { sound: "ENTITY_ZOMBIE_BREAK_WOODEN_DOOR", volume: 1.0, pitch: 1.0, who: "@Victim" } }  # volume/pitch not recorded
+# D-10-6: the jar ALSO procs the shift unconditionally when the attacker is a sneaking player with one
+# hard-coded name — a developer backdoor on the combat hot path. Removed; nothing above answers a name.
+# era: ENDER_STONE → END_STONE has an alias row (added with the wave-2d.2 phantom-block work), so the palette
+# resolves on both lanes. ANVIL_LAND carries a row; ENDERMAN_TELEPORT → ENTITY_ENDERMAN_TELEPORT and
+# ZOMBIE_WOODBREAK → ENTITY_ZOMBIE_BREAK_WOODEN_DOOR do NOT, so the shift's teleport cue and the impact cue
+# both warn-skip on the legacy fork until the sound sweep writes them (both rows are parked on the
+# legacy-sweep list — enchants/virus owes the first, enchants/tombstone the second). Falling-block entities
+# and their block-state data differ per era — the engine's FALLING_BLOCK owns that seam — and a walk-speed-0
+# freeze is era-safe.
+# Interaction-layer rules the set decomposition does NOT own, recorded but not authored here:
+#  * target filters beyond filter=ENEMIES: faction TRUCE-or-better, god-mode, spectator/NPC, PvP-deny regions,
+#    and victim Infinite Luck >= 5 (the highest threshold in the plugin).
+#  * Phoenix on a victim can absorb a block hit — the block dies without damaging.
+#  * Armor Crystal route (§A.7/§C.1): DAMAGE_MOD(side=attack, amount=7.5) per crystal-bearing non-set piece
+#    (4 → ×1.30), plus a shift roll of 0.002 × pieces per incoming hit. Owned by the crystals family;
+#    crystals/dimensional-traveler.yml ships the damage half and parks the rider on this file's payload, which
+#    it can now copy (the crystal's lore advertises "20%" against that measured 0.2 %/piece — measured wins,
+#    the mismatch is recorded).
+#  * the wearer is never a target (AOE excludes the activator), and frozen players surviving a teleport was
+#    dead code in the jar — the engine's FREEZE lifecycle handles teleports correctly.

@@ -1,0 +1,68 @@
+# Matrix: 10-armor-sets.md, family preamble (§C.3–C.5) + § KOTH / § Ghost (the minted-heroic rows).
+# THE HEROIC UPGRADE — the item that stamps the heroic classification onto a piece of gear. It is also the
+# only thing in the pack that makes `%victim.heroicpieces%` read anything but 0: that fact counts a victim's
+# worn armour pieces whose heroic stat is non-zero, which is exactly what a successful upgrade writes. Until
+# this file existed, every consumer of the count (enchants/hero-killer's gate, Infinite Luck's accumulator)
+# was inert by construction.
+#
+# WHAT COSMIC HEROIC ARMOUR IS, in the matrix's own numbers: dyed LEATHER carrying diamond's armour points
+# (KOTH mints 3/8/6/3 — helm/chest/legs/boots, the diamond values, NOT halved) and its own durability, with
+# the appended lore line "This armor is stronger than diamond." That is precisely the display-swap +
+# diamond-stats shape below: the piece READS leather and FIGHTS as diamond.
+type: heroic
+# (port-chosen) The matrix records no likeness for the upgrade item itself — no name, no material, no success
+# rate. The engine default material NETHERITE_SCRAP is a 1.16+ item and cannot be minted on the 1.8.9 lane, so
+# it is the one field that has to move; GOLD_INGOT renders on both eras and matches the gold form heroic
+# WEAPONS take. `name`, `lore`, `success-min/max`, `percent-damage` and `durability` are deliberately left
+# unauthored: nothing in the matrix fixes them, so the engine defaults stand rather than invented numbers.
+material: GOLD_INGOT
+# Per-PIECE incoming reduction; armour stacks x4 per wearer, so this lands the matrix's full-set 27%.
+# PENDING (deferred-content.md): the matrix's reduction is per-SLOT — chest 10%, legs 8%, boots and helm 4.5%
+# each — and this knob is one uniform per-piece percent. 0.0675 preserves the felt unit that decides fights
+# (the full set, 27%, exactly) and costs the asymmetry of a partial set: a lone chestplate reads 6.75% where
+# the jar reads 10%, a lone helmet 6.75% where the jar reads 4.5%. Per-slot heroic percents are a new knob.
+percent-reduction: 0.0675
+# The display swap on success. Armour becomes LEATHER — the matrix's heroic pieces are leather, dyed per set —
+# and weapons take the gold form the matrix records for converted set weapons (a Phantom Scythe retyped to a
+# gold sword keeps its identity; the Yeti Maul is the same conversion on an axe). era: GOLDEN_SWORD/GOLDEN_AXE
+# are the modern spellings of 1.8's GOLD_SWORD/GOLD_AXE and both resolve through the alias resolver.
+material-upgrades:
+  DIAMOND_HELMET: LEATHER_HELMET
+  DIAMOND_CHESTPLATE: LEATHER_CHESTPLATE
+  DIAMOND_LEGGINGS: LEATHER_LEGGINGS
+  DIAMOND_BOOTS: LEATHER_BOOTS
+  DIAMOND_SWORD: GOLDEN_SWORD
+  DIAMOND_AXE: GOLDEN_AXE
+# "Stronger than diamond" is not flavour here — it is the stat contract. diamond-stats re-stats the swapped
+# display piece to diamond attack/armour/toughness/durability, which is how leather carries KOTH's 3/8/6/3;
+# vanilla-stats (default true, left unauthored) decides HOW: real vanilla attribute modifiers where the
+# platform has them, and the plugin's own combat maths on the 1.8.9 fork, which has no armour attribute at
+# all — the era hazard the matrix flags on every leather-heroic entry.
+diamond-stats: true
+# The heroic lore stamped on an upgraded piece, verbatim (matrix § KOTH / § Ghost, "heroic appended lore").
+# PENDING (deferred-content.md): the jar's block is four lines — a blank, "§7+{armor} Armor Value",
+# "§7{durability} Durability", then this one. The template is a single line and recognises {TYPE}/{AMOUNT},
+# not an armour-point or a durability token, so the two stat lines have nothing to interpolate and are not
+# faked. The third line is the one that survives; it is ONE template for armour and weapons both, so a
+# heroic sword wears the armour wording — the alternative was the engine's generic marker, which drops the
+# only verbatim string the matrix records for heroic gear.
+lore-line: "§4This armor is stronger than diamond."
+# NOT EXPRESSED here (each of the first three needs a knob this likeness does not have, and each carries a
+# deferred-content.md row — the first two on this file, the third on `enchants/infinite-luck`):
+#   * The M-KIT TIER. Ability-set pieces (Ghost, Necromancer, Death Knight, Architect) are heroic at a
+#     SECOND, steeper grade — chest 16%, legs 13%, boots and helm 8%, full set 45% — with their armour points
+#     HALVED (2/4/3/2 against KOTH's 3/8/6/3). One `type: heroic` config exists per pack, so the pack can
+#     carry one tier; this is the plain one.
+#   * The ABSOLUTE DURABILITIES 810/1000/935/686 (helm/chest/legs/boots), which every leather heroic piece
+#     carries. The `durability` knob here is a wear-CANCEL probability, not a maximum, and diamond-stats
+#     writes diamond's maxima where the platform supports a custom one.
+#   * The INFINITE LUCK NEGATION, 12.5% per worn heroic piece (D-10-1: the jar reads it off the wrong
+#     player). It is a property of the Infinite Luck consumer, not of this item — its row already stands on
+#     `enchants/infinite-luck`, whose accumulator is weighted per LEATHER heroic piece while
+#     `%victim.heroicpieces%` is an unweighted count. Same owner ruling, not duplicated here.
+#   * The OUTPOST AMPLIFICATION (heroic pieces take MORE damage from an outpost-holding attacker) — an
+#     external server system, interaction-layer and off by default in this port, like every other world gate
+#     in the family. NOT a deferred row and not owed one: §C.5 records it as the same interaction-layer
+#     posture every set entry takes with the outpost gates, which the sets carry in their own prose.
+# reduction-scope is left at the ENTITY default: the matrix routes the heroic reduction through entity
+# attacks like every set reduction it records, and nothing there covers falls, fire or drowning.

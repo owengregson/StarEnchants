@@ -1,0 +1,48 @@
+# Matrix: 10-armor-sets.md § Ghost — the BOOTS likeness.
+# WHY THIS FILE EXISTS: this piece's flavour lore, dye, halved M-Kit armour value, durability, per-piece
+# heroic reduction rung, its GUARANTEED max-level Gears and its roster probabilities have no surface on a set
+# def — `armor.enchants` is shared by all four pieces, and Gears is boots-only, so authoring it there would
+# stamp it onto the helmet, chest and legs too. Recorded here until a set-piece surface exists
+# (deferred-content.md); ItemsLoader does not yet claim `type: set-piece`.
+# IDENTITY (ability set): a per-set NBT tag in the jar, the engine's set PDC component here — never lore.
+type: set-piece
+set: sets/ghost
+slot: boots
+material: LEATHER_BOOTS
+name: "§3§lGhostly Whisp"
+lore:
+  - "§7§oGhost don't have feet."   # verbatim, missing plural and all
+color: "#808080"   # Bukkit GRAY; `pieces:` has no colour knob
+enchants:
+  PROTECTION: 4
+  UNBREAKING: 3
+# GUARANTEED, every mint: Gears at MAX level (`enchants/gears`, the permanent Speed passive — boots-only, so
+# it can never stack across pieces). This is the one custom enchant the set itself promises.
+guaranteed:
+  - "enchants/gears (max)"
+# M-Kit tier: armour 2 (halved), durability 686, 8 % of the set's 45 % (authored as one row on the set def).
+armor-value: 2
+durability: 686
+heroic: true
+defense-reduction: 8
+heroic-lore:
+  - ""
+  - "§7+2 Armor Value"
+  - "§7686 Durability"
+  - "§4This armor is stronger than diamond."
+# THE MINT (recorded, no authoring surface): 8 base roster entries rolled nearly maxed, plus the rolls below.
+# The 45 % Phoenix roll OVERWRITES the base roll it lands on (measured) rather than adding to it.
+roll-formula: "min(M, max(1, M - 2) + rand(3))"
+roster-size: 8
+rolls:
+  - "60% Valor"
+  - "60% Angelic"
+  - "60% Tank"
+  - "25% Paladin Armored"
+  - "30% Ethereal Dodge"
+  - "45% Phoenix (re-roll: overwrites the base roll)"
+mastery-pool:
+  draw: "2 without replacement, 50% each"
+  entries: ["Horrify", "Feign Death", "Poltergeist", "Mark of the Beast"]
+# Only `enchants/poltergeist` is in this pack today; the other three are batch-07 stops. Ordinary enchant
+# books are refused unless the book carries a matching Mastery Shard (support-item rule, §C.9).

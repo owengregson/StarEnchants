@@ -1,0 +1,40 @@
+# Matrix: 10-armor-sets.md § Ranger (crystal route, family preamble §A.7/§C.1)
+# Ranger's crystal is the only one whose BOTH damage halves are projectile-conditioned: -5% incoming per
+# crystal-bearing piece against projectiles, +6% outgoing per piece on the bow. Four pieces fold to x0.80 in
+# and x1.24 out, the matrix's measured pair. The incoming half rides DEFENSE under the recorded
+# `[damagecause == PROJECTILE]` gate; the outgoing half rides BOW, which IS the projectile trigger on this
+# surface (see enchants/sniper.yml) — the gate is structural there rather than a repeated condition.
+display: "Ranger"
+# description: not matrix-recorded (factual paraphrase; percents and colour from the set's `§a` bonus block)
+description:
+  - "§a§lRANGER CRYSTAL BONUS"
+  - "§a* Enemies bows deal 5% less damage to you"
+  - "§a* Deal +6% bow damage"
+  - "§a* 20% Immune to Teleblock"
+  - "§a* Ranger Crystal is stackable"
+tier: legendary  # (port-chosen) see phantom.yml
+applies-to: [ARMOR]
+stackable: true
+# D-10-4: the crystal's advertised "20% Immune to Teleblock" is absent from the jar. Display strings never
+# deviate, so the advertised value is what ships — a 20% teleblock-immunity chance, rolled per incoming
+# teleblock rather than once at the arm (which is what SUPPRESS_INCOMING's own `chance` does).
+# Maintained-while-worn is a REPEATING re-arm, not PASSIVE: PASSIVE is a start/stop lifecycle (fired once on
+# equip), so a window armed there would simply expire mid-wear. `repeat: 20` under a `duration: 60` window
+# holds it open continuously and bounds the residual immunity after the crystal comes off at 3 s.
+# NOT expressible: the per-piece SCALING of this roll. Four crystal-bearing pieces should read 80%; a
+# suppression window is keyed per (holder, scope, key), so a second crystal re-arms the SAME window instead
+# of compounding it, and no fact counts a wearer's crystal-bearing pieces. Every crystal-bearing piece past
+# the first therefore adds nothing here (recorded in deferred-content.md; the damage halves are unaffected —
+# those fold additively and scale exactly).
+abilities:
+  - condition: "%damagecause% == \"PROJECTILE\""
+    trigger: DEFENSE
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 5 } }
+  - trigger: BOW
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 6 } }
+  - trigger: REPEATING
+    repeat: 20
+    effects:
+      - { SUPPRESS_INCOMING: { scope: KIND, key: TELEBLOCK, chance: 20, duration: 60, who: "@Self" } }

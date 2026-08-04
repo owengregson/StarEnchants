@@ -1,0 +1,29 @@
+# Matrix: 10-armor-sets.md § Dimensional Traveler (crystal route, family preamble §A.7/§C.1)
+# The steepest damage crystal in the family: +7.5% outgoing per crystal-bearing piece, four pieces to x1.30 —
+# the full set's own multiplier, reproduced by crystals alone.
+display: "Dimensional Traveler"
+# description: not matrix-recorded (factual paraphrase; percent and colour from the set's `§5` bonus block).
+# The jar's crystal lore advertises "20%" for the Dimensional Shift roll against a measured 0.2% per piece;
+# the advertised line is not reproduced here because the roll it describes does not ship yet (below).
+description:
+  - "§5§lTRAVELER CRYSTAL BONUS"
+  - "§5* You deal 7.5% more damage"
+  - "§5* Traveler Crystal is stackable"
+tier: legendary  # (port-chosen) see phantom.yml
+applies-to: [ARMOR]
+stackable: true
+# PENDING (deferred-content.md, partial entries): the crystal's second half is a Dimensional Shift roll on
+# every INCOMING hit at 0.002 x crystal-bearing pieces (0.2% per piece — measured; the lore says 20%). The
+# roll is authorable; its payload is the set's, and it is the largest payload in the family (freeze, the
+# Clarity-gated blindness, the slow, two cues, the target line and a two-material FALLING_BLOCK field with
+# the whole layer/density/re-hit profile). The armour-set batch has not authored it, and forking it here
+# would fork every one of those numbers. The rider lands with the set, from one reading.
+# The set's damage hook carries NO Infinite Luck check, and the crystal path never had one either, so the fold
+# below is unconditional. Worded to match crystals/koth.yml rather than claiming exclusivity: the matrix awards
+# that twice and cannot mean both — § Dimensional Traveler calls this hook "unique among damage sets" while
+# § Dragon Slayer calls KOTH and Dragon Slayer "the only two damage-modifying sets without one", which is three
+# sets for two slots. The uncontested fact is the one stated above; the exclusivity is a matrix-maintenance row
+# (deferred-content.md). sets/dimensional-traveler.yml still carries the "uniquely in the family" spelling and
+# is named on that row.
+abilities:
+  - { trigger: ATTACK, effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 7.5 } } ] }

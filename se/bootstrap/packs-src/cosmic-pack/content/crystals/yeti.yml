@@ -1,0 +1,19 @@
+# Matrix: 10-armor-sets.md § Yeti (crystal route, family preamble §A.7/§C.1)
+# Both halves of the Yeti set bonus at a quarter each: four crystal-bearing pieces fold to x1.10 outgoing and
+# x0.90 incoming — the set's own numbers. Per-piece scaling is the stackable fold (see phantom.yml).
+display: "Yeti"
+# description: not matrix-recorded (factual paraphrase; percents and colour are the set's `§b` bonus block at
+# a quarter each)
+description:
+  - "§b§lYETI CRYSTAL BONUS"
+  - "§b* Deal +2.5% damage to all enemies"
+  - "§b* Enemies deal 2.5% less damage to you"
+  - "§b* Yeti Crystal is stackable"
+tier: legendary  # (port-chosen) see phantom.yml
+applies-to: [ARMOR]
+stackable: true
+# The set's Maul riders (armour strip, heroic bypass) are weapon-held branches and have no crystal half; the
+# victim Infinite Luck >= 1 suppression and the outpost world gate sit on the set hooks, not on this path.
+abilities:
+  - { trigger: ATTACK,  effects: [ { DAMAGE_MOD: { side: attack,  mode: add, amount: 2.5 } } ] }
+  - { trigger: DEFENSE, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 2.5 } } ] }

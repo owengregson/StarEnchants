@@ -1,0 +1,30 @@
+# Matrix: 10-armor-sets.md § Death Knight (Anti-M-Kit Crystal; the codex numbers this §C.6 in prose under a
+# `### C.2` heading — source-side numbering drift, recorded by the matrix, not resolved here)
+# Same shape as anti-m-kit-ghost.yml, over the Death Knight pool — the one pool whose four members are all
+# authored, so this crystal is complete on the day it lands.
+display: "Anti-M-Kit (Death Knight)"
+# description: not matrix-recorded (factual paraphrase; `§9` is the Death Knight set's own colour)
+description:
+  - "§9§lANTI-M-KIT CRYSTAL BONUS"
+  - "§9* Negates all Death Knight M-Kit abilities used against you"
+  - "§9* Anti-M-Kit Crystal is not stackable"
+tier: mastery  # (port-chosen) see anti-m-kit-ghost.yml
+applies-to: [ARMOR]
+stackable: false
+# Construction, the re-arm cadence and the residual-window bound: see anti-m-kit-ghost.yml.
+# POOL (matrix § Death Knight): Chain Lifesteal, Death Pact, Tombstone, Permafrost — all four authored.
+# ARCHITECT: the same four enchants ARE the Architect pool (that set is a line-for-line copy of Death Knight
+# down to its item branding), so an Architect Anti-M-Kit Crystal is NOT authored here. The matrix leaves it
+# codex-UNRESOLVED: the pool almost certainly tags as Death Knight's in the jar, which would make the
+# Architect crystal inert, and whether the port tags the shared pool per-set (both crystals live) or
+# replicates the likely-inert wiring is an owner ruling. Authored against enchant keys, an Architect copy
+# would be a byte-identical duplicate of this file — which quietly PICKS the "both live" branch. Recorded in
+# deferred-content.md instead.
+abilities:
+  - trigger: REPEATING
+    repeat: 20
+    effects:
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/chain-lifesteal", duration: 60, who: "@Self" } }
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/death-pact", duration: 60, who: "@Self" } }
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/tombstone", duration: 60, who: "@Self" } }
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/permafrost", duration: 60, who: "@Self" } }

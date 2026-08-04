@@ -1,0 +1,147 @@
+# Matrix: 10-armor-sets.md § Supreme — plain diamond set; the utility kit (Gears IV, no fall damage, no food
+# loss, +15 % out) and the only set in the family that carries a built-in DRAWBACK.
+# Family (§A): 4/4 completion, PDC identity, no cooldowns — every bonus below is unconditional.
+display: "§4§lSupreme"
+# description: not matrix-recorded (factual paraphrase)
+description: "§4Flight-grade plate — you hit harder, never land badly and never go hungry, but an archer will find you softer than most."
+complete: 4
+announce: true
+# The 7-line equip block, verbatim and in order (`sets.message-uppercase: false` in this pack keeps the mixed
+# case of "(Flight Enabled)" exact). No remove line is matrix-recorded, so none is authored.
+equip-message: "§4§lSUPREME SET BONUS:\n§4§l * §4+15% OUTGOING DAMAGE\n§4§l * §4+10% INCOMING ARROW DAMAGE\n§4§l * §4NO FALL DAMAGE\n§4§l * §4NO FOOD LOSS\n§4§l * §4GEARS IV\n§4§l * §4+200% CLOUT (Flight Enabled)"
+armor:
+  # Family norm: diamond pieces, Durability III + Protection IV. Supreme's own vanilla loadout is not
+  # separately recorded.
+  enchants:
+    UNBREAKING: 3
+    PROTECTION: 4
+  # Shared bonus block, verbatim — including the "+200% Clout" line, which advertises an economy this pack
+  # deliberately does not implement (owner ruling R9, below). Per-piece flavour is matrix-recorded but
+  # unauthorable (one armor.lore for all four pieces; a piece takes only material + name), so it is here:
+  #   helmet     "§4§oA lightweight headpiece" / "§4§ofit for take off."
+  #   chestplate "§4§oAn aerodynamic vest that" / "§4§ois capable of sustaining flight."
+  #   leggings   "§4§oLightweight and clout powered," / "§4§oprovides enough thrust to boost" /
+  #              "§4§oeven the most feeble into the skies."
+  #   boots      "§4§oSupreme boots capable of" / "§4§oconverting clout into flight."
+  # The per-piece rolls are unauthorable for the same reason AND because they are probabilistic — a set has
+  # ONE shared enchants: map at fixed integer levels, so none of this survives translation:
+  #   helmet  10 % Phoenix, else a second Marksman
+  #   chest   Enlighted at max always, + 10 % Divine Enlighted
+  #   legs    10 % Nature Wrath, else Protection
+  #   boots   Springs at a FIXED level 2 (the family's only fixed-level roll); 10 % Deathbringer-max +
+  #           Planetary Deathbringer, else Deathbringer + Ghost; Depth Strider uniform 1..3
+  # (`enchants/ghost` is itself deferred pending its owner ruling, so that branch has no target today.)
+  lore:
+    - "§4§lSUPREME SET BONUS"
+    - "§4§l* §4Gears IV"
+    - "§4§l* §4No Fall Damage / Food Loss"
+    - "§4§l* §4Deal +15% damage to all enemies"
+    - "§4§l* §4Enemy arrows deal 10% more damage to you."
+    - "§4§l* §4+200% Clout"
+    - "§7(§oRequires all 4 supreme items.§7)"
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "§4§lSupreme Headgear" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "§4§lSupreme Vest" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "§4§lSupreme Chaps" }
+    boots:      { material: DIAMOND_BOOTS,      name: "§4§lSupreme Thruster Boots" }
+weapon:
+  # Every entry is recorded deterministically ("Block max", "Reflective Block max"), so nothing is rolled here.
+  enchants:
+    SHARPNESS: 5
+    UNBREAKING: 3
+    enchants/block: 3
+    enchants/reflective-block: 3
+  # THE MATERIAL IS NOT RECORDED. The matrix gives the Fanny Pack no material; DIAMOND_SWORD is the family's
+  # weapon default (the Phantom Scythe and Yijki's World Ender are diamond swords, the Yeti Maul a diamond
+  # axe), the only choice that makes its recorded Sharpness V mean anything, and the only one consistent with
+  # the SWORD-only `applies-to` both custom enchants above declare. Flagged for the owner.
+  material: DIAMOND_SWORD
+  name: "§4§lSupreme Fanny Pack"
+  lore:
+    - "§7They laughed at you, they"
+    - "§7told you a fanny pack is not"
+    - "§7a practical piece of clothing..."
+    - "§7now they will pay for their ignorance!"
+    - ""
+    - "§4§lSUPREME WEAPON BONUS"
+    - "§4Deal +20% damage to all enemies"
+    - "§4Enemies deal 10% less damage to you."
+    - "§7(§7§oRequires all 4 supreme items.§7)"
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the Fanny Pack held (main
+# hand). That held-gate IS the matrix's `[actor.helditem == armor-sets/supreme-fanny-pack]` rider, on BOTH
+# sides — %actor.helditem% is a material NAME, not an item identity, and WornResolver reads the held weapon
+# for the activation's own actor, so the defensive rung answers the DEFENDER's hand exactly as the jar did.
+bonuses:
+  # +15 % outgoing, unconditional.
+  - on: armor
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 15 } }
+  # Gears IV — Speed IV while worn, single-sourced from matrix/01 § Gears (Speed I/II/III at L1/2/3, so
+  # "Gears IV" is the rung the enchant itself cannot reach at max 3). The authored duration never governs: the
+  # PASSIVE lifecycle maintains the buff while worn and tears it down on unequip.
+  - on: armor
+    trigger: PASSIVE
+    chance: 100
+    effects:
+      - { POTION: { effect: SPEED, level: 4, duration: 200, who: "@Self" } }
+  # No fall damage — the FALL trigger's own event, cancelled outright. No world gate in the jar (measured).
+  - on: armor
+    trigger: FALL
+    chance: 100
+    effects:
+      - { CANCEL: {} }
+  # No Food Loss. The matrix decomposes this as a 20 t pin-to-full and calls the pin a recorded approximation;
+  # it is no longer needed. MODIFY_FOOD mode=cancel-drain cancels hunger LOSS and leaves gains alone, which is
+  # the jar's veto exactly ("only cancels decreases, so eating still works") — the same reading and the same
+  # idiom enchants/alien-implants already ships for its hunger lock: a window re-armed on a clock, `duration`
+  # outrunning `repeat` so the seam never lets a drain through. There is no unequip teardown for a window, so
+  # it lapses ~1 s after the set comes off; the jar cleared its flag on the unequip edge.
+  - on: armor
+    trigger: REPEATING
+    repeat: 100
+    chance: 100
+    effects:
+      - { MODIFY_FOOD: { mode: cancel-drain, duration: 120, who: "@Self" } }
+  # The drawback: enemy ARROWS deal 10 % more to you. A negative defense amount is MORE damage taken. The
+  # matrix gates this on damagecause == PROJECTILE and records the width as its own gap (PROJECTILE also
+  # admits snowballs, fireballs and thrown potions, which the jar's arrow-only test did not); %projectilekind%
+  # shipped in wave 1 and closes it, so the gate below is the jar's ARROW test verbatim.
+  - on: armor
+    trigger: DEFENSE
+    chance: 100
+    condition: "%damagecause% == \"PROJECTILE\" && %projectilekind% == \"ARROW\""
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: -10 } }
+  # −10 % incoming while the Fanny Pack is HELD as you are hit.
+  - on: weapon
+    trigger: DEFENSE
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 10 } }
+  # +20 % outgoing while it is held — the AS-INTENDED value (ledger D-10-5). The jar's branch is a copy-paste
+  # of the defensive one and multiplies the wielder's OWN outgoing damage by ×0.9, a self-nerf netting ×1.035
+  # where the lore promises ×1.38. Codex-flagged; the lore line ships verbatim above.
+  - on: weapon
+    trigger: ATTACK
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 20 } }
+# "+200% Clout (Flight Enabled)" is LORE ONLY, by owner ruling R9 (economy note-only): clout is an external
+# economy plugin's currency and the flight it buys is that plugin's, not this engine's (codex UNRESOLVED). The
+# strings ship verbatim — in the set lore and in the equip block — and no clout or flight behaviour is
+# implemented. enchants/auto-sell records the same stand-down from its side. If R9 is ever reversed, the grant
+# belongs here.
+# era: Depth Strider exists on 1.8.9 (moot while the boots roll is unshippable). The food lock must go through
+# the food-level API rather than a saturation shortcut, which is what cancel-drain does. §4 renders on both
+# lanes.
+# Interaction-layer rules the set decomposition does NOT own, recorded but not authored here:
+#  * victim Infinite Luck >= 2 suppresses the OUTGOING bonus (both the set's +15 % and the weapon's +20 %);
+#    D-10-1's heroic negation of Infinite Luck at 12.5 % a piece is owed from the ATTACKER's armour.
+#  * Armor Crystal route (§A.7/§C.1): DAMAGE_MOD(side=attack, amount=3) per crystal-bearing non-set piece
+#    (4 → ×1.12), with no defensive half. Owned by the crystals family — crystals/supreme.yml ships it.
+#  * outpost world gates (§A.8) are off by default (`disabled-worlds:` is the knob); measured, the fall and
+#    food immunities carry none in the jar even where the damage rungs do.
+#  * NOT replicated (infrastructure-class): the jar strips the speed passive from EVERY player crossing a
+#    world border regardless of set — WornState scopes the teardown to the wearer who actually unequipped.

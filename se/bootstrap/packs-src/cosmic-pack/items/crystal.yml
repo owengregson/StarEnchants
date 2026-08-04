@@ -1,0 +1,46 @@
+# Matrix: 10-armor-sets.md, family preamble (§A.7 / §C.1) — the ONE global crystal likeness (ADR-0034).
+# Every crystal in content/crystals/ declares only its display name, its bonus block and its effects; the
+# material, name and lore here are shared by all of them, single or merged. Tokens: {CRYSTAL} the component
+# name(s), {DESCRIPTION} their authored bonus blocks, {KINDS} the item kinds they apply to.
+type: crystal
+# (port-chosen) The matrix records the item's NAME — "Armor Crystal" — and nothing about its material or its
+# colour codes. AMETHYST_SHARD, the engine default, is a 1.17+ material and does not exist on the 1.8.9 lane;
+# NETHER_STAR renders on both eras. The `&6&l` styling is this corpus's own crystal rendering, carried over.
+material: NETHER_STAR
+name: "&6&lArmor Crystal ({CRYSTAL}&6&l)"
+name-multi: "&6&lMulti Crystal ({CRYSTAL}&6&l)"
+lore:
+  - "&eImbues a single piece of gear with magic crystal abilities. Merge with other crystals to combine their effects."
+  - ""
+  - "{DESCRIPTION}"
+  - ""
+  - "&eApplies to: &f&n{KINDS}"
+  - "&7Drag n' Drop on an item to apply."
+lore-while-on-item: "&6&lArmor Crystal ({CRYSTAL}&6&l)"
+lore-while-on-item-multi: "&6&lMulti Crystal ({CRYSTAL}&6&l)"
+# THE FAMILY-WIDE APPLY CONTRACT (matrix §A.7/§C.1), as far as this surface carries it.
+#
+# EXPRESSED: one crystal (single or multi) per piece, max four per wearer — `crystals.slots: 1` in config.yml
+# times the four armour slots. The per-piece FRACTION each crystal grants is the crystals' own additive fold:
+# see content/crystals/phantom.yml for why `stackable: true` IS the linear-in-n scaling the matrix records.
+#
+# NOT EXPRESSED, recorded in deferred-content.md rather than improvised (each would be a new knob):
+#   * The APPLY GAMBLE. The jar consumes the crystal BEFORE rolling a default 20% apply chance — four
+#     crystals burnt per piece landed, on average. This engine applies a crystal with no roll at all
+#     (ADR-0034), which is a deliberate, project-wide gesture rule, not an oversight: there is no
+#     success/failure knob on the crystal likeness to carry the gamble.
+#   * The REFUSAL RULES. The jar refuses a crystal on a SET piece outright, and on gear carrying a mastery
+#     enchant unless that enchant is one of the three whitelisted (Discombobulate, Explosives Expert, Lava
+#     Strider); an M-Kit piece with no blocked mastery enchant DOES accept one (§A.15). Nothing on the
+#     crystal likeness or on a crystal def states which gear a crystal REFUSES — `applies-to` names the item
+#     kinds it fits, which is a different question. Shipped as written: any ARMOR piece takes one.
+#   * A SECOND LIKENESS. The Anti-M-Kit Crystals are a distinct item in the jar, named for what they cancel;
+#     here they are crystals like any other and so read "Armor Crystal (Anti-M-Kit (Ghost))" off this one
+#     template. One crystal likeness per pack is the ADR-0034 shape.
+#
+# The apply/extract cues are NOT matrix-recorded, so the engine defaults stand unauthored (era: those are the
+# 1.17+ amethyst handles — they warn-skip on the legacy fork, parked with the legacy sweep).
+# The Item Extractor is this engine's own gesture (ADR-0035), not a cosmic item; only its material is set,
+# because the default AMETHYST_CLUSTER cannot be minted on 1.8.9.
+extractor:
+  material: BUCKET

@@ -1,0 +1,23 @@
+# Matrix: 10-armor-sets.md § Phantom (crystal route, family preamble §A.7/§C.1)
+# The crystal route is the set bonus sold by the piece: an Armor Crystal on a worn NON-set piece grants a
+# per-piece FRACTION of that set's bonus, and the effect scales linearly with the number of crystal-bearing
+# pieces (n = 1..4, factor 1 + pct x 0.01 x n). Linear-in-n is exactly what one additive DAMAGE_MOD per worn
+# crystal delivers under the additive fold (ADR-0012), so `stackable: true` IS the per-piece scaling — four
+# crystal-bearing pieces fold four +5% terms and land the matrix's x1.20. The apply gesture, the 20% gamble
+# and the refusal rules are family-wide and live on the likeness (items/crystal.yml).
+display: "Phantom"
+# description: not matrix-recorded (factual paraphrase; the percent and the colour are the matrix's own —
+# the set's `§c` and its "+25% damage to all enemies" block, at the crystal's per-piece fifth of it)
+description:
+  - "§c§lPHANTOM CRYSTAL BONUS"
+  - "§c* Deal +5% damage to all enemies"
+  - "§c* Phantom Crystal is stackable"
+tier: legendary  # (port-chosen) the matrix records no crystal rarity; legendary is the plain-set rung
+applies-to: [ARMOR]
+stackable: true
+# The set half carries a victim Infinite Luck >= 3 suppression and an outpost-world gate on its ATTACK hook.
+# Neither rides the crystal: the jar composes attacker set, THEN attacker crystals, as separate steps, and
+# the matrix records the luck threshold and the world gate on the set hook only. No defensive crystal half
+# exists for Phantom (measured).
+abilities:
+  - { trigger: ATTACK, effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 5 } } ] }

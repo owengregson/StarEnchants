@@ -1,0 +1,159 @@
+# Matrix: 10-armor-sets.md § Dragon Slayer
+# ── FAMILY FACTS (matrix 10 §A), read once per set file ────────────────────────────────────────────────────
+# COMPLETION IS ALL-OR-NOTHING: exactly 4 matching worn pieces, no 2/3-piece tiers anywhere, two plain sets
+# can never be active at once. Identity is engine PDC + WornState — the jar's forgeable lore matching and its
+# 30 s stale-cache window are infrastructure-class bugs and are not replicated.
+# SINGLE PASS: the jar applies each set's attack/defence hook once per hit (attacker pass, then victim pass).
+# The defensive double-fire (deviations D-001) is an enchant-listener bug and never touched set hooks, so
+# every percent below is a single-pass MEASURED value.
+# ORDER: attacker set -> attacker crystals -> victim faction upgrade (external) -> victim set -> victim
+# crystals. The jar composes those multiplicatively; this port folds them ADDITIVELY per the project-wide
+# damage model (global ADR, not a per-item deviation).
+# NO COOLDOWNS anywhere in the family: every proc is an independent per-hit chance roll.
+# OUTPOST WORLD GATES (§A.8) block set bonuses in the TRAINEE/VANILLA/HERO tiers. Interaction-layer world
+# rule, OFF BY DEFAULT in the port; the authoring seam is `disabled-worlds:` on each bonus below.
+# ── THIS SET ───────────────────────────────────────────────────────────────────────────────────────────────
+# The tank of the family: flat incoming reduction, a PvP-only attack fold, and three grants that are all
+# defence-of-defences (freeze immunity, Silence negation, mastery negation) plus a rung on the enchant-reflect
+# ladder. Weaponless — the help menu shows the external Dragon Mask in the weapon slot (masks family,
+# matrix/11), so there is no `weapon:` block here.
+# INFINITE LUCK: this set and KOTH are the ONLY two damage-modifying sets with NO Infinite Luck check on
+# either hook (measured). Nothing is authored for it and nothing should be.
+# CRYSTALS (§A.7, §C.1 — the crystals family owns these, recorded here for the reader): an Armor Crystal on a
+# worn NON-set piece grants a per-piece fraction, linear in the number of crystal-bearing pieces n = 1..4 —
+# here DAMAGE_MOD(side=defense, amount=5) per piece and DAMAGE_MOD(side=attack, amount=3) per piece under the
+# same PvP-only condition as the set's own attack half, PLUS a 10 % x pieces chance to cancel an incoming
+# Silence or Ice Aspect proc outright, printing
+#   §e§l* DRAGON SLAYER CRYSTAL [§7Silence blocked§e§l] *
+#   §e§l* DRAGON SLAYER CRYSTAL [§7Ice Aspect blocked§e§l] *
+# This is the only crystal in the family whose advertised numbers all match measured behaviour at 1 piece.
+# The full-set negation flags below and the crystal roll are INDEPENDENT mechanisms and can both be live.
+# ── PHYSICAL LIKENESS ──────────────────────────────────────────────────────────────────────────────────────
+# Per-piece flavour lore and per-piece enchant rolls have no surface on a set def (`armor.lore` and
+# `armor.enchants` are SHARED by all four pieces, and `pieces:` carries material + name only), so both are
+# recorded here and in items/dragon-slayer-<piece>.yml. See deferred-content.md.
+#   per-piece flavour (`{piece-type}` ∈ helmet/chestplate/leggings/boots):
+#     §e§oThe mythical {piece-type} of a Slayer of Dragons.
+#   mint rules: heroic-enchant roster gate 40 % per heroic entry; base roster entries roll nearly maxed as
+#   min(M, max(1, M-2) + rand(3)) over each enchant's own max M; per-piece bonus rolls:
+#     helmet  30 % Immortal
+#     chest   5 % Enchant Reflect (max) + Heroic Enchant Reflect
+#     legs    7.5 % Nature Wrath (max)
+#     boots   7.5 % Phoenix, and Guardians — LEDGER D-10-7: the measured roster misspells it `Gaurdians`, so
+#             that bonus silently never applies; the typo's intent is unambiguous and the port rolls
+#             Guardians as intended.
+display: "§e§lDragon Slayer"  # matrix records no standalone set display; §e is the family's own colour
+# description: not matrix-recorded (factual paraphrase)
+description: "§eThe dragon-hunter's plate — everything hits it softer, players take more, and freezes, silences and masteries slide off."
+complete: 4
+announce: true
+# Equip message, 7 lines verbatim (matrix § strings). No removal line is recorded — `remove-message` is left
+# unset rather than invented. `sets.message-uppercase` is false in this pack, so these ship as authored.
+equip-message: "§e§lDRAGON SLAYER SET BONUS:\n§e§l * §e+15% OUTGOING DAMAGE\n§e§l * §e-20% INCOMING DAMAGE\n§e§l * §eImmune to Freezes\n§e§l * §eMastery Enchant Reflect X\n§e§l * §eNegate 75% of Enemy Silence\n§e§l * §e25% Mastery Enchant Negation"
+armor:
+  # Protection V + Unbreaking III on every piece — shared with KOTH; every other set in the family is
+  # Protection IV.
+  enchants:
+    PROTECTION: 5
+    UNBREAKING: 3
+  # The shared bonus block, verbatim (note the missing full stop after "items" — reproduced).
+  lore:
+    - "§e§lDRAGON SLAYER SET BONUS"
+    - "§e§l* §e+15% PvP Damage"
+    - "§e§l* §e-20% Incoming Damage"
+    - "§e§l* §eImmune to Freezes"
+    - "§e§l* §eMastery Enchant Reflect X"
+    - "§e§l* §eNegate 75% of Enemy Silence"
+    - "§e§l* §e25% Mastery Enchant Negation"
+    - "§7(§7§oRequires all 4 dragon slayer items§7)"
+  # Piece names end in §r — reproduced. `Firey` is a source typo, kept verbatim. Diamond is the plain-set
+  # family norm (matrix § Phantom era line); this entry records no material of its own.
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "§e§lDecapitated Dragon Skull§r" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "§e§lFirey Chestplate of Dragons§r" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "§e§lScorched Leggings of Dragons§r" }
+    boots:      { material: DIAMOND_BOOTS,      name: "§e§lDragon Slayer Battle Boots§r" }
+bonuses:
+  # 1. -20% incoming, all entity-routed sources. No REMOVE_POTION opener on this set (Phantom / Yeti / Yijki
+  # carry one; this one does not — measured).
+  - on: armor
+    trigger: DEFENSE
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 20 } }
+  # 2. +15% outgoing, PvP only.
+  - on: armor
+    trigger: ATTACK
+    chance: 100
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 15 } }
+  # 3-5. The negation grants, maintained while the set is complete: freeze immunity (two enchant keys, below),
+  # 75 % Silence negation, 25 % mastery negation.
+  # WHY SUPPRESS_INCOMING AND NOT SUPPRESS: the matrix writes these as `SUPPRESS(scope=…, mode=timed |
+  # next-hit)` because the jar delivers them through an external flag. SUPPRESS silences what its TARGET
+  # does, so armed on the wearer it would park the wearer's own freezes; armed on an attacker from a DEFENSE
+  # hook it always misses the opening proc of an engagement. SUPPRESS_INCOMING is the defender-keyed head for
+  # exactly this shape ("immune to what is aimed at me"), and its `chance` rolls PER INCOMING APPLICATION —
+  # which is what "negate 75 % of enemy Silence" means, a roll at each proc rather than one roll at the arm.
+  # WHY REPEATING AND NOT PASSIVE: the window has no teardown half, and the PASSIVE lifecycle fires once at
+  # equip, so a PASSIVE arm would lapse mid-wear. `repeat: 20` under a `duration: 60` window holds it open
+  # continuously and bounds the residual immunity after the set comes off at 3 s — the same cadence
+  # sets/ranger.yml uses for its own maintained immunity (re-arming EXTENDS, it never stacks).
+  - on: armor
+    trigger: REPEATING
+    repeat: 20
+    chance: 100
+    effects:
+      # "Immune to Freezes" — the interaction rule `dragon-slayer-blocks-freeze`, and it is keyed to the THREE
+      # ENCHANTS the matrix records as honouring `immune_freeze` (Trap — matrix/03 §Trap; Ice Aspect —
+      # matrix/03 §IceAspect; Horrify — matrix/07 §Horrify) rather than to the FREEZE effect head,
+      # deliberately:
+      #   (a) the recorded posture is asymmetric — Trap is blocked outright (no leak chance) while its heroic
+      #       grade Titan Trap IGNORES the set's immune_freeze (measured, copied not fixed). A `scope: KIND,
+      #       key: FREEZE` window would silently align the pair and lose exactly that posture — the
+      #       cross-batch constraint trap.yml / titan-trap.yml both name and deferred-content.md records;
+      #   (b) it would not even work: trap.yml's freeze is a MOVEMENT_SPEED grant, not a FREEZE effect, so
+      #       the effect head keys nothing it fires, while `enchants/titan-trap` (which DOES carry FREEZE)
+      #       is the one ability that must stay through.
+      # Each row carries its own verbatim block line, sent to the protected wearer at the moment it blocks.
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/trap", duration: 60, who: "@Self",
+          consumed-message-actor: "§8§l* DRAGON SLAYER [§7Trap blocked!§8§l] *" } }
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/ice-aspect", duration: 60, who: "@Self",
+          consumed-message-actor: "§8§l* DRAGON SLAYER [§7Ice Aspect blocked!§8§l] *" } }
+      # `enchants/horrify` is a batch-07 stop, so this row is INERT today — a SUPPRESS_INCOMING key is an
+      # interned string, so a key naming an unshipped enchant costs nothing and completes itself the day the
+      # enchant lands, exactly as crystals/anti-m-kit-ghost.yml already ships six such keys. Authored now
+      # because the message is matrix-recorded (matrix/07 § Horrify) and this is its only home; the 100 %
+      # block is the freeze immunity, NOT the 25 % mastery negation below, which is a separate mechanic.
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/horrify", duration: 60, who: "@Self",
+          consumed-message-actor: "§8§l* DRAGON SLAYER [§7Horrify blocked!§8§l] *" } }
+      # "Negate 75% of Enemy Silence" — 75 % rolled per incoming Silence proc.
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/silence", duration: 60, chance: 75, who: "@Self" } }
+      # "25% Mastery Enchant Negation" — `mastery` is this pack's tier-mirroring group name (tiers.yml rung 8;
+      # every mastery-grade content/enchants file carries `group: "mastery"`).
+      - { SUPPRESS_INCOMING: { scope: GROUP, key: mastery, duration: 60, chance: 25, who: "@Self" } }
+  # 6. "Mastery Enchant Reflect X" — the set contributes level 10 to the mastery rung of the enchant-reflect
+  # ladder: 5 % per enchant proc (the integer-division table 0.02 + 0.01 x (level/3), rung 10). The band is
+  # 80..80, the `mastery` tier WEIGHT off tiers.yml — the exact grade `heroic-enchant-reflect.yml` names as
+  # "a future mastery grade takes 80..80 and outranks this one on tier 8 alone". tier-min 80 makes it the
+  # highest-priority armed band, so it answers for tier-8 procs even while a heroic rebound is worn, and
+  # concedes everything below to that grade. PASSIVE, not REPEATING: PROC_REBOUND is a maintained marker with
+  # a real teardown, armed as the set completes and lifted as it breaks.
+  - on: armor
+    trigger: PASSIVE
+    chance: 100
+    effects:
+      - { PROC_REBOUND: { chance: 5, tier-min: 80, tier-max: 80, who: "@Self" } }
+# era: nothing special — suppression windows and the rebound band are engine-level and era-agnostic, and the
+# set touches no material, sound, particle or potion.
+# Interaction-layer rules the set decomposition does NOT own, recorded but not authored here:
+#  * NO Infinite Luck check on either hook (shared with KOTH — the only two damage sets without one).
+#  * the Armor Crystal route above, owned by the crystals family (content/crystals/dragon-slayer.yml).
+#  * heroic pieces negate an enemy's Infinite Luck at 12.5 % per piece — ledger D-10-1 (the jar reads them off
+#    the Infinite Luck holder's own armour; the port reads the attacker's).
+#  * outpost world gates block this set's bonuses; off by default in the port.
+#  * `enchants/titan-trap` copies the heroic's MEASURED exemptions rather than fixing them — it neither fires
+#    the proc-veto nor honours this set's freeze immunity. The set side honours that asymmetry above by
+#    keying `dragon-slayer-blocks-freeze` to `enchants/trap` + `enchants/ice-aspect` alone; the owner may
+#    align the two grades with one interaction rule later (deferred-content.md).

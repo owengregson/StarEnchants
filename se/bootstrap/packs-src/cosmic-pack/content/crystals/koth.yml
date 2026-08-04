@@ -1,0 +1,26 @@
+# Matrix: 10-armor-sets.md § KOTH (crystal route, family preamble §A.7/§C.1)
+# The only crystal split by victim kind, and the only one whose four-piece fold reproduces its set exactly:
+# +5% per crystal-bearing piece against players and +12.5% per piece against everything else, so four pieces
+# land the set's own x1.20 PvP / x1.50 PvE. No defensive half — KOTH is a glass cannon on both routes.
+display: "KOTH"
+# description: not matrix-recorded (factual paraphrase; percents and colour from the set's `§d` bonus block)
+description:
+  - "§d§lKOTH CRYSTAL BONUS"
+  - "§d* +5% PvP Damage"
+  - "§d* +12.5% PvE Damage"
+  - "§d* KOTH Crystal is stackable"
+tier: legendary  # (port-chosen) see phantom.yml
+applies-to: [ARMOR]
+stackable: true
+# No Infinite Luck check on either branch (KOTH and Dragon Slayer are the only two damage sets without one,
+# measured), so both folds are unconditional inside their victim-kind gate. The set's Auto Bless, fall
+# immunity and axe strip are set-only; the crystal sells the damage alone.
+abilities:
+  - condition: "%victim.type% == \"PLAYER\""
+    trigger: ATTACK
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 5 } }
+  - condition: "%victim.type% != \"PLAYER\""
+    trigger: ATTACK
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 12.5 } }

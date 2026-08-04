@@ -1,0 +1,135 @@
+# Matrix: 10-armor-sets.md § Ranger — plain diamond set; the only one whose bow support is real. Its defence
+# answers PROJECTILES, its offence rides the BOW trigger, and it carries two non-damage grants.
+# Family (§A): 4/4 completion (no 2/3-piece tiers), identity is engine PDC + WornState (the jar's forgeable
+# lore matching and its 30 s stale-cache window are infrastructure-class bugs, not ported), and there are NO
+# cooldowns anywhere — every bonus below is unconditional or an independent per-hit roll.
+display: "§a§lRanger"
+# description: not matrix-recorded (factual paraphrase)
+description: "§aThe gear of a lost Ranger — arrows barely scratch you, the Ranger Bow bites a third harder, and nothing can pin you in place."
+complete: 4
+announce: true
+# Equip line verbatim, RED (§c) rather than the set's green — as recorded (`sets.message-uppercase: false` in
+# this pack keeps it exact). No remove line is matrix-recorded, so none is authored.
+equip-message: "§c§lRANGER SET BONUS: §c-25% INCOMING BOW DMG, +30% RANGER BOW DMG, Immune to Teleblock, Gears IV"
+armor:
+  # Family norm: diamond pieces, Durability III + Protection IV. Ranger's own vanilla loadout is not
+  # separately recorded — the § Phantom numbers line carries it for the plain half of the family.
+  enchants:
+    UNBREAKING: 3
+    PROTECTION: 4
+  # Shared bonus block, verbatim. Per-piece flavour is matrix-recorded but unauthorable (one armor.lore for
+  # all four pieces; a piece takes only material + name), so it is recorded here — including the source's own
+  # stray comma and "a ancient", which would ship as written:
+  #   helmet     "§a§oThe hood of a legendary" / "§a§oRanger lost with time itself."
+  #   chestplate "§a§oThe lost cuirass of the," / "§a§olast known legendary archer."
+  #   leggings   "§a§oThe fabled shin protectors," / "§a§oof an ancient agile Ranger."
+  #   boots      "§a§oLightweight footgear for" / "§a§oa ancient nimble Ranger."
+  # Per-piece custom-enchant rosters (12 entries each per codex, rolled nearly-maxed at
+  # min(M, max(1,M-2)+rand(3))) are likewise unauthorable — a set has ONE shared enchants: map at fixed
+  # integer levels, so a roster authored here would stamp all four pieces identically and freeze every roll.
+  # The bow below is a single item, so its roster IS authored.
+  lore:
+    - "§a§lRANGER SET BONUS"
+    - "§a§l* §aEnemies bows deal 25% less damage to you."
+    - "§a§l* §aRanger Bow grants 30% increased bow damage."
+    - "§a§l* §aImmune to Teleblock"
+    - "§a§l* §aGears IV"
+    - "§7(§oRequires all 4 ranger items.§7)"
+  pieces:
+    helmet:     { material: DIAMOND_HELMET,     name: "§a§lRanger Hood" }
+    chestplate: { material: DIAMOND_CHESTPLATE, name: "§a§lRanger Cuirass" }
+    leggings:   { material: DIAMOND_LEGGINGS,   name: "§a§lRanger Greaves" }
+    boots:      { material: DIAMOND_BOOTS,      name: "§a§lRanger Slippers" }
+weapon:
+  # Power V / Durability III / Flame II / Infinity I are fixed, and Sniper is recorded AT max. The rest are
+  # rolls the fixed-level surface cannot draw, so each takes the TOP of its band and the band is recorded
+  # beside it: Lethal Sniper is a hard-coded uniform 2..5 (max 5 here, so it never over-levels) and the eleven
+  # after it take the family's nearly-maxed min(M, max(1,M-2)+rand(3)). Consequence, stated plainly: every
+  # minted bow is the best roll the jar could produce, never the M-2 / M-1 rungs.
+  enchants:
+    POWER: 5
+    UNBREAKING: 3
+    FLAME: 2
+    INFINITY: 1
+    enchants/sniper: 5           # recorded at max
+    enchants/lethal-sniper: 5    # jar rolls uniform 2..5
+    enchants/silence: 4          # nearly-maxed band 2..4
+    enchants/rage: 6             # 4..6
+    enchants/eagle-eye: 5        # 3..5
+    enchants/arrow-lifesteal: 5  # 3..5
+    enchants/hellfire: 5         # 3..5
+    enchants/piercing: 5         # 3..5
+    enchants/blind: 3            # 1..3
+    enchants/venom: 3            # 1..3
+    enchants/snare: 4            # 2..4
+    enchants/virus: 4            # 2..4
+    enchants/healing: 4          # 2..4
+  material: BOW
+  name: "§a§lRanger Bow"
+  lore:
+    - "§aA finely crafted bow imbued"
+    - "§awith the energy of the Sun."
+    - ""
+    - "§a§lRANGER WEAPON BONUS"
+    - "§a§l* §aRanger Bow grants 30% increased bow damage."
+    - "§a§l* §aEnemies deal 25% less damage to you."
+    - "§7§o(Requires all 4 ranger armor items.)"
+# Behaviours: on:armor fires while the set is complete; on:weapon also requires the Ranger Bow held (main
+# hand). That held-gate IS the matrix's `[actor.helditem == armor-sets/ranger-bow]` rider — %actor.helditem%
+# is the material NAME, not an item identity, so no condition could tell this bow from any other. The jar's
+# own test was a display-name prefix that any renamed bow forged; PDC identity closes that.
+bonuses:
+  # Gears IV — permanent Speed while the set is worn. The level is single-sourced from the Gears enchant
+  # (matrix/01 § Gears: Speed I/II/III at L1/2/3, so "Gears IV" is Speed IV) — the rung the enchant itself
+  # cannot reach at max 3, which is why the jar carried a dead "suppress the [+] message for Gears IV" branch.
+  # The authored duration never governs: the PASSIVE lifecycle maintains the buff while worn and tears it down
+  # on unequip, and the potion registry reconciles it against a worn Gears (highest wins). Unequip is
+  # symmetric here by construction — the jar stripped the passive even when the equip had been world-blocked.
+  - on: armor
+    trigger: PASSIVE
+    chance: 100
+    effects:
+      - { POTION: { effect: SPEED, level: 4, duration: 200, who: "@Self" } }
+  # −25 % from ANY projectile damager (mob arrows, fireballs, thrown potions — the jar routes the whole
+  # PROJECTILE cause here, not arrows alone). Measured: this path carries no world gate and no Infinite Luck
+  # check, unlike the bow rider below.
+  - on: armor
+    trigger: DEFENSE
+    chance: 100
+    condition: "%damagecause% == \"PROJECTILE\""
+    effects:
+      - { DAMAGE_MOD: { side: defense, mode: add, amount: 25 } }
+  # "Immune to Teleblock". SUPPRESS_INCOMING is the head, not the matrix's SUPPRESS: the wearer is not being
+  # silenced, they are being made immune to a TELEBLOCK aimed AT them — the mirror the surface grew in wave 2d
+  # (SUPPRESS would gag the wearer's own teleblocks instead). scope KIND keys the effect head, so it blocks
+  # every ability carrying TELEBLOCK whatever enchant fires it. Maintained by re-arming on REPEATING, not by
+  # PASSIVE: PASSIVE is a start/stop lifecycle fired once on equip, so a window armed there would expire
+  # mid-wear. `repeat: 20` under a `duration: 60` window holds it open continuously and bounds the residual
+  # immunity after the set comes off at 3 s — the same cadence and the same reading crystals/ranger.yml uses
+  # for the crystal-side copy of this grant.
+  - on: armor
+    trigger: REPEATING
+    repeat: 20
+    chance: 100
+    effects:
+      - { SUPPRESS_INCOMING: { scope: KIND, key: TELEBLOCK, duration: 60, who: "@Self" } }
+  # +30 % bow damage while the Ranger Bow is held — BOW, not ATTACK: this set's damage is its arrows.
+  - on: weapon
+    trigger: BOW
+    chance: 100
+    effects:
+      - { DAMAGE_MOD: { side: attack, mode: add, amount: 30 } }
+# era: Flame II and Infinity are legal unsafe levels on 1.8.9 (the mint uses addUnsafeEnchantment). Permanent
+# Speed goes through the passive-potion path, which already era-splits — there are no infinite-duration
+# potions before 1.19.4. POWER / FLAME / INFINITY are authored modern and resolved back by the boot-time
+# resolver (Aliases carries ARROW_DAMAGE / ARROW_FIRE / ARROW_INFINITE), as the rest of this pack does.
+# Interaction-layer rules the set decomposition does NOT own, recorded but not authored here:
+#  * victim Infinite Luck >= 1 suppresses the BOW bonus (the family's lowest threshold, shared with Yeti);
+#    D-10-1 has heroic pieces negating Infinite Luck at 12.5 % each, owed from the ATTACKER's armour.
+#  * Armor Crystal route (§A.7/§C.1): DAMAGE_MOD(side=defense, amount=5) and DAMAGE_MOD(side=attack, amount=6)
+#    per crystal-bearing non-set piece, BOTH projectile-conditioned (4 → ×0.80 in / ×1.24 out; ×1.612 measured
+#    with the bow). Owned by the crystals family — crystals/ranger.yml ships it.
+#  * D-10-4: the crystal's advertised "20% Immune to Teleblock" is absent from the jar and ships anyway, since
+#    display strings never deviate — as a 20 %-per-piece teleblock-immunity chance, on the crystal's file.
+#  * outpost world gates (TRAINEE/VANILLA/HERO, §A.8) are off by default in the port; `disabled-worlds:` on a
+#    bonus is the knob. Measured: the projectile reduction has no such gate in the jar even where others do.

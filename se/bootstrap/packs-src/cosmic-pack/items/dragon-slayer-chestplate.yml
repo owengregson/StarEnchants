@@ -1,0 +1,26 @@
+# Matrix: 10-armor-sets.md § Dragon Slayer — the CHESTPLATE likeness.
+# WHY THIS FILE EXISTS: per-piece flavour lore, per-piece enchant rosters and the mint's roll rules have no
+# surface on a set def (`armor.lore` / `armor.enchants` are shared by all four pieces; `pieces:` carries
+# material + name only). Recorded here until a set-piece surface exists (deferred-content.md); ItemsLoader
+# does not yet claim `type: set-piece`.
+# IDENTITY: engine PDC set stamp, not the jar's forgeable lore match (infrastructure-class fix).
+type: set-piece
+set: sets/dragon-slayer
+slot: chestplate
+material: DIAMOND_CHESTPLATE
+name: "§e§lFirey Chestplate of Dragons§r"   # `Firey` is a source typo — verbatim; trailing §r verbatim
+lore:
+  - "§e§oThe mythical chestplate of a Slayer of Dragons."
+enchants:
+  PROTECTION: 5
+  UNBREAKING: 3
+# THE MINT (recorded, no authoring surface):
+#   - heroic-enchant roster gate: 40 % per heroic entry;
+#   - chest bonus roll: 5 % Enchant Reflect at MAX plus Heroic Enchant Reflect — the pair that puts a tier-7
+#     rebound band on the wearer (`enchants/enchant-reflect` + `enchants/heroic-enchant-reflect`, whose
+#     `requires` / `removes-required` contract means the heroic REPLACES its base on the same item).
+# Base roster entries roll nearly maxed under the family formula (matrix §A / § Phantom).
+rolls:
+  - "40% per heroic roster entry"
+  - "5% Enchant Reflect (max) + Heroic Enchant Reflect"
+roll-formula: "min(M, max(1, M - 2) + rand(3))"

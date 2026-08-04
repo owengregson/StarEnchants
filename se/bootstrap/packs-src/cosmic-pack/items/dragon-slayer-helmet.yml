@@ -1,0 +1,30 @@
+# Matrix: 10-armor-sets.md § Dragon Slayer — the HELMET likeness.
+# WHY THIS FILE EXISTS: a set def carries `armor.lore` and `armor.enchants` SHARED by all four pieces, and
+# its `pieces:` members hold material + name only. Per-piece flavour lore, per-piece enchant rosters and the
+# mint's roll rules therefore have nowhere to live on content/sets/dragon-slayer.yml. They live here as the
+# port's record of the item until a set-piece surface exists (deferred-content.md). ItemsLoader dispatches
+# items/*.yml on `type:` and does not yet claim `set-piece`.
+# IDENTITY: the jar matches plain-set pieces by LORE, which is forgeable. The port stamps the set key into
+# item PDC (WornState reads that), an infrastructure-class fix, not a behaviour change.
+type: set-piece
+set: sets/dragon-slayer
+slot: helmet
+material: DIAMOND_HELMET   # diamond is the plain-set family norm; this entry records no material of its own
+name: "§e§lDecapitated Dragon Skull§r"   # trailing §r verbatim
+lore:
+  - "§e§oThe mythical helmet of a Slayer of Dragons."
+# Vanilla loadout on every piece of this set: Protection V + Unbreaking III (shared with KOTH — every other
+# set in the family is Protection IV).
+enchants:
+  PROTECTION: 5
+  UNBREAKING: 3
+# THE MINT. The matrix records this set's roster rules as gates and bonus rolls rather than a full base list:
+#   - heroic-enchant roster gate: 40 % per heroic entry (each heroic-grade roster line rolls independently);
+#   - helmet bonus roll: 30 % Immortal (`enchants/immortal`).
+# Base roster entries roll NEARLY MAXED under the family formula (matrix §A / § Phantom):
+#     level = min(M, max(1, M - 2) + rand(3))     # M = the enchant's own max level
+# Neither the roll formula nor a per-piece roster has an authoring surface — recorded, not authored.
+rolls:
+  - "40% per heroic roster entry"
+  - "30% Immortal (enchants/immortal)"
+roll-formula: "min(M, max(1, M - 2) + rand(3))"

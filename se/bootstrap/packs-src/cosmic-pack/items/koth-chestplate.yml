@@ -1,0 +1,37 @@
+# Matrix: 10-armor-sets.md § KOTH — the CHESTPLATE likeness.
+# WHY THIS FILE EXISTS: the per-piece roster, the leather dye, the out-of-the-box heroic stamp and the
+# per-slot armour/durability values have no surface on a set def (`armor.*` is shared; `pieces:` carries
+# material + name only). Recorded here until a set-piece surface exists (deferred-content.md); ItemsLoader
+# does not yet claim `type: set-piece`.
+# IDENTITY: engine PDC set stamp (the jar matched plain-set pieces by forgeable lore).
+type: set-piece
+set: sets/koth
+slot: chestplate
+material: LEATHER_CHESTPLATE
+name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nChestplate§r"
+color: "red"   # red-dyed leather (no hex recorded in the matrix); `pieces:` has no colour knob
+enchants:
+  PROTECTION: 5
+  UNBREAKING: 3
+# Minted heroic out of the box, non-M-Kit tier: armour 8 (not halved), durability 1000 — the 10 % chest rung
+# of the per-piece heroic reduction ladder (full set 27 %). Recorded, not authored.
+armor-value: 8
+durability: 1000
+heroic: true
+heroic-lore:
+  - ""
+  - "§7+8 Armor Value"
+  - "§71000 Durability"
+  - "§4This armor is stronger than diamond."
+# THE MINT: every entry at MAX level, no random rolls (measured).
+# `Blood Lust` is a batch-01 stop (`enchants/blood-lust` is not in this pack yet) — recorded so the roster
+# lands whole when it ships.
+roster:
+  - "Blood Lust (max)"
+  - "Overload (max)"
+  - "Deathbringer (max)"
+  - "Enlighted (max)"
+  - "Armored (max)"
+  - "Angelic (max)"
+  - "Tank (max)"
+  - "Dodge (max)"

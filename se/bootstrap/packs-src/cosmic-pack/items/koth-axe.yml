@@ -1,0 +1,21 @@
+# Matrix: 10-armor-sets.md § KOTH — the SET AXE likeness. NOT LIVE: recorded only.
+# THE JAR NEVER BUILT THIS ITEM EITHER (external mint, codex UNRESOLVED — only the identity tag is read), so
+# as with the sword there is no recorded name, lore or enchant loadout; the name below extends the recorded
+# piece-name pattern with `Axe` in the {Piece} slot (port-chosen).
+# WHY IT IS INERT: a set def carries exactly ONE `weapon:` member, and content/sets/koth.yml spends it on the
+# sword. The axe's rider therefore has no gate to hang on. Its decomposition, held with the set complete and
+# hitting a PLAYER, is
+#     [chance 50] DURABILITY(target=armor, mode=damage, amount=2)
+#     [chance 25] DURABILITY(target=armor, mode=damage, amount=1)
+# which is the engine's whole-armour expression of the jar's 50 %-per-slot roll for -2 or -3 (50/50, expected
+# 5 durability per hit — a different formula from the Yeti Maul's 75 %/-1). Every effect it needs exists; the
+# missing piece is a SECOND set weapon. The one surface alternative, `%actor.helditem% matchesregex
+# ".*_AXE$"`, would hand the strip to ANY axe a KOTH wearer picks up, which is a play change rather than a
+# translation. Tracked in deferred-content.md; closes with a multi-weapon set surface.
+# ERA: `GOLDEN_AXE` resolves to 1.8's `GOLD_AXE` through the alias resolver; the strip must route through the
+# item-damage layer on both eras (synthetic PlayerItemDamageEvent on the 1.8 harness).
+type: set-piece
+set: sets/koth
+slot: weapon-secondary
+material: GOLDEN_AXE
+name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nAxe§r"

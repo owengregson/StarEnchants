@@ -1,0 +1,24 @@
+# Matrix: 10-armor-sets.md § Mother of Yijki (crystal route, family preamble §A.7/§C.1)
+# The defensive sixth of the set's -30% incoming, per crystal-bearing piece; four pieces fold to -20% in.
+display: "Mother of Yijki"
+# description: not matrix-recorded (factual paraphrase; percent and colour are the set's `§f` bonus block at
+# a sixth). The jar's crystal lore advertises "20%" for the revenge roll the port does not ship yet — the
+# advertised number is NOT reproduced here, because the line it belongs to has no behaviour behind it (see
+# the pending clause below); strings only ever ship attached to the thing they describe.
+description:
+  - "§f§lYIJKI CRYSTAL BONUS"
+  - "§f* Enemies deal 5% less damage to you"
+  - "§f* Yijki Crystal is stackable"
+tier: legendary  # (port-chosen) see phantom.yml
+applies-to: [ARMOR]
+stackable: true
+# PENDING (deferred-content.md, partial entries): the crystal's SECOND half is a Revenge of Yijki roll on
+# every incoming hit at `0.010000000000000002` per crystal-bearing piece — the exact FP literal the jar
+# computes as 0.05 x 0.2, which the crystal lore advertises as "20%". The roll itself is authorable
+# (`chance: 0.010000000000000002` on a DEFENSE ability) but the PAYLOAD is the set's own
+# DELAYED_STRIKE_FIELD, verbatim warning line and all, and the armour-set batch has not authored it yet.
+# Forking that payload here would leave two copies of 16 strike points, two cue chains and two copies of the
+# `§5§l** REVENGE OF YIJKI (§c{caster} [1.5s]§5§l) **` line, written from two readings. The rider lands with
+# the set, from one reading, in the sets batch.
+abilities:
+  - { trigger: DEFENSE, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 5 } } ] }
