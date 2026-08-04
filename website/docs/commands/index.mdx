@@ -141,6 +141,23 @@ entirely: `/se reforge <key>` mints a weapon reforge to yourself.
 `content/`, `items/`, and `menus/` into a portable ZIP, making a setup easy to share, version, or roll back.
 `apply` backs up the current config before swapping the pack in and reloading transactionally.
 
+Two packs ship in the jar and land in `packs/` on first boot, so `/se pack list` is never empty:
+
+| Pack | What it is |
+| --- | --- |
+| `signature-pack` | the **default** — StarEnchants' own flagship library, already live when you first start the server |
+| `cosmic-pack` | the classic Cosmic experience, ported number-exact: its enchant library, armour sets, socketable crystals, masks, pets, and the Heroic gear tier |
+
+`cosmic-pack` is a **preset you opt into**, not the default. Apply it with:
+
+```text
+/se pack apply cosmic-pack
+```
+
+Applying swaps the **whole** config surface — `config.yml`, `lang.yml`, `content/`, `items/`, and `menus/`
+are all replaced by the pack's, not merged with yours. Your current surface is snapshotted into a timestamped
+backup pack first, so `/se pack apply backup-<stamp>` puts everything back.
+
 ## Migrating
 
 `/se migrate <ee|ea|ae> <path>` imports EliteEnchantments (`ee`), EliteArmor (`ea`), or

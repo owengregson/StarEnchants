@@ -28,10 +28,10 @@ content/       the content library
   ├─ masks/         one file per wearable mask (helmet-slot cosmetic with a bonus)
   ├─ pets/          one file per levelling companion head
   ├─ use-items/     one file per right-click use-item
-  └─ reforges/      one file per weapon reforge (shipped in the cosmic pack)
+  └─ reforges/      one file per weapon reforge (shipped in the signature pack)
 items/         one file per physical item — books · scrolls · dust · soul gem · orb · nametag · …
 menus/         in-game GUI layout overrides
-packs/         saved config-pack snapshots (/se pack)
+packs/         config-pack snapshots (/se pack) — your exports, plus the two packs the jar ships
 lang.yml       every player-facing message & GUI string
 ```
 
@@ -355,7 +355,7 @@ effects:
 That is the **single-ability shorthand** — one `trigger` + `effects` pair at the root. A crystal that
 needs more than one ability writes an `abilities:` list instead, each entry its own trigger + effects.
 Two more root keys are crystal-specific: `stackable` decides whether worn or merged copies of the same
-crystal each count (a non-stackable crystal is deduplicated per wearer). From the cosmic pack's
+crystal each count (a non-stackable crystal is deduplicated per wearer). From the signature pack's
 `content/crystals/bolt.yml`:
 
 ```yaml
@@ -468,7 +468,7 @@ is `items/pet.yml`, the levelling and economy knobs are the `pets:` block in `co
 A reforge lives in `content/reforges/<key>.yml` and drag-applies onto a weapon, where its signature
 ability fires on **shift + right-click**. It declares a `display`, a `color` (legacy `&` codes or a
 `{#RRGGBB}` hex token), an `icon` material for menus, a `description` list, and its `abilities`. From
-the cosmic pack's `content/reforges/blink.yml`:
+the signature pack's `content/reforges/blink.yml`:
 
 ```yaml
 display: "Quantum Blink"
@@ -489,7 +489,7 @@ What counts as a weapon is `reforges.weapon-groups` in `config.yml`, which defau
 `[SWORD, AXE]` and takes item-group tokens (`SWORD`, `AXE`, `TRIDENT`, `MACE`, or the `WEAPON`
 composite); tokens whose materials don't exist on the running server version are simply skipped.
 `features.reforges` is the live master switch. The default content tree ships no reforges — the
-shipped examples all live in the cosmic pack. See [Reforges](../items/reforges.mdx).
+shipped examples all live in the signature pack. See [Reforges](../items/reforges.mdx).
 
 ## Customizing items
 
@@ -521,5 +521,7 @@ or bad references *before* you swap them into the live config.
 :::
 
 Use **config packs** (`/se pack export <name>`) to snapshot your whole setup into a portable ZIP,
-and `/se pack apply <name>` to swap one in transactionally. See the
-[commands](../commands/index.mdx) page.
+and `/se pack apply <name>` to swap one in transactionally. Two packs ship in the jar: the default
+`signature-pack`, and `cosmic-pack` — the classic Cosmic experience, ported number-exact — which you
+apply with `/se pack apply cosmic-pack`. Applying replaces the whole surface above, backing up your
+current one first. See the [commands](../commands/index.mdx) page.

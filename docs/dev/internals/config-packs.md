@@ -201,8 +201,15 @@ operator edits).
 The first shipped pack, `signature-pack` (shipped as `cosmic-pack` up to
 v1.13), is the full EliteEnchantments port: the whole library run through the
 extended migrator (see [the-migrator.md](the-migrator.md)), plus the standard
-surface. A build-time validity test compiles the entire pack clean before it can
-ship.
+surface. It is the **boot default** — the config surface the plugin lays down on
+first enable is this pack's.
+
+The second, `cosmic-pack`, is the hand-ported Cosmic suite
+(`docs/dev/cosmic-port/`). It ships bundled but **unapplied**: an operator opts
+in with `/se pack apply cosmic-pack`. Both are drift-guarded by
+`ShippedPackManifestDriftTest` (the ADR-0046 stamp + the tree's file count) and
+compiled clean at build time by their `*PackValidationTest`, so neither can ship
+stale or broken.
 
 ## Adding a pack
 
@@ -210,8 +217,11 @@ Per ADR-0023, adding a content preset is local and touches neither the codec nor
 the command:
 
 1. Drop a reviewable tree under `se/bootstrap/packs-src/<name>/`.
-2. Register a `Zip` build task that produces `<name>.zip`.
+2. Register a `Zip` build task that produces `<name>.zip`, and fold it into
+   `processResources` under `packs/`.
 3. List its archive in `packs/index.txt`.
+4. Add a row to `ShippedPackManifestDriftTest` and run
+   `./gradlew :bootstrap:regenDocs` to stamp its `pack.yml`.
 
 ## Gotchas
 

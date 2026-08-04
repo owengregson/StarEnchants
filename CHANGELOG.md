@@ -6,6 +6,15 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **The Cosmic Pack ships in the jar.** `cosmic-pack` is the classic Cosmic experience ported
+  number-exact — its enchant library, armour sets, socketable crystals, masks, pets and the
+  Heroic gear tier — bundled alongside `signature-pack` and extracted to `packs/` on first boot.
+  It is a **preset you opt into**, not the new default: `/se pack apply cosmic-pack` swaps it in.
+  Like any pack, it replaces your whole config surface (`config.yml`, `lang.yml`, `content/`,
+  `items/`, `menus/`) — the current one is snapshotted into a timestamped backup pack first.
+
 ### Changed
 
 - **The bundled default pack is now `signature-pack`** (was `cosmic-pack`). Only the pack's name
