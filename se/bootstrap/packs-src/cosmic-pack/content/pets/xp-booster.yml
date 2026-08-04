@@ -1,0 +1,301 @@
+# Matrix: 12-pets.md § XP Booster Pet
+# THE PET FAMILY SHAPE (12-pets.md § Family-level facts) — the full reading lives in `anti-teleblock.yml` and
+# is not repeated: ACTIVE pet = right-click = the implicit USE trigger (ledger D-12-1, the jar had no action
+# filter); the jar's 1 Hz hotbar ticker is a no-op, so nothing passive is ported; the shared spectator guard,
+# the verbatim XP-gain / level-up lines and the family-wide `items/pet.yml` + `config.yml` likeness authored
+# once for the folder are all recorded there.
+# COOLDOWN: measured 0 s everywhere (§A.6's inverted arithmetic — the on-cooldown branch is dead code); this
+# file ships the AS-INTENDED 3600 s = 72 000 t, flat at every level (ledger D-12-15).
+# TWO ABILITIES, ONE PET. The right-click ARMS the buff; a second, non-USE ability on `EXP_GAIN` is what
+# actually multiplies. That second ability is live ONLY while the bracket's armed window is open (the pets
+# service joins a non-USE ability to WornState for exactly `duration:` ticks), so the window IS the buff and
+# the matrix's `when var xp-boost set` gate on the EXP_GAIN side is structural rather than authored.
+# THE `xp-boost` VAR still ships, for the ONE thing the window cannot do: refuse a re-use while the buff runs
+# (`§c§l(!) §cYou must wait for your previous buff to expire!`). Its ttl mirrors the bracket duration exactly,
+# and that pairing is also D-12-16's fix — the jar cleared its buff key only on a kill made after expiry, so a
+# quiet player stayed "buffed" (and locked out) for the session; a SET_VAR ttl expires on its own.
+# RECORDED SITE DIFFERENCE (matrix § interactions), not a bug and not authorable away: the jar multiplied the
+# vanilla XP ORBS dropped by any EntityDeathEvent with a player killer, truncating to int. `EXP_GAIN` is the
+# player's own gain, so the port also scales furnace / bottle / trade / fishing XP, and it ROUNDS instead of
+# truncating. The felt combat behaviour is the same; the breadth is wider. (Block-mined XP rides the MINE
+# path, which this pet does not hook.) The jar's buff was player-keyed regardless of where the pet sat; here
+# the armed ability rides the pet, so the head must stay in the hotbar for the multiplier to apply.
+# era: `ORB_PICKUP` / `NOTE_PLING` / `VILLAGER_YES` are the 1.7/1.8 spellings; modern names ship per the pack
+# convention. `Aliases.SOUND` carries none of the three rows yet (`ORB_PICKUP`->`ENTITY_EXPERIENCE_ORB_PICKUP`
+# is already on the legacy-sweep list via Healing/Teleportation; `NOTE_PLING`->`BLOCK_NOTE_BLOCK_PLING` and
+# `VILLAGER_YES`->`ENTITY_VILLAGER_YES` are owed), so those cues are silent on the legacy lane until the sweep
+# lands them. XP-orb mechanics themselves are identical on 1.8.9.
+display: "XP Booster Pet"
+color: "&e"
+type: ACTIVE
+# head: the per-pet skull texture is not matrix-recorded, so the mint falls back to a plain PLAYER_HEAD.
+descriptor:
+  - "§7§7A mystical sprite that has"
+  - "§7§7the unique ability to increase"
+  - "§7§7the rate at which cosmonauts gain"
+  - "§7§7experience and knowledge from combat."
+# PER-LEVEL LORE NUMBERS ARE PINNED AT LEVEL 1. `description` is per-PET (a level bracket carries cooldown,
+# duration and abilities — no lore), and the only level-aware likeness tokens are {LEVEL}/{MAX_LEVEL}/{EXP}/
+# {EXP_BAR}/{TIME_FORMATTED}, none of which is this pet's multiplier or buff length. So `{multiplier}` renders
+# 1.25 and `{duration}` renders 5m — the values a freshly minted (level 1) pet really has — and they stay
+# there as it levels. The true ladder, recorded here and shipped in the ability values below:
+#   multiplier `min(3.0, 1.25 + (level - 1) x 0.2)` = 1.25/1.45/1.65/1.85/2.05/2.25/2.45/2.65/2.85/3.0
+#                                                    (the cap bites only at L10, raw 3.05)
+#   duration   `min(1200, 300 + (level - 1) x 90)` s = 300/390/480/570/660/750/840/930/1020/1110 (cap unreached)
+# The player is never misinformed at the moment it matters: the activation line below carries the LIVE
+# multiplier at every rung. Tracked as a partial entry until pets grow per-bracket lore.
+# The `{duration}` render shape is not codex-recorded (unlike the cooldown line, where TimeUtils is recorded);
+# the TimeUtils spelling is used, so 300 s reads `5m`. The cooldown line here is a level-independent literal —
+# "1 hour", not {TIME_FORMATTED}, which would render `1h`.
+description:
+  - "§7"
+  - "§7§f§lAbility"
+  - "§7§7Gain a 1.25x Vanilla XP"
+  - "§7§7increase for 5m!"
+  - "§7"
+  - "§7§f§lCooldown"
+  - "§7§7 1 hour"
+max-level: 10
+exp-curve: { base: 0, per-level: 100 }   # `level x 100`: L2 200 … L10 1000, 5400 lifetime; XP 15 per use
+levels:
+  # ABILITY ORDER IS LOAD-BEARING: the arm is index 0, so it carries the pet-wide cooldown scope (the hour
+  # survives a level-up crossing a bracket floor). Both refusals author `cooldown: 0` and scope to their own
+  # keys, so a refused click burns nothing. The EXP_GAIN ability is the bracket's only non-USE one — it is the
+  # armed-window rider and needs no cooldown of its own.
+  # The OP-only debug line the jar printed on each multiply (`§cBunny Buff: {before} -> {after}`, its own
+  # leftover name) is recorded and NOT ported.
+  1:
+    cooldown: 72000
+    duration: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% != 1'
+        effects:
+          - { SET_VAR: { name: "xp-boost", value: "1", ttl: 6000, who: "@Self" } }
+          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aXP Booster§a§l)§a:§f§a§l [§7XP Booster Pet (§a+1.25§7x XP)§a§l]" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
+          - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
+          - { SOUND: { sound: "ENTITY_VILLAGER_YES", volume: 3.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% == 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait for your previous buff to expire!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+      - trigger: EXP_GAIN
+        effects:
+          - { EXP_MULTIPLY: { factor: 1.25 } }
+  2:
+    cooldown: 72000
+    duration: 7800
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% != 1'
+        effects:
+          - { SET_VAR: { name: "xp-boost", value: "1", ttl: 7800, who: "@Self" } }
+          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aXP Booster§a§l)§a:§f§a§l [§7XP Booster Pet (§a+1.45§7x XP)§a§l]" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
+          - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
+          - { SOUND: { sound: "ENTITY_VILLAGER_YES", volume: 3.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% == 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait for your previous buff to expire!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+      - trigger: EXP_GAIN
+        effects:
+          - { EXP_MULTIPLY: { factor: 1.45 } }
+  3:
+    cooldown: 72000
+    duration: 9600
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% != 1'
+        effects:
+          - { SET_VAR: { name: "xp-boost", value: "1", ttl: 9600, who: "@Self" } }
+          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aXP Booster§a§l)§a:§f§a§l [§7XP Booster Pet (§a+1.65§7x XP)§a§l]" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
+          - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
+          - { SOUND: { sound: "ENTITY_VILLAGER_YES", volume: 3.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% == 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait for your previous buff to expire!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+      - trigger: EXP_GAIN
+        effects:
+          - { EXP_MULTIPLY: { factor: 1.65 } }
+  4:
+    cooldown: 72000
+    duration: 11400
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% != 1'
+        effects:
+          - { SET_VAR: { name: "xp-boost", value: "1", ttl: 11400, who: "@Self" } }
+          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aXP Booster§a§l)§a:§f§a§l [§7XP Booster Pet (§a+1.85§7x XP)§a§l]" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
+          - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
+          - { SOUND: { sound: "ENTITY_VILLAGER_YES", volume: 3.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% == 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait for your previous buff to expire!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+      - trigger: EXP_GAIN
+        effects:
+          - { EXP_MULTIPLY: { factor: 1.85 } }
+  5:
+    cooldown: 72000
+    duration: 13200
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% != 1'
+        effects:
+          - { SET_VAR: { name: "xp-boost", value: "1", ttl: 13200, who: "@Self" } }
+          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aXP Booster§a§l)§a:§f§a§l [§7XP Booster Pet (§a+2.05§7x XP)§a§l]" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
+          - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
+          - { SOUND: { sound: "ENTITY_VILLAGER_YES", volume: 3.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% == 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait for your previous buff to expire!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+      - trigger: EXP_GAIN
+        effects:
+          - { EXP_MULTIPLY: { factor: 2.05 } }
+  6:
+    cooldown: 72000
+    duration: 15000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% != 1'
+        effects:
+          - { SET_VAR: { name: "xp-boost", value: "1", ttl: 15000, who: "@Self" } }
+          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aXP Booster§a§l)§a:§f§a§l [§7XP Booster Pet (§a+2.25§7x XP)§a§l]" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
+          - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
+          - { SOUND: { sound: "ENTITY_VILLAGER_YES", volume: 3.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% == 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait for your previous buff to expire!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+      - trigger: EXP_GAIN
+        effects:
+          - { EXP_MULTIPLY: { factor: 2.25 } }
+  7:
+    cooldown: 72000
+    duration: 16800
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% != 1'
+        effects:
+          - { SET_VAR: { name: "xp-boost", value: "1", ttl: 16800, who: "@Self" } }
+          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aXP Booster§a§l)§a:§f§a§l [§7XP Booster Pet (§a+2.45§7x XP)§a§l]" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
+          - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
+          - { SOUND: { sound: "ENTITY_VILLAGER_YES", volume: 3.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% == 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait for your previous buff to expire!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+      - trigger: EXP_GAIN
+        effects:
+          - { EXP_MULTIPLY: { factor: 2.45 } }
+  8:
+    cooldown: 72000
+    duration: 18600
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% != 1'
+        effects:
+          - { SET_VAR: { name: "xp-boost", value: "1", ttl: 18600, who: "@Self" } }
+          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aXP Booster§a§l)§a:§f§a§l [§7XP Booster Pet (§a+2.65§7x XP)§a§l]" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
+          - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
+          - { SOUND: { sound: "ENTITY_VILLAGER_YES", volume: 3.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% == 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait for your previous buff to expire!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+      - trigger: EXP_GAIN
+        effects:
+          - { EXP_MULTIPLY: { factor: 2.65 } }
+  9:
+    cooldown: 72000
+    duration: 20400
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% != 1'
+        effects:
+          - { SET_VAR: { name: "xp-boost", value: "1", ttl: 20400, who: "@Self" } }
+          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aXP Booster§a§l)§a:§f§a§l [§7XP Booster Pet (§a+2.85§7x XP)§a§l]" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
+          - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
+          - { SOUND: { sound: "ENTITY_VILLAGER_YES", volume: 3.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% == 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait for your previous buff to expire!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+      - trigger: EXP_GAIN
+        effects:
+          - { EXP_MULTIPLY: { factor: 2.85 } }
+  10:
+    cooldown: 72000
+    duration: 22200
+    abilities:
+      # The cap bites here and only here: `1.25 + 9 x 0.2` is 3.05, `min(3.0, …)` takes 3.0.
+      - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% != 1'
+        effects:
+          - { SET_VAR: { name: "xp-boost", value: "1", ttl: 22200, who: "@Self" } }
+          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aXP Booster§a§l)§a:§f§a§l [§7XP Booster Pet (§a+3.0§7x XP)§a§l]" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
+          - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
+          - { SOUND: { sound: "ENTITY_VILLAGER_YES", volume: 3.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% == 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait for your previous buff to expire!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+      - trigger: EXP_GAIN
+        effects:
+          - { EXP_MULTIPLY: { factor: 3.0 } }
+# interactions: nothing in the corpus stacks with this — no enchant, set, mask or crystal multiplies vanilla
+# XP. The one cross-family read is `enchants/experience` (matrix/06, still deferred), which rides MINE and
+# scales the broken block's own yield; the two would compose on mined XP if both ever ran, and that is the
+# jar's behaviour too (separate systems, separate sites).

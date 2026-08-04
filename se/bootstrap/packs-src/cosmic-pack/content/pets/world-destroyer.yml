@@ -1,0 +1,107 @@
+# Matrix: 12-pets.md § World Destroyer Pet
+# ── FAMILY FACTS (matrix 12 §A, shared by all 17 pets) ─────────────────────────────────────────────────────
+# A pet is a textured player head held in the hotbar; the ability fires on RIGHT-CLICK, which is this engine's
+# implicit USE trigger on an ACTIVE pet (the jar had no action filter — left-click and physical interactions
+# fired too; ledger D-12-1 ships the as-intended right-click-only reading). The jar's 1 Hz hotbar ticker is a
+# no-op for every pet, so nothing passive is ported.
+# SPECTATOR GUARD: the family-wide refusal on the USER, its OWN ability, so the verbatim
+# `§c§lPET: §cYou cannot use that ability while spectating!` renders instead of the universal
+# `pets.message-on-fail`; it authors `cooldown: 0` and lands BEFORE the cooldown arms, burning nothing.
+# COOLDOWN: the jar's remaining-time arithmetic was inverted, and this is the ONE pet that never stamped a
+# cooldown timestamp at all, so even a correct formula would never have blocked it (§A.6). Its lore says
+# 5 minutes and its code said 10; ledger D-12-34 ships the AS-INTENDED 600 s (12 000 t) on the bracket
+# `cooldown:` (the engine's pet-wide scope).
+# XP: pets earn ONLY from using their own ability. `ITEM_XP_TRACK` carries the cosmic semantics (one level per
+# grant, remainder banked, unbounded banking at the cap); the ladder is this pet's own `exp-curve` +
+# `max-level`. The jar's always-empty/overflowing 50-segment EXP bar is D-12-2 — the engine renders a
+# proportional bar clamped at full.
+# ── THIS PET ───────────────────────────────────────────────────────────────────────────────────────────────
+# Buries every enemy player around you in a 3×3 obsidian cage and rots them inside it — the rot ships, the
+# cage is stopped (below). NOTHING scales with pet level: level is purely cosmetic here, which is why one
+# bracket serves the whole 1–4 ladder.
+# TARGETING: the jar walked a 61×61×61 box (a "30-block" cube) and spared allies, faction members and truced
+# parties (either side flagged as duelling counted as NOT truced). `@Aoe{r=30, filter=ENEMIES}` is a SPHERE
+# where the jar used a box — recorded — and the ENEMIES filter is the engine's own relation rule. The jar
+# applied no region/gamemode/spectator check to the victims (unlike Smite); this port's global PvP gates do
+# apply, and that is recorded rather than worked around.
+# THE CAGE IS THE ONE UNPORTED CLAUSE — recorded as a stop, everything around it ships. The jar encases EACH
+# victim where they stand: a 3×3 footprint, walls 3 high at y…y+2, an obsidian floor at y−1 and roof at y+3,
+# up to 44 blocks, 100 t. The matrix writes that as `CAGE(..., rise=0)`, but this engine's `CAGE` is a
+# different structure entirely — a TWO-PARTY trap, centred on the MIDPOINT between the caster and one victim,
+# which TELEPORTS both parties into opposite interior cells (`CageGeometry.origin` + `sink.cage`), and whose
+# pets pre-check (`PetService.cageWouldFail`, armed by the `r` on the selector) refuses the whole use when
+# that midpoint volume is not clear. Over `@Aoe{r=30}` that would teleport the caster into every victim's
+# cage in turn and refuse the ability outright most of the time — a different, and much worse, ability than
+# the one being ported, so it is not shipped in a wrong shape. `TEMP_BLOCK{shape: BOX}` is no substitute
+# either: it FILLS its volume, so it would bury and suffocate the victim rather than enclose them.
+# What the missing primitive needs is a per-victim, victim-anchored, caster-free hollow shell. When it lands:
+#   * walls are a PORT PICK (D-12-31) — the jar wrote block id 417, `IRON_BARDING`, an ITEM with no block form
+#     on either era tree, so the measured walls rendered invalid/air-like. Obsidian matches the floor and roof
+#     the jar really did place, exists on both trees, and is the only reading that makes the cage a cage.
+#   * the jar's two restore sweeps (100 t and 101 t) deleted the recorded obsidian to AIR, destroying whatever
+#     had been there — a grief bug, not to be replicated: a temp-block ledger restores the originals exactly
+#     (D-12-33).
+#   * the lore and the victim line both say `3s` while the cage really stands 100 t (5.0 s). Strings ship
+#     verbatim; behaviour ships the measured 100 t.
+# The verbatim `** DIMENSIONAL CAGE **` lines still ship — identity is verbatim even where a clause is
+# stopped (the R9 shape) — so the ability announces a cage whose blocks are owed.
+# THE ROT: BLINDNESS 200 t at amplifier 100 (authored `level: 101`), POISON and WITHER 100 t at amplifier 18
+# (`level: 19`), then 11 DoT applications at a 5 t period over 2.75 s. The jar rolled a uniform 5–9 damage per
+# application (55 min / 99 max / 77 expected); random damage has no spelling, so the EXPECTED value ships flat
+# at 7 (D-12-32). `slow: 0` because the jar never slowed the victim — this FREEZE is a DoT carrier, not a pin.
+# NO REFUSAL BRANCH: the jar answered an empty box with `§c§nPET: No valid enemy players nearby! (30x30)` and
+# spent nothing. Not authored — `%nearbyenemies%` is fixed at an 8-block radius, so gating on it would refuse
+# uses whose real targets stand 9–30 blocks away, which is most of them. A whiff here is silent and burns the
+# cooldown; the missing fact (an emptiness answer for the activation's own selection) is a recorded stop.
+# The XP grant is SILENT — this is the one pet with no XP-gain chat line at all (verbatim). The level-up line
+# is the family's.
+# Named after the Mother-of-Yijki set's Dimensional Cage (matrix/10) but a standalone reimplementation: no
+# coupling to that set, no stacking rule owed. Listed in the Mystery Pet Box's lore at a 0 % chance and not
+# obtainable from it (ruling R3 leaves the box out of scope entirely).
+# era: `IRON_BARDING` exists only pre-1.13 and never as a block, which is why the wall pick above had to be a
+# real block on both trees. `ANVIL_LAND → BLOCK_ANVIL_LAND` and `WITHER_SHOOT → ENTITY_WITHER_SHOOT` both
+# resolve either way already; BLINDNESS/POISON/WITHER are fine on 1.8.9.
+# FOLDER HARMONISATION (owner ruling): '&' colour form, own Cooldown block, spectator refusal as its own ability.
+display: "World Destroyer Pet"
+color: "&e"
+type: ACTIVE
+# head: the per-type skull texture is not recorded in the matrix (codex carries the profile, not the base64).
+descriptor:
+  - "§7§7A fragment of the legendary"
+  - "§7§7World Destroyer, Yijki."
+# Verbatim ability block; the `(3s)` is the source's own claim about a 5 s cage. The `§7§f§lAbility` and
+# `§7§f§lCooldown` headers and the cooldown value line (`§7§75 minutes`, no leading space) are authored here,
+# verbatim — note the lore's 5 minutes is itself the D-12-34 disagreement with the code's 10.
+description:
+  - "§7"
+  - "§7§f§lAbility"
+  - "§7§7Summon the power of Yijki's"
+  - "§7§7[§5Dimensional Cage§7] ability (3s)"
+  - "§7"
+  - "§7§f§lCooldown"
+  - "§7§75 minutes"
+# 1000 + 500 × level to a cap of 4 (2000/2500/3000; 7500 total, 1500 uses at 5 XP each).
+exp-curve: { base: 1000, per-level: 500 }
+max-level: 4
+levels:
+  # ONE bracket: nothing about this pet reads its level.
+  1:
+    cooldown: 12000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          # The cage itself is owed a per-victim shell primitive (header): floor/roof OBSIDIAN, walls OBSIDIAN
+          # (port pick, D-12-31), width 3, depth 3, height 3, rise 0, ticks 100.
+          - { MESSAGE: { text: "§5§l** DIMENSIONAL CAGE §7[§c3s§7]§5§l **", who: "@Aoe{r=30, filter=ENEMIES}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 2.0, pitch: 2.0, who: "@Aoe{r=30, filter=ENEMIES}" } }
+          - { POTION: { effect: "BLINDNESS", level: 101, duration: 200, who: "@Aoe{r=30, filter=ENEMIES}" } }
+          - { POTION: { effect: "POISON", level: 19, duration: 100, who: "@Aoe{r=30, filter=ENEMIES}" } }
+          - { POTION: { effect: "WITHER", level: 19, duration: 100, who: "@Aoe{r=30, filter=ENEMIES}" } }
+          - { FREEZE: { duration: 55, dot: 7, dot-period: 5, slow: 0, neutralize-frost-slow: false, who: "@Aoe{r=30, filter=ENEMIES}" } }
+          - { ITEM_XP_TRACK: { amount: 5, level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET: ** DIMENSIONAL CAGE **" } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 10.0, pitch: 2.0 } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }

@@ -3,21 +3,30 @@
 # the full set's own multiplier, reproduced by crystals alone.
 display: "Dimensional Traveler"
 # description: not matrix-recorded (factual paraphrase; percent and colour from the set's `§5` bonus block).
-# The jar's crystal lore advertises "20%" for the Dimensional Shift roll against a measured 0.2% per piece;
-# the advertised line is not reproduced here because the roll it describes does not ship yet (below).
+# The "20%" the jar's crystal lore advertises for the Dimensional Shift roll ships now that the roll it names
+# does — the advert is the jar's own, against a measured 0.2% per piece, and the mismatch is the jar's too
+# (recorded on sets/dimensional-traveler.yml).
 description:
   - "§5§lTRAVELER CRYSTAL BONUS"
   - "§5* You deal 7.5% more damage"
+  - "§5* 20% Dimensional Shift Ability"
   - "§5* Traveler Crystal is stackable"
 tier: legendary  # (port-chosen) see phantom.yml
 applies-to: [ARMOR]
 stackable: true
-# PENDING (deferred-content.md, partial entries): the crystal's second half is a Dimensional Shift roll on
-# every INCOMING hit at 0.002 x crystal-bearing pieces (0.2% per piece — measured; the lore says 20%). The
-# roll is authorable; its payload is the set's, and it is the largest payload in the family (freeze, the
-# Clarity-gated blindness, the slow, two cues, the target line and a two-material FALLING_BLOCK field with
-# the whole layer/density/re-hit profile). The armour-set batch has not authored it, and forking it here
-# would fork every one of those numbers. The rider lands with the set, from one reading.
+# The shift rider fires once per crystal-bearing piece, which is how every per-piece crystal number in this
+# family scales — so the authored rate is the ONE-piece rate, 0.2 %, the jar's `0.002 x pieces` at n = 1.
+# The payload below is sets/dimensional-traveler.yml's, copied in the same sitting from that one reading: the
+# freeze, the Clarity-shed blindness, the slow, both cues, the target line and the two-material FALLING_BLOCK
+# field with its whole layer/density/re-hit profile. If either copy is retuned, both must move together.
+# TWO CLAUSES OF THE SET'S READING DO NOT TRAVEL, recorded rather than faked:
+#  * the POLTERGEIST REBATE. The set splits its 1 % between the shift and a verbatim immune line; here the
+#    rebate would be 0.025 pp of a 0.2 % roll, and its message rung would double-print for anyone wearing the
+#    set AND a crystal. The rider keeps its whole rate; the set keeps the rebate.
+#  * the IMPACT LANDING PAYLOAD. A landing block fires the ACTOR's IMPACT abilities, and the set owns the only
+#    one — so a wearer who carries crystals WITHOUT completing the set rains blocks that land for nothing.
+#    A second IMPACT rung here would fix that case and double-bill every landing for a wearer who has both,
+#    which is worse; it closes with the group-scoped IMPACT identity (deferred-content.md).
 # The set's damage hook carries NO Infinite Luck check, and the crystal path never had one either, so the fold
 # below is unconditional. Worded to match crystals/koth.yml rather than claiming exclusivity: the matrix awards
 # that twice and cannot mean both — § Dimensional Traveler calls this hook "unique among damage sets" while
@@ -27,3 +36,26 @@ stackable: true
 # is named on that row.
 abilities:
   - { trigger: ATTACK, effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 7.5 } } ] }
+  # The set's own "dungeon" world gate rides its defensive rungs; the crystal path carries the same gate, from
+  # the same reading — a shift is a shift whichever piece armed it.
+  - trigger: DEFENSE
+    chance: 0.2
+    # The IMPACT scope (ADR-0074 §4), the SAME interned string as the set's arm and payload: a crystal-armed
+    # landing fires the set's shift payload — the one ability in the group — and never the wearer's whole
+    # IMPACT roster. A wearer carrying this crystal WITHOUT the set has no ability in the group, which is the
+    # recorded payload gap above, unchanged.
+    group: "dimensional-shift"
+    condition: "(%actor.world% contains \"dungeon\") : %stop%"
+    effects:
+      - { FREEZE: { duration: 80, dot: 0, slow: 100, who: "@Aoe{r=25, filter=ENEMIES}" } }
+      - { POTION: { effect: BLINDNESS, level: 1, duration: 60, who: "@Aoe{r=25, filter=ENEMIES}" } }
+      - { POTION: { effect: SLOW, level: 1, duration: 80, who: "@Aoe{r=25, filter=ENEMIES}" } }
+      # Both cues at dy: 4 and the freeze line on {RELATION_COLOR} — byte-identical to the set's copies after
+      # the 2e.3 lift, per this file's own rule that if either copy is retuned both move together.
+      - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1.0, pitch: 1.1, dy: 4, who: "@Aoe{r=25, filter=ENEMIES}" } }
+      - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 1.0, pitch: 1.1, dy: 4, who: "@Aoe{r=25, filter=ENEMIES}" } }
+      - { MESSAGE: { text: "§5§l** DIMENSIONAL SHIFT (§c{RELATION_COLOR}{ATTACKER} [4s]§5§l) **", who: "@Aoe{r=25, filter=ENEMIES}" } }
+      - { FALLING_BLOCK: { material: END_STONE, material2: NETHERRACK, radius: 4, height: 10, ttl: 100,
+            layers-min: 3, layers-max: 4, layer-step-min: 12, layer-step-max: 19, density: 50,
+            damage-percent: 15, health-cap: 44, rehit-max: 4, rehit-window: 200, kill-material: COBWEB,
+            who: "@Aoe{r=25, filter=ENEMIES}" } }

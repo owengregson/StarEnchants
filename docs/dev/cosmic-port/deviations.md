@@ -150,7 +150,7 @@ corpus-wide row.
 | D-12-20 | `pets/blackscroll` | Cooldown 0 s | `12-pets.md` §A.6 | 900 s (18 000 t) | Family-wide inverted cooldown arithmetic |
 | D-12-21 | `pets/alchemist` | Delivers one fewer item than advertised (2/2/2/2/3/3/3/3/3/3) behind a dead level-10 arm | `12-pets.md § Alchemist Pet` | Advertised counts: 3 (L1–4), 4 (L5–9), 5 (L10) | Off-by-one plus a short-circuited branch; the lore is the intent |
 | D-12-22 | `pets/alchemist` | Cooldown 0 s | `12-pets.md` §A.6 | 43 200 s / 12 h | Family-wide inverted cooldown arithmetic |
-| D-12-23 | `pets/gaia` | Nearby mobs are removed silently — no drops, no XP, no death event | `12-pets.md § Gaia Pet` | `KILL` yields vanilla deaths | No engine primitive erases a mob silently, as D-02-3 |
+| D-12-23 | `pets/gaia` | Nearby mobs are removed silently — no drops, no XP, no death event | `12-pets.md § Gaia Pet` | `DESPAWN` — the same silent removal, so the deviation is NOT taken | `DESPAWN` ships and erases a mob silently, as D-02-3; `KILL` was only ever the interim if that gap were cut |
 | D-12-24 | `pets/gaia` | XP is 50 on the warzone tier | `12-pets.md § Gaia Pet` | 5 flat | The warzone tier needs faction territory, which has no engine analogue |
 | D-12-25 | `pets/gaia` | Cooldown 0 s | `12-pets.md` §A.6 | 600 s (12 000 t) | Family-wide inverted cooldown arithmetic |
 | D-12-26 | `pets/enchanter` | Cooldown 0 s | `12-pets.md` §A.6 | 3600 s (72 000 t) | Family-wide inverted cooldown arithmetic |

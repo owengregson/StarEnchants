@@ -1,0 +1,214 @@
+# Matrix: 12-pets.md § Stronghold Sell Pet
+# ── FAMILY FACTS (matrix 12 §A, shared by all 17 pets) ─────────────────────────────────────────────────────
+# A pet is a textured player head held in the hotbar; the ability fires on RIGHT-CLICK, which is this engine's
+# implicit USE trigger on an ACTIVE pet (the jar had no action filter and fired on left-click and physical
+# interactions too — ledger D-12-1 ships the as-intended right-click-only reading). The jar's 1 Hz hotbar
+# ticker is a no-op for every pet, so nothing passive is ported.
+# SPECTATOR GUARD: every pet refuses while spectating. The refusal is its OWN ability, so its verbatim line
+# `§c§lPET: §cYou cannot use that ability while spectating!` renders instead of the universal
+# `pets.message-on-fail`; it authors `cooldown: 0`, so a refused click still burns nothing.
+# COOLDOWN: the jar computed `cooldown − now − last-used`, always a large negative, so NO pet cooldown ever
+# blocked and the on-cooldown branch was dead code (§A.6). Ledger D-12-27 ships the AS-INTENDED 1800 s
+# (36 000 t) here. It is the bracket `cooldown:`, i.e. the engine's own pet-wide scope, so the running
+# cooldown survives a level-up that crosses a bracket floor; the `pets.message-on-cooldown` line is the
+# family string and lives in config.yml, not here.
+# XP: pets earn ONLY from using their own ability, never from kills. `ITEM_XP_TRACK` carries the cosmic
+# semantics (one level per grant, remainder banked, unbounded banking at the cap) and the two verbatim lines;
+# the ladder is this pet's own `exp-curve` + `max-level`. The jar's always-empty/overflowing 50-segment EXP
+# bar is the D-12-2 render bug — the engine renders a proportional bar clamped at full (10 slots, family-level
+# likeness detail recorded in items/pet.yml, not here).
+# ── THIS PET ───────────────────────────────────────────────────────────────────────────────────────────────
+# Arms a `/sh sell` window whose length scales with level. The SET_VAR *is* the payload: an external
+# stronghold/outpost system is supposed to read the window, and NO READER EXISTS ANYWHERE in the decompiled
+# tree (codex-UNRESOLVED) — so what ships here is the window, its feedback and its XP, and nothing consumes
+# it in this port. R9-adjacent (it enables a SELL flow), but the matrix records no R9 treatment for this
+# entry: the steps below are all on-surface, so they are authored and the far side is a deferred stop.
+# `shsell` is the matrix's `sh-sell` var, hyphen-free so it reads back as `%shsell%` in the guard. It doubles
+# as the jar's one genuinely working guard — the "already active" refusal (`§c§lPET: §cYou already have an
+# active /sh sell effect!`), which has no ability of its own (only the family's spectator line does), so the
+# universal `pets.message-on-fail` answers it. Under the as-intended 30 min cooldown the guard can never
+# actually bite (the longest window is 60 s), and the jar's expiry-fires-even-after-re-arm quirk is
+# unreachable with it.
+# The bracket `duration:` mirrors the window so the engine's armed window and the var expire together. The
+# jar's scheduled `§c§lPET: /sh sell ability expired!` has no counterpart: the only line the surface could
+# close a window with is the universal `pets.message-on-end`, which this pack blanks (it would fire on every
+# pet's refusal branches too, and a per-pet expiry string has no home). Recorded, not faked.
+# era: `DIG_SNOW` is the 1.7/1.8 name of the snow-break cue and has NO row in the sound alias table — the
+# modern spelling is authored here per pack convention and the alias row is owed (a token that resolves on
+# only one era tree is a blocking diagnostic there). `WITHER_SHOOT → ENTITY_WITHER_SHOOT` already resolves
+# both ways. `SKULL_ITEM:3 → PLAYER_HEAD` and the head texture are the shared pet likeness's problem.
+# FOLDER HARMONISATION (owner ruling): '&' colour form, own Cooldown block, spectator refusal as its own ability.
+display: "Stronghold Sell Pet"
+color: "&e"
+type: ACTIVE
+# head: the per-type skull texture is not recorded in the matrix (codex carries the profile, not the base64).
+descriptor:
+  - "§7§7A beast born from the chaos of"
+  - "§7§7the contested strongholds of this planet."
+# The ability line is verbatim EXCEPT its `{duration}s` token: pet lore has no per-bracket token (the
+# renderer fills COLOR/NAME/TIME_FORMATTED/LEVEL/MAX_LEVEL/EXP/EXP_NEXT/EXP_BAR and nothing else), and an
+# unknown brace renders literally, so the level-1 value ships. Full ladder: 15/20/25/30/35/40/45/50/55/60 s.
+# The `§7§f§lAbility` and `§7§f§lCooldown` headers and the cooldown value line (`§7§7 30 Minutes`, leading
+# space included) are authored here, verbatim: the likeness carries only the name and the Level/EXP tail.
+description:
+  - "§7"
+  - "§7§f§lAbility"
+  - "§7§7Enable /sh sell for: §f15s"
+  - "§7"
+  - "§7§f§lCooldown"
+  - "§7§7 30 Minutes"
+# Flat 500 per level to a cap of 10 — the cheapest ladder in the family (4500 total, 900 uses at 5 XP each).
+exp-curve: { base: 500, per-level: 0 }
+max-level: 10
+levels:
+  # Window = (10 + 5 × level) s; cooldown is level-independent (D-12-27, as-intended 1800 s).
+  1:
+    cooldown: 36000
+    duration: 300
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %shsell% != 1'
+        effects:
+          - { SET_VAR: { name: "shsell", value: "1", ttl: 300, who: "@Self" } }
+          - { MESSAGE: { text: "§a§lPET: /sh sell enabled for: 15s!" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  2:
+    cooldown: 36000
+    duration: 400
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %shsell% != 1'
+        effects:
+          - { SET_VAR: { name: "shsell", value: "1", ttl: 400, who: "@Self" } }
+          - { MESSAGE: { text: "§a§lPET: /sh sell enabled for: 20s!" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  3:
+    cooldown: 36000
+    duration: 500
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %shsell% != 1'
+        effects:
+          - { SET_VAR: { name: "shsell", value: "1", ttl: 500, who: "@Self" } }
+          - { MESSAGE: { text: "§a§lPET: /sh sell enabled for: 25s!" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  4:
+    cooldown: 36000
+    duration: 600
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %shsell% != 1'
+        effects:
+          - { SET_VAR: { name: "shsell", value: "1", ttl: 600, who: "@Self" } }
+          - { MESSAGE: { text: "§a§lPET: /sh sell enabled for: 30s!" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  5:
+    cooldown: 36000
+    duration: 700
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %shsell% != 1'
+        effects:
+          - { SET_VAR: { name: "shsell", value: "1", ttl: 700, who: "@Self" } }
+          - { MESSAGE: { text: "§a§lPET: /sh sell enabled for: 35s!" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  6:
+    cooldown: 36000
+    duration: 800
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %shsell% != 1'
+        effects:
+          - { SET_VAR: { name: "shsell", value: "1", ttl: 800, who: "@Self" } }
+          - { MESSAGE: { text: "§a§lPET: /sh sell enabled for: 40s!" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  7:
+    cooldown: 36000
+    duration: 900
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %shsell% != 1'
+        effects:
+          - { SET_VAR: { name: "shsell", value: "1", ttl: 900, who: "@Self" } }
+          - { MESSAGE: { text: "§a§lPET: /sh sell enabled for: 45s!" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  8:
+    cooldown: 36000
+    duration: 1000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %shsell% != 1'
+        effects:
+          - { SET_VAR: { name: "shsell", value: "1", ttl: 1000, who: "@Self" } }
+          - { MESSAGE: { text: "§a§lPET: /sh sell enabled for: 50s!" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  9:
+    cooldown: 36000
+    duration: 1100
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %shsell% != 1'
+        effects:
+          - { SET_VAR: { name: "shsell", value: "1", ttl: 1100, who: "@Self" } }
+          - { MESSAGE: { text: "§a§lPET: /sh sell enabled for: 55s!" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  10:
+    cooldown: 36000
+    duration: 1200
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %shsell% != 1'
+        effects:
+          - { SET_VAR: { name: "shsell", value: "1", ttl: 1200, who: "@Self" } }
+          - { MESSAGE: { text: "§a§lPET: /sh sell enabled for: 60s!" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }

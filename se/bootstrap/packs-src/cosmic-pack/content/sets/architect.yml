@@ -20,39 +20,79 @@ armor:
   enchants:
     UNBREAKING: 3
     PROTECTION: 4
-  # Matrix-recorded physical facts with NO authoring surface today — a set carries ONE armor.lore for all four
-  # pieces, a piece takes only material + name (SetDefReader MEMBER_KEYS), and neither a leather dye nor a
-  # custom armour value / durability has a home — so they are recorded here instead of lost:
-  #   dye #2239B9 (decimal 2243001, deep royal blue) — Death Knight's dye, shared; the Architect Mastery Shard
-  #     is visually identical to Death Knight's apart from its name
-  #   NO flavour lore on any piece (as Death Knight, measured), so the whole lore block is the heroic append
-  #     and lore: below carries only its piece-independent tail
-  #   per-piece heroic append:
+  # The dye and the named roster rolls are authored on the `pieces:` members below, byte-for-byte as
+  # sets/death-knight.yml authors them. NO member carries `lore:`, and that absence is the measured fact (as
+  # Death Knight): these pieces were built with no flavour at all, so the whole lore block is the heroic
+  # append and `lore:` here carries only its piece-independent tail.
+  # What STILL has no home is recorded here:
+  #   per-piece heroic append — a member's `lore:` prints ABOVE the shared block, and this pair belongs
+  #     between its blank and its last line:
   #     helmet "§7+2 Armor Value" / "§7810 Durability"    chestplate "§7+4 Armor Value" / "§71000 Durability"
   #     leggings "§7+3 Armor Value" / "§7935 Durability"  boots "§7+2 Armor Value" / "§7686 Durability"
   #   armour values halved by the M-Kit rule: 2/4/3/2 (11 across the set, against 20 for non-M-Kit gear)
+  #   the per-slot durabilities 810/1000/935/686
   #   per-piece M-Kit incoming reduction: chest 16 %, legs 13 %, boots 8 %, helm 8 % — folded into the single
   #     completion bonus below, at the measured full-set total
-  #   boots carry `Gears` at MAX, guaranteed (armor.enchants above is set-wide and would stamp all four)
-  #   per-piece custom-enchant rosters, each rolled at the family's nearly-maxed draw min(M, max(1, M-2) + rand(3))
-  #   over the entry's own max level M (the `N base` count draws from a codex-side base roster the matrix does
-  #   not enumerate):
-  #     helmet     9 base + 60 % Valor/Angelic/Tank + 20 % Paladin Armored + 17.5 % Alien Implants
-  #                + 35 % Immortal
-  #     chestplate 9 base + 60 %x3 + 20 % Paladin Armored + 17.5 % Godly Overload + 22.5 % Planetary
-  #                Deathbringer + 22.5 % Divine Enlighted + 15 % Vengeful Diminish
-  #     leggings   8 base + 60 %x3 + 20 % Paladin Armored + 30 % Immortal
-  #     boots      8 base + Gears max + 60 % Valor/Angelic ONLY + 20 % Paladin Armored + 22.5 % Ethereal Dodge
-  #                + 12.5 % Guided Rocket Escape, and no Phoenix re-roll — the missing Tank roll travels with
-  #                the copy, as does Immortal on two pieces (35 % helm, 30 % legs)
+  #   the `N base` roster each piece draws from at the family's nearly-maxed draw min(M, max(1, M-2) + rand(3)):
+  #     the codex gives only its SIZE (9/9/8/8) and never enumerates an entry, so there is nothing for the roll
+  #     form to name
+  #   the HALF-POINT probabilities: a roster entry's `chance` is an integer percent, so 17.5 % Alien Implants
+  #     (helmet), 17.5 % Godly Overload / 22.5 % Planetary Deathbringer / 22.5 % Divine Enlighted (chest) and
+  #     22.5 % Ethereal Dodge / 12.5 % Guided Rocket Escape (boots) have no spelling
+  # The copy carries Death Knight's quirks whole: the boots roll Valor and Angelic at 60 % but NOT Tank, take
+  # no Phoenix re-roll, and Immortal rolls on two pieces (35 % helm, 30 % legs).
   lore:
     - ""
     - "§4This armor is stronger than diamond."
+  # Every piece is #2239B9 leather (decimal 2243001, deep royal blue) — Death Knight's dye, shared; the
+  # Architect Mastery Shard is visually identical to Death Knight's apart from its name.
+  # `heroic: true` is DELIBERATELY NOT set, though the pieces do mint heroic: the stamp routes
+  # items/heroic.yml's per-piece reduction into the same additive channel `DamageFold` gives the 45 %
+  # completion row below, and that row already IS this set's heroic wall folded — stamping the members would
+  # bill it twice (45 + 27). Blocked on the M-Kit's own steeper heroic tier, which is a second grade of
+  # items/heroic.yml and not a gap in this surface (ADR-0073).
+  # `Gears` at MAX is guaranteed on the boots and boots only — armor.enchants above is set-wide and would
+  # stamp all four.
   pieces:
-    helmet:     { material: LEATHER_HELMET,     name: "§9§lCrown of the Lich King" }
-    chestplate: { material: LEATHER_CHESTPLATE, name: "§9§lDeath Knight Platebody" }
-    leggings:   { material: LEATHER_LEGGINGS,   name: "§9§lDeath Knight Leggings" }
-    boots:      { material: LEATHER_BOOTS,      name: "§9§lBoots of the Scourge" }
+    helmet:
+      material: LEATHER_HELMET
+      name: "§9§lCrown of the Lich King"
+      color: "#2239B9"
+      enchants:
+        enchants/valor: { chance: 60, nearly-maxed: 5 }
+        enchants/angelic: { chance: 60, nearly-maxed: 5 }
+        enchants/tank: { chance: 60, nearly-maxed: 4 }
+        enchants/paladin-armored: { chance: 20, nearly-maxed: 4 }
+        enchants/immortal: { chance: 35, nearly-maxed: 4 }
+    chestplate:
+      material: LEATHER_CHESTPLATE
+      name: "§9§lDeath Knight Platebody"
+      color: "#2239B9"
+      enchants:
+        enchants/valor: { chance: 60, nearly-maxed: 5 }
+        enchants/angelic: { chance: 60, nearly-maxed: 5 }
+        enchants/tank: { chance: 60, nearly-maxed: 4 }
+        enchants/paladin-armored: { chance: 20, nearly-maxed: 4 }
+        enchants/vengeful-diminish: { chance: 15, nearly-maxed: 6 }
+    leggings:
+      material: LEATHER_LEGGINGS
+      name: "§9§lDeath Knight Leggings"
+      color: "#2239B9"
+      enchants:
+        enchants/valor: { chance: 60, nearly-maxed: 5 }
+        enchants/angelic: { chance: 60, nearly-maxed: 5 }
+        enchants/tank: { chance: 60, nearly-maxed: 4 }
+        enchants/paladin-armored: { chance: 20, nearly-maxed: 4 }
+        enchants/immortal: { chance: 30, nearly-maxed: 4 }
+    boots:
+      material: LEATHER_BOOTS
+      name: "§9§lBoots of the Scourge"
+      color: "#2239B9"
+      enchants:
+        enchants/gears: 3   # guaranteed, at Gears' own max
+        enchants/valor: { chance: 60, nearly-maxed: 5 }
+        enchants/angelic: { chance: 60, nearly-maxed: 5 }   # no Tank roll here — measured, reproduced
+        enchants/paladin-armored: { chance: 20, nearly-maxed: 4 }
 # Behaviours. The jar grants the M-Kit reduction PER WORN PIECE (§C.3-C.5); the engine gates a set bonus on
 # completion, so the four component stats fold into this one 4/4 bonus at their measured full-set 45 %.
 # Additive here, multiplicative in the jar (project-wide damage model, a global ADR — not a per-item deviation).

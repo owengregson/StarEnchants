@@ -1,0 +1,45 @@
+# Matrix: 12-pets.md § Family-level facts — the ONE pet likeness (ADR-0052) every one of the 17 heads in
+# content/pets/ is minted and re-rendered from. There is no per-pet item file: a pet's colour, display name,
+# flavour block and ability body live in its own content file, and this template holds only what the whole
+# family shares — the name and the Level/EXP tail.
+# Tokens: {COLOR} the pet's colour codes, {NAME} its display, {DESCRIPTOR} its flavour line(s),
+# {DESCRIPTION} its ability body (which carries the family's own `§7§f§lAbility` / `§7§f§lCooldown` headers
+# and cooldown value line — those are per-pet here, not template text), {LEVEL} / {MAX_LEVEL} / {EXP} /
+# {EXP_NEXT} the stored progress, {EXP_BAR} the progress meter, {TIME_FORMATTED} the live bracket's cooldown.
+type: pet
+
+# The name is the source's, verbatim: `§e§lLava Elemental Pet§7 [LVL 1]`. `{COLOR}` is the pet's `&e` and the
+# `&l` here is the bold the source's `§e§l` carried, which is why no pet file authors its own bold. `{NAME}`
+# holds the FULL source name, "Pet" included, so the template adds no literal text of its own.
+name: "{COLOR}&l{NAME}&7 [LVL {LEVEL}]"
+# The recorded tail, verbatim, after the flavour block and the ability body:
+#   `§7` / `§f§lLevel` / `§7 {level}` / `§7` / `§f§lEXP` / `{bar}` / `§7 ({exp}/{needed})`
+# THE BAR IS TEN SLOTS, NOT FIFTY (ledger D-12-2). The jar drew 50 segments through an integer division that
+# rendered the bar always EMPTY below the cap and overflowing past 50 segments AT it (codex §A.5) — never the
+# proportional meter it was written to be. `{EXP_BAR}` is the engine's ten-slot meter, proportional and
+# clamped full at the cap, which IS the as-intended reading; the segment COUNT is the visible divergence and
+# is recorded rather than reproduced (a 50-segment bar has no spelling, and the shape it had in play was a
+# bug, not a look).
+lore-active:
+  - "{DESCRIPTOR}"
+  - "{DESCRIPTION}"
+  - "§7"
+  - "§f§lLevel"
+  - "§7 {LEVEL}"
+  - "§7"
+  - "§f§lEXP"
+  - "{EXP_BAR}"
+  - "§7 ({EXP}/{EXP_NEXT})"
+# All 17 cosmic pets are ACTIVE (the jar's 1 Hz hotbar ticker is a no-op for every one of them, so nothing
+# passive is ported). The passive template is the same tail rather than absent, so that a passive pet added
+# later renders in THIS family's likeness instead of falling back to the engine's own default block.
+lore-passive:
+  - "{DESCRIPTOR}"
+  - "{DESCRIPTION}"
+  - "§7"
+  - "§f§lLevel"
+  - "§7 {LEVEL}"
+  - "§7"
+  - "§f§lEXP"
+  - "{EXP_BAR}"
+  - "§7 ({EXP}/{EXP_NEXT})"

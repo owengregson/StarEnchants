@@ -31,7 +31,7 @@ final class PetDefReader {
 
     private static final Set<String> ROOT_KEYS = Set.of(
             "display", "color", "type", "head", "material", "descriptor", "description", "permission",
-            "message-on-no-home", "levels");
+            "message-on-no-home", "exp-curve", "max-level", "levels");
     private static final Set<String> ABILITY_KEYS = ContentParse.withEnvelopeKnobs(
             "trigger", "disabled-worlds", "repeat", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
             "no-souls-message",

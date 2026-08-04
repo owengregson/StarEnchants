@@ -1,0 +1,196 @@
+# Matrix: 12-pets.md § Feign Death Pet
+# THE PET FAMILY SHAPE (12-pets.md § Family-level facts) is read once in `anti-teleblock.yml` and not repeated
+# here: ACTIVE pet = right-click = the implicit USE trigger (D-12-1), the as-intended cooldown ships as the
+# bracket `cooldown:`, progression is this pet's own `exp-curve` + `max-level` through ITEM_XP_TRACK, and the
+# `items/pet.yml` + `config.yml` likeness is authored once for the folder.
+# COOLDOWN: 12 000 t = the as-intended 600 s (ledger D-12-8) — PLUS the shared 10 s window below, which is the
+# only gate that ever worked in the measured jar.
+# THE SHARED WINDOW IS THE POINT OF THIS ENTRY. `feignwindow` is one var written and read by BOTH this pet
+# and the GHOST-set Feign Death mastery (matrix/07 § Feign Death, still unauthored): using the pet consumes
+# the mastery's 10 s lockout and vice-versa, which is what stops a pet click from stacking on a natural proc.
+# The var name here IS the contract — the mastery file must write the same `feignwindow` (ttl 200, the
+# matrix's `feign-window` spelled hyphen-free so it reads back as `%feignwindow%`) and read it before its
+# own roll, INSTEAD of expressing its lockout as an ability cooldown, which would leave the two independent.
+# The vanish var is the second half of the contract: `mastery.feign.vanished` is the name matrix/07 records
+# for its companion ghost-hit ability, so a pet vanish is visible to it too. The pet bypasses the mastery's
+# proc roll entirely and guarantees the vanish; that is the whole difference between them.
+# ORDER IS LOAD-BEARING, six abilities per bracket. SET_VAR writes straight through to the var store, so the
+# payload at index 0 stamps `feign.fired` (a 1-tick marker) and every follow-up gates on it: the two XP tiers
+# and the window-arm all fire only behind a real activation, and the window refusal explicitly excludes it
+# (`%feign.fired% != 1`) so a SUCCESSFUL use cannot read the window it just armed and answer itself with the
+# "wait 10s" line. The arm sits after the payload and both XP tiers for the same reason. Index 0 carries
+# the pet-wide cooldown scope
+# (`pet:<key>`); every follow-up authors `cooldown: 0`. Both refusals are conditions, so gate 6 releases the
+# reservation and a refused click burns no cooldown.
+# VANISH IS HIDE-ONLY, the shipped primitive: a packet-level hide from every player, ending on the timer or
+# after `break-hits` of the actor's OWN landed hits (damage taken never spends one — measured, and structural
+# in the effect). PENDING, the polish decision this file is waiting on: the jar also spawned an unequipped
+# decoy corpse at the actor's position that played the death animation and was destroyed after 30 t, and it
+# emitted `§4§l* Feign Death - UNVANISHED *` when the window ended by either route. Neither has a surface —
+# VANISH takes no decoy and emits no end hook — so neither is authored, and the corpse-ticks value (30 t) and
+# that one string stay in the matrix entry until the decoy/end-hook lands.
+# XP: 5 in combat, 1 out of it (D-12-7 collapses the jar's third tier — 50 in a warzone — into the in-combat
+# 5, faction territory having no engine analogue; the jar's own quirk that an out-of-combat warzone use still
+# paid 1 disappears with it). BOTH tiers are authored, and the in-combat one is INERT today: a USE activation
+# is built with no combat context, so `%recentattackers%` reads 0 on every pet click and the out-of-combat
+# arm answers every use. The moment the store is sourced into the USE context the ladder works as recorded —
+# the shape is authored now so nothing here needs rewriting then.
+# era: `DIG_SNOW` / `WITHER_SHOOT` are the 1.8 spellings; the modern names ship per the pack convention.
+# `WITHER_SHOOT`->`ENTITY_WITHER_SHOOT` is already in `Aliases.SOUND`; `DIG_SNOW`->`BLOCK_SNOW_BREAK` is owed
+# (legacy sweep), so that one cue is silent on the legacy lane until it lands. Titles are fine on 1.8.9, and
+# the hide itself is the primitive's own era seam (1.8 datawatcher vs modern metadata).
+display: "Feign Death Pet"
+color: "&e"
+type: ACTIVE
+# head: the per-pet skull texture is not matrix-recorded, so no `head:` is authored and the mint falls back to
+# a plain PLAYER_HEAD.
+descriptor:
+  - "§7§7A ghastly pet that can"
+  - "§7§7control death itself."
+# Verbatim; the bare `§7` lines are the source's own blank separators. Nothing in this body is level-varying,
+# so the family's pinned-at-level-1 rule never bites here.
+description:
+  - "§7"
+  - "§7§f§lAbility"
+  - "§7§7Fake your own death."
+  - "§7§7[§4Feign Death§7]"
+  - "§7"
+  - "§7§f§lCooldown"
+  - "§7§7 10 Minutes"
+max-level: 4
+exp-curve: { base: 0, per-level: 750 }   # `level x 750`: 1500/2250/3000, 6750 to cap 4
+levels:
+  # Vanish `level x 1.5 s` = 30/60/90/120 t; free outgoing hits before the early break = level (1–4).
+  # The `{seconds}` readout is written out per bracket rather than bound through MESSAGE `tokens:`, which
+  # renders a whole number bare (3, not 3.0) — the source prints the raw one-decimal value.
+  1:
+    cooldown: 12000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %feignwindow% != 1'
+        effects:
+          - { SET_VAR: { name: "feign.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { VANISH: { duration: 30, break-hits: 1, var: "mastery.feign.vanished", who: "@Self" } }
+          - { MESSAGE: { channel: title, text: "§c§lFeign Death", subtitle: "§c1.5" } }
+          - { MESSAGE: { text: "§4§l* Feign Death - VANISHED [1.5s] *" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 3.0, pitch: 0.9 } }
+      - condition: '%feign.fired% == 1 && %recentattackers% > 0'
+        cooldown: 0
+        effects:
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%feign.fired% == 1 && %recentattackers% == 0'
+        cooldown: 0
+        effects:
+          - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%feign.fired% == 1'
+        cooldown: 0
+        effects:
+          - { SET_VAR: { name: "feignwindow", value: "1", ttl: 200, who: "@Self" } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %feignwindow% == 1 && %feign.fired% != 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait at least 10s in between feign death use!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  2:
+    cooldown: 12000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %feignwindow% != 1'
+        effects:
+          - { SET_VAR: { name: "feign.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { VANISH: { duration: 60, break-hits: 2, var: "mastery.feign.vanished", who: "@Self" } }
+          - { MESSAGE: { channel: title, text: "§c§lFeign Death", subtitle: "§c3.0" } }
+          - { MESSAGE: { text: "§4§l* Feign Death - VANISHED [3.0s] *" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 3.0, pitch: 0.9 } }
+      - condition: '%feign.fired% == 1 && %recentattackers% > 0'
+        cooldown: 0
+        effects:
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%feign.fired% == 1 && %recentattackers% == 0'
+        cooldown: 0
+        effects:
+          - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%feign.fired% == 1'
+        cooldown: 0
+        effects:
+          - { SET_VAR: { name: "feignwindow", value: "1", ttl: 200, who: "@Self" } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %feignwindow% == 1 && %feign.fired% != 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait at least 10s in between feign death use!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  3:
+    cooldown: 12000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %feignwindow% != 1'
+        effects:
+          - { SET_VAR: { name: "feign.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { VANISH: { duration: 90, break-hits: 3, var: "mastery.feign.vanished", who: "@Self" } }
+          - { MESSAGE: { channel: title, text: "§c§lFeign Death", subtitle: "§c4.5" } }
+          - { MESSAGE: { text: "§4§l* Feign Death - VANISHED [4.5s] *" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 3.0, pitch: 0.9 } }
+      - condition: '%feign.fired% == 1 && %recentattackers% > 0'
+        cooldown: 0
+        effects:
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%feign.fired% == 1 && %recentattackers% == 0'
+        cooldown: 0
+        effects:
+          - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%feign.fired% == 1'
+        cooldown: 0
+        effects:
+          - { SET_VAR: { name: "feignwindow", value: "1", ttl: 200, who: "@Self" } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %feignwindow% == 1 && %feign.fired% != 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait at least 10s in between feign death use!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  4:
+    cooldown: 12000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %feignwindow% != 1'
+        effects:
+          - { SET_VAR: { name: "feign.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { VANISH: { duration: 120, break-hits: 4, var: "mastery.feign.vanished", who: "@Self" } }
+          - { MESSAGE: { channel: title, text: "§c§lFeign Death", subtitle: "§c6.0" } }
+          - { MESSAGE: { text: "§4§l* Feign Death - VANISHED [6.0s] *" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 3.0, pitch: 0.9 } }
+      - condition: '%feign.fired% == 1 && %recentattackers% > 0'
+        cooldown: 0
+        effects:
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%feign.fired% == 1 && %recentattackers% == 0'
+        cooldown: 0
+        effects:
+          - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%feign.fired% == 1'
+        cooldown: 0
+        effects:
+          - { SET_VAR: { name: "feignwindow", value: "1", ttl: 200, who: "@Self" } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %feignwindow% == 1 && %feign.fired% != 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait at least 10s in between feign death use!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+# interactions: the vanish, the 10 s window and the hit counter are all SHARED with the GHOST-set Feign Death
+# mastery (matrix/07) — one window, one vanish state, no stacking with a natural proc. The pet head itself is
+# an invalid helmet item (the masks family refuses to wear any pet head), which the mint already enforces.

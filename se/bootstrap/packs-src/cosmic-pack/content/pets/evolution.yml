@@ -1,0 +1,74 @@
+# Matrix: 12-pets.md § Evolution Pet
+# THE PET FAMILY SHAPE (12-pets.md § Family-level facts) is read once in `anti-teleblock.yml` and not repeated
+# here: ACTIVE pet = right-click = the implicit USE trigger (D-12-1), the as-intended cooldown ships as the
+# bracket `cooldown:`, progression is this pet's own `exp-curve` + `max-level` through ITEM_XP_TRACK, and the
+# `items/pet.yml` + `config.yml` likeness is authored once for the folder.
+# ITS PAYLOAD IS NOT IN THIS PORT. The ability raises the player's lowest-level eligible Evolution Kit by one
+# — an external kit system (codex-UNRESOLVED, and the `/vkit` flows are out of scope under ruling R3), with no
+# kits, no levels and no reader anywhere in this tree. So what ships is the envelope the matrix records on
+# THIS side of that boundary — the daily token, the as-intended cooldown, the level-up cue and the XP grant —
+# and the kit level-up is a deferred stop. Three things ride the absent system and are deliberately NOT
+# authored: the bonus double proc (`level x 1%` to repeat the payload, no XP, no message — the only per-level
+# value this pet has, which is why one bracket answers every level), the success line
+# `§a§lPET (§aEvolution Pet§a§l)§a:§f §a"{kit}§a" leveled to Level §a§n{level}§a!` (it names a kit that cannot
+# exist; a line printed over nothing is worse than silence), and the two failure lines with their
+# `ENTITY_VILLAGER_NO` cue. All four stay recorded in the matrix entry.
+# COOLDOWN: 3 456 000 t = the as-intended 48 h (ledger D-12-9; the measured jar's inverted arithmetic meant no
+# pet cooldown ever blocked). Cooldowns are in-memory and survive a relog, not a restart — a window this long
+# is the one place in the family where that matters.
+# THE DAILY TOKEN is `evotoken`, ttl 1 728 000 t = 24 h (ledger D-12-10: the jar's token was session-scoped
+# metadata though documented per-day). It is armed INSIDE the payload, so it burns only on a use that ran —
+# ledger D-12-11's "burned only on success" expressed by placement rather than by the jar's charge-then-check.
+# Under the as-intended 48 h cooldown the token can never be the blocking gate (it expires a day before the
+# cooldown does); it ships anyway because it is the recorded per-account rule, and its refusal line is the one
+# string of the three that CAN render truthfully. `evofired` is the 1-tick marker that keeps that refusal off
+# a successful use — the token is armed in the same activation, and SET_VAR writes straight through.
+# era: `LAVA_POP` is the 1.7/1.8 spelling; the modern name ships per the pack convention and
+# `LAVA_POP`->`BLOCK_LAVA_POP` has no row in `Aliases.SOUND` yet (owed with Lava's, legacy sweep), so the cue
+# is silent on the legacy lane until it lands. No other hazard.
+display: "Evolution Pet"
+color: "&e"
+type: ACTIVE
+# head: the per-pet skull texture is not matrix-recorded, so no `head:` is authored and the mint falls back to
+# a plain PLAYER_HEAD.
+descriptor:
+  - "§7§7One of the more helpful members"
+  - "§7§7of the mystical Mimic race,"
+  - "§7§7this object has the power to"
+  - "§7§7grant its owner extreme power!"
+# Verbatim; the bare `§7` lines are the source's own blank separators. The double-up chance line is the one
+# per-level lore number in this file that renders correctly — the source's `{level}` IS the percentage
+# (1 %…10 % = the pet's level), and `{LEVEL}` is a real likeness token, so it tracks the head as it levels.
+description:
+  - "§7"
+  - "§7§f§lAbility"
+  - "§7§7Increases level of lowest /vkit by 1,"
+  - "§7§7and a {LEVEL}% chance to double level up."
+  - "§7"
+  - "§7§f§lCooldown"
+  - "§7§7 48 Hours"
+max-level: 10
+exp-curve: { base: 1000, per-level: 0 }   # flat 1000 per level, 9000 to cap 10 — 18 uses at 500 XP each
+levels:
+  # ONE bracket: every per-level difference this pet has (the double-proc chance) rides the absent kit system,
+  # so a sparse floor of 1 answers at every level. Index 0 is the payload and carries the pet-wide cooldown
+  # scope; the refusal authors `cooldown: 0` and, being a condition, releases the gate-6 reservation — a
+  # refused click burns nothing.
+  1:
+    cooldown: 3456000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %evotoken% != 1'
+        effects:
+          - { SET_VAR: { name: "evofired", value: "1", ttl: 1, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 500, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { SET_VAR: { name: "evotoken", value: "1", ttl: 1728000, who: "@Self" } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %evotoken% == 1 && %evofired% != 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou can only use 1 /vkit pet per account, per day." } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+# interactions: the kit system is this pet's only counterpart — no enchant, set, crystal or mask touches it.

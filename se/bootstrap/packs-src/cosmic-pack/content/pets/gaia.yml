@@ -1,0 +1,183 @@
+# Matrix: 12-pets.md § Gaia Pet
+# An ACTIVE inventory pet whose WHOLE payload is the Nature's Wrath armour-enchant package at 50 % duration,
+# free of its soul cost: wipe every mob in range, then root, drain and weaken the hostile players around you.
+# `content/enchants/nature-wrath.yml` is the same package one door over — this file mirrors its authoring
+# choices deliberately, because the two ARE one behaviour and two readings of the same matrix rows would drift.
+#
+# FAMILY FACTS (matrix § Family-level facts, shared by all 17 entries; recorded once per file):
+#  - The jar fires on ANY interaction (no action filter, codex §A.2); as intended it is right-click only,
+#    which IS the engine's USE trigger (ledger D-12-1). The 1 Hz hotbar ticker is a no-op for every pet, so
+#    nothing passive is ported and this pet is `type: ACTIVE` with no worn ability.
+#  - COOLDOWN: the jar computes `cooldown − now − last-used`, always a large negative, so no pet cooldown ever
+#    blocked and its on-cooldown branch is dead code (codex §A.6). The AS-INTENDED value ships: 600 s =
+#    12 000 t (ledger D-12-25), on the engine's own gate-6 cooldown in place of the matrix's
+#    SET_VAR/`pet-cd-gaia` template.
+#  - XP: pets earn ONLY from using their own ability. `ITEM_XP_TRACK` carries the grant, the family's two
+#    verbatim lines and the one-level-per-grant/remainder-banked/unbounded-at-cap semantics; `exp-curve` +
+#    `max-level` carry this pet's ladder. The recorded 50-XP warzone tier needs faction territory, which has
+#    no engine analogue, so it collapses to the flat 5 (ledger D-12-24). The jar's always-empty/overflowing
+#    50-segment bar (codex §A.5) is replaced by the engine's proportional clamped bar (ledger D-12-2).
+#  - LORE SPLIT: `descriptor` is the flavour block and `description` the `§7§f§lAbility` body, both verbatim —
+#    and the body carries its own `§7§f§lAbility` / `§7§f§lCooldown` headers and cooldown value line
+#    (`§7§7 10 Minutes`). The pack's ONE pet likeness, `items/pet.yml`, holds the cosmic name template and the
+#    family's Level/EXP tail, and nothing else.
+#  - HEAD: the per-type skull texture is codex-side and not matrix-recorded, so no base64 is authored and the
+#    head mints untextured (PLAYER_HEAD). Family-wide across all 17 entries.
+#  - Pet heads are invalid helmet items (the masks family refuses to wear one) — an interaction-layer rule.
+# THE NO-TARGET GATE, and what it costs. The jar wipes the mobs FIRST and only then throws when no enemy
+# player is in range, so a mob-only click still cleared the mobs — for free, since the throw also skipped the
+# XP and the cooldown stamp. The engine cannot have both: a condition gates the WHOLE ability. Gating it (the
+# `cage.yml` idiom, and the shape `PetService` documents) keeps the half that matters — a failed use burns no
+# cooldown and earns no XP — and loses the free mob wipe, which as an unpriced, unlimited AoE mob-clear is the
+# side worth losing. Two further deltas ride the fact itself: `%nearbyenemies%` is a FIXED 8-block scan of
+# LIVING ENTITIES (mobs included), where the payload reaches 13–28 blocks and the jar's check was hostile
+# PLAYERS only — so a lone cow inside 8 blocks passes the gate and a player at 20 blocks does not open it.
+# The verbatim no-target line `§c§lPET: §cNo valid enemy players nearby!` is lost with it: a USE ability has
+# no per-condition feedback hook, so a failed condition sends the universal `pets.message-on-fail` template.
+# The family's spectator line is not — the folder ruling gives that one refusal an ability of its own.
+# WHAT THE PACKAGE DROPS, each for a reason another file already settled:
+#  - `POTION(JUMP, level=129)`: NOT shipped on either lane, by the pack-wide amplifier-128 ruling
+#    (`titan-trap.yml`, restated on `tombstone.yml` / `enchants/horrify`) — on 1.8 it is an integer overflow
+#    read as a no-jump lock, and on the modern lane it is a real and enormous jump that would fling the very
+#    targets the proc exists to pin. FREEZE's own walk lock IS the hold.
+#  - `POTION(SLOW, level=129)`: the amp-128 SLOW rung carries no overflow hazard, but `FREEZE(slow: 100)` is
+#    already a full movement stop and `nature-wrath.yml` ships the package without it. Kept out so the two
+#    files read as one behaviour.
+#  - the per-DoT-tick victim feedback — `§2§l** NATURE'S WRATH **`, `GHAST_SCREAM2` 2.0/2.0 and the SPELL
+#    burst at the victim: FREEZE has no per-pulse hook (only PERIODIC_DAMAGE does, and re-homing the DoT there
+#    would move its attribution). Recorded on the shared enchant's entry, dropped here as cosmetics.
+#  - the `wrath-active` per-victim re-proc guard: it is a property of each resolved AoE member, and nothing on
+#    the surface filters a selector by a per-target fact (the subject gap `enchants/pummel` and
+#    `nature-wrath.yml` both carry). Writing the var with no reader would be noise, so it is dropped; the
+#    pet's own 10-minute cooldown is the only re-proc pacing left.
+#  - the break-free roll: the matrix records `30 − 7.5 × L` % on the ENCHANT's entry and none on this one, so
+#    `breakout-chance` stays at its 0 default here — the pet's root is unbreakable for its (halved) window.
+# The mob wipe uses `DESPAWN`, not the matrix's `KILL`: the jar deletes via `remove()` — no drops, no XP, no
+# death event — which is exactly `DESPAWN`, so ledger D-12-23 (KILL would fire vanilla deaths and hand out the
+# loot the jar never dropped) is NOT taken. `nature-wrath.yml` ships the same verb under D-02-3.
+# interactions: this is a free, soul-cost-free proc of the Nature's Wrath armour enchant (matrix/02) at 50 %
+# duration. The Poltergeist mastery immunity that `nature-wrath.yml` splits its roll for has NO home here —
+# that split works by dividing a `chance:`, and this ability has no roll to divide (a pet click is
+# deterministic). Recorded, not faked: a Poltergeist wearer takes the pet's root where the enchant would spare
+# them at `12.5 % × level`. The jar's own exclusion list (WorldGuard PvP, spectator, gamemode, god/staff mode,
+# faction truce/ally, protection-flagged mobs, ender crystals) maps onto the ENEMIES filter plus the engine's
+# global PvP gates, and the koth-world short release depends on a named external world — recorded, not ported.
+# era: legacy particle names `LARGE_EXPLODE`/`SPELL` author as `EXPLOSION_LARGE`/`SPELL`, and `DIG_SNOW`,
+# `WITHER_SHOOT` and `ENDERDRAGON_GROWL` as their modern spellings. `WITHER_SHOOT` and `ENDERDRAGON_GROWL`
+# already have `Aliases.SOUND` rows; `DIG_SNOW → BLOCK_SNOW_BREAK` does NOT, so that one cue warn-skips on the
+# legacy fork until the sweep adds it. FREEZE's powder-snow presentation is 1.17+, so the legacy overlay falls
+# back to its potion-root form (the seam `nature-wrath.yml` records).
+# FOLDER HARMONISATION (owner ruling): '&' colour form, own Cooldown block, spectator refusal as its own ability.
+display: "Gaia Pet"
+color: "&e"
+type: ACTIVE
+descriptor:
+  - "§7§7A segment of the goddess"
+  - "§7§7of the earth and nature itself."
+description:
+  - "§7"
+  - "§7§f§lAbility"
+  # The matrix line reads `[§cNature Wrath {roman}§7]`. There is no roman-numeral token, and one `description`
+  # serves all four brackets, so the live level renders in arabic through the likeness's own {LEVEL}.
+  - "§7§7Call upon the wrath of Nature."
+  - "§7§7[§cNature Wrath {LEVEL}§7] (50% duration)"
+  - "§7"
+  - "§7§f§lCooldown"
+  - "§7§7 10 Minutes"
+# The recorded ladder `1000 + level × 500` (the cost of REACHING level N): 2000 / 2500 / 3000, 7500 to cap —
+# 1500 uses at 5 XP each.
+exp-curve: { base: 1000, per-level: 500 }
+max-level: 4
+levels:
+  # Per level: radius 8 + 5×L = 13/18/23/28; potion window (7+L)×20 t = 160/180/200/220; the walk-lock/DoT
+  # window is HALF that ((7+L)×10 = 80/90/100/110 t) — the jar's ×0.5 release, which is the "(50% duration)"
+  # the lore advertises — so the DoT lands 4/4/5/5 ticks at L HP each: 4/8/15/20 total. Cooldown flat 600 s.
+  1:
+    cooldown: 12000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %nearbyenemies% >= 1'
+        effects:
+          # The mob sweep runs first and its two bursts carry the sweep's own selector, so they resolve the mob
+          # set while it still exists (the per-mob closing cue).
+          - { LIGHTNING: { damage: 0, who: "@Aoe{r=13, filter=MOBS}" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, spread: 0.6, who: "@Aoe{r=13, filter=MOBS}" } }
+          - { PARTICLE: { particle: "SPELL", count: 35, spread: 0.4, who: "@Aoe{r=13, filter=MOBS}" } }
+          - { DESPAWN: { who: "@Aoe{r=13, filter=MOBS}" } }
+          # The player package: hostile PLAYERS only (the wave-1 filter conjunction, `nature-wrath.yml`'s reading
+          # of the entry's player-only payload).
+          - { LIGHTNING: { damage: 0, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS}" } }
+          - { POTION: { effect: "WEAKNESS", level: 3, duration: 160, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS}" } }
+          - { FREEZE: { duration: 80, dot: 1, dot-period: 20, slow: 100, neutralize-frost-slow: false, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS}" } }
+          # Recorded per frozen victim; ADR-0066 plays one sound id at most once per event, so the copies collapse.
+          - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
+          - { MESSAGE: { text: "§a§lPET: ** NATURE'S WRATH **" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  2:
+    cooldown: 12000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %nearbyenemies% >= 1'
+        effects:
+          - { LIGHTNING: { damage: 0, who: "@Aoe{r=18, filter=MOBS}" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, spread: 0.6, who: "@Aoe{r=18, filter=MOBS}" } }
+          - { PARTICLE: { particle: "SPELL", count: 35, spread: 0.4, who: "@Aoe{r=18, filter=MOBS}" } }
+          - { DESPAWN: { who: "@Aoe{r=18, filter=MOBS}" } }
+          - { LIGHTNING: { damage: 0, who: "@Aoe{r=18, filter=ENEMIES+PLAYERS}" } }
+          - { POTION: { effect: "WEAKNESS", level: 3, duration: 180, who: "@Aoe{r=18, filter=ENEMIES+PLAYERS}" } }
+          - { FREEZE: { duration: 90, dot: 2, dot-period: 20, slow: 100, neutralize-frost-slow: false, who: "@Aoe{r=18, filter=ENEMIES+PLAYERS}" } }
+          - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
+          - { MESSAGE: { text: "§a§lPET: ** NATURE'S WRATH **" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  3:
+    cooldown: 12000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %nearbyenemies% >= 1'
+        effects:
+          - { LIGHTNING: { damage: 0, who: "@Aoe{r=23, filter=MOBS}" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, spread: 0.6, who: "@Aoe{r=23, filter=MOBS}" } }
+          - { PARTICLE: { particle: "SPELL", count: 35, spread: 0.4, who: "@Aoe{r=23, filter=MOBS}" } }
+          - { DESPAWN: { who: "@Aoe{r=23, filter=MOBS}" } }
+          - { LIGHTNING: { damage: 0, who: "@Aoe{r=23, filter=ENEMIES+PLAYERS}" } }
+          - { POTION: { effect: "WEAKNESS", level: 3, duration: 200, who: "@Aoe{r=23, filter=ENEMIES+PLAYERS}" } }
+          - { FREEZE: { duration: 100, dot: 3, dot-period: 20, slow: 100, neutralize-frost-slow: false, who: "@Aoe{r=23, filter=ENEMIES+PLAYERS}" } }
+          - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
+          - { MESSAGE: { text: "§a§lPET: ** NATURE'S WRATH **" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  4:
+    cooldown: 12000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %nearbyenemies% >= 1'
+        effects:
+          - { LIGHTNING: { damage: 0, who: "@Aoe{r=28, filter=MOBS}" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, spread: 0.6, who: "@Aoe{r=28, filter=MOBS}" } }
+          - { PARTICLE: { particle: "SPELL", count: 35, spread: 0.4, who: "@Aoe{r=28, filter=MOBS}" } }
+          - { DESPAWN: { who: "@Aoe{r=28, filter=MOBS}" } }
+          - { LIGHTNING: { damage: 0, who: "@Aoe{r=28, filter=ENEMIES+PLAYERS}" } }
+          - { POTION: { effect: "WEAKNESS", level: 3, duration: 220, who: "@Aoe{r=28, filter=ENEMIES+PLAYERS}" } }
+          - { FREEZE: { duration: 110, dot: 4, dot-period: 20, slow: 100, neutralize-frost-slow: false, who: "@Aoe{r=28, filter=ENEMIES+PLAYERS}" } }
+          - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
+          - { MESSAGE: { text: "§a§lPET: ** NATURE'S WRATH **" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }

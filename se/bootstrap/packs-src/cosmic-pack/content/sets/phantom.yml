@@ -15,28 +15,72 @@ armor:
   enchants:
     UNBREAKING: 3
     PROTECTION: 4
-  # The shared bonus block, verbatim. Two matrix-recorded physical facts have NO authoring surface today —
-  # a set carries ONE armor.lore for all four pieces and a piece takes only material + name (SetDefReader
-  # MEMBER_KEYS) — so they are recorded here instead of lost:
-  #   per-piece flavour:
-  #     helmet     "§cThe fabled hood of the Phantom."
-  #     chestplate "§cThe legendary shroud of the Phantom."
-  #     leggings   "§cThe demonic robe of the Phantom."
-  #     boots      "§cThe silent sandals of the Phantom."
-  #   per-piece custom-enchant rosters, each rolled nearly-maxed as min(M, max(1,M-2)+rand(3)) over M:
-  #     hood    Deathbringer, Drunk, Enlighted, Implants, Tank, Armored, Angelic
-  #     shroud  Overload, Blood Lust, Enlighted, Armored, Tank, Dodge, Angelic
-  #     robeset Deathbringer, Clarity, Enlighted, Obsidianshield, Tank, Armored, Angelic, Cactus
-  #     sandals Gears, Enlighted, Deathbringer, Rocket Escape, Springs, Armored, Tank
+  # The shared bonus block, verbatim. Per-piece flavour and the per-piece rosters are authored on the
+  # `pieces:` members below — every roster entry at the family's nearly-maxed draw min(M, max(1,M-2)+rand(3))
+  # over that enchant's own max M, which `{ nearly-maxed: M }` reproduces literally (the outer min() skew and
+  # all). `enchants/obsidianshield` tops out at 1, where the draw is degenerate, so it takes the bare level
+  # instead and consumes no draw.
+  # ONE ENTRY IS NOT AUTHORED: the shroud's `Blood Lust`, a batch-01 stop that is not in this pack yet — a
+  # set's `enchants:` ref is validated library-wide, so naming it would be a compile error rather than an
+  # inert key. It lands with the enchant.
   lore:
     - "§c§lPHANTOM SET BONUS"
     - "§cDeal +25% damage to all enemies."
     - "§7(§oRequires all 4 phantom items.§7)"
   pieces:
-    helmet:     { material: DIAMOND_HELMET,     name: "§c§lPhantom Hood" }
-    chestplate: { material: DIAMOND_CHESTPLATE, name: "§c§lPhantom Shroud" }
-    leggings:   { material: DIAMOND_LEGGINGS,   name: "§c§lPhantom Robeset" }
-    boots:      { material: DIAMOND_BOOTS,      name: "§c§lPhantom Sandals" }
+    helmet:
+      material: DIAMOND_HELMET
+      name: "§c§lPhantom Hood"
+      lore:
+        - "§cThe fabled hood of the Phantom."
+      enchants:
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/drunk: { nearly-maxed: 4 }
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/implants: { nearly-maxed: 3 }
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/angelic: { nearly-maxed: 5 }
+    chestplate:
+      material: DIAMOND_CHESTPLATE
+      name: "§c§lPhantom Shroud"
+      lore:
+        - "§cThe legendary shroud of the Phantom."
+      enchants:
+        enchants/overload: { nearly-maxed: 3 }
+        # `Blood Lust` sits here in the codex order — batch-01 stop, see the header.
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/dodge: { nearly-maxed: 5 }
+        enchants/angelic: { nearly-maxed: 5 }
+    leggings:
+      material: DIAMOND_LEGGINGS
+      name: "§c§lPhantom Robeset"
+      lore:
+        - "§cThe demonic robe of the Phantom."
+      enchants:
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/clarity: { nearly-maxed: 3 }
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/obsidianshield: 1   # max 1 — a nearly-maxed draw here can only ever return 1
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/angelic: { nearly-maxed: 5 }
+        enchants/cactus: { nearly-maxed: 2 }
+    boots:
+      material: DIAMOND_BOOTS
+      name: "§c§lPhantom Sandals"
+      lore:
+        - "§cThe silent sandals of the Phantom."
+      enchants:
+        enchants/gears: { nearly-maxed: 3 }
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/rocket-escape: { nearly-maxed: 3 }
+        enchants/springs: { nearly-maxed: 3 }
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/tank: { nearly-maxed: 4 }
 weapon:
   enchants:
     SHARPNESS: 5

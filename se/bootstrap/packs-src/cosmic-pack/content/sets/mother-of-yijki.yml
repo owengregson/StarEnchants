@@ -13,25 +13,41 @@ armor:
   enchants:
     UNBREAKING: 3
     PROTECTION: 4
-  # Shared bonus block, verbatim. Per-piece flavour is matrix-recorded but unauthorable (one armor.lore for
-  # all four pieces; a piece takes only material + name), so it is recorded here — including the source's own
-  # `forebidden` typo, which ships as written:
-  #   helmet     "§f§oThe god-mask of Yijki, imbued with" / "§f§othe power of absolute destruction."
-  #   chestplate "§f§oThe forebidden mantel of Yijki," / "§f§owoven from the dust of fallen stars."
-  #   leggings   "§f§oThe fabled robes of Yijki," / "§f§ohalf angelic, half demonic."
-  #   boots      "§f§oLight as a feather, heavy as" / "§f§oa mountain - the footwraps of Yijki."
-  # Per-piece custom-enchant rosters (13/15/15/15 entries per codex, each rolled nearly-maxed) are likewise
-  # unauthorable — a set has one shared enchants: map at fixed integer levels.
+  # The shared bonus block, verbatim. Per-piece flavour is authored on the `pieces:` members below, above this
+  # block — the source's own `forebidden` typo included, which ships as written.
+  # STILL RECORDED, NOT AUTHORED: the per-piece custom-enchant rosters. The codex gives their SIZES (13/15/15/15
+  # entries, each rolled at the family's nearly-maxed draw) and never enumerates the entries, so there is
+  # nothing to name — the roll form exists now, the roster does not.
   lore:
     - "§f§lYIJKI SET BONUS"
     - "§f§l* §fEnemies deal 30% less damage to you."
     - "§f§l* §fRevenge of Yijki Passive Ability"
     - "§7(§oRequires all 4 yijki items.§7)"
   pieces:
-    helmet:     { material: DIAMOND_HELMET,     name: "§f§lMask of Yijki the Destroyer of Worlds" }
-    chestplate: { material: DIAMOND_CHESTPLATE, name: "§f§lMantel of Yijki the Destroyer of Worlds" }
-    leggings:   { material: DIAMOND_LEGGINGS,   name: "§f§lRobeset of Yijki the Destroyer of Worlds" }
-    boots:      { material: DIAMOND_BOOTS,      name: "§f§lFootwraps of Yijki the Destroyer of Worlds" }
+    helmet:
+      material: DIAMOND_HELMET
+      name: "§f§lMask of Yijki the Destroyer of Worlds"
+      lore:
+        - "§f§oThe god-mask of Yijki, imbued with"
+        - "§f§othe power of absolute destruction."
+    chestplate:
+      material: DIAMOND_CHESTPLATE
+      name: "§f§lMantel of Yijki the Destroyer of Worlds"
+      lore:
+        - "§f§oThe forebidden mantel of Yijki,"   # verbatim, `forebidden` and all
+        - "§f§owoven from the dust of fallen stars."
+    leggings:
+      material: DIAMOND_LEGGINGS
+      name: "§f§lRobeset of Yijki the Destroyer of Worlds"
+      lore:
+        - "§f§oThe fabled robes of Yijki,"
+        - "§f§ohalf angelic, half demonic."
+    boots:
+      material: DIAMOND_BOOTS
+      name: "§f§lFootwraps of Yijki the Destroyer of Worlds"
+      lore:
+        - "§f§oLight as a feather, heavy as"
+        - "§f§oa mountain - the footwraps of Yijki."
 weapon:
   enchants:
     SHARPNESS: 5
@@ -51,8 +67,9 @@ weapon:
 # Behaviours: on:armor fires while the set is complete; on:weapon also requires the World Ender held (main
 # hand). The jar's bow-support flag is inert for this set (measured), so there is no BOW branch.
 # The jar's DEFENSIVE weapon check accepted the diamond form only — a Heroic Sword reforge kept the +20 %
-# attack but lost the ×1.25 revenge chance. Recorded, not reproduced: the port gates on PDC identity, so both
-# weapon branches survive the reforge (matching the Yeti Maul ruling).
+# attack but lost the ×1.25 revenge chance. Recorded, not reproduced: the port gates on PDC identity — the
+# attack rider through `on: weapon` and the revenge rate through `%actor.setweapon%`, which is that same gate
+# read as a fact — so both survive the reforge (matching the Yeti Maul ruling).
 bonuses:
   # −30 % incoming, then the wearer's own Resistance is stripped (this order is the measured one).
   - on: armor
@@ -61,14 +78,21 @@ bonuses:
     effects:
       - { DAMAGE_MOD: { side: defense, mode: add, amount: 30 } }
       - { REMOVE_POTION: { effect: DAMAGE_RESISTANCE, who: "@Self" } }
-  # Revenge of Yijki — 5 % on being hit. 16 ground spots at independent per-axis offsets of ±(2..9) around the
-  # wearer (a spot over lower ground snaps down onto it), each telegraphed with the wither cue; 20 t later every
-  # spot detonates for 16 raw half-hearts, floored at 1.0 health so the field can never kill. Spots are
-  # independent, so overlapping ones each land their own hit (measured — no de-duplication).
+  # Revenge of Yijki — 5 % on being hit, 6.25 % with the World Ender held. 16 ground spots at independent
+  # per-axis offsets of ±(2..9) around the wearer (a spot over lower ground snaps down onto it), each
+  # telegraphed with the wither cue; 20 t later every spot detonates for 16 raw half-hearts, floored at 1.0
+  # health so the field can never kill. Spots are independent, so overlapping ones each land their own hit
+  # (measured — no de-duplication).
   # The warning says 1.5 s while the delay is 20 t = 1.0 s; strings never deviate, so the timing ships measured.
+  # THE HELD RATE IS ONE ROLL, as the jar's is: `%actor.setweapon%` (wave 2e) is the held-set-weapon fact, and
+  # a `+N %chance%` outcome clause modulates the roll this ability was already making — 5 → 6.25 while the
+  # sword is in the main hand. It is deliberately the SAME question `on: weapon` asks, so the rider cannot
+  # disagree with the gate. This replaces the independent +1.25 pp weapon-side roll the file shipped before
+  # the fact existed, which landed 6.1875 % a hit and could put TWO fields on one hit at 1-in-1600.
   - on: armor
     trigger: DEFENSE
     chance: 5
+    condition: "%actor.setweapon% : +1.25 %chance%"
     effects:
       - { DELAYED_STRIKE_FIELD: { points: 16, offset-min: 2, offset-max: 9, delay: 20,
             hit-radius: 1.4142135623730951, target-range: 32, filter: ENEMIES, damage: 16, health-floor: 1,
@@ -77,21 +101,8 @@ bonuses:
             cue-particle: "SPELL_WITCH", cue-particle-count: 32,
             strike-sound: "ENTITY_WITHER_DEATH", strike-volume: 1.0, strike-pitch: 0.4,
             strike-particle: "EXPLOSION_LARGE", strike-particle-count: 4, lightning: true, who: "@Self" } }
-  # The World Ender's "125% Revenge of Yijki Ability" — the jar recomputes ONE roll at 6.25 % while the sword is
-  # held. The engine has no weapon-held test for a condition (%actor.helditem% is the material name, not the item
-  # identity) and no way to suppress the armour roll, so the rider ships as an independent +1.25 pp roll: 6.1875 %
-  # per hit against the jar's 6.25 %, with a 1-in-1600 hit landing two fields. See the batch-10 stop row.
-  - on: weapon
-    trigger: DEFENSE
-    chance: 1.25
-    effects:
-      - { DELAYED_STRIKE_FIELD: { points: 16, offset-min: 2, offset-max: 9, delay: 20,
-            hit-radius: 1.4142135623730951, target-range: 32, filter: ENEMIES, damage: 16, health-floor: 1,
-            warning: "§5§l** REVENGE OF YIJKI (§c{caster} [1.5s]§5§l) **",
-            cue-sound: "ENTITY_WITHER_SPAWN", cue-volume: 1.0, cue-pitch: 0.4,
-            cue-particle: "SPELL_WITCH", cue-particle-count: 32,
-            strike-sound: "ENTITY_WITHER_DEATH", strike-volume: 1.0, strike-pitch: 0.4,
-            strike-particle: "EXPLOSION_LARGE", strike-particle-count: 4, lightning: true, who: "@Self" } }
+  # (The World Ender's "125% Revenge of Yijki Ability" is the `+1.25 %chance%` clause on the roll above, not a
+  # rung of its own — one roll, both rates, exactly as the jar computes it.)
   - on: armor
     trigger: ATTACK
     chance: 100
@@ -122,5 +133,7 @@ bonuses:
 #  * the victim's external faction-upgrade tier reduces the 16 base to 15/14/13/12.
 #  * "§fImmune to Rot and Decay" on the World Ender suppresses the rot-and-decay mastery while held (matrix/07).
 #  * Armor Crystal route: DAMAGE_MOD(side=defense, amount=5) per crystal-bearing non-set piece, plus a revenge
-#    roll at exactly 0.010000000000000002 per piece per hit (the compile-time 0.05 × 0.2 literal). The crystal
-#    lore advertises "20%"; the measured value is what ships, and the advert mismatch is recorded.
+#    roll at exactly 0.010000000000000002 per piece per hit (the compile-time 0.05 × 0.2 literal). Owned by
+#    the crystals family — crystals/mother-of-yijki.yml ships both halves, its rider copied from the payload
+#    above in the same sitting. The crystal lore advertises "20%"; the measured value is what ships, and the
+#    advert mismatch is recorded.

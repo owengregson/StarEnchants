@@ -13,37 +13,52 @@ armor:
   enchants:
     UNBREAKING: 3
     PROTECTION: 4
-  # Shared bonus block, verbatim. Per-piece flavour is matrix-recorded but unauthorable (one armor.lore for
-  # all four pieces; a piece takes only material + name), so it is recorded here:
-  #   helmet     "§bThe savage mask of the Yeti."
-  #   chestplate "§bThe impermeable chestplate of the Yeti."
-  #   leggings   "§bThe cozy yet monstrous legs of the Yeti."
-  #   boots      "§bBigfoot has nothing on these boots."
-  # Per-piece custom-enchant rosters are likewise unauthorable; the codex quirk worth carrying is that the
-  # HELMET roster lists `Armored` twice and the second roll wins. Purely cosmetic quirks are not replicated:
-  # the jar double-transmogs chest/legs/boots against the helmet's single, but the engine renders lore from
-  # state, so there is nothing to double.
+  # The shared bonus block, verbatim; per-piece flavour is authored on the `pieces:` members below.
+  # STILL RECORDED, NOT AUTHORED: the per-piece custom-enchant rosters — the codex never enumerates them, so
+  # the roll form has nothing to draw. The quirk worth carrying is that the HELMET roster lists `Armored`
+  # twice and the second roll wins; a member's `enchants:` map is keyed by ref, so a duplicate entry has no
+  # spelling either way, and "the second roll wins" IS what one entry means. Purely cosmetic quirks are not
+  # replicated: the jar double-transmogs chest/legs/boots against the helmet's single, but the engine renders
+  # lore from state, so there is nothing to double.
   lore:
     - "§b§lYETI SET BONUS"
     - "§b§l* §bDeal +10% damage to all enemies."
     - "§b§l* §bEnemies deal 10% less damage to you."
     - "§7(§oRequires all 4 yeti items.§7)"
   pieces:
-    helmet:     { material: DIAMOND_HELMET,     name: "§b§lYeti Facemask" }
-    chestplate: { material: DIAMOND_CHESTPLATE, name: "§b§lBloody Yeti Torso" }
-    leggings:   { material: DIAMOND_LEGGINGS,   name: "§b§lFuzzy Yeti Leggings" }
-    boots:      { material: DIAMOND_BOOTS,      name: "§b§lBig-Yeti Boots" }
+    helmet:
+      material: DIAMOND_HELMET
+      name: "§b§lYeti Facemask"
+      lore:
+        - "§bThe savage mask of the Yeti."
+    chestplate:
+      material: DIAMOND_CHESTPLATE
+      name: "§b§lBloody Yeti Torso"
+      lore:
+        - "§bThe impermeable chestplate of the Yeti."
+    leggings:
+      material: DIAMOND_LEGGINGS
+      name: "§b§lFuzzy Yeti Leggings"
+      lore:
+        - "§bThe cozy yet monstrous legs of the Yeti."
+    boots:
+      material: DIAMOND_BOOTS
+      name: "§b§lBig-Yeti Boots"
+      lore:
+        - "§bBigfoot has nothing on these boots."
 weapon:
   # Silence and Lifesteal are minted at their pack maxima (4 and 5). Both declare `applies-to: [SWORD…]` while
-  # the Maul is an axe — applies-to gates the APPLY path only, so a minted copy still fires. The 25 % chance of
-  # a Demonic Lifesteal roll (uniform 1..max) is dropped rather than minted at the top of its band the way
-  # Ranger's bow rosters are: demonic-lifesteal `requires` Lifesteal and `removes-required` strips it on apply,
-  # so the pair can never sit on one item — and a presence gamble has no mint surface either way.
+  # the Maul is an axe — applies-to gates the APPLY path only, so a minted copy still fires.
+  # The Demonic Lifesteal presence gamble is authored now that a roster entry takes a chance gate: 25 % to
+  # mint at all, uniform 1..3 over the enchant's own max when it does. `requires: lifesteal` and
+  # `removes-required` belong to the same APPLY path as applies-to — they govern a book landing on an item,
+  # never a mint — so the pair sitting on one Maul is the jar's own item, not a rule broken.
   enchants:
     SHARPNESS: 5
     UNBREAKING: 3
     enchants/silence: 4
     enchants/lifesteal: 5
+    enchants/demonic-lifesteal: { chance: 25, min: 1, max: 3 }
   material: DIAMOND_AXE
   name: "§b§lYeti Maul"
   lore:

@@ -16,21 +16,13 @@ armor:
     UNBREAKING: 3
     PROTECTION: 4
   # Shared bonus block, verbatim — including the "+200% Clout" line, which advertises an economy this pack
-  # deliberately does not implement (owner ruling R9, below). Per-piece flavour is matrix-recorded but
-  # unauthorable (one armor.lore for all four pieces; a piece takes only material + name), so it is here:
-  #   helmet     "§4§oA lightweight headpiece" / "§4§ofit for take off."
-  #   chestplate "§4§oAn aerodynamic vest that" / "§4§ois capable of sustaining flight."
-  #   leggings   "§4§oLightweight and clout powered," / "§4§oprovides enough thrust to boost" /
-  #              "§4§oeven the most feeble into the skies."
-  #   boots      "§4§oSupreme boots capable of" / "§4§oconverting clout into flight."
-  # The per-piece rolls are unauthorable for the same reason AND because they are probabilistic — a set has
-  # ONE shared enchants: map at fixed integer levels, so none of this survives translation:
-  #   helmet  10 % Phoenix, else a second Marksman
-  #   chest   Enlighted at max always, + 10 % Divine Enlighted
-  #   legs    10 % Nature Wrath, else Protection
-  #   boots   Springs at a FIXED level 2 (the family's only fixed-level roll); 10 % Deathbringer-max +
-  #           Planetary Deathbringer, else Deathbringer + Ghost; Depth Strider uniform 1..3
-  # (`enchants/ghost` is itself deferred pending its owner ruling, so that branch has no target today.)
+  # deliberately does not implement (owner ruling R9, below). Per-piece flavour and the per-piece rolls are
+  # authored on the `pieces:` members below, at the recorded probabilities and bands.
+  # WHAT DOES NOT SURVIVE, recorded per piece: the codex writes three of these rolls as EXCLUSIVE ALTERNATIVES
+  # ("10 % X, ELSE Y"), and a roster entry's `chance` is an independent gate — two complementary gates would
+  # land both arms 9 % of the time and neither 1 %, which is a different item, so only the named arm is
+  # authored and the else-arm stays recorded. The one exception is the boots' Deathbringer, which appears in
+  # BOTH arms and is therefore certain; only its LEVEL differs between them, and one key cannot be two levels.
   lore:
     - "§4§lSUPREME SET BONUS"
     - "§4§l* §4Gears IV"
@@ -40,10 +32,52 @@ armor:
     - "§4§l* §4+200% Clout"
     - "§7(§oRequires all 4 supreme items.§7)"
   pieces:
-    helmet:     { material: DIAMOND_HELMET,     name: "§4§lSupreme Headgear" }
-    chestplate: { material: DIAMOND_CHESTPLATE, name: "§4§lSupreme Vest" }
-    leggings:   { material: DIAMOND_LEGGINGS,   name: "§4§lSupreme Chaps" }
-    boots:      { material: DIAMOND_BOOTS,      name: "§4§lSupreme Thruster Boots" }
+    helmet:
+      material: DIAMOND_HELMET
+      name: "§4§lSupreme Headgear"
+      lore:
+        - "§4§oA lightweight headpiece"
+        - "§4§ofit for take off."
+      # NOT AUTHORED: the else-arm, "a second Marksman". A roster is keyed by ref, so a duplicate entry has no
+      # spelling — and the base roster that carries the first Marksman is itself unenumerated.
+      enchants:
+        enchants/phoenix: { chance: 10, nearly-maxed: 3 }
+    chestplate:
+      material: DIAMOND_CHESTPLATE
+      name: "§4§lSupreme Vest"
+      lore:
+        - "§4§oAn aerodynamic vest that"
+        - "§4§ois capable of sustaining flight."
+      enchants:
+        enchants/enlighted: 3   # "at max always" — a certain level, not a draw
+        enchants/divine-enlighted: { chance: 10, nearly-maxed: 3 }
+    leggings:
+      material: DIAMOND_LEGGINGS
+      name: "§4§lSupreme Chaps"
+      lore:
+        - "§4§oLightweight and clout powered,"
+        - "§4§oprovides enough thrust to boost"
+        - "§4§oeven the most feeble into the skies."
+      # NOT AUTHORED: the else-arm, "Protection". The shared block above already stamps vanilla PROTECTION 4 on
+      # every piece, and this pack also ships a custom `enchants/protection` — the codex names neither, so the
+      # arm would be a guess on top of an exclusivity the surface cannot spell.
+      enchants:
+        enchants/nature-wrath: { chance: 10, nearly-maxed: 4 }
+    boots:
+      material: DIAMOND_BOOTS
+      name: "§4§lSupreme Thruster Boots"
+      lore:
+        - "§4§oSupreme boots capable of"
+        - "§4§oconverting clout into flight."
+      # Deathbringer is certain (both arms carry it) but its level is not: MAX in the 10 % Planetary arm, the
+      # family's draw in the other. The draw is authored, so the Planetary arm mints it a rung or two low
+      # 2/3 of the time. Its partner in that other arm, `Ghost`, is deferred pending its own owner ruling and
+      # has no target in this pack.
+      enchants:
+        enchants/springs: 2                # the family's only FIXED-level roll (measured)
+        DEPTH_STRIDER: { min: 1, max: 3 }  # uniform
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/planetary-deathbringer: { chance: 10, nearly-maxed: 3 }
 weapon:
   # Every entry is recorded deterministically ("Block max", "Reflective Block max"), so nothing is rolled here.
   enchants:
@@ -133,7 +167,7 @@ bonuses:
 # strings ship verbatim — in the set lore and in the equip block — and no clout or flight behaviour is
 # implemented. enchants/auto-sell records the same stand-down from its side. If R9 is ever reversed, the grant
 # belongs here.
-# era: Depth Strider exists on 1.8.9 (moot while the boots roll is unshippable). The food lock must go through
+# era: DEPTH_STRIDER exists on 1.8.9 under the same name, so the boots' roll resolves on both lanes. The food lock must go through
 # the food-level API rather than a saturation shortcut, which is what cancel-drain does. §4 renders on both
 # lanes.
 # Interaction-layer rules the set decomposition does NOT own, recorded but not authored here:

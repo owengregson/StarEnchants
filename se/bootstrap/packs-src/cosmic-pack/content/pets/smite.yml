@@ -1,0 +1,133 @@
+# Matrix: 12-pets.md § Smite Pet
+# ── FAMILY FACTS (matrix 12 §A, shared by all 17 pets) ─────────────────────────────────────────────────────
+# A pet is a textured player head held in the hotbar; the ability fires on RIGHT-CLICK, which is this engine's
+# implicit USE trigger on an ACTIVE pet (the jar had no action filter — left-click and physical interactions
+# fired too; ledger D-12-1 ships the as-intended right-click-only reading). The jar's 1 Hz hotbar ticker is a
+# no-op for every pet, so nothing passive is ported.
+# SPECTATOR GUARD: the refusal is its OWN ability, so its verbatim `§c§lPET: §cYou cannot use that ability
+# while spectating!` renders instead of the universal `pets.message-on-fail`; it authors `cooldown: 0`, so a
+# refused click still lands BEFORE the cooldown arms and burns nothing.
+# COOLDOWN: the jar's remaining-time arithmetic was inverted, so no pet cooldown ever blocked (§A.6). Ledger
+# D-12-30 ships the AS-INTENDED 120 s (2400 t), level-independent, on the bracket `cooldown:` (the engine's
+# pet-wide scope, so a level-up that crosses a floor keeps the running cooldown).
+# XP: pets earn ONLY from using their own ability. `ITEM_XP_TRACK` carries the cosmic semantics (one level per
+# grant, remainder banked, unbounded banking at the cap) and the two verbatim lines; the ladder is this pet's
+# own `exp-curve` + `max-level`. The jar's always-empty/overflowing 50-segment EXP bar is D-12-2 — the engine
+# renders a proportional bar clamped at full.
+# ── THIS PET ───────────────────────────────────────────────────────────────────────────────────────────────
+# One real, damaging lightning strike (5.0 + fire, level-independent) on the entity you are looking at, plus a
+# short walk-lock when that entity is a player. Targeting: the jar took the block you are looking at within 8
+# and then the nearest living entity within 2 blocks of it; `@EntityInSight{r=8}` is the engine's approximation
+# of that block-anchored search and is recorded as such. Its unused ray-cast alternative is dead code and is
+# not ported. The lore says `/smite`, but no command is dispatched — raw lightning; the lore ships verbatim.
+# FREEZE releases the VICTIM, and only the victim: the codex's earlier "permanent freeze / caster clobbered"
+# claim is RETRACTED after bytecode verification and must not be re-introduced. `slow: 100` is the jar's full
+# walk-lock, `dot: 0` because this freeze does no damage, and `neutralize-frost-slow: false` keeps the engine
+# from compensating a vanilla frost slow the jar never had.
+# TWO refusals have no surface here, both recorded as stops:
+#   * `§c§lPET: §cNo target found!` — an activation cannot see that its selector matched nothing, so a whiff
+#     is silent and still burns the cooldown.
+#   * the freeze's `victim.type == PLAYER` gate — a USE activation carries no victim, so a condition cannot
+#     read the selected entity's type and `@EntityInSight` has no type filter. A smitten MOB is therefore
+#     walk-locked here where the jar left it alone (the paired chat line is player-only by construction, so
+#     nothing is said to it). Divergence, no message.
+# PvP: the jar consulted its region plugin for PLAYER targets only (mobs stayed smitable inside protected
+# regions) and granted XP before the check, discarding the write on the throw — net nothing. This port lets
+# the engine's own PvP gate answer first, with its own line, and grants XP only on an activation that ran.
+# era: the vanilla lightning cue/effect naming differs per era but is the server's own, not an authored
+# handle; the walk-lock is fine on 1.8.9.
+# FOLDER HARMONISATION (owner ruling): '&' colour form, own Cooldown block, spectator refusal as its own ability.
+display: "Smite Pet"
+color: "&e"
+type: ACTIVE
+# head: the per-type skull texture is not recorded in the matrix (codex carries the profile, not the base64).
+descriptor:
+  - "§7§7An electrified skeleton totem"
+  - "§7§7that contains powerful elemental"
+  - "§7§7forces of nature."
+# Verbatim ability block EXCEPT the third line's `{seconds}s` token: pet lore has no per-bracket token (the
+# renderer fills COLOR/NAME/TIME_FORMATTED/LEVEL/MAX_LEVEL/EXP/EXP_NEXT/EXP_BAR and nothing else) and an
+# unknown brace renders literally, so the level-1 value ships. Full ladder, in the source's own raw double
+# formatting: 1.25 / 1.5 / 1.75 / 2.0 / 2.25. The `§7§f§lAbility` and `§7§f§lCooldown` headers and the
+# cooldown value line (`§7§72 Minutes`, no leading space — the jar's own inconsistency) are authored here.
+description:
+  - "§7"
+  - "§7§f§lAbility"
+  - "§7§7Casts a powerful §f/smite"
+  - "§7§7at the target entity. If affecting a player,"
+  - "§7§7they will also be §nfrozen in place for 1.25s"
+  - "§7"
+  - "§7§f§lCooldown"
+  - "§7§72 Minutes"
+# 1000 × level to a cap of 5 (2000/3000/4000/5000; 14 000 total) — at 1 XP per use, the slowest ladder in the
+# plugin: 14 000 uses to cap.
+exp-curve: { base: 0, per-level: 1000 }
+max-level: 5
+levels:
+  # Freeze (1.0 + 0.25 × level) s = 25/30/35/40/45 t. The strike itself never scales; neither does the
+  # cooldown (D-12-30).
+  1:
+    cooldown: 2400
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { LIGHTNING: { damage: 5, who: "@EntityInSight{r=8}" } }
+          - { FREEZE: { duration: 25, dot: 0, slow: 100, neutralize-frost-slow: false, who: "@EntityInSight{r=8}" } }
+          - { MESSAGE: { text: "§c§l(!) §cFrozen by {ATTACKER}'s Smite Pet [1.25s]!", who: "@EntityInSight{r=8}" } }
+          - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  2:
+    cooldown: 2400
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { LIGHTNING: { damage: 5, who: "@EntityInSight{r=8}" } }
+          - { FREEZE: { duration: 30, dot: 0, slow: 100, neutralize-frost-slow: false, who: "@EntityInSight{r=8}" } }
+          - { MESSAGE: { text: "§c§l(!) §cFrozen by {ATTACKER}'s Smite Pet [1.5s]!", who: "@EntityInSight{r=8}" } }
+          - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  3:
+    cooldown: 2400
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { LIGHTNING: { damage: 5, who: "@EntityInSight{r=8}" } }
+          - { FREEZE: { duration: 35, dot: 0, slow: 100, neutralize-frost-slow: false, who: "@EntityInSight{r=8}" } }
+          - { MESSAGE: { text: "§c§l(!) §cFrozen by {ATTACKER}'s Smite Pet [1.75s]!", who: "@EntityInSight{r=8}" } }
+          - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  4:
+    cooldown: 2400
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { LIGHTNING: { damage: 5, who: "@EntityInSight{r=8}" } }
+          - { FREEZE: { duration: 40, dot: 0, slow: 100, neutralize-frost-slow: false, who: "@EntityInSight{r=8}" } }
+          - { MESSAGE: { text: "§c§l(!) §cFrozen by {ATTACKER}'s Smite Pet [2.0s]!", who: "@EntityInSight{r=8}" } }
+          - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  5:
+    cooldown: 2400
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { LIGHTNING: { damage: 5, who: "@EntityInSight{r=8}" } }
+          - { FREEZE: { duration: 45, dot: 0, slow: 100, neutralize-frost-slow: false, who: "@EntityInSight{r=8}" } }
+          - { MESSAGE: { text: "§c§l(!) §cFrozen by {ATTACKER}'s Smite Pet [2.25s]!", who: "@EntityInSight{r=8}" } }
+          - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }

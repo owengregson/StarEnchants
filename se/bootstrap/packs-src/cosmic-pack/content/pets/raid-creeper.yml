@@ -1,0 +1,131 @@
+# Matrix: 12-pets.md § Raid Creeper Pet
+# ── FAMILY FACTS (matrix 12 §A, shared by all 17 pets) ─────────────────────────────────────────────────────
+# A pet is a textured player head held in the hotbar; the ability fires on RIGHT-CLICK, which is this engine's
+# implicit USE trigger on an ACTIVE pet (the jar had no action filter — left-click and physical interactions
+# fired too; ledger D-12-1 ships the as-intended right-click-only reading). The jar's 1 Hz hotbar ticker is a
+# no-op for every pet, so nothing passive is ported.
+# SPECTATOR GUARD: the refusal is its OWN ability, so its verbatim `§c§lPET: §cYou cannot use that ability
+# while spectating!` renders instead of the universal `pets.message-on-fail`; it authors `cooldown: 0`, so a
+# refused click still lands BEFORE the cooldown arms and burns nothing.
+# COOLDOWN: the jar's remaining-time arithmetic was inverted, so no pet cooldown ever blocked (§A.6). Ledger
+# D-12-28 ships the AS-INTENDED per-level ladder below, on the bracket `cooldown:` (the engine's pet-wide
+# scope, so a level-up that crosses a floor keeps the running cooldown).
+# XP: pets earn ONLY from using their own ability. `ITEM_XP_TRACK` carries the cosmic semantics (one level per
+# grant, remainder banked, unbounded banking at the cap) and the two verbatim lines; the ladder is this pet's
+# own `exp-curve` + `max-level`. The jar's always-empty/overflowing 50-segment EXP bar is D-12-2 — the engine
+# renders a proportional bar clamped at full.
+# ── THIS PET ───────────────────────────────────────────────────────────────────────────────────────────────
+# Spawns ONE creeper. Everything that makes it a "Raid" creeper — the Lucky + Tactical hybrid stats, its AI,
+# its explosion and the 100 % spawner drop rate — lives in an EXTERNAL custom-creeper system the jar
+# hard-references without declaring, and that system is CODEX-UNRESOLVED: none of it is in the decompiled
+# tree. The vanilla spawn below is the on-surface skeleton the matrix decomposes; the custom behaviour is a
+# deferred stop awaiting a port ruling. Nothing about the creeper scales with pet level — only the cooldown.
+# ANCHOR: the matrix spawns at `@Block{distance=5}`, the block you are looking at. `SPAWN_ENTITY` reads only
+# ENTITY targets (`ctx.targets`) and never the location slot a block selector fills, so a `@Block` target
+# resolves to nothing and falls through to the activation's own location — the user's feet. `@Self` is
+# authored because that IS what the fallback does, said honestly rather than through a selector that looks
+# like it aims. Recorded as a stop; the day `SPAWN_ENTITY` reads `targetLocations` this becomes a one-token
+# change per bracket.
+# NOT PORTED, no surface: the jar's spawn-failure branch (`§c§lPET: §cUnable to spawn Raid Creeper!`, then
+# stop). An activation cannot see whether its selector or spawn found anything, so a failed spawn here is
+# silent and still burns the cooldown. The jar stamped its (inert) cooldown BEFORE the null check anyway; the
+# as-intended reading is "no cooldown burned on failure", expressed by ordering — which needs the same
+# missing fact. Recorded as a stop.
+# The pet is listed in the Mystery Pet Box's lore at a 0 % chance and is not obtainable from it (ruling R3
+# leaves the box out of scope entirely).
+# era: creeper spawning is identical on both trees and the custom stats are external either way. `DIG_SNOW`
+# is the 1.7/1.8 snow-break cue and has NO row in the sound alias table — the modern spelling is authored per
+# pack convention and the alias row is owed (a token that resolves on only one era tree is a blocking
+# diagnostic there). `WITHER_SHOOT → ENTITY_WITHER_SHOOT` already resolves both ways.
+# FOLDER HARMONISATION (owner ruling): '&' colour form, own Cooldown block, spectator refusal as its own ability.
+display: "Raid Creeper Pet"
+color: "&e"
+type: ACTIVE
+# head: the per-type skull texture is not recorded in the matrix (codex carries the profile, not the base64).
+descriptor:
+  - "§7§7A mythical hybrid creeper,"
+  - "§7§7a rare cross between the"
+  - "§7§7Lucky and Tactical species."
+# Verbatim ability block. The `§7§f§lAbility` and `§7§f§lCooldown` headers and the cooldown value line are
+# authored here; `{cooldown}` is the ladder's minute count, not a TimeUtils render, so it has no likeness
+# token and pins at its level-1 value (`§7§78 Minutes` — no leading space, the jar's own inconsistency).
+description:
+  - "§7"
+  - "§7§f§lAbility"
+  - "§7§7Spawn a §4Raid Creeper"
+  - "§7§7(Lucky + Tactical)"
+  - "§7§7(100% Spawner Drop Rate)"
+  - "§7"
+  - "§7§f§lCooldown"
+  - "§7§78 Minutes"
+# 2500 × level to a cap of 5 (5000/7500/10000/12500; 35 000 total, 3500 uses at 10 XP each).
+exp-curve: { base: 0, per-level: 2500 }
+max-level: 5
+levels:
+  # Cooldown (10 − level − 1) min: 8/7/6/5/4. The formula has no floor of its own — the cap of 5 is what keeps
+  # it off the negative values it would reach at level 10 (D-12-28).
+  1:
+    cooldown: 9600
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SPAWN_ENTITY: { type: "CREEPER", count: 1, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  2:
+    cooldown: 8400
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SPAWN_ENTITY: { type: "CREEPER", count: 1, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  3:
+    cooldown: 7200
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SPAWN_ENTITY: { type: "CREEPER", count: 1, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  4:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SPAWN_ENTITY: { type: "CREEPER", count: 1, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  5:
+    cooldown: 4800
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SPAWN_ENTITY: { type: "CREEPER", count: 1, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
