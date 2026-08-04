@@ -53,7 +53,8 @@ no-souls-message: "§c§l** OUT OF SOULS **"
 # byte-identical to the matrix's.
 # The other two consumers matrix 07 lists — Dimensional Traveler and Mother of Yijki (doc 10) — are armour
 # sets this pack does not ship yet; each owes the same branch when the sets batch lands.
-# era: FREEZE's powder-snow presentation is 1.17+, so the legacy overlay falls back to the potion-root form;
+# era: FREEZE's powder-snow presentation is 1.17+ and the legacy sink has no stand-in — it no-ops the pin
+# and the vignette and lands the authored slow as an NMS movement-speed modifier, so 1.8 keeps DoT + slow;
 # LEVEL_UP / ENDERDRAGON_GROWL (and the dropped GHAST_SCREAM2) are 1.8 sound ids the resolver maps, and
 # EXPLOSION_LARGE / SPELL are the cross-era spellings of the jar's LARGE_EXPLODE / SPELL particles.
 levels:

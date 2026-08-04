@@ -22,7 +22,8 @@
 #    (`§7§7 10 Minutes`). The pack's ONE pet likeness, `items/pet.yml`, holds the cosmic name template and the
 #    family's Level/EXP tail, and nothing else.
 #  - HEAD: the per-type skull texture is codex-side and not matrix-recorded, so no base64 is authored and the
-#    head mints untextured (PLAYER_HEAD). Family-wide across all 17 entries.
+#    head mints untextured — PLAYER_HEAD on modern, its SKULL_ITEM degradation on 1.8.9 (`items/pet.yml`).
+#    Family-wide across all 17 entries.
 #  - Pet heads are invalid helmet items (the masks family refuses to wear one) — an interaction-layer rule.
 # THE NO-TARGET GATE, and what it costs. The jar wipes the mobs FIRST and only then throws when no enemy
 # player is in range, so a mob-only click still cleared the mobs — for free, since the throw also skipped the
@@ -65,8 +66,8 @@
 # era: legacy particle names `LARGE_EXPLODE`/`SPELL` author as `EXPLOSION_LARGE`/`SPELL`, and `DIG_SNOW`,
 # `WITHER_SHOOT` and `ENDERDRAGON_GROWL` as their modern spellings. `WITHER_SHOOT` and `ENDERDRAGON_GROWL`
 # already have `Aliases.SOUND` rows, and so does `DIG_SNOW → BLOCK_SNOW_BREAK`, so every cue plays on the
-# legacy fork. FREEZE's powder-snow presentation is 1.17+, so the legacy overlay falls
-# back to its potion-root form (the seam `nature-wrath.yml` records).
+# legacy fork. FREEZE has no 1.8 visual at all: the legacy sink no-ops the pin and the vignette and the
+# authored slow lands as an NMS movement-speed modifier, so the root is DoT + slow (see `nature-wrath.yml`).
 # FOLDER HARMONISATION (owner ruling): '&' colour form, own Cooldown block, spectator refusal as its own ability.
 display: "Gaia Pet"
 color: "&e"

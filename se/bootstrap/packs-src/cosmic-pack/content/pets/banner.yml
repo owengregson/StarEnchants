@@ -39,6 +39,8 @@ display: "Banner Pet"
 color: "&e"
 type: ACTIVE
 # head: the per-pet skull texture is not matrix-recorded, so the mint falls back to a plain PLAYER_HEAD.
+# On 1.8.9 that token degrades to `SKULL_ITEM` — data 0, so a skeleton skull rather than the
+# seam's `SKULL_ITEM:3` (see `items/pet.yml`).
 descriptor:
   - "§7§7A rallying entity that"
   - "§7§7has the magical power to"
