@@ -1,0 +1,32 @@
+# Matrix: 11-masks.md § Santa
+# +4 max health (+2 hearts), maintained while the masked helmet is worn. The jar delivered it as a level-I
+# health-boost potion refreshed every 60 t; here it is the ONE reconciled max-health driver, which changes
+# one thing on purpose: a colliding enchant health boost now STACKS additively instead of being upgraded a
+# level in place (deviations.md D-11-5). The §B lifecycle removes it on unequip.
+display: "Santa"
+# NO " Mask" suffix — the codex name is bare "Santa", which is why items/mask.yml must render
+# `{COLOR}&l{NAME}` and never append one. `color` is the codex's §b minus the template bold.
+color: "§b"
+# era: head seam only (ADR-0053). The 1.8.9 max-health attribute exists and the worn-bonus reconciler already
+# spans the seam. The texture is re-encoded from the codex-recorded texture hash into the standard SKIN-url
+# profile blob (see pilgrim.yml).
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvM2Y4NjY4MjFiZmJmNTFjMDVmZjc5OGFmMTA5NTc1YWZmYTE4Yzc3OTE1MTgxMGI1MmU5OWM1NDdjMzM3OWViNyJ9fX0="
+# description: the codex's DECLARED lore, verbatim and in order; the shared trailing block lives on
+# items/mask.yml. The JAR's ATTACHED stamp carried line 1's text; the port's on-helmet line is the likeness's
+# own "Mask Equipped ({NAME})" wording (deferred-content.md, wave 2e.2 ruling), so that stamp string is
+# recorded here rather than rendered. The credit line has NO leading space before the asterisk, unlike the
+# Halloween/Thanksgiving masks — transcribed as-is, not normalised.
+description:
+  - "§c+2 Max Hearts"
+  - "§7An eerie mask imbued with"
+  - "§7Christmas Joy that knows"
+  - "§7who is naughty or nice."
+  - "§6§l* §6Christmas 2018"
+# Acquisition: Random Mask generator, COMMON pool — 8.1818 % (see pilgrim.yml for why the pool is comment-only).
+# Multi-Mask: works inside a compound in the jar and here (D-11-1).
+# Mortal Coil: the jar suppressed this bonus outright while the wearer was coiled. Nothing is authored for it
+# on this side — the coil's max-health attack and this maintained bonus meet in the ONE max-health driver, so
+# the reconciliation is emergent and belongs to the coil's file. enchants/mortal-coil is still deferred here
+# (deferred-content.md, batch 07), so that half is inert until it lands.
+abilities:
+  - { trigger: PASSIVE, effects: [ { HEALTH: { amount: 4 } } ] }

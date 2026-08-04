@@ -1,0 +1,35 @@
+# Matrix: 11-masks.md § Dragon Mask
+# +5 % outgoing and a flat refusal of fire, lava and burning-tick damage. The two halves ride different
+# lookups in the jar — the damage rider through the per-player one (dead inside a Multi-Mask), the fire
+# immunity through the shared one (alive there) — and the port keeps BOTH active in a compound (D-11-1).
+display: "Dragon Mask"
+# `display` carries the FULL codex name text; items/mask.yml renders `{COLOR}&l{NAME}` and appends no " Mask"
+# of its own. `color` is the codex's §4 minus the template bold.
+color: "§4"
+# era: head seam only (ADR-0053). The 1.7 server the jar ran on had no magma-block cause at all, and the
+# three causes it did name exist on 1.8.9 — nothing here needs an era branch. The texture is re-encoded from
+# the codex-recorded texture hash into the standard SKIN-url profile blob (see pilgrim.yml).
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNGRmMThmYTlkZmVhNTYzYmFjNzY1YTE3ZTY1NDc3NzI4ZDUzNmY4ZTllZTg2ZTE1OWMzYzYzODUyNmEzMjQxYyJ9fX0="
+# description: the codex's DECLARED lore, verbatim and in order; the shared trailing block lives on
+# items/mask.yml. The JAR's ATTACHED stamp carried line 1's text ALONE — the fire-immunity line never appeared
+# there — and the port's on-helmet line is the likeness's own "Mask Equipped ({NAME})" wording
+# (deferred-content.md, wave 2e.2 ruling), so that stamp string is recorded here rather than rendered.
+description:
+  - "§c+5% DMG"
+  - "§cImmune to Fire and Lava damage"
+  - "§7The decapitated skull of a slain"
+  - "§7Timeless Dragon from the Ender Dimension."
+  - "§6§l * §6Timeless Dragon Update"
+# Acquisition: NOT generated — this mask is outside both generator pools (matrix § Generator pools), and the
+# codex records no other acquisition path for it. No knob is needed to express that: absence from a generator
+# the pack does not model costs nothing.
+abilities:
+  # The authored 5 IS the advertised +5 %: this pack runs combat.attack-scale 1.0 (config.yml), so the
+  # ADR-0050 R2 division by the knob is a division by one. Contrast signature-pack, whose 5.0 scale makes its
+  # own masks author a fifth of the number they advertise — copying a number across the two packs is wrong.
+  - { trigger: ATTACK, effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 5 } } ] }
+  # The matrix leaves HOT_FLOOR conditional on what the FIRE trigger already covers engine-wide, and the
+  # engine answers it: the damage listener routes FIRE, FIRE_TICK and LAVA to this trigger and every other
+  # cause (magma included) to HURT. So the port's cause set equals the three measured ones with nothing
+  # authored, and a magma floor still burns a Dragon Mask wearer — the same as the jar, for a different reason.
+  - { trigger: FIRE, effects: [ { CANCEL: {} } ] }

@@ -1,0 +1,76 @@
+# Matrix: 11-masks.md § Death Knight
+# Two independent halves on one head, and in the source they even used two different mask lookups: a flat
+# `setDamage(damage * 1.025)` = +2.5 % outgoing, and a 50 % veto of the VICTIM's Phoenix save rolled inside
+# Phoenix's own proc path (`Math.random() <= 0.5` AND "the damager wears Death Knight"). Mask multipliers live
+# in ONE EntityDamageByEntityEvent handler with no EntityDamageEvent twin, so the defensive double-fire
+# (00-MECHANICS §3, deviation D-001) never touched this family — +2.5 % is already the single-pass final.
+#
+# CALIBRATION: attack-side percents are divided by this pack's `combat.attack-scale` at authoring time
+# (ADR-0050 R2). cosmic-pack runs attack-scale 1.0, so the authored 2.5 IS the advertised +2.5 % final.
+#
+# MULTI-MASK: the damage half is routed through the source's per-player lookup and is silently dead inside a
+# folded Multi-Mask, while the Phoenix veto (the shared mask lookup) worked there. The port keeps every folded
+# child active — deviation D-11-1 — and needs nothing here: a composite helmet resolves each child's
+# abilities as if that child alone were worn (ADR-0074).
+display: "Death Knight"
+# `display` carries the FULL name text: this is one of the entries whose source name has NO " Mask" suffix
+# (`§9§lDeath Knight`), so this pack's items/mask.yml must template `{COLOR}&l{NAME}` and append nothing of
+# its own. `color` is the name's §9 minus the template's bold.
+color: "§9"
+# HEAD TEXTURE: the matrix decomposition carries no base64. The codex records the texture hash
+# `3d6d91ae...1b1fd6b5` (profile MysteryMerchant, timestamp 1545262763931), re-encoded here into the standard
+# SKIN-url profile blob the worn repaint reads (the Rift entry's "valid re-encoded texture" rule, applied
+# family-wide). Profile name and timestamp are not carried — the blob holds the skin URL alone.
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvM2Q2ZDkxYWU1ZDQzODlkMDE2NjIzMDQ3ZjRjMDJlZDdiM2E2ZmUyOWEyNDM1OTdjMjYzYTNiZTgxYjFmZDZiNSJ9fX0="
+# Lore VERBATIM, in order. A mask def has no `ability` field, so the source's `specialAbility` string (the
+# negation line — the text its ATTACHED stamp echoes) is line 1 of the block, exactly where the source's own
+# lore repeats it; the +2.5 % line therefore never appears in the stamp. The credit line is the NO-leading-
+# space style (`§6§l* `), shared with Santa, Reindeer and Party Hat, and it names the mask's real source: this
+# one is not lootbox flavour, it ships with the Death Knight Mastery Kit.
+description:
+  - "§c50% chance to negate enemy's Phoenix"
+  - "§c+2.5% DMG"
+  - "§7The cursed mask of runeforged"
+  - "§7Death Knight armor."
+  - "§6§l* §6Death Knight Mastery Kit"
+# THE VETO, and why it is an ATTACK-armed one-shot on the victim rather than anything defender-keyed:
+# Phoenix is the VICTIM's own ability (`enchants/phoenix`, trigger DEFENSE, condition `%damage% >= %actor.health%`),
+# so what has to be silenced is what the victim DOES — activator-keyed SUPPRESS, `who: "@Victim"`.
+# SUPPRESS_INCOMING is the wrong head here: it silences what is aimed AT its holder, and nobody is aiming
+# Phoenix at anyone.
+# TIMING is what makes this land on the SAME hit: the attacker's ATTACK walk runs before the victim's DEFENSE
+# walk inside one damage event (the corrupt-vs-inversion idiom signature-pack already ships), so a one-shot armed
+# here is live when the victim's lethal-hit save is evaluated a few microseconds later, and CombatDispatch
+# burns it right after that walk (`consumeEventScoped`). `mode: next-hit` with `charges: 1` is therefore
+# exact rather than approximate — no window lingers to veto a save the wearer did not swing for.
+# THE 50 % rolls per HIT here, where the source rolled per Phoenix PROC on the lethal hit. Distribution is
+# identical for the hit that decides anything: the lethal hit gets exactly one independent 50 % draw either
+# way, and a draw spent on a non-lethal hit arms a one-shot that expires unused at the end of that same hit.
+# D-11-8, and it is structural rather than authored: in the source a BLOCKED Phoenix still stamped the
+# victim's `last_phoenix` cooldown, so the victim lost the proc AND the window. Gate 5 releases the whole
+# activation, so a suppressed Phoenix here spends neither its cooldown nor its escalating soul price — the
+# as-intended reading, at no authoring cost.
+# THE BLOCK LINES HAVE NO HOME YET, and they are recorded rather than dropped (verbatim, §A.8):
+#   victim   "§c§l* PHOENIX BLOCKED [§7{damager}§c§l] *"
+#   wearer   "§c§l* DEATH KNIGHT MASK [§7{victim}'s Phoenix Blocked§c§l] *"
+# Two separate reasons block them, either of which alone is enough. (a) `consumed-message-actor` /
+# `consumed-message-victim` are TIMED-window only — a `mode: next-hit` one-shot is burned blind and carries no
+# Feedback record at all (SuppressEffect: "a one-shot is burned blind and names nothing"). (b) Even on a timed
+# window the consume path sends the authored string raw (colour translation only, no token substitution), so
+# the damager/victim NAMES these two lines are built around cannot be bound; MESSAGE's {ATTACKER}/{VICTIM}
+# tokens exist only on MESSAGE, which fires at the ARM (i.e. on ~50 % of ALL hits, most of them nowhere near a
+# Phoenix) rather than at the block. Trading the exact one-shot for a lingering timed window would buy nothing
+# while (b) stands. Recorded in deferred-content.md, batch 11.
+# ACQUISITION: RARE generator pool, 10 %/9 = 1.1111 % per roll; active in the mask help menu. A mask def
+# carries no tier/weight/pool field and this pack has no mask-generator surface, so the percentage is ledgered
+# here rather than authored (family preamble).
+# ERA: nothing beyond the family head seam (loose masks are `SKULL_ITEM:3` with a reflective authlib profile
+# on 1.8.9, `PLAYER_HEAD` on modern) — the masks repaint era seam (ADR-0053) already owns it.
+abilities:
+  - { trigger: ATTACK, effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 2.5 } } ] }
+  - trigger: ATTACK
+    chance: 50
+    effects:
+      # Player-only by construction: SUPPRESS writes nothing for a non-player target, so a mob victim costs a
+      # roll and nothing else — no condition needed to keep the veto off mobs that own no Phoenix.
+      - { SUPPRESS: { scope: ENCHANT, key: "enchants/phoenix", mode: next-hit, charges: 1, who: "@Victim" } }

@@ -1,0 +1,39 @@
+# Matrix: 11-masks.md § Stronghold Mask
+# COSMETIC, and the §Outpost twin one line down: the advertised "2x capture/destroy" lives in an ABSENT
+# external stronghold plugin (codex UNRESOLVED), StarEnchants has no stronghold subsystem, so the entry ships
+# with its verbatim identity plus this note and NO effect surface (matrix/README R9's note-only shape, the
+# §Joker / §Dungeon / §Outpost reading). No surface gap is recorded: the ask would be a stronghold engine,
+# not a primitive, and the matrix says so in the entry itself.
+# Not inert for all that — the helmet visual override IS the mask, and it needs no ability.
+#
+# ROSTER-MARKER SHAPE: MaskDefReader requires one ability with a trigger (an ability-less mask file is
+# E_LOAD_MASK), so this authors an effect-less PASSIVE through the top-level shorthand. The empty effects
+# list is warned (W_LOAD_EFFECTS), never an error — the sticky.yml / metaphysical.yml idiom, and permanent.
+#
+# strings (verbatim): name "§3§lStronghold Mask", rendered by items/mask.yml's universal
+#   "{COLOR}&l{NAME}" over `color` + `display` — the template appends no " Mask" of its own (six of the
+#   27 verbatim names carry none), so `display` spells the FULL name.
+#   Jar ATTACHED-stamp ability text, NOT reproduced (our universal likeness owns the on-helmet line, the
+#   ADR-0074 ruling): "§cCapture, destroy /stronghold caps 2x faster" — which happens to match lore line 1
+#   here, unlike §Boss and §Joker where the two texts diverge.
+#   The family's shared trailing lore block is likeness-owned, never per-mask (matrix preamble).
+# numbers: advertised 2x — advertised-only, nothing measured. Generator pool: RARE branch, 10%/9 = 1.1111%;
+#   active in /mask help: yes. Neither has a MaskDef field (no pool weight, no help flag on the mask
+#   surface), so both are ledgered rather than authored; the Mask Generator itself is not ported.
+# era: head seam only — SKULL_ITEM:3 on 1.8.9 vs PLAYER_HEAD modern, owned by ADR-0053's repaint seam. Nothing
+#   else on this entry touches a versioned handle.
+display: "Stronghold Mask"
+color: "§3"
+# HEAD TEXTURE: not carried by the matrix decomposition; the codex records the texture hash
+# `cf66596d...2a2a5968` (profile `BasicBAE`, timestamp 1562627181009), re-encoded here into the pack's standard
+# profile blob (the Rift entry's "valid re-encoded texture" rule, applied family-wide). The blob holds the skin
+# URL alone — profile name and timestamp are not carried, and nothing reads them. As on §Outpost, the repaint
+# IS this entry's whole port-side job.
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2Y2NjU5NmQ3ZThiMDMxZDdkNjNlN2VkNGQyYjE3YjVjZjI0ODk1YTRlOGE3MzdmZGMyYjgzMGUyYTJhNTk2OCJ9fX0="
+description:
+  - "§cCapture, destroy /stronghold caps 2x faster"
+  - "§7Your very presence terrifies all,"
+  - "§7who dare stand before you."
+  - "§6§l * §6Sugar Daddy Lootbox Release"
+trigger: PASSIVE
+effects: []

@@ -1,0 +1,43 @@
+# Matrix: 11-masks.md § Joker Mask
+# A COSMETIC mask: verbatim identity, no behaviour. The advertised combat-tag deltas (+4 s on enemies, -3 s on
+# yourself) are advertised-only — no combat-tag code exists in the mask jar and no external call site was ever
+# found (matrix-UNRESOLVED: an absent combat-tag plugin, or never implemented). The matrix explicitly does NOT
+# record this as a surface gap, and neither does this file: StarEnchants has no combat-tag subsystem, so a gap
+# would be a demand for a whole engine rather than a primitive, and the R9 note-only rule (README § rulings)
+# is the shape for a behaviour that depends on a server subsystem the port does not carry. Revisit only if a
+# combat-tag system ever lands.
+display: "Joker Mask"
+color: "§5"
+# `display` carries the FULL matrix name and the likeness renders `{COLOR}&l{NAME}` (the cosmic family's names
+# are irregular — Santa, Party Hat and Multi-Mask carry no " Mask" suffix — so the whole name lives in the
+# def), reproducing `§5§lJoker Mask`. The shared trailing lore block is likeness-level (family preamble).
+# HEAD TEXTURE: not carried by the matrix decomposition; the codex records the texture hash
+# `843d7430...382c84a4` (profile MysteryMerchant, model `slim`, timestamp 1557846185613), re-encoded here into
+# the pack's standard profile blob (the Rift entry's "valid re-encoded texture" rule, applied family-wide).
+# The slim model flag is not carried — the blob holds the skin URL alone, which is what head minting reads on
+# both eras.
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODQzZDc0MzA1ZGZlNWY2OTExZjA2MmQ4NjJiYjg5ZTVhNjFiNGNmNzQ0YzJiMDgxNmU1YzI1NGQzODJjODRhNCJ9fX0="
+description:
+  - "§c+4s Combat Tag on enemy players"
+  - "§c-3s Combat Tag on you"
+  - "§7Everyone takes everything so"
+  - "§7very seriously, you're just trying"
+  - "§7to.. haHahaHahaHahaHahaHahaHa!"
+  - "§6§l * §6Summer Savage Lootbox Release"
+# THE STAMP/LORE DIVERGENCE HAS NO HOME, and needs none. The jar's ATTACHED stamp read this mask's separate
+# ability string, `§cIncrease Combat Tag on players by 4s`, which does not match lore line 1 above — the
+# matrix records both and says transcribe both as-is. A mask def carries display / colour / description and no
+# ability field, and the port's masked-helmet line renders the mask's NAME alone
+# (items/mask.yml `lore-while-on-item`), so there is no second string slot to diverge in. The lore, which is
+# what a player reads on the item, is verbatim; the stamp text is dropped rather than invented somewhere else.
+# DELIBERATELY EFFECT-LESS, the metaphysical.yml / sticky.yml form: a mask must declare at least one ability
+# (an ability-less mask is a load error), so the cosmetic form is one PASSIVE ability with an empty effect
+# list. It arms nothing, costs nothing at runtime, and keeps the mask rollable, mintable, wearable and
+# displayed — which is the entire entry.
+# ACQUISITION: RARE generator pool, 10 %/9 = 1.1111 % per roll; active in the mask help menu. A mask def
+# carries no tier/weight/pool field and this pack has no mask-generator surface, so the percentage is ledgered
+# here rather than authored (family preamble).
+# era: head seam only — ADR-0053 owns it (`SKULL_ITEM:3` + a reflective authlib profile on 1.8.9,
+# `PLAYER_HEAD` on modern). Nothing else on this entry touches a versioned handle.
+trigger: PASSIVE
+effects: []

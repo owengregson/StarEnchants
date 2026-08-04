@@ -1,0 +1,44 @@
+# Matrix: 11-masks.md § Necromancer Mask
+# "Immune to Lifesteal", absolute: an incoming lifesteal-family proc heals its owner for nothing while this
+# mask is worn. Defender-keyed by construction — SUPPRESS_INCOMING, not SUPPRESS. A defensive SUPPRESS is
+# keyed on the ACTIVATOR and can only be armed from a DEFENSE pass that runs after the attack pass, so it
+# always leaks the opening proc of every engagement, which is exactly the hit an "immune to X" mask exists to
+# stop. The window is held open by a REPEATING re-arm (PASSIVE is a start/stop lifecycle, fired once at
+# equip); `repeat: 20` under `duration: 60` bounds the residual immunity after the mask comes off at 3 s.
+# Same shape as crystals/anti-m-kit-necromancer.yml, over the lifesteal pool instead of the M-Kit one.
+display: "Necromancer Mask"
+# `display` carries the FULL codex name text; items/mask.yml renders `{COLOR}&l{NAME}` with no " Mask" suffix
+# of its own. `color` is the codex's §2 minus the template bold.
+color: "§2"
+# era: head seam only (ADR-0053); suppression is engine-side on both eras. The texture is re-encoded from the
+# codex-recorded texture hash into the standard SKIN-url profile blob (see pilgrim.yml).
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOGZjMzJjMDdlNGYyYmVhZGUzOWVhYzNmMWFhZjMyZGI0OGYyNDExMGQzNmJiMzMzNDBlNWU1M2VkNmNmMjdlYiJ9fX0="
+# description: the codex's DECLARED lore, verbatim and in order; the shared trailing block lives on
+# items/mask.yml. The JAR's ATTACHED stamp carried line 1's text; the port's on-helmet line is the likeness's
+# own "Mask Equipped ({NAME})" wording (deferred-content.md, wave 2e.2 ruling), so that stamp string is
+# recorded here rather than rendered.
+description:
+  - "§cImmune to Lifesteal"
+  - "§7An enchanted skull conjured from"
+  - "§7the depths of the underworld."
+  - "§6§l * §6Necromancer Mastery Kit"
+# Acquisition: Random Mask generator, COMMON pool — 8.1818 % (see pilgrim.yml for why the pool is comment-only).
+# Multi-Mask: routed through the shared lookup in the jar, so it already works inside a compound (D-11-1).
+abilities:
+  # FOUR ENCHANT keys rather than the matrix's one GROUP key: in this pack `group:` is the RARITY rung
+  # (content/enchants/*.yml carry group: "epic", "mastery", … and the pack's only GROUP-scope windows,
+  # masks/rift.yml and sets/dragon-slayer.yml, bind exactly that rung with `key: mastery`), so there is no
+  # `lifesteal` family group to bind and the matrix's own per-key fallback applies.
+  # The pool is the measured one — the jar aborts the attacker's heal at the Lifesteal, Vampire, Demonic
+  # Lifesteal and Chain Lifesteal call sites. enchants/arrow-lifesteal is NOT among them and is not keyed here.
+  # `chance` omitted = 100: the immunity is absolute in the jar, across all four.
+  # The chain half needs nothing extra. SUPPRESS_INCOMING is consulted per TARGET APPLICATION as well as at
+  # gate 5, so a Chain Lifesteal splash that reaches this wearer as a secondary body skips them alone and
+  # still lands on everyone else — which is the jar's twice-checked chain-target exclusion, exactly.
+  - trigger: REPEATING
+    repeat: 20
+    effects:
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/lifesteal", duration: 60, who: "@Self" } }
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/vampire", duration: 60, who: "@Self" } }
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/demonic-lifesteal", duration: 60, who: "@Self" } }
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/chain-lifesteal", duration: 60, who: "@Self" } }

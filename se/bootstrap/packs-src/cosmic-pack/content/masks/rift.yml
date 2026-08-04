@@ -1,0 +1,71 @@
+# Matrix: 11-masks.md § Rift Mask
+# An immunity-style mask: while it is worn, each incoming mastery-enchant application onto the wearer is
+# negated 50 % of the time. DEFENDER-keyed by nature — what has to be silenced is what OTHER people aim at
+# this wearer — so SUPPRESS_INCOMING is the head, not SUPPRESS: a SUPPRESS window keys on the ACTIVATOR, and
+# arming one on an attacker needs a DEFENSE ability, which resolves after the attack pass and so always leaks
+# the opening proc of an engagement. `chance` on SUPPRESS_INCOMING rolls PER INCOMING APPLICATION, which is
+# what "negate 50 % of mastery enchants" means — a roll at each proc, not one roll when the window is armed.
+# The matrix records this as the DEFENDER_KEYED_SUPPRESSION gap; it shipped as SUPPRESS_INCOMING (wave 2d).
+#
+# WHY `scope: GROUP` AND NOT THE MATRIX'S `scope: TYPE`. The matrix asks for `scope=TYPE, key=mastery` and
+# adds the condition "the pack must lower mastery-tier enchants with cooldown-scope type `mastery` for the
+# TYPE key to bind". That condition cannot be met from a pack: no reader on the authoring surface writes an
+# ability's TYPE scope — every content reader passes `cdScopeType = null` — so a TYPE-scoped window interns a
+# key nothing carries and would silently never fire. GROUP binds to the authored `group:`, every mastery-grade
+# file in this pack carries `group: "mastery"` (all ten of them, 1:1 with `tier: mastery`), and the defender
+# consult walks ENCHANT → GROUP → TYPE → KIND, so GROUP names exactly the set the matrix meant. Precedent:
+# sets/dragon-slayer.yml ships the same row at its own 25 %.
+#
+# WHY REPEATING AND NOT PASSIVE: the window has no teardown half and the PASSIVE lifecycle fires once at
+# equip, so a PASSIVE arm would lapse mid-wear. `repeat: 20` under `duration: 60` holds it open continuously
+# and bounds the residual negation after the mask leaves the helmet at 3 s (re-arming EXTENDS, never stacks).
+display: "Rift Mask"
+# `display` carries the FULL name text and the likeness renders `{COLOR}&l{NAME}` — the family's names are
+# irregular (Party Hat, Death Knight, Santa, Reindeer, Pumpkin Monster and Multi-Mask carry no " Mask"), so
+# the whole name lives in the def. With `color` this reproduces `§5§lRift Mask` exactly.
+color: "§5"
+# HEAD TEXTURE, and this entry is where the family's re-encode rule comes from. The source's own base64 for
+# this mask is malformed twice over: the blob is 310 characters with EXCESS PADDING (it ends `…IifX19==`,
+# where a legal value pads with one or two), which a strict decoder rejects outright, and the texture hash it
+# decodes to is short of the standard 64 hex characters (`2389683b…86b5cc2` — the codex calls it 62, the
+# literal value is 63; either way the skin URL is truncated). The matrix rules the port "uses a valid
+# re-encoded texture, display strings unchanged": the blob below is a correctly padded standard SKIN-url
+# value, and the recorded hash inside it is transcribed AS-IS rather than guessed at — a fabricated 64th
+# character would be a different skin, not a repair. Consequence stated plainly: this head resolves to
+# whatever that truncated URL yields (in practice the default head), which is what the source shipped too.
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjM4OTY4M2JkOGExYTNkZWRlYjIyMjUxMDMxMDE0OWM2MWY5NDZlNTdlOGExOTM2MDE5MTNiMDc4NmI1Y2MyIn19fQ=="
+# Lore VERBATIM, in order. Credit line in the leading-space style (`§6§l * `). The shared trailing block every
+# mask appends is likeness-level (items/mask.yml), not repeated here.
+# THE TRAILING FULL STOP: the source's `specialAbility` reads `§c50% Mastery Enchant Negation.` WITH a stop
+# while lore line 1 has none, so its ATTACHED stamp read `… (50% Mastery Enchant Negation.)`. Both are
+# transcribed as-is — but only the lore has a home: this port's masked-helmet line renders the mask NAME
+# (`items/mask.yml` `lore-while-on-item`), not its ability text, so the stop-carrying variant has no surface
+# and is recorded here rather than lost.
+description:
+  - "§c50% Mastery Enchant Negation"
+  - "§7A mysterious mask with a strange"
+  - "§7aura of power found scattered among"
+  - "§7a select few random lootboxes."
+  - "§6§l * §6Snow Day Lootbox Release"
+# SCOPE DELTA, recorded rather than smoothed. The source's only call site is the mastery-REFLECT path
+# (`i >= level && 0.02 + 0.0267 x (i / 3) >= random`, then a per-level `random <= 0.5` skip), i.e. it negated
+# mastery applications arriving through the reflect gate specifically. The window authored here covers the
+# ordinary incoming path — any mastery-group ability aimed at the wearer, gate 5 — which is the shape the
+# matrix's own "exact semantics" line asks for, and it deliberately does NOT cover the port's rebound re-run
+# (`PROC_REBOUND`): that path walks no gates and carries no random-backed roll supplier, so a partial window
+# consulted there would block deterministically rather than roll (wave 2d.2 ruling). Net: broader than the
+# source on every ordinary proc, empty on the one path the source keyed. Ledgered in deferred-content.md,
+# batch 11.
+# MULTI-MASK: this one was routed through the shared mask lookup and already worked inside a compound mask,
+# so the family routing bug (D-11-1) does not touch this entry.
+# ACQUISITION: COMMON generator pool, 90 %/11 = 8.1818 % per roll; active in the mask help menu. A mask def
+# carries no tier/weight/pool field and this pack has no mask-generator surface, so the percentage is ledgered
+# here rather than authored (family preamble).
+# ERA: nothing beyond the family head seam (loose masks are `SKULL_ITEM:3` with a reflective authlib profile
+# on 1.8.9, `PLAYER_HEAD` on modern) — the masks repaint era seam (ADR-0053) already owns it. The malformed
+# source blob never travels to either lane: the value above is re-encoded once, here.
+abilities:
+  - trigger: REPEATING
+    repeat: 20
+    effects:
+      - { SUPPRESS_INCOMING: { scope: GROUP, key: mastery, chance: 50, duration: 60, who: "@Self" } }

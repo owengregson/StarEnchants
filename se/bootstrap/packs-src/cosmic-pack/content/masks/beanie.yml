@@ -1,0 +1,35 @@
+# Matrix: 11-masks.md § Beanie__ Mask
+# Cosmetic staff/personal mask — the source builds it from the 7-arg constructor with `specialAbility = null`
+# and no listener anywhere references it. Authored as a ROSTER MARKER on an empty PASSIVE (the headless.yml /
+# ghost.yml precedent in this family, and enchants/metaphysical.yml before them): a mask file must declare one
+# ability with a trigger, so the identity ships on an empty PASSIVE and the loader's "declares no effects"
+# warning is the accurate statement of what this mask does. It mints, attaches to a helmet and repaints it;
+# it just does nothing else.
+display: "Beanie__ Mask"
+# The double underscore IS the name (the source's own display and its skull profile name both carry it) — not
+# a placeholder, not an escape, and it survives to the item verbatim. `display` carries the FULL name text and
+# the likeness renders `{COLOR}&l{NAME}`, so this reproduces `§b§lBeanie__ Mask` exactly.
+color: "§b"
+# HEAD TEXTURE: the matrix decomposition carries no base64. The codex records the texture hash
+# `cb5753bb...e12d5920` re-encoded here into the standard SKIN-url profile blob the worn repaint reads (the
+# Rift entry's "valid re-encoded texture" rule, applied family-wide). The recorded profile is the mask's OWN
+# namesake account (profileId 10535330a3ea49f38adea71aaf56de65, profileName `Beanie__`) rather than one of the
+# shop personas (`Merchant` / `MysteryMerchant`) that most heads in the family carry — consistent with a
+# personal mask, and carried as a bare skin URL like every other entry, so no account identity travels into
+# the pack.
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2I1NzUzYmI1ZGQzNjg0ZTk3ZWE2NDMzYzkyNjBmZmI5NzVkOWU2MzMwOWNiYzgzNWExNGVkNWFlMTJkNTkyMCJ9fX0="
+# Lore VERBATIM (the source's `specialAbility` is null — nothing precedes these lines). Credit line in the
+# leading-space style (`§6§l * `). The shared trailing block every mask appends is likeness-level
+# (items/mask.yml), not repeated here.
+description:
+  - "§7A beanie to keep your head warm."
+  - "§6§l * §6Snow Day Lootbox Release"
+# ACQUISITION: `active = false` — one of the three masks hidden from the mask help menu (Pumpkin Monster and
+# the source's Multi-Mask are the others), and in no generator pool (neither the common nor the rare list).
+# A mask def has no `active`/visibility knob and this pack has no mask-generator surface, so BOTH facts are
+# ledgered rather than authored: this mask reaches a player only through an operator mint, which is what a
+# staff mask is. Recorded in deferred-content.md, batch 11.
+# ERA: nothing beyond the family head seam (loose masks are `SKULL_ITEM:3` with a reflective authlib profile
+# on 1.8.9, `PLAYER_HEAD` on modern) — the masks repaint era seam (ADR-0053) already owns it.
+trigger: PASSIVE
+effects: []

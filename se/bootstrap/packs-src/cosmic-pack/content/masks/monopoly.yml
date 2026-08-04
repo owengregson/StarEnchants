@@ -1,0 +1,42 @@
+# Matrix: 11-masks.md § Monopoly Mask
+# Two halves: a measured −5 % incoming (x0.95, the victim branch this mask shares with Party Hat) and the
+# advertised 33 % Holy White Scroll negation, which is implemented NOWHERE in the jar and ships here as
+# intended (deviations.md D-11-4) — display strings never deviate, so the headline the item sells is the
+# behaviour the port gives it.
+display: "Monopoly Mask"
+# `display` carries the FULL codex name text; items/mask.yml renders `{COLOR}&l{NAME}` and appends no " Mask"
+# of its own — SIX of the family's 27 verbatim NAMES carry none (Pumpkin Monster, Santa, Reindeer, Party Hat,
+# Death Knight, Multi-Mask), five of them mask defs; Multi-Mask is the composite likeness (ADR-0074), not a
+# def. `color` is the codex's §b minus the template bold.
+color: "§b"
+# era: head seam only (ADR-0053) — scrolls are engine features on both eras. The texture is re-encoded from
+# the codex-recorded texture hash into the standard SKIN-url profile blob (see pilgrim.yml).
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTNjNGQwOWRlYjc5MDQ5MmEwNDkyMTUwNzk3N2NhYjkyNjM1Yjg4MTg0ZDQ4OWY4M2MzNGI2MGU3ZDhhNDI1YiJ9fX0="
+# description: the codex's DECLARED lore, verbatim and in order; the shared trailing block lives on
+# items/mask.yml. NOTE the two ability lines — the ATTACHED stamp shows only the FIRST (the negation line),
+# which is the jar's own ability text, so the −5 % never appears in the stamp.
+description:
+  - "§c33% Holy White Scroll negation"
+  - "§c-5% ENEMY DMG"
+  - "§7The mask of a man who has it all,"
+  - "§7a truly powerful entity to contest with."
+  - "§6§l * §6Black Friday 2018"
+# Acquisition: Random Mask generator, RARE pool — 10 % / 9 = 1.1111 %. No weight knob on this surface
+# (see pilgrim.yml); recorded, not expressed.
+# Multi-Mask: the −5 % is one of the halves the jar's per-player routing kills inside a compound; the port
+# keeps it live there (D-11-1).
+abilities:
+  # −5 % incoming, into the additive reduction bucket. Defense-side percents are NOT touched by
+  # combat.attack-scale (ADR-0050 R2), so 5 here is 5 % felt.
+  - { trigger: DEFENSE, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 5 } } ] }
+  # The lethal-hit gate is what makes a per-hit 33 % roll read as "33 % per kill": the condition admits only
+  # the blow that would finish the victim, so at most one roll is spent per death. Spelt off the incoming
+  # amount the way enchants/phoenix.yml prices its own save (`%damage% >= %actor.health%`, the same
+  # comparison from the other side of the hit).
+  # The strip must land before the death-drop keep check reads the victim's scrolls; that ordering is an
+  # engine seam inside the kill event, shared with the Anubis pet's STRIP_SCROLL, and nothing here can state it.
+  - trigger: ATTACK
+    condition: "%victim.health% <= %damage%"
+    chance: 33
+    effects:
+      - { STRIP_SCROLL: { scroll: HOLY, hand: true, who: "@Victim" } }

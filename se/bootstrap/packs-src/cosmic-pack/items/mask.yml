@@ -1,0 +1,35 @@
+# Matrix: 11-masks.md, family preamble — the ONE universal mask likeness (ADR-0053). Every mask in
+# content/masks/ declares only its display/colour/head/description; the name template and the shared
+# trailing lore below are family-wide, so no per-mask file carries them.
+type: mask
+# NO " Mask" suffix, unlike the engine default and signature-pack. The family's verbatim names are
+# irregular — six of the 27 carry none (Pumpkin Monster, Santa, Reindeer, Party Hat, Death Knight,
+# Multi-Mask) — so the only template that spells all of them byte-exact is one that appends nothing,
+# with every def's `display` holding the FULL name ("Purge Mask", "Santa").
+name: "{COLOR}&l{NAME}"
+# The folded-composite wording is OUR OWN (ADR-0074, the Multi Crystal precedent). The jar's generated
+# compound name and its ATTACHED stamp are its wording, deliberately not reproduced (deferred-content.md,
+# wave 2e.2 ruling); {NAME} here reads every folded child comma-joined, each in its own colour.
+name-multi: "&f&lMulti-Mask ({NAME}&r&f&l)"
+# The jar's mask item lore is the per-mask description block followed by this shared trailing block,
+# verbatim (matrix preamble) — no bonus header, no applies-to line.
+lore:
+  - "{DESCRIPTION}"
+  - ""
+  - "&7&oAttach this mask to any helmet"
+  - "&7&oto give it a visual override!"
+  - ""
+  - "&7To equip, place this mask on a helmet."
+  - "&7To remove, right-click helmet while attached."
+# The on-helmet lines are the port's own wording (same 2e.2 ruling): the jar's `§7§lATTACHED: …` stamp
+# carried the mask's ability text, which this line does not — each def records its stamp string in a
+# comment instead.
+lore-while-on-item: "&6&lMask Equipped ({NAME}&r&6&l)"
+lore-while-on-item-multi: "&6&lMulti-Mask Equipped ({NAME}&r&6&l)"
+# (port-chosen) The matrix records no apply/remove cues, so the engine's amethyst gesture cues stand —
+# the same pair the crystal likeness carries, since masks share the crystal drag-apply gesture family.
+# Era: 1.17+ handles; they warn-skip on the legacy fork (parked with the legacy sweep, as on crystal.yml).
+sounds:
+  enabled: true
+  apply: "block.amethyst_block.chime"
+  remove: "block.amethyst_cluster.break"

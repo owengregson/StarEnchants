@@ -1,0 +1,60 @@
+# Matrix: 11-masks.md § Zeus Mask
+# One absolute immunity plus its dodge line. In the jar a Natures Wrath proc landing on a Zeus wearer was
+# cancelled per TARGET, so the shape is defender-keyed: SUPPRESS_INCOMING's window lives on the wearer and is
+# consulted with the incoming activation's victim id, which reaches the opening proc of an engagement that a
+# `who: "@Attacker"` SUPPRESS armed from DEFENSE never can (the attack pass resolves first). The matrix's
+# DEFENDER_KEYED_SUPPRESSION gap shipped as this effect; its SUPPRESS_CONSUME_CUE twin shipped as the
+# `consumed-*` params below, which fire at the moment the window BLOCKS rather than when it is armed — a
+# MESSAGE on the arming ability would print on every re-arm, twice a second, at nobody.
+# `chance` stays at its default 100: the jar's immunity is absolute.
+# REPEATING re-arm rather than PASSIVE (the anti-m-kit crystal precedent): PASSIVE is a start/stop lifecycle
+# fired once at equip, so a window armed there would expire mid-wear. `repeat: 20` under `duration: 60` holds
+# it open continuously and bounds the residual immunity after the mask leaves the helmet at 3 s.
+display: "Zeus Mask"
+color: "§b"
+# `display` carries the FULL matrix name and the likeness renders `{COLOR}&l{NAME}` (the cosmic family's names
+# are irregular — Santa, Party Hat and Multi-Mask carry no " Mask" suffix — so the whole name lives in the
+# def), reproducing `§b§lZeus Mask`. The shared trailing lore block and the ATTACHED stamp are likeness-level
+# (family preamble); the stamp's ability text is lore line 1 verbatim here, so nothing diverges.
+# HEAD TEXTURE: not carried by the matrix decomposition; the codex records the texture hash
+# `48cc4164...131d9e48` (profile `Merchant`, timestamp 1554889636538), re-encoded here into the pack's
+# standard profile blob (the Rift entry's "valid re-encoded texture" rule, applied family-wide). The blob
+# holds the skin URL alone — profile name and timestamp are not carried, and nothing reads them.
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDhjYzQxNjRjODUzYzg5YmJlNzY1NmI4MjhjMzlmMTAzMDRjMzBkOTJlZjIxM2JjY2ZlZjA5YTQxMzFkOWU0OCJ9fX0="
+description:
+  - "§cImmune to Natures Wrath"
+  - "§7Channel the powers of the"
+  - "§7King of the Greek Gods"
+  - "§6§l * §6April Showers Lootbox Release"
+# THE KEY IS THIS PACK'S FILE STEM. The matrix writes `enchants/natures-wrath`; the file that ships is
+# content/enchants/nature-wrath.yml (display "Nature Wrath"), so the stable key gate 5 matches on is
+# `enchants/nature-wrath`. The matrix's plural spelling would intern to a scope nothing carries and the
+# immunity would silently never fire.
+# TWO PATHS, ONE WINDOW — worth knowing which one the player sees, because this pack's Nature Wrath is a
+# DEFENSE proc that fans its payload over an @Aoe:
+#  - Zeus wearer IS the activation's victim (they landed the hit that triggered the proc): gate 5 stops the
+#    WHOLE activation and the dodge line below fires. Coarser than the jar's per-target cancel — everyone else
+#    inside that scan is spared too — but it is the only reading that reaches the proc at all from this seat.
+#    The defender gate is gate 5 and the soul charge is gate 10, so that stopped proc also costs the Nature
+#    Wrath wearer nothing, where the jar spent the 75 gems and then cancelled onto this mask. Both halves of
+#    that trade are the pipeline's ordering, not an authored choice.
+#  - Zeus wearer is merely one body inside the scan: gate 12 drops them alone and the rest still take it,
+#    which IS the jar's per-target cancel exactly. That path is SILENT: the consume feedback is read back only
+#    after a gate-5 SUPPRESSED verdict, so a bystander dodge prints nothing. Recorded, not faked.
+# The dodge line is the matrix's verbatim string and goes to the protected wearer (`consumed-message-actor`);
+# no line is sent to the blocked attacker, and the jar sent none either.
+# NOT PORTED: the jar's handler also nulled the wrapped damage event (`setEvent(null)`), which could strip the
+# event from anything downstream that read it — a jar artifact, and gate-5 suppression never touches the event.
+# MULTI-MASK: `hasEquipped()`-routed in the jar, so it already worked inside a compound mask — the family
+# routing bug (D-11-1) does not touch this entry.
+# ACQUISITION: common generator pool, 90 %/11 = 8.1818 % per roll; active in the mask help menu. A mask def
+# carries no tier/weight/pool field and this pack has no mask-generator surface, so the percentage is ledgered
+# here rather than authored (family preamble).
+# era: nothing beyond the head seam, which ADR-0053 owns (`SKULL_ITEM:3` + a reflective authlib profile on
+# 1.8.9, `PLAYER_HEAD` on modern). Nature Wrath's own era debt lives on nature-wrath.yml.
+abilities:
+  - trigger: REPEATING
+    repeat: 20
+    effects:
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/nature-wrath", duration: 60, who: "@Self",
+                               consumed-message-actor: "§d§l* ZEUS MASK [§7Natures Wrath Dodged§d§l] *" } }

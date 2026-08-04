@@ -1,0 +1,46 @@
+# Matrix: 11-masks.md § Outpost Mask
+# COSMETIC. The advertised "2x capture/destroy" lives entirely in an ABSENT external outposts plugin (codex
+# UNRESOLVED) and StarEnchants has no outpost subsystem, so the entry ships with its verbatim identity plus
+# this note and NO effect surface — matrix/README R9's note-only shape, and the reading §Joker and §Dungeon
+# take in this same family. NO surface gap is recorded and none ever will be: the CONSUMING subsystem has no
+# counterpart here, so the ask would be an outpost engine rather than a primitive.
+# The mask is not thereby inert. Its port-side job is the helmet visual override the masks family renders for
+# every observer while the helmet is worn, and that needs no ability at all — a collector cosmetic that does
+# the one thing every mask does.
+#
+# ROSTER-MARKER SHAPE (sticky.yml / metaphysical.yml precedent, mask-side). MaskDefReader requires at least
+# one ability carrying a trigger — an ability-less mask file is E_LOAD_MASK, not a silently-accepted cosmetic
+# — so the cosmetic masks author an effect-less PASSIVE at the top-level shorthand. The empty effects list is
+# warned (W_LOAD_EFFECTS), never an error; deliberate here, and it will not grow.
+#
+# strings (verbatim): name "§b§lOutpost Mask" — reproduced exactly by items/mask.yml's universal
+#   "{COLOR}&l{NAME}" over `color` + `display` below. The template appends no " Mask" of its own (six
+#   of the 27 verbatim names carry none), so `display` spells the FULL name.
+#   Lore line 3's "unwaivering" is the SOURCE's typo, transcribed as-is (matrix instruction).
+#   The jar's ATTACHED-stamp ability text — "§cCapture, destroy /outpost caps 2x faster" — is NOT reproduced:
+#   the port's on-helmet line is items/mask.yml `lore-while-on-item`, and our own universal likeness owns
+#   that string (the ADR-0074 ruling that struck the compound stamp for the same reason). The same goes for
+#   the family's shared trailing lore block ("§7§oAttach this mask to any helmet" / "§7To equip, place this
+#   mask on a helmet." …): likeness-owned, never per-mask (matrix preamble § Shared trailing lore).
+# numbers: advertised 2x capture/destroy rate — advertised-only, nothing measured anywhere in the jar.
+#   Generator pool: RARE branch, 10%/9 = 1.1111%; active in /mask help: yes. NEITHER has a MaskDef field —
+#   there is no pool weight, roll table or help-menu flag on the mask surface at all — so both are ledgered
+#   here rather than authored. Family-wide: the Mask Generator (and its one-shot anti-dupe claim, matrix
+#   preamble § Anti-dupe) is not ported; masks are minted through the engine's own item paths.
+# era: head seam only. A loose mask is SKULL_ITEM:3 on 1.8.9 vs PLAYER_HEAD on modern, and ADR-0053's masks
+#   repaint era seam already owns that crossing. Nothing else on this entry touches a versioned handle.
+display: "Outpost Mask"
+color: "§b"
+# HEAD TEXTURE: not carried by the matrix decomposition; the codex records the texture hash
+# `8fff41e1...f331dc11` (profile `BasicBAE`, timestamp 1562097102329), re-encoded here into the pack's standard
+# profile blob (the Rift entry's "valid re-encoded texture" rule, applied family-wide). The blob holds the skin
+# URL alone — profile name and timestamp are not carried, and nothing reads them. It matters more here than on
+# a mask with abilities: the repaint IS this entry's whole port-side job.
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOGZmZjQxZTFhZmM1OTdiMTRmNzdiOGU0NGUyYTEzNGRhYmUxNjFhMTUyNmFkZTgwZTYyOTBmMmRmMzMxZGMxMSJ9fX0="
+description:
+  - "§cCapture, destroy /outpost caps 2x faster"
+  - "§7Your very presence commands unquestioning,"
+  - "§7unwaivering admiration and respect."
+  - "§6§l * §6July 2019"
+trigger: PASSIVE
+effects: []
