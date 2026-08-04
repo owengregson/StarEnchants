@@ -38,12 +38,15 @@
 # era: `DIG_SNOW` / `WITHER_SHOOT` are the 1.8 spellings; the modern names ship per the pack convention.
 # `WITHER_SHOOT`->`ENTITY_WITHER_SHOOT` and `DIG_SNOW`->`BLOCK_SNOW_BREAK` are both in `Aliases.SOUND`, so
 # both cues play on the legacy lane. Titles are fine on 1.8.9, and
-# the hide itself is the primitive's own era seam (1.8 datawatcher vs modern metadata).
+# the hide itself is the `PlayerVisibility` seam — a connection-level hide either way, 1.8's plugin-less
+# `hidePlayer`/`showPlayer` against the modern plugin-scoped pair, so armour goes with the body.
 display: "Feign Death Pet"
 color: "&e"
 type: ACTIVE
 # head: the per-pet skull texture is not matrix-recorded, so no `head:` is authored and the mint falls back to
 # a plain PLAYER_HEAD.
+# On 1.8.9 that token degrades to `SKULL_ITEM` — data 0, so a skeleton skull rather than the
+# seam's `SKULL_ITEM:3` (see `items/pet.yml`).
 descriptor:
   - "§7§7A ghastly pet that can"
   - "§7§7control death itself."

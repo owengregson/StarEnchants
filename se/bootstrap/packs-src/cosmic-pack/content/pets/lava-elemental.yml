@@ -30,6 +30,8 @@ color: "&e"
 type: ACTIVE
 # head: the per-pet skull texture is not matrix-recorded, so no `head:` is authored and the mint falls back to
 # a plain PLAYER_HEAD (a one-line add whenever the profile value is recovered).
+# On 1.8.9 that token degrades to `SKULL_ITEM` — data 0, so a skeleton skull rather than the
+# seam's `SKULL_ITEM:3` (see `items/pet.yml`).
 descriptor:
   - "§7§7A fiery pet that is"
   - "§7§7capable of conjuring lava"

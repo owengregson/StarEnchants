@@ -26,7 +26,8 @@
 #    `{LEVEL}` is the likeness token for the stored level, and here it doubles as the bonus percent, which IS
 #    the level; `{TIME_FORMATTED}` renders the live bracket's cooldown, flat `15m` at every rung.
 #  - HEAD: the per-type skull texture is codex-side and not matrix-recorded, so no base64 is authored and the
-#    head mints untextured (PLAYER_HEAD). Family-wide across all 17 entries.
+#    head mints untextured — PLAYER_HEAD on modern, its SKULL_ITEM degradation on 1.8.9 (`items/pet.yml`).
+#    Family-wide across all 17 entries.
 #  - Pet heads are invalid helmet items (the masks family refuses to wear one) — an interaction-layer rule,
 #    engine-owned, not authored here.
 # NOT RENDERED (recorded): the guard's verbatim refusal line

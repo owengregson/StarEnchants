@@ -35,7 +35,9 @@ display: "Anti Teleblock Pet"
 color: "&e"
 type: ACTIVE
 # head: the per-pet skull texture is not matrix-recorded (the codex captured names and lore, not profile
-# values), so no `head:` is authored and the mint falls back to a plain PLAYER_HEAD. A texture is a one-line
+# values), so no `head:` is authored and the mint falls back to a plain PLAYER_HEAD.
+# On 1.8.9 that token degrades to `SKULL_ITEM` — data 0, so a skeleton skull rather than the
+# seam's `SKULL_ITEM:3` (see `items/pet.yml`). A texture is a one-line
 # add whenever the value is recovered.
 descriptor:
   - "§7§7An elusive creature that"
