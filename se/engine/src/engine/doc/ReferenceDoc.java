@@ -194,12 +194,16 @@ public final class ReferenceDoc {
         out.append('\n');
         // The keyed families take an author-chosen suffix, so they have no fixed name to list above — but an
         // author who cannot see them here has no way to discover they exist.
-        out.append("Three families take a name rather than being fixed facts, and read as NUM:\n\n");
+        out.append("Five families take a name rather than being fixed facts, and read as NUM:\n\n");
         out.append("- `%victim.var.<name>%` — a counter `SET_VAR` wrote on the victim; `0` when unset.\n");
         out.append("- `%actor.potion.<effect>%` / `%victim.potion.<effect>%` — the active level of one potion "
                 + "effect, as amplifier + 1, so `> 0` means \"active\" and `> 1` means \"at least II\"; `0` when "
                 + "absent. `<effect>` is resolved when the pack loads, so a name unknown on this version is a "
-                + "load error, not a condition that silently never matches.\n\n");
+                + "load error, not a condition that silently never matches.\n");
+        out.append("- `%actor.enchlevel.<key>%` / `%victim.enchlevel.<key>%` — that side's worn level of one "
+                + "custom enchant, so `> 0` means \"has it\" and `>= 3` means \"at least III\"; `0` when not "
+                + "worn. `<key>` is the enchant's file name (its stable-key stem), and an enchant absent from "
+                + "the pack simply reads `0` rather than failing the load.\n\n");
     }
 
     private static void appendParams(StringBuilder out, ParamSpec spec) {

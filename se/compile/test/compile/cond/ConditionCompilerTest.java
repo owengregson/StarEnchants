@@ -325,6 +325,81 @@ class ConditionCompilerTest {
         assertInstanceOf(NumExpr.Papi.class, cmp.left());
     }
 
+    // ── Keyed worn-enchant families: %actor.enchlevel.<key>% / %victim.enchlevel.<key>%. Unlike the potion
+    // families the key stays a STRING — dense ids and the stable-key index are assigned by the ERASE stage,
+    // which runs after conditions lower — so this follows the %victim.var.<name>% lazy-lookup template.
+
+    private static NumExpr numericOf(String expr, Diagnostics d) {
+        Expr ast = ExprParser.parse(expr, SRC, d).orElseThrow();
+        return new ConditionCompiler(VARS).numeric(ast, d).orElseThrow();
+    }
+
+    @ValueSource(strings = {"%actor.enchlevel.solitude%", "%victim.enchlevel.solitude%"})
+    @ParameterizedTest
+    void bothEnchantLevelScopesLowerThroughTheNumericEntryPoint(String token) {
+        // numVar(): the entry point an expression-valued effect arg / nested arithmetic takes.
+        Diagnostics d = new Diagnostics();
+        NumExpr.EnchantLevel read = assertInstanceOf(NumExpr.EnchantLevel.class, numericOf(token, d));
+        assertFalse(d.hasErrors(), () -> d.all().toString());
+        assertEquals("solitude", read.key());
+        assertEquals(token.startsWith("%victim") ? NumExpr.Scope.VICTIM : NumExpr.Scope.ACTOR, read.scope());
+    }
+
+    @ValueSource(strings = {"%actor.enchlevel.solitude% > 0", "%victim.enchlevel.solitude% > 0"})
+    @ParameterizedTest
+    void bothEnchantLevelScopesLowerThroughTheComparisonEntryPoint(String expr) {
+        // varOperand(): the entry point a comparison takes. A family wired into only one of the two is the
+        // classic half-miss — the token would silently become a PAPI passthrough on the other path.
+        Diagnostics d = new Diagnostics();
+        Cond.NumCmp cmp = assertInstanceOf(Cond.NumCmp.class, lower(expr, d));
+        assertFalse(d.hasErrors(), () -> d.all().toString());
+        NumExpr.EnchantLevel read = assertInstanceOf(NumExpr.EnchantLevel.class, cmp.left());
+        assertEquals("solitude", read.key());
+        assertEquals(expr.startsWith("%victim") ? NumExpr.Scope.VICTIM : NumExpr.Scope.ACTOR, read.scope());
+    }
+
+    @Test
+    void enchantLevelKeysAreLowerCasedAndKeepInnerDots() {
+        Diagnostics d = new Diagnostics();
+        Cond.NumCmp cmp = assertInstanceOf(Cond.NumCmp.class, lower("%victim.enchlevel.Mark.Beast% > 0", d));
+        assertFalse(d.hasErrors(), () -> d.all().toString());
+        // The whole remainder is one key, canonicalised to the lower-cased form the worn map is built with.
+        assertEquals("mark.beast", assertInstanceOf(NumExpr.EnchantLevel.class, cmp.left()).key());
+    }
+
+    @Test
+    void anEnchantLevelTokenIsNotSilentlyAPlaceholder() {
+        // Without the prefix arm this lowers to NumExpr.Papi and reads null forever — a silent no-op.
+        Diagnostics d = new Diagnostics();
+        Cond.NumCmp cmp = assertInstanceOf(Cond.NumCmp.class, lower("%actor.enchlevel.solitude% == 2", d));
+        assertFalse(cmp.left() instanceof NumExpr.Papi, "an enchant-level read must not fall through to PAPI");
+    }
+
+    @Test
+    void anUnauthoredEnchantKeyIsNotADiagnostic() {
+        // An enchant may legitimately be absent from a pack, so the key is never validated here — it reads 0.
+        Diagnostics d = new Diagnostics();
+        assertInstanceOf(NumExpr.EnchantLevel.class,
+                assertInstanceOf(Cond.NumCmp.class, lower("%actor.enchlevel.nosuchenchant% > 0", d)).left());
+        assertFalse(d.hasErrors(), () -> d.all().toString());
+    }
+
+    @Test
+    void anEnchantLevelScopeThatNamesNeitherEntityKeepsItsPlaceholderFallthrough() {
+        Diagnostics d = new Diagnostics();
+        Cond.NumCmp cmp = assertInstanceOf(Cond.NumCmp.class, lower("%world.enchlevel.solitude% > 0", d));
+        assertInstanceOf(NumExpr.Papi.class, cmp.left());
+    }
+
+    @Test
+    void aBareEnchantLevelPrefixKeepsItsPlaceholderFallthrough() {
+        // No key after the prefix: the arm must not claim the token with an empty key.
+        Diagnostics d = new Diagnostics();
+        assertInstanceOf(NumExpr.Papi.class,
+                assertInstanceOf(Cond.NumCmp.class, lower("%actor.enchlevel.% > 0", d)).left());
+        assertInstanceOf(NumExpr.Papi.class, numericOf("%actor.enchlevel.%", new Diagnostics()));
+    }
+
     @Test
     void aStringArgumentToAFunctionIsATypeError() {
         // Functions are numeric-only; the fault must be a diagnostic, never a lowering exception.

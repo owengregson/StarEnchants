@@ -5,6 +5,8 @@ import item.codec.HeroicStat;
 import item.worn.WornState;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Fluent builder for the runtime {@link WornState} record. Defaults produce an empty state; a test states only
@@ -30,6 +32,7 @@ public final class WornStates {
         private int[] combatAttack = new int[0];
         private int[] combatDefense = new int[0];
         private FactMask[] triggerFactMask = null;
+        private final Map<String, Integer> enchantLevels = new LinkedHashMap<>();
 
         public Builder gen(int gen) {
             this.gen = gen;
@@ -92,9 +95,15 @@ public final class WornStates {
             return this;
         }
 
+        /** The {@code %scope.enchlevel.<key>%} lookup entry; {@code key} is the lower-cased enchant stem. */
+        public Builder enchantLevel(String key, int level) {
+            this.enchantLevels.put(key, level);
+            return this;
+        }
+
         public WornState build() {
             return new WornState(gen, activeSets, crystalAbilityIds, heroic, byTrigger, combatAttack,
-                    combatDefense, triggerFactMask);
+                    combatDefense, triggerFactMask, Map.copyOf(enchantLevels));
         }
     }
 }

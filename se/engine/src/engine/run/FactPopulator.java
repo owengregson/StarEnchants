@@ -4,6 +4,8 @@ import compile.cond.VarBinding;
 import compile.cond.VarKind;
 import compile.model.FactMask;
 import engine.condition.BuiltinVars;
+import engine.condition.EnchantLevelSource;
+import engine.condition.EnchantLevels;
 import engine.condition.FactBuffer;
 import engine.condition.PotionLevels;
 import engine.condition.VarVocabulary;
@@ -19,6 +21,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.DoubleSupplier;
 import java.util.function.UnaryOperator;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import platform.caps.Regions;
@@ -101,8 +104,33 @@ public final class FactPopulator {
         }
     }
 
+    /**
+     * The {@code %scope.enchlevel.<key>%} reader, rebound per activation. Holds UUIDs, never entities: the
+     * lookup is a pre-flattened worn-state read, so a cross-region victim resolves with no entity access.
+     */
+    private static final class EnchantBinding implements EnchantLevels {
+        private UUID actor;
+        private UUID victim;
+
+        void bind(UUID actor, UUID victim) {
+            this.actor = actor;
+            this.victim = victim;
+        }
+
+        @Override
+        public int actorLevel(String key) {
+            return actor == null ? 0 : enchantLevelSource.levelOf(actor, key);
+        }
+
+        @Override
+        public int victimLevel(String key) {
+            return victim == null ? 0 : enchantLevelSource.levelOf(victim, key);
+        }
+    }
+
     private final ThreadLocal<FactBuffer> buffer;
     private final ThreadLocal<PotionBinding> potionBinding = ThreadLocal.withInitial(PotionBinding::new);
+    private final ThreadLocal<EnchantBinding> enchantBinding = ThreadLocal.withInitial(EnchantBinding::new);
     private final VarStore vars;
     private final RageStackStore rageStacks; // §3 %ragestacks% source — an actor-scoped read (mask-gated)
     private final HeldSlotStore heldSlots;   // %heldticks% source — an actor-scoped read (mask-gated)
@@ -120,6 +148,17 @@ public final class FactPopulator {
     /** A {@code null} resets to empty. */
     public static void entityTypeResolver(java.util.function.Function<org.bukkit.entity.Entity, String> resolver) {
         entityTypeResolver = resolver == null ? entity -> "" : resolver;
+    }
+
+    /**
+     * {@code %scope.enchlevel.<key>%} soft hook: boot-installed by the composition root, the only layer where
+     * the worn-state store is visible ({@code se-engine} has no {@code se-item} dependency).
+     */
+    private static volatile EnchantLevelSource enchantLevelSource = EnchantLevelSource.NONE;
+
+    /** A {@code null} resets to the zero source. */
+    public static void enchantLevelSource(EnchantLevelSource source) {
+        enchantLevelSource = source == null ? EnchantLevelSource.NONE : source;
     }
     private final List<ActorNum> actorNum = new ArrayList<>();
     private final List<ActorFlag> actorFlag = new ArrayList<>();
@@ -325,6 +364,9 @@ public final class FactPopulator {
             PotionBinding potions = potionBinding.get();
             potions.bind(context.actor(), context.victim());
             facts.potionLevels(potions);
+            EnchantBinding enchants = enchantBinding.get();
+            enchants.bind(uuidOf(context.actor()), uuidOf(context.victim()));
+            facts.enchantLevels(enchants);
             populateActor(facts, context.actor(), mask);
             populateVictim(facts, context.victim(), mask);
             populateContext(facts, context, mask);
@@ -364,6 +406,11 @@ public final class FactPopulator {
             }
         }
         return facts;
+    }
+
+    /** {@code getUniqueId()} needs no region ownership, so a cross-region entity still yields its id. */
+    private static UUID uuidOf(Entity entity) {
+        return entity == null ? null : entity.getUniqueId();
     }
 
     private void populateActor(FactBuffer facts, Player actor, FactMask mask) {

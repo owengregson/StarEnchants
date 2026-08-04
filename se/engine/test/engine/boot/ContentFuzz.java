@@ -752,6 +752,36 @@ final class ContentFuzz {
                     effects:
                       - { CANCEL: {} }
                 """));
+        // The keyed enchant-level families are prefix-recognised the same way, but carry a raw key string
+        // instead of a resolved handle — so an unauthored key must lower cleanly (it reads 0), while the bare
+        // prefix and a foreign scope must still fall back to the PlaceholderAPI passthrough.
+        out.add(Map.entry("enchlevel-condition.yml", """
+                display: "enchlevelcond"
+                trigger: "ATTACK"
+                levels:
+                  1:
+                    condition: "%actor.enchlevel.solitude% > 0 && %victim.enchlevel.metaphysical% >= 2"
+                    effects:
+                      - { CANCEL: {} }
+                """));
+        out.add(Map.entry("enchlevel-condition-bare-prefix.yml", """
+                display: "enchlevelbare"
+                trigger: "ATTACK"
+                levels:
+                  1:
+                    condition: "%actor.enchlevel.% > 0"
+                    effects:
+                      - { CANCEL: {} }
+                """));
+        out.add(Map.entry("enchlevel-condition-foreign-scope.yml", """
+                display: "enchlevelscope"
+                trigger: "ATTACK"
+                levels:
+                  1:
+                    condition: "%world.enchlevel.solitude% > 0 && %enchlevel.solitude% > 0"
+                    effects:
+                      - { CANCEL: {} }
+                """));
         out.add(Map.entry("tabs-and-garbage.yml", "\tdisplay: \"x\"\n{{{[[\n"));
         out.add(Map.entry("wrong-shapes.yml", """
                 display: "wrongshapes"

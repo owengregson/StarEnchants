@@ -245,6 +245,31 @@ class MultiAbilityEnchantTest {
         assertEquals(NumExpr.Scope.VICTIM, victimSide.scope());
     }
 
+    @Test
+    void theKeyedEnchantLevelFamiliesSurviveTheWholeCompileAsKeyedNodes() throws Exception {
+        // No fact slot to assert against, and no compile-time id either — the stable-key index is built by the
+        // ERASE stage, after conditions lower — so the end-to-end contract is that the node reaches the runtime
+        // record carrying its key, never as a PlaceholderAPI passthrough that would read null forever.
+        Snapshot snap = load("""
+                display: "Phoenix"
+                trigger: "ATTACK"
+                levels:
+                  1:
+                    condition: "%actor.enchlevel.solitude% > 0 && %victim.enchlevel.metaphysical% >= 2"
+                    effects: [{ IGNITE: { duration: 60, who: "@Victim" } }]
+                """);
+        Ability ability = snap.byStableKey("enchants/phoenix/1");
+        Cond.And root = assertInstanceOf(Cond.And.class, ability.condition().root());
+        NumExpr.EnchantLevel actorSide =
+                assertInstanceOf(NumExpr.EnchantLevel.class, assertInstanceOf(Cond.NumCmp.class, root.left()).left());
+        assertEquals(NumExpr.Scope.ACTOR, actorSide.scope());
+        assertEquals("solitude", actorSide.key());
+        NumExpr.EnchantLevel victimSide =
+                assertInstanceOf(NumExpr.EnchantLevel.class, assertInstanceOf(Cond.NumCmp.class, root.right()).left());
+        assertEquals(NumExpr.Scope.VICTIM, victimSide.scope());
+        assertEquals("metaphysical", victimSide.key());
+    }
+
     private GateOutcome gate(Ability ability, FactBuffer facts, double roll) {
         return new ActivationPipeline(new CooldownStore(), SoulSpender.NONE).evaluate(ability,
                 Activation.builder(ACTOR, 0, triggerId, 0L).facts(facts).chanceRoll(() -> roll).build());

@@ -41,6 +41,12 @@ public final class NumExprEval {
                     ? f.victimPotionLevel(p.handleId())
                     : f.actorPotionLevel(p.handleId());
         }
+        if (e instanceof NumExpr.EnchantLevel l) {
+            // The worn level, 0 when absent — so `> 0` reads "has it" and `>= 3` reads "at least III".
+            return l.scope() == NumExpr.Scope.VICTIM
+                    ? f.victimEnchantLevel(l.key())
+                    : f.actorEnchantLevel(l.key());
+        }
         if (e instanceof NumExpr.Fn fn) {
             return function(fn, f);
         }

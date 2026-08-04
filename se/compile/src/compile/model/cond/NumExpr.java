@@ -10,7 +10,7 @@ import java.util.List;
  */
 public sealed interface NumExpr
         permits NumExpr.Var, NumExpr.Lit, NumExpr.Papi, NumExpr.Bin, NumExpr.Neg, NumExpr.Fn,
-                NumExpr.EntityVar, NumExpr.PotionLevel {
+                NumExpr.EntityVar, NumExpr.PotionLevel, NumExpr.EnchantLevel {
 
     /** A numeric variable resolved to its dense {@code FactBuffer} number slot. */
     record Var(int slot) implements NumExpr {}
@@ -45,6 +45,15 @@ public sealed interface NumExpr
      * {@code > 0} the boolean idiom.
      */
     record PotionLevel(Scope scope, int handleId) implements NumExpr {}
+
+    /**
+     * An entity's worn level of one custom enchant — {@code %actor.enchlevel.<key>%} /
+     * {@code %victim.enchlevel.<key>%}, {@code 0} when not worn. Unlike {@link PotionLevel} the key stays a
+     * STRING: dense ids and the stable-key index are assigned by the ERASE stage, which runs after conditions
+     * lower, so no id exists yet — this follows {@link EntityVar}'s lazy-runtime-lookup template instead.
+     * {@code key} is the lower-cased enchant stem, matching the runtime's canonically lower-cased worn map.
+     */
+    record EnchantLevel(Scope scope, String key) implements NumExpr {}
 
     /** Which entity of the activation an entity-scoped operand reads from. */
     enum Scope { ACTOR, VICTIM }

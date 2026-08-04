@@ -3,6 +3,7 @@ package item.worn;
 import compile.model.FactMask;
 import item.codec.HeroicStat;
 import java.util.BitSet;
+import java.util.Map;
 
 /**
  * A player's resolved equipment state — immutable, multi-set, pre-flattened (§5.5). Resolved once per
@@ -22,6 +23,8 @@ import java.util.BitSet;
  * @param triggerFactMask         per-trigger union of the referenced {@code FactBuffer} slots (ADR-0039),
  *                                so the populator computes only the facts this wearer's trigger abilities
  *                                read; {@code null} means "populate everything" (hand-built test states)
+ * @param enchantLevels           lower-cased enchant stem &rarr; highest level worn, flattened once here so
+ *                                {@code %scope.enchlevel.<key>%} is a lookup and never a gear scan
  */
 public record WornState(
         int gen,
@@ -31,9 +34,17 @@ public record WornState(
         int[][] byTrigger,
         int[] combatAttack,
         int[] combatDefense,
-        FactMask[] triggerFactMask) {
+        FactMask[] triggerFactMask,
+        Map<String, Integer> enchantLevels) {
 
     private static final int[] NO_IDS = new int[0];
+
+    /** No flattened enchant levels — {@link #enchantLevel} then reports 0 for every key. */
+    public WornState(int gen, BitSet activeSets, int[] activeCrystalAbilityIds, HeroicStat heroic,
+                     int[][] byTrigger, int[] combatAttack, int[] combatDefense, FactMask[] triggerFactMask) {
+        this(gen, activeSets, activeCrystalAbilityIds, heroic, byTrigger, combatAttack, combatDefense,
+                triggerFactMask, Map.of());
+    }
 
     /** No per-trigger masks — {@link #factMask} then reports {@link FactMask#ALL} (populate everything). */
     public WornState(int gen, BitSet activeSets, int[] activeCrystalAbilityIds, HeroicStat heroic,
@@ -43,6 +54,12 @@ public record WornState(
 
     public static WornState empty(int gen) {
         return new WornState(gen, new BitSet(), NO_IDS, HeroicStat.NONE, new int[0][], NO_IDS, NO_IDS);
+    }
+
+    /** The highest level of the enchant {@code key} (lower-cased stem) worn; {@code 0} when absent. */
+    public int enchantLevel(String key) {
+        Integer level = enchantLevels == null ? null : enchantLevels.get(key);
+        return level == null ? 0 : level;
     }
 
     /** Ability ids firing on the interned {@code triggerId}; empty array if none (never {@code null}). */

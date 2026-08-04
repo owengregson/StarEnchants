@@ -6,6 +6,7 @@ import item.codec.HeroicStat;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
+import java.util.Map;
 import java.util.function.IntPredicate;
 
 /**
@@ -56,6 +57,15 @@ public final class WornFlattener {
                                     int triggerCount, BitSet activeSets, int[] crystalAbilityIds,
                                     HeroicStat heroic, IntPredicate attackTrigger,
                                     IntPredicate defenseTrigger) {
+        return flatten(gen, mainIds, offhandIds, abilities, triggerCount, activeSets, crystalAbilityIds,
+                heroic, attackTrigger, defenseTrigger, Map.of());
+    }
+
+    /** As above, carrying the resolver's flattened {@code enchantLevels} (stem &rarr; highest level worn). */
+    public static WornState flatten(int gen, int[] mainIds, int[] offhandIds, Ability[] abilities,
+                                    int triggerCount, BitSet activeSets, int[] crystalAbilityIds,
+                                    HeroicStat heroic, IntPredicate attackTrigger,
+                                    IntPredicate defenseTrigger, Map<String, Integer> enchantLevels) {
         List<List<Integer>> perTrigger = new ArrayList<>(triggerCount);
         FactMask[] triggerMask = new FactMask[triggerCount];
         for (int t = 0; t < triggerCount; t++) {
@@ -116,7 +126,7 @@ public final class WornFlattener {
             byTrigger[t] = toIntArray(perTrigger.get(t));
         }
         return new WornState(gen, activeSets, crystalAbilityIds.clone(), heroic,
-                byTrigger, toIntArray(attack), toIntArray(defense), triggerMask);
+                byTrigger, toIntArray(attack), toIntArray(defense), triggerMask, Map.copyOf(enchantLevels));
     }
 
     private static int[] toIntArray(List<Integer> list) {

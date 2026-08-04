@@ -532,6 +532,12 @@ public final class BootCore {
                 bindings.mcmmoFriendlyFire(plugin, master.config().integrations()::enabled);
         CombatDispatch.friendlyFire(allied);
         engine.selector.kind.Allies.resolver(allied);
+        // %actor.enchlevel.<key>% / %victim.enchlevel.<key>%: the level flattened into the live WornState, by
+        // UUID — the composition root is the only layer where the engine's reader and the item store meet.
+        engine.run.FactPopulator.enchantLevelSource((entity, key) -> {
+            item.worn.WornState state = worn.get(entity);
+            return state == null ? 0 : state.enchantLevel(key);
+        });
         // %victim.mobtype% from MythicMobs' internal name,
         engine.run.FactPopulator.entityTypeResolver(
                 bindings.mythicMobType(plugin, master.config().integrations()::enabled));

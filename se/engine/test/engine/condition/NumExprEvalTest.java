@@ -56,6 +56,30 @@ class NumExprEvalTest {
     }
 
     @Test
+    void enchantLevelReadsTheWornLevelPerScopeAndZeroWhenAbsent() {
+        FactBuffer facts = new FactBuffer(0, 0, 0);
+        facts.enchantLevels(new EnchantLevels() {
+            @Override
+            public int actorLevel(String key) {
+                return "solitude".equals(key) ? 3 : 0; // Solitude III co-held by the actor
+            }
+
+            @Override
+            public int victimLevel(String key) {
+                return 0;
+            }
+        });
+        // The worn level, so `> 0` is the "has it" idiom and `>= 3` the "at least III" one.
+        assertEquals(3.0, NumExprEval.eval(new NumExpr.EnchantLevel(NumExpr.Scope.ACTOR, "solitude"), facts));
+        assertEquals(0.0, NumExprEval.eval(new NumExpr.EnchantLevel(NumExpr.Scope.ACTOR, "sticky"), facts));
+        // The scope is not decorative: reading the victim must not answer with the actor's enchants.
+        assertEquals(0.0, NumExprEval.eval(new NumExpr.EnchantLevel(NumExpr.Scope.VICTIM, "solitude"), facts));
+        // With no reader installed (a synthetic run) every read is 0 rather than NaN.
+        facts.clear();
+        assertEquals(0.0, NumExprEval.eval(new NumExpr.EnchantLevel(NumExpr.Scope.ACTOR, "solitude"), facts));
+    }
+
+    @Test
     void negationAndDivision() {
         FactBuffer facts = new FactBuffer(1, 0, 0);
         facts.setNumber(0, 20.0);

@@ -184,6 +184,8 @@ public final class ConditionCompiler {
 
     private static final String POTION_PREFIX = "potion.";
 
+    private static final String ENCHLEVEL_PREFIX = "enchlevel.";
+
     /** The activation entity a {@code scope} names, or {@code null} if it names neither side. */
     private static NumExpr.Scope entityScope(String scope) {
         if ("victim".equalsIgnoreCase(scope)) {
@@ -217,6 +219,28 @@ public final class ConditionCompiler {
         return Optional.of(new NumExpr.PotionLevel(entityScope(v.scope()), id.getAsInt()));
     }
 
+    /**
+     * Whether this token is a keyed worn-enchant read — {@code %actor.enchlevel.<key>%} /
+     * {@code %victim.enchlevel.<key>%}. Prefix-recognised for the same reason the {@code var.}/{@code potion.}
+     * families are: the enchant vocabulary is the pack's, not the var vocabulary's.
+     */
+    private static boolean isEnchantLevelRef(Expr.VarRef v) {
+        return entityScope(v.scope()) != null && v.name() != null
+                && v.name().length() > ENCHLEVEL_PREFIX.length()
+                && v.name().regionMatches(true, 0, ENCHLEVEL_PREFIX, 0, ENCHLEVEL_PREFIX.length());
+    }
+
+    /**
+     * The key crosses as a STRING, not a resolved id: the stable-key index is assigned by the ERASE stage,
+     * which runs after this. An unknown key is NOT a diagnostic — like {@code %victim.var.<name>%} it reads 0,
+     * since an enchant may legitimately be absent from a pack.
+     */
+    private static NumExpr.EnchantLevel enchantLevel(Expr.VarRef v) {
+        // The remainder whole — inner dots and all — lower-cased to the worn map's canonical form.
+        String key = v.name().substring(ENCHLEVEL_PREFIX.length()).toLowerCase(Locale.ROOT);
+        return new NumExpr.EnchantLevel(entityScope(v.scope()), key);
+    }
+
     private Optional<NumExpr> numVar(Expr.VarRef v, Diagnostics diags) {
         NumExpr.EntityVar entity = entityVar(v);
         if (entity != null) {
@@ -224,6 +248,9 @@ public final class ConditionCompiler {
         }
         if (isPotionRef(v)) {
             return potionLevel(v, diags);
+        }
+        if (isEnchantLevelRef(v)) {
+            return Optional.of(enchantLevel(v));
         }
         Optional<VarBinding> b = vars.resolve(v.scope(), v.name());
         if (b.isEmpty()) {
@@ -416,6 +443,9 @@ public final class ConditionCompiler {
         if (isPotionRef(v)) {
             // Numeric too: %victim.potion.SLOW% > 0 is the "is it active" idiom, > 1 the "at least II" one.
             return potionLevel(v, diags).map(Operand::num).orElse(null);
+        }
+        if (isEnchantLevelRef(v)) {
+            return Operand.num(enchantLevel(v)); // a level is numeric: %victim.enchlevel.metaphysical% >= 3
         }
         Optional<VarBinding> b = vars.resolve(v.scope(), v.name());
         if (b.isEmpty()) {
