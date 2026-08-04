@@ -26,7 +26,9 @@ public final class LegacyHeroicSave implements LegacyGearPoll.HeroicSave {
 
     @Override
     @SuppressWarnings("deprecation") // setDurability: the 1.8 durability accessor
-    public boolean trySave(ItemStack item, short priorDamage) {
+    public boolean trySave(org.bukkit.entity.Player player, ItemStack item, short priorDamage) {
+        // The wearer is not read here — the roll is a property of the item — but the poll hands it over so a
+        // consumer that owns only some of the online players can scope itself (see HeroicSave).
         double base = codec.read(item).heroic().durability(); // EMPTY → NONE → 0.0 (fast no-op)
         if (base <= 0.0) {
             return false;

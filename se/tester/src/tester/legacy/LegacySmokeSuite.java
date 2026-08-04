@@ -393,7 +393,6 @@ public final class LegacySmokeSuite implements Harness.Scenario {
         // loss and restore it via the heroic-save subscriber (ADR-0044 §6).
         CombatCodec codec = new CombatCodec(ItemKeys.of().combat(), new item.codec.NbtItemStateStore());
         feature.trigger.LegacyGearPoll gearPoll = new feature.trigger.LegacyGearPoll(codec::readBlob);
-        gearPoll.heroicSave(new feature.heroic.LegacyHeroicSave(codec, new Random()));
         Scheduling.onRegion(at, () -> {
             Player p;
             try {
@@ -402,6 +401,12 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                 h.fail("legacy.degrade.heroicSave", "spawn on 1.8: " + t);
                 return;
             }
+            // Scope the save to THIS player: every poll in this suite scans every online player, and a save is the
+            // one subscriber that mutates. Unscoped, this poll silently restores another check's wear before that
+            // check's own poll can observe it (the F11 gearpoll read, which is a rise on a heroic sword too).
+            feature.heroic.LegacyHeroicSave save = new feature.heroic.LegacyHeroicSave(codec, new Random());
+            gearPoll.heroicSave((pl, item, priorDamage) ->
+                    pl.getUniqueId().equals(p.getUniqueId()) && save.trySave(pl, item, priorDamage));
             Scheduling.onEntity(p, () -> {
                 ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
                 // Always-save heroic durability (chance 1.0): nextDouble() ∈ [0,1) is always < 1.0.
@@ -518,9 +523,12 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                 return;
             }
             Scheduling.onEntity(shooter, () -> {
-                // Dropped from above the shooter rather than launched from the hand: a point-blank launch can
-                // clip the shooter, and the contract under test is the landing, not the trajectory.
-                Location drop = at.clone().add(0.5, 4.0, 0.5);
+                // Dropped from above rather than launched from the hand: a point-blank launch can clip the
+                // shooter, and the contract under test is the landing, not the trajectory. Offset clear of the
+                // spawn point because every fake player in this suite logs in AT spawn and the server scatters
+                // them a few blocks — an arrow dropped into that crowd hits a body, and an entity hit is exactly
+                // what this seam declines to report.
+                Location drop = at.clone().add(12.5, 4.0, 12.5);
                 Arrow arrow = world.spawnArrow(drop, new Vector(0.0, -1.0, 0.0), 2.0f, 0.0f);
                 arrow.setShooter(shooter);
                 Snowball snowball = (Snowball) world.spawnEntity(drop, EntityType.SNOWBALL);
@@ -533,7 +541,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                                     + "in-ground probe, got " + arrowLandings.get());
                         }
                         Location landed = lastLanding.get();
-                        if (landed == null || landed.distance(at) > 6.0) {
+                        if (landed == null || landed.distance(drop) > 6.0) {
                             throw new IllegalStateException("landing anchored away from the drop column: " + landed);
                         }
                     });
@@ -626,7 +634,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
         // differs), so no free heroic repair and no spurious ITEM_DAMAGE; a genuine in-place wear still restores.
         CombatCodec codecB = new CombatCodec(ItemKeys.of().combat(), new item.codec.NbtItemStateStore());
         feature.trigger.LegacyGearPoll pollB = new feature.trigger.LegacyGearPoll(codecB::readBlob);
-        pollB.heroicSave(new feature.heroic.LegacyHeroicSave(codecB, new Random()));
+        feature.heroic.LegacyHeroicSave saveB = new feature.heroic.LegacyHeroicSave(codecB, new Random());
         AtomicInteger itemDamage = new AtomicInteger();
         Scheduling.onRegion(at, () -> {
             Player p;
@@ -636,6 +644,9 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                 h.fail("legacy.gearpoll.swapNoFreeRepair", "spawn on 1.8: " + t);
                 return;
             }
+            // Scoped like the other two subscribers, and for the same reason — see the degrade check above.
+            pollB.heroicSave((pl, item, priorDamage) ->
+                    pl.getUniqueId().equals(p.getUniqueId()) && saveB.trySave(pl, item, priorDamage));
             pollB.fireItemDamage((pl, armor, delta, percent) -> {
                 if (pl.getUniqueId().equals(p.getUniqueId())) {
                     itemDamage.incrementAndGet();
