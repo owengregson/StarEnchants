@@ -1,0 +1,248 @@
+# Matrix: 12-pets.md § Water Elemental Pet
+# THE PET FAMILY SHAPE is read once in `anti-teleblock.yml`; the ABILITY SHAPE is Lava's, read once in
+# `lava-elemental.yml` — same four-ability bracket (payload at index 0 stamping `waterpet.fired` + the inline
+# `waterpet.filled` count, then the converted/zero/spectator branches), same pet-wide cooldown scope on index
+# 0, same residual (a zero-bucket use spends the cooldown, because the refusal can only be known after the
+# conversion has run). This pet has no fat-bucket half.
+# COOLDOWN: 6000 t = the as-intended 300 s, flat at every level (ledger D-12-5).
+# D-12-6 is the same inverted partial fill as Lava and needs nothing authored — INVENTORY_CONVERT converts up
+# to the limit and returns the overflow.
+# The bucket budget is IDENTICAL to Lava's for half the XP (`level x 500` against `level x 1000`) — measured,
+# and kept: the same work is worth half as much on this pet.
+# era: `SPLASH` / `VILLAGER_NO` are the 1.8 spellings; the modern names ship per the pack convention.
+# `SPLASH`->`ENTITY_GENERIC_SPLASH` is already on the legacy-sweep list (matrix/04 § Blessed) and
+# `VILLAGER_NO`->`ENTITY_VILLAGER_NO` is owed with Lava's, so both cues are silent on the legacy lane until
+# the sweep lands them. BUCKET / WATER_BUCKET are identical on both trees.
+display: "Water Elemental Pet"
+color: "&e"
+type: ACTIVE
+# head: not matrix-recorded, so the mint falls back to a plain PLAYER_HEAD (see `lava-elemental.yml`).
+descriptor:
+  - "§7§7A watery pet that is"
+  - "§7§7capable of extracting water"
+  - "§7§7from the air and condensing it."
+# Verbatim, with `{maxFill}` pinned at its level-1 value per the family convention (no likeness token carries
+# a bucket budget). The ladder is Lava's exactly: `level x 32` = 32 … 288, and 1152 at L10 (the lore's "ALL").
+description:
+  - "§7"
+  - "§7§f§lAbility"
+  - "§7§7Fills up to 32x"
+  - "§7§7empty buckets in your"
+  - "§7§7inventory into water!"
+  - "§7"
+  - "§7§f§lCooldown"
+  - "§7§7 5 Minutes"
+max-level: 10
+exp-curve: { base: 0, per-level: 500 }   # `level x 500`: L2 1000 … L10 5000, 27 000 to cap; XP = buckets filled
+levels:
+  1:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SET_VAR: { name: "waterpet.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { INVENTORY_CONVERT: { from: "BUCKET", to: "WATER_BUCKET", limit: 32, plain: true, protect-seconds: 60, count-var: "waterpet.filled" } }
+      - condition: '%waterpet.fired% == 1 && %waterpet.filled% > 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%waterpet.fired% == 1 && %waterpet.filled% == 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§lPET (§cWater Pet§c§l)§c:§f No empty buckets in your inventory!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  2:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SET_VAR: { name: "waterpet.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { INVENTORY_CONVERT: { from: "BUCKET", to: "WATER_BUCKET", limit: 64, plain: true, protect-seconds: 60, count-var: "waterpet.filled" } }
+      - condition: '%waterpet.fired% == 1 && %waterpet.filled% > 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%waterpet.fired% == 1 && %waterpet.filled% == 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§lPET (§cWater Pet§c§l)§c:§f No empty buckets in your inventory!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  3:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SET_VAR: { name: "waterpet.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { INVENTORY_CONVERT: { from: "BUCKET", to: "WATER_BUCKET", limit: 96, plain: true, protect-seconds: 60, count-var: "waterpet.filled" } }
+      - condition: '%waterpet.fired% == 1 && %waterpet.filled% > 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%waterpet.fired% == 1 && %waterpet.filled% == 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§lPET (§cWater Pet§c§l)§c:§f No empty buckets in your inventory!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  4:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SET_VAR: { name: "waterpet.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { INVENTORY_CONVERT: { from: "BUCKET", to: "WATER_BUCKET", limit: 128, plain: true, protect-seconds: 60, count-var: "waterpet.filled" } }
+      - condition: '%waterpet.fired% == 1 && %waterpet.filled% > 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%waterpet.fired% == 1 && %waterpet.filled% == 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§lPET (§cWater Pet§c§l)§c:§f No empty buckets in your inventory!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  5:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SET_VAR: { name: "waterpet.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { INVENTORY_CONVERT: { from: "BUCKET", to: "WATER_BUCKET", limit: 160, plain: true, protect-seconds: 60, count-var: "waterpet.filled" } }
+      - condition: '%waterpet.fired% == 1 && %waterpet.filled% > 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%waterpet.fired% == 1 && %waterpet.filled% == 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§lPET (§cWater Pet§c§l)§c:§f No empty buckets in your inventory!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  6:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SET_VAR: { name: "waterpet.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { INVENTORY_CONVERT: { from: "BUCKET", to: "WATER_BUCKET", limit: 192, plain: true, protect-seconds: 60, count-var: "waterpet.filled" } }
+      - condition: '%waterpet.fired% == 1 && %waterpet.filled% > 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%waterpet.fired% == 1 && %waterpet.filled% == 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§lPET (§cWater Pet§c§l)§c:§f No empty buckets in your inventory!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  7:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SET_VAR: { name: "waterpet.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { INVENTORY_CONVERT: { from: "BUCKET", to: "WATER_BUCKET", limit: 224, plain: true, protect-seconds: 60, count-var: "waterpet.filled" } }
+      - condition: '%waterpet.fired% == 1 && %waterpet.filled% > 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%waterpet.fired% == 1 && %waterpet.filled% == 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§lPET (§cWater Pet§c§l)§c:§f No empty buckets in your inventory!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  8:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SET_VAR: { name: "waterpet.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { INVENTORY_CONVERT: { from: "BUCKET", to: "WATER_BUCKET", limit: 256, plain: true, protect-seconds: 60, count-var: "waterpet.filled" } }
+      - condition: '%waterpet.fired% == 1 && %waterpet.filled% > 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%waterpet.fired% == 1 && %waterpet.filled% == 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§lPET (§cWater Pet§c§l)§c:§f No empty buckets in your inventory!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  9:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SET_VAR: { name: "waterpet.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { INVENTORY_CONVERT: { from: "BUCKET", to: "WATER_BUCKET", limit: 288, plain: true, protect-seconds: 60, count-var: "waterpet.filled" } }
+      - condition: '%waterpet.fired% == 1 && %waterpet.filled% > 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%waterpet.fired% == 1 && %waterpet.filled% == 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§lPET (§cWater Pet§c§l)§c:§f No empty buckets in your inventory!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  10:
+    # L10 is the lore's "ALL": 1152, not the ladder's 320.
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SET_VAR: { name: "waterpet.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { INVENTORY_CONVERT: { from: "BUCKET", to: "WATER_BUCKET", limit: 1152, plain: true, protect-seconds: 60, count-var: "waterpet.filled" } }
+      - condition: '%waterpet.fired% == 1 && %waterpet.filled% > 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%waterpet.fired% == 1 && %waterpet.filled% == 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§lPET (§cWater Pet§c§l)§c:§f No empty buckets in your inventory!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }

@@ -1,0 +1,217 @@
+# Matrix: 12-pets.md § Enchanter Pet
+# An ACTIVE inventory pet: right-click to arm a one-shot +LEVEL% bonus on the success rate of the NEXT
+# enchantment book you apply to gear. Blackscroll's twin one site over — the whole payload is
+# BOOK_RATE_MODIFIER at the `apply` site — so the file is `pets/blackscroll.yml` with two numbers and two
+# strings changed.
+#
+# FAMILY FACTS (matrix § Family-level facts, shared by all 17 entries; recorded once per file):
+#  - The jar fires on ANY interaction (no action filter, codex §A.2); as intended it is right-click only,
+#    which IS the engine's USE trigger (ledger D-12-1). The 1 Hz hotbar ticker is a no-op for every pet, so
+#    nothing passive is ported and this pet is `type: ACTIVE` with no worn ability.
+#  - COOLDOWN: the jar computes `cooldown − now − last-used`, always a large negative, so no pet cooldown ever
+#    blocked and its on-cooldown branch is dead code (codex §A.6). The AS-INTENDED value ships: 3600 s =
+#    72 000 t (ledger D-12-26). The engine's gate-6 cooldown replaces the matrix's SET_VAR/`pet-cd-enchanter`
+#    template — same window, one authored number, and the pet-wide cooldown scope survives a level-up that
+#    crosses a bracket floor.
+#  - XP: pets earn ONLY from using their own ability. `ITEM_XP_TRACK` carries the grant, the family's two
+#    verbatim lines and the recorded one-level-per-grant/remainder-banked/unbounded-at-cap semantics;
+#    `exp-curve` + `max-level` carry this pet's own ladder. `{needed}` is the POST-level-up requirement on the
+#    activation that levels you — the jar quirk, kept by the effect. The jar's always-empty/overflowing
+#    50-segment bar (codex §A.5) is replaced by the engine's proportional clamped bar, the as-intended
+#    reading (ledger D-12-2).
+#  - LORE SPLIT: `descriptor` is the flavour block and `description` the `§7§f§lAbility` body, both verbatim —
+#    and the body carries its own `§7§f§lAbility` / `§7§f§lCooldown` headers and cooldown value line. The
+#    pack's ONE pet likeness, `items/pet.yml`, holds the cosmic name template and the family's Level/EXP tail,
+#    nothing else. `{LEVEL}` is the likeness token for the stored level and doubles as the bonus percent,
+#    which IS the level; `{TIME_FORMATTED}` renders the live bracket's cooldown, flat `1h` at every rung.
+#  - HEAD: the per-type skull texture is codex-side and not matrix-recorded, so no base64 is authored and the
+#    head mints untextured (PLAYER_HEAD). Family-wide across all 17 entries.
+#  - Pet heads are invalid helmet items (the masks family refuses to wear one) — an interaction-layer rule,
+#    engine-owned, not authored here.
+# NOT RENDERED (recorded): the guard's verbatim refusal line
+#   `§c§lPET: §cYou already have an active Enchanter Pet applied. Use an Enchantment Book before attempting to
+#   use another Enchanter Pet.`
+# A USE ability has no per-condition feedback hook, so a failed condition simply does not activate and the
+# player sees the universal `pets.message-on-fail` template. The guard IS authored as a condition, so the
+# behaviour is exact (nothing fires, no cooldown burns, no XP lands); only the string is lost. The family's
+# spectator line is NOT in this class — the folder ruling gives it an ability of its own, so it renders.
+# The consumption-side line the book flow prints when the charge is spent —
+#   `§7Applying enchantment book... §e{rate}§6(+{bonus})§e% success chance...`
+# — belongs to the book-apply gate, not to this file, and is recorded here for whoever authors that flow.
+# interactions: the book economy, `apply` site. The jar stacked this charge additively with its other
+# apply-site modifiers (hero-outpost +10, the `cosmicpvp.heroic` permission +5, then the global −10 under-100
+# penalty floored at 1 and destruction ×1.15); those live with the book-economy decomposition, and the jar's
+# two hard-coded username exemptions are not ported. Different site from the Blackscroll charge, so BOTH can
+# be armed at once (`pets/blackscroll.yml` records the same). Jar quirk NOT reproduced: it consumed the charge
+# BEFORE the apply preconditions, so a failed precondition burned it for nothing; the engine consumes on the
+# next roll at this site whatever that roll returns, which is the same rule one gate later — the exact
+# ordering belongs to the book-apply gate when it lands.
+# era: none beyond the family notes. `LAVA_POP` and `ITEM_PICKUP` are 1.7/1.8 sound names, authored in their
+# modern spellings (`BLOCK_LAVA_POP`, `ENTITY_ITEM_PICKUP`); NEITHER has an `Aliases.SOUND` row yet, so both
+# warn-skip on the legacy fork until the sweep adds `LAVA_POP → BLOCK_LAVA_POP` and
+# `ITEM_PICKUP → ENTITY_ITEM_PICKUP`.
+# FOLDER HARMONISATION (owner ruling): '&' colour form, own Cooldown block, spectator refusal as its own ability.
+display: "Enchanter Pet"
+color: "&e"
+type: ACTIVE
+descriptor:
+  - "§7§7A powerful, magical creature"
+  - "§7§7skilled in the many forms of"
+  - "§7§7alchemy and enchantment."
+description:
+  - "§7"
+  - "§7§f§lAbility"
+  - "§7§7Increase the % success rate of"
+  - "§7§7the next enchantment book you"
+  - "§7§7attempt to apply by §f{LEVEL}%"
+  - "§7"
+  - "§7§f§lCooldown"
+  - "§7§7 {TIME_FORMATTED}"
+# Identical ladder to Blackscroll: `250 + 1000 × level` (the cost of REACHING level N) — 2250 at L2 … 10250 at
+# L10, 56 250 to cap, 1125 uses at 50 XP each.
+exp-curve: { base: 250, per-level: 1000 }
+max-level: 10
+levels:
+  # One bracket per level: only the bonus percent (= the level) and the success line's number scale. Cooldown
+  # is flat 3600 s at every rung (lore `1h`), and the XP grant is flat 50.
+  1:
+    cooldown: 72000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && !%bookrate.apply%'
+        effects:
+          - { BOOK_RATE_MODIFIER: { site: apply, percent: 1 } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          # {level} has no token binding on MESSAGE, so the percent is inlined per rung (the batch-1 convention).
+          - { MESSAGE: { text: "§a§lPET: §aThe next Enchantment Book you use will have a +1% modifier applied to its success rate." } }
+          - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 1.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  2:
+    cooldown: 72000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && !%bookrate.apply%'
+        effects:
+          - { BOOK_RATE_MODIFIER: { site: apply, percent: 2 } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET: §aThe next Enchantment Book you use will have a +2% modifier applied to its success rate." } }
+          - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 1.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  3:
+    cooldown: 72000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && !%bookrate.apply%'
+        effects:
+          - { BOOK_RATE_MODIFIER: { site: apply, percent: 3 } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET: §aThe next Enchantment Book you use will have a +3% modifier applied to its success rate." } }
+          - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 1.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  4:
+    cooldown: 72000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && !%bookrate.apply%'
+        effects:
+          - { BOOK_RATE_MODIFIER: { site: apply, percent: 4 } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET: §aThe next Enchantment Book you use will have a +4% modifier applied to its success rate." } }
+          - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 1.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  5:
+    cooldown: 72000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && !%bookrate.apply%'
+        effects:
+          - { BOOK_RATE_MODIFIER: { site: apply, percent: 5 } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET: §aThe next Enchantment Book you use will have a +5% modifier applied to its success rate." } }
+          - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 1.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  6:
+    cooldown: 72000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && !%bookrate.apply%'
+        effects:
+          - { BOOK_RATE_MODIFIER: { site: apply, percent: 6 } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET: §aThe next Enchantment Book you use will have a +6% modifier applied to its success rate." } }
+          - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 1.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  7:
+    cooldown: 72000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && !%bookrate.apply%'
+        effects:
+          - { BOOK_RATE_MODIFIER: { site: apply, percent: 7 } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET: §aThe next Enchantment Book you use will have a +7% modifier applied to its success rate." } }
+          - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 1.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  8:
+    cooldown: 72000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && !%bookrate.apply%'
+        effects:
+          - { BOOK_RATE_MODIFIER: { site: apply, percent: 8 } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET: §aThe next Enchantment Book you use will have a +8% modifier applied to its success rate." } }
+          - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 1.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  9:
+    cooldown: 72000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && !%bookrate.apply%'
+        effects:
+          - { BOOK_RATE_MODIFIER: { site: apply, percent: 9 } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET: §aThe next Enchantment Book you use will have a +9% modifier applied to its success rate." } }
+          - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 1.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  10:
+    cooldown: 72000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && !%bookrate.apply%'
+        effects:
+          - { BOOK_RATE_MODIFIER: { site: apply, percent: 10 } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET: §aThe next Enchantment Book you use will have a +10% modifier applied to its success rate." } }
+          - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 1.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }

@@ -29,17 +29,23 @@
 # This is the only crystal in the family whose advertised numbers all match measured behaviour at 1 piece.
 # The full-set negation flags below and the crystal roll are INDEPENDENT mechanisms and can both be live.
 # ── PHYSICAL LIKENESS ──────────────────────────────────────────────────────────────────────────────────────
-# Per-piece flavour lore is authored on the `pieces:` members below, above the shared `armor.lore`. The mint's
-# roll rules are RECORDED, NOT AUTHORED (deferred-content.md): the matrix gives gates and bonus probabilities
-# over a base roster it never enumerates, so there are no entries to roll.
+# Per-piece flavour lore and the two bonus rolls this surface can spell are authored on the `pieces:` members
+# below, the flavour above the shared `armor.lore`.
 #   mint rules: heroic-enchant roster gate 40 % per heroic entry; base roster entries roll nearly maxed as
 #   min(M, max(1, M-2) + rand(3)) over each enchant's own max M; per-piece bonus rolls:
-#     helmet  30 % Immortal
-#     chest   5 % Enchant Reflect (max) + Heroic Enchant Reflect
-#     legs    7.5 % Nature Wrath (max)
-#     boots   7.5 % Phoenix, and Guardians — LEDGER D-10-7: the measured roster misspells it `Gaurdians`, so
-#             that bonus silently never applies; the typo's intent is unambiguous and the port rolls
-#             Guardians as intended.
+#     helmet  30 % Immortal — AUTHORED
+#     chest   5 % Enchant Reflect (max) — AUTHORED; its partner `Heroic Enchant Reflect` is NOT: it is a
+#             heroic-roster entry behind the 40 % gate as well, so its real rate is a product of two recorded
+#             gates rather than a recorded figure, and the roster it belongs to is never enumerated
+#     legs    7.5 % Nature Wrath (max) — a roster entry's `chance` is an integer percent, so this half-point
+#             probability has no spelling
+#     boots   7.5 % Phoenix — half-point again, so not authored. Guardians is not authored either, for the
+#             other reason: it is an entry of the boots' BASE roster, which the codex never enumerates, so it
+#             carries no rate of its own to spell. LEDGER D-10-7: the measured roster misspells it
+#             `Gaurdians`, so that bonus silently never applies; the typo's intent is unambiguous and the port
+#             rolls Guardians as intended the day that roster is recorded.
+# The BASE roster the rolls sit beside is recorded as a rule and never as entries, so there is still nothing
+# there for the roll form to name.
 display: "§e§lDragon Slayer"  # matrix records no standalone set display; §e is the family's own colour
 # description: not matrix-recorded (factual paraphrase)
 description: "§eThe dragon-hunter's plate — everything hits it softer, players take more, and freezes, silences and masteries slide off."
@@ -72,11 +78,15 @@ armor:
       name: "§e§lDecapitated Dragon Skull§r"
       lore:
         - "§e§oThe mythical helmet of a Slayer of Dragons."
+      enchants:
+        enchants/immortal: { chance: 30, nearly-maxed: 4 }
     chestplate:
       material: DIAMOND_CHESTPLATE
       name: "§e§lFirey Chestplate of Dragons§r"
       lore:
         - "§e§oThe mythical chestplate of a Slayer of Dragons."
+      enchants:
+        enchants/enchant-reflect: { chance: 5, max: 10 }   # recorded AT max, so no draw — just the gate
     leggings:
       material: DIAMOND_LEGGINGS
       name: "§e§lScorched Leggings of Dragons§r"
@@ -169,5 +179,6 @@ bonuses:
 #  * outpost world gates block this set's bonuses; off by default in the port.
 #  * `enchants/titan-trap` copies the heroic's MEASURED exemptions rather than fixing them — it neither fires
 #    the proc-veto nor honours this set's freeze immunity. The set side honours that asymmetry above by
-#    keying `dragon-slayer-blocks-freeze` to `enchants/trap` + `enchants/ice-aspect` alone; the owner may
-#    align the two grades with one interaction rule later (deferred-content.md).
+#    keying `dragon-slayer-blocks-freeze` per ENCHANT — `enchants/trap`, `enchants/ice-aspect` and
+#    `enchants/horrify`, and deliberately never `enchants/titan-trap`; the owner may align the two grades
+#    with one interaction rule later (deferred-content.md).

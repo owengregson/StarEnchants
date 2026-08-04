@@ -1,0 +1,251 @@
+# Matrix: 12-pets.md § Anti Teleblock Pet
+# THE PET FAMILY SHAPE (12-pets.md § Family-level facts), the reading every cosmic pet file in this folder
+# carries: a pet is a hotbar player-head whose ability fires on right-click, which is exactly this engine's
+# ACTIVE pet (`type: ACTIVE` -> the implicit USE trigger, ledger D-12-1: the jar had NO action filter and fired
+# on left-click and physical interactions too; as intended it is right-click only). The jar's 1 Hz hotbar
+# ticker is a no-op for every pet, so nothing passive is ported and no pet declares a PASSIVE ability.
+# COOLDOWN: the jar computed `cooldown - now - last-used`, always a large negative, so NO pet cooldown ever
+# blocked and its on-cooldown branch is dead code (§A.6). Every file here ships the AS-INTENDED value —
+# D-12-12 for this pet: `max(30, 120 - 6 x (level - 1))` s = 120/114/108/102/96/90/84/78/72/66 (the 30 s floor
+# is unreachable), authored as the bracket `cooldown:` so the engine's own gate-6 arms it on the pet-wide
+# scope and it survives a level-up crossing a bracket floor. The jar's op-while-sneaking bypass is unreachable
+# dead code and is not ported.
+# THE PROGRESSION is `ITEM_XP_TRACK` with this pet's own ladder (`exp-curve` + `max-level`): flat 1000 per
+# level, cap 10, 9000 lifetime; XP comes ONLY from using the ability, never from kills. Both shared lines are
+# authored verbatim on every grant — the gain line's `{exp}` is post-grant and `{needed}` is the post-level-up
+# requirement (the jar quirk, kept structurally by the effect), and the level-up line's `{item}` is the
+# PRE-rebuild name, so it reports the level the pet just left, exactly as recorded.
+# FAMILY-WIDE, AUTHORED ONCE FOR THE FOLDER (not per pet, and not here): `items/pet.yml` carries the cosmic
+# likeness — name `{COLOR}&l{NAME}&7 [LVL {LEVEL}]` (so `display` below holds the FULL source name, "Pet"
+# included, and the template adds no literal text of its own) and the recorded lore tail
+# `§7` / `§f§lLevel` / `§7 {LEVEL}` / `§7` / `§f§lEXP` / `{EXP_BAR}` / `§7 ({EXP}/{EXP_NEXT})` after
+# `{DESCRIPTOR}` + `{DESCRIPTION}`; and `config.yml` `pets.message-on-cooldown` is the family's one verbatim
+# line `§c§lPET: §cAbility on cooldown: §c§n{TIME_FORMATTED}`, with `message-on-activate` / `message-on-end`
+# blanked (each cosmic pet speaks its own success line below) and every universal XP accrual route zeroed —
+# a cosmic pet earns ONLY from its own ability.
+# THE SPECTATOR GUARD is the family's, verbatim, as its own refusal ability rather than a clause on the
+# payload: a condition-fail sends the UNIVERSAL fail line, and this family's strings are per-pet.
+# THE EXP-BAR bug (§A.5, D-12-2: integer division rendered it always empty below the cap and overflowing at
+# it) needs nothing authored — the engine's bar is proportional and clamps full.
+# era: `LAVA_POP` / `VILLAGER_NO` are the 1.7/1.8 spellings; the modern names ship per the pack convention and
+# `Aliases.SOUND` carries NEITHER row yet (`LAVA_POP`->`BLOCK_LAVA_POP`, `VILLAGER_NO`->`ENTITY_VILLAGER_NO`),
+# so both cues are silent on the legacy lane until the sweep lands them. `SKULL_ITEM:3` -> `PLAYER_HEAD` is
+# the mint's own era seam. No other hazard.
+display: "Anti Teleblock Pet"
+color: "&e"
+type: ACTIVE
+# head: the per-pet skull texture is not matrix-recorded (the codex captured names and lore, not profile
+# values), so no `head:` is authored and the mint falls back to a plain PLAYER_HEAD. A texture is a one-line
+# add whenever the value is recovered.
+descriptor:
+  - "§7§7An elusive creature that"
+  - "§7§7has the power to negate"
+  - "§7§7curses that prevent the use"
+  - "§7§7of enderpearl teleportation."
+# The ability + cooldown blocks, verbatim (the leading `§7` lines are the source's own blank separators, and
+# the doubled `§7§7` is the jar's per-line prefix over a line that already carries one). `{cooldown}` binds to
+# `{TIME_FORMATTED}`, the LIVE bracket's cooldown in the same TimeUtils shape the codex recorded — L1 `2m`
+# through L10 `1m 6s` — so this is the one per-level lore number in the family that renders correctly.
+description:
+  - "§7"
+  - "§7§f§lAbility"
+  - "§7§7Removes [§cTeleblock§7]"
+  - "§7"
+  - "§7§f§lCooldown"
+  - "§7§7 {TIME_FORMATTED}"
+max-level: 10
+exp-curve: { base: 1000, per-level: 0 }   # flat 1000/level, 9000 to cap 10; XP 10 per use = 900 uses
+levels:
+  # Three abilities per bracket, and the ORDER is load-bearing: the payload is index 0, so it is the ability
+  # that carries the pet-wide cooldown scope. Both refusals author `cooldown: 0` and therefore scope to their
+  # own keys — a refused use burns nothing, which is D-12's "no cooldown burned on failure" expressed by
+  # ordering rather than by the jar's un-stamp.
+  # D-12-13: the jar fired on LAPSED teleblock metadata (free XP off an expired block). Nothing is authored
+  # for it — `%status.teleblock%` reads the engine's expiring status window, so "must be actively blocked" is
+  # structural here.
+  1:
+    cooldown: 2400
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %status.teleblock%'
+        effects:
+          - { STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aAnti Teleblock Pet§a§l)§a:§f Teleblock removed!" } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && !%status.teleblock%'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§l(!) §cYou must be affected by Teleblock to activate this pet!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  2:
+    cooldown: 2280
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %status.teleblock%'
+        effects:
+          - { STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aAnti Teleblock Pet§a§l)§a:§f Teleblock removed!" } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && !%status.teleblock%'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§l(!) §cYou must be affected by Teleblock to activate this pet!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  3:
+    cooldown: 2160
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %status.teleblock%'
+        effects:
+          - { STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aAnti Teleblock Pet§a§l)§a:§f Teleblock removed!" } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && !%status.teleblock%'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§l(!) §cYou must be affected by Teleblock to activate this pet!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  4:
+    cooldown: 2040
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %status.teleblock%'
+        effects:
+          - { STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aAnti Teleblock Pet§a§l)§a:§f Teleblock removed!" } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && !%status.teleblock%'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§l(!) §cYou must be affected by Teleblock to activate this pet!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  5:
+    cooldown: 1920
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %status.teleblock%'
+        effects:
+          - { STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aAnti Teleblock Pet§a§l)§a:§f Teleblock removed!" } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && !%status.teleblock%'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§l(!) §cYou must be affected by Teleblock to activate this pet!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  6:
+    cooldown: 1800
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %status.teleblock%'
+        effects:
+          - { STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aAnti Teleblock Pet§a§l)§a:§f Teleblock removed!" } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && !%status.teleblock%'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§l(!) §cYou must be affected by Teleblock to activate this pet!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  7:
+    cooldown: 1680
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %status.teleblock%'
+        effects:
+          - { STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aAnti Teleblock Pet§a§l)§a:§f Teleblock removed!" } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && !%status.teleblock%'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§l(!) §cYou must be affected by Teleblock to activate this pet!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  8:
+    cooldown: 1560
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %status.teleblock%'
+        effects:
+          - { STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aAnti Teleblock Pet§a§l)§a:§f Teleblock removed!" } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && !%status.teleblock%'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§l(!) §cYou must be affected by Teleblock to activate this pet!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  9:
+    cooldown: 1440
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %status.teleblock%'
+        effects:
+          - { STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aAnti Teleblock Pet§a§l)§a:§f Teleblock removed!" } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && !%status.teleblock%'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§l(!) §cYou must be affected by Teleblock to activate this pet!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  10:
+    cooldown: 1320
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %status.teleblock%'
+        effects:
+          - { STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aAnti Teleblock Pet§a§l)§a:§f Teleblock removed!" } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && !%status.teleblock%'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§l(!) §cYou must be affected by Teleblock to activate this pet!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+# interactions: this pet is the ONLY teleblock removal in the corpus. The three preventions — the RANGER set's
+# immunity, the GLITCH mask's immunity and RANGER's `0.2 x crystals` bonus roll — are recorded with their own
+# owners (matrix/10, matrix/11: `sets/ranger.yml` already ships its SUPPRESS_INCOMING grant), and the upstream
+# teleblock quirks (ms-vs-seconds duration metadata, the `[-0ep]` line) belong to the bow entry (matrix/05).
+# Nothing here stacks with anything: STATUS_CLEAR lifts one window and is a silent no-op when none is held,
+# which is why the guard above decides what a wasted use costs.

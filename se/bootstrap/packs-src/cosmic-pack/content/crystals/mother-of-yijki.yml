@@ -1,24 +1,34 @@
 # Matrix: 10-armor-sets.md § Mother of Yijki (crystal route, family preamble §A.7/§C.1)
-# The defensive sixth of the set's -30% incoming, per crystal-bearing piece; four pieces fold to -20% in.
+# The defensive sixth of the set's -30% incoming, per crystal-bearing piece; four pieces fold to -20% in,
+# plus the set's own Revenge of Yijki at a hundredth of its rate per piece.
 display: "Mother of Yijki"
 # description: not matrix-recorded (factual paraphrase; percent and colour are the set's `§f` bonus block at
-# a sixth). The jar's crystal lore advertises "20%" for the revenge roll the port does not ship yet — the
-# advertised number is NOT reproduced here, because the line it belongs to has no behaviour behind it (see
-# the pending clause below); strings only ever ship attached to the thing they describe.
+# a sixth). The "20%" the jar's crystal lore advertises for the revenge roll ships now that the roll it names
+# does — the advert is the jar's own, against a measured 0.010000000000000002 per piece, and the mismatch is
+# the jar's too (recorded on sets/mother-of-yijki.yml). A string ships attached to the thing it describes,
+# never ahead of it.
 description:
   - "§f§lYIJKI CRYSTAL BONUS"
   - "§f* Enemies deal 5% less damage to you"
+  - "§f* 20% Revenge of Yijki Ability"
   - "§f* Yijki Crystal is stackable"
 tier: legendary  # (port-chosen) see phantom.yml
 applies-to: [ARMOR]
 stackable: true
-# PENDING (deferred-content.md, partial entries): the crystal's SECOND half is a Revenge of Yijki roll on
-# every incoming hit at `0.010000000000000002` per crystal-bearing piece — the exact FP literal the jar
-# computes as 0.05 x 0.2, which the crystal lore advertises as "20%". The roll itself is authorable
-# (`chance: 0.010000000000000002` on a DEFENSE ability) but the PAYLOAD is the set's own
-# DELAYED_STRIKE_FIELD, verbatim warning line and all, and the armour-set batch has not authored it yet.
-# Forking that payload here would leave two copies of 16 strike points, two cue chains and two copies of the
-# `§5§l** REVENGE OF YIJKI (§c{caster} [1.5s]§5§l) **` line, written from two readings. The rider lands with
-# the set, from one reading, in the sets batch.
+# The revenge rider fires once per crystal-bearing piece, which is how every per-piece crystal number in this
+# family scales — so the authored rate is the ONE-piece rate, `0.010000000000000002`, the exact FP literal the
+# jar computes as 0.05 x 0.2. The payload below is sets/mother-of-yijki.yml's DELAYED_STRIKE_FIELD copied in
+# the same sitting, from that one reading: same 16 points, same offsets, same cue chain, same verbatim warning
+# line. If either copy is retuned, both must move together.
 abilities:
   - { trigger: DEFENSE, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 5 } } ] }
+  - trigger: DEFENSE
+    chance: 0.010000000000000002
+    effects:
+      - { DELAYED_STRIKE_FIELD: { points: 16, offset-min: 2, offset-max: 9, delay: 20,
+            hit-radius: 1.4142135623730951, target-range: 32, filter: ENEMIES, damage: 16, health-floor: 1,
+            warning: "§5§l** REVENGE OF YIJKI (§c{caster} [1.5s]§5§l) **",
+            cue-sound: "ENTITY_WITHER_SPAWN", cue-volume: 1.0, cue-pitch: 0.4,
+            cue-particle: "SPELL_WITCH", cue-particle-count: 32,
+            strike-sound: "ENTITY_WITHER_DEATH", strike-volume: 1.0, strike-pitch: 0.4,
+            strike-particle: "EXPLOSION_LARGE", strike-particle-count: 4, lightning: true, who: "@Self" } }

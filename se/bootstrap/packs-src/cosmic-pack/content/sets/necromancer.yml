@@ -20,39 +20,87 @@ armor:
   enchants:
     UNBREAKING: 3
     PROTECTION: 4
-  # Matrix-recorded physical facts with NO authoring surface today — a set carries ONE armor.lore for all four
-  # pieces, a piece takes only material + name (SetDefReader MEMBER_KEYS), and neither a leather dye nor a
-  # custom armour value / durability has a home — so they are recorded here instead of lost:
-  #   dye #00FF00 (Bukkit GREEN — brighter than the Necromancer shard's own dye, a measured mismatch, kept)
-  #   per-piece flavour (verbatim, incl. `magick` and the chestplate's missing full stop):
-  #     helmet     "§7§oA floating skull imbued with" / "§7§oevil enchantments and demonic energy."
-  #     chestplate "§7§oSpider Silk woven robes that camouflage" / "§7§ointo the darkness of the night"
-  #     leggings   "§7§oOnce tormented by death, it now" / "§7§oloyally serves and protects you."
-  #     boots      "§7§oA good luck charm for those who are" / "§7§omasters of the dark magick of necromancy."
-  #   per-piece heroic append (lore: below carries only its piece-independent tail):
+  # The per-piece flavour (verbatim, incl. `magick` and the chestplate's missing full stop), the dye and the
+  # named roster rolls are authored on the `pieces:` members below. What STILL has no home is recorded here:
+  #   per-piece heroic append — a member's `lore:` prints ABOVE the shared block, and this pair belongs
+  #     between its blank and its last line:
   #     helmet "§7+2 Armor Value" / "§7810 Durability"    chestplate "§7+4 Armor Value" / "§71000 Durability"
   #     leggings "§7+3 Armor Value" / "§7935 Durability"  boots "§7+2 Armor Value" / "§7686 Durability"
   #   armour values halved by the M-Kit rule: 2/4/3/2 (11 across the set, against 20 for non-M-Kit gear)
+  #   the per-slot durabilities 810/1000/935/686
   #   per-piece M-Kit incoming reduction: chest 16 %, legs 13 %, boots 8 %, helm 8 % — folded into the single
   #     completion bonus below, at the measured full-set total
-  #   boots carry `Gears` at MAX, guaranteed (armor.enchants above is set-wide and would stamp all four)
-  #   per-piece custom-enchant rosters, each rolled at the family's nearly-maxed draw min(M, max(1, M-2) + rand(3))
-  #   over the entry's own max level M (the `N base` count draws from a codex-side base roster the matrix does
-  #   not enumerate):
-  #     helmet     8 base + 60 % Valor/Angelic/Tank + 20 % Paladin Armored + 17.5 % Alien Implants
-  #     chestplate 9 base + 60 %x3 + 20 % Paladin Armored + 17.5 % Godly Overload + 22.5 % Planetary
-  #                Deathbringer + 22.5 % Divine Enlighted + 15 % Vengeful Diminish
-  #     leggings   8 base (adds `Spirits` against Ghost's 7) + 60 %x3 + 20 % Paladin Armored + 30 % Immortal
-  #     boots      8 base + Gears max + 60 %x3 + 20 % Paladin Armored + 22.5 % Ethereal Dodge + 35 % Phoenix
-  #                re-roll (which OVERWRITES the base roll — measured) + 12.5 % Guided Rocket Escape
+  #   the `N base` roster each piece draws from at the family's nearly-maxed draw min(M, max(1, M-2) + rand(3)):
+  #     the codex gives only its SIZE (8/9/8/8; the leggings' eighth entry is `Spirits`, against Ghost's seven)
+  #     and never enumerates an entry, so there is nothing for the roll form to name
+  #   the HALF-POINT probabilities: a roster entry's `chance` is an integer percent, so 17.5 % Alien Implants
+  #     (helmet), 17.5 % Godly Overload / 22.5 % Planetary Deathbringer / 22.5 % Divine Enlighted (chest) and
+  #     22.5 % Ethereal Dodge / 12.5 % Guided Rocket Escape (boots) have no spelling
+  #   the boots' 35 % Phoenix RE-ROLL, which OVERWRITES the base roll it lands on (measured) — a re-roll over
+  #     an unenumerated roster is not a mint entry however chances are spelled
   lore:
     - ""
     - "§4This armor is stronger than diamond."
+  # Every piece is #00FF00 leather (Bukkit GREEN — brighter than the Necromancer shard's own dye, a measured
+  # mismatch, kept). `heroic: true` is DELIBERATELY NOT set, though the pieces do mint heroic: the stamp
+  # routes items/heroic.yml's per-piece reduction into the same additive channel `DamageFold` gives the 45 %
+  # completion row below, and that row already IS this set's heroic wall folded — stamping the members would
+  # bill it twice (45 + 27). Blocked on the M-Kit's own steeper heroic tier, which is a second grade of
+  # items/heroic.yml and not a gap in this surface (ADR-0073).
+  # `Gears` at MAX is guaranteed on the boots and boots only — armor.enchants above is set-wide and would
+  # stamp all four.
   pieces:
-    helmet:     { material: LEATHER_HELMET,     name: "§2§lSkull of Souls" }
-    chestplate: { material: LEATHER_CHESTPLATE, name: "§2§lRobe of the Necromancer" }
-    leggings:   { material: LEATHER_LEGGINGS,   name: "§2§lTattered Wrappings of Death" }
-    boots:      { material: LEATHER_BOOTS,      name: "§2§lDemon Foot" }
+    helmet:
+      material: LEATHER_HELMET
+      name: "§2§lSkull of Souls"
+      color: "#00FF00"
+      lore:
+        - "§7§oA floating skull imbued with"
+        - "§7§oevil enchantments and demonic energy."
+      enchants:
+        enchants/valor: { chance: 60, nearly-maxed: 5 }
+        enchants/angelic: { chance: 60, nearly-maxed: 5 }
+        enchants/tank: { chance: 60, nearly-maxed: 4 }
+        enchants/paladin-armored: { chance: 20, nearly-maxed: 4 }
+    chestplate:
+      material: LEATHER_CHESTPLATE
+      name: "§2§lRobe of the Necromancer"
+      color: "#00FF00"
+      lore:
+        - "§7§oSpider Silk woven robes that camouflage"
+        - "§7§ointo the darkness of the night"   # verbatim, missing full stop and all
+      enchants:
+        enchants/valor: { chance: 60, nearly-maxed: 5 }
+        enchants/angelic: { chance: 60, nearly-maxed: 5 }
+        enchants/tank: { chance: 60, nearly-maxed: 4 }
+        enchants/paladin-armored: { chance: 20, nearly-maxed: 4 }
+        enchants/vengeful-diminish: { chance: 15, nearly-maxed: 6 }
+    leggings:
+      material: LEATHER_LEGGINGS
+      name: "§2§lTattered Wrappings of Death"
+      color: "#00FF00"
+      lore:
+        - "§7§oOnce tormented by death, it now"
+        - "§7§oloyally serves and protects you."
+      enchants:
+        enchants/valor: { chance: 60, nearly-maxed: 5 }
+        enchants/angelic: { chance: 60, nearly-maxed: 5 }
+        enchants/tank: { chance: 60, nearly-maxed: 4 }
+        enchants/paladin-armored: { chance: 20, nearly-maxed: 4 }
+        enchants/immortal: { chance: 30, nearly-maxed: 4 }
+    boots:
+      material: LEATHER_BOOTS
+      name: "§2§lDemon Foot"
+      color: "#00FF00"
+      lore:
+        - "§7§oA good luck charm for those who are"
+        - "§7§omasters of the dark magick of necromancy."
+      enchants:
+        enchants/gears: 3   # guaranteed, at Gears' own max
+        enchants/valor: { chance: 60, nearly-maxed: 5 }
+        enchants/angelic: { chance: 60, nearly-maxed: 5 }
+        enchants/tank: { chance: 60, nearly-maxed: 4 }
+        enchants/paladin-armored: { chance: 20, nearly-maxed: 4 }
 # Behaviours. The jar grants the M-Kit reduction PER WORN PIECE (§C.3-C.5); the engine gates a set bonus on
 # completion, so the four component stats fold into this one 4/4 bonus at their measured full-set 45 %.
 # Additive here, multiplicative in the jar (project-wide damage model, a global ADR — not a per-item deviation).

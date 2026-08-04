@@ -122,6 +122,25 @@ class PetDefReaderTest {
         assertEquals("", PetDefReader.read("mole", root(without, bare), counter(), bare).def().messageOnNoHome());
     }
 
+    /** Both ladder keys are READ by the reader, so they must also be KNOWN to it — no unknown-key warning. */
+    @Test
+    void expCurveAndMaxLevelAreAcceptedWarningFree() {
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            display: "Lava Elemental Pet"
+            type: ACTIVE
+            exp-curve: { base: 250, per-level: 1000 }
+            max-level: 10
+            levels:
+              1: { cooldown: 100, effects: [ { SOUND: { sound: BLOCK_LAVA_POP } } ] }
+            """;
+        PetDefReader.Parsed parsed = PetDefReader.read("lava", root(yaml, diags), counter(), diags);
+
+        assertTrue(diags.all().stream().noneMatch(d -> d.is(DiagCode.W_UNKNOWN_KEY)), () -> diags.all().toString());
+        assertEquals(new PetCurve(250, 1000), parsed.def().expCurve());
+        assertEquals(10, parsed.def().maxLevel());
+    }
+
     @Test
     void bracketsSortAscendingRegardlessOfAuthoredOrder() {
         Diagnostics diags = new Diagnostics();

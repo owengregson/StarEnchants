@@ -24,17 +24,15 @@
 # crystal-bearing piece against players and amount=12.5 per piece against non-players — four pieces reproduce
 # this set's own two multipliers exactly.
 # ── PHYSICAL LIKENESS ──────────────────────────────────────────────────────────────────────────────────────
-# No piece carries flavour lore. The per-piece rosters below are the jar's mint, RECORDED, NOT AUTHORED
-# (deferred-content.md); the per-slot armour and durability values have no surface at all.
-#   rosters — EVERY entry at MAX level, no random rolls anywhere on this set (measured), so the family's
-#   nearly-maxed formula does not apply here:
-#     helmet  Drunk, Deathbringer, Enlighted, Armored, Tank, Angelic, Implants
-#     chest   Blood Lust, Overload, Deathbringer, Enlighted, Armored, Angelic, Tank, Dodge
-#     legs    Clarity, Deathbringer, Enlighted, Armored, Tank, Angelic, Valor, Cactus — plus the set's ONE
-#             probability, 7.5 % Nature Wrath (max)
-#     boots   Deathbringer, Enlighted, Gears, Armored, Tank, Angelic, Rocket Escape
-#   (`Blood Lust` is a batch-01 stop and is not in this pack yet.)
-#   per-slot armour / durability: helm 3/810, chest 8/1000, legs 6/935, boots 3/686.
+# No piece carries flavour lore, and no member below carries `lore:` — that absence is the measured fact.
+# The per-piece rosters ARE authored on the members, every entry at MAX level: this set has no random rolls
+# anywhere (measured), so the family's nearly-maxed draw does not apply and a bare level is the right form —
+# it consumes no draw and mints one certain rung.
+# TWO ROSTER FACTS STAY RECORDED: the chest's `Blood Lust`, a batch-01 stop that is not in this pack yet (a
+# set's `enchants:` ref is validated library-wide, so naming it would be a compile error rather than an inert
+# key), and the leggings' `7.5 % Nature Wrath (max)` — the set's ONE probability, and a roster entry's
+# `chance` is an integer percent. The per-slot armour and durability values still have no surface at all:
+# helm 3/810, chest 8/1000, legs 6/935, boots 3/686.
 display: "§f§l§k;§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k;§r"  # the `;`-bookended banner variant (the piece names use the `!` one — two banners exist, each reproduced where it appears)
 # description: not matrix-recorded (factual paraphrase)
 description: "§dThe spoils of the hill — enormous damage to anything that moves, a cleanse every second, no fall damage, and no protection at all."
@@ -55,13 +53,14 @@ armor:
   # (unclaimed reads `§b§l(!) §bClaimed on §d§n{date}`; date format `EEE MM/dd/yy`). Both tokens are fed by
   # the external KOTH event system — the set-lore renderer binds neither, and a literal would print the brace
   # text on every piece. Recorded in deferred-content.md rather than faked.
-  # The last two lines are the HEROIC APPENDED BLOCK's piece-independent tail. These pieces are minted heroic
-  # out of the box, so the matrix records the block on them exactly as it does on the M-Kit sets, and the four
-  # ability sets carry the same two lines on their own `armor.lore` for the same reason. The `§7+{armor} Armor
-  # Value` / `§7{durability} Durability` pair is per piece (3/8/6/3, 810/1000/935/686) and has no home here —
-  # it is recorded above, and a member's `lore:` cannot hold it either: that prints above this whole block,
-  # while the pair belongs between its blank and its last line. `items/heroic.yml`'s `lore-line` cannot supply
-  # this either: it stamps on a successful UPGRADE, and KOTH is excluded from Heroic Upgrade minting.
+  # The trailing blank opens the HEROIC APPENDED BLOCK. Its last line, `§4This armor is stronger than
+  # diamond.`, is deliberately NOT authored: every member below carries `heroic: true`, and the mint stamps
+  # `items/heroic.yml`'s `lore-line` through the same HeroicStamp the upgrade gesture uses, so writing it here
+  # too would render it twice. (The four ability sets DO carry that line on their own `armor.lore` — they take
+  # no stamp, for the reason their files give.) The `§7+{armor} Armor Value` / `§7{durability} Durability` pair
+  # is per piece (3/8/6/3, 810/1000/935/686) and has no home at all — it is recorded above, and a member's
+  # `lore:` cannot hold it either: that prints above this whole block, while the pair belongs between its
+  # blank and the stamped line.
   lore:
     - ""
     - "§d§lKOTH SET BONUS"
@@ -71,7 +70,6 @@ armor:
     - "§d§l* §dNo Fall Damage"
     - "§7(§7§oRequires all 4 koth items§7)"
     - ""
-    - "§4This armor is stronger than diamond."
   # Piece-name pattern `… §f§l§n{Piece}§r` with the `!`-bookended banner; `§k` magic text renders on both
   # eras. Every piece mints red-dyed leather and ALREADY heroic — KOTH is excluded from Heroic Upgrade
   # minting, so the stamp can only come from the mint.
@@ -81,21 +79,56 @@ armor:
       name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nHelmet§r"
       color: "red"
       heroic: true
+      enchants:
+        enchants/drunk: 4
+        enchants/deathbringer: 3
+        enchants/enlighted: 3
+        enchants/armored: 4
+        enchants/tank: 4
+        enchants/angelic: 5
+        enchants/implants: 3
     chestplate:
       material: LEATHER_CHESTPLATE
       name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nChestplate§r"
       color: "red"
       heroic: true
+      enchants:
+        # `Blood Lust` sits first in the codex order — batch-01 stop, see the header.
+        enchants/overload: 3
+        enchants/deathbringer: 3
+        enchants/enlighted: 3
+        enchants/armored: 4
+        enchants/angelic: 5
+        enchants/tank: 4
+        enchants/dodge: 5
     leggings:
       material: LEATHER_LEGGINGS
       name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nLeggings§r"
       color: "red"
       heroic: true
+      # The set's ONE probability, 7.5 % Nature Wrath at max, belongs here and has no spelling — see the header.
+      enchants:
+        enchants/clarity: 3
+        enchants/deathbringer: 3
+        enchants/enlighted: 3
+        enchants/armored: 4
+        enchants/tank: 4
+        enchants/angelic: 5
+        enchants/valor: 5
+        enchants/cactus: 2
     boots:
       material: LEATHER_BOOTS
       name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nBoots§r"
       color: "red"
       heroic: true
+      enchants:
+        enchants/deathbringer: 3
+        enchants/enlighted: 3
+        enchants/gears: 3
+        enchants/armored: 4
+        enchants/tank: 4
+        enchants/angelic: 5
+        enchants/rocket-escape: 3
 # THE SWORD. Gold tools on both eras (`GOLDEN_SWORD` resolves to 1.8's `GOLD_SWORD` through the alias
 # resolver). The jar mints this weapon in an external plugin and reads only its identity tag, so the matrix
 # records NO display string and NO enchant loadout for it: the name below extends the recorded piece-name

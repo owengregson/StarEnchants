@@ -1,0 +1,270 @@
+# Matrix: 12-pets.md § Lava Elemental Pet
+# THE PET FAMILY SHAPE (12-pets.md § Family-level facts) is read once in `anti-teleblock.yml` and not repeated
+# here: ACTIVE pet = right-click = the implicit USE trigger (D-12-1), nothing passive is ported, the
+# as-intended cooldown ships as the bracket `cooldown:` (§A.6's inverted arithmetic meant no jar pet cooldown
+# ever blocked), progression is this pet's own `exp-curve` + `max-level` through ITEM_XP_TRACK, and the
+# `items/pet.yml` + `config.yml` likeness is authored once for the folder.
+# COOLDOWN: 6000 t = the as-intended 300 s, flat at every level (ledger D-12-3).
+# FOUR ABILITIES PER BRACKET, and the order is load-bearing. INVENTORY_CONVERT settles its count INLINE
+# (before any inventory write is scheduled) and SET_VAR writes straight through, so the payload at index 0 can
+# hand both facts to the abilities under it: `lavapet.filled` is the count, and `lavapet.fired` is a 1-tick
+# marker saying THIS click really converted. Every follow-up gates on the marker, so a click that never
+# reached the conversion — on cooldown, or spectating — can never re-fire a branch off the previous use's
+# count. Index 0 also carries the pet-wide cooldown scope (`pet:<key>`, so a level-up crossing a bracket floor
+# keeps the running window); the three follow-ups author `cooldown: 0` and scope to their own keys.
+# RESIDUAL, the one place this pet cannot express its intent: the jar un-stamped the cooldown when nothing
+# converted, and gate 6 reserves the window before a count exists, so a zero-bucket use spends the 5 minutes.
+# The refusal is post-conversion, not a condition, which is what makes it un-refundable.
+# D-12-4 needs nothing authored: INVENTORY_CONVERT converts UP TO the limit and hands back the overflow —
+# exactly the shape the jar inverted (it converted the overflow and returned the part that fitted).
+# NOT AUTHORED — the fat-bucket half: `+{fatFill}` charges to every Fat Bucket (25 x level, L10 256), hard
+# cap 256 per bucket, uncapped by the bucket budget, and its share of the XP credit (charges x stack size).
+# Fat Buckets are an external item (codex-UNRESOLVED) with no likeness anywhere in this port, so there is
+# nothing to top up; the lore lines still ship verbatim and the numbers stay in the matrix entry. XP is
+# therefore the converted count alone.
+# era: `LAVA_POP` / `VILLAGER_NO` are the 1.7/1.8 spellings; the modern names ship per the pack convention and
+# `Aliases.SOUND` carries NEITHER row yet (`LAVA_POP`->`BLOCK_LAVA_POP`, `VILLAGER_NO`->`ENTITY_VILLAGER_NO`),
+# so both cues are silent on the legacy lane until the sweep lands them. BUCKET / LAVA_BUCKET are identical on
+# both trees.
+display: "Lava Elemental Pet"
+color: "&e"
+type: ACTIVE
+# head: the per-pet skull texture is not matrix-recorded, so no `head:` is authored and the mint falls back to
+# a plain PLAYER_HEAD (a one-line add whenever the profile value is recovered).
+descriptor:
+  - "§7§7A fiery pet that is"
+  - "§7§7capable of conjuring lava"
+  - "§7§7and giving it to its owner."
+# The ability + cooldown blocks, verbatim (the bare `§7` lines are the source's own blank separators and the
+# doubled `§7§7` is the jar's per-line prefix over a line that already carries one). PER-LEVEL LORE NUMBERS
+# ARE PINNED AT LEVEL 1, the family convention: `description` is per-PET, a bracket carries no lore, and no
+# likeness token is this pet's bucket budget — so `{maxFill}` reads 32 and `{fatFill}` reads 25, the values a
+# freshly minted pet really has. The true ladders, recorded here and shipped in the `limit:` values below:
+#   maxFill  `level x 32` = 32/64/96/128/160/192/224/256/288, and 1152 at L10 (the lore's "ALL")
+#   fatFill  `level x 25` = 25/50/75/100/125/150/175/200/225, and 256 at L10 (the per-bucket hard cap)
+description:
+  - "§7"
+  - "§7§f§lAbility"
+  - "§7§7Fills up to 32x"
+  - "§7§7empty buckets in your"
+  - "§7§7inventory into lava!"
+  - "§7§f§l      +"
+  - "§7§7Adds 25x Fat Bucket"
+  - "§7§7charges to all Fat Buckets!"
+  - "§7"
+  - "§7§f§lCooldown"
+  - "§7§7 5 Minutes"
+max-level: 10
+exp-curve: { base: 0, per-level: 1000 }   # `level x 1000`: L2 2000 … L10 10000, 54 000 to cap; XP = buckets filled
+levels:
+  1:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SET_VAR: { name: "lavapet.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { INVENTORY_CONVERT: { from: "BUCKET", to: "LAVA_BUCKET", limit: 32, plain: true, protect-seconds: 60, count-var: "lavapet.filled" } }
+      - condition: '%lavapet.fired% == 1 && %lavapet.filled% > 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: "%lavapet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%lavapet.fired% == 1 && %lavapet.filled% == 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§lPET (§cLava Pet§c§l)§c:§f No empty buckets in your inventory!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  2:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SET_VAR: { name: "lavapet.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { INVENTORY_CONVERT: { from: "BUCKET", to: "LAVA_BUCKET", limit: 64, plain: true, protect-seconds: 60, count-var: "lavapet.filled" } }
+      - condition: '%lavapet.fired% == 1 && %lavapet.filled% > 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: "%lavapet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%lavapet.fired% == 1 && %lavapet.filled% == 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§lPET (§cLava Pet§c§l)§c:§f No empty buckets in your inventory!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  3:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SET_VAR: { name: "lavapet.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { INVENTORY_CONVERT: { from: "BUCKET", to: "LAVA_BUCKET", limit: 96, plain: true, protect-seconds: 60, count-var: "lavapet.filled" } }
+      - condition: '%lavapet.fired% == 1 && %lavapet.filled% > 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: "%lavapet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%lavapet.fired% == 1 && %lavapet.filled% == 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§lPET (§cLava Pet§c§l)§c:§f No empty buckets in your inventory!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  4:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SET_VAR: { name: "lavapet.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { INVENTORY_CONVERT: { from: "BUCKET", to: "LAVA_BUCKET", limit: 128, plain: true, protect-seconds: 60, count-var: "lavapet.filled" } }
+      - condition: '%lavapet.fired% == 1 && %lavapet.filled% > 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: "%lavapet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%lavapet.fired% == 1 && %lavapet.filled% == 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§lPET (§cLava Pet§c§l)§c:§f No empty buckets in your inventory!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  5:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SET_VAR: { name: "lavapet.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { INVENTORY_CONVERT: { from: "BUCKET", to: "LAVA_BUCKET", limit: 160, plain: true, protect-seconds: 60, count-var: "lavapet.filled" } }
+      - condition: '%lavapet.fired% == 1 && %lavapet.filled% > 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: "%lavapet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%lavapet.fired% == 1 && %lavapet.filled% == 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§lPET (§cLava Pet§c§l)§c:§f No empty buckets in your inventory!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  6:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SET_VAR: { name: "lavapet.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { INVENTORY_CONVERT: { from: "BUCKET", to: "LAVA_BUCKET", limit: 192, plain: true, protect-seconds: 60, count-var: "lavapet.filled" } }
+      - condition: '%lavapet.fired% == 1 && %lavapet.filled% > 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: "%lavapet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%lavapet.fired% == 1 && %lavapet.filled% == 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§lPET (§cLava Pet§c§l)§c:§f No empty buckets in your inventory!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  7:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SET_VAR: { name: "lavapet.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { INVENTORY_CONVERT: { from: "BUCKET", to: "LAVA_BUCKET", limit: 224, plain: true, protect-seconds: 60, count-var: "lavapet.filled" } }
+      - condition: '%lavapet.fired% == 1 && %lavapet.filled% > 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: "%lavapet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%lavapet.fired% == 1 && %lavapet.filled% == 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§lPET (§cLava Pet§c§l)§c:§f No empty buckets in your inventory!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  8:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SET_VAR: { name: "lavapet.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { INVENTORY_CONVERT: { from: "BUCKET", to: "LAVA_BUCKET", limit: 256, plain: true, protect-seconds: 60, count-var: "lavapet.filled" } }
+      - condition: '%lavapet.fired% == 1 && %lavapet.filled% > 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: "%lavapet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%lavapet.fired% == 1 && %lavapet.filled% == 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§lPET (§cLava Pet§c§l)§c:§f No empty buckets in your inventory!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  9:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SET_VAR: { name: "lavapet.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { INVENTORY_CONVERT: { from: "BUCKET", to: "LAVA_BUCKET", limit: 288, plain: true, protect-seconds: 60, count-var: "lavapet.filled" } }
+      - condition: '%lavapet.fired% == 1 && %lavapet.filled% > 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: "%lavapet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%lavapet.fired% == 1 && %lavapet.filled% == 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§lPET (§cLava Pet§c§l)§c:§f No empty buckets in your inventory!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  10:
+    # L10 is the lore's "ALL": 1152, not the ladder's 320.
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR"'
+        effects:
+          - { SET_VAR: { name: "lavapet.fired", value: "1", ttl: 1, who: "@Self" } }
+          - { INVENTORY_CONVERT: { from: "BUCKET", to: "LAVA_BUCKET", limit: 1152, plain: true, protect-seconds: 60, count-var: "lavapet.filled" } }
+      - condition: '%lavapet.fired% == 1 && %lavapet.filled% > 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
+          - { ITEM_XP_TRACK: { amount: "%lavapet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%lavapet.fired% == 1 && %lavapet.filled% == 0'
+        cooldown: 0
+        effects:
+          - { SOUND: { sound: "ENTITY_VILLAGER_NO", volume: 3.0, pitch: 0.7 } }
+          - { MESSAGE: { text: "§c§lPET (§cLava Pet§c§l)§c:§f No empty buckets in your inventory!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }

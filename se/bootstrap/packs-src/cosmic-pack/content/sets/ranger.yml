@@ -17,17 +17,11 @@ armor:
   enchants:
     UNBREAKING: 3
     PROTECTION: 4
-  # Shared bonus block, verbatim. Per-piece flavour is matrix-recorded but unauthorable (one armor.lore for
-  # all four pieces; a piece takes only material + name), so it is recorded here — including the source's own
-  # stray comma and "a ancient", which would ship as written:
-  #   helmet     "§a§oThe hood of a legendary" / "§a§oRanger lost with time itself."
-  #   chestplate "§a§oThe lost cuirass of the," / "§a§olast known legendary archer."
-  #   leggings   "§a§oThe fabled shin protectors," / "§a§oof an ancient agile Ranger."
-  #   boots      "§a§oLightweight footgear for" / "§a§oa ancient nimble Ranger."
-  # Per-piece custom-enchant rosters (12 entries each per codex, rolled nearly-maxed at
-  # min(M, max(1,M-2)+rand(3))) are likewise unauthorable — a set has ONE shared enchants: map at fixed
-  # integer levels, so a roster authored here would stamp all four pieces identically and freeze every roll.
-  # The bow below is a single item, so its roster IS authored.
+  # The shared bonus block, verbatim. Per-piece flavour is authored on the `pieces:` members below — the
+  # source's own stray comma and "a ancient" included, which ship as written.
+  # STILL RECORDED, NOT AUTHORED: the per-piece custom-enchant rosters. The codex gives their SIZE (12 entries
+  # a piece, each at the family's nearly-maxed draw) and never names an entry, so the roll form the bow below
+  # now uses has nothing to draw here.
   lore:
     - "§a§lRANGER SET BONUS"
     - "§a§l* §aEnemies bows deal 25% less damage to you."
@@ -36,34 +30,54 @@ armor:
     - "§a§l* §aGears IV"
     - "§7(§oRequires all 4 ranger items.§7)"
   pieces:
-    helmet:     { material: DIAMOND_HELMET,     name: "§a§lRanger Hood" }
-    chestplate: { material: DIAMOND_CHESTPLATE, name: "§a§lRanger Cuirass" }
-    leggings:   { material: DIAMOND_LEGGINGS,   name: "§a§lRanger Greaves" }
-    boots:      { material: DIAMOND_BOOTS,      name: "§a§lRanger Slippers" }
+    helmet:
+      material: DIAMOND_HELMET
+      name: "§a§lRanger Hood"
+      lore:
+        - "§a§oThe hood of a legendary"
+        - "§a§oRanger lost with time itself."
+    chestplate:
+      material: DIAMOND_CHESTPLATE
+      name: "§a§lRanger Cuirass"
+      lore:
+        - "§a§oThe lost cuirass of the,"   # verbatim, stray comma and all
+        - "§a§olast known legendary archer."
+    leggings:
+      material: DIAMOND_LEGGINGS
+      name: "§a§lRanger Greaves"
+      lore:
+        - "§a§oThe fabled shin protectors,"
+        - "§a§oof an ancient agile Ranger."
+    boots:
+      material: DIAMOND_BOOTS
+      name: "§a§lRanger Slippers"
+      lore:
+        - "§a§oLightweight footgear for"
+        - "§a§oa ancient nimble Ranger."   # verbatim, "a ancient" and all
 weapon:
-  # Power V / Durability III / Flame II / Infinity I are fixed, and Sniper is recorded AT max. The rest are
-  # rolls the fixed-level surface cannot draw, so each takes the TOP of its band and the band is recorded
-  # beside it: Lethal Sniper is a hard-coded uniform 2..5 (max 5 here, so it never over-levels) and the eleven
-  # after it take the family's nearly-maxed min(M, max(1,M-2)+rand(3)). Consequence, stated plainly: every
-  # minted bow is the best roll the jar could produce, never the M-2 / M-1 rungs.
+  # Power V / Durability III / Flame II / Infinity I are fixed, and Sniper is recorded AT max. The other twelve
+  # are ROLLS, and they are drawn as rolls now: Lethal Sniper is the jar's hard-coded uniform 2..5, and the
+  # eleven after it take the family's nearly-maxed min(M, max(1,M-2)+rand(3)) over each enchant's own max,
+  # which `{ nearly-maxed: M }` reproduces literally. This file used to author each at the TOP of its band,
+  # which made every minted bow the best roll the jar could produce and the M-2 / M-1 rungs unreachable.
   enchants:
     POWER: 5
     UNBREAKING: 3
     FLAME: 2
     INFINITY: 1
-    enchants/sniper: 5           # recorded at max
-    enchants/lethal-sniper: 5    # jar rolls uniform 2..5
-    enchants/silence: 4          # nearly-maxed band 2..4
-    enchants/rage: 6             # 4..6
-    enchants/eagle-eye: 5        # 3..5
-    enchants/arrow-lifesteal: 5  # 3..5
-    enchants/hellfire: 5         # 3..5
-    enchants/piercing: 5         # 3..5
-    enchants/blind: 3            # 1..3
-    enchants/venom: 3            # 1..3
-    enchants/snare: 4            # 2..4
-    enchants/virus: 4            # 2..4
-    enchants/healing: 4          # 2..4
+    enchants/sniper: 5                            # recorded at max — not a roll
+    enchants/lethal-sniper: { min: 2, max: 5 }    # hard-coded uniform 2..5
+    enchants/silence: { nearly-maxed: 4 }         # 2..4
+    enchants/rage: { nearly-maxed: 6 }            # 4..6
+    enchants/eagle-eye: { nearly-maxed: 5 }       # 3..5
+    enchants/arrow-lifesteal: { nearly-maxed: 5 } # 3..5
+    enchants/hellfire: { nearly-maxed: 5 }        # 3..5
+    enchants/piercing: { nearly-maxed: 5 }        # 3..5
+    enchants/blind: { nearly-maxed: 3 }           # 1..3
+    enchants/venom: { nearly-maxed: 3 }           # 1..3
+    enchants/snare: { nearly-maxed: 4 }           # 2..4
+    enchants/virus: { nearly-maxed: 4 }           # 2..4
+    enchants/healing: { nearly-maxed: 4 }         # 2..4
   material: BOW
   name: "§a§lRanger Bow"
   lore:

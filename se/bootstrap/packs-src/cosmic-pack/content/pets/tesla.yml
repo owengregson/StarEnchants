@@ -1,0 +1,269 @@
+# Matrix: 12-pets.md § Tesla Pet
+# THE PET FAMILY SHAPE (12-pets.md § Family-level facts) — the full reading lives in `anti-teleblock.yml` and
+# is not repeated here: ACTIVE pet = right-click = the implicit USE trigger (ledger D-12-1), the 1 Hz hotbar
+# ticker is a no-op so nothing passive is ported, and the shared spectator guard, the verbatim XP-gain /
+# level-up lines and the family-wide `items/pet.yml` + `config.yml` likeness authored once for the folder
+# are all recorded there.
+# COOLDOWN: measured 0 s (§A.6's inverted arithmetic); the AS-INTENDED 300 s = 6000 t ships, flat at every
+# level (ledger D-12-18).
+# THE PAYLOAD IS ONE EFFECT. `SOUL_COST_EXEMPT` waives every soul debit charged to the holder for its own
+# window — both the gate charge a soul-cost ability pays and a `REMOVE_SOULS` aimed at the holder's gem — so
+# no armed window, no rider ability and no bracket `duration:` is needed: the effect times itself. That also
+# keeps the expiry SILENT, which is the jar's behaviour (the universal ENDED line is only sent for a bracket
+# window, and this pet opens none).
+# THE `tesla-armed` VAR exists for the ONE thing the effect cannot do: refuse a re-use while the exemption
+# runs (`§c§l(!) §cYou must wait for your previous buff to expire!`). Its ttl matches the exemption exactly,
+# which is also D-12-19's fix — the jar NEVER removed its armed key, so the pet was a one-use-per-server-boot
+# item; a SET_VAR ttl expires on its own and the pet is re-usable the moment the buff ends.
+# XP IS FLAT 4. The jar's 10-XP tier required in-combat AND warzone, and warzone is faction territory with no
+# engine analogue, so the tier collapses to the else-arm 4 (ledger D-12-17) rather than being approximated by
+# `%recentattackers%` — the matrix's own reading, and the conservative one: the higher tier was never the
+# common case.
+# ONE ENGINE BEHAVIOUR BEYOND THE JAR, recorded: while exempt, an escalating soul price stops ADVANCING (a
+# free activation cannot raise the next one). The jar had no escalation to freeze; this pack does
+# (`enchants/phoenix`), and freezing it is the only coherent reading of a waived charge.
+# era: `ORB_PICKUP` / `NOTE_PLING` / `VILLAGER_YES` are the 1.7/1.8 spellings and the modern names ship per the
+# pack convention; `Aliases.SOUND` carries none of the three rows yet (`ORB_PICKUP`->
+# `ENTITY_EXPERIENCE_ORB_PICKUP` is already on the legacy-sweep list, `NOTE_PLING`->`BLOCK_NOTE_BLOCK_PLING`
+# and `VILLAGER_YES`->`ENTITY_VILLAGER_YES` are owed), so those cues are silent on the legacy lane until the
+# sweep lands them. Nothing else era-sensitive — souls are engine state on both trees.
+display: "Tesla Pet"
+color: "&e"
+type: ACTIVE
+# head: the per-pet skull texture is not matrix-recorded, so the mint falls back to a plain PLAYER_HEAD.
+descriptor:
+  - "§7§7A legendary creature of myth"
+  - "§7§7that acts as a temporarily"
+  - "§7§7infinite source of player souls."
+# PER-LEVEL LORE NUMBERS ARE PINNED AT LEVEL 1, for the reason written out on `xp-booster.yml`: `description`
+# is per-PET and no likeness token carries a bracket's duration. `{duration}` therefore renders 5s — a freshly
+# minted pet's real window — and stays there as it levels. The true ladder, shipped in the effect values
+# below: `(int) min(30.0, 5.0 + (level - 1) x 2.5)` s = 5/7/10/12/15/17/20/22/25/27 (the truncation drops the
+# half-second on even levels, and the 30 s cap is unreachable) = 100…540 t. The activation line below carries
+# no number either — the jar's own line says only "No Soul Costs" — so the window length is the one fact a
+# levelled pet under-reports. Tracked as a partial entry until pets grow per-bracket lore.
+# The cooldown line is a level-independent literal ("5 minutes", not {TIME_FORMATTED}, which renders `5m`).
+description:
+  - "§7"
+  - "§7§f§lAbility"
+  - "§7§7Remove all soul costs from"
+  - "§7§7any action for 5s"
+  - "§7"
+  - "§7§f§lCooldown"
+  - "§7§7 5 minutes"
+max-level: 10
+exp-curve: { base: 0, per-level: 1500 }   # `level x 1500`: L2 3000 … L10 15000, 81 000 lifetime — the most
+                                          # expensive pet in the family (XP 4 per use = 20 250 uses)
+levels:
+  # ABILITY ORDER IS LOAD-BEARING: the payload is index 0, so it carries the pet-wide cooldown scope (the
+  # running 5 minutes survives a level-up crossing a bracket floor). Both refusals author `cooldown: 0` and
+  # scope to their own keys, so a refused click burns nothing.
+  # The refund line is the effect's own `message`, verbatim including its hand-built prefix — its punctuation
+  # differs from the family's `{c}§lPET ({c}{Name}{c}§l){c}:§f {msg}` pattern and is kept exactly as measured.
+  # `feedback-threshold: 10` is the jar's "only report waivers above 10 souls" rule (the effect requires the
+  # waiver to EXCEED it), so small change stays quiet.
+  1:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %tesla-armed% != 1'
+        effects:
+          - { SET_VAR: { name: "tesla-armed", value: "1", ttl: 100, who: "@Self" } }
+          - { SOUL_COST_EXEMPT: { duration: 100, feedback-threshold: 10, message: "§a§lPET (§aTesla§a§l): §a+{souls} souls!", who: "@Self" } }
+          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aTesla§a§l)§a:§f§a§l [§7Tesla Pet Boost (§aNo Soul Costs§7)§a§l]" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
+          - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
+          - { SOUND: { sound: "ENTITY_VILLAGER_YES", volume: 3.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %tesla-armed% == 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait for your previous buff to expire!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  2:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %tesla-armed% != 1'
+        effects:
+          - { SET_VAR: { name: "tesla-armed", value: "1", ttl: 140, who: "@Self" } }
+          - { SOUL_COST_EXEMPT: { duration: 140, feedback-threshold: 10, message: "§a§lPET (§aTesla§a§l): §a+{souls} souls!", who: "@Self" } }
+          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aTesla§a§l)§a:§f§a§l [§7Tesla Pet Boost (§aNo Soul Costs§7)§a§l]" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
+          - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
+          - { SOUND: { sound: "ENTITY_VILLAGER_YES", volume: 3.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %tesla-armed% == 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait for your previous buff to expire!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  3:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %tesla-armed% != 1'
+        effects:
+          - { SET_VAR: { name: "tesla-armed", value: "1", ttl: 200, who: "@Self" } }
+          - { SOUL_COST_EXEMPT: { duration: 200, feedback-threshold: 10, message: "§a§lPET (§aTesla§a§l): §a+{souls} souls!", who: "@Self" } }
+          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aTesla§a§l)§a:§f§a§l [§7Tesla Pet Boost (§aNo Soul Costs§7)§a§l]" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
+          - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
+          - { SOUND: { sound: "ENTITY_VILLAGER_YES", volume: 3.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %tesla-armed% == 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait for your previous buff to expire!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  4:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %tesla-armed% != 1'
+        effects:
+          - { SET_VAR: { name: "tesla-armed", value: "1", ttl: 240, who: "@Self" } }
+          - { SOUL_COST_EXEMPT: { duration: 240, feedback-threshold: 10, message: "§a§lPET (§aTesla§a§l): §a+{souls} souls!", who: "@Self" } }
+          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aTesla§a§l)§a:§f§a§l [§7Tesla Pet Boost (§aNo Soul Costs§7)§a§l]" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
+          - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
+          - { SOUND: { sound: "ENTITY_VILLAGER_YES", volume: 3.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %tesla-armed% == 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait for your previous buff to expire!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  5:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %tesla-armed% != 1'
+        effects:
+          - { SET_VAR: { name: "tesla-armed", value: "1", ttl: 300, who: "@Self" } }
+          - { SOUL_COST_EXEMPT: { duration: 300, feedback-threshold: 10, message: "§a§lPET (§aTesla§a§l): §a+{souls} souls!", who: "@Self" } }
+          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aTesla§a§l)§a:§f§a§l [§7Tesla Pet Boost (§aNo Soul Costs§7)§a§l]" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
+          - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
+          - { SOUND: { sound: "ENTITY_VILLAGER_YES", volume: 3.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %tesla-armed% == 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait for your previous buff to expire!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  6:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %tesla-armed% != 1'
+        effects:
+          - { SET_VAR: { name: "tesla-armed", value: "1", ttl: 340, who: "@Self" } }
+          - { SOUL_COST_EXEMPT: { duration: 340, feedback-threshold: 10, message: "§a§lPET (§aTesla§a§l): §a+{souls} souls!", who: "@Self" } }
+          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aTesla§a§l)§a:§f§a§l [§7Tesla Pet Boost (§aNo Soul Costs§7)§a§l]" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
+          - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
+          - { SOUND: { sound: "ENTITY_VILLAGER_YES", volume: 3.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %tesla-armed% == 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait for your previous buff to expire!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  7:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %tesla-armed% != 1'
+        effects:
+          - { SET_VAR: { name: "tesla-armed", value: "1", ttl: 400, who: "@Self" } }
+          - { SOUL_COST_EXEMPT: { duration: 400, feedback-threshold: 10, message: "§a§lPET (§aTesla§a§l): §a+{souls} souls!", who: "@Self" } }
+          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aTesla§a§l)§a:§f§a§l [§7Tesla Pet Boost (§aNo Soul Costs§7)§a§l]" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
+          - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
+          - { SOUND: { sound: "ENTITY_VILLAGER_YES", volume: 3.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %tesla-armed% == 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait for your previous buff to expire!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  8:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %tesla-armed% != 1'
+        effects:
+          - { SET_VAR: { name: "tesla-armed", value: "1", ttl: 440, who: "@Self" } }
+          - { SOUL_COST_EXEMPT: { duration: 440, feedback-threshold: 10, message: "§a§lPET (§aTesla§a§l): §a+{souls} souls!", who: "@Self" } }
+          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aTesla§a§l)§a:§f§a§l [§7Tesla Pet Boost (§aNo Soul Costs§7)§a§l]" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
+          - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
+          - { SOUND: { sound: "ENTITY_VILLAGER_YES", volume: 3.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %tesla-armed% == 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait for your previous buff to expire!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  9:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %tesla-armed% != 1'
+        effects:
+          - { SET_VAR: { name: "tesla-armed", value: "1", ttl: 500, who: "@Self" } }
+          - { SOUL_COST_EXEMPT: { duration: 500, feedback-threshold: 10, message: "§a§lPET (§aTesla§a§l): §a+{souls} souls!", who: "@Self" } }
+          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aTesla§a§l)§a:§f§a§l [§7Tesla Pet Boost (§aNo Soul Costs§7)§a§l]" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
+          - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
+          - { SOUND: { sound: "ENTITY_VILLAGER_YES", volume: 3.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %tesla-armed% == 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait for your previous buff to expire!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+  10:
+    cooldown: 6000
+    abilities:
+      - condition: '%actor.gamemode% != "SPECTATOR" && %tesla-armed% != 1'
+        effects:
+          - { SET_VAR: { name: "tesla-armed", value: "1", ttl: 540, who: "@Self" } }
+          - { SOUL_COST_EXEMPT: { duration: 540, feedback-threshold: 10, message: "§a§lPET (§aTesla§a§l): §a+{souls} souls!", who: "@Self" } }
+          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { MESSAGE: { text: "§a§lPET (§aTesla§a§l)§a:§f§a§l [§7Tesla Pet Boost (§aNo Soul Costs§7)§a§l]" } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
+          - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
+          - { SOUND: { sound: "ENTITY_VILLAGER_YES", volume: 3.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %tesla-armed% == 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§l(!) §cYou must wait for your previous buff to expire!" } }
+      - condition: '%actor.gamemode% == "SPECTATOR"'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou cannot use that ability while spectating!" } }
+# interactions: the souls economy (SoulPool) end to end. While the window is open every soul-costed action in
+# this pack is free — `enchants/phoenix`'s escalating last-stand charge, `enchants/soul-trap`'s 5, whatever
+# `enchants/hero-killer` ships when its gate lands — and their "out of souls" refusal paths simply never run,
+# which is exactly what the jar's exemption did. Nothing stacks: a second Tesla use inside the window is
+# refused above, and the effect REPLACES rather than extends its window if one ever lands another way.
