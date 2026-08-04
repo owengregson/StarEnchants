@@ -1,0 +1,54 @@
+# Matrix: 02-enchants-armor-m-z.md § Repair Guard
+display: "Repair Guard"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eWhen a piece is nearly worn through, the"
+  - "&earmor answers with a burst of Absorption."
+trigger: ITEM_DAMAGE
+applies-to: [ARMOR]
+group: "rare"
+tier: rare
+cooldown: 600  # 30 s flat, level-independent — one proc per window however many pieces are wearing down
+# RE-DECOMPOSED ONTO `ITEM_DAMAGE` (D-02-15). The matrix activates this on an unequip transition, and that
+# framing is dead: `EQUIP_CHANGE` ships, but its context carries NO damaged stack, so `%item.durabilitypercent%`
+# reads the cleared 0 there and the recorded `<= 15/20/25` gate would pass on EVERY unequip — the jar's own
+# fatal integer-division bug (D-02-6), reproduced by a different route. The fact is populated on exactly one
+# trigger, `ITEM_DAMAGE`, off the exact stack that took the wear, so that is where the gate can be honoured.
+# What that buys and costs, plainly: the guard now answers the HIT that grinds a nearly-spent piece down rather
+# than the moment you take it off, which is the reading the enchant's own name and description carry. The
+# cooldown is unchanged and does the same throttling work.
+# `%itemdamage.armor%` is not decoration: the trigger also fires for the HELD item, and the durability fact
+# then describes that pickaxe, not the armour this enchant lives on. The flag confines the gate to worn pieces
+# (`hardened.yml`'s idiom) — and, incidentally, closes the no-durability-bar hole, since a stack with no bar
+# reads NaN, which the fact populator leaves as a cleared 0 that `<= 15` would otherwise accept.
+# Recorded approximation: the event names ONE piece, and the enchant is resolved from the whole worn set, so a
+# heavily-worn boot can arm the guard while the enchant itself sits on the helmet. The jar had the same
+# looseness from the other end (any damaged piece leaving any slot), and the matrix's own interactions line
+# ("one proc per cooldown window no matter how many damaged pieces are removed") reads on the set, not a piece.
+# The jar's equip half was a dead no-op and is not ported.
+# The absorption is applied FORCE in the jar (it clobbers a weaker one); POTION goes through the platform's own
+# replacement rule, so a stronger or longer Absorption already running — a golden apple, another enchant —
+# survives instead of being downgraded. Strictly gentler, and never observable at equal or lower grades.
+# Acquisition: max 3; table weight 2; enchant-table thresholds 10/15/20; tier 3 (the `rare` rung).
+# strings: none.
+# era: the durability APIs differ per lane (modern `Damageable#getDamage` against the effective max, 1.8
+# `ItemStack#getDurability` against the material max) and `%item.durabilitypercent%` is the one normalised
+# reading of both — 0-100 remaining, measured BEFORE the wear lands on either lane. On 1.8 the trigger comes
+# from the gear poll rather than an event, so the proc can land a tick late; nothing here cancels, so that is
+# the whole of it. ABSORPTION resolves on every lane.
+levels:
+  # Gate <= 15/20/25 % REMAINING durability (D-02-6: the jar's ratio is integer-divided to 0 and inverted
+  # against its own description; the description is the intent). Absorption IV/V/VI = 16/20/24 HP for
+  # 60/80/100 t — POTION's `level` is 1-based, so the jar's amplifier 3/4/5 is level 4/5/6 here.
+  1:
+    condition: "%itemdamage.armor% && %item.durabilitypercent% <= 15"
+    effects:
+      - { POTION: { effect: "ABSORPTION", level: 4, duration: 60, who: "@Self" } }
+  2:
+    condition: "%itemdamage.armor% && %item.durabilitypercent% <= 20"
+    effects:
+      - { POTION: { effect: "ABSORPTION", level: 5, duration: 80, who: "@Self" } }
+  3:
+    condition: "%itemdamage.armor% && %item.durabilitypercent% <= 25"
+    effects:
+      - { POTION: { effect: "ABSORPTION", level: 6, duration: 100, who: "@Self" } }

@@ -1,0 +1,118 @@
+# Matrix: 07-enchants-mastery-soul.md § Permafrost
+display: "Permafrost"
+# description: not matrix-recorded (factual paraphrase). It stops at the freeze, because the reduction half is
+# not authored (see PENDING below) and a description must not promise what the file does not do.
+description:
+  - "&eBeing struck can freeze the ground around you"
+  - "&einto a field of snow that thaws on its own."
+trigger: DEFENSE
+applies-to: [ARMOR]
+# Tier 8 = the `mastery` rung (&4, weight 80) — the lore line renders `§4Permafrost VI` (matrix 07
+# § Presentation). The jar's group is "Default" (a mastery never conflicts with anything); the pack's `group:`
+# mirrors the rung as every other file here does, and no conflict rule keys on it.
+group: "mastery"
+tier: mastery
+# NO `suppress-immune`: the flag exempts an ability from ALL suppression (`SuppressionStore.suppressesAny`
+# returns false before it reads a scope), and END-SUPPRESS — the world rule that must reach every tier above 5
+# — could then never reach a tier-8 file. Same ruling the batch-06 heroic contract settled. This entry is
+# also exactly what the family's Silence rule parks: the jar's `noDefenseProcs` window (written by Tombstone
+# and the Silence sword enchant) maps to one uniform SUPPRESS window on the defence path, and a defensive
+# mastery proc is meant to be inside it.
+# DEFENCE-SIDE, so the family's offence-dispatch rule (player-vs-player only, lowest worn level procs) does not
+# apply to the roll — but its second half still does, inverted: with Permafrost on several pieces the engine's
+# WornState keeps the HIGHEST level where the jar procs the lowest. Matrix 07 records that as a family-level
+# call, not a gap, and it is the same direction every other multi-piece enchant in this pack takes.
+# Authored on DEFENSE exactly as the matrix decomposes it, which is COMBAT-only. The jar gated on nothing but
+# the roll and so also fired on fall, fire and void; that gateless reading is what D-07-6 rules a bug on the
+# family's other defence half (Death Pact), and DEFENSE is the corrected shape. It also DOUBLE-fired per melee
+# hit — the `D-001` family reading is one pass, which is what the engine's combat dispatch does by
+# construction, so the field is stamped once per landed hit rather than twice.
+# WIDENING, recorded not fixed: the jar froze ONLY inside Factions warzone claims and silently no-opped
+# everywhere else. The engine has no zone-claim concept (`%victim.inzone%` is a victim-side fact and names a
+# different thing), so this freezes anywhere. Flagged to the spec's faction/zone-mapping ruling, exactly as the
+# matrix flags it; `disabled-worlds:` is not a substitute, since a claim is a region inside a world.
+# The cues fire on every proc. The matrix plays them "only when >= 1 block froze", and no fact reports how many
+# blocks a TEMP_BLOCK stamp actually took — with `airOnly: false` a FOOTPRINT replaces only SOLID ground, so a
+# wearer standing on air or water freezes nothing and still hears the glass break. Cosmetic; recorded.
+# The matrix's "40 % of frozen blocks also emit the snow break-effect" is a per-block placement visual the
+# ledger owns, not a decomposition row — there is no per-block hook to author it on, and a blanket PARTICLE
+# would be a different cue at a different cadence. Dropped, recorded.
+# D-07-1 (family): codex scan boxes are asymmetric `[-r, +r)` cubes; the engine's FOOTPRINT is the symmetric
+# (2r+1)² square. Recorded once for the family, not per entry.
+# PENDING — the standing-on-your-own-frost half, which the matrix decomposes as a SECOND `DEFENSE` ability:
+#   conditions `%actor.groundblock% == "SNOW_BLOCK" && %mastery.ownedground% == 1` and
+#   `%damagecause% == "ENTITY_ATTACK" || %damagecause% == "PROJECTILE"`
+#   → `DAMAGE_MOD(side=defense, mode=add, amount=14+L)` = 15…20 % off the hit (x0.85…x0.80)
+#   + `POTION(effect=SLOW_DIGGING, level=2, duration=50, who=@Attacker)`, re-applied per hit.
+# It is NOT authored, and the missing piece is the OWNED_GROUND fact: "the block I stand on is a temp block I
+# placed" (a TempBlockLedger owner lookup). `%actor.groundblock%` alone is not it — keyed to the material
+# alone, the rebate and the attacker's Mining Fatigue would land for anyone standing on ANY snow block: a
+# natural snowy biome, a teammate's field, or the ATTACKER standing on the very frost this proc just laid under
+# the wearer. The matrix is explicit that the reduction is keyed to the block's OWNER (the victim) and that
+# attackers and teammates on the frost get nothing, so shipping the material check alone would invert the
+# feature in the one situation it exists for. Tracked in deferred-content; it is a one-condition drop-in the
+# day the fact lands.
+# era: SNOW_BLOCK is block id 80 on 1.8.9 and needs no alias. The modern handle names ship here, per the
+# pack-wide convention, and the two renames land differently: `SLOW_DIGGING` → `MINING_FATIGUE` IS in
+# `Aliases.POTION_EFFECT`, so the pending attacker debuff resolves on both lanes the day it is authored, but
+# `Aliases.SOUND` carries NO row for 1.8's `GLASS` → `BLOCK_GLASS_BREAK` — the freeze cue is silent on the
+# legacy lane until the sweep adds it (owed in deferred-content).
+levels:
+  # Chance `2 + L/3` % in true double division — 2.33333 / 2.66667 / 3.0 / 3.33333 / 3.66667 / 4.0, the
+  # matrix's own figures, not the jar's integer-division shape.
+  # Radius `i = min(2 + L, 5)` = 3 / 4 / 5 / 5 / 5 / 5 — an 11x11 field from L3 up, which TEMP_BLOCK's
+  # FOOTPRINT cap now reaches (the matrix's TEMP_BLOCK_EXTENT gap was extent-only and has since closed at
+  # radius 5).
+  # Duration `j = ceil(4 + L/3)` s = 5 / 5 / 5 / 6 / 6 / 6 → 100 / 100 / 100 / 120 / 120 / 120 t of ledger
+  # life, after which the ledger restores the true originals (physics off, layered under any later stamp).
+  # TWO stamps per proc, dy -1 and dy -2: the matrix's two floor layers. `airOnly: false` on a FOOTPRINT is
+  # replace-mode "solid only", which is precisely the codex's freeze filter (solid ground, never air), so the
+  # field can never scaffold the wearer upward and the ledger restores whatever it took.
+  # `who: "@Self"` on both, and it matters: TEMP_BLOCK targets @Victim by default, and on a DEFENSE pass the
+  # "victim" IS the attacker — the field belongs under the WEARER.
+  1:
+    chance: 2.33333
+    effects:
+      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 3, dy: -1, ticks: 100, airOnly: false, who: "@Self" } }
+      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 3, dy: -2, ticks: 100, airOnly: false, who: "@Self" } }
+      # Volume 3.0 is the jar's own number, kept verbatim — audible well past the fight. The activation
+      # location on a DEFENSE pass is the wearer's, so the default @Here anchor already plays it there.
+      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 3.0, pitch: 1.1 } }
+      # `{seconds}` is the matrix's own placeholder; MESSAGE's `tokens` binds it to a number and the line stays
+      # byte-verbatim because the binding lives in the parameter, never in the text.
+      - { MESSAGE: { text: "§c§l* PERMAFROST [§7{seconds}s§c§l] *", who: "@Self", tokens: { seconds: 5 } } }
+  2:
+    chance: 2.66667
+    effects:
+      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 4, dy: -1, ticks: 100, airOnly: false, who: "@Self" } }
+      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 4, dy: -2, ticks: 100, airOnly: false, who: "@Self" } }
+      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 3.0, pitch: 1.1 } }
+      - { MESSAGE: { text: "§c§l* PERMAFROST [§7{seconds}s§c§l] *", who: "@Self", tokens: { seconds: 5 } } }
+  3:
+    chance: 3.0
+    effects:
+      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -1, ticks: 100, airOnly: false, who: "@Self" } }
+      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -2, ticks: 100, airOnly: false, who: "@Self" } }
+      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 3.0, pitch: 1.1 } }
+      - { MESSAGE: { text: "§c§l* PERMAFROST [§7{seconds}s§c§l] *", who: "@Self", tokens: { seconds: 5 } } }
+  4:
+    chance: 3.33333
+    effects:
+      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -1, ticks: 120, airOnly: false, who: "@Self" } }
+      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -2, ticks: 120, airOnly: false, who: "@Self" } }
+      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 3.0, pitch: 1.1 } }
+      - { MESSAGE: { text: "§c§l* PERMAFROST [§7{seconds}s§c§l] *", who: "@Self", tokens: { seconds: 6 } } }
+  5:
+    chance: 3.66667
+    effects:
+      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -1, ticks: 120, airOnly: false, who: "@Self" } }
+      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -2, ticks: 120, airOnly: false, who: "@Self" } }
+      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 3.0, pitch: 1.1 } }
+      - { MESSAGE: { text: "§c§l* PERMAFROST [§7{seconds}s§c§l] *", who: "@Self", tokens: { seconds: 6 } } }
+  6:
+    chance: 4.0
+    effects:
+      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -1, ticks: 120, airOnly: false, who: "@Self" } }
+      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -2, ticks: 120, airOnly: false, who: "@Self" } }
+      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 3.0, pitch: 1.1 } }
+      - { MESSAGE: { text: "§c§l* PERMAFROST [§7{seconds}s§c§l] *", who: "@Self", tokens: { seconds: 6 } } }

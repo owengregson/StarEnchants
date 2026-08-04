@@ -9,6 +9,7 @@ applies-to: [SWORD]
 group: "common"
 tier: common
 cooldown: 50  # 2500 ms, level-independent; the jar registered its cooldown metadata under a DIFFERENT plugin instance (an ownership leak with no behavioural intent) — the engine's cooldown bucket owns it
+cooldown-per-victim: true  # the recorded 50 t is PER VICTIM: the bucket keys on the struck entity, so one attacker's proc paces per target instead of across all of them
 # Gate 6 tests the cooldown BEFORE the chance roll, where the jar rolled first and then swallowed a landed proc
 # on a live cooldown. The roll has no side effects, so the two orders are observationally identical.
 # The bolt is cosmetic (damage 0, no fire); the 5.0 lands as its own flat hit, never folded into the melee event.

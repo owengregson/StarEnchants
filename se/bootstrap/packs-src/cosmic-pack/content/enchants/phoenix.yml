@@ -12,12 +12,14 @@ tier: soul
 # ships from this doc; the post-mitigation %posthit.health% form is deliberately not substituted, since the
 # matrix prices the save off the incoming hit.
 condition: "%damage% >= %actor.health%"
-# Phoenix is the one enchant exempt from the corpus's defensive-proc suppression (the layer rule
-# `phoenix-immune-to-defense-suppression` silence.yml already names). The matrix decomposes that as a second
-# PASSIVE ability carrying SUPPRESS_IMMUNE, but that primitive immunises the WEARER — every enchant they own
-# would stop being silenceable. `suppress-immune` is the enchant-scoped form, which is what "the one enchant
-# exempt" means, so the save survives a Silence/Tombstone window and nothing else changes.
-suppress-immune: true
+# NO `suppress-immune`, by the END-SUPPRESS contract rule: all tier > 5 enchants must stay reachable by
+# suppression and the flag exempts an enchant from ALL of it (`SuppressionStore.suppressesAny` returns false
+# before it reads a single scope), so the two cannot both hold on a tier-6 `soul` rung — the same ruling that
+# stripped the flag from `alien-implants.yml` and `godly-overload.yml`. The matrix's "one enchant exempt from
+# defensive-proc suppression" (layer rule `phoenix-immune-to-defense-suppression`) therefore does not ship,
+# and the consequence is accepted: a live Silence/Tombstone window now parks the save. Its own decomposition —
+# a second PASSIVE ability carrying SUPPRESS_IMMUNE — was doubly out, since that primitive immunises the
+# WEARER and would unsilence every enchant they own.
 # The D-02 soul ladder: 500 base, doubled on each successful charge, ceilinged at 8000
 # (500/1000/2000/4000/8000 — the fifth proc and every one after it pay 8000), with one step shed per 10 min
 # of quiet back down to the base. The counter is keyed on the enchant's cooldown scope, so the three levels

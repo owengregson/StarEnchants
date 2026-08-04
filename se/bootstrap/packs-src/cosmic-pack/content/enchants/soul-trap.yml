@@ -1,0 +1,134 @@
+# Matrix: 04-enchants-axes.md § Soul Trap
+display: "Soul Trap"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eSpends your own souls to rip a player out"
+  - "&eof soul mode, empty their gem and keep them"
+  - "&eout of it for a few seconds."
+trigger: ATTACK
+applies-to: [AXE]
+group: "soul"
+tier: soul
+soul-cost: 5  # flat at every level, charge-or-abort — the D-04-14 as-intended reading of the jar's gate-then-over-draw
+# THE ATTACKER-SIDE SOUL GATE IS `soul-cost` AND NOTHING ELSE. The matrix lists "actor in soul mode with souls
+# > 0" as its own condition; the engine's soul gate already is that test — an ability carrying a cost never
+# fires outside soul mode and refuses atomically when the cross-gem balance cannot pay, before any effect runs.
+# The jar checked `souls > 0` and then removed 5 (an over-draw behind its shared 1000 ms limiter); D-04-14 rules
+# 5 per activation, clamped to held souls, the intent, and that is exactly what the charge does. No
+# `no-souls-message`: the matrix records no out-of-souls string for this entry, so the refusal is silent (the
+# `teleblock.yml` posture). The "soul system enabled" toggle is a pack/config knob, not a per-file condition.
+# The gate chain otherwise, in the order the jar reads it:
+#  - players only;
+#  - the anti-hot-swap window, > 5 t since the last hotbar-slot change, with the `== 0` arm restoring the
+#    unset-means-allowed default for a player who has never switched (the idiom `divine-immolation.yml`
+#    settled and `boss-slayer.yml` documents — one fact, one threshold, shared with §Hero Killer);
+#  - `%soultrap% != 1`, the attacker reading HIS OWN copy of the trap mark: a trapped player cannot trap back.
+#    Bare (actor-scope) read of the var this file writes victim-side, the `%corrupt%` idiom;
+#  - `%victim.var.soultrapimmune% != 1`, the re-trap immunity, which the jar enforced as trap-expiry + 5000 ms
+#    and which is written below as its own longer marker.
+# TWO MUTUALLY EXCLUSIVE ABILITIES PER LEVEL, split on `%victim.souls%` (the victim's cached CROSS-GEM total,
+# 0 for a mob and for a player carrying no gem). The drain path and the jar's zero-souls fallback hit are one
+# proc with two payloads, not two rolls: disjoint conditions keep the advertised chance honest, and the whole
+# tail — mode break, both markers, the line and the cues — is repeated on both because the matrix records it
+# "applied even on the zero-souls fallback path".
+# THE DRAIN IS A THEFT FROM THE VICTIM'S CARRIED GEMS (owner ruling, batch 7), not a soul-mode debit.
+# `REMOVE_SOULS(who=@Victim)` — the matrix's literal spelling — resolves the victim's ACTIVE gem out of the
+# soul-mode store, so it debits a victim who is THEMSELF in soul mode and is a no-op otherwise: a player
+# carrying full gems out of mode would keep every one of them (`SOUL_MODE_DISABLE` is likewise a no-op there)
+# and the trap would land only its mark, its window and its line. The felt behaviour the entry describes is a
+# theft, which that verb cannot express, so `SOUL_TRANSFER` ships in its place — it reads the gems themselves,
+# is gated on neither end's soul mode, and takes `min(the victim's souls, cap)` with `cap` the recorded
+# `10 x level` ladder.
+# `ratio: 0` is the whole difference from §Soul Siphon, which banks half of what it takes: here the take is
+# DESTROYED, because the decomposition never says the attacker keeps a soul. The actor-credit question is
+# MATRIX-SILENT — the jar's console steal log (with its `form` typo) is not ported and nothing else records
+# where the souls went — so the ratio flips to 1 at the polish review if that log proves credit. `overflow`
+# stays at its default: with nothing credited, the gemless-actor branch it picks is unreachable.
+# Trap window `level * 80` t (4/8/12 s) and immunity `window + 100` t — the advertised seconds are the WINDOW,
+# and the real re-trap floor is 5 s longer (9/13/17 s effective), which is jar behaviour and is kept.
+# The `soultrap` mark is what §Hero Killer's self-gate reads back, so its name is load-bearing across files.
+# A dead jar-side per-level value (`1.0*level`, computed and never read) is not ported.
+# strings: `§9§l** SOUL TRAP §7[{seconds}s]§9§l**`, {seconds} inlined per level so each rendered line is
+# byte-identical — note there is NO space between `]` and the trailing `**`, verbatim.
+# Acquisition: max 3; base 10.0, interval 10.0; table weight 2; tier 6 (the `soul` rung).
+# era: `ENDERMAN_SCREAM` is the 1.8.9 spelling of ENTITY_ENDERMAN_SCREAM and `Aliases.SOUND` carries NO row for
+# the pair today, so the scream is silent on the legacy lane until the sweep writes it (owed in
+# deferred-content.md). The particles need nothing: `SPELL_WITCH` (1.8 `WITCH_MAGIC`) and `SPELL` (modern
+# `EFFECT`) both ride existing `Aliases.PARTICLE` rows, and the resolver's reverse scan makes them
+# bidirectional. The recorded +1 y offsets and 0.7/0.4 particle speeds have no param — PARTICLE centres on the
+# body — and the fallback hit is plain armour-reduced DAMAGE, as in the jar.
+levels:
+  # Chance 7 x level; drain 10 x level; fallback damage 1 + level; window 80 x level t.
+  1:
+    abilities:
+      - chance: 7
+        condition: "%victim.type% == \"PLAYER\" && (%heldticks% > 5 || %heldticks% == 0) && %soultrap% != 1 && %victim.var.soultrapimmune% != 1 && %victim.souls% > 0"
+        effects:
+          - { SOUL_TRANSFER: { cap: 10, ratio: 0, who: "@Victim" } }
+          - { SOUL_MODE_DISABLE: { who: "@Victim" } }
+          - { SET_VAR: { name: "soultrap", value: "1", ttl: 80, who: "@Victim" } }
+          - { SET_VAR: { name: "soultrapimmune", value: "1", ttl: 180, who: "@Victim" } }
+          - { MESSAGE: { text: "§9§l** SOUL TRAP §7[4s]§9§l**", channel: "chat", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 1.0, pitch: 0.3, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 60, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL", count: 25, who: "@Victim" } }
+      # The dry-victim fallback: same proc, same tail, a flat hit instead of a drain.
+      - chance: 7
+        condition: "%victim.type% == \"PLAYER\" && (%heldticks% > 5 || %heldticks% == 0) && %soultrap% != 1 && %victim.var.soultrapimmune% != 1 && %victim.souls% == 0"
+        effects:
+          - { DAMAGE: { amount: 2, who: "@Victim" } }
+          - { SOUL_MODE_DISABLE: { who: "@Victim" } }
+          - { SET_VAR: { name: "soultrap", value: "1", ttl: 80, who: "@Victim" } }
+          - { SET_VAR: { name: "soultrapimmune", value: "1", ttl: 180, who: "@Victim" } }
+          - { MESSAGE: { text: "§9§l** SOUL TRAP §7[4s]§9§l**", channel: "chat", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 1.0, pitch: 0.3, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 60, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL", count: 25, who: "@Victim" } }
+  2:
+    abilities:
+      - chance: 14
+        condition: "%victim.type% == \"PLAYER\" && (%heldticks% > 5 || %heldticks% == 0) && %soultrap% != 1 && %victim.var.soultrapimmune% != 1 && %victim.souls% > 0"
+        effects:
+          - { SOUL_TRANSFER: { cap: 20, ratio: 0, who: "@Victim" } }
+          - { SOUL_MODE_DISABLE: { who: "@Victim" } }
+          - { SET_VAR: { name: "soultrap", value: "1", ttl: 160, who: "@Victim" } }
+          - { SET_VAR: { name: "soultrapimmune", value: "1", ttl: 260, who: "@Victim" } }
+          - { MESSAGE: { text: "§9§l** SOUL TRAP §7[8s]§9§l**", channel: "chat", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 1.0, pitch: 0.3, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 60, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL", count: 25, who: "@Victim" } }
+      - chance: 14
+        condition: "%victim.type% == \"PLAYER\" && (%heldticks% > 5 || %heldticks% == 0) && %soultrap% != 1 && %victim.var.soultrapimmune% != 1 && %victim.souls% == 0"
+        effects:
+          - { DAMAGE: { amount: 3, who: "@Victim" } }
+          - { SOUL_MODE_DISABLE: { who: "@Victim" } }
+          - { SET_VAR: { name: "soultrap", value: "1", ttl: 160, who: "@Victim" } }
+          - { SET_VAR: { name: "soultrapimmune", value: "1", ttl: 260, who: "@Victim" } }
+          - { MESSAGE: { text: "§9§l** SOUL TRAP §7[8s]§9§l**", channel: "chat", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 1.0, pitch: 0.3, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 60, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL", count: 25, who: "@Victim" } }
+  3:
+    abilities:
+      - chance: 21
+        condition: "%victim.type% == \"PLAYER\" && (%heldticks% > 5 || %heldticks% == 0) && %soultrap% != 1 && %victim.var.soultrapimmune% != 1 && %victim.souls% > 0"
+        effects:
+          - { SOUL_TRANSFER: { cap: 30, ratio: 0, who: "@Victim" } }
+          - { SOUL_MODE_DISABLE: { who: "@Victim" } }
+          - { SET_VAR: { name: "soultrap", value: "1", ttl: 240, who: "@Victim" } }
+          - { SET_VAR: { name: "soultrapimmune", value: "1", ttl: 340, who: "@Victim" } }
+          - { MESSAGE: { text: "§9§l** SOUL TRAP §7[12s]§9§l**", channel: "chat", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 1.0, pitch: 0.3, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 60, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL", count: 25, who: "@Victim" } }
+      - chance: 21
+        condition: "%victim.type% == \"PLAYER\" && (%heldticks% > 5 || %heldticks% == 0) && %soultrap% != 1 && %victim.var.soultrapimmune% != 1 && %victim.souls% == 0"
+        effects:
+          - { DAMAGE: { amount: 4, who: "@Victim" } }
+          - { SOUL_MODE_DISABLE: { who: "@Victim" } }
+          - { SET_VAR: { name: "soultrap", value: "1", ttl: 240, who: "@Victim" } }
+          - { SET_VAR: { name: "soultrapimmune", value: "1", ttl: 340, who: "@Victim" } }
+          - { MESSAGE: { text: "§9§l** SOUL TRAP §7[12s]§9§l**", channel: "chat", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ENDERMAN_SCREAM", volume: 1.0, pitch: 0.3, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 60, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL", count: 25, who: "@Victim" } }

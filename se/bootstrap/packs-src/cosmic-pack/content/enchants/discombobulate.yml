@@ -1,0 +1,48 @@
+# Matrix: 07-enchants-mastery-soul.md § Discombobulate
+# Roster marker (metaphysical.yml / sticky.yml / infinite-luck.yml precedent): the enchant is rollable,
+# applicable and displayed, and it has no body of its own. The matrix decomposes it as ONE maintained-passive
+# flag — `SET_VAR(name=mastery.discombobulate, value=1, ttl=0) @Self`, armed on equip and cleared on unequip —
+# and it ships EFFECT-LESS instead, for the reason the Solitude row settled pack-wide: a ttl-0 marker written
+# on a PASSIVE walk has no teardown, so one equip would leave it standing forever. The worn level publishes
+# the same state WITH a lifecycle, read as `%actor.enchlevel.discombobulate%` (the file STEM is the key;
+# neither the matrix's `mastery.discombobulate` var spelling nor the `enchants/discombobulate` stable key
+# reads anything — an unknown key is 0 in silence). Unequipping clears it, and a second piece leaves the
+# highest level standing.
+# CONSUMER: matrix-UNRESOLVED, recorded as an external plugin — the flag gates nothing in-tree and this file
+# is parity only, which is what the entry itself asks for. NOT the `enchants/ghost` case (deferred since
+# batch 01): that entry decomposes to "none (inert in corpus)" and demands a port decision "before shipping
+# any effect", where this one decomposes the publisher and ports it. Nothing here can misfire either way — an
+# effect-less marker has no proc — and shipping keeps the 16-strong mastery roster and its Mastery Shard
+# hand-off whole, the same reason fuse.yml ships ahead of its own consumer.
+display: "Discombobulate"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA mastery flag, published for other"
+  - "&esystems to read. It does nothing on"
+  - "&eits own."
+trigger: PASSIVE
+# The mastery item set: the four armor pieces the family's offence dispatch reads (matrix 07 § family-wide
+# rules). Masteries reach an item only through the Mastery Shard hand-off onto locked kit armor, which is an
+# economy/config-layer gate, not an `applies-to` the effect matrix owns.
+applies-to: [ARMOR]
+group: "mastery"
+tier: mastery
+# MASTERY PRESENTATION (matrix 07 § presentation), as far as this file carries it: tier 8 is the `mastery`
+# rung (&4, weight 80) and that colour IS the recorded `§4<Name> <Roman>` lore line. `group: "mastery"` is
+# the pack's rung label and the suppression key the armour-set batch keys the Dragon Slayer reflect/negate
+# rule against (`scope=GROUP, key=mastery`, doc 10); the matrix's "Group Default — a mastery never conflicts
+# with anything" is the jar's conflict-set notion, which the engine expresses as the absence of a
+# `blacklist:` (an apply-time refusal), and this file carries none. Black-scroll-extraction immunity and the
+# locked-kit hand-off are item-flow policy owned by the layers that read `tier:`, with no per-enchant knob.
+# NO `suppress-immune`, by the heroic-contract owner ruling: END-SUPPRESS ("all tier > 5 enchants are inert
+# while the holder is in The End") has to reach every mastery as surely as every heroic, and the flag exempts
+# an enchant from ALL suppression outright. Moot in both directions here — there is no ability to suppress,
+# and a worn level is read off WornState rather than an ability walk, so the published flag stands through a
+# silence window either way.
+# numbers: level-independent (max 1 — the jar stores the level and never reads it).
+# strings: none. era: none.
+levels:
+  # Max 1: the marker carries a level only so the lore line reads like every other enchant, and so the
+  # published `%actor.enchlevel.discombobulate%` has a non-zero value for whoever ends up reading it.
+  1:
+    effects: []

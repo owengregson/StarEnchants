@@ -15,10 +15,18 @@ tier: epic
 # Alternation survives both blocks sharing one DEFENSE pass because SET_VAR rides the Sink: every write lands
 # at the single post-pass flush, so both conditions read the pre-hit flag and exactly one block fires — a
 # deflected hit cannot re-arm the guard on its way out, in whatever order the two are evaluated.
+# THE LETHAL SNIPER BYPASS (matrix 06 § Lethal Sniper, authored on THIS file): a Lethal Sniper arrow beats the
+# deflect at `0.1 x its level`, 10-50 %. Shipped as a pre-roll subtraction on the deflect block — the shape
+# Trap/Snare use for their Metaphysical rebates, distribution-identical to rolling the bypass separately. The
+# read is `%victim.enchlevel.lethal-sniper%` because on a DEFENSE pass the "victim" IS the attacker, and a
+# projectile hit resolves that to the SHOOTER, whose worn map spans the held bow. An ordinary archer reads 0,
+# so the block stays at 100. A bypassed arrow does NOT consume the arming flag (a failed roll runs no effects),
+# so the guard is still up for the next arrow inside its window.
 levels:
   1:
     abilities:
-      - condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% == 1"
+      - chance: "100 - 10 * %victim.enchlevel.lethal-sniper%"
+        condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% == 1"
         effects:
           - { CANCEL: {} }
           - { SET_VAR: { name: "arrowdeflect.armed", value: "", ttl: 1, who: "@Self" } }
@@ -29,7 +37,8 @@ levels:
           - { SET_VAR: { name: "arrowdeflect.armed", value: "1", ttl: 10, who: "@Self" } }
   2:
     abilities:
-      - condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% == 1"
+      - chance: "100 - 10 * %victim.enchlevel.lethal-sniper%"
+        condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% == 1"
         effects:
           - { CANCEL: {} }
           - { SET_VAR: { name: "arrowdeflect.armed", value: "", ttl: 1, who: "@Self" } }
@@ -40,7 +49,8 @@ levels:
           - { SET_VAR: { name: "arrowdeflect.armed", value: "1", ttl: 20, who: "@Self" } }
   3:
     abilities:
-      - condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% == 1"
+      - chance: "100 - 10 * %victim.enchlevel.lethal-sniper%"
+        condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% == 1"
         effects:
           - { CANCEL: {} }
           - { SET_VAR: { name: "arrowdeflect.armed", value: "", ttl: 1, who: "@Self" } }
@@ -51,7 +61,8 @@ levels:
           - { SET_VAR: { name: "arrowdeflect.armed", value: "1", ttl: 30, who: "@Self" } }
   4:
     abilities:
-      - condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% == 1"
+      - chance: "100 - 10 * %victim.enchlevel.lethal-sniper%"
+        condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% == 1"
         effects:
           - { CANCEL: {} }
           - { SET_VAR: { name: "arrowdeflect.armed", value: "", ttl: 1, who: "@Self" } }

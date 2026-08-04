@@ -297,11 +297,13 @@ public final class SoulService implements SoulDebit, SoulSpender {
      *
      * <p>The take is settled and resynced against the victim's pool exactly as {@link #debit} does, so a victim
      * mid-spend is never charged twice for the same souls. {@code floor(ratio x stolen)} arrives, the remainder is
-     * destroyed — the loss term is the design (see the effect kind), not a rounding accident.
+     * destroyed — the loss term is the design (see the effect kind), not a rounding accident. {@code ratio 0} is
+     * the far end of that same design (Soul Trap's pure drain), so only {@code cap} can refuse the take: bailing
+     * on the ratio before the drain would refund a victim the effect is supposed to have emptied.
      */
     @Override
     public void transferSouls(Player actor, Player victim, int cap, double ratio, boolean mintWhenNone) {
-        if (cap <= 0 || ratio <= 0) {
+        if (cap <= 0) {
             return;
         }
         UUID victimId = victim.getUniqueId();

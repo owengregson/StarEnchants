@@ -13,27 +13,32 @@ cooldown: 200  # armed on activation, so it burns even when no ally is in range
 # era: ENTITY_EXPERIENCE_ORB_PICKUP is the 1.8.9 `random.orb` cue through the sound resolver;
 # HAPPY_VILLAGER resolves on both eras through the particle alias table, and the recorded RED_DUST is
 # authored as REDSTONE — its cross-era spelling, which the table maps to DUST on 1.20.5+.
+# The ally line's jar placeholder `{player}` is authored as `{ATTACKER}` — MESSAGE's bound name token for the
+# ACTIVATING player, which on this DEFENSE walk is the dying wearer. The recorded string is otherwise
+# byte-verbatim; swapping the placeholder for our own token is the convention (the alternative is what shipped
+# until batch 7: every ally reading the literal `{player}'s Lifebloom`). Contrast `phoenix.yml`'s deliberately
+# UNBOUND `{cost}`/`{souls}` — those name values the engine has no source for; this one has an exact token.
 levels:
   # Radius is (int)(level x 2.5) = 2/5/7/10/12; the heal is level-independent and clamps to max health.
   # The wearer's own death is never cancelled — this is a death rattle for allies, not a save.
   1:
     effects:
       - { MODIFY_HEALTH: { amount: 100, mode: "give", who: "@Aoe{r=2, filter=ALLIES}" } }
-      - { MESSAGE: { text: "§a§l(!) §a{player}'s Lifebloom was activated, fight on!", who: "@Aoe{r=2, filter=ALLIES}" } }
+      - { MESSAGE: { text: "§a§l(!) §a{ATTACKER}'s Lifebloom was activated, fight on!", who: "@Aoe{r=2, filter=ALLIES}" } }
       - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 2.0, pitch: 0.75 } }  # world-audible at the wearer; SOUND has no per-target form, so the recorded per-ally copy (volume 1.5) rides this one
       - { PARTICLE: { particle: "REDSTONE", count: 65, who: "@Self" } }
       - { PARTICLE: { particle: "HAPPY_VILLAGER", count: 16, who: "@Aoe{r=2, filter=ALLIES}" } }
   2:
     effects:
       - { MODIFY_HEALTH: { amount: 100, mode: "give", who: "@Aoe{r=5, filter=ALLIES}" } }
-      - { MESSAGE: { text: "§a§l(!) §a{player}'s Lifebloom was activated, fight on!", who: "@Aoe{r=5, filter=ALLIES}" } }
+      - { MESSAGE: { text: "§a§l(!) §a{ATTACKER}'s Lifebloom was activated, fight on!", who: "@Aoe{r=5, filter=ALLIES}" } }
       - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 2.0, pitch: 0.75 } }
       - { PARTICLE: { particle: "REDSTONE", count: 65, who: "@Self" } }
       - { PARTICLE: { particle: "HAPPY_VILLAGER", count: 16, who: "@Aoe{r=5, filter=ALLIES}" } }
   3:
     effects:
       - { MODIFY_HEALTH: { amount: 100, mode: "give", who: "@Aoe{r=7, filter=ALLIES}" } }
-      - { MESSAGE: { text: "§a§l(!) §a{player}'s Lifebloom was activated, fight on!", who: "@Aoe{r=7, filter=ALLIES}" } }
+      - { MESSAGE: { text: "§a§l(!) §a{ATTACKER}'s Lifebloom was activated, fight on!", who: "@Aoe{r=7, filter=ALLIES}" } }
       - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 2.0, pitch: 0.75 } }
       - { PARTICLE: { particle: "REDSTONE", count: 65, who: "@Self" } }
       - { PARTICLE: { particle: "HAPPY_VILLAGER", count: 16, who: "@Aoe{r=7, filter=ALLIES}" } }
@@ -41,7 +46,7 @@ levels:
     effects:
       - { MODIFY_HEALTH: { amount: 100, mode: "give", who: "@Aoe{r=10, filter=ALLIES}" } }
       - { POTION: { effect: "ABSORPTION", level: 1, duration: 120, who: "@Aoe{r=10, filter=ALLIES}" } }  # level - 3
-      - { MESSAGE: { text: "§a§l(!) §a{player}'s Lifebloom was activated, fight on!", who: "@Aoe{r=10, filter=ALLIES}" } }
+      - { MESSAGE: { text: "§a§l(!) §a{ATTACKER}'s Lifebloom was activated, fight on!", who: "@Aoe{r=10, filter=ALLIES}" } }
       - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 2.0, pitch: 0.75 } }
       - { PARTICLE: { particle: "REDSTONE", count: 65, who: "@Self" } }
       - { PARTICLE: { particle: "HAPPY_VILLAGER", count: 16, who: "@Aoe{r=10, filter=ALLIES}" } }
@@ -49,7 +54,7 @@ levels:
     effects:
       - { MODIFY_HEALTH: { amount: 100, mode: "give", who: "@Aoe{r=12, filter=ALLIES}" } }
       - { POTION: { effect: "ABSORPTION", level: 2, duration: 120, who: "@Aoe{r=12, filter=ALLIES}" } }  # level - 3
-      - { MESSAGE: { text: "§a§l(!) §a{player}'s Lifebloom was activated, fight on!", who: "@Aoe{r=12, filter=ALLIES}" } }
+      - { MESSAGE: { text: "§a§l(!) §a{ATTACKER}'s Lifebloom was activated, fight on!", who: "@Aoe{r=12, filter=ALLIES}" } }
       - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 2.0, pitch: 0.75 } }
       - { PARTICLE: { particle: "REDSTONE", count: 65, who: "@Self" } }
       - { PARTICLE: { particle: "HAPPY_VILLAGER", count: 16, who: "@Aoe{r=12, filter=ALLIES}" } }

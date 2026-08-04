@@ -1,0 +1,342 @@
+# Matrix: 07-enchants-mastery-soul.md § Tombstone
+display: "Tombstone"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA rare hit answers with a graveyard: everyone around you is"
+  - "&epinned in place, their own defences go quiet, and an anvil"
+  - "&edrops on each of them."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "mastery"
+tier: mastery
+# THE MASTERY FAMILY CONTRACT (matrix 07 § family-wide rules) — the full reading lives in poltergeist.yml.
+# In short: tier 8 = the `mastery` rung (&4, weight 80) and the recorded `§4<Name> <Roman>` lore line;
+# `group: "mastery"` carries the matrix's "Default" (conflicts with nothing); masteries reach armour only via
+# the Mastery Shard hand-off, so `applies-to: [ARMOR]` is the whole item rule. The family's "lowest worn level
+# procs" dedupe is a WornState rule (recorded, not authored — the engine keeps the HIGHEST). No
+# `suppress-immune:`, by the END-SUPPRESS contract rule: all tier > 5 enchants must stay reachable by
+# suppression, and the flag exempts an enchant from ALL of it (the alien-implants.yml / godly-overload.yml
+# precedent). Nothing in the entry claims it either, and this enchant is on the WRITING end of the silence
+# channel. RIFT-mask negation and the Dragon Slayer reflect/negate split are
+# interaction-layer rules against the mastery GROUP, authored on the mask and armour-set sides.
+# NOT a defensive double-fire entry: only Death Pact's defence hook and Permafrost carry that D-001 artifact.
+# ── THE SHARED SILENCE CHANNEL ─────────────────────────────────────────────────────────────────────────────
+# `SUPPRESS(scope=TYPE, key=DEFENSE)` is the SAME window the Silence sword enchant arms (silence.yml) — one
+# key coordinated across enchants, which is what makes the Dragon Slayer
+# set's `SUPPRESS_IMMUNE(chance=75)` (the jar's `immune_silence` 75 % roll) apply here for free. Uniform
+# across damage paths per D-001; the jar's 50 % leak on the generic-damage path is the double-read artifact,
+# not a rule. On a Dragon Slayer block the target still takes the freeze, the potions and the anvil — the
+# immunity blocks the SUPPRESSION alone, which is exactly what the primitive does.
+# The blocked-state string `§c§l* SILENCE BLOCKED [§7{attacker}§c§l] *` is NOT authored here: SUPPRESS's
+# `consumed-message-*` fire when a LIVE window blocks a proc, never when SUPPRESS_IMMUNE refuses the arm, and
+# the refusing side is the armour set's. silence.yml records the same line against the same immunity side;
+# it lands with whichever entry gains a feedback hook first.
+# ENGINE SEAM (reported by silence.yml, restated because this file rides it): `scope=TYPE` arms a window keyed
+# "DEFENSE", but no content ability carries a type scope today (`cdScopeType` is null everywhere, ADR-0016
+# deferred), so gate 5 cannot yet match it. The window is authored for when it can.
+# ── THE ANVIL AND ITS IMPACT PAYLOAD ───────────────────────────────────────────────────────────────────────
+# `FALLING_BLOCK` at `radius: 0` is ONE anvil per target, five blocks up; a landing block fires the actor's
+# IMPACT abilities on whatever it hit, which is the engine's own contract and matches the jar hitting any
+# eligible player in the box — non-targets and overlaps included, and overlapping anvils STACK (measured;
+# kept, so no dedup cooldown here — an enchant's cooldown is one shared bucket and any value would also pace
+# the proc above). `ttl: 40` is the engine default and a port choice: the jar's anvil dies on landing and the
+# codex records no ttl. The block never places and drops nothing — engine FALLING_BLOCK semantics.
+# The payload's `percent-damage` at 10 on the `whole-set` is the recorded 10 % of max off EACH of the four
+# slots. D-07-15 (the jar's `(int)` truncation zeroing the hit on items with max durability under 10, intended
+# minimum 1) needs nothing authored: the engine ROUNDS (`(int) Math.round(max x percent / 100)`), which is
+# already >= 1 for every max at or above 5 — no vanilla armour is below that.
+# ── FREEZE, POTIONS, PARTICLES ─────────────────────────────────────────────────────────────────────────────
+# THE JUMP LOCK IS NOT SHIPPED, on either lane — the pack-wide ruling `titan-trap.yml` records: the jar's
+# Jump-amplifier-128 no-jump is a 1.8-only integer overflow, and on the modern lane the same amplifier is a
+# real and enormous jump that would fling the targets this proc exists to pin. FREEZE is the root that
+# replaces it, which is what the matrix decomposes here anyway (it records FREEZE and the potion pair as one
+# step), so the entry loses only the jump half of the hold: a rooted target at `slow: 100` can still hop on
+# the spot. A jump knob on FREEZE is owed engine-side, as that file's precedent already notes.
+# The SLOW rung stays: amplifier 128 is a full movement stop on BOTH eras (the modern speed multiplier floors
+# at 0 rather than wrapping), so it carries no overflow hazard, and the jar's freeze-restore removed SLOW
+# while leaving JUMP running its full 60 t — engine FREEZE plus this one explicit potion reproduce the
+# observable end state. `dot: 0` keeps the root damage-free, and `slow: 100` with FREEZE's own frost-slow
+# neutralisation makes the authored figure the real one. Engine level = jar amplifier + 1, so 129.
+# The expiry burst repeats the PARTICLE pair LAST: a wait tier ACCUMULATES down the effect list, so only the first
+# expiry line carries `wait: 80` and the PORTAL line rides that same tier (a second wait would stack to 160).
+# ── WHAT DOES NOT SHIP ─────────────────────────────────────────────────────────────────────────────────────
+# The wearer's summary line `§c§l* TOMBSTONE [§7{count} players§c§l] *`, sent unconditionally with `[0
+# players]` included (measured). Its entire content is the RESOLVED SELECTOR COUNT, and no fact reports one:
+# `%nearbyenemies%` is a fixed 8-block scan of living entities, which is neither this radius (7-16) nor this
+# filter nor this nearest-first cap, so it would print a wrong number at every level. The wearer keeps the
+# recorded proc cue — the 4.0-volume anvil clang — as feedback. Recorded in deferred-content.
+# The per-target line IS authored: `{seconds}` reads the hard-coded 80 t silence, so it always renders `4`
+# (measured; kept) and is inlined, making the string byte-identical to the matrix's (the silence.yml
+# constant-inlining precedent). `{attacker}`/`{victim}` became the engine's `{ATTACKER}`/`{VICTIM}` tokens,
+# which on a DEFENSE activation expand to the wearer and the party who hit them.
+# era: a falling ANVIL works on 1.8.9 (anvil-with-data falling block — the legacy overlay's block-state data
+# hazard, shared with any FALLING_BLOCK content). `ANVIL_LAND` <-> `BLOCK_ANVIL_LAND` and `WITHER_HURT` <->
+# `ENTITY_WITHER_HURT` already carry alias rows, as does `ENCHANTMENT_TABLE` <-> `ENCHANT`; `PORTAL` and
+# `SLOW` are fine on 1.8.9 through the potion aliases. The two zombie-door cues do NOT have rows yet —
+# `ZOMBIE_WOODBREAK` <-> `ENTITY_ZOMBIE_BREAK_WOODEN_DOOR` and `ZOMBIE_WOOD` <->
+# `ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR` — so both warn-skip on the legacy fork until the sweep writes them
+# (parked on the deferred-content legacy list). The landing world-effect 2001 is an engine internal.
+levels:
+  # Per level 1-10 — chance `0.02 x (L/3)` as a true double division = 0.66667 % a rung; targets
+  # `i = 4 + floor(L/2)` = 4/5/5/6/6/7/7/8/8/9; radius `6 + L` = 7-16. Freeze 60 t and silence 80 t are
+  # level-independent, and so is the anvil's 10 %-per-slot bite.
+  1:
+    abilities:
+      - chance: 0.66667
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
+          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
+          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
+          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
+          # Expiry pair — only this first line carries the wait tier.
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=7, filter=ENEMIES, limit=4}", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 10, select: "whole-set", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_BREAK_WOODEN_DOOR", volume: 5.0, pitch: 0.8, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR", volume: 5.0, pitch: 1.1, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* TOMBSTONE [§7{ATTACKER} (-10% Armor Durability)§c§l] *", who: "@Victim" } }
+  2:
+    abilities:
+      - chance: 1.33333
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
+          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
+          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
+          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
+          # Expiry pair — only this first line carries the wait tier.
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=8, filter=ENEMIES, limit=5}", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 10, select: "whole-set", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_BREAK_WOODEN_DOOR", volume: 5.0, pitch: 0.8, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR", volume: 5.0, pitch: 1.1, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* TOMBSTONE [§7{ATTACKER} (-10% Armor Durability)§c§l] *", who: "@Victim" } }
+  3:
+    abilities:
+      - chance: 2.0
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
+          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
+          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
+          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
+          # Expiry pair — only this first line carries the wait tier.
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=9, filter=ENEMIES, limit=5}", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 10, select: "whole-set", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_BREAK_WOODEN_DOOR", volume: 5.0, pitch: 0.8, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR", volume: 5.0, pitch: 1.1, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* TOMBSTONE [§7{ATTACKER} (-10% Armor Durability)§c§l] *", who: "@Victim" } }
+  4:
+    abilities:
+      - chance: 2.66667
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
+          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
+          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
+          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
+          # Expiry pair — only this first line carries the wait tier.
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=10, filter=ENEMIES, limit=6}", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 10, select: "whole-set", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_BREAK_WOODEN_DOOR", volume: 5.0, pitch: 0.8, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR", volume: 5.0, pitch: 1.1, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* TOMBSTONE [§7{ATTACKER} (-10% Armor Durability)§c§l] *", who: "@Victim" } }
+  5:
+    abilities:
+      - chance: 3.33333
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
+          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
+          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
+          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
+          # Expiry pair — only this first line carries the wait tier.
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=11, filter=ENEMIES, limit=6}", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 10, select: "whole-set", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_BREAK_WOODEN_DOOR", volume: 5.0, pitch: 0.8, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR", volume: 5.0, pitch: 1.1, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* TOMBSTONE [§7{ATTACKER} (-10% Armor Durability)§c§l] *", who: "@Victim" } }
+  6:
+    abilities:
+      - chance: 4.0
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
+          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
+          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
+          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
+          # Expiry pair — only this first line carries the wait tier.
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=12, filter=ENEMIES, limit=7}", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 10, select: "whole-set", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_BREAK_WOODEN_DOOR", volume: 5.0, pitch: 0.8, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR", volume: 5.0, pitch: 1.1, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* TOMBSTONE [§7{ATTACKER} (-10% Armor Durability)§c§l] *", who: "@Victim" } }
+  7:
+    abilities:
+      - chance: 4.66667
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
+          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
+          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
+          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
+          # Expiry pair — only this first line carries the wait tier.
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=13, filter=ENEMIES, limit=7}", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 10, select: "whole-set", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_BREAK_WOODEN_DOOR", volume: 5.0, pitch: 0.8, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR", volume: 5.0, pitch: 1.1, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* TOMBSTONE [§7{ATTACKER} (-10% Armor Durability)§c§l] *", who: "@Victim" } }
+  8:
+    abilities:
+      - chance: 5.33333
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
+          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
+          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
+          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
+          # Expiry pair — only this first line carries the wait tier.
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=14, filter=ENEMIES, limit=8}", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 10, select: "whole-set", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_BREAK_WOODEN_DOOR", volume: 5.0, pitch: 0.8, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR", volume: 5.0, pitch: 1.1, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* TOMBSTONE [§7{ATTACKER} (-10% Armor Durability)§c§l] *", who: "@Victim" } }
+  9:
+    abilities:
+      - chance: 6.0
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
+          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
+          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
+          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
+          # Expiry pair — only this first line carries the wait tier.
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=15, filter=ENEMIES, limit=8}", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 10, select: "whole-set", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_BREAK_WOODEN_DOOR", volume: 5.0, pitch: 0.8, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR", volume: 5.0, pitch: 1.1, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* TOMBSTONE [§7{ATTACKER} (-10% Armor Durability)§c§l] *", who: "@Victim" } }
+  10:
+    abilities:
+      - chance: 6.66667
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
+          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
+          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
+          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
+          # Expiry pair — only this first line carries the wait tier.
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=16, filter=ENEMIES, limit=9}", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 10, select: "whole-set", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_BREAK_WOODEN_DOOR", volume: 5.0, pitch: 0.8, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR", volume: 5.0, pitch: 1.1, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* TOMBSTONE [§7{ATTACKER} (-10% Armor Durability)§c§l] *", who: "@Victim" } }

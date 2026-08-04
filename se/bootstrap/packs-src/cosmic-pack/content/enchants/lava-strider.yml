@@ -1,0 +1,50 @@
+# Matrix: 07-enchants-mastery-soul.md § Lava Strider
+# Roster marker (metaphysical.yml / sticky.yml / infinite-luck.yml precedent): the enchant rolls, applies and
+# renders, and its whole measured payload is ONE flag write — `SET_VAR(name=mastery.lava-strider, value=1,
+# ttl=0)` on a PASSIVE walk. It ships effect-less rather than as that SET_VAR for the reason the Solitude row
+# settled pack-wide: a ttl-0 marker written on a PASSIVE walk has no teardown, so a single equip would leave
+# it standing forever. The level publishes as worn state instead, read back as `%actor.enchlevel.lava-strider%`
+# (the key is the file STEM; an `enchants/lava-strider` stable-key spelling reads 0 in silence), so unequipping
+# clears it — which is also the better half of the jar's own metadata lifecycle.
+# THE CONSUMER IS CODEX-UNRESOLVED AND LIVES OUTSIDE THE CORPUS — an external plugin, presumably lava
+# traversal. Nothing in this pack reads the flag today and nothing in the port's remaining batches will. The
+# matrix's own suggestion, `WALKER(material=…, replace=…)` over lava, is DESIGN pending an owner ruling and is
+# deliberately NOT authored here: realizing a lava-walker would invent behavior the measured item never had on
+# its own, which is the one thing a translation may not do. Tracked in deferred-content as a pending clause.
+# WHY THIS SHIPS WHERE `enchants/ghost` (batch 01) DID NOT, since the two look alike: Ghost's decomposition is
+# literally "none (inert in corpus)" — the matrix declines to decompose it at all and hands the whole entry to
+# an owner decision. This entry's decomposition IS a publisher (the SET_VAR row above), with a slot
+# restriction of its own, and the matrix says in as many words that it "records the measured flag only". So
+# the marker here is what the matrix decomposes, not a stand-in for a decision nobody has taken. If the owner
+# rules the other way, the file is one deletion and a moved row.
+display: "Lava Strider"
+# description: not matrix-recorded (factual paraphrase). It promises nothing, because nothing is authored —
+# a description naming lava traversal would advertise the unrealized half.
+description:
+  - "&eA mastery of the molten. Boots that carry it"
+  - "&eare marked as a lava strider's."
+trigger: PASSIVE
+# BOOTS, not ARMOR: the matrix records this as the only mastery whose natural items are restricted to one
+# slot. The rest of the family takes all four pieces. Handing a mastery onto locked kit armour is the Mastery
+# Shard flow, an economy/config concern the effect matrix leaves out.
+applies-to: [BOOTS]
+# Tier 8 = the `mastery` rung (&4, weight 80), so the lore line renders `§4Lava Strider I` — matrix 07
+# § Presentation. The jar's group is "Default" (a mastery never conflicts with anything); the pack's `group:`
+# mirrors the rung, as every other file here does, and no conflict rule is keyed to it.
+group: "mastery"
+tier: mastery
+# NO `suppress-immune`, and none of the family carries one: the flag exempts an ability from ALL suppression
+# (`SuppressionStore.suppressesAny` returns false before it reads a scope), and END-SUPPRESS — the world rule
+# that has to reach every tier above 5 — cannot then reach a tier-8 file. Same ruling the heroic contract
+# settled in batch 06. Moot here anyway: an effect-less marker has no ability to silence.
+# Family rules that do not bite this entry: the offence-dispatch rule (ATTACK-side masteries only, and the
+# lowest worn level procing where the engine keeps the highest) has no PASSIVE half; the RIFT-mask negation and
+# the Dragon Slayer reflect/negate both key on offensive procs; D-07-1's asymmetric scan geometry has no shape
+# to correct. No deviation row is owed — the flag is measured exactly as written.
+# strings: none. numbers: level-independent, max 1. era: none for the flag itself; a realized lava-walker
+# would inherit WALKER's era handling (its own material resolution), which is one more reason to leave that
+# decision to the ruling rather than pre-empt it here.
+levels:
+  # One rung, because the flag is level-independent — the stored value IS the level and the measured value is
+  # always 1.
+  1: { effects: [] }

@@ -13,6 +13,11 @@ chance: 100
 # Two abilities on one enchant (the matrix's MULTI_ABILITY_ENCHANT): the DEFENSE save writes the escape
 # window, the FALL block spends it. The window replaces the jar's external, never-cleared fall exemption, so
 # it closes with the SET_VAR ttl instead of following the player forever.
+# The FALL companion takes `cooldown-scope: none`, and it is load-bearing: every block of one enchant otherwise
+# shares ONE bucket, so the launch's own 600 t re-arm would deny the landing it exists to cancel and the escape
+# would end in the fall damage it just saved you from. Dropping this block's scope means it neither blocks on
+# nor arms that bucket; the save keeps its cooldown, and the window's ttl is what bounds the exemption.
+# (`guided-rocket-escape.yml` ships the same pairing.)
 # The window-end cloud puff carries the only `wait:` and so is written LAST: a wait tier accumulates down the
 # effect list, so anything after it would inherit the delay — the launch lines must land on the launch.
 # An attacker's Sabotage window (swords doc) blocks the escape at 10% x its level and the 600t cooldown still
@@ -40,6 +45,7 @@ levels:
           - { PARTICLE: { particle: "CLOUD", count: 69, who: "@Self", wait: 65 } }  # repeated at the window's end
       # No fall damage from the wearer's own launch, for exactly as long as the window holds.
       - trigger: FALL
+        cooldown-scope: none
         condition: "%rocketescaping% == 1"
         effects:
           - { CANCEL: {} }
@@ -61,6 +67,7 @@ levels:
           - { MESSAGE: { text: "", who: "@Self" } }
           - { PARTICLE: { particle: "CLOUD", count: 69, who: "@Self", wait: 85 } }
       - trigger: FALL
+        cooldown-scope: none
         condition: "%rocketescaping% == 1"
         effects:
           - { CANCEL: {} }
@@ -82,6 +89,7 @@ levels:
           - { MESSAGE: { text: "", who: "@Self" } }
           - { PARTICLE: { particle: "CLOUD", count: 69, who: "@Self", wait: 105 } }
       - trigger: FALL
+        cooldown-scope: none
         condition: "%rocketescaping% == 1"
         effects:
           - { CANCEL: {} }

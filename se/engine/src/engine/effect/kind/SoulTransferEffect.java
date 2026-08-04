@@ -17,7 +17,8 @@ import org.bukkit.entity.Player;
  * split across two effects the halves would drift and a cancelled second half would silently vaporise the take.
  *
  * <p>{@code ratio} below 1 is the design, not a rounding artifact: the destroyed remainder is what stops a
- * steal proc from being a soul printing press between two consenting players.
+ * steal proc from being a soul printing press between two consenting players. {@code 0} is the far end of the
+ * same scale — a pure drain that banks nothing, which is Soul Trap's authored value.
  */
 public final class SoulTransferEffect implements EffectKind {
 

@@ -1,0 +1,70 @@
+# Matrix: 02-enchants-armor-m-z.md § Enchant Reflect
+display: "Enchant Reflect"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eAn attacker's own enchant can rebound onto"
+  - "&ethem — you never feel the proc they paid for."
+trigger: PASSIVE
+applies-to: [ARMOR]
+group: "legendary"
+tier: legendary
+# The whole entry is ONE effect. `PROC_REBOUND` is the matrix's `ACTIVATION_REBOUND` gap, shipped in wave 2:
+# a maintained marker armed on equip and lifted on unequip, which the combat dispatch consults when someone
+# hits the wearer. On a claim the incoming enchant's activation is taken off the wearer entirely and re-run
+# with the roles swapped, so the attacker eats his own proc. There is nothing else on the file — no effects,
+# no sounds, no strings — exactly as the decomposition says.
+# THE BANDS ARE TIER *WEIGHTS*, NOT THE MATRIX'S RUNG NUMBERS. The gate compares the incoming enchant's
+# rarity-tier weight, which the snapshot indexes off `tiers.yml`, so the matrix's "tier <= 5" is this pack's
+# `legendary` weight, 50. (The effect's own example writes the rungs 6..7; on any real ladder those are
+# weights, and a band of 0..5 would answer for nothing at all — flagged for the surface docs.) Read this
+# together with `heroic-enchant-reflect.yml`: the two files are one ladder and their bands have to be authored
+# as a pair.
+# PRECEDENCE. The matrix's chain is EXCLUSIVE — mastery (tier 8 only), else heroic (<= 7), else normal
+# (<= 5), first match wins even when a lower grade sits at a higher level. The engine spells that as "the
+# armed band with the greatest tier-min that still reaches this tier", so THIS grade takes the default
+# tier-min 0 and is deliberately the lowest-priority branch: any higher grade whose band also reaches the
+# incoming tier outranks it. It answers alone whenever no upgrade is worn.
+# The level gate ("rebound level >= the incoming enchant's level") is not a param — the effect compares the
+# incoming ability against this ability's own level, which is the worn piece's.
+# The jar's non-player-victim quirk (a successful rebound against a mob drops the proc for both parties) has
+# no expression and needs none: the marker is armed for PLAYERS only, so a mob defender never claims anything
+# and neither direction runs. That is also the heroic entry's "victim must be a player" rule, one layer down.
+# Highest-only across pieces is the engine's WornState default (one armed rule per enchant, the highest worn
+# level), which also repairs the jar's last-equip-wins marker (D-01-15).
+# Acquisition: max 10; table weight 3; enchant-table thresholds 25..115 step 10; tier 5 (the `legendary` rung).
+# strings: none. era: none.
+levels:
+  # Chance ladder 2/2/3/3/3/4/4/4/5/5 % — the jar's `0.02 + 0.01 x (level/3)` under integer division, four
+  # distinct steps. Shipped as measured: it is a functional ladder, not a no-op, so no deviation row.
+  # The roll lives on the effect (it is rolled per claimed activation, not per equip), so the ability itself
+  # arms unconditionally.
+  1:
+    effects:
+      - { PROC_REBOUND: { chance: 2, tier-max: 50, who: "@Self" } }
+  2:
+    effects:
+      - { PROC_REBOUND: { chance: 2, tier-max: 50, who: "@Self" } }
+  3:
+    effects:
+      - { PROC_REBOUND: { chance: 3, tier-max: 50, who: "@Self" } }
+  4:
+    effects:
+      - { PROC_REBOUND: { chance: 3, tier-max: 50, who: "@Self" } }
+  5:
+    effects:
+      - { PROC_REBOUND: { chance: 3, tier-max: 50, who: "@Self" } }
+  6:
+    effects:
+      - { PROC_REBOUND: { chance: 4, tier-max: 50, who: "@Self" } }
+  7:
+    effects:
+      - { PROC_REBOUND: { chance: 4, tier-max: 50, who: "@Self" } }
+  8:
+    effects:
+      - { PROC_REBOUND: { chance: 4, tier-max: 50, who: "@Self" } }
+  9:
+    effects:
+      - { PROC_REBOUND: { chance: 5, tier-max: 50, who: "@Self" } }
+  10:
+    effects:
+      - { PROC_REBOUND: { chance: 5, tier-max: 50, who: "@Self" } }
