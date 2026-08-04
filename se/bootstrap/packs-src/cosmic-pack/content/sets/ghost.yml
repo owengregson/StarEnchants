@@ -17,22 +17,18 @@
 # completion is all-or-nothing, so at the only wear state this set exists in, one 45 % row IS the four rows.
 # The delta is partial wear: in the jar 2 Ghost pieces + 2 other heroic pieces still pay their 16/13, here
 # they pay nothing until the fourth lands. Recorded in deferred-content.md, with the standing note that the
-# day a per-slot heroic ladder lands this row must go, or the two channels double-count.
-# ALSO NOT AUTHORABLE — recorded here and in items/ghost-<piece>.yml: the halved M-Kit armour values
-# (2/4/3/2 vs the 20 a non-M-Kit set carries), the 810/1000/935/686 durabilities, the #808080 leather dye
-# (Bukkit GRAY), the guaranteed max-level Gears on the BOOTS (`armor.enchants` is shared by all four pieces,
-# and Gears is boots-only), and the per-piece roster probabilities:
-#   per-piece flavour (verbatim, `Ghost don't have feet.` included):
-#     helmet  §7§oA tattered hood haunted by / §7§othe echoes of all lost souls.
-#     chest   §7§oA thin, sheer shroud that seems / §7§oto defy gravity in its movements.
-#     legs    §7§oA darkly woven silk robe imbued / §7§owith onyx gemstones that / §7§oemanate evil power.
-#     boots   §7§oGhost don't have feet.
+# day the M-Kit's own heroic tier lands, this row must go and the members take `heroic: true` instead —
+# `DamageFold` sums the heroic reduction into the same channel as this row, so running both bills it twice.
+# STILL NOT AUTHORABLE — recorded here: the halved M-Kit armour values (2/4/3/2 vs the 20 a non-M-Kit set
+# carries) and the 810/1000/935/686 durabilities. The per-piece roster probabilities are RECORDED, NOT
+# AUTHORED (deferred-content.md): the base entries they gate are never enumerated, so there is nothing to
+# roll.
 #   base roster entries roll nearly maxed as min(M, max(1, M-2) + rand(3)); per-piece rolls:
 #     helmet  8 base + 60 % Valor/Angelic/Tank + 17.5 % Paladin Armored + 17.5 % Alien Implants
 #     chest   9 base + 60 %x3 + 20 % Paladin Armored + 17.5 % Godly Overload + 20 % Planetary Deathbringer
 #             + 20 % Divine Enlighted + 15 % Vengeful Diminish
 #     legs    7 base + 60 %x3 + 15 % Paladin Armored + 12.5 % Infinite Luck
-#     boots   8 base + Gears (max, guaranteed) + 60 %x3 + 25 % Paladin Armored + 30 % Ethereal Dodge
+#     boots   8 base + 60 %x3 + 25 % Paladin Armored + 30 % Ethereal Dodge
 #             + 45 % Phoenix re-roll (OVERWRITES the base roll it lands on — measured)
 #   heroic appended block per piece: (blank) / §7+{2|4|3|2} Armor Value / §7{810|1000|935|686} Durability /
 #   §4This armor is stronger than diamond.
@@ -58,18 +54,52 @@ armor:
   enchants:
     UNBREAKING: 3
     PROTECTION: 4
-  # An ability set has no bonus block. Its lore is the per-piece flavour (recorded above and in
-  # items/ghost-<piece>.yml — it differs per piece, and `armor.lore` is shared by all four) plus the heroic
-  # append, whose two piece-INDEPENDENT lines are the only ones that can live here; the `§7+{armor} Armor
-  # Value` / `§7{durability} Durability` pair is per piece and is recorded with the pieces.
+  # An ability set has no bonus block. Its lore is the per-piece flavour (on the members below) plus the
+  # heroic append, whose two piece-INDEPENDENT lines are the only ones that can live here; the `§7+{armor}
+  # Armor Value` / `§7{durability} Durability` pair belongs INSIDE this block, between the blank and the last
+  # line, which a member's `lore:` cannot reach — it prints above the whole block, not into it.
   lore:
     - ""
     - "§4This armor is stronger than diamond."
+  # Every piece is #808080 leather (Bukkit GRAY). `heroic: true` is DELIBERATELY NOT set, though the pieces
+  # do mint heroic: the stamp routes items/heroic.yml's per-piece reduction into the same additive channel
+  # `DamageFold` gives the 45 % completion row below, and that row already IS this set's heroic wall folded —
+  # stamping the members would bill it twice (45 + 27). Blocked on the M-Kit's own steeper heroic tier, which
+  # is a second grade of items/heroic.yml and not a gap in this surface.
   pieces:
-    helmet:     { material: LEATHER_HELMET,     name: "§3§lGhostly Hood" }
-    chestplate: { material: LEATHER_CHESTPLATE, name: "§3§lGhostly Shroud" }
-    leggings:   { material: LEATHER_LEGGINGS,   name: "§3§lGhostly Robes" }
-    boots:      { material: LEATHER_BOOTS,      name: "§3§lGhostly Whisp" }
+    helmet:
+      material: LEATHER_HELMET
+      name: "§3§lGhostly Hood"
+      color: "#808080"
+      lore:
+        - "§7§oA tattered hood haunted by"
+        - "§7§othe echoes of all lost souls."
+    chestplate:
+      material: LEATHER_CHESTPLATE
+      name: "§3§lGhostly Shroud"
+      color: "#808080"
+      lore:
+        - "§7§oA thin, sheer shroud that seems"
+        - "§7§oto defy gravity in its movements."
+    leggings:
+      material: LEATHER_LEGGINGS
+      name: "§3§lGhostly Robes"
+      color: "#808080"
+      lore:
+        - "§7§oA darkly woven silk robe imbued"
+        - "§7§owith onyx gemstones that"
+        - "§7§oemanate evil power."
+    boots:
+      material: LEATHER_BOOTS
+      name: "§3§lGhostly Whisp"
+      color: "#808080"
+      lore:
+        - "§7§oGhost don't have feet."   # verbatim, missing plural and all
+      # The one custom enchant this set GUARANTEES, at Gears' own max (content/enchants/gears.yml tops out at
+      # 3). It is boots-only — the permanent Speed passive can never stack across pieces — which is exactly
+      # why it cannot go in `armor.enchants`, shared by all four.
+      enchants:
+        enchants/gears: 3
 # Behaviours. The jar grants the M-Kit reduction PER WORN PIECE (§C.3-C.5); the engine gates a set bonus on
 # completion, so the four component stats fold into this one 4/4 bonus at their measured full-set 45 %.
 # Additive here, multiplicative in the jar (project-wide damage model, a global ADR — not a per-item deviation).

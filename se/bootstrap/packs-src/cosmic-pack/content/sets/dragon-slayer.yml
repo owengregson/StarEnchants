@@ -29,11 +29,9 @@
 # This is the only crystal in the family whose advertised numbers all match measured behaviour at 1 piece.
 # The full-set negation flags below and the crystal roll are INDEPENDENT mechanisms and can both be live.
 # ── PHYSICAL LIKENESS ──────────────────────────────────────────────────────────────────────────────────────
-# Per-piece flavour lore and per-piece enchant rolls have no surface on a set def (`armor.lore` and
-# `armor.enchants` are SHARED by all four pieces, and `pieces:` carries material + name only), so both are
-# recorded here and in items/dragon-slayer-<piece>.yml. See deferred-content.md.
-#   per-piece flavour (`{piece-type}` ∈ helmet/chestplate/leggings/boots):
-#     §e§oThe mythical {piece-type} of a Slayer of Dragons.
+# Per-piece flavour lore is authored on the `pieces:` members below, above the shared `armor.lore`. The mint's
+# roll rules are RECORDED, NOT AUTHORED (deferred-content.md): the matrix gives gates and bonus probabilities
+# over a base roster it never enumerates, so there are no entries to roll.
 #   mint rules: heroic-enchant roster gate 40 % per heroic entry; base roster entries roll nearly maxed as
 #   min(M, max(1, M-2) + rand(3)) over each enchant's own max M; per-piece bonus rolls:
 #     helmet  30 % Immortal
@@ -69,10 +67,26 @@ armor:
   # Piece names end in §r — reproduced. `Firey` is a source typo, kept verbatim. Diamond is the plain-set
   # family norm (matrix § Phantom era line); this entry records no material of its own.
   pieces:
-    helmet:     { material: DIAMOND_HELMET,     name: "§e§lDecapitated Dragon Skull§r" }
-    chestplate: { material: DIAMOND_CHESTPLATE, name: "§e§lFirey Chestplate of Dragons§r" }
-    leggings:   { material: DIAMOND_LEGGINGS,   name: "§e§lScorched Leggings of Dragons§r" }
-    boots:      { material: DIAMOND_BOOTS,      name: "§e§lDragon Slayer Battle Boots§r" }
+    helmet:
+      material: DIAMOND_HELMET
+      name: "§e§lDecapitated Dragon Skull§r"
+      lore:
+        - "§e§oThe mythical helmet of a Slayer of Dragons."
+    chestplate:
+      material: DIAMOND_CHESTPLATE
+      name: "§e§lFirey Chestplate of Dragons§r"
+      lore:
+        - "§e§oThe mythical chestplate of a Slayer of Dragons."
+    leggings:
+      material: DIAMOND_LEGGINGS
+      name: "§e§lScorched Leggings of Dragons§r"
+      lore:
+        - "§e§oThe mythical leggings of a Slayer of Dragons."
+    boots:
+      material: DIAMOND_BOOTS
+      name: "§e§lDragon Slayer Battle Boots§r"
+      lore:
+        - "§e§oThe mythical boots of a Slayer of Dragons."
 bonuses:
   # 1. -20% incoming, all entity-routed sources. No REMOVE_POTION opener on this set (Phantom / Yeti / Yijki
   # carry one; this one does not — measured).

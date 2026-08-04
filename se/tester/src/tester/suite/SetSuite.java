@@ -43,7 +43,10 @@ import tester.harness.Harness;
  */
 public final class SetSuite implements Harness.Scenario {
 
-    private static final String YETI = """
+    // Package-private so SuiteFixtureCompileTest can compile them in `./gradlew build`: a fixture naming an
+    // effect the production registry does not have compiles to a library with errors, the scenario bails, and
+    // EVERY guard in it then times out — a whole matrix run spent on a typo.
+    static final String YETI = """
             display: Yeti
             complete: 2
             armor:
@@ -59,7 +62,7 @@ public final class SetSuite implements Harness.Scenario {
             """;
 
     /** A set whose pieces each say something of their own — the whole per-piece surface in one file. */
-    private static final String WRAITH = """
+    static final String WRAITH = """
             display: Wraith
             complete: 2
             armor:
@@ -81,7 +84,7 @@ public final class SetSuite implements Harness.Scenario {
             bonuses:
               - on: armor
                 trigger: DEFENSE
-                effects: [{ HEAL: { amount: 1, who: "@Self" } }]
+                effects: [{ DAMAGE_MOD: { side: defense, mode: add, amount: 5 } }]
               - on: weapon
                 trigger: ATTACK
                 effects: [{ DAMAGE_MOD: { side: attack, mode: add, amount: 5 } }]

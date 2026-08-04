@@ -14,18 +14,18 @@
 # HEROIC: the pieces are minted as Heroic RED LEATHER out of the box, with armour 3/8/6/3 (NOT halved, unlike
 # the M-Kit ability sets) and durability 810/1000/935/686. That feeds the non-M-Kit heroic reduction ladder
 # (chest 10 %, legs 8 %, boots/helm 4.5 %; full set 27 %) and the outpost-holder incoming amplification
-# drawback (external server system). None of that is authorable on a set def — the leather dye, the per-slot
-# armour values and the out-of-the-box heroic stamp are recorded in items/koth-<piece>.yml and in
-# deferred-content.md, NOT re-expressed as set bonuses (they belong to the heroic item layer, and a
-# DAMAGE_MOD here would double-count the day items/heroic.yml lands).
+# drawback (external server system). The dye and the heroic stamp are authored on the `pieces:` members; the
+# per-slot armour and durability values have no surface and stay recorded (here and in deferred-content.md),
+# NOT re-expressed as set bonuses — they belong to the heroic item layer, and a DAMAGE_MOD here would
+# double-count the day items/heroic.yml lands.
 # KOTH is excluded from Heroic Upgrade minting in the jar (a KOTH upgrade silently mints Ranger — measured
 # support-item rule, owned by the heroic/support batch).
 # CRYSTALS (crystals family owns these; recorded for the reader): DAMAGE_MOD(side=attack, amount=5) per
 # crystal-bearing piece against players and amount=12.5 per piece against non-players — four pieces reproduce
 # this set's own two multipliers exactly.
 # ── PHYSICAL LIKENESS ──────────────────────────────────────────────────────────────────────────────────────
-# `armor.lore` / `armor.enchants` are SHARED by all four pieces and `pieces:` carries material + name only,
-# so the per-piece facts are recorded here and in items/koth-<piece>.yml. No piece carries flavour lore.
+# No piece carries flavour lore. The per-piece rosters below are the jar's mint, RECORDED, NOT AUTHORED
+# (deferred-content.md); the per-slot armour and durability values have no surface at all.
 #   rosters — EVERY entry at MAX level, no random rolls anywhere on this set (measured), so the family's
 #   nearly-maxed formula does not apply here:
 #     helmet  Drunk, Deathbringer, Enlighted, Armored, Tank, Angelic, Implants
@@ -34,7 +34,7 @@
 #             probability, 7.5 % Nature Wrath (max)
 #     boots   Deathbringer, Enlighted, Gears, Armored, Tank, Angelic, Rocket Escape
 #   (`Blood Lust` is a batch-01 stop and is not in this pack yet.)
-#   red-dyed leather, and per-slot armour / durability helm 3/810, chest 8/1000, legs 6/935, boots 3/686.
+#   per-slot armour / durability: helm 3/810, chest 8/1000, legs 6/935, boots 3/686.
 display: "§f§l§k;§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k;§r"  # the `;`-bookended banner variant (the piece names use the `!` one — two banners exist, each reproduced where it appears)
 # description: not matrix-recorded (factual paraphrase)
 description: "§dThe spoils of the hill — enormous damage to anything that moves, a cleanse every second, no fall damage, and no protection at all."
@@ -59,7 +59,8 @@ armor:
   # out of the box, so the matrix records the block on them exactly as it does on the M-Kit sets, and the four
   # ability sets carry the same two lines on their own `armor.lore` for the same reason. The `§7+{armor} Armor
   # Value` / `§7{durability} Durability` pair is per piece (3/8/6/3, 810/1000/935/686) and has no home here —
-  # it is recorded with the pieces in items/koth-<piece>.yml. `items/heroic.yml`'s `lore-line` cannot supply
+  # it is recorded above, and a member's `lore:` cannot hold it either: that prints above this whole block,
+  # while the pair belongs between its blank and its last line. `items/heroic.yml`'s `lore-line` cannot supply
   # this either: it stamps on a successful UPGRADE, and KOTH is excluded from Heroic Upgrade minting.
   lore:
     - ""
@@ -72,13 +73,29 @@ armor:
     - ""
     - "§4This armor is stronger than diamond."
   # Piece-name pattern `… §f§l§n{Piece}§r` with the `!`-bookended banner; `§k` magic text renders on both
-  # eras. Red-dyed leather is the recorded likeness — the dye has no knob on `pieces:` (material + name only),
-  # so the colour is recorded in the items/ files.
+  # eras. Every piece mints red-dyed leather and ALREADY heroic — KOTH is excluded from Heroic Upgrade
+  # minting, so the stamp can only come from the mint.
   pieces:
-    helmet:     { material: LEATHER_HELMET,     name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nHelmet§r" }
-    chestplate: { material: LEATHER_CHESTPLATE, name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nChestplate§r" }
-    leggings:   { material: LEATHER_LEGGINGS,   name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nLeggings§r" }
-    boots:      { material: LEATHER_BOOTS,      name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nBoots§r" }
+    helmet:
+      material: LEATHER_HELMET
+      name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nHelmet§r"
+      color: "red"
+      heroic: true
+    chestplate:
+      material: LEATHER_CHESTPLATE
+      name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nChestplate§r"
+      color: "red"
+      heroic: true
+    leggings:
+      material: LEATHER_LEGGINGS
+      name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nLeggings§r"
+      color: "red"
+      heroic: true
+    boots:
+      material: LEATHER_BOOTS
+      name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nBoots§r"
+      color: "red"
+      heroic: true
 # THE SWORD. Gold tools on both eras (`GOLDEN_SWORD` resolves to 1.8's `GOLD_SWORD` through the alias
 # resolver). The jar mints this weapon in an external plugin and reads only its identity tag, so the matrix
 # records NO display string and NO enchant loadout for it: the name below extends the recorded piece-name
@@ -151,6 +168,10 @@ bonuses:
   # identity is a distinct item. The one alternative on the surface, gating on `%actor.helditem%
   # matchesregex ".*_AXE$"`, would hand the strip to ANY axe a KOTH wearer picks up (a Yeti Maul included),
   # which is a play change, not a translation. Closes with a multi-weapon set surface.
+  # The item, recorded so it lands whole that day: `GOLDEN_AXE` named
+  # `§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nAxe§r` — the piece-name pattern with `Axe`
+  # in the {Piece} slot, port-chosen like the sword's because the jar never built either item. The strip must
+  # route through the item-damage layer on both eras (a synthetic PlayerItemDamageEvent on the 1.8 harness).
 # era: `§k` magic text renders on both eras and LeatherArmorMeta dye is era-safe; the gold weapons are
 # `GOLD_SWORD` / `GOLD_AXE` on 1.8 and `GOLDEN_*` on modern (the resolver takes either spelling, so the
 # modern one is authored per pack convention); the extra armour value beyond the leather base needs the
