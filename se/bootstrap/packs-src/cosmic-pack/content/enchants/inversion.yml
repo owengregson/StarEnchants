@@ -30,8 +30,10 @@ tier: legendary
 # float-measured 0.6000000238418579 / 0.800000011920929 read as exact, the treatment §Rage's per-stack
 # 0.15000000000000002 already gets). Each rung is a mutually exclusive PAIR on that var — the two-ability
 # idiom §Bleed uses for its player/mob split — so a rung still rolls once and either heals or bites.
-# `{AMOUNT}` is not one of MESSAGE's tokens (it binds {ATTACKER}/{VICTIM} only), and the jar renders it as a
-# double, so each rung carries its own line with the value the jar would have printed: 1.0 / 2.0 / 3.0.
+# `{AMOUNT}` is INLINED per rung, not bound. MESSAGE's `tokens` expr-map would bind it happily, but the value
+# is a per-rung constant with no fact behind it, and a bound token renders through the chat formatter, which
+# drops a whole number's decimal point ("1"). The jar prints the double ("1.0"), so each rung carries its own
+# line with the exact string the jar would have shown: 1.0 / 2.0 / 3.0.
 # The CANCEL row is the ONLY branch-gated cue: a corrupted proc lets the incoming hit land, so it drops out
 # while the particle and sound stay shared. The self-DAMAGE cannot re-arm this enchant — SE-issued damage is
 # an ADR-0054 engine-damage frame our own walks never proc off — and, aimed at the event entity with no wait,

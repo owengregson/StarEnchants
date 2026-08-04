@@ -18,10 +18,10 @@ tier: uncommon
 # unrolled particle, mirrored onto ATTACK per the corpus melee-mirror note) and the landing AoE.
 # POTION level is 1-based, so the recorded Nausea II is `level: 2` (confusion.yml ships the same reading).
 # Rider slot: ONE rider per shot, and a second PROJECTILE_DRESSING on the same shot replaces the first. The
-# jar's priority — Explosive's wither skull wins, the cow stands down when the bow carries both — has NO
-# content-side expression on the frozen surface (it would need an actor-side held-enchant-level fact, the same
-# wave-1f fact the metaphysical/sticky consumer rows wait on). Recorded, not a stop: both riders are pure
-# scenery, so whichever the dispatch order lands is cosmetic either way.
+# jar's priority — Explosive's wither skull wins, the cow stands down when the bow carries both — is
+# unauthored, though no longer blocked: wave 1f's `%actor.enchlevel.explosive%` reads the shooter's own held
+# bow, so the stand-down is a `%actor.enchlevel.explosive% == 0` gate whenever this file is next opened.
+# Recorded, not a stop: both riders are pure scenery, so whichever the dispatch order lands is cosmetic.
 # Rider hit semantics: the jar cancelled + zeroed damage dealt TO the cow and played ENTITY_COW_HURT 1.0/0.7
 # to whoever struck it. The `invulnerable` window below is the cancel half; the striker cue has no expression
 # (rider lifecycle is engine-owned) — cosmetic, recorded here rather than ledgered.

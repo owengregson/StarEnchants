@@ -23,9 +23,9 @@ tier: uncommon
 # `invulnerable` are left at the effect defaults because the jar records no lifetime of its own: the skull is
 # removed the moment the arrow stops flying, which the effect already does natively.
 # Rider slot: ONE per shot. Explosive wins it in the jar — Cowification and Venom check for Explosive and
-# stand down, Explosive makes no reciprocal check — and that priority has no content-side expression on the
-# frozen surface (it needs the actor-side held-enchant-level fact of wave 1f). Recorded on both files;
-# cosmetic either way, since a dressing rider is scenery.
+# stand down, Explosive makes no reciprocal check — and it is unauthored here, though no longer blocked:
+# wave 1f's `%actor.enchlevel.explosive%` reads the shooter's own held bow, so the stand-down is a condition
+# drop-in on the OTHER files. Recorded on both; cosmetic either way, since a dressing rider is scenery.
 # PROJECTILE_LAND delta: the engine fires it only for a WORLD landing (an entity hit is BOW's, and dispatching
 # both would double-proc), where the jar ran the AoE on entity strikes too. A direct hit still withers its
 # victim; only the bystander splash is lost on that path.

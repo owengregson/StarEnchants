@@ -14,11 +14,12 @@ tier: rare
 # The jar's ally test is Factions TRUCE-or-better, looser than Bleed/Cleave's mutual-ally test; the engine's
 # single ally model under `filter=ENEMIES` absorbs both readings.
 # Shape delta, recorded not fixed: the jar's radius is a box half-extent, the engine's `r` a sphere radius.
-# PENDING WAVE-1F FACT — the Metaphysical rebate is NOT authored here, the same stop `trap.yml` and
-# `disarmor.yml` already carry. It needs the victim-side worn-enchant-level fact the frozen surface does not
-# express (deferred-content.md holds the consumer-side row under `enchants/metaphysical`). When it lands this
-# ability gains a `-4 %chance%` clause per Metaphysical level on the bystander being tested, plus the blocked
-# line `§8§l** METAPHYSICAL (§8Pummel blocked!§l) **`.
+# PENDING (no longer blocked) — the Metaphysical rebate is NOT authored here yet. The fact it waited on
+# landed in wave 1f and the sibling consumers already use it (`trap.yml`, `snare.yml`, `disarmor.yml`), so
+# this is a drop-in whenever the batch owning Pummel is opened: fold `- 4 * %victim.enchlevel.metaphysical%`
+# into each rung's chance expression, with no floor. The blocked line `§8§l** METAPHYSICAL (§8Pummel
+# blocked!§l) **` stays out for the reason those files record — the "would-be proc" it fires on does not
+# exist under a pre-roll subtraction.
 # That clause is PER-TARGET when it lands: D-04-13 rules the jar's veto a bug, because it mutated the shared
 # chance threshold inside the target loop, so one Metaphysical wearer shielded every later-iterated bystander
 # wearing none. The as-intended reading vetoes only the wearer's own slot in the splash.
