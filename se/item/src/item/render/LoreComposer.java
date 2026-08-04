@@ -2,6 +2,7 @@ package item.render;
 
 import item.codec.CombatState;
 import item.codec.HeroicStat;
+import item.codec.MaskItemData;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -114,7 +115,7 @@ public final class LoreComposer {
         if (state.maskKey() != null) {
             // ADR-0074: a COMPOSITE helmet carries several children in one entry and takes the "Multi-Mask"
             // template, {NAME} reading every child in its own colour — the Multi Crystal line above, verbatim.
-            List<String> children = item.codec.MaskItemData.componentsOf(state.maskKey());
+            List<String> children = MaskItemData.componentsOf(state.maskKey());
             String multi = config.maskLineMulti().get();
             String maskTemplate = children.size() > 1 && multi != null && !multi.isBlank()
                     ? multi : config.maskLine().get();

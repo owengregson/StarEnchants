@@ -1,6 +1,8 @@
 package bootstrap.wire;
 
 import engine.stores.WardStore;
+import feature.apply.GestureOutcome;
+import feature.crystal.MaskSplitter;
 import feature.guard.IllusionCanonGuard;
 import feature.mask.InvseeGuard;
 import feature.mask.MaskBreakSalvage;
@@ -12,6 +14,7 @@ import feature.mask.MaskProvocationStore;
 import feature.mask.MaskRemoveListener;
 import feature.mask.MaskService;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
 import feature.mask.MobTargetGuard;
 import feature.mask.NearGuard;
 import feature.mask.SpawnerYieldListener;
@@ -56,7 +59,7 @@ final class MasksModule {
     private final SplashHealGuard splashHealGuard;
     private final SpawnerYieldListener spawnerYield;
     /** ADR-0074: handed to the crystals module so the ONE Item Extractor can split a composite mask. */
-    final feature.crystal.MaskSplitter splitter;
+    final MaskSplitter splitter;
 
     MasksModule(BootCore core, EquipModule equip) {
         this.core = core;
@@ -68,14 +71,14 @@ final class MasksModule {
                 core.bindings().texturedHeads(), core.bindings().headEquip(), core.messages());
         // ADR-0074: the Item Extractor's mask hook. A binding, not a listener — the extractor cursor belongs to
         // CrystalListener alone, exactly as the reforge hook is arranged (ADR-0070).
-        this.splitter = new feature.crystal.MaskSplitter() {
+        this.splitter = new MaskSplitter() {
             @Override
-            public boolean carriesComposite(org.bukkit.inventory.ItemStack stack) {
+            public boolean carriesComposite(ItemStack stack) {
                 return masks.carriesComposite(stack);
             }
 
             @Override
-            public feature.apply.GestureOutcome split(org.bukkit.inventory.ItemStack maskItem) {
+            public GestureOutcome split(ItemStack maskItem) {
                 return masks.split(maskItem);
             }
         };

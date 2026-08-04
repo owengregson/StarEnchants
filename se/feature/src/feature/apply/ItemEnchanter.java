@@ -8,6 +8,7 @@ import compile.model.Snapshot;
 import engine.interact.SlotLedger;
 import item.codec.CombatCodec;
 import item.codec.CombatState;
+import item.codec.MaskItemData;
 import item.mint.VanillaEnchants;
 import platform.lang.Messages;
 import item.render.LoreRenderer;
@@ -484,7 +485,7 @@ public final class ItemEnchanter {
         if (gear.getAmount() > 1) {
             return ApplyResult.fail(messages.format("mask.single-item"));
         }
-        List<String> children = item.codec.MaskItemData.componentsOf(maskEntry);
+        List<String> children = MaskItemData.componentsOf(maskEntry);
         if (children.isEmpty()) {
             return ApplyResult.fail(messages.format("mask.no-such", "KEY", String.valueOf(maskEntry)));
         }
