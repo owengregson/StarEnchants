@@ -13,9 +13,9 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Per-victim frozen windows (FREEZE, ADR-0065) — the registry the sink's chain and the modern guard consult.
- * Wall-clock instants are supplied explicitly to {@link FrozenTargets#isFrozen} and lattice ticks advance
- * explicitly through {@link FrozenTargets#chainTick}, so the timing is exact and server-free; the attacker
- * handle is never dereferenced, so {@code null} stands in for a live entity.
+ * Lattice ticks advance explicitly through {@link FrozenTargets#chainTick} and {@link FrozenTargets#isFrozen}
+ * reads that same budget, so the timing is exact and server-free; the attacker handle is never dereferenced,
+ * so {@code null} stands in for a live entity.
  * (Style mirrors {@link LockedPotionsTest}: one plain test per contract, hand-computed expectations.)
  */
 class FrozenTargetsTest {
@@ -28,14 +28,25 @@ class FrozenTargetsTest {
     }
 
     @Test
-    void armMakesFrozenUntilTheWallDeadlineWithoutEvicting() {
-        long now = System.currentTimeMillis();
-        FrozenTargets.arm(victim, 60, now + 10_000, UUID.randomUUID(), null);
-        assertTrue(FrozenTargets.isFrozen(victim, now), "live before the deadline");
-        assertFalse(FrozenTargets.isFrozen(victim, now + 10_000), "not live at/after the deadline");
-        assertNotNull(FrozenTargets.get(victim),
-                "no wall-clock eviction: the owning chain disarms in tick space, so a lapsed read must not"
-                        + " strip a still-ticking window");
+    void livenessIsTheTickBudgetNotTheWallDeadline() {
+        long gen = FrozenTargets.arm(victim, 60, System.currentTimeMillis() + 10_000, UUID.randomUUID(), null);
+        assertTrue(FrozenTargets.isFrozen(victim), "live from arm");
+        FrozenTargets.chainTick(victim, gen, 20);
+        FrozenTargets.chainTick(victim, gen, 20);
+        assertTrue(FrozenTargets.isFrozen(victim), "still live with budget left, wall deadline far away");
+        FrozenTargets.chainTick(victim, gen, 20); // the boundary slot — the chain tears down in this same run
+        assertFalse(FrozenTargets.isFrozen(victim), "the spent budget ends the window");
+        assertNotNull(FrozenTargets.get(victim), "a liveness read never evicts: the owning chain disarms itself");
+    }
+
+    @Test
+    void aWallLapsedWindowStaysFrozenWhileItsTickBudgetRuns() {
+        // The laggy tail: below 20 TPS a 60-tick window outlasts its 3000 ms wall deadline while the victim is
+        // still pinned by Paper's freeze-tick lock. A wall-clock read went blind here, so vanilla's fully-frozen
+        // self-hurt landed and its i-frames partialled the next DoT slot on <=1.20.6 (the folia:1.20.6 flake).
+        long gen = FrozenTargets.arm(victim, 60, System.currentTimeMillis() - 1, UUID.randomUUID(), null);
+        FrozenTargets.chainTick(victim, gen, 20); // mid-window: 20 of 60 lattice ticks claimed
+        assertTrue(FrozenTargets.isFrozen(victim), "the tick budget outlives the wall deadline under lag");
     }
 
     @Test
@@ -113,7 +124,7 @@ class FrozenTargetsTest {
         long current = FrozenTargets.arm(victim, 60, now + 5_000, null, null);
         assertEquals(1, ran.get(), "the superseded window's teardown ran at arm (no stale clobber later)");
         assertEquals(current, FrozenTargets.get(victim).generation, "the new window is live");
-        assertTrue(FrozenTargets.isFrozen(victim, now));
+        assertTrue(FrozenTargets.isFrozen(victim));
     }
 
     @Test
@@ -123,11 +134,11 @@ class FrozenTargetsTest {
         long current = FrozenTargets.arm(victim, 60, now + 5_000, UUID.randomUUID(), null); // re-arm supersedes
 
         FrozenTargets.disarm(victim, stale);
-        assertTrue(FrozenTargets.isFrozen(victim, now), "a stale-generation disarm leaves the newer window intact");
+        assertTrue(FrozenTargets.isFrozen(victim), "a stale-generation disarm leaves the newer window intact");
         assertEquals(current, FrozenTargets.get(victim).generation);
 
         FrozenTargets.disarm(victim, current);
-        assertFalse(FrozenTargets.isFrozen(victim, now), "the current-generation disarm removes the window");
+        assertFalse(FrozenTargets.isFrozen(victim), "the current-generation disarm removes the window");
     }
 
     @Test
@@ -145,8 +156,8 @@ class FrozenTargetsTest {
         FrozenTargets.teardownAll();
         assertEquals(1, ranA.get());
         assertEquals(1, ranB.get());
-        assertFalse(FrozenTargets.isFrozen(a, now), "cleared");
-        assertFalse(FrozenTargets.isFrozen(b, now), "cleared");
+        assertFalse(FrozenTargets.isFrozen(a), "cleared");
+        assertFalse(FrozenTargets.isFrozen(b), "cleared");
 
         FrozenTargets.teardownAll();
         assertEquals(1, ranA.get(), "a second sweep is a no-op (no windows)");
