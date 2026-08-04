@@ -66,7 +66,14 @@ public final class Aliases {
             Map.entry("WEB", "COBWEB"),
             Map.entry("SMOOTH_BRICK", "STONE_BRICKS"),
             // The 1.13 flattening renamed the end's floor; PHANTOM_BLOCKS' enemy default names it.
-            Map.entry("ENDER_STONE", "END_STONE"));
+            Map.entry("ENDER_STONE", "END_STONE"),
+            // Wave 2e.2, the sweep's two MATERIAL rows (Devour's block-crack burst, Titan Trap's water cue).
+            Map.entry("MYCEL", "MYCELIUM"),
+            // 1.8 split still water from flowing; the modern WATER is both. This row is FORWARD-only in
+            // practice — a 1.8 server resolves the token WATER directly (it has that constant too), so the
+            // reverse scan never runs and a modern-authored WATER stays flowing there. It earns its place by
+            // reading a 1.8-authored config on a modern server, which is the migrator's direction.
+            Map.entry("STATIONARY_WATER", "WATER"));
 
     // 1.21.x dropped the GENERIC_ / HORSE_ / ZOMBIE_ prefixes on attribute keys.
     private static final Map<String, String> ATTRIBUTE = Map.ofEntries(
@@ -117,7 +124,30 @@ public final class Aliases {
             // ZOMBIE_WOODBREAK is the door-BREAK cue; 1.8's near-twin ZOMBIE_WOOD is the door-ATTACK one
             // (ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR) — the flattening reordered the words, easy to cross-wire.
             Map.entry("ENDERMAN_TELEPORT", "ENTITY_ENDERMAN_TELEPORT"),
-            Map.entry("ZOMBIE_WOODBREAK", "ENTITY_ZOMBIE_BREAK_WOODEN_DOOR"));
+            Map.entry("ZOMBIE_WOODBREAK", "ENTITY_ZOMBIE_BREAK_WOODEN_DOOR"),
+            // Wave 2e.2 closes the sweep's remainder — every row javap'd against the real Spigot 1.8.8 Sound
+            // enum and grepped against both committed modern fixtures, values mutually distinct so the reverse
+            // scan stays deterministic. These are content's LAST unaliased cues; several files were silent on
+            // the 1.8 lane entirely (Permafrost and Soul Trap each author exactly one sound, and it was this one).
+            Map.entry("ENDERMAN_SCREAM", "ENTITY_ENDERMAN_SCREAM"),
+            Map.entry("ENDERMAN_HIT", "ENTITY_ENDERMAN_HURT"),
+            Map.entry("SPLASH", "ENTITY_GENERIC_SPLASH"),
+            Map.entry("EAT", "ENTITY_GENERIC_EAT"),
+            Map.entry("ARROW_HIT", "ENTITY_ARROW_HIT"),
+            // 1.8 named the flesh-hit cue for the SOUND it makes; the flattening named it for who makes it.
+            Map.entry("HURT_FLESH", "ENTITY_PLAYER_HURT"),
+            Map.entry("ORB_PICKUP", "ENTITY_EXPERIENCE_ORB_PICKUP"),
+            Map.entry("FIRE", "BLOCK_FIRE_AMBIENT"),
+            Map.entry("PORTAL_TRIGGER", "BLOCK_PORTAL_TRIGGER"),
+            Map.entry("COW_IDLE", "ENTITY_COW_AMBIENT"),
+            Map.entry("COW_HURT", "ENTITY_COW_HURT"),
+            Map.entry("GLASS", "BLOCK_GLASS_BREAK"),
+            Map.entry("BAT_TAKEOFF", "ENTITY_BAT_TAKEOFF"),
+            Map.entry("WATER", "BLOCK_WATER_AMBIENT"),
+            // The zombie-door trio, all three words reordered by the flattening and trivially cross-wired:
+            // METAL is the iron-door ATTACK, WOOD the wooden-door ATTACK, WOODBREAK (above) the wooden BREAK.
+            Map.entry("ZOMBIE_METAL", "ENTITY_ZOMBIE_ATTACK_IRON_DOOR"),
+            Map.entry("ZOMBIE_WOOD", "ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR"));
 
     /**
      * The COMPLETE 1.20.5 particle rename wave (Spigot flattened the enum), floor name → modern name,
