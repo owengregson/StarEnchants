@@ -72,7 +72,9 @@ the canonical corpus-wide dedup this file exists for.
 | `%actor.souls%` / `%victim.souls%` + soul-mode BOOL | `SOUL_COUNT_VAR` (07), `SOUL_STATE_FACTS` (04) | Hero Killer, Boss Slayer, soul family | facts only; the gate is below |
 
 `POSITION_VARS` (`%actor.y%`, 11) moves to **wave 2** — its only consumer is the
-spectral mask.
+spectral mask. **SHIPPED in wave 2d**, alongside the actor-side
+`%actor.heroicpieces%` (the twin of wave 2c's victim fact) and
+`%status.teleblock%` (`STATUS_CLEAR`'s paired guard).
 
 ## New triggers (wave 1)
 
@@ -167,7 +169,11 @@ concept before minting).
 **Visibility family:** `VANISH` + decoy (`VANISH` 07, `VANISH_DECOY` 12 — shared
 state confirmed by both docs), `MOB_DISGUISE` (11 — spectral; irreducible: no
 primitive alters other-client rendering), `PHANTOM_BLOCKS` (07 — per-viewer block
-overlay).
+overlay). **Wave 2d STOPPED on all three** and the analysis is in
+`deferred-content.md` § Engine follow-up pool: the two rendering ones need a
+packet seam the modern lane does not have at all (`PlayerVisibility` is one
+boolean method), and the block overlay is reachable from the public API on both
+lanes but needs its own `BlockVisibility` seam minted first.
 
 **Field family:** `STACKING_DOT` (07), `OWNED_GROUND` fact (07),
 `DELAYED_STRIKE_FIELD` (10 — Yijki strike points), `BLOCK_FIELD_PROFILE` (10 —
@@ -175,11 +181,16 @@ extends FALLING_BLOCK: layers, per-position probability, palette).
 
 **Combat marks:** `VULNERABILITY` (07), `POTION_AMP_REDUCE` (07),
 `DEFENDER_KEYED_SUPPRESSION` (11 — the incoming-direction complement of the
-SuppressionStore).
+SuppressionStore). `VULNERABILITY` and `DEFENDER_KEYED_SUPPRESSION` **SHIPPED in
+wave 2d** (the latter as the head `SUPPRESS_INCOMING`, which names the authored
+act beside `SUPPRESS`/`SUPPRESS_IMMUNE` rather than the mechanism).
 
 **Small effects:** `FACING_SET` (07 — irreducible in-place yaw/pitch set),
 `FALL_SHIELD` (07 — one-shot fall cancel on an arbitrary player),
-`STATUS_CLEAR` (12 — remove a named engine status window, TELEBLOCK first),
+`STATUS_CLEAR` (12 — remove a named engine status window, TELEBLOCK first) — all
+three **SHIPPED in wave 2d**; `FACING_SET`'s reference is an `anchor` enum rather
+than a second selector slot, because the DSL carries exactly one target slot per
+effect,
 `BOOK_RATE_MODIFIER` (12 — one-shot book success modifier; irreducible),
 `SPAWNER_YIELD` (11 — bunny; irreducible: no spawner event in the vocabulary),
 `WORN_COMPOSITE` (11 — multi-mask; irreducible core mask feature),
