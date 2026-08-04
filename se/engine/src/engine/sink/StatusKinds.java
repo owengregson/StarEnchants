@@ -19,4 +19,7 @@ public final class StatusKinds {
 
     /** The armed disarm window. */
     public static final int DISARM = 2;
+
+    /** A live freeze — the pin, its DoT chain and both attribute modifiers, lifted through one teardown. */
+    public static final int FREEZE = 3;
 }

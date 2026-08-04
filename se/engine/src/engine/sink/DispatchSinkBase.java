@@ -3861,13 +3861,18 @@ public abstract class DispatchSinkBase implements SinkReadback {
         if (target == null) {
             return;
         }
-        // Every branch is a per-player in-memory map write keyed on the UUID alone — no entity read, so this
-        // is Folia-safe inline on the firing thread, exactly like the arms that created these windows.
+        // The first three are per-player in-memory map writes keyed on the UUID alone — no entity read, so
+        // they are Folia-safe inline on the firing thread, exactly like the arms that created them.
         UUID id = target.getUniqueId();
         switch (statusOrdinal) {
             case StatusKinds.TELEBLOCK -> teleblock.clear(id);
             case StatusKinds.POTION_LOCK -> LockedPotions.clear(id);
             case StatusKinds.DISARM -> disarmWindowStore.clear(id);
+            // FREEZE is the exception and takes the entity hop: its teardown unpins the freeze ticks and
+            // removes two attribute modifiers, which are writes only the target's own thread may make. The
+            // other three would be correct inline even with a widened `who`; this one would not, so it is
+            // scheduled rather than relying on the spec's SELF default staying the only reachable target.
+            case StatusKinds.FREEZE -> entityOp(target, () -> FrozenTargets.breakNow(id));
             default -> { } // an unknown ordinal cannot reach here: the enum is closed at compile
         }
     }
