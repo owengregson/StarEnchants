@@ -65,14 +65,12 @@ class ModernHandleEraTest {
         assertTrue(missing.isEmpty(), () -> "sound alias targets absent on " + era + ": " + missing);
     }
 
-    // The in-progress cosmic port rides the same era gate from its first batch: a legacy-era token authored
-    // from the jar (ENCHANTMENT_TABLE, ZOMBIE_PIG_ANGRY, …) must resolve on the modern eras too, and catching
-    // that per batch is far cheaper than a corpus-wide sweep at ship time. No corpus floor while the pack
-    // fills batch by batch — same reason CosmicPackValidationTest holds none.
+    // The cosmic pack rode this gate from its first batch and now ships behind it: a legacy-era token authored
+    // from the jar (ENCHANTMENT_TABLE, ZOMBIE_PIG_ANGRY, …) must resolve on the modern eras too.
     @ParameterizedTest
     @ValueSource(strings = {"1.21.11", "26.1.2"})
     void cosmicPackResolvesOnModernEra(String era) {
-        compileClean(Path.of("packs-src/cosmic-pack/content"), era, 0);
+        compileClean(Path.of("packs-src/cosmic-pack/content"), era, 1000);
     }
 
     private static void compileClean(Path content, String era, int minAbilities) {
