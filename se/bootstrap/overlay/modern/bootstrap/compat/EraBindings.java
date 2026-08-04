@@ -2,6 +2,7 @@ package bootstrap.compat;
 
 import engine.run.ActorProbe;
 import engine.run.ModernActorProbe;
+import engine.sink.BlockVisibility;
 import engine.sink.ModernDispatchSink;
 import engine.sink.PlayerVisibility;
 import engine.sink.SinkFactory;
@@ -22,6 +23,7 @@ import org.bukkit.event.Listener;
 import feature.compat.DropControl;
 import feature.compat.Hands;
 import feature.compat.ModernDropControl;
+import feature.compat.ModernBlockVisibility;
 import feature.compat.ModernHands;
 import feature.compat.ModernPlayerVisibility;
 import feature.compat.ModernProjectiles;
@@ -144,6 +146,12 @@ public final class EraBindings implements EraServices {
     @Override
     public PlayerVisibility playerVisibility(Plugin plugin) {
         return new ModernPlayerVisibility(plugin);
+    }
+
+    /** Per-viewer block visibility (PHANTOM_BLOCKS): the BlockData form, unchanged across the modern range. */
+    @Override
+    public BlockVisibility blockVisibility() {
+        return new ModernBlockVisibility();
     }
 
     /** Sound playback (§4): the shared resolver + the modern String-overload key-form fallback (1.9.4+). */

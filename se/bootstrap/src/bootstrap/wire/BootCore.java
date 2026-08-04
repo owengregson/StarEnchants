@@ -537,7 +537,9 @@ public final class BootCore {
                 protection::allows,
                 // ITEM_XP_TRACK: late-bound like summonPayloads — the pets service does not exist yet.
                 (holder, amount, window, gain, levelUp) ->
-                        itemXp.grant(holder, amount, window, gain, levelUp));
+                        itemXp.grant(holder, amount, window, gain, levelUp),
+                // PHANTOM_BLOCKS: the era seam again, this time for blocks — 1.8 has no BlockData at all.
+                bindings.blockVisibility());
         // mcMMO friendly-fire gate — ONE alliance predicate feeding both consumers. Combat suppression has
         // always used it; the targeting filters (@Aoe{filter=ENEMIES|ALLIES}) never had it installed, so they
         // treated a party-mate as an enemy while the damage gate spared them. Same predicate, both sides.

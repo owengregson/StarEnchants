@@ -64,7 +64,9 @@ public final class Aliases {
             // ADR-0052 pet structures — the 1.8-era spellings of the cage/web materials.
             Map.entry("IRON_FENCE", "IRON_BARS"),
             Map.entry("WEB", "COBWEB"),
-            Map.entry("SMOOTH_BRICK", "STONE_BRICKS"));
+            Map.entry("SMOOTH_BRICK", "STONE_BRICKS"),
+            // The 1.13 flattening renamed the end's floor; PHANTOM_BLOCKS' enemy default names it.
+            Map.entry("ENDER_STONE", "END_STONE"));
 
     // 1.21.x dropped the GENERIC_ / HORSE_ / ZOMBIE_ prefixes on attribute keys.
     private static final Map<String, String> ATTRIBUTE = Map.ofEntries(

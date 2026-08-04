@@ -1,6 +1,7 @@
 package bootstrap.compat;
 
 import engine.run.ActorProbe;
+import engine.sink.BlockVisibility;
 import engine.sink.PlayerVisibility;
 import engine.sink.SinkFactory;
 import engine.stores.KnockbackControlStore;
@@ -149,6 +150,11 @@ public interface EraServices {
     /** Per-viewer player visibility (VIEWER_HIDE): modern needs the {@code Plugin} handle, 1.8 has only the
      *  deprecated single-arg form. Threaded into the sink env, which the engine cannot supply a plugin to. */
     PlayerVisibility playerVisibility(Plugin plugin);
+
+    /** Per-viewer BLOCK visibility (PHANTOM_BLOCKS): modern sends a {@code BlockData}, 1.8 a
+     *  {@code (Material, byte)} pair. Threaded into the sink env beside {@link #playerVisibility}; it needs no
+     *  {@code Plugin} because {@code sendBlockChange} has no plugin-scoped form on either lane. */
+    BlockVisibility blockVisibility();
 
     // ── third-party integration bridges (ADR-0027; :integrate is modern-only) ──
     BiFunction<Player, String, String> placeholderResolver(Plugin plugin, Predicate<String> enabled);

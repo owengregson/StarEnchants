@@ -56,6 +56,11 @@ final class CombatModule {
                 // ledger joins the structural quit sweep as a module player store (clear drops buckets, combo
                 // state AND the release in-flight flag — the Folia mid-release-quit cleanup path).
                 .events(new ComboDotSyncListener(core.sinkEnv().dotPark()))
+                // VANISH: the two halves the sink cannot own — the landed-hit break and the join re-sync. The
+                // era seam is asked for a second instance; it is stateless, and both hide against the SAME
+                // plugin handle, so the sink's hide and this one's re-sync share one hidden set.
+                .events(new feature.combat.VanishListener(core.stores().vanish(),
+                        core.bindings().playerVisibility(core.plugin()), core.tick()::get))
                 .store(core.sinkEnv().dotPark())
                 .lang("combat", "rage")
                 .build();

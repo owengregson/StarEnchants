@@ -326,6 +326,11 @@ effect PERIODIC_DAMAGE
   param tick-pitch DOUBLE optional min=0 max=- enum=- handle=- default=1
   param tick-particle HANDLE optional min=- max=- enum=- handle=PARTICLE default=-
   param tick-particle-count INT optional min=0 max=- enum=- handle=- default=1
+effect PHANTOM_BLOCKS
+  param radius INT optional min=0 max=8 enum=- handle=- default=3
+  param material-ally HANDLE optional min=- max=- enum=- handle=MATERIAL default=GLOWSTONE
+  param material-enemy HANDLE optional min=- max=- enum=- handle=MATERIAL default=END_STONE
+  param duration TICKS optional min=1 max=- enum=- handle=- default=200
 effect POTION
   param effect HANDLE required min=- max=- enum=- handle=POTION_EFFECT default=-
   param level INT required min=1 max=- enum=- handle=- default=-
@@ -388,6 +393,11 @@ effect SOUND
   param sound HANDLE required min=- max=- enum=- handle=SOUND default=-
   param volume DOUBLE optional min=0 max=- enum=- handle=- default=1
   param pitch DOUBLE optional min=0 max=- enum=- handle=- default=1
+effect SPAWNER_YIELD
+  param chance DOUBLE optional min=0 max=100 enum=- handle=- default=65
+  param extra INT optional min=1 max=8 enum=- handle=- default=1
+  param scope ENUM optional min=- max=- enum=chunk,radius handle=- default=chunk
+  param radius DOUBLE optional min=0 max=- enum=- handle=- default=16
 effect SPAWN_ENTITY
   param type HANDLE required min=- max=- enum=- handle=ENTITY_TYPE default=-
   param count INT optional min=1 max=- enum=- handle=- default=1
@@ -530,6 +540,10 @@ effect TURRET_RING
   param despawn-particle HANDLE optional min=- max=- enum=- handle=PARTICLE default=-
   param despawn-particle-count INT optional min=0 max=- enum=- handle=- default=16
   param despawn-particle-spread DOUBLE optional min=0 max=- enum=- handle=- default=0.75
+effect VANISH
+  param duration TICKS optional min=1 max=- enum=- handle=- default=30
+  param break-hits INT optional min=0 max=- enum=- handle=- default=1
+  param var STRING optional min=- max=- enum=- handle=- default=
 effect VELOCITY
   param mode ENUM optional min=- max=- enum=add,away,toward handle=- default=add
   param x DOUBLE optional min=- max=- enum=- handle=- default=0

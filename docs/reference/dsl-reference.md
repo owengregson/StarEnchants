@@ -860,6 +860,19 @@ Burn the target for amount raw half-hearts every period ticks over duration tick
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ PERIODIC_DAMAGE: { amount: 6, period: 20, duration: 120, replace: WITHER, tick-particle: FLAME, tick-particle-count: 20 } }`
 
+### PHANTOM_BLOCKS
+
+Show every nearby player a client-only overlay across the qualifying surface of the (2*radius+1)^2 patch under each target for `duration` ticks: material-ally to the actor and anyone allied to them, material-enemy to everyone else. A column qualifies when its first solid block down from the target's own level is a full opaque cube with a passable cell above it — see-through floors, roofed columns and anything more than a few steps below are skipped. NOTHING is written to the world: the patch blocks no movement, breaks nothing and survives no reload, and the window's close re-sends the ground as it really is then (so a block mined meanwhile is not stranded). A viewer who relogs is served the true chunk by the server.
+
+- _affinity_: `REGION`
+- _usage_: `{ PHANTOM_BLOCKS: { radius: <int[0..8]=3>, material-ally: <material=GLOWSTONE>, material-enemy: <material=END_STONE>, duration: <ticks[1..]=200> } }`
+- _param_ `radius` `int[0..8]` — blocks each way from the target the overlay covers
+- _param_ `material-ally` `material` — what the actor and their allies are shown
+- _param_ `material-enemy` `material` — what everyone else is shown
+- _param_ `duration` `ticks[1..]` — ticks before the real ground is sent back
+- _target_ `who`: selector `SELF`
+- _example_: `{ PHANTOM_BLOCKS: { radius: 4, material-ally: GLOWSTONE, material-enemy: END_STONE, duration: 100, who: "@Self" } }`
+
 ### POTION
 
 Apply a potion effect to the target(s) at the given LEVEL (1-based: level 1 = the I tier), for a duration in ticks. The effect name is resolved to a handle at compile time. On a HELD/PASSIVE source it is removed again when the item is unequipped (§B lifecycle).
@@ -1068,6 +1081,18 @@ Play a sound at the activation location, or at each entity in `who` when given �
 - _param_ `pitch` `double[0..]`
 - _target_ `who`: selector `HERE`
 - _example_: `{ SOUND: { sound: ENTITY_GENERIC_EXPLODE, volume: 1, pitch: 1 } }`
+
+### SPAWNER_YIELD
+
+While worn (PASSIVE): every spawner spawn near the wearer rolls `chance`% to add `extra` copies of the same mob at the same spot. `scope: chunk` counts a wearer standing in the spawn's own chunk; `scope: radius` counts one within `radius` blocks of it. The wearer test is asked PER SPAWN against live worn state, so walking away stops it immediately. Grants do NOT stack — two wearers at one spawner get the stronger one's yield, not both. The added copies spawn as CUSTOM, so they never re-trigger this and never count against the spawner's own budget.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ SPAWNER_YIELD: { chance: <double[0..100]=65>, extra: <int[1..8]=1>, scope: <enum{chunk|radius}=chunk>, radius: <double[0..]=16> } }`
+- _param_ `chance` `double[0..100]` — percent of spawns that come out multiplied
+- _param_ `extra` `int[1..8]` — copies added on a winning roll
+- _param_ `scope` `enum{chunk|radius}` — where the wearer counts as present
+- _param_ `radius` `double[0..]` — blocks, for scope: radius; ignored for scope: chunk
+- _example_: `{ SPAWNER_YIELD: { chance: 65, extra: 1, scope: chunk } }`
 
 ### SPAWN_ENTITY
 
@@ -1351,6 +1376,18 @@ Stand `count` invulnerable `type` emplacements on open ground, evenly spaced on 
 - _param_ `despawn-particle-spread` `double[0..]`
 - _target_ `who`: selector `SELF`
 - _example_: `{ TURRET_RING: { type: ENDER_CRYSTAL, count: 5, ring-radius: 8, ttl: 300, acquire-range: 11, initial-delay: 30, period-min: 8, period-max: 13, filter: ENEMIES, projectile: WITHER_SKULL, projectile-speed: 0.065, spawn-sound: ENTITY_GHAST_SHOOT, spawn-volume: 3.0, spawn-pitch: 0.9, spawn-particle: FLAME, spawn-particle-count: 24, spawn-lightning: true, despawn-particle: SPELL_WITCH, despawn-particle-count: 16, despawn-particle-spread: 0.75, who: "@Self" } }`
+
+### VANISH
+
+Hide the target from EVERY online player for `duration` ticks — a packet-level hide, so worn armour vanishes with the body. The window breaks early once `break-hits` of the target's own hits LAND (0 = never); damage they take never spends one, so hiding survives being hit but not hitting back. A player who joins mid-window is re-synced, so a vanish cannot be beaten by relogging. While it is live `var` reads 1, and it drops to 0 the moment it ends by any route (timer, hit, quit). A re-proc REPLACES the window: fresh duration, fresh hit allowance.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ VANISH: { duration: <ticks[1..]=30>, break-hits: <int[0..]=1>, var: <string=> } }`
+- _param_ `duration` `ticks[1..]` — ticks the target stays hidden from every player
+- _param_ `break-hits` `int[0..]` — landed outgoing hits the window absorbs before it breaks; 0 = only the timer ends it
+- _param_ `var` `string` — player variable reading 1 while the window is live; empty = none
+- _target_ `who`: selector `SELF`
+- _example_: `{ VANISH: { duration: 60, break-hits: 2, var: feign.active, who: "@Self" } }`
 
 ### VELOCITY
 

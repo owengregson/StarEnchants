@@ -204,6 +204,10 @@ class FanOutEffectTest {
                         (s, p) -> verify(s).setFlight(p, 60, 0.4)),
                 playerOnly("KEEP_ON_DEATH → keepOnDeath(duration)", new KeepOnDeathEffect(),
                         c -> c.with("duration", 200), (s, p) -> verify(s).keepOnDeath(p, 200)),
+                // Distinct non-default scalars: a duration/break-hits transposition would otherwise pass.
+                playerOnly("VANISH → vanish(duration, break-hits, var); a mob target is skipped", new VanishEffect(),
+                        c -> c.with("duration", 60).with("break-hits", 2).with("var", "feign.active"),
+                        (s, p) -> verify(s).vanish(p, 60, 2, "feign.active")),
                 // Wave 1d.2: distinct non-default args pin the param→intent wiring (a transposition fails).
                 playerOnly("OUTGOING_DEBUFF → outgoingDebuff(percent, duration, causeMask, feedback)",
                         new OutgoingDebuffEffect(),

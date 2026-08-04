@@ -195,7 +195,7 @@ public final class Envs {
                             new engine.stores.DotSuppressionStore(), new engine.stores.ReboundStore(),
                             new engine.stores.FallShieldStore(),
                             new engine.stores.VulnerabilityStore(), new engine.stores.SoulExemptStore(),
-                            new engine.stores.BookRateStore());
+                            new engine.stores.BookRateStore(), new engine.stores.VanishStore());
             return SinkEnv.of(economy, souls, stores, nowTicks, player -> { }, () -> 0,
                     GearProtection.NONE, lightningBoost, PlayerVisibility.NONE, permanentPotions, payloads);
         }

@@ -151,6 +151,10 @@ public final class BuiltinEffects {
                 .register(new BookRateModifierEffect())  // Blackscroll/Enchanter: one-shot bid on the next book roll
                 .register(new InventoryConvertEffect())  // Lava/Water: bounded material swap across the inventory
                 .register(new ItemXpTrackEffect())       // every pet: item-attached progression, cosmic semantics
+                // Cosmic-port wave 2d.2 (family pool). APPENDED, never inserted (ADR-0039 dense kind ids).
+                .register(new PhantomBlocksEffect())     // Rot and Decay: per-viewer client-only ground overlay
+                .register(new VanishEffect())            // Feign Death: hide from all, broken by your own landed hits
+                .register(new SpawnerYieldEffect())      // Bunny mask: worn channel read at each spawner spawn
                 .build();
     }
 }

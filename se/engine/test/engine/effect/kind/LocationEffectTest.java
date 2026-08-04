@@ -21,6 +21,7 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.DynamicTest;
@@ -36,6 +37,13 @@ import testfx.FakeEffectCtx;
  * matching the production read order rather than relying on a mock's silent default.
  */
 class LocationEffectTest {
+
+    /** A living target that reports {@code at} as its own location. */
+    private static LivingEntity targetAt(Location at) {
+        LivingEntity target = mock(LivingEntity.class);
+        when(target.getLocation()).thenReturn(at);
+        return target;
+    }
 
     /** Emits at {@code ctx.location()}; the row verifies the single call against that location. */
     private static DynamicTest atLocation(String label, EffectKind kind, Consumer<FakeEffectCtx> args,
@@ -163,6 +171,43 @@ class LocationEffectTest {
                             .with("power", 4.0).with("breakBlocks", false).targets("who", remote);
                     Sink sink = mock(Sink.class);
                     new ExplodeEffect().run(ctx, sink); // the thrown remote read is swallowed, not propagated
+                    verifyNoInteractions(sink);
+                }),
+                dynamicTest("PHANTOM_BLOCKS → phantomBlocks per target, ally/enemy materials in their own slots",
+                        () -> {
+                            World world = mock(World.class);
+                            Location a = new Location(world, 10, 64, 10);
+                            Location b = new Location(world, 30, 64, 30);
+                            Player actor = mock(Player.class);
+                            // Every scalar distinct, so a transposed material or a swapped radius/duration fails.
+                            FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
+                                    .with("radius", 4).with("material-ally", 7).with("material-enemy", 11)
+                                    .with("duration", 100)
+                                    .targets("who", targetAt(a), targetAt(b));
+                            Sink sink = mock(Sink.class);
+                            new PhantomBlocksEffect().run(ctx, sink);
+                            verify(sink).phantomBlocks(a, actor, 4, 7, 11, 100);
+                            verify(sink).phantomBlocks(b, actor, 4, 7, 11, 100);
+                            verifyNoMoreInteractions(sink);
+                        }),
+                dynamicTest("PHANTOM_BLOCKS skips a target whose location read faults → no-op (guarded)", () -> {
+                    LivingEntity remote = mock(LivingEntity.class); // @Attacker on a DEFENSE trigger can be cross-region
+                    when(remote.getLocation()).thenThrow(new IllegalStateException("wrong region"));
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("radius", 4).with("material-ally", 7).with("material-enemy", 11)
+                            .with("duration", 100).targets("who", remote);
+                    Sink sink = mock(Sink.class);
+                    new PhantomBlocksEffect().run(ctx, sink);
+                    verifyNoInteractions(sink);
+                }),
+                dynamicTest("PHANTOM_BLOCKS skips a world-less origin (nothing to scan a patch in)", () -> {
+                    LivingEntity target = mock(LivingEntity.class);
+                    when(target.getLocation()).thenReturn(new Location(null, 0, 64, 0));
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("radius", 4).with("material-ally", 7).with("material-enemy", 11)
+                            .with("duration", 100).targets("who", target);
+                    Sink sink = mock(Sink.class);
+                    new PhantomBlocksEffect().run(ctx, sink);
                     verifyNoInteractions(sink);
                 }),
                 dynamicTest("GUARD → guard(attacker, at, type, count, ttl, name, owner) — no actor → null owner", () -> {

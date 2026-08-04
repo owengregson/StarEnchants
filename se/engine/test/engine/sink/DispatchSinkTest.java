@@ -238,7 +238,7 @@ class DispatchSinkTest {
                 fresh.rageStacks(), fresh.ward(), fresh.hitTempo(), fresh.battery(), fresh.disarmWindows(),
                 fresh.heldSlots(), fresh.soulTotals(), dotAmplify, fresh.headTrophies(), fresh.foodWindows(), fresh.messageThrottle(),
                 fresh.soulEscalation(), fresh.dotSuppression(), fresh.rebounds(), fresh.fallShields(), fresh.vulnerability(),
-                fresh.soulExempt(), fresh.bookRate());
+                fresh.soulExempt(), fresh.bookRate(), fresh.vanish());
     }
 
     private static EngineStores storesWithTrophies(HeadTrophyStore headTrophies) {
@@ -249,7 +249,7 @@ class DispatchSinkTest {
                 fresh.rageStacks(), fresh.ward(), fresh.hitTempo(), fresh.battery(), fresh.disarmWindows(),
                 fresh.heldSlots(), fresh.soulTotals(), fresh.dotAmplify(), headTrophies, fresh.foodWindows(), fresh.messageThrottle(),
                 fresh.soulEscalation(), fresh.dotSuppression(), fresh.rebounds(), fresh.fallShields(), fresh.vulnerability(),
-                fresh.soulExempt(), fresh.bookRate());
+                fresh.soulExempt(), fresh.bookRate(), fresh.vanish());
     }
 
     @Test

@@ -69,6 +69,11 @@ class FlagAndSoulEffectTest {
                 flag("LIGHTNING_MOD → no intent (worn channel)", new LightningModEffect(),
                         c -> c.with("amount", 10.0),
                         s -> { }),
+                // D-11-10: SPAWNER_YIELD is a worn channel read PER SPAWN by SpawnerYieldListener; an engine
+                // intent here would be exactly the stale arm-time window the port refuses to carry over.
+                flag("SPAWNER_YIELD → no intent (worn channel)", new SpawnerYieldEffect(),
+                        c -> c.with("chance", 65.0).with("extra", 1).with("scope", "chunk").with("radius", 16.0),
+                        s -> { }),
                 // ADR-0071 reforge markers (Plan B): the run MUST emit nothing — the reforge service arms each
                 // machine from the compiled args at the activation success point; an engine intent would double-arm.
                 flag("GRAVITY_WELL → no intent (service-owned marker)", new GravityWellEffect(), c -> { }, s -> { }),

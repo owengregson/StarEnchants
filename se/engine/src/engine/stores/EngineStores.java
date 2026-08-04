@@ -24,7 +24,8 @@ public record EngineStores(
         DotAmplifyStore dotAmplify, HeadTrophyStore headTrophies, FoodWindowStore foodWindows,
         MessageThrottleStore messageThrottle, SoulEscalationStore soulEscalation,
         DotSuppressionStore dotSuppression, ReboundStore rebounds, FallShieldStore fallShields,
-        VulnerabilityStore vulnerability, SoulExemptStore soulExempt, BookRateStore bookRate) {
+        VulnerabilityStore vulnerability, SoulExemptStore soulExempt, BookRateStore bookRate,
+        VanishStore vanish) {
 
     public EngineStores {
         Objects.requireNonNull(vars, "vars");
@@ -58,6 +59,7 @@ public record EngineStores(
         Objects.requireNonNull(vulnerability, "vulnerability");
         Objects.requireNonNull(soulExempt, "soulExempt");
         Objects.requireNonNull(bookRate, "bookRate");
+        Objects.requireNonNull(vanish, "vanish");
     }
 
     /** A fresh aggregate with every store newly constructed (the composition-root default). */
@@ -71,7 +73,8 @@ public record EngineStores(
                 new DotAmplifyStore(), new HeadTrophyStore(), new FoodWindowStore(),
                 new MessageThrottleStore(), new SoulEscalationStore(), new DotSuppressionStore(),
                 new ReboundStore(), new FallShieldStore(),
-                new VulnerabilityStore(), new SoulExemptStore(), new BookRateStore());
+                new VulnerabilityStore(), new SoulExemptStore(), new BookRateStore(),
+                new VanishStore());
     }
 
     /** Every store as the {@link PlayerScoped} seam, in sweep order. */
@@ -80,7 +83,7 @@ public record EngineStores(
                 recentAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks, ward, hitTempo, battery,
                 disarmWindows, heldSlots, soulTotals, dotAmplify, headTrophies, foodWindows,
                 messageThrottle, soulEscalation, dotSuppression, rebounds, fallShields, vulnerability,
-                soulExempt, bookRate);
+                soulExempt, bookRate, vanish);
     }
 
     /**
@@ -103,11 +106,14 @@ public record EngineStores(
      *
      * <p>{@link SoulExemptStore} joins them for the same reason again — a self-armed buff whose clock keeps
      * running while its holder is offline, so a relog can only ever shorten it.
+     *
+     * <p>{@link VanishStore} joins them and MUST: its clear runs the window's restore, and a hidden set lives on
+     * the watchers' connections, so merely forgetting a quit-mid-vanish would leave them permanently invisible.
      */
     public List<PlayerScoped> quitVolatile() {
         return List.of(vars, knockback, keepOnDeath, immune, combo, why, recentAttackers, damageCap, rageStacks,
                 ward, hitTempo, battery, disarmWindows, heldSlots, soulTotals, foodWindows, messageThrottle,
-                soulEscalation, dotSuppression, rebounds, fallShields, soulExempt);
+                soulEscalation, dotSuppression, rebounds, fallShields, soulExempt, vanish);
     }
 
     /**
