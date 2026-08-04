@@ -42,6 +42,10 @@ public final class SuppressionStore implements RetainedStore {
     private record Window(long expiry, int byDefId, Feedback feedback) {
     }
 
+    /** A defender-keyed window: a {@link Window} plus the per-incoming-activation chance rolled at the consult. */
+    private record Defender(long expiry, int chance, int byDefId, Feedback feedback) {
+    }
+
     /** One armed one-shot (Neutralize, ADR-0049): remaining charges + the ability that armed it. Event-scoped, never timed. */
     private record Charge(int charges, int byDefId) {
     }
@@ -71,6 +75,19 @@ public final class SuppressionStore implements RetainedStore {
     private final Map<UUID, Map<Integer, Window>> kindExpiryByPlayer = new ConcurrentHashMap<>();
     /** KIND-scoped one-shots ({@code SUPPRESS scope: KIND, mode: next-hit}), burned by {@link #consumeEventScoped}. */
     private final Map<UUID, Map<Integer, Charge>> kindArmedByPlayer = new ConcurrentHashMap<>();
+    /**
+     * DEFENDER-KEYED windows (wave 2d): the incoming-direction complement of everything above. These live on
+     * the WEARER and gate 5 consults them with the ability's VICTIM id, so they silence what other people aim
+     * at their holder rather than what their holder does. Kept in their own maps for {@code kindExpiryByPlayer}'s
+     * reason — gate 5 fast-paths on emptiness, so a server with nobody wearing one pays nothing.
+     *
+     * <p>The chance is rolled at the CONSULT, not the arm, which is the whole reason the activator-side
+     * {@link #immuneChance} could not be reused: an ability's own chance gate rolls once when the window is
+     * created, and "50% of incoming mastery procs" needs a roll per incoming proc.
+     */
+    private final Map<UUID, Map<Long, Defender>> defenderByPlayer = new ConcurrentHashMap<>();
+    /** The KIND-scoped half of {@link #defenderByPlayer}, split for the same fast-path reason. */
+    private final Map<UUID, Map<Integer, Defender>> defenderKindByPlayer = new ConcurrentHashMap<>();
     private volatile SuppressListener onSuppress = (player, durationTicks) -> { };
 
     /**
@@ -471,6 +488,8 @@ public final class SuppressionStore implements RetainedStore {
         kindExpiryByPlayer.remove(player);
         kindArmedByPlayer.remove(player);
         immuneChance.remove(player);
+        defenderByPlayer.remove(player);
+        defenderKindByPlayer.remove(player);
     }
 
     /**
@@ -495,6 +514,14 @@ public final class SuppressionStore implements RetainedStore {
             ids.values().removeIf(w -> nowTicks >= w.expiry());
             return ids.isEmpty() ? null : ids;
         });
+        defenderByPlayer.computeIfPresent(player, (id, ids) -> {
+            ids.values().removeIf(w -> nowTicks >= w.expiry());
+            return ids.isEmpty() ? null : ids;
+        });
+        defenderKindByPlayer.computeIfPresent(player, (id, ids) -> {
+            ids.values().removeIf(w -> nowTicks >= w.expiry());
+            return ids.isEmpty() ? null : ids;
+        });
     }
 
     /** Drop every player's elapsed suppression windows at {@code nowTicks} (the periodic offline-state sweep). */
@@ -506,6 +533,12 @@ public final class SuppressionStore implements RetainedStore {
         for (UUID player : kindExpiryByPlayer.keySet()) {
             evictElapsed(player, nowTicks);
         }
+        for (UUID player : defenderByPlayer.keySet()) {
+            evictElapsed(player, nowTicks);
+        }
+        for (UUID player : defenderKindByPlayer.keySet()) {
+            evictElapsed(player, nowTicks);
+        }
     }
 
     /** Forget every suppression (timed, one-shot, KIND, and all immunity) for every player (call on disable). */
@@ -515,5 +548,138 @@ public final class SuppressionStore implements RetainedStore {
         kindExpiryByPlayer.clear();
         kindArmedByPlayer.clear();
         immuneChance.clear();
+        defenderByPlayer.clear();
+        defenderKindByPlayer.clear();
+    }
+
+    // ── Defender-keyed suppression: the incoming direction ─────────────────────────────
+
+    /**
+     * Arm (or extend) a defender-keyed window on {@code defender} for the packed cooldown-scope {@code id}.
+     * {@code chance} is the percentage rolled at each CONSULT (clamped to 100; {@code >= 100} is absolute).
+     * Maintained-while-worn is the intended shape, so a re-arm only ever EXTENDS — the same merge the
+     * activator side uses, which lets a PASSIVE re-arm on every lifecycle tick without churning the window.
+     *
+     * <p>Deliberately does NOT fire {@link SuppressListener}: that hook exists so a maintained buff on the
+     * SUPPRESSED player drops instantly, and a defender window suppresses none of its holder's own abilities.
+     */
+    public void defend(UUID defender, long id, long nowTicks, int durationTicks, int chance, int byDefId,
+                       Feedback feedback) {
+        if (defender == null || durationTicks <= 0 || chance <= 0) {
+            return;
+        }
+        Defender fresh = new Defender(nowTicks + durationTicks, Math.min(chance, 100), byDefId, feedback);
+        defenderByPlayer.computeIfAbsent(defender, k -> new ConcurrentHashMap<>())
+                .merge(id, fresh, SuppressionStore::laterDefender);
+    }
+
+    /** {@link #defend} for a dense effect kindId ({@code scope: KIND}). */
+    public void defendKind(UUID defender, int kindId, long nowTicks, int durationTicks, int chance, int byDefId,
+                           Feedback feedback) {
+        if (defender == null || durationTicks <= 0 || chance <= 0 || kindId < 0) {
+            return;
+        }
+        Defender fresh = new Defender(nowTicks + durationTicks, Math.min(chance, 100), byDefId, feedback);
+        defenderKindByPlayer.computeIfAbsent(defender, k -> new ConcurrentHashMap<>())
+                .merge(kindId, fresh, SuppressionStore::laterDefender);
+    }
+
+    private static Defender laterDefender(Defender a, Defender b) {
+        return b.expiry() > a.expiry() ? b : a;
+    }
+
+    /** What a defender-keyed block reports back: the naming scope, the arming ability, and the cue to emit. */
+    public record Matched(int scopeKind, int scopeId, int byDefId, Feedback feedback) {
+    }
+
+    /**
+     * The defender-keyed window on {@code defender} that silences {@code ability}, or {@code null}. Each
+     * candidate window rolls its OWN chance through {@code roll} (a {@code [0,100)} draw) — per incoming
+     * activation, which is exactly what the activator-side immunity cannot express, since an ability's chance
+     * gate rolls once when the window is armed.
+     *
+     * <p>Walks {@link #suppressesAny}'s scope order (enchant, group, type, then effect kinds) so both
+     * directions agree on which key names a block. Returning the matched window rather than a bare boolean is
+     * what lets gate 5 attribute and cue the block without a second lookup that could race the eviction.
+     */
+    public Matched defenderBlocks(Ability ability, UUID defender, long nowTicks,
+                                  java.util.function.DoubleSupplier roll) {
+        if (defender == null || ability.suppressImmune()
+                || (defenderByPlayer.isEmpty() && defenderKindByPlayer.isEmpty())) {
+            return null; // fast path: no defender window anywhere on the server
+        }
+        Matched hit = defenderScope(ability.cdScopeEnchant(), ScopeKinds.ENCHANT, defender, nowTicks, roll);
+        if (hit == null) {
+            hit = defenderScope(ability.cdScopeGroup(), ScopeKinds.GROUP, defender, nowTicks, roll);
+        }
+        if (hit == null) {
+            hit = defenderScope(ability.cdScopeType(), ScopeKinds.TYPE, defender, nowTicks, roll);
+        }
+        return hit != null ? hit : defenderKind(ability, defender, nowTicks, roll);
+    }
+
+    private Matched defenderScope(int scopeId, int scopeKind, UUID defender, long nowTicks,
+                                  java.util.function.DoubleSupplier roll) {
+        if (scopeId < 0) {
+            return null;
+        }
+        Map<Long, Defender> windows = defenderByPlayer.get(defender);
+        if (windows == null) {
+            return null;
+        }
+        long key = CooldownStore.key(scopeKind, scopeId);
+        Defender w = windows.get(key);
+        if (w == null) {
+            return null;
+        }
+        if (nowTicks >= w.expiry()) {
+            windows.remove(key, w);
+            return null;
+        }
+        return rolls(w, roll) ? new Matched(scopeKind, scopeId, w.byDefId(), w.feedback()) : null;
+    }
+
+    private Matched defenderKind(Ability ability, UUID defender, long nowTicks,
+                                 java.util.function.DoubleSupplier roll) {
+        Map<Integer, Defender> windows = defenderKindByPlayer.get(defender);
+        if (windows == null) {
+            return null;
+        }
+        for (CompiledEffect effect : ability.effects()) {
+            int kindId = effect.kindId();
+            if (kindId < 0) {
+                continue;
+            }
+            Defender w = windows.get(kindId);
+            if (w == null) {
+                continue;
+            }
+            if (nowTicks >= w.expiry()) {
+                windows.remove(kindId, w);
+                continue;
+            }
+            if (rolls(w, roll)) {
+                return new Matched(ScopeKinds.KIND, kindId, w.byDefId(), w.feedback());
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The cue carried by the first live defender-keyed window matching {@code ability}, or {@code null} — the
+     * read-back after a defender block, in {@link #defenderBlocks}'s own scope order. It does NOT roll: the
+     * roll was spent deciding the block, and a second draw could name a different window or none.
+     */
+    public Feedback defenderFeedback(Ability ability, UUID defender, long nowTicks) {
+        Matched hit = defenderBlocks(ability, defender, nowTicks, ALWAYS_BLOCKS);
+        return hit == null ? null : hit.feedback();
+    }
+
+    /** A draw that never fails, so {@link #defenderFeedback} sees exactly the windows that are live. */
+    private static final java.util.function.DoubleSupplier ALWAYS_BLOCKS = () -> -1.0;
+
+    /** A window at 100 blocks without drawing at all, so an absolute mask never touches the roll supplier. */
+    private static boolean rolls(Defender w, java.util.function.DoubleSupplier roll) {
+        return w.chance() >= 100 || roll.getAsDouble() < w.chance();
     }
 }

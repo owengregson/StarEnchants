@@ -4955,6 +4955,110 @@
       ]
     },
   {
+    "head": "SUPPRESS_INCOMING",
+    "doc": "Make each target IMMUNE to abilities aimed at them: for `duration` ticks, an activation whose enchant/group/type (or, with scope KIND, whose effect head) matches `key` is blocked at gate 5 when it targets the holder. `chance` rolls per incoming activation. The mirror of SUPPRESS, which silences what its target DOES; this silences what is done TO them, including the opening proc a defensive SUPPRESS can never reach. Re-arming extends the window, so a PASSIVE may hold it open.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ SUPPRESS_INCOMING: { scope: <enum{ENCHANT|GROUP|TYPE|KIND}>, key: <string>, duration: <ticks[0..]=200>, chance: <int[1..100]=100>, consumed-message-actor: <string=>, consumed-message-victim: <string=>, consumed-sound: <sound> } }",
+    "example": "{ SUPPRESS_INCOMING: { scope: GROUP, key: lifesteal, duration: 100, who: \"@Self\" } }",
+    "params": [
+      {
+        "name": "scope",
+        "kind": "ENUM",
+        "label": "enum{ENCHANT|GROUP|TYPE|KIND}",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [
+          "ENCHANT",
+          "GROUP",
+          "TYPE",
+          "KIND"
+          ],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "key",
+        "kind": "STRING",
+        "label": "string",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[0..]",
+        "required": false,
+        "default": "200",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": ""
+        },
+      {
+        "name": "chance",
+        "kind": "INT",
+        "label": "int[1..100]",
+        "required": false,
+        "default": "100",
+        "min": 1,
+        "max": 100,
+        "enum": [],
+        "handle": null,
+        "doc": "percent rolled per incoming activation; 100 is absolute"
+        },
+      {
+        "name": "consumed-message-actor",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "line to the protected holder, when it blocks"
+        },
+      {
+        "name": "consumed-message-victim",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "line to the blocked activator, when it blocks"
+        },
+      {
+        "name": "consumed-sound",
+        "kind": "HANDLE",
+        "label": "sound",
+        "required": false,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "SOUND",
+        "doc": "cue played at the block; omit for silence"
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
     "head": "SWAP_POSITION",
     "doc": "Castling (reforges): lock the enemy in your crosshair (range, line of sight), channel for channel ticks with audible countdown cues and a warning to the victim, then both of you swap positions — velocities zeroed, each keeps their own facing. Line of sight broken, range + slack exceeded, a world change or a death aborts it; the use stays spent. Reforge-service-owned: this effect emits no intent of its own.",
     "affinity": "CONTEXT_LOCAL",

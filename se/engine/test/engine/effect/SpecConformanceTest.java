@@ -33,13 +33,13 @@ import testfx.SpecDrivenCtx;
 class SpecConformanceTest {
 
     /**
-     * SUPPRESS is the one kind whose args the erase stage REWRITES before runtime ({@code scope}/{@code key}
-     * String → long, the bridge invariant in {@code DefaultEraseStage.eraseSuppressArgs}). So at {@code run()}
-     * it reads its scope/key as the post-erasure integers, not the authored ENUM/STRING the spec declares —
-     * the only kind whose runtime read types differ from its spec. It still gets the round-trip checks; only
-     * the spec-typed run is skipped.
+     * The two suppression kinds are the ones whose args the erase stage REWRITES before runtime
+     * ({@code scope}/{@code key} String → long, the bridge invariant in
+     * {@code DefaultEraseStage.eraseSuppressArgs}) — they share one keying, so they share one lowering. At
+     * {@code run()} they read scope/key as the post-erasure integers, not the authored ENUM/STRING the spec
+     * declares. They still get the round-trip checks; only the spec-typed run is skipped.
      */
-    private static final Set<String> ERASE_REWRITTEN = Set.of("SUPPRESS");
+    private static final Set<String> ERASE_REWRITTEN = Set.of("SUPPRESS", "SUPPRESS_INCOMING");
 
     @Test
     void theRegistryIsNotEmpty() {

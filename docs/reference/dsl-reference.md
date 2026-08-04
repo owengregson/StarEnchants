@@ -1079,6 +1079,22 @@ Make the target(s) immune to suppression (DISABLE_ENCHANT/GROUP/TYPE) while worn
 - _target_ `who`: selector `SELF`
 - _example_: `{ SUPPRESS_IMMUNE: { chance: 4, who: "@Self" } }`
 
+### SUPPRESS_INCOMING
+
+Make each target IMMUNE to abilities aimed at them: for `duration` ticks, an activation whose enchant/group/type (or, with scope KIND, whose effect head) matches `key` is blocked at gate 5 when it targets the holder. `chance` rolls per incoming activation. The mirror of SUPPRESS, which silences what its target DOES; this silences what is done TO them, including the opening proc a defensive SUPPRESS can never reach. Re-arming extends the window, so a PASSIVE may hold it open.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ SUPPRESS_INCOMING: { scope: <enum{ENCHANT|GROUP|TYPE|KIND}>, key: <string>, duration: <ticks[0..]=200>, chance: <int[1..100]=100>, consumed-message-actor: <string=>, consumed-message-victim: <string=>, consumed-sound: <sound> } }`
+- _param_ `scope` `enum{ENCHANT|GROUP|TYPE|KIND}`
+- _param_ `key` `string`
+- _param_ `duration` `ticks[0..]`
+- _param_ `chance` `int[1..100]` — percent rolled per incoming activation; 100 is absolute
+- _param_ `consumed-message-actor` `string` — line to the protected holder, when it blocks
+- _param_ `consumed-message-victim` `string` — line to the blocked activator, when it blocks
+- _param_ `consumed-sound` `sound` — cue played at the block; omit for silence
+- _target_ `who`: selector `SELF`
+- _example_: `{ SUPPRESS_INCOMING: { scope: GROUP, key: lifesteal, duration: 100, who: "@Self" } }`
+
 ### SWAP_POSITION
 
 Castling (reforges): lock the enemy in your crosshair (range, line of sight), channel for channel ticks with audible countdown cues and a warning to the victim, then both of you swap positions — velocities zeroed, each keeps their own facing. Line of sight broken, range + slack exceeded, a world change or a death aborts it; the use stays spent. Reforge-service-owned: this effect emits no intent of its own.

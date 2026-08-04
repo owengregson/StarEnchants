@@ -1017,4 +1017,12 @@ public interface Sink {
      * lapse notice is scheduled here, at the arm, because nothing else in the engine observes a window ending.
      */
     void vulnerability(Player target, double percent, int durationTicks, String hitMessage, String expiryMessage);
+
+    /**
+     * Arm a DEFENDER-KEYED suppression window on {@code target} — {@code SUPPRESS_INCOMING}. Same keying as
+     * {@link #suppress}, opposite direction: gate 5 consults this one with the activation's VICTIM id, so it
+     * blocks what others aim at {@code target}. {@code chance} is rolled at each incoming activation.
+     */
+    void suppressIncoming(Player target, int scopeKind, int scopeId, int durationTicks, int chance, int byDefId,
+                          UUID by, String actorMessage, String victimMessage, int soundId);
 }

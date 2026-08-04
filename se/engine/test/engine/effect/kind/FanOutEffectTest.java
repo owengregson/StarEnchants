@@ -277,7 +277,14 @@ class FanOutEffectTest {
                         new VulnerabilityEffect(),
                         c -> c.with("percent", 100.0).with("duration", 60)
                                 .with("hit-message", "marked for {damage}").with("expiry-message", "mark off"),
-                        (s, p) -> verify(s).vulnerability(p, 100.0, 60, "marked for {damage}", "mark off")));
+                        (s, p) -> verify(s).vulnerability(p, 100.0, 60, "marked for {damage}", "mark off")),
+                // Every arg distinct and non-default, so a transposed scope/key/duration/chance cannot pass.
+                playerOnly("SUPPRESS_INCOMING → suppressIncoming(scope, key, duration, chance, cues)",
+                        new SuppressIncomingEffect(),
+                        c -> c.with("scope", 1).with("key", 7).with("duration", 100).with("chance", 50)
+                                .with("consumed-message-actor", "dodged")
+                                .with("consumed-message-victim", "fizzled"),
+                        (s, p) -> verify(s).suppressIncoming(p, 1, 7, 100, 50, -1, null, "dodged", "fizzled", -1)));
     }
 
     /** The wave-1d.2 kinds whose fan-out shape is neither plain-entity nor plain-player. */
