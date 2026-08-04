@@ -9,14 +9,14 @@ applies-to: [AXE]
 group: "legendary"
 tier: legendary
 condition: "%victim.helditem% matchesregex \".*_AXE$\""
-# D-04-4 (as-intended): axe materials only. The measured gate was `contains("_AXE")`, which counts every
-# PICKAXE holder as an axe holder; `matchesregex` is a FULL match, so DIAMOND_PICKAXE (…CKAXE) fails it and
-# DIAMOND_AXE passes.
+# D-04-4 is NOT a deviation: the measured gate is `contains("_AXE")`, and no Material name on either era
+# carries `_AXE` anywhere but terminally — DIAMOND_PICKAXE's one underscore precedes PICKAXE — so the
+# substring never matched a pickaxe and this full-match regex selects exactly the same items.
 # No roll and no player gate — the bonus lands on every qualifying hit, mobs holding axes included.
 # Structural mirror of Insanity (victim holding a sword).
 # era: held material names differ per lane (1.8.9 WOOD_AXE/GOLD_AXE vs modern WOODEN_AXE/GOLDEN_AXE); the
 # `_AXE` suffix holds on both, which an exact-name list would not. The regex rather than the `contains` idiom
-# armored.yml/rage.yml use is D-04-4's call above, not an era one — `contains` matches the same suffix on
+# armored.yml/rage.yml use is legibility, not era and not correction — `contains` selects the same items on
 # either lane, as tank.yml ships.
 levels:
   # +5 pp per level; nothing else scales.
