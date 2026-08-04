@@ -138,6 +138,7 @@ public final class BuiltinEffects {
                 // Cosmic-port wave 2d. APPENDED, never inserted (ADR-0039 dense kind ids).
                 .register(new FacingSetEffect())         // Horrify: turn a body toward/away from a reference
                 .register(new FallShieldEffect())        // one-shot fall cancel on an arbitrary player
+                .register(new VulnerabilityEffect())     // Mark of the Beast: +% incoming from EVERY source
                 .build();
     }
 }

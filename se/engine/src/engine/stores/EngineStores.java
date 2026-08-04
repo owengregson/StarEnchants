@@ -23,7 +23,8 @@ public record EngineStores(
         DisarmWindowStore disarmWindows, HeldSlotStore heldSlots, SoulTotalStore soulTotals,
         DotAmplifyStore dotAmplify, HeadTrophyStore headTrophies, FoodWindowStore foodWindows,
         MessageThrottleStore messageThrottle, SoulEscalationStore soulEscalation,
-        DotSuppressionStore dotSuppression, ReboundStore rebounds, FallShieldStore fallShields) {
+        DotSuppressionStore dotSuppression, ReboundStore rebounds, FallShieldStore fallShields,
+        VulnerabilityStore vulnerability) {
 
     public EngineStores {
         Objects.requireNonNull(vars, "vars");
@@ -54,6 +55,7 @@ public record EngineStores(
         Objects.requireNonNull(dotSuppression, "dotSuppression");
         Objects.requireNonNull(rebounds, "rebounds");
         Objects.requireNonNull(fallShields, "fallShields");
+        Objects.requireNonNull(vulnerability, "vulnerability");
     }
 
     /** A fresh aggregate with every store newly constructed (the composition-root default). */
@@ -66,7 +68,8 @@ public record EngineStores(
                 new DisarmWindowStore(), new HeldSlotStore(), new SoulTotalStore(),
                 new DotAmplifyStore(), new HeadTrophyStore(), new FoodWindowStore(),
                 new MessageThrottleStore(), new SoulEscalationStore(), new DotSuppressionStore(),
-                new ReboundStore(), new FallShieldStore());
+                new ReboundStore(), new FallShieldStore(),
+                new VulnerabilityStore());
     }
 
     /** Every store as the {@link PlayerScoped} seam, in sweep order. */
@@ -74,7 +77,7 @@ public record EngineStores(
         return List.of(vars, suppression, knockback, keepOnDeath, teleblock, immune, cooldowns, combo, why,
                 recentAttackers, reflectMarks, outgoingDebuff, damageCap, rageStacks, ward, hitTempo, battery,
                 disarmWindows, heldSlots, soulTotals, dotAmplify, headTrophies, foodWindows,
-                messageThrottle, soulEscalation, dotSuppression, rebounds, fallShields);
+                messageThrottle, soulEscalation, dotSuppression, rebounds, fallShields, vulnerability);
     }
 
     /**
@@ -110,7 +113,7 @@ public record EngineStores(
      */
     public List<RetainedStore> quitRetained() {
         return List.of(cooldowns, teleblock, suppression, reflectMarks, outgoingDebuff, dotAmplify,
-                headTrophies);
+                headTrophies, vulnerability);
     }
 
     /**

@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-/** The {@code REFLECT feedback} number format: a chat readout, so trailing zeros go and the locale never leaks. */
-class ReflectFeedbackTest {
+/** The per-hit feedback number format: a chat readout, so trailing zeros go and the locale never leaks. */
+class HitFeedbackTest {
 
     @ParameterizedTest(name = "{0} → \"{1}\"")
     @CsvSource({
@@ -17,11 +17,11 @@ class ReflectFeedbackTest {
             "12.30, 12.3",
     })
     void damageRendersAtMostTwoDecimalsWithNoTrailingZero(double damage, String rendered) {
-        assertEquals("hit for " + rendered, ReflectFeedback.fill("hit for {damage}", damage));
+        assertEquals("hit for " + rendered, HitFeedback.fill("hit for {damage}", damage));
     }
 
     @org.junit.jupiter.api.Test
     void aTemplateWithoutTheTokenIsPassedThrough() {
-        assertEquals("plain", ReflectFeedback.fill("plain", 3.0));
+        assertEquals("plain", HitFeedback.fill("plain", 3.0));
     }
 }
