@@ -513,6 +513,13 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
     }
 
     @Override
+    protected void particleDirect(LivingEntity target, int particleId, int count, double spread) {
+        // getHeight is absent on 1.8, so the body centre is a flat +1.0 (the particle who-slot's own choice).
+        sendParticleAt(target.getLocation().add(0.0, 1.0, 0.0), particleId, count,
+                (float) spread, (float) spread, (float) spread);
+    }
+
+    @Override
     public void dust(Location at, int particleId, int r, int g, int b, float size, int count) {
         regionOp(at, () -> dustDirect(at, particleId, r, g, b, size, count));
     }

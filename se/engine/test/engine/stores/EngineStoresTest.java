@@ -116,6 +116,7 @@ class EngineStoresTest {
         s.foodWindows().arm(id, FoodWindowStore.Type.CANCEL_DRAIN, 0L, 100, 0.0);
         s.messageThrottle().tryEmit(id, 0L, 300);
         s.soulEscalation().step(id, CooldownStore.key(0, 1), 0L, 0);
+        s.dotSuppression().suppress(id, DotSuppressionStore.CAUSE_WITHER, 0L, 100);
 
         assertEquals("1", s.vars().get(id, "x", 0L));
         assertTrue(s.suppression().isSuppressed(id, 1L, 0L));
@@ -131,6 +132,7 @@ class EngineStoresTest {
         assertTrue(s.foodWindows().cancelsDrain(id, 0L));
         assertFalse(s.messageThrottle().tryEmit(id, 0L, 300)); // armed by the emit above
         assertEquals(1, s.soulEscalation().steps(id, CooldownStore.key(0, 1), 0L, 0));
+        assertTrue(s.dotSuppression().suppressed(id, 0L, DotSuppressionStore.CAUSE_WITHER));
 
         s.clearAll(id);
 
@@ -150,5 +152,6 @@ class EngineStoresTest {
         assertFalse(s.foodWindows().cancelsDrain(id, 0L));
         assertTrue(s.messageThrottle().tryEmit(id, 0L, 300));
         assertEquals(0, s.soulEscalation().steps(id, CooldownStore.key(0, 1), 0L, 0)); // back to the base price
+        assertFalse(s.dotSuppression().suppressed(id, 0L, DotSuppressionStore.CAUSE_WITHER));
     }
 }

@@ -66,7 +66,9 @@ class NewEffectEndToEndTest {
 
     /** The eight kinds this wave adds, with a minimal authored form of each. */
     private static final List<String> WAVE_1D2 = List.of(
-            "PERIODIC_DAMAGE: { amount: 6, period: 20, duration: 120, who: \"@Victim\" }",
+            "PERIODIC_DAMAGE: { amount: 6, period: 20, duration: 120, replace: WITHER, "
+                    + "tick-sound: ENTITY_ZOMBIFIED_PIGLIN_ANGRY, tick-volume: 0.6, tick-pitch: 0.8, "
+                    + "tick-particle: FLAME, tick-particle-count: 20, who: \"@Victim\" }",
             "DOT_AMPLIFY_MARK: { causes: dot, factor: 3, duration: 60, who: \"@Victim\" }",
             "OUTGOING_DEBUFF: { percent: 50, duration: 80, cause: projectile, who: \"@Victim\" }",
             "DESPAWN: { who: \"@Victim\" }",
@@ -221,6 +223,25 @@ class NewEffectEndToEndTest {
                 BuiltinEffects.registry().kindsById()[effect.kindId()].spec().head());
         assertEquals("detonate", effect.args().str("payload-phase"), "the phase survives the whole compile");
         assertEquals(3L, effect.args().lng("scatter"));
+    }
+
+    @Test
+    void aBurnsTickCuesAndReplacedDotSurviveTheWholeCompile() throws Exception {
+        // The cues and the replaced DoT are read ONLY at pulse time, long after the walk that armed them, so a
+        // stage that drops an optional handle or the replace list leaves an enchant that burns in silence (or
+        // one whose conversion never happens) with nothing red at either end.
+        Snapshot snap = load("immolation", """
+                PERIODIC_DAMAGE: { amount: 6, period: 20, duration: 120, replace: WITHER, \
+                tick-sound: ENTITY_ZOMBIFIED_PIGLIN_ANGRY, tick-volume: 0.6, tick-pitch: 0.8, \
+                tick-particle: FLAME, tick-particle-count: 20, who: "@Victim" }""");
+        CompiledEffect effect = snap.byStableKey("enchants/immolation/1").effects()[0];
+
+        assertEquals(1, effect.args().ids("replace").size(), "the converted DoT reaches the runtime");
+        assertTrue(effect.args().has("tick-sound") && effect.args().has("tick-particle"),
+                "both optional cue handles interned rather than being dropped as absent");
+        assertEquals(0.6, effect.args().dbl("tick-volume"));
+        assertEquals(0.8, effect.args().dbl("tick-pitch"));
+        assertEquals(20L, effect.args().lng("tick-particle-count"));
     }
 
     @Test

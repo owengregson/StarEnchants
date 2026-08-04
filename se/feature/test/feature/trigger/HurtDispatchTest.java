@@ -19,6 +19,8 @@ import engine.sink.EngineDamage;
 import engine.sink.ModernDispatchSink;
 import engine.sink.SinkEnv;
 import engine.sink.SinkFactory;
+import engine.stores.DotSuppressionStore;
+import engine.stores.EngineStores;
 import engine.trigger.BuiltinTriggers;
 import engine.trigger.TriggerRegistry;
 import feature.compat.DropControl;
@@ -60,12 +62,14 @@ class HurtDispatchTest {
 
     private AbilityExecutor executor;
     private TriggerListeners listeners;
+    private EngineStores stores;
 
     @BeforeEach
     void setUp() {
         Scheduling.install(new SyncSchedulerBackend());
         RuntimeHandles handles = new RuntimeHandles(new RegistryResolvers());
-        SinkEnv env = Envs.sink().build();
+        stores = EngineStores.fresh();
+        SinkEnv env = Envs.sink().stores(stores).nowTicks(() -> 0L).build();
         SinkFactory sinkFactory = mock(SinkFactory.class);
         when(sinkFactory.create(any())).thenReturn(new ModernDispatchSink(handles, env));
         // The wearer carries one ability on EACH defender trigger, so which walks ran is visible.
@@ -123,6 +127,31 @@ class HurtDispatchTest {
         listeners.onEnvironmentalDamage(event);
 
         verify(executor, never()).run(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void aReplacedDotTickIsCancelledWhileTheBurnHoldsItsWindow() {
+        // PERIODIC_DAMAGE's `replace` contract: the burn is the only damage clock, so the vanilla tick is
+        // cancelled outright — never merely scaled, which would still hurt through the fold.
+        stores.dotSuppression().suppress(ACTOR, DotSuppressionStore.CAUSE_WITHER, 0L, 100);
+        EntityDamageEvent event = damage(EntityDamageEvent.DamageCause.WITHER, 2.0, 2.0);
+
+        listeners.onEnvironmentalDamage(event);
+
+        verify(event).setCancelled(true);
+        verify(executor, never()).run(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void aDotCauseTheBurnNeverNamedStillLands() {
+        // The mask is per cause: a wither conversion must not quietly grant poison immunity too.
+        stores.dotSuppression().suppress(ACTOR, DotSuppressionStore.CAUSE_WITHER, 0L, 100);
+        EntityDamageEvent event = damage(EntityDamageEvent.DamageCause.POISON, 2.0, 2.0);
+
+        listeners.onEnvironmentalDamage(event);
+
+        verify(event, never()).setCancelled(true);
+        assertEquals(EntityDamageEvent.DamageCause.POISON.name(), onlyWalk(hurt).damageCauseName());
     }
 
     /** The trigger ids of exactly {@code expected} captured walks, in the order they ran. */

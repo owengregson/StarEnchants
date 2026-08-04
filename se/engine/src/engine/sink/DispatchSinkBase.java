@@ -7,6 +7,7 @@ import engine.stores.CooldownStore;
 import engine.stores.DamageCapStore;
 import engine.stores.DisarmWindowStore;
 import engine.stores.DotAmplifyStore;
+import engine.stores.DotSuppressionStore;
 import engine.stores.HeadTrophyStore;
 import engine.stores.HitTempoStore;
 import engine.stores.ImmuneStore;
@@ -24,6 +25,7 @@ import engine.stores.WardStore;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -157,6 +159,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     /** The out-of-souls notice cadence — a fixed 15s, never an authored knob. */
     private static final int OUT_OF_SOULS_THROTTLE_TICKS = 300;
+    /** PERIODIC_DAMAGE tick-burst spread: PARTICLE's own default, so a burn's aura frames the body, not a point. */
+    private static final double TICK_CUE_SPREAD = 0.4;
     private final ReflectMarksStore reflectMarks;   // ADR-0049 Hex reflect windows
     private final OutgoingDebuffStore outgoingDebuff; // ADR-0049 Weaken/Destruction outgoing nerfs
     private final DamageCapStore damageCap;          // ADR-0049 Diminish last-taken + armed cap
@@ -185,6 +189,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final TrapStructures trapStructures;
     /** DOT_AMPLIFY_MARK windows, read by the environmental damage path where wither/poison ticks land. */
     private final DotAmplifyStore dotAmplify;
+    /** PERIODIC_DAMAGE's {@code replace} windows, read by the environmental damage path. */
+    private final DotSuppressionStore dotSuppression;
     /** HEAD_TROPHY arms, spent by the victim's next death. */
     private final HeadTrophyStore headTrophies;
     /** The VIEWER_HIDE seam (the modern call needs a {@code Plugin} the engine may not hold). */
@@ -249,6 +255,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.disarmWindowStore = env.stores().disarmWindows();
         this.trapStructures = env.trapStructures();
         this.dotAmplify = env.stores().dotAmplify();
+        this.dotSuppression = env.stores().dotSuppression();
         this.headTrophies = env.stores().headTrophies();
         this.visibility = env.visibility();
         this.payloads = env.payloads();
@@ -1169,15 +1176,13 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void periodicDamage(LivingEntity target, double amount, int periodTicks, int durationTicks,
-                               List<Integer> replaced, String feedback, LivingEntity attacker) {
+                               List<Integer> replaced, String feedback, LivingEntity attacker,
+                               int tickSoundId, float tickVolume, float tickPitch,
+                               int tickParticleId, int tickParticleCount) {
         if (target == null || durationTicks <= 0) {
             return;
         }
-        // The conversion half: the vanilla DoT this burn replaces is stripped and denied for the whole window,
-        // so the two never tick side by side. potionLock owns the deny loop and its own teardown.
-        for (int packed : replaced) {
-            potionLock(target, PotionLoadout.id(packed), durationTicks); // a POTION_EFFECT list is always packed
-        }
+        armDotSuppression(target, replaced, durationTicks);
         int period = Math.max(1, periodTicks);
         String line = feedback == null ? "" : Colors.translate(feedback);
         entityOp(target, () -> {
@@ -1204,11 +1209,48 @@ public abstract class DispatchSinkBase implements SinkReadback {
                     // pulse, and we are already on the victim's own thread here.
                     burning.sendMessage(line);
                 }
+                // Emitted directly (the dustDirect idiom, ADR-0071) for the same reason, and deliberately NOT
+                // through CueOnce: that brackets one hit's co-activations, and de-duping across pulses would
+                // silence every pulse after the first.
+                playCueInline(target.getLocation(), tickSoundId, tickVolume, tickPitch);
+                if (tickParticleId >= 0 && tickParticleCount > 0) {
+                    particleDirect(target, tickParticleId, tickParticleCount, TICK_CUE_SPREAD);
+                }
                 if (--left[0] <= 0 && task[0] != null) {
                     task[0].cancel();
                 }
             });
         });
+    }
+
+    /**
+     * Arm the {@code replace} window: the named vanilla DoTs' DAMAGE is cancelled while the burn runs, and the
+     * status effects themselves are left alone — visible, re-appliable, never stripped ({@link #potionLock} is
+     * the strip-and-deny intent, and this is not it). Only WITHER and POISON tick damage, so any other name
+     * converts nothing. Only players are marked: the environmental damage path that reads it is theirs.
+     */
+    private void armDotSuppression(LivingEntity target, List<Integer> replaced, int durationTicks) {
+        if (!(target instanceof Player player) || replaced.isEmpty()) {
+            return;
+        }
+        int causeMask = 0;
+        for (int packed : replaced) {
+            causeMask |= dotCauseBit(potionEffect(PotionLoadout.id(packed))); // a POTION_EFFECT list is always packed
+        }
+        dotSuppression.suppress(player.getUniqueId(), causeMask, nowTicks.getAsLong(), durationTicks);
+    }
+
+    /** The DoT cause a live potion type ticks as, or 0 for one that deals no damage over time. */
+    @SuppressWarnings("deprecation") // getName(): deprecated-not-removed; the one name accessor stable across the range.
+    private static int dotCauseBit(PotionEffectType type) {
+        if (type == null) {
+            return 0;
+        }
+        return switch (type.getName().toUpperCase(Locale.ROOT)) {
+            case "WITHER" -> DotSuppressionStore.CAUSE_WITHER;
+            case "POISON" -> DotSuppressionStore.CAUSE_POISON;
+            default -> 0;
+        };
     }
 
     @Override
@@ -3309,6 +3351,15 @@ public abstract class DispatchSinkBase implements SinkReadback {
      * actor's scheduler, a grapple line hopped per straddling chunk), never re-entering an already-flushed plan.
      */
     protected abstract void dustDirect(Location at, int particleId, int r, int g, int b, float size, int count);
+
+    /**
+     * A plain particle burst on {@code target}'s body with no plan wrapper — {@link #dustDirect}'s contract
+     * (ADR-0071) for the non-dust bursts a long-lived task emits (PERIODIC_DAMAGE's per-pulse cue), on a thread
+     * the caller already owns. The public {@link #particle(LivingEntity, int, int, int, double, double, double)}
+     * intent is the plan-based form; calling it post-flush would append to a plan nobody flushes again.
+     * {@code spread} is the per-axis Gaussian offset.
+     */
+    protected abstract void particleDirect(LivingEntity target, int particleId, int count, double spread);
 
     /** The player's main-hand item ({@code getItemInMainHand} on modern; {@code getItemInHand} on 1.8). */
     protected abstract ItemStack mainHand(Player target);
