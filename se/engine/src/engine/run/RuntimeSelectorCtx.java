@@ -81,7 +81,7 @@ final class RuntimeSelectorCtx implements SelectorCtx {
     }
 
     @Override
-    public boolean materialMatches(Location at, java.util.List<Integer> materialIds) {
-        return areaScan.materialMatches(at, materialIds);
+    public boolean materialMatches(Location at, java.util.List<Integer> allow, java.util.List<Integer> deny) {
+        return areaScan.materialMatches(at, allow, deny);
     }
 }

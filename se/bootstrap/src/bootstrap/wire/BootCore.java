@@ -535,11 +535,21 @@ public final class BootCore {
                 bindings.mcmmoFriendlyFire(plugin, master.config().integrations()::enabled);
         CombatDispatch.friendlyFire(allied);
         engine.selector.kind.Allies.resolver(allied);
-        // %actor.enchlevel.<key>% / %victim.enchlevel.<key>%: the level flattened into the live WornState, by
-        // UUID — the composition root is the only layer where the engine's reader and the item store meet.
-        engine.run.FactPopulator.enchantLevelSource((entity, key) -> {
-            item.worn.WornState state = worn.get(entity);
-            return state == null ? 0 : state.enchantLevel(key);
+        // The worn-gear facts (%scope.enchlevel.<key>%, %victim.heroicpieces%): both flattened into the live
+        // WornState, read by UUID — the composition root is the only layer where the engine's reader and the
+        // item store meet. An entity with no resolved state reads zero rather than provoking a gear scan.
+        engine.run.FactPopulator.wornFactSource(new engine.condition.WornFactSource() {
+            @Override
+            public int levelOf(java.util.UUID entity, String key) {
+                item.worn.WornState state = worn.get(entity);
+                return state == null ? 0 : state.enchantLevel(key);
+            }
+
+            @Override
+            public int heroicPieces(java.util.UUID entity) {
+                item.worn.WornState state = worn.get(entity);
+                return state == null ? 0 : state.heroicPieces();
+            }
         });
         // %victim.mobtype% from MythicMobs' internal name,
         engine.run.FactPopulator.entityTypeResolver(
@@ -736,7 +746,7 @@ public final class BootCore {
      * The world-access seam for selectors (§3.6). All run synchronously on the firing thread, so each touch is
      * region-correct on Folia. {@code bindings} supplies the era targeting (modern raytrace / 1.8 LOS).
      */
-    private static AreaScan areaScan(bootstrap.compat.EraServices bindings) {
+    static AreaScan areaScan(bootstrap.compat.EraServices bindings) {
         return new AreaScan() {
             @Override
             public Iterable<LivingEntity> nearbyLiving(Location center, double radius) {
@@ -776,8 +786,8 @@ public final class BootCore {
             }
 
             @Override
-            public boolean materialMatches(Location at, List<Integer> materialIds) {
-                if (materialIds.isEmpty() || at == null || at.getWorld() == null) {
+            public boolean materialMatches(Location at, List<Integer> allow, List<Integer> deny) {
+                if ((allow.isEmpty() && deny.isEmpty()) || at == null || at.getWorld() == null) {
                     return true; // no filter: never touch the world, so an unfiltered shape reads no blocks
                 }
                 org.bukkit.Material type;
@@ -787,6 +797,12 @@ public final class BootCore {
                     Regions.swallowed("AreaScan.materialMatches", offRegion);
                     return false; // a cross-region/unloaded read on Folia — drop the block rather than crash
                 }
+                // One read, both halves. Deny wins a tie: a material named on both lists is refused, which is
+                // the safe reading — a deny list exists to protect blocks a broad allow list would have swept in.
+                return (allow.isEmpty() || contains(allow, type)) && !contains(deny, type);
+            }
+
+            private boolean contains(List<Integer> materialIds, org.bukkit.Material type) {
                 for (int i = 0; i < materialIds.size(); i++) {
                     if (bindings.material(materialIds.get(i)) == type) {
                         return true;

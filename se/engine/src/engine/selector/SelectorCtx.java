@@ -58,11 +58,12 @@ public interface SelectorCtx {
     }
 
     /**
-     * Whether the block at {@code at} is one of the interned {@code materialIds}. An EMPTY list is "no filter"
-     * and answers {@code true} without touching the world, so an unfiltered selector reads no blocks at all;
-     * a context with no world defaults to admitting everything rather than silently emptying the selection.
+     * Whether the block at {@code at} survives both halves of the material filter: it must be in {@code allow}
+     * (when that list is non-empty) and must NOT be in {@code deny}. Two EMPTY lists are "no filter" and answer
+     * {@code true} without touching the world, so an unfiltered selector reads no blocks at all; a context with
+     * no world defaults to admitting everything rather than silently emptying the selection.
      */
-    default boolean materialMatches(Location at, List<Integer> materialIds) {
+    default boolean materialMatches(Location at, List<Integer> allow, List<Integer> deny) {
         return true;
     }
 }

@@ -14,9 +14,11 @@ public final class TrenchSelector implements SelectorKind {
     static final SelectorSpec SPEC = SelectorSpec.of("TRENCH")
             .param("radius", D.INT.min(0).def(1), "half-width of the face (1 = 3x3)")
             .param("materials", D.materials().def(""), "keep only these block types (empty = every block)")
+            .param("exclude-materials", D.materials().def(""), "drop these block types (empty = drop none)")
             .doc("The square of blocks perpendicular to the look direction, centred on the activation block. "
-                    + "materials keeps only the listed block types, written [STONE,DIRT] so the comma survives "
-                    + "the selector body.")
+                    + "materials keeps only the listed block types and exclude-materials drops them, both "
+                    + "written [STONE,DIRT] so the comma survives the selector body. A type on both lists is "
+                    + "dropped.")
             .example("@Trench{radius=1}")
             .build();
 
@@ -37,6 +39,7 @@ public final class TrenchSelector implements SelectorKind {
         int[] v = axes[1];
         int r = ctx.integer("radius");
         List<Integer> materials = ctx.args().ids("materials");
+        List<Integer> excluded = ctx.args().ids("exclude-materials");
         List<Location> out = new ArrayList<>((2 * r + 1) * (2 * r + 1));
         for (int du = -r; du <= r; du++) {
             for (int dv = -r; dv <= r; dv++) {
@@ -44,7 +47,7 @@ public final class TrenchSelector implements SelectorKind {
                         (double) (u[0] * du + v[0] * dv),
                         (double) (u[1] * du + v[1] * dv),
                         (double) (u[2] * du + v[2] * dv));
-                if (ctx.materialMatches(at, materials)) {
+                if (ctx.materialMatches(at, materials, excluded)) {
                     out.add(at);
                 }
             }

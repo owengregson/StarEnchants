@@ -33,6 +33,7 @@ public final class WornStates {
         private int[] combatDefense = new int[0];
         private FactMask[] triggerFactMask = null;
         private final Map<String, Integer> enchantLevels = new LinkedHashMap<>();
+        private int heroicPieces;
 
         public Builder gen(int gen) {
             this.gen = gen;
@@ -101,9 +102,15 @@ public final class WornStates {
             return this;
         }
 
+        /** The {@code %victim.heroicpieces%} count: worn armour pieces carrying a heroic upgrade. */
+        public Builder heroicPieces(int heroicPieces) {
+            this.heroicPieces = heroicPieces;
+            return this;
+        }
+
         public WornState build() {
             return new WornState(gen, activeSets, crystalAbilityIds, heroic, byTrigger, combatAttack,
-                    combatDefense, triggerFactMask, Map.copyOf(enchantLevels));
+                    combatDefense, triggerFactMask, Map.copyOf(enchantLevels), heroicPieces);
         }
     }
 }

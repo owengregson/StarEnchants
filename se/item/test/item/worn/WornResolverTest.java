@@ -2,6 +2,8 @@ package item.worn;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import compile.model.Ability;
 import compile.model.SourceKind;
@@ -12,8 +14,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.IntPredicate;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.Test;
 import testfx.Abilities;
+import testfx.Snapshots;
 
 /**
  * Unit tests for the worn-state resolution core (ADR-0014, §5.5): on-item enchant {@code (baseKey,
@@ -374,6 +379,61 @@ class WornResolverTest {
         WornState noHeroic = resolver(new WornResolver.Features(true, true, true, false, true, true))
                 .resolveFrom(List.of(heroicPiece), KEYS, ABILITIES, 1);
         assertEquals(0.0, noHeroic.heroic().percentDamage(), 1e-9, "heroic off → no flat stat");
+    }
+
+    @Test
+    void heroicPiecesCountsWornArmourOnly() {
+        // %victim.heroicpieces% is a GATE ("wearing at least one heroic piece"), so it must count SLOTS, which
+        // the flattened combat-state list no longer knows: the heroic stat sum cannot tell four 10 % pieces
+        // from one 40 % piece, and a heroic SWORD is not armour a defender is wearing. Both mistakes read as a
+        // plausible number, which is why the count is taken where the slot is still known.
+        CombatState heroic = new CombatState(Map.of(), List.of(), null, false, new HeroicStat(0.5, 0.5, 0.5));
+        CombatState plain = ench("enchants/lifesteal", 3);
+
+        // helmet + chest heroic, legs plain, boots empty, a heroic sword in the main hand, heroic off-hand.
+        assertEquals(2, resolved(heroic, heroic, plain, null, heroic, heroic).heroicPieces());
+        assertEquals(0, resolved(plain, plain, plain, plain, heroic, heroic).heroicPieces());
+        assertEquals(4, resolved(heroic, heroic, heroic, heroic, null, null).heroicPieces());
+    }
+
+    @Test
+    void theHeroicToggleZerosTheCountAsWellAsTheStat() {
+        // One switch, both readings: a server that turned heroic off must not leave a gate that still fires.
+        CombatState heroic = new CombatState(Map.of(), List.of(), null, false, new HeroicStat(0.5, 0.5, 0.5));
+
+        assertEquals(0, resolved(new WornResolver.Features(true, true, true, false, true, true),
+                heroic, heroic, heroic, heroic, null, null).heroicPieces());
+    }
+
+    /** Resolve a full 6-slot equipment array (0-3 armour, 4 main, 5 off) through the real slot-aware path. */
+    private static WornState resolved(CombatState... slots) {
+        return resolved(WornResolver.Features.ALL, slots);
+    }
+
+    private static WornState resolved(WornResolver.Features features, CombatState... slots) {
+        ItemStack[] gear = new ItemStack[slots.length];
+        java.util.Map<ItemStack, item.view.ItemView> byStack = new java.util.IdentityHashMap<>();
+        for (int i = 0; i < slots.length; i++) {
+            if (slots[i] == null) {
+                continue;
+            }
+            ItemStack stack = mock(ItemStack.class);
+            // Armour in the armour slots, a sword in the hands — a HELD armour piece is skipped outright, so
+            // dressing the hands as armour would hide the very case this test is about.
+            when(stack.getType()).thenReturn(i < 4 ? Material.DIAMOND_HELMET : Material.DIAMOND_SWORD);
+            item.view.ItemView view = mock(item.view.ItemView.class);
+            when(view.isEmpty()).thenReturn(false);
+            when(view.combat()).thenReturn(slots[i]);
+            gear[i] = stack;
+            byStack.put(stack, view);
+        }
+        item.view.ItemViewCache views = mock(item.view.ItemViewCache.class);
+        when(views.of(org.mockito.ArgumentMatchers.any()))
+                .thenAnswer(call -> byStack.get(call.getArgument(0)));
+        WornResolver resolver = new WornResolver(entity -> gear, views, TRIGGERS, ATTACK, DEFENSE,
+                () -> features);
+        return resolver.resolve(null, Snapshots.snapshot().abilities(ABILITIES).stableKeys(
+                "enchants/lifesteal/3", "crystals/zap").build());
     }
 
     // ── ADR-0053 masks: a helmet's applied mask fires while worn like any source; masks=false skips it ──

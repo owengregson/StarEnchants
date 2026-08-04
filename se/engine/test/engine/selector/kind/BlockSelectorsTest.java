@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import engine.selector.SelectorCtx;
+import engine.selector.SelectorKind;
 import java.util.List;
 import java.util.Map;
 import org.bukkit.Location;
@@ -136,6 +137,31 @@ class BlockSelectorsTest {
         verify(vein, never()).vein(any(), anyInt());
     }
 
+    /**
+     * Every shape must hand BOTH filter lists to the seam. A shape that read only {@code materials} would
+     * compile an authored deny list and then quietly ignore it — the failure that turns an excavation enchant
+     * into a bedrock eraser, and one no diagnostic can catch because the param resolved fine.
+     */
+    @Test
+    void everyShapeForwardsBothMaterialListsToTheFilter() {
+        Args lists = Args.empty()
+                .with("materials", List.of(1, 2))
+                .with("exclude-materials", List.of(7));
+
+        for (SelectorKind shape : List.of(new BoreSelector(), new TrenchSelector(),
+                new TunnelSelector(), new VeinSelector())) {
+            SelectorCtx ctx = shapeCtx(new Vector(1, 0, 0), true,
+                    Map.of("half-width", 1, "half-height", 1, "depth", 1, "radius", 1, "limit", 8));
+            when(ctx.args()).thenReturn(lists);
+
+            shape.resolveLocations(ctx);
+
+            verify(ctx, org.mockito.Mockito.atLeastOnce())
+                    .materialMatches(any(), org.mockito.ArgumentMatchers.eq(List.of(1, 2)),
+                            org.mockito.ArgumentMatchers.eq(List.of(7)));
+        }
+    }
+
     /** A block-shape ctx anchored at 10/64/20, looking along {@code direction}, with the material filter's answer. */
     private static SelectorCtx shapeCtx(Vector direction, boolean materialMatches, Map<String, Integer> args) {
         Location snapped = new Location(null, 10, 64, 20);
@@ -154,7 +180,7 @@ class BlockSelectorsTest {
         when(ctx.actor()).thenReturn(actor);
         when(ctx.args()).thenReturn(Args.empty());
         args.forEach((name, value) -> lenient().when(ctx.integer(name)).thenReturn(value));
-        lenient().when(ctx.materialMatches(any(), any())).thenReturn(materialMatches);
+        lenient().when(ctx.materialMatches(any(), any(), any())).thenReturn(materialMatches);
         return ctx;
     }
 

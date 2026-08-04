@@ -338,12 +338,20 @@ class FactPopulatorTest {
         LivingEntity v = mock(LivingEntity.class);
         when(v.getUniqueId()).thenReturn(victimId);
         java.util.List<String> consulted = new java.util.ArrayList<>();
-        FactPopulator.enchantLevelSource((entity, key) -> {
-            consulted.add(key);
-            if (entity.equals(actorId)) {
-                return "solitude".equals(key) ? 3 : 0;
+        FactPopulator.wornFactSource(new engine.condition.WornFactSource() {
+            @Override
+            public int levelOf(UUID entity, String key) {
+                consulted.add(key);
+                if (entity.equals(actorId)) {
+                    return "solitude".equals(key) ? 3 : 0;
+                }
+                return entity.equals(victimId) && "metaphysical".equals(key) ? 1 : 0;
             }
-            return entity.equals(victimId) && "metaphysical".equals(key) ? 1 : 0;
+
+            @Override
+            public int heroicPieces(UUID entity) {
+                return 0;
+            }
         });
         try {
             FactPopulator pop = FactPopulator.builtin(new ModernActorProbe());
@@ -359,7 +367,49 @@ class FactPopulatorTest {
             FactBuffer solo = pop.populate(new ActivationContext(a, null, null, null), 0L, FactMask.NONE);
             assertEquals(0, solo.victimEnchantLevel("solitude"));
         } finally {
-            FactPopulator.enchantLevelSource(null); // restore the zero source so other tests aren't perturbed
+            FactPopulator.wornFactSource(null); // restore the zero source so other tests aren't perturbed
+        }
+    }
+
+    @Test
+    void heroicPieceCountsComeFromTheVictimsWornStateAndAreMaskGated() {
+        // The count is a worn-state read by UUID, never a gear scan and never an entity touch — that is what
+        // lets a heroic gate price a cross-region victim on Folia. It is also mask-gated: an activation whose
+        // conditions never mention it must not reach the source at all.
+        int slot = num("victim", "heroicpieces");
+        UUID victimId = UUID.randomUUID();
+        java.util.List<UUID> consulted = new java.util.ArrayList<>();
+        FactPopulator.wornFactSource(new engine.condition.WornFactSource() {
+            @Override
+            public int levelOf(UUID entity, String key) {
+                return 0;
+            }
+
+            @Override
+            public int heroicPieces(UUID entity) {
+                consulted.add(entity);
+                return entity.equals(victimId) ? 3 : 0;
+            }
+        });
+        try {
+            Player a = actor();
+            when(a.getUniqueId()).thenReturn(UUID.randomUUID());
+            Player v = mock(Player.class);
+            when(v.getUniqueId()).thenReturn(victimId);
+            FactPopulator pop = FactPopulator.builtin(new ModernActorProbe());
+
+            pop.populate(new ActivationContext(a, v, null, null), 0L, FactMask.NONE);
+            assertTrue(consulted.isEmpty(), "an unreferenced fact must never consult the source");
+
+            FactMask mask = new FactMask(1L << slot, 0L, 0L);
+            assertEquals(3.0, pop.populate(new ActivationContext(a, v, null, null), 0L, mask).number(slot));
+
+            // No victim: 0, and the source is not asked about the actor instead.
+            consulted.clear();
+            assertEquals(0.0, pop.populate(new ActivationContext(a, null, null, null), 0L, mask).number(slot));
+            assertTrue(consulted.isEmpty(), "a victimless activation must not read the actor's pieces");
+        } finally {
+            FactPopulator.wornFactSource(null);
         }
     }
 

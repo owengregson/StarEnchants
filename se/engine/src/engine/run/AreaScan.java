@@ -47,11 +47,11 @@ public interface AreaScan {
     }
 
     /**
-     * Whether the block at {@code at} is one of the interned {@code materialIds} (the block selectors'
-     * {@code materials} filter). An EMPTY list is "no filter" — {@code true}, no world read. Must run on
-     * {@code at}'s region thread.
+     * Whether the block at {@code at} passes the block selectors' material filter: in the interned
+     * {@code allow} list (when non-empty) and not in the interned {@code deny} list. Two EMPTY lists are
+     * "no filter" — {@code true}, no world read. Must run on {@code at}'s region thread.
      */
-    default boolean materialMatches(Location at, List<Integer> materialIds) {
+    default boolean materialMatches(Location at, List<Integer> allow, List<Integer> deny) {
         return true;
     }
 

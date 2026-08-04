@@ -53,12 +53,16 @@ class SelectorBridgeTest {
                 BuiltinEffects.registry().affinityOf(), BuiltinSelectors.registry().specRegistry(),
                 BuiltinEffects.registry().defaultSelectorOf(), FIXED_HANDLES);
         Snapshot snap = compiler.compile(
-                List.of(ability("ench/bore", "BREAK_BLOCK:@Bore{depth=2, materials=[STONE,DIRT]}")), 1, d);
+                List.of(ability("ench/bore",
+                        "BREAK_BLOCK:@Bore{depth=2, materials=[STONE,DIRT], exclude-materials=[DIRT]}")), 1, d);
 
         assertFalse(d.hasErrors(), () -> d.all().toString());
         Ability a = snap.byStableKey("ench/bore");
         assertEquals("BORE", a.effects()[0].target().head());
         assertEquals(List.of(1, 2), a.effects()[0].target().args().ids("materials"));
+        // The deny half rides the SAME intern pass; landing as a raw token would be the identical silent
+        // failure in the other direction — an authored guard that protects nothing.
+        assertEquals(List.of(2), a.effects()[0].target().args().ids("exclude-materials"));
     }
 
     /** Two distinct material ids, so a transposed or collapsed list is visible in the assertion. */
