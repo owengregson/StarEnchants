@@ -31,9 +31,11 @@ soul-cost-decay-period: 12000
 # among them — a last-stand save that only fired in soul mode would never fire.
 soul-cost-carried: true
 no-souls-message: "§c§l** OUT OF SOULS **"  # the engine's 300 t throttle IS the recorded 15 s
-# {cost} and {souls} stay UNBOUND. MESSAGE substitutes {ATTACKER}/{VICTIM} and nothing else — its text takes
-# no author-defined token and no %fact% interpolation — so neither the escalated price (store state) nor the
-# post-spend balance can be rendered. Recorded verbatim, the same treatment paradox.yml gives this pair.
+# {cost} and {souls} stay UNBOUND, recorded verbatim — the same treatment paradox.yml gives this pair. MESSAGE
+# does carry a `tokens` expr-map that binds any author-named {name} to an expression over the activation's
+# facts, but neither of these has a fact to bind: the escalated price lives only in the per-player escalation
+# counter (no %fact% exposes it), and %actor.souls% is snapshotted into the FactBuffer BEFORE gate 10 debits,
+# so binding it would print the PRE-spend balance under a line that says "left".
 # {ATTACKER} is the engine's bound name token for the ACTIVATING player, which on a DEFENSE pass is the
 # wearer — the matrix's {owner}. @AllPlayers excludes the activator, so the broadcast never doubles the
 # wearer's own lines.

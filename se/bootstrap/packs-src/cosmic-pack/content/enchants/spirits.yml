@@ -21,6 +21,9 @@ tier: epic
 # the OWNER once per ally the blaze's box admits (actor = the wearer, victim = that ally, activation anchored
 # at the blaze). The ALLIES filter is the ordinary selector filter, and the payload box never admits the owner
 # — the jar's exact-ALLY test, which never heals the summoner either.
+# The blaze's name carries `{player}` for the matrix's `{owner}`, the spelling `enchants/guardians` has shipped
+# since batch 01 — but nothing substitutes it (`applyGuardName` only colour-translates), so the nameplate reads
+# the token literally until a summon-name actor token lands. Recorded in deferred-content.md, cosmetic.
 # KNOWN INERT until the per-ability cooldown-scope opt-out lands: every block of an enchant shares one cooldown
 # bucket, so the 200 t re-arm this proc takes covers the blaze's whole 200 t life and gate 6 denies every pulse
 # (the same starvation `enchants/rocket-escape`'s FALL companion carries — recorded in deferred-content.md).
