@@ -39,7 +39,10 @@ lore-while-on-item-multi: "&6&lMulti Crystal ({CRYSTAL}&6&l)"
 #     template. One crystal likeness per pack is the ADR-0034 shape.
 #
 # The apply/extract cues are NOT matrix-recorded, so the engine defaults stand unauthored (era: those are the
-# 1.17+ amethyst handles — they warn-skip on the legacy fork, parked with the legacy sweep).
+# 1.17+ amethyst handles. On 1.8.9 `feature.compat.Sounds` finds no constant of that name and the legacy
+# key fallback is a no-op, so the cue is dropped SILENTLY — no warning at load or use. The gesture is
+# unaffected: the cue plays after the commit, so a 1.8.9 apply is simply mute. Kept modern rather than
+# degraded, because a 1.8 stand-in would change the cue everywhere the pack actually plays it).
 # The Item Extractor is this engine's own gesture (ADR-0035), not a cosmic item; only its material is set,
 # because the default AMETHYST_CLUSTER cannot be minted on 1.8.9.
 extractor:
