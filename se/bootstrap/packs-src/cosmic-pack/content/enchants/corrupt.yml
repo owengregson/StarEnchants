@@ -19,10 +19,10 @@ condition: "%victim.type% == \"PLAYER\" && %victim.var.corrupt% == 0"
 # lengths, reproducing the jar's mismatch structurally: at L1 the flag outlives the DoT, at L2-L4 the DoT
 # outlives the flag, so a mid-DoT re-proc can re-flag without starting a second DoT. The jar's async
 # final-tick cancel race has no analogue here — wait chains are deterministic.
-# PENDING WAVE-1F FACT — the Inversion carve-out is NOT authored. A victim HOLDING an Inversion item takes the
-# flag and the portal burst but none of the DoT rows, and no fact on the frozen surface reads the victim's
-# held-item enchant state (`%victim.helditem%` is a material, not an enchant level). Same blocker as the
-# Metaphysical/Sticky consumers; tracked in deferred-content.md under partial entries.
+# PENDING (no longer blocked) — the Inversion carve-out is NOT authored yet: a victim HOLDING an Inversion
+# item takes the flag and the portal burst but none of the DoT rows. `%victim.helditem%` is a material, which
+# is why this waited, but wave 1f's `%victim.enchlevel.inversion%` reads a held sword's level (the worn map
+# spans armour plus the held hands), so it is a condition drop-in whenever this file is next opened.
 # The other half of that pairing IS authored now, and entirely on the other side: swords/Inversion reads this
 # flag and its level to turn its own heal into self-damage (`corrupt-inverts-inversion`, chance 20 x corrupt
 # level), and carries the `§5* CORRUPTED [§c{AMOUNT}§5 DMG] *` line. It reads a bare `%corrupt%`, not

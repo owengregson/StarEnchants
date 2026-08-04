@@ -13,16 +13,21 @@ tier: uncommon
 # No victim gate: mobs are snareable in the jar and stay snareable here (copied). Melee mirror via the
 # trigger list (the reforged.yml shape, reasoned in pacify.yml) — one ability, one roll, the jar's single
 # shared impact path.
-# PENDING WAVE-1F FACT — the Metaphysical reduction is NOT authored here, the same stop trap.yml, pummel.yml
-# and disarmor.yml already carry. It needs the victim-side worn-enchant-level fact the frozen surface does
-# not express (deferred-content.md holds the consumer-side row under `enchants/metaphysical`). When it lands
-# this ability gains:
-#   * `-7 %chance%` per Metaphysical level on the victim — effective chance `max(0, 9xL − 7xMeta)`, so
-#     Metaphysical >= 4 fully immunises against Snare I-III (the heroic grade, Polymorphic Metaphysical,
-#     writes the same worn state — highest-only, the two grades never sum);
-#   * the blocked-proc line `§8§l** METAPHYSICAL (§8Snare blocked!§l) **`, shown to the victim.
-#   * measured reduction per Metaphysical level: 7 / 14 / 21.000000000000002 / 28 / 35.000000000000003
-#     percentage points — float noise on the exact 7 pp rungs.
+# The Metaphysical reduction IS authored, as each level's chance expression: -7 pp per level of Metaphysical
+# the victim wears, read through `%victim.enchlevel.metaphysical%` — the file STEM, never the
+# `enchants/metaphysical` stable key, because the worn map is keyed by stem and an unknown key reads 0 in
+# silence. The heroic grade (Polymorphic Metaphysical) writes the SAME worn state, highest-only, so one read
+# covers both. Effective chance is the matrix's `max(0, 9xL − 7xMeta)` WITHOUT an authored max(): an
+# expression chance clamps to [0,100] and that 0 bound is the recorded absolute immunity, so Metaphysical >= 2
+# already hard-blocks Snare I and >= 4 covers Snare I-III. Measured reduction per level: 7 / 14 /
+# 21.000000000000002 / 28 / 35.000000000000003 pp — float noise on exact 7 pp rungs, so the exact rung ships.
+# STILL PENDING — the blocked-proc line `§8§l** METAPHYSICAL (§8Snare blocked!§l) **`, shown to the victim.
+# The matrix fires it "only when Metaphysical blocks the proc", i.e. on a roll that would have passed but for
+# the reduction, and that event does not exist under the matrix's own pre-roll-subtraction expression: the
+# engine rolls once at the already-reduced chance and no fact reports a roll that failed only because of the
+# rebate. Gating it on the FULL-immunity regime instead would print the line only when the victim is already
+# immune and never when merely reduced — an asymmetry the matrix does not describe, and one Trap's D-03-11
+# floor could not carry at all, so the three consumers stay uniform and the string waits (deferred-content).
 # Same reduction family as Pummel/Trap/Titan Trap; Snare is retired from tier rolls (a catalog flag, not
 # behavior — nothing to author on the ability).
 # strings: none on the enchant itself (the blocked line above belongs to the pending rule).
@@ -30,31 +35,31 @@ tier: uncommon
 # to SLOWNESS / MINING_FATIGUE; the block-crack burst carries the material through the same resolver.
 # No hazard.
 levels:
-  # chance 9 pp per level; duration 20 x L + 20 t; POTION `level` is 1-based, so the jar's amplifier L IS
-  # Slowness L+1 (II-V) and its amplifier L-3 is Mining Fatigue L-2 (I-II). The jar's `level >= 3` guard on
-  # the second potion exists because that amplifier would otherwise go negative — copied as the two levels
-  # that carry the row at all. The block-crack burst maps the jar's world effect 2001, which carries no count,
-  # so `count: 8` is port-chosen — the count anti-gank.yml records for a single-burst 2001 mapping (healing.yml
-  # and devour.yml port theirs the same way). The world effect's vanilla break sound has no PARTICLE half and
-  # is not authored.
+  # chance 9 pp per level less the Metaphysical rebate; duration 20 x L + 20 t; POTION `level` is 1-based, so
+  # the jar's amplifier L IS Slowness L+1 (II-V) and its amplifier L-3 is Mining Fatigue L-2 (I-II). The
+  # jar's `level >= 3` guard on the second potion exists because that amplifier would otherwise go negative —
+  # copied as the two levels that carry the row at all. The block-crack burst maps the jar's world effect
+  # 2001, which carries no count, so `count: 8` is port-chosen — the count anti-gank.yml records for a
+  # single-burst 2001 mapping (healing.yml and devour.yml port theirs the same way). The world effect's
+  # vanilla break sound has no PARTICLE half and is not authored.
   1:
-    chance: 9
+    chance: "9 - 7 * %victim.enchlevel.metaphysical%"
     effects:
       - { POTION: { effect: "SLOW", level: 2, duration: 40, who: "@Victim" } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "VINE", count: 8, who: "@Victim" } }
   2:
-    chance: 18
+    chance: "18 - 7 * %victim.enchlevel.metaphysical%"
     effects:
       - { POTION: { effect: "SLOW", level: 3, duration: 60, who: "@Victim" } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "VINE", count: 8, who: "@Victim" } }
   3:
-    chance: 27
+    chance: "27 - 7 * %victim.enchlevel.metaphysical%"
     effects:
       - { POTION: { effect: "SLOW", level: 4, duration: 80, who: "@Victim" } }
       - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 80, who: "@Victim" } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "VINE", count: 8, who: "@Victim" } }
   4:
-    chance: 36
+    chance: "36 - 7 * %victim.enchlevel.metaphysical%"
     effects:
       - { POTION: { effect: "SLOW", level: 5, duration: 100, who: "@Victim" } }
       - { POTION: { effect: "SLOW_DIGGING", level: 2, duration: 100, who: "@Victim" } }

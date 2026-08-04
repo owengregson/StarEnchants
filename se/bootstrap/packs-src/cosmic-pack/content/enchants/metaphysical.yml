@@ -1,13 +1,17 @@
 # Matrix: 02-enchants-armor-m-z.md § Metaphysical
-# Roster marker (sticky.yml precedent): the enchant is rollable/applicable/displayed, but its whole
-# behavior is the -N pp clause inside Trap / Heroic Trap / Snare / Pummel (docs 03/05/06), which needs
-# a victim-side worn-enchant-level fact the surface does not carry yet (deferred-content.md). The
-# consumers author the reduction the moment that fact ships; nothing here changes then.
+# Roster marker (sticky.yml precedent): the enchant is rollable/applicable/displayed and its whole behavior
+# is the -N pp clause inside Trap / Heroic Trap / Snare / Pummel (docs 03/05/06) — the consumers read this
+# worn level as `%victim.enchlevel.metaphysical%` (the file STEM is the key), so nothing is authored here
+# and nothing ever will be.
 # Reduction ladders (consumer-side, per Metaphysical level 1-4):
-#   Trap/Heroic Trap: -2.5 pp per level; Snare: -1.25 pp per level; Pummel: -7/-4 pp bands per the
-#   matrix consumer entries. No floor: high levels can reach absolute immunity (matrix-recorded).
+#   Trap -2.5 pp per level; Heroic Trap -1.25; Snare -7; Pummel -4 (matrix-02's consumer table — an earlier
+#   note here mis-assigned Snare's and Heroic Trap's rungs). No floor except Trap's, where D-03-11 rules a
+#   1 % floor as-intended; elsewhere the expression chance's own [0,100] clamp is the recorded immunity.
 #   Heroic Metaphysical follows the highest-only rule (no stacking with this base form).
-# Blocked-proc feedback (attacker-side, verbatim; authored on the consumers when they land):
+# Blocked-proc feedback — carried by the attacking enchant's file, shown to the VICTIM (docs 03/05 name the
+# recipient), verbatim. NOT authored on any consumer: the matrix fires each line on a "would-be proc", and
+# under its own pre-roll-subtraction expression that event does not exist (one roll, at the already-reduced
+# chance, and no fact reports a roll that failed only because of this rebate). Tracked in deferred-content.
 #   "§8§l** METAPHYSICAL (§8Trap blocked!§l) **"
 #   "§8§l** METAPHYSICAL (§8Snare blocked!§l) **"
 #   "§8§l** METAPHYSICAL (§8Pummel blocked!§l) **"

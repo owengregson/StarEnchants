@@ -1,15 +1,15 @@
 # Matrix: 03-enchants-swords.md § Solitude
-# Roster marker (sticky.yml / metaphysical.yml precedent): rollable, applicable and displayed, but the
-# recorded payload is withheld. The matrix decomposes Solitude as one HELD-source data marker —
-# `SET_VAR(name=solitude, value=L, ttl=0) @Self` on take-hold, "cleared on un-hold" — which §Silence reads for
-# its chance clauses and duration ladder; the jar's own combat hook is an empty body. The CLEAR half does not
-# exist on the frozen surface: SET_VAR has no lifecycle-teardown, so a ttl=0 marker written on take-hold never
-# drops, and one take-hold would boost every later Silence, off any weapon, forever. Withheld rather than
-# shipped leaky; nothing here changes when the fact lands.
-# Consumer-side ladder for whoever authors the clause (Solitude level S = 1..3, read on §Silence):
-#   +2 pp chance and +20 t suppression duration per S — i.e. Silence's `(L+S)·2 %` and `(L+S)·20 t` tables.
-# Same-item constraint (matches the jar): the boost is owed only while Solitude and Silence sit on the SAME
-# held item — a Solitude sword idling in the hotbar contributes nothing, and a Solitude sword with no Silence
+# Roster marker (sticky.yml / metaphysical.yml precedent): rollable, applicable and displayed, with no
+# effects of its own — and that is now the FINAL shape, not a withheld one. The matrix decomposes Solitude as
+# a HELD-source data marker (`SET_VAR(name=solitude, value=L, ttl=0) @Self` on take-hold, "cleared on
+# un-hold") purely so §Silence could read a level; the jar's own combat hook is an empty body. §Silence reads
+# the level directly instead, as `%actor.enchlevel.solitude%` off the wielder's resolved equipment, so the
+# marker is unnecessary — and the "cleared on un-hold" half that SET_VAR could not express stops mattering,
+# because an unheld sword simply leaves that equipment state.
+# Consumer-side ladder (Solitude level S = 1..3, authored on §Silence): +2 pp chance and +20 t suppression
+# duration per S — i.e. Silence's `(L+S)·2 %` and `(L+S)·20 t` tables.
+# Same-item constraint (the jar's): the level read is per-WIELDER, so an off-hand Solitude sword boosts too —
+# the delta is recorded on silence.yml, which owns the read. A Solitude sword with no Silence anywhere still
 # does absolutely nothing.
 # The matrix records no item set for this entry, so SWORD is doc 03's default; §Silence also rides the corpus's
 # swords_and_bow set, so a bow pairing would want BOW listed here too.
