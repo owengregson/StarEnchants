@@ -26,6 +26,14 @@ dependencies {
     // edge — written in real code, not reflection). compileOnly: the server bundles netty at runtime,
     // so it is NOT shaded; any 4.1.x compiles against the stable Channel/EmbeddedChannel API.
     compileOnly("io.netty:netty-transport:4.1.100.Final")
+
+    // The harness's own tests LOAD suite classes (SuiteFixtureCompileTest reads their inline content
+    // fixtures), and a suite's signature names Bukkit types — which the server provides at runtime but
+    // nothing provides to a unit-test JVM. Runtime-only: the harness still COMPILES against the floor.
+    testRuntimeOnly(libs.paper.api.floor)
+    // The permissive resolver fake, so a fixture can be compiled off a server: handle-token existence is a
+    // per-version fact only the live CatalogSuite can check, and the kind/param surface is not.
+    testImplementation(project(":testfx"))
 }
 
 // The OPTIONAL 1.8.9 lane (docs/legacy-1.8.9-codeshare-design.md). The dependency modules swap to their legacy

@@ -252,9 +252,10 @@ public final class LibraryLoader {
             }
             // The whole BAND must be mintable, not just the level a draw happens to land on: a roll whose top
             // exceeds the enchant's max would mint an undefined level on some fraction of pieces and pass
-            // review on the rest. Both ends are checked so the diagnostic names the real range.
+            // review on the rest. Only the top is checked — the record's own invariant already floors the
+            // bottom at 1 — but the diagnostic names the whole range, since that is what the author wrote.
             EnchantRoll roll = entry.getValue();
-            if (roll.min() < 1 || roll.max() > def.maxLevel()) {
+            if (roll.max() > def.maxLevel()) {
                 diags.error(DiagCode.E_SET_ENCHANT_LEVEL,
                         "set '" + set.key() + "' applies '" + ref + "' at level "
                                 + (roll.min() == roll.max() ? String.valueOf(roll.max())
