@@ -52,6 +52,26 @@ public final class ApplySuite implements Harness.Scenario {
             effects: [{ MODIFY_HEALTH: { amount: 1 } }]
             """;
 
+    /** Two masks, so the composite guard has real children to fold. Suite-owned like every fixture here — the
+     *  suite compiles its OWN temp library, so a key it does not author is a key that does not exist. */
+    static final String MASK_A = """
+            display: Warden
+            color: "&6"
+            head: ""
+            material: PLAYER_HEAD
+            trigger: ATTACK
+            effects: [{ MODIFY_HEALTH: { amount: 1 } }]
+            """;
+
+    static final String MASK_B = """
+            display: Sentinel
+            color: "&c"
+            head: ""
+            material: PLAYER_HEAD
+            trigger: ATTACK
+            effects: [{ MODIFY_HEALTH: { amount: 2 } }]
+            """;
+
     private static final String BASE = """
             display: Base
             applies-to: [SWORD]
@@ -125,6 +145,8 @@ public final class ApplySuite implements Harness.Scenario {
             write(root, "enchants/base.yml", BASE);
             write(root, "enchants/superior.yml", SUPERIOR);
             write(root, "sets/titan.yml", TITAN);
+            write(root, "masks/warden.yml", MASK_A);
+            write(root, "masks/sentinel.yml", MASK_B);
             Compiler compiler = ContentCompiler.production();
             Library library = LibraryLoader.load(root, compiler, 0);
             if (library.hasErrors()) {
@@ -237,7 +259,7 @@ public final class ApplySuite implements Harness.Scenario {
             // because the contract is a delimiter surviving a serialize/deserialize round trip through the
             // era-owned item store, which only a booted server exercises.
             ItemStack helmet = new ItemStack(Material.DIAMOND_HELMET);
-            String folded = "masks/blaze+masks/agent";
+            String folded = "masks/warden+masks/sentinel";
             if (!enchanter.applyMask(helmet, folded).ok()) {
                 throw new IllegalStateException("setup: the composite did not apply");
             }
@@ -245,7 +267,7 @@ public final class ApplySuite implements Harness.Scenario {
                 throw new IllegalStateException("the folded entry did not survive the PDC round trip: "
                         + codec.read(helmet).maskKey());
             }
-            if (enchanter.checkMask(helmet, "masks/midas").ok()) {
+            if (enchanter.checkMask(helmet, "masks/warden").ok()) {
                 throw new IllegalStateException("a helmet wearing a composite still has its ONE socket filled");
             }
             var popped = enchanter.removeMask(helmet);
