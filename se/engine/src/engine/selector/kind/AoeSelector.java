@@ -19,7 +19,7 @@ public final class AoeSelector implements SelectorKind {
 
     static final SelectorSpec SPEC = SelectorSpec.of("AOE")
             .param("r", D.DOUBLE.min(0).def(4), "radius in blocks")
-            .param("filter", D.enumSetOf("ALL", "PLAYERS", "MONSTERS", "MOBS", "ENEMIES", "ALLIES").def("ALL"),
+            .param("filter", D.enumSetOf(Targets.names()).def("ALL"),
                     "which entities to include; A+B keeps only what both admit")
             .param("limit", D.INT.min(0).def(0), "max targets, nearest first (0 = unlimited)")
             .param("exclude", D.enumOf("none", "victim").def("none"),

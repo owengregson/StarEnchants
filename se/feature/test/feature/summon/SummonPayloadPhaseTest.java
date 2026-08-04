@@ -38,8 +38,7 @@ class SummonPayloadPhaseTest {
     }
 
     private static SummonFlags phase(String phase) {
-        return new SummonFlags(false, false, false, false, false, false, false, 0.0, "", List.of(),
-                phase, 40, 4.0, 0.0, "ALL", 0, 0);
+        return SummonFlags.NONE.withPayload(phase, 40, 4.0, 0.0, "ALL", 0, 0);
     }
 
     private static UUID arm(Entity entity, String phase) {

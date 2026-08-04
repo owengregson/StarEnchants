@@ -80,6 +80,7 @@ public final class TriggerDispatch {
     public final int equipChange; // fired by EquipChangeDriver on the worn-ability diff (%equipchange% = EQUIP|UNEQUIP)
     public final int projectileLand; // fired by ProjectileLandListener at a player projectile's landing point
     public final int proximityEvent; // fired on nearby WEARERS by someone else's event (a player death)
+    public final int summonPayload; // fired per payload target at a summon's detonate/death/periodic phase
 
     /**
      * Trigger dispatch over the shared per-boot {@link SinkEnv}. GIVE_MONEY/TAKE_MONEY on MINE/KILL/… and the
@@ -125,6 +126,7 @@ public final class TriggerDispatch {
         this.equipChange = triggers.idOf("EQUIP_CHANGE").orElse(-1);
         this.projectileLand = triggers.idOf("PROJECTILE_LAND").orElse(-1);
         this.proximityEvent = triggers.idOf("PROXIMITY_EVENT").orElse(-1);
+        this.summonPayload = triggers.idOf("SUMMON_PAYLOAD").orElse(-1);
     }
 
     /**
@@ -416,6 +418,21 @@ public final class TriggerDispatch {
         ActivationContext context =
                 new ActivationContext(owner, guardian, null, guardian.getLocation(), damage, null);
         fire(owner, guardianHurt, context, null);
+    }
+
+    /**
+     * Fire the SUMMON_PAYLOAD trigger — {@code summon} reached a payload phase, so {@code owner}'s
+     * SUMMON_PAYLOAD abilities run once with {@code target} as the victim. The activation ANCHORS at the
+     * SUMMON, not the target, so an {@code @Aoe} and every positional effect centre on the blast rather than
+     * on whoever is being priced. The {@link #fireGuardianHurt} pattern otherwise: runs on the summon's
+     * region, {@code owner}'s worn state resolves from the immutable WornState, effects route via the sink.
+     */
+    public void fireSummonPayload(Player owner, Entity summon, LivingEntity target) {
+        if (summonPayload < 0 || owner == null || summon == null || target == null) {
+            return;
+        }
+        fire(owner, summonPayload,
+                new ActivationContext(owner, target, null, summon.getLocation()), null);
     }
 
     /** Fire EXP_GAIN, then scale the gained XP by the accumulated EXP_MULTIPLY factor (recursion-safe: no new XP granted). */

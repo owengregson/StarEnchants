@@ -11,6 +11,7 @@ import schema.spec.HandleCategory;
 import schema.spec.Param;
 import schema.spec.ParamSpec;
 import schema.spec.ParamType;
+import schema.spec.PotionLoadout;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -134,14 +135,29 @@ public final class DefaultResolveStage implements ResolveStage {
      * token, so a {@code A|B} fallback chain still works per entry; an empty token list (the usual default) is an
      * empty result, not a fault. Returns {@code null} when an entry resolves on no version — the same
      * warn-and-skip an unknown single handle triggers, so a typo cannot silently ship a shorter loadout.
+     *
+     * <p>A POTION_EFFECT entry may carry a {@code NAME*LEVEL} suffix; the level is stripped here and packed
+     * into the id ({@link PotionLoadout}). The suffix is potion-loadout grammar ONLY — on any other category
+     * {@code *} stays part of the token, so a stray one fails as the unknown handle it is.
      */
     private List<Integer> resolveList(HandleCategory category, String token, Param p,
                                       String head, LoweredAbility owner, Diagnostics diags) {
+        boolean loadout = category == HandleCategory.POTION_EFFECT;
         List<Integer> ids = new ArrayList<>();
         for (String entry : token.split(",")) {
             String trimmed = entry.trim();
             if (trimmed.isEmpty()) {
                 continue;
+            }
+            int amplifier = 0;
+            int star = loadout ? trimmed.lastIndexOf('*') : -1;
+            if (star >= 0) {
+                OptionalInt level = level(trimmed.substring(star + 1).trim(), p, head, owner, diags);
+                if (level.isEmpty()) {
+                    return null;
+                }
+                amplifier = level.getAsInt() - 1;
+                trimmed = trimmed.substring(0, star).trim();
             }
             OptionalInt id = resolveChain(category, trimmed);
             if (id.isEmpty()) {
@@ -152,9 +168,31 @@ public final class DefaultResolveStage implements ResolveStage {
                         "use a name valid on the target version, or drop it from the list");
                 return null;
             }
-            ids.add(id.getAsInt());
+            ids.add(loadout ? PotionLoadout.pack(id.getAsInt(), amplifier) : id.getAsInt());
         }
         return List.copyOf(ids);
+    }
+
+    /** The {@code *LEVEL} suffix as a 1-based potion level, or empty (diagnostic recorded) if it names none. */
+    private static OptionalInt level(String raw, Param p, String head, LoweredAbility owner, Diagnostics diags) {
+        int level;
+        try {
+            level = Integer.parseInt(raw);
+        } catch (NumberFormatException notANumber) {
+            diags.error(DiagCode.E_TYPE,
+                    "expected a potion level after '*' but got '" + raw
+                            + "' in argument '" + p.name() + "' of '" + head + "'",
+                    owner.source(), "write SPEED*3 for level 3, or drop the suffix for level 1");
+            return OptionalInt.empty();
+        }
+        if (level < 1 || level > PotionLoadout.MAX_LEVEL) {
+            diags.error(DiagCode.E_RANGE,
+                    "potion level " + level + " is outside 1.." + PotionLoadout.MAX_LEVEL
+                            + " in argument '" + p.name() + "' of '" + head + "'",
+                    owner.source());
+            return OptionalInt.empty();
+        }
+        return OptionalInt.of(level);
     }
 
     /**

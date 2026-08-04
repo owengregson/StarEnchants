@@ -36,7 +36,8 @@ public final class GuardEffect implements EffectKind {
                     + "attacker, auto-removed after ttl ticks (default 200; 0 = permanent); optional custom "
                     + "name. health sets each guard's starting and maximum health, speed multiplies its "
                     + "vanilla movement speed, and effects is a comma-separated potion loadout held for the "
-                    + "guard's whole life (all at level 1). A targeted SPAWN_ENTITY for retaliation — author "
+                    + "guard's whole life, each entry optionally levelled with NAME*LEVEL (SPEED*3). A "
+                    + "targeted SPAWN_ENTITY for retaliation — author "
                     + "on DEFENSE.")
             .example("{ GUARD: { type: IRON_GOLEM, count: 1, ttl: 200, name: \"&bGuardian\" } }")
             .build();

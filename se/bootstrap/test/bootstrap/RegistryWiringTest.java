@@ -80,6 +80,7 @@ class RegistryWiringTest {
             "HeroicListener", "HeroicDurabilitySave",
             "SlotListener", "UnopenedBookListener", "UseItemListener", "UseItemConsumeListener",
             "PetUseListener", "PetLevelListener", "PetFoodListener", "PetHotbarListener", "PetSummonListener",
+            "SummonPayloadListener", // the detonate/death payload phases (the periodic one arms in the sink)
             "IllusionCanonGuard", "MaskBreakSource", "MaskListener", "MaskRemoveListener", "MaskIllusionListener", "MobTargetGuard", "InvseeGuard",
             "NearGuard", "SplashHealGuard",
             "ReforgeListener", "ReforgeUseListener", "ReforgeStrikeListener", "ReforgeTempoGuardListener", // ADR-0070/0071
@@ -209,6 +210,7 @@ class RegistryWiringTest {
         when(core.executor()).thenReturn(mock(engine.run.AbilityExecutor.class));
         when(core.dispatch()).thenReturn(mock(feature.combat.CombatDispatch.class));
         when(core.triggerDispatch()).thenReturn(mock(feature.trigger.TriggerDispatch.class));
+        when(core.summonPayloads()).thenReturn(mock(feature.summon.SummonPayloadService.class));
         when(core.triggers()).thenReturn(BuiltinTriggers.registry());
         when(core.coreStops()).thenReturn(List.of(new FeatureModule.Stop("bStats", () -> { })));
 

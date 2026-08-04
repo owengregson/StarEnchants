@@ -39,7 +39,8 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
                       TrailWalker trails, TimedRevert timedReverts, DotParkLedger dotPark,
                       DoubleSupplier moneyInterestCap, GearProtection gearProtection,
                       ToDoubleFunction<UUID> lightningBoost, TrapStructures trapStructures,
-                      PlayerVisibility visibility, PermanentPotions permanentPotions) {
+                      PlayerVisibility visibility, PermanentPotions permanentPotions,
+                      SummonPayloads payloads) {
 
     public SinkEnv {
         Objects.requireNonNull(economy, "economy");
@@ -57,6 +58,7 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
         Objects.requireNonNull(trapStructures, "trapStructures");
         Objects.requireNonNull(visibility, "visibility");
         Objects.requireNonNull(permanentPotions, "permanentPotions");
+        Objects.requireNonNull(payloads, "payloads");
     }
 
     /** The four-arg shape every non-root site used before the exemption rode the env — no-op movement hook. */
@@ -94,10 +96,10 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
     }
 
     /**
-     * The full shape: {@code visibility} is the {@code VIEWER_HIDE} seam — per-viewer hide/show, wired from the
-     * era bindings because the modern call needs the {@code Plugin} the engine may not hold
-     * ({@link PlayerVisibility#NONE} = nothing is ever hidden). {@code permanentPotions} is the ADR-0072 seam:
-     * it tells a {@code CURE category: HARMFUL} cleanse which of the holder's harmful effects are
+     * The {@code permanentPotions} shape: {@code visibility} is the {@code VIEWER_HIDE} seam — per-viewer
+     * hide/show, wired from the era bindings because the modern call needs the {@code Plugin} the engine may not
+     * hold ({@link PlayerVisibility#NONE} = nothing is ever hidden). {@code permanentPotions} is the ADR-0072
+     * seam: it tells a {@code CURE category: HARMFUL} cleanse which of the holder's harmful effects are
      * permanent-while-worn grants it must spare ({@link PermanentPotions#NONE} = SE claims none, leaving only
      * the duration test).
      */
@@ -105,8 +107,22 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
                              Consumer<Player> movementExemption, DoubleSupplier moneyInterestCap,
                              GearProtection gearProtection, ToDoubleFunction<UUID> lightningBoost,
                              PlayerVisibility visibility, PermanentPotions permanentPotions) {
+        return of(economy, souls, stores, nowTicks, movementExemption, moneyInterestCap, gearProtection,
+                lightningBoost, visibility, permanentPotions, SummonPayloads.NONE);
+    }
+
+    /**
+     * The full shape: {@code payloads} is the {@code SUMMON_PAYLOAD} seam a periodic summon pulses through —
+     * firing a trigger is the feature layer's business, so the sink only holds the call
+     * ({@link SummonPayloads#NONE} = no payload ever runs).
+     */
+    public static SinkEnv of(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
+                             Consumer<Player> movementExemption, DoubleSupplier moneyInterestCap,
+                             GearProtection gearProtection, ToDoubleFunction<UUID> lightningBoost,
+                             PlayerVisibility visibility, PermanentPotions permanentPotions,
+                             SummonPayloads payloads) {
         return new SinkEnv(economy, souls, stores, nowTicks, movementExemption, BukkitBlockOps.ledger(),
                 new TrailWalker(), new TimedRevert(), new DotParkLedger(), moneyInterestCap, gearProtection,
-                lightningBoost, new TrapStructures(), visibility, permanentPotions);
+                lightningBoost, new TrapStructures(), visibility, permanentPotions, payloads);
     }
 }

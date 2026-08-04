@@ -950,7 +950,7 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
         final String key = "reforge.summoners-bell.sentryFlagsPreserved";
         h.expect(key);
         int cowId = resolveId(resolvers.entityType("COW"), "COW");
-        SummonFlags flags = new SummonFlags(false, false, true /* noTarget */, false, false, false,
+        SummonFlags flags = SummonFlags.of(false, false, true /* noTarget */, false, false, false,
                 true /* invincible */, 0.0, "", java.util.List.of());
         Location sky = new Location(world, arena.getX(), ARENA_Y, arena.getZ());
         CombatRig rig = new CombatRig(plugin);
@@ -1104,7 +1104,8 @@ public final class ReforgeCounterSuite implements Harness.Scenario {
             hop(ringer, sky.clone().add(3, 0, 0), () -> hop(enemy, sky, () ->
                     Scheduling.onEntityLater(enemy, 5L, () -> {
                         ModernDispatchSink swarmSink = new ModernDispatchSink(handles, env);
-                        swarmSink.spawnSwarm(enemy.getLocation(), batId, 10, 0.5, 1.0, 600, 0.5, enemy, 16.0);
+                        swarmSink.spawnSwarm(enemy.getLocation(), batId, 10, 0.5, 1.0, 600, 0.5, enemy, 16.0,
+                                "", java.util.List.of());
                         swarmSink.flush();
                         UUID enemyId = enemy.getUniqueId();
                         Scheduling.onEntityLater(enemy, 5L, () -> Scheduling.onEntity(ringer, () -> {

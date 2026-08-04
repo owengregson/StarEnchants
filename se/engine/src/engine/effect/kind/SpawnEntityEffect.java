@@ -3,6 +3,7 @@ package engine.effect.kind;
 import compile.model.Affinity;
 import engine.effect.EffectCtx;
 import engine.effect.EffectKind;
+import engine.selector.kind.Targets;
 import engine.sink.Sink;
 import engine.sink.SummonFlags;
 import engine.spec.EffectSpec;
@@ -36,6 +37,16 @@ public final class SpawnEntityEffect implements EffectKind {
             .param("speed", D.DOUBLE.min(0).def(0))
             .param("name", D.STRING.def(""), "custom name shown above each summon")
             .param("effects", D.potionEffects().def(""), "potion effects held for the summon's whole life")
+            .param("payload-phase", D.enumOf("none", "detonate", "death", "periodic").def("none"),
+                    "when the summon runs its owner's SUMMON_PAYLOAD abilities")
+            .param("payload-period", D.TICKS.def(40), "ticks between payload pulses (periodic phase only)")
+            .param("payload-radius", D.DOUBLE.min(0).def(4), "XZ half-extent of the payload's target box")
+            .param("payload-height", D.DOUBLE.min(0).def(0), "Y half-extent; 0 reuses payload-radius")
+            .param("payload-filter", D.enumSetOf(Targets.names()).def("ALL"),
+                    "which entities the payload targets; A+B keeps only what both admit")
+            .param("payload-max-targets", D.INT.min(0).def(0), "nearest-first cap on payload targets (0 = all)")
+            .param("scatter", D.INT.range(0, 8).def(0),
+                    "spread each summon over a random ±N XZ offset, air-scanned (0 = the exact point)")
             .target("who", T.SELF)
             .affinity(Affinity.REGION)
             .actorOrigin()
@@ -48,9 +59,17 @@ public final class SpawnEntityEffect implements EffectKind {
                     + "invincible=true zeroes all damage to the summon (it cannot die but still takes hits "
                     + "and knockback); speed is a multiplier on the spawned entity's vanilla movement-speed "
                     + "base (0 = untouched); name is shown above each summon and effects is a "
-                    + "comma-separated potion loadout held for its whole life (all at level 1) — the same "
-                    + "styling GUARD takes, so the choice between the two is only about targeting. "
-                    + "Replaces SPAWN/TNT.")
+                    + "comma-separated potion loadout held for its whole life, each entry optionally "
+                    + "levelled with NAME*LEVEL (SPEED*3) — the same styling GUARD takes, so the choice "
+                    + "between the two is only about targeting. payload-phase attaches the owner's "
+                    + "SUMMON_PAYLOAD abilities to a point in the summon's life: detonate REPLACES the "
+                    + "vanilla explosion (no terrain damage, no vanilla entity damage), death fires as it "
+                    + "dies, and periodic pulses every payload-period ticks. The payload runs once per "
+                    + "entity in a payload-radius x payload-height box around the summon (height 0 reuses "
+                    + "the radius), filtered by payload-filter and capped nearest-first by "
+                    + "payload-max-targets; a payload needs owner=activator, since the owner is who runs "
+                    + "it. scatter spreads the summons over a random offset, air-scanned so none spawns "
+                    + "inside terrain. Replaces SPAWN/TNT.")
             .example("{ SPAWN_ENTITY: { type: WOLF, count: 1, ttl: 0, health: 0, owner: activator } }")
             .build();
 
@@ -78,7 +97,14 @@ public final class SpawnEntityEffect implements EffectKind {
                 ctx.bool("invincible"),
                 ctx.dbl("speed"),
                 ctx.str("name"),
-                ctx.ids("effects"));
+                ctx.ids("effects"),
+                ctx.str("payload-phase"),
+                ctx.integer("payload-period"),
+                ctx.dbl("payload-radius"),
+                ctx.dbl("payload-height"),
+                ctx.str("payload-filter"),
+                ctx.integer("payload-max-targets"),
+                ctx.integer("scatter"));
         Location origin = ctx.actorOrigin(); // hoisted: fresh instance per call (ADR-0043)
         boolean any = false;
         for (LivingEntity who : ctx.targets("who")) {

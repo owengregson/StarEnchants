@@ -1,7 +1,9 @@
 package feature.pet;
 
+import engine.sink.GuardianCasts;
 import engine.sink.PetSummons;
 import engine.sink.SummonFlags;
+import engine.sink.SummonPayloads;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.BooleanSupplier;
@@ -32,9 +34,11 @@ public final class PetSummonListener implements Listener {
     /** A charged creeper's explosion power (vanilla 6.0); entity damage only, never block damage. */
     private static final float CHARGED_POWER = 6.0f;
 
+    private final SummonPayloads payloads;
     private final BooleanSupplier enabled;
 
-    public PetSummonListener(BooleanSupplier enabled) {
+    public PetSummonListener(SummonPayloads payloads, BooleanSupplier enabled) {
+        this.payloads = Objects.requireNonNull(payloads, "payloads");
         this.enabled = Objects.requireNonNull(enabled, "enabled");
     }
 
@@ -71,13 +75,20 @@ public final class PetSummonListener implements Listener {
         PetSummons.forget(id); // one fuse per summon — a second hit must not double-detonate
         // The fuse is ALWAYS ours, on both eras: Creeper#setIgnited would fire the REAL vanilla explosion,
         // which griefs terrain whenever mobGriefing is on — the guarantee here is entity damage only, never
-        // block damage (setFire=false, breakBlocks=false).
+        // block damage (setFire=false, breakBlocks=false). An armed payload REPLACES that blast outright, so
+        // an authored one is never paid on top of the hardcoded one.
         Scheduling.onEntityLater(victim, FUSE_TICKS, () -> {
-            if (victim.isValid()) {
+            if (!victim.isValid()) {
+                return;
+            }
+            if (flags.payloadArmed()) {
+                payloads.fire(victim, flags);
+            } else {
                 victim.getWorld().createExplosion(victim.getLocation().getX(), victim.getLocation().getY(),
                         victim.getLocation().getZ(), CHARGED_POWER, false, false);
-                victim.remove();
             }
+            GuardianCasts.forget(id); // registries before the removal, the summon-path invariant
+            victim.remove();
         });
     }
 

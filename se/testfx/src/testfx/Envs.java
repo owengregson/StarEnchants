@@ -1,8 +1,10 @@
 package testfx;
 
 import engine.sink.GearProtection;
+import engine.sink.PlayerVisibility;
 import engine.sink.SinkEnv;
 import engine.sink.SoulDebit;
+import engine.sink.SummonPayloads;
 import engine.stores.BatteryStore;
 import engine.stores.ComboStore;
 import engine.stores.CooldownStore;
@@ -65,6 +67,7 @@ public final class Envs {
         private WardStore ward = new WardStore();
         private ToDoubleFunction<UUID> lightningBoost = id -> 0.0;
         private engine.sink.PermanentPotions permanentPotions = engine.sink.PermanentPotions.NONE;
+        private SummonPayloads payloads = SummonPayloads.NONE;
         private EngineStores storesOverride = null;
 
         public SinkEnvBuilder economy(EconomyService economy) {
@@ -169,6 +172,12 @@ public final class Envs {
             return this;
         }
 
+        /** The SUMMON_PAYLOAD seam a periodic summon pulses through; default fires nothing. */
+        public SinkEnvBuilder payloads(SummonPayloads payloads) {
+            this.payloads = payloads;
+            return this;
+        }
+
         /** Fully override the aggregate; the per-store slots are then ignored. */
         public SinkEnvBuilder stores(EngineStores stores) {
             this.storesOverride = stores;
@@ -184,7 +193,7 @@ public final class Envs {
                             new engine.stores.HeadTrophyStore(), new engine.stores.FoodWindowStore(),
                             new engine.stores.MessageThrottleStore(), new engine.stores.SoulEscalationStore());
             return SinkEnv.of(economy, souls, stores, nowTicks, player -> { }, () -> 0,
-                    GearProtection.NONE, lightningBoost, engine.sink.PlayerVisibility.NONE, permanentPotions);
+                    GearProtection.NONE, lightningBoost, PlayerVisibility.NONE, permanentPotions, payloads);
         }
     }
 }
