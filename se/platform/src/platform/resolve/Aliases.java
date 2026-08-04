@@ -88,7 +88,24 @@ public final class Aliases {
             Map.entry("ENDERDRAGON_GROWL", "ENTITY_ENDER_DRAGON_GROWL"),
             Map.entry("WITHER_SPAWN", "ENTITY_WITHER_SPAWN"),
             Map.entry("DIG_GRASS", "BLOCK_GRASS_BREAK"),
-            Map.entry("ITEM_BREAK", "ENTITY_ITEM_BREAK"));
+            Map.entry("ITEM_BREAK", "ENTITY_ITEM_BREAK"),
+            // The cosmic-port legacy sweep; each verified present in BOTH the 1.8 enum and the modern
+            // constant lists before landing. FIREWORK_TWINKLE2 is the "far" twinkle (plain FIREWORK_TWINKLE
+            // is the near one), and MAGMACUBE_WALK2 is deliberately the only squish alias — a second key onto
+            // the same target would make the resolver's reverse scan pick non-deterministically.
+            Map.entry("DIG_STONE", "BLOCK_STONE_BREAK"),
+            Map.entry("FIREWORK_LAUNCH", "ENTITY_FIREWORK_ROCKET_LAUNCH"),
+            Map.entry("FIREWORK_TWINKLE2", "ENTITY_FIREWORK_ROCKET_TWINKLE_FAR"),
+            Map.entry("FIREWORK_BLAST", "ENTITY_FIREWORK_ROCKET_BLAST"),
+            Map.entry("ANVIL_BREAK", "BLOCK_ANVIL_BREAK"),
+            Map.entry("PISTON_EXTEND", "BLOCK_PISTON_EXTEND"),
+            Map.entry("DRINK", "ENTITY_GENERIC_DRINK"),
+            Map.entry("ZOMBIE_PIG_ANGRY", "ENTITY_ZOMBIFIED_PIGLIN_ANGRY"),
+            Map.entry("CHICKEN_HURT", "ENTITY_CHICKEN_HURT"),
+            Map.entry("MAGMACUBE_WALK2", "ENTITY_MAGMA_CUBE_SQUISH"),
+            Map.entry("GHAST_SCREAM", "ENTITY_GHAST_SCREAM"),
+            Map.entry("CREEPER_HISS", "ENTITY_CREEPER_PRIMED"),
+            Map.entry("WITHER_HURT", "ENTITY_WITHER_HURT"));
 
     /**
      * The COMPLETE 1.20.5 particle rename wave (Spigot flattened the enum), floor name → modern name,
