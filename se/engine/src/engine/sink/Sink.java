@@ -368,6 +368,25 @@ public interface Sink {
                             FieldCue strike, boolean lightning, String warning);
 
     /**
+     * Stand {@code profile.count()} invulnerable emplacements on open ground in a ring around {@code origin}
+     * for {@code profile.ttlTicks()}, each firing a slow projectile at the nearest eligible body it can SEE
+     * within {@code profile.acquireRange()} — the first volley only after {@code profile.initialDelayTicks()},
+     * every later one after a fresh {@code period-min..period-max} draw (TURRET_RING).
+     *
+     * <p>A site is SKIPPED (and logged) when its column has no open ground, or when the protection gate denies
+     * {@code actor} that spot: the ring is placement-gated per emplacement, not once for the whole cast, so a
+     * caster standing at a claim boundary drops only the sites that fall inside it. Each site is placed and
+     * ticked on ITS own region thread (the {@link #delayedStrikeField} re-key rule) — a ring several blocks
+     * wide straddles a Folia region boundary.
+     *
+     * <p>Emplacements and their shots never break blocks and take no damage; a shot striking a body fires
+     * {@code actor}'s {@code IMPACT} abilities on it ONCE, through the feature layer.
+     */
+    void turretRing(Location origin, Player actor, TurretRingProfile profile,
+                    FieldCue spawnCue, double spawnSpread, boolean spawnLightning,
+                    FieldCue despawnCue, double despawnSpread);
+
+    /**
      * Summon {@code count} guardian mobs of an interned type at {@code at}, each set to target
      * {@code target} (the attacker) if it is a mob (GUARD). {@code ttlTicks > 0} auto-removes each after
      * that many ticks; a non-blank {@code name} is shown above each. A targeted superset of

@@ -527,7 +527,10 @@ public final class BootCore {
                         this::potionHandle),
                 // SUMMON_PAYLOAD: the periodic pulse's only way back to the feature layer; the service itself
                 // is built below (it needs the TriggerDispatch this env feeds).
-                (summon, flags) -> summonPayloads.fire(summon, flags));
+                (summon, flags) -> summonPayloads.fire(summon, flags),
+                // The gate-2 provider list again, this time asked PER SITE (TURRET_RING) — the same composed
+                // service the pipeline guard consults, so one boundary answer serves both.
+                protection::allows);
         // mcMMO friendly-fire gate — ONE alliance predicate feeding both consumers. Combat suppression has
         // always used it; the targeting filters (@Aoe{filter=ENEMIES|ALLIES}) never had it installed, so they
         // treated a party-mate as an enemy while the damage gate spared them. Same predicate, both sides.

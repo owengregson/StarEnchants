@@ -7,6 +7,7 @@ import engine.sink.GuardianCasts;
 import engine.sink.OwnerZones;
 import engine.sink.StackingDots;
 import engine.sink.TempEquip;
+import engine.sink.TurretCasts;
 
 /**
  * The structural quit-cleanup authority (ADR-0047): declares the {@link Wire.QuitSweep} slot the fold
@@ -29,6 +30,7 @@ final class StoresModule {
                 .stop("owner zones", OwnerZones::clearAll)                // devil's Hell's Kitchen hellfire zones
                 .stop("temp equips", TempEquip::clearAll)                 // spooky's pumpkin helmet
                 .stop("decay ladders", StackingDots::clearAll)            // rot's per-victim STACKING_DOT stacks
+                .stop("turret casts", TurretCasts::clearAll)              // live TURRET_RING emplacements + their shots
                 .build();
     }
 }

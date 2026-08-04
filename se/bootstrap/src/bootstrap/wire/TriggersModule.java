@@ -46,6 +46,10 @@ final class TriggersModule {
                 // A mob carrying TARGET_VAR stacks never "quits", so the quit sweep can't bound it — drop its
                 // vars when it dies (players keep theirs, exactly as before).
                 .events(new feature.trigger.EntityVarCleanupListener(core.stores().vars()))
+                // A TURRET_RING shot striking a body fires the turret owner's IMPACT, and neither the
+                // emplacements nor their shots ever damage terrain. Registered beside FallingBlockListener's
+                // family for the same reason: it is the other tracked-projectile IMPACT feeder.
+                .events(new feature.summon.TurretListener(core.triggerDispatch()))
                 .command(new DynCommand(name,
                         () -> core.master().config().commandTrigger().enabled(),
                         () -> {

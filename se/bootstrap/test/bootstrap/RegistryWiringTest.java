@@ -72,6 +72,7 @@ class RegistryWiringTest {
             "GuardianHurtListener", "ProjectileLandListener",
             "SummonTargetGuardListener", // ADR-0071 amendments: never target your summoner
             "EntityVarCleanupListener", // TARGET_VAR: a mob carrier never quits, so its vars are dropped on death
+            "TurretListener", // TURRET_RING: a shot's strike fires the owner's IMPACT; no blast ever griefs
             "TempEquipListener", "TimedRevertListener", "TempBlockGuardListener",
             "HellfireFloorListener", "KeepOnDeathListener", "HeadTrophyListener",
             "TeleblockListener", "ImmuneListener", "FoodWindowListener", "PotionLockGuard", "FreezeDamageGuard",
@@ -92,7 +93,7 @@ class RegistryWiringTest {
             "REPEATING tasks", "HELD/PASSIVE buffs", "maintained passives", "EQUIP_CHANGE tracking", // equip
             "soul aura task",                                                 // souls
             "frozen windows",                                                 // controls (ADR-0065)
-            "falling-block casts", "guardian casts", "combat tags", "damage marks", "owner zones", "temp equips", "decay ladders", // stores
+            "falling-block casts", "guardian casts", "combat tags", "damage marks", "owner zones", "temp equips", "decay ladders", "turret casts", // stores
             "pet summon registry", "bat swarms", "bat cloud targets", "pet armed windows", "pet shared-use gate", "pet home windows", "pet home visuals", // pets (0052/0059/0060/0061/0068/0070)
             "mask illusions", "mask provocations",                            // masks (ADR-0053)
             "gravity wells", "castling channels", "javelin flights", "control locks", // reforges (ADR-0070/0071 Plan B)

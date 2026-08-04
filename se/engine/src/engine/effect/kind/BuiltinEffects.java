@@ -145,6 +145,7 @@ public final class BuiltinEffects {
                 .register(new StackingDotEffect())       // Rot and Decay: a ladder that burns only on the wearer's ground
                 .register(new DelayedStrikeFieldEffect()) // Revenge of Yijki: telegraphed ground spots, struck as one
                 .register(new SummonPurgeEffect())       // Rot and Decay: despawn foreign summons (CONVERT_SUMMON's inverse)
+                .register(new TurretRingEffect())        // Demonic Gateway: a ring of invulnerable firing emplacements
                 .build();
     }
 }

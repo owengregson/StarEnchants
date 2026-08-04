@@ -486,6 +486,31 @@ effect TEMP_BLOCK
   param fill-chance DOUBLE optional min=0 max=100 enum=- handle=- default=100
 effect TRAP_BREAK
   param whiff-sound HANDLE optional min=- max=- enum=- handle=SOUND default=BLOCK_ANVIL_LAND
+effect TURRET_RING
+  param type HANDLE optional min=- max=- enum=- handle=ENTITY_TYPE default=ENDER_CRYSTAL
+  param count INT optional min=1 max=16 enum=- handle=- default=3
+  param ring-radius DOUBLE optional min=0 max=- enum=- handle=- default=7
+  param ttl TICKS optional min=1 max=- enum=- handle=- default=200
+  param acquire-range DOUBLE optional min=0 max=- enum=- handle=- default=8
+  param initial-delay TICKS optional min=0 max=- enum=- handle=- default=30
+  param period-min TICKS optional min=1 max=- enum=- handle=- default=8
+  param period-max TICKS optional min=1 max=- enum=- handle=- default=13
+  param filter ENUM optional min=- max=- enum=ALL,ALLIES,ENEMIES,MOBS,MONSTERS,PLAYERS handle=- default=ENEMIES
+  param projectile HANDLE optional min=- max=- enum=- handle=ENTITY_TYPE default=WITHER_SKULL
+  param projectile-speed DOUBLE optional min=0 max=- enum=- handle=- default=0.06
+  param spawn-sound HANDLE optional min=- max=- enum=- handle=SOUND default=-
+  param spawn-volume DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param spawn-pitch DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param spawn-particle HANDLE optional min=- max=- enum=- handle=PARTICLE default=-
+  param spawn-particle-count INT optional min=0 max=- enum=- handle=- default=1
+  param spawn-particle-spread DOUBLE optional min=0 max=- enum=- handle=- default=0
+  param spawn-lightning BOOL optional min=- max=- enum=- handle=- default=true
+  param despawn-sound HANDLE optional min=- max=- enum=- handle=SOUND default=-
+  param despawn-volume DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param despawn-pitch DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param despawn-particle HANDLE optional min=- max=- enum=- handle=PARTICLE default=-
+  param despawn-particle-count INT optional min=0 max=- enum=- handle=- default=16
+  param despawn-particle-spread DOUBLE optional min=0 max=- enum=- handle=- default=0.75
 effect VELOCITY
   param mode ENUM optional min=- max=- enum=add,away,toward handle=- default=add
   param x DOUBLE optional min=- max=- enum=- handle=- default=0

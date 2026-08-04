@@ -1270,6 +1270,39 @@ Break every confining trap currently on the wearer — encasing webs, web boxes,
 - _target_ `who`: selector `SELF`
 - _example_: `{ TRAP_BREAK: { } }`
 
+### TURRET_RING
+
+Stand `count` invulnerable `type` emplacements on open ground, evenly spaced on a ring-radius ring around each target, for `ttl` ticks. A site with no open ground, or one the protection gate denies the actor, is SKIPPED (logged) — the ring is gated spot by spot, not once for the cast. After `initial-delay` ticks each emplacement fires a `projectile` at `projectile-speed` toward the nearest body the `filter` admits within acquire-range that has line of sight to it, then re-fires every period-min..period-max ticks (a fresh draw per volley, so a ring never fires as one salvo). A shot that strikes a body runs the ACTOR's IMPACT abilities on it ONCE — that payload is the whole damage; emplacements take no damage and neither they nor their shots ever break blocks. The spawn-* cue plays where each one lands (plus a damage-free lightning flash unless spawn-lightning: false) and the despawn-* cue where it expires. Era note: a fireball-family projectile is propelled with setDirection, whose scaling changed in the 1.21 line — the shot flies everywhere, but reads faster there than the authored speed.
+
+- _affinity_: `REGION`
+- _usage_: `{ TURRET_RING: { type: <entity_type=ENDER_CRYSTAL>, count: <int[1..16]=3>, ring-radius: <double[0..]=7>, ttl: <ticks[1..]=200>, acquire-range: <double[0..]=8>, initial-delay: <ticks[0..]=30>, period-min: <ticks[1..]=8>, period-max: <ticks[1..]=13>, filter: <enum set{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}=ENEMIES>, projectile: <entity_type=WITHER_SKULL>, projectile-speed: <double[0..]=0.06>, spawn-sound: <sound>, spawn-volume: <double[0..]=1>, spawn-pitch: <double[0..]=1>, spawn-particle: <particle>, spawn-particle-count: <int[0..]=1>, spawn-particle-spread: <double[0..]=0>, spawn-lightning: <bool=true>, despawn-sound: <sound>, despawn-volume: <double[0..]=1>, despawn-pitch: <double[0..]=1>, despawn-particle: <particle>, despawn-particle-count: <int[0..]=16>, despawn-particle-spread: <double[0..]=0.75> } }`
+- _param_ `type` `entity_type` — what each emplacement is
+- _param_ `count` `int[1..16]` — how many emplacements the ring tries to place
+- _param_ `ring-radius` `double[0..]` — blocks from the actor to each emplacement
+- _param_ `ttl` `ticks[1..]` — how long the ring stands before it despawns
+- _param_ `acquire-range` `double[0..]` — how far an emplacement looks for a target
+- _param_ `initial-delay` `ticks[0..]` — ticks before the FIRST volley — the arming window
+- _param_ `period-min` `ticks[1..]` — shortest gap between volleys
+- _param_ `period-max` `ticks[1..]` — longest gap between volleys
+- _param_ `filter` `enum set{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}` — who an emplacement will shoot at
+- _param_ `projectile` `entity_type` — what an emplacement fires
+- _param_ `projectile-speed` `double[0..]` — how hard each shot is launched
+- _param_ `spawn-sound` `sound` — cue as the ring lands; omit for silence
+- _param_ `spawn-volume` `double[0..]`
+- _param_ `spawn-pitch` `double[0..]`
+- _param_ `spawn-particle` `particle` — burst at each emplacement; omit for none
+- _param_ `spawn-particle-count` `int[0..]`
+- _param_ `spawn-particle-spread` `double[0..]`
+- _param_ `spawn-lightning` `bool` — flash a damage-free lightning visual at each emplacement
+- _param_ `despawn-sound` `sound` — cue as an emplacement expires; omit for silence
+- _param_ `despawn-volume` `double[0..]`
+- _param_ `despawn-pitch` `double[0..]`
+- _param_ `despawn-particle` `particle` — burst as an emplacement expires; omit for none
+- _param_ `despawn-particle-count` `int[0..]`
+- _param_ `despawn-particle-spread` `double[0..]`
+- _target_ `who`: selector `SELF`
+- _example_: `{ TURRET_RING: { type: ENDER_CRYSTAL, count: 5, ring-radius: 8, ttl: 300, acquire-range: 11, initial-delay: 30, period-min: 8, period-max: 13, filter: ENEMIES, projectile: WITHER_SKULL, projectile-speed: 0.065, spawn-sound: ENTITY_GHAST_SHOOT, spawn-volume: 3.0, spawn-pitch: 0.9, spawn-particle: FLAME, spawn-particle-count: 24, spawn-lightning: true, despawn-particle: SPELL_WITCH, despawn-particle-count: 16, despawn-particle-spread: 0.75, who: "@Self" } }`
+
 ### VELOCITY
 
 Apply velocity to the target(s): mode=add uses x/y/z; mode=away shoves them back from the anchor with strength and mode=toward drags them to it. anchor picks the point — the activator (default), the attacker that hit them, or the combat victim — so a defensive proc can launch the wearer away from whoever struck. Replaces THROW/LAUNCH/KNOCKBACK.

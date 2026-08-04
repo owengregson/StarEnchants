@@ -52,6 +52,7 @@ import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.FallingBlock;
+import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -177,6 +178,19 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private static final int BLOCK_KILL_POLL_TICKS = 20;
     /** Max blocks a strike point drops looking for ground before it settles at the origin's level. */
     private static final int STRIKE_GROUND_DROP_LIMIT = 128;
+    /** Max blocks a turret site drops looking for open ground before the site is skipped — a few steps, so a
+     *  ring follows stairs and a slope but never reaches down a cliff to place a turret out of the fight. */
+    private static final int TURRET_GROUND_DROP_LIMIT = 4;
+    /** How far above its footing a turret's shots leave from — roughly the emplacement's own body height. */
+    private static final double TURRET_MUZZLE_RISE = 1.0;
+    /** Ceiling on a tracked shot's registry row: a shot that hits nothing at all still has to be forgotten. */
+    private static final int TURRET_SHOT_TTL_TICKS = 200;
+    /** An emplacement's summon flags: it acquires nothing, never moves, and every hit it takes is ZEROED by the
+     *  summon-guard listener — zeroing rather than cancelling is what keeps a body destroyed by ANY landed
+     *  damage standing. An {@code ENDER_CRYSTAL} is inert anyway; the AI flags are what make an authored MOB
+     *  turret a turret rather than a pet. */
+    private static final SummonFlags TURRET_FLAGS =
+            SummonFlags.of(false, true, true, false, false, false, true, 0.0, "", List.of());
     private final ReflectMarksStore reflectMarks;   // ADR-0049 Hex reflect windows
     private final OutgoingDebuffStore outgoingDebuff; // ADR-0049 Weaken/Destruction outgoing nerfs
     private final DamageCapStore damageCap;          // ADR-0049 Diminish last-taken + armed cap
@@ -215,6 +229,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final PlayerVisibility visibility;
     /** The SUMMON_PAYLOAD seam a periodic summon pulses through (firing a trigger is the feature layer's). */
     private final SummonPayloads payloads;
+    /** The per-site protection gate (gate 2's provider list), asked once per TURRET_RING emplacement. */
+    private final SiteGate siteGate;
 
     /** The event's own entity (the combat victim), whose zero-WAIT health writes run inline at flush (ADR-0051). */
     private LivingEntity eventEntity;
@@ -280,6 +296,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.rebounds = env.stores().rebounds();
         this.visibility = env.visibility();
         this.payloads = env.payloads();
+        this.siteGate = env.siteGate();
         this.fold = new DamageFold();
         this.activeFold = this.fold;
     }
@@ -2965,12 +2982,206 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     /** Emit a field's sound + particle burst at a point, on an already-owned thread (the dustDirect idiom). */
     private void playFieldCue(Location at, FieldCue cue) {
+        playFieldCue(at, cue, 0.0);
+    }
+
+    /** {@link #playFieldCue(Location, FieldCue)} with the burst scattered {@code spread} blocks each way. */
+    private void playFieldCue(Location at, FieldCue cue, double spread) {
         playCueInline(at, cue.soundId(), cue.volume(), cue.pitch());
         if (cue.particleId() >= 0 && cue.particleCount() > 0) {
             // At the ground AND one block up, so the cue reads as a column rather than a smear on the floor.
-            particleDirect(at, cue.particleId(), cue.particleCount(), 0.0);
-            particleDirect(at.clone().add(0.0, 1.0, 0.0), cue.particleId(), cue.particleCount(), 0.0);
+            particleDirect(at, cue.particleId(), cue.particleCount(), spread);
+            particleDirect(at.clone().add(0.0, 1.0, 0.0), cue.particleId(), cue.particleCount(), spread);
         }
+    }
+
+    @Override
+    public void turretRing(Location origin, Player actor, TurretRingProfile profile,
+                           FieldCue spawnCue, double spawnSpread, boolean spawnLightning,
+                           FieldCue despawnCue, double despawnSpread) {
+        Location anchor = origin.clone(); // own the origin: a WAIT tier can defer this to a later tick
+        // The actor is only ever needed as a UUID — the protection query takes one, and a turret outlives the
+        // activation that placed it, so the IMPACT owner is looked up fresh at each strike rather than held.
+        UUID ownerId = actor == null ? null : actor.getUniqueId();
+        regionOp(anchor, () -> {
+            World world = anchor.getWorld();
+            if (world == null) {
+                return;
+            }
+            for (int i = 0; i < profile.count(); i++) {
+                double[] offset = profile.siteOffset(i);
+                Location site = new Location(world, anchor.getX() + offset[0], anchor.getY(),
+                        anchor.getZ() + offset[1]);
+                // Re-key to the SITE's own region: the column scan, the spawn and every volley run on the thread
+                // owning that ground, which a ring several blocks wide need not share with the caster.
+                Scheduling.onRegion(site, () -> placeTurret(site, anchor.getBlockY() + 1, ownerId, profile,
+                        spawnCue, spawnSpread, spawnLightning, despawnCue, despawnSpread));
+            }
+        });
+    }
+
+    /** One emplacement, on ITS own region thread: the ground test, the per-site protection query, then the arming. */
+    private void placeTurret(Location site, int scanTopY, UUID ownerId, TurretRingProfile profile,
+                             FieldCue spawnCue, double spawnSpread, boolean spawnLightning,
+                             FieldCue despawnCue, double despawnSpread) {
+        Location ground = openGround(site, scanTopY);
+        if (ground == null) {
+            LOG.log(System.Logger.Level.DEBUG, () -> "TURRET_RING site skipped, no open ground: " + where(site));
+            return;
+        }
+        // Asked PER SITE, not once for the cast: a caster on a claim boundary drops only the sites inside it.
+        if (!siteGate.allows(ownerId, ground)) {
+            LOG.log(System.Logger.Level.DEBUG, () -> "TURRET_RING site skipped, protected: " + where(ground));
+            return;
+        }
+        World world = ground.getWorld();
+        Entity turret = spawnTyped(world, ground, profile.turretTypeId());
+        if (turret == null) {
+            return; // unresolvable type on this version — the §9 compile warn already fired
+        }
+        UUID turretId = turret.getUniqueId();
+        if (turret instanceof LivingEntity living) {
+            applyNoAi(living); // "stationary" is part of the contract, and a mob turret would otherwise wander off
+        }
+        // Invulnerability rides the ONE summon registry, so the existing summon-guard listener zeroes every hit.
+        // Zeroing (not cancelling) is what keeps a crystal standing: it is destroyed by any damage that LANDS.
+        PetSummons.bind(turretId, TURRET_FLAGS);
+        if (ownerId != null) {
+            GuardianCasts.bind(turretId, ownerId); // a hit on it fires GUARDIAN_HURT, like every owned spawn
+        }
+        TurretCasts.bindTurret(turretId);
+        if (spawnLightning) {
+            world.strikeLightningEffect(ground); // visual only — never the vanilla ~5 damage + fire
+        }
+        playFieldCue(ground, spawnCue, spawnSpread);
+        scheduleVolley(turret, ownerId, profile, profile.initialDelayTicks());
+        Scheduling.onEntityLater(turret, profile.ttlTicks(), () -> despawnTurret(turret, despawnCue, despawnSpread));
+    }
+
+    /**
+     * The open cell an emplacement stands in: the first solid block scanning DOWN from {@code scanTopY} in
+     * {@code site}'s column, with the two cells above it clear. {@code null} when the column offers no such spot
+     * within {@link #TURRET_GROUND_DROP_LIMIT} — a wall, a roof, or a drop the ring must not reach across (the
+     * ring belongs on the caster's own ground, so the budget is deliberately a few steps, not the strike field's
+     * whole column). Bounded scan, no {@code World#getMinHeight} (absent pre-1.17 / on the legacy tree).
+     */
+    private static Location openGround(Location site, int scanTopY) {
+        World world = site.getWorld();
+        if (world == null) {
+            return null;
+        }
+        int x = site.getBlockX();
+        int z = site.getBlockZ();
+        for (int drop = 0; drop <= TURRET_GROUND_DROP_LIMIT; drop++) {
+            int y = scanTopY - drop;
+            if (!world.getBlockAt(x, y, z).getType().isSolid()) {
+                continue;
+            }
+            // The first solid block IS the floor: roofed over, the site is inside terrain rather than on it.
+            if (world.getBlockAt(x, y + 1, z).getType().isSolid()
+                    || world.getBlockAt(x, y + 2, z).getType().isSolid()) {
+                return null;
+            }
+            return new Location(world, x + 0.5, y + 1, z + 0.5);
+        }
+        return null;
+    }
+
+    /**
+     * Arm ONE volley {@code delay} ticks out on the turret's OWN entity scheduler; the volley re-arms itself
+     * with a fresh jitter draw. A chain rather than a per-tick countdown, so an idle turret costs nothing and
+     * the initial arming delay is just the first link. The chain ends the moment the body is gone — on Paper
+     * the fallback scheduler still runs the pending task, so the liveness guard covers both platforms.
+     */
+    private void scheduleVolley(Entity turret, UUID ownerId, TurretRingProfile profile, int delay) {
+        Scheduling.onEntityLater(turret, Math.max(1, delay), () -> {
+            if (!turret.isValid()) {
+                return;
+            }
+            fireVolley(turret, ownerId, profile);
+            scheduleVolley(turret, ownerId, profile, profile.drawPeriod(ThreadLocalRandom.current()));
+        });
+    }
+
+    /** One shot at the nearest eligible body the turret can see, or nothing at all when it has no target. */
+    private void fireVolley(Entity turret, UUID ownerId, TurretRingProfile profile) {
+        Location muzzle = turret.getLocation().add(0.0, TURRET_MUZZLE_RISE, 0.0);
+        World world = muzzle.getWorld();
+        EntityType shotType = entityType(profile.projectileTypeId());
+        if (world == null || shotType == null) {
+            return;
+        }
+        Player owner = ownerId == null ? null : Bukkit.getPlayer(ownerId);
+        LivingEntity target = acquire(world, turret, muzzle, ownerId, owner, profile);
+        if (target == null) {
+            return;
+        }
+        Vector aim = target.getEyeLocation().toVector().subtract(muzzle.toVector());
+        if (aim.lengthSquared() <= 0) {
+            return; // a body sharing the muzzle's exact point gives no direction to shoot in
+        }
+        Vector velocity = aim.normalize().multiply(profile.projectileSpeed());
+        Entity shot = world.spawnEntity(muzzle, shotType);
+        shot.setVelocity(velocity);
+        if (shot instanceof Fireball fireball) {
+            // A fireball is driven by its OWN acceleration, not its velocity: velocity alone decays it to a stop
+            // within a block. setDirection is the one propulsion call both the 1.8 API and the modern one carry.
+            fireball.setDirection(velocity);
+        }
+        if (shot instanceof Projectile projectile && owner != null) {
+            projectile.setShooter(owner); // vanilla ProjectileSource, exactly as launchProjectile tracks a shot
+        }
+        UUID shotId = shot.getUniqueId();
+        TurretCasts.bindShot(shotId, ownerId);
+        // A shot that never hits anything would leak its row; the ceiling drops it. Scheduled on the REGION, not
+        // the projectile — Folia retires an entity's tasks with the entity, which is exactly the case to cover.
+        Scheduling.onRegionLater(muzzle, TURRET_SHOT_TTL_TICKS, () -> TurretCasts.forgetShot(shotId));
+    }
+
+    /**
+     * The nearest body {@code profile.filter()} admits, inside acquire range, that can actually SEE the turret —
+     * a wall between them is cover. The sight ray is asked from the BODY, because an emplacement need not be a
+     * {@code LivingEntity} and so has no ray of its own; the scan is region-bounded, so every candidate is
+     * co-region with the muzzle.
+     */
+    private LivingEntity acquire(World world, Entity turret, Location muzzle, UUID ownerId, Player owner,
+                                 TurretRingProfile profile) {
+        Targets.Match filter = Targets.of(profile.filter());
+        double range = profile.acquireRange();
+        List<LivingEntity> candidates = new ArrayList<>();
+        for (Entity nearby : world.getNearbyEntities(muzzle, range, range, range)) {
+            if (!(nearby instanceof LivingEntity body) || body.getUniqueId().equals(ownerId)
+                    || !alive(body) || invincibleSummon(body) || !filter.accepts(owner, body)) {
+                continue;
+            }
+            if (body.hasLineOfSight(turret)) {
+                candidates.add(body);
+            }
+        }
+        double[] distances = new double[candidates.size()];
+        for (int i = 0; i < distances.length; i++) {
+            // getNearbyEntities scans a CUBE whose corners reach r·√3; the profile trims to the authored sphere.
+            distances[i] = candidates.get(i).getLocation().distanceSquared(muzzle);
+        }
+        int pick = profile.nearest(distances);
+        return pick < 0 ? null : candidates.get(pick);
+    }
+
+    /** The TTL end: registries forgotten BEFORE the removal (the summon-path invariant), then the despawn cue. */
+    private void despawnTurret(Entity turret, FieldCue despawnCue, double despawnSpread) {
+        Location at = turret.getLocation();
+        UUID turretId = turret.getUniqueId();
+        TurretCasts.forgetTurret(turretId);
+        PetSummons.forget(turretId);
+        GuardianCasts.forget(turretId);
+        turret.remove();
+        playFieldCue(at, despawnCue, despawnSpread);
+    }
+
+    /** World + block coordinates of a point, for the skipped-site log line. */
+    private static String where(Location at) {
+        return (at.getWorld() == null ? "?" : at.getWorld().getName())
+                + " " + at.getBlockX() + "," + at.getBlockY() + "," + at.getBlockZ();
     }
 
     /** One cosmetic falling block, already on its own region thread — the body both falling-block intents share. */
