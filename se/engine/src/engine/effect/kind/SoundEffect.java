@@ -19,6 +19,11 @@ import schema.spec.D;
  * position instead of the activation's, still world-audible there at the same volume and pitch (the
  * {@code PARTICLE} {@code who} shape). When {@code who} resolves no entities — the default {@code @Here} —
  * it falls back to the activation location exactly as before.
+ *
+ * <p>{@code dy} raises that anchor. It resolves on two sides on purpose: the location branch already HOLDS the
+ * point, so it moves it here; the entity branch does not (reading a target's position in an effect is the
+ * cross-region read ADR-0043 forbids), so the offset rides the intent and lands in the sink on the target's own
+ * thread. Both spend nothing at {@code dy: 0}, which is every line authored before this.
  */
 public final class SoundEffect implements EffectKind {
 
@@ -26,11 +31,12 @@ public final class SoundEffect implements EffectKind {
             .param("sound", D.sound())
             .param("volume", D.DOUBLE.min(0).def(1))
             .param("pitch", D.DOUBLE.min(0).def(1))
+            .param("dy", D.DOUBLE.range(-16, 16).def(0), "blocks to raise the anchor before the cue plays")
             .target("who", T.HERE)
             .affinity(Affinity.REGION)
             .doc("Play a sound at the activation location, or at each entity in `who` when given — world-audible "
-                    + "there at the same volume and pitch. No-op if `who` resolves nothing and the activation has "
-                    + "no location.")
+                    + "there at the same volume and pitch. `dy` raises that anchor (an overhead cue is `dy: 4`). "
+                    + "No-op if `who` resolves nothing and the activation has no location.")
             .example("{ SOUND: { sound: ENTITY_GENERIC_EXPLODE, volume: 1, pitch: 1 } }")
             .build();
 
@@ -42,6 +48,7 @@ public final class SoundEffect implements EffectKind {
     @Override
     public void run(EffectCtx ctx, Sink sink) {
         int soundId = ctx.integer("sound");
+        double dy = ctx.dbl("dy");
         Iterator<LivingEntity> targets = ctx.targets("who").iterator();
         if (targets.hasNext()) {
             // ADR-0066 brackets CO-ACTIVATIONS, not targets: one authored line still reaches every entity it
@@ -52,7 +59,7 @@ public final class SoundEffect implements EffectKind {
             float volume = (float) ctx.dbl("volume");
             float pitch = (float) ctx.dbl("pitch");
             do {
-                sink.sound(targets.next(), soundId, volume, pitch);
+                sink.sound(targets.next(), soundId, volume, pitch, dy);
             } while (targets.hasNext());
             return;
         }
@@ -63,7 +70,7 @@ public final class SoundEffect implements EffectKind {
         // ADR-0066: one audible cue per sound per hit. Same-sound co-activations inside one event walk
         // (sibling enchants sharing a cue, worn multi-copies, the ECHO_STRIKE pass) collapse to ONE play.
         if (CueOnce.claim(sink, soundId)) {
-            sink.sound(loc, soundId, (float) ctx.dbl("volume"), (float) ctx.dbl("pitch"));
+            sink.sound(Anchors.raised(loc, dy), soundId, (float) ctx.dbl("volume"), (float) ctx.dbl("pitch"));
         }
     }
 }

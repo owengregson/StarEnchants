@@ -3303,9 +3303,9 @@
     },
   {
     "head": "MESSAGE",
-    "doc": "Send feedback on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade timings). Default recipient self; `who` can name any party (e.g. @Victim). The `{ATTACKER}`/`{VICTIM}` tokens expand to the activating player and the other combat party, and `{SELF}` to the name of whoever receives that copy. Replaces ACTIONBAR/TITLE.",
+    "doc": "Send feedback on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade timings). Default recipient self; `who` can name any party (e.g. @Victim). The `{ATTACKER}`/`{VICTIM}` tokens expand to the activating player and the other combat party, `{SELF}` to the name of whoever receives that copy, and `{RELATION_COLOR}` to `ally-color` or `enemy-color` depending on how that recipient stands to the actor — so one broadcast reads correctly to friend and foe. Replaces ACTIONBAR/TITLE.",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ MESSAGE: { text: <string>, channel: <enum{chat|actionbar|title}=chat>, subtitle: <string=>, fadeIn: <ticks[0..]=10>, stay: <ticks[0..]=70>, fadeOut: <ticks[0..]=20>, tokens: <expr map=> } }",
+    "usage": "{ MESSAGE: { text: <string>, channel: <enum{chat|actionbar|title}=chat>, subtitle: <string=>, fadeIn: <ticks[0..]=10>, stay: <ticks[0..]=70>, fadeOut: <ticks[0..]=20>, tokens: <expr map=>, ally-color: <string=&a>, enemy-color: <string=&c> } }",
     "example": "{ MESSAGE: { text: \"&aCritical hit!\" } }",
     "params": [
       {
@@ -3395,6 +3395,30 @@
         "enum": [],
         "handle": null,
         "doc": "name=expression bindings; each {name} in the text becomes the evaluated number"
+        },
+      {
+        "name": "ally-color",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "&a",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "the {RELATION_COLOR} value for a recipient allied to the actor"
+        },
+      {
+        "name": "enemy-color",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "&c",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "the {RELATION_COLOR} value for every other recipient"
         }
       ],
     "targets": [
@@ -3713,9 +3737,9 @@
     },
   {
     "head": "PARTICLE",
-    "doc": "Spawn particles at the activation location, or at each entity in `who` when given (centered on the body, not the feet). `block` carries a block material as crack/dust data. `spread` is the horizontal Gaussian offset (set 0 for a point burst); `spread-y` the vertical offset, where the -1 default means \"use `spread`\". No-op if there is no location.",
+    "doc": "Spawn particles at the activation location, or at each entity in `who` when given (centered on the body, not the feet). `block` carries a block material as crack/dust data. `spread` is the horizontal Gaussian offset (set 0 for a point burst); `spread-y` the vertical offset, where the -1 default means \"use `spread`\". `dy` moves the whole burst up, which is not what widening `spread-y` does. No-op if there is no location.",
     "affinity": "REGION",
-    "usage": "{ PARTICLE: { particle: <particle>, count: <int[0..]=1>, block: <material>, spread: <double[0..4]=0.4>, spread-y: <double[-1..4]=-1> } }",
+    "usage": "{ PARTICLE: { particle: <particle>, count: <int[0..]=1>, block: <material>, spread: <double[0..4]=0.4>, spread-y: <double[-1..4]=-1>, dy: <double[-16..16]=0> } }",
     "example": "{ PARTICLE: { particle: BLOCK_CRACK, count: 20, block: REDSTONE_BLOCK, who: \"@Victim\" } }",
     "params": [
       {
@@ -3777,6 +3801,18 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "dy",
+        "kind": "DOUBLE",
+        "label": "double[-16..16]",
+        "required": false,
+        "default": "0",
+        "min": -16,
+        "max": 16,
+        "enum": [],
+        "handle": null,
+        "doc": "blocks to raise the anchor before the burst spawns"
         }
       ],
     "targets": [
@@ -4977,9 +5013,9 @@
     },
   {
     "head": "SOUND",
-    "doc": "Play a sound at the activation location, or at each entity in `who` when given — world-audible there at the same volume and pitch. No-op if `who` resolves nothing and the activation has no location.",
+    "doc": "Play a sound at the activation location, or at each entity in `who` when given — world-audible there at the same volume and pitch. `dy` raises that anchor (an overhead cue is `dy: 4`). No-op if `who` resolves nothing and the activation has no location.",
     "affinity": "REGION",
-    "usage": "{ SOUND: { sound: <sound>, volume: <double[0..]=1>, pitch: <double[0..]=1> } }",
+    "usage": "{ SOUND: { sound: <sound>, volume: <double[0..]=1>, pitch: <double[0..]=1>, dy: <double[-16..16]=0> } }",
     "example": "{ SOUND: { sound: ENTITY_GENERIC_EXPLODE, volume: 1, pitch: 1 } }",
     "params": [
       {
@@ -5017,6 +5053,18 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "dy",
+        "kind": "DOUBLE",
+        "label": "double[-16..16]",
+        "required": false,
+        "default": "0",
+        "min": -16,
+        "max": 16,
+        "enum": [],
+        "handle": null,
+        "doc": "blocks to raise the anchor before the cue plays"
         }
       ],
     "targets": [
@@ -8358,6 +8406,10 @@
     },
   {
     "name": "sprinting",
+    "type": "BOOL"
+    },
+  {
+    "name": "status.freeze",
     "type": "BOOL"
     },
   {

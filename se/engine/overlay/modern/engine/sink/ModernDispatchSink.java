@@ -507,9 +507,9 @@ public final class ModernDispatchSink extends DispatchSinkBase {
 
     @Override
     public void particle(LivingEntity target, int particleId, int count, int blockMaterialId,
-                         double offsetX, double offsetY, double offsetZ) {
+                         double offsetX, double offsetY, double offsetZ, double dy) {
         // Entity-anchored (the PARTICLE who-slot): read the target's mid-body AT DISPATCH on its own region thread.
-        entityOp(target, () -> spawnParticleAt(midBody(target), particleId, count, blockMaterialId,
+        entityOp(target, () -> spawnParticleAt(midBody(target).add(0.0, dy, 0.0), particleId, count, blockMaterialId,
                 offsetX, offsetY, offsetZ));
     }
 

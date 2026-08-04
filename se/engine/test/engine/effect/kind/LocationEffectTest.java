@@ -67,11 +67,12 @@ class LocationEffectTest {
                 atLocation("DROP_ITEM → dropItem(material, count)", new DropItemEffect(),
                         c -> c.with("material", 11).with("count", 3), (s, loc) -> verify(s).dropItem(loc, 11, 3)),
                 atLocation("SOUND → sound(id, volume, pitch)", new SoundEffect(),
-                        c -> c.with("sound", 3).with("volume", 1.0).with("pitch", 1.0),
+                        c -> c.with("sound", 3).with("volume", 1.0).with("pitch", 1.0).with("dy", 0.0),
                         (s, loc) -> verify(s).sound(loc, 3, 1.0f, 1.0f)),
                 atLocation("PARTICLE → particle(id, count, block=-1, spread on X/Z, spread-y on Y) at the activation location (no who)",
                         new ParticleEffect(),
-                        c -> c.with("particle", 9).with("count", 20).with("spread", 1.5).with("spread-y", 2.0),
+                        c -> c.with("particle", 9).with("count", 20).with("spread", 1.5).with("spread-y", 2.0)
+                                .with("dy", 0.0),
                         (s, loc) -> verify(s).particle(loc, 9, 20, -1, 1.5, 2.0, 1.5)));
     }
 
@@ -95,7 +96,8 @@ class LocationEffectTest {
                 }),
                 dynamicTest("SOUND with neither who nor a location → no-op", () -> {
                     FakeEffectCtx ctx = FakeEffectCtx.create()
-                            .with("sound", 3).with("volume", 1.0).with("pitch", 1.0); // read before the guard
+                            .with("sound", 3).with("volume", 1.0).with("pitch", 1.0)
+                            .with("dy", 0.0); // read before the guard
                     Sink sink = mock(Sink.class);
                     new SoundEffect().run(ctx, sink);
                     verifyNoInteractions(sink);
@@ -253,23 +255,44 @@ class LocationEffectTest {
                     LivingEntity a = mock(LivingEntity.class);
                     LivingEntity b = mock(LivingEntity.class);
                     FakeEffectCtx ctx = FakeEffectCtx.create().targets("who", a, b)
-                            .with("sound", 3).with("volume", 0.5).with("pitch", 1.5);
+                            .with("sound", 3).with("volume", 0.5).with("pitch", 1.5).with("dy", 0.0);
                     Sink sink = mock(Sink.class);
                     new SoundEffect().run(ctx, sink);
                     // Entity-anchored, not location-anchored: the Sink reads each body's position at dispatch,
                     // so a target that moved (or sits in another region) still gets its cue where it actually is.
-                    verify(sink).sound(a, 3, 0.5f, 1.5f);
-                    verify(sink).sound(b, 3, 0.5f, 1.5f);
+                    verify(sink).sound(a, 3, 0.5f, 1.5f, 0.0);
+                    verify(sink).sound(b, 3, 0.5f, 1.5f, 0.0);
                     verifyNoMoreInteractions(sink);
                 }),
                 dynamicTest("SOUND with who wins over the activation location", () -> {
                     LivingEntity target = mock(LivingEntity.class);
                     FakeEffectCtx ctx = FakeEffectCtx.create().location(mock(Location.class))
-                            .targets("who", target).with("sound", 3).with("volume", 1.0).with("pitch", 1.0);
+                            .targets("who", target).with("sound", 3).with("volume", 1.0).with("pitch", 1.0)
+                            .with("dy", 0.0);
                     Sink sink = mock(Sink.class);
                     new SoundEffect().run(ctx, sink);
-                    verify(sink).sound(target, 3, 1.0f, 1.0f);
+                    verify(sink).sound(target, 3, 1.0f, 1.0f, 0.0);
                     verifyNoMoreInteractions(sink); // never BOTH — the who slot replaces the anchor, it does not add one
+                }),
+                dynamicTest("SOUND/PARTICLE carry dy to the entity-anchored intent, per target", () -> {
+                    // The +4Y cue: an effect cannot read a target's position (that is the cross-region read
+                    // ADR-0043 forbids), so the offset has to survive the whole way to the sink, on EVERY copy —
+                    // a fan-out that applied it to the first target only is exactly what this row catches.
+                    LivingEntity a = mock(LivingEntity.class);
+                    LivingEntity b = mock(LivingEntity.class);
+                    Sink sink = mock(Sink.class);
+                    new SoundEffect().run(FakeEffectCtx.create().targets("who", a, b)
+                            .with("sound", 3).with("volume", 1.0).with("pitch", 1.1).with("dy", 4.0), sink);
+                    new ParticleEffect().run(FakeEffectCtx.create().targets("who", a, b)
+                            .with("particle", 9).with("count", 5).with("spread", 0.4).with("spread-y", -1.0)
+                            .with("dy", 4.0), sink);
+                    verify(sink).sound(a, 3, 1.0f, 1.1f, 4.0);
+                    verify(sink).sound(b, 3, 1.0f, 1.1f, 4.0);
+                    // dy travels in its own slot, never folded into the spread: the burst MOVES up, it does not
+                    // stretch (spread-y still resolves to the -1 sentinel's fold onto spread).
+                    verify(sink).particle(a, 9, 5, -1, 0.4, 0.4, 0.4, 4.0);
+                    verify(sink).particle(b, 9, 5, -1, 0.4, 0.4, 0.4, 4.0);
+                    verifyNoMoreInteractions(sink);
                 }),
                 dynamicTest("PROJECTILE → launchProjectile(actor, type, count, speed, yield, incendiary)", () -> {
                     Player actor = mock(Player.class);

@@ -53,9 +53,10 @@ class VarVocabularyTest {
         // flag — whether the temp block under the actor's feet is one the actor placed, plus
         // bookrate.generate/bookrate.apply — BOOK_RATE_MODIFIER's paired per-site armed guards), and wave 2e
         // (actor.setweapon flag — the held-set-weapon identity `on: weapon` gates a whole bonus on and no
-        // chance expression could read).
+        // chance expression could read), and wave 2e.2 (status.freeze flag — STATUS_CLEAR's FREEZE rung
+        // paired guard, the teleblock flag's sibling).
         assertEquals(29, v.numberSlots());
-        assertEquals(26, v.flagSlots());
+        assertEquals(27, v.flagSlots());
         assertEquals(13, v.stringSlots());
         assertEquals(VarKind.NUM, v.lookup("victim", "health").orElseThrow().kind());
         assertEquals(VarKind.NUM, v.lookup("actor", "maxhealth").orElseThrow().kind());

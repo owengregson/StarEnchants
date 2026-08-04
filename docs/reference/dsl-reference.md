@@ -710,10 +710,10 @@ Temporarily remove `fraction` of the target's overhealth (max health above `base
 
 ### MESSAGE
 
-Send feedback on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade timings). Default recipient self; `who` can name any party (e.g. @Victim). The `{ATTACKER}`/`{VICTIM}` tokens expand to the activating player and the other combat party, and `{SELF}` to the name of whoever receives that copy. Replaces ACTIONBAR/TITLE.
+Send feedback on a channel: chat (default), actionbar, or title (with subtitle + fade/stay/fade timings). Default recipient self; `who` can name any party (e.g. @Victim). The `{ATTACKER}`/`{VICTIM}` tokens expand to the activating player and the other combat party, `{SELF}` to the name of whoever receives that copy, and `{RELATION_COLOR}` to `ally-color` or `enemy-color` depending on how that recipient stands to the actor — so one broadcast reads correctly to friend and foe. Replaces ACTIONBAR/TITLE.
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ MESSAGE: { text: <string>, channel: <enum{chat|actionbar|title}=chat>, subtitle: <string=>, fadeIn: <ticks[0..]=10>, stay: <ticks[0..]=70>, fadeOut: <ticks[0..]=20>, tokens: <expr map=> } }`
+- _usage_: `{ MESSAGE: { text: <string>, channel: <enum{chat|actionbar|title}=chat>, subtitle: <string=>, fadeIn: <ticks[0..]=10>, stay: <ticks[0..]=70>, fadeOut: <ticks[0..]=20>, tokens: <expr map=>, ally-color: <string=&a>, enemy-color: <string=&c> } }`
 - _param_ `text` `string`
 - _param_ `channel` `enum{chat|actionbar|title}`
 - _param_ `subtitle` `string` — title channel only
@@ -721,6 +721,8 @@ Send feedback on a channel: chat (default), actionbar, or title (with subtitle +
 - _param_ `stay` `ticks[0..]` — title channel only
 - _param_ `fadeOut` `ticks[0..]` — title channel only
 - _param_ `tokens` `expr map` — name=expression bindings; each {name} in the text becomes the evaluated number
+- _param_ `ally-color` `string` — the {RELATION_COLOR} value for a recipient allied to the actor
+- _param_ `enemy-color` `string` — the {RELATION_COLOR} value for every other recipient
 - _target_ `who`: selector `SELF`
 - _example_: `{ MESSAGE: { text: "&aCritical hit!" } }`
 
@@ -796,15 +798,16 @@ Debuff the target's outgoing damage by a percent for a duration in ticks, priced
 
 ### PARTICLE
 
-Spawn particles at the activation location, or at each entity in `who` when given (centered on the body, not the feet). `block` carries a block material as crack/dust data. `spread` is the horizontal Gaussian offset (set 0 for a point burst); `spread-y` the vertical offset, where the -1 default means "use `spread`". No-op if there is no location.
+Spawn particles at the activation location, or at each entity in `who` when given (centered on the body, not the feet). `block` carries a block material as crack/dust data. `spread` is the horizontal Gaussian offset (set 0 for a point burst); `spread-y` the vertical offset, where the -1 default means "use `spread`". `dy` moves the whole burst up, which is not what widening `spread-y` does. No-op if there is no location.
 
 - _affinity_: `REGION`
-- _usage_: `{ PARTICLE: { particle: <particle>, count: <int[0..]=1>, block: <material>, spread: <double[0..4]=0.4>, spread-y: <double[-1..4]=-1> } }`
+- _usage_: `{ PARTICLE: { particle: <particle>, count: <int[0..]=1>, block: <material>, spread: <double[0..4]=0.4>, spread-y: <double[-1..4]=-1>, dy: <double[-16..16]=0> } }`
 - _param_ `particle` `particle`
 - _param_ `count` `int[0..]`
 - _param_ `block` `material`
 - _param_ `spread` `double[0..4]`
 - _param_ `spread-y` `double[-1..4]`
+- _param_ `dy` `double[-16..16]` — blocks to raise the anchor before the burst spawns
 - _target_ `who`: selector `HERE`
 - _example_: `{ PARTICLE: { particle: BLOCK_CRACK, count: 20, block: REDSTONE_BLOCK, who: "@Victim" } }`
 
@@ -1084,13 +1087,14 @@ Move min(target's souls, cap) souls out of the target's gems and credit the acto
 
 ### SOUND
 
-Play a sound at the activation location, or at each entity in `who` when given — world-audible there at the same volume and pitch. No-op if `who` resolves nothing and the activation has no location.
+Play a sound at the activation location, or at each entity in `who` when given — world-audible there at the same volume and pitch. `dy` raises that anchor (an overhead cue is `dy: 4`). No-op if `who` resolves nothing and the activation has no location.
 
 - _affinity_: `REGION`
-- _usage_: `{ SOUND: { sound: <sound>, volume: <double[0..]=1>, pitch: <double[0..]=1> } }`
+- _usage_: `{ SOUND: { sound: <sound>, volume: <double[0..]=1>, pitch: <double[0..]=1>, dy: <double[-16..16]=0> } }`
 - _param_ `sound` `sound`
 - _param_ `volume` `double[0..]`
 - _param_ `pitch` `double[0..]`
+- _param_ `dy` `double[-16..16]` — blocks to raise the anchor before the cue plays
 - _target_ `who`: selector `HERE`
 - _example_: `{ SOUND: { sound: ENTITY_GENERIC_EXPLODE, volume: 1, pitch: 1 } }`
 
@@ -1792,6 +1796,7 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%recentattackers%` | NUM |
 | `%sneaking%` | BOOL |
 | `%sprinting%` | BOOL |
+| `%status.freeze%` | BOOL |
 | `%status.teleblock%` | BOOL |
 | `%swimming%` | BOOL |
 | `%victim.blocking%` | BOOL |

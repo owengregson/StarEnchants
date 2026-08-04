@@ -1,5 +1,6 @@
 package engine.effect.kind;
 
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyFloat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -23,7 +24,7 @@ class SoundCueOnceTest {
 
     private static FakeEffectCtx ctx(Location loc, int soundId, double pitch) {
         return FakeEffectCtx.create().location(loc)
-                .with("sound", soundId).with("volume", 1.0).with("pitch", pitch);
+                .with("sound", soundId).with("volume", 1.0).with("pitch", pitch).with("dy", 0.0);
     }
 
     @Test
@@ -59,11 +60,11 @@ class SoundCueOnceTest {
         // The dedupe brackets CO-ACTIVATIONS, not targets: one authored line still reaches every entity it
         // resolved, while a sibling activation authoring the same cue on the same hit stays collapsed.
         kind.run(FakeEffectCtx.create().targets("who", first, second)
-                .with("sound", 7).with("volume", 1.0).with("pitch", 1.0), sink);
+                .with("sound", 7).with("volume", 1.0).with("pitch", 1.0).with("dy", 0.0), sink);
         kind.run(FakeEffectCtx.create().targets("who", first, second)
-                .with("sound", 7).with("volume", 1.0).with("pitch", 1.0), sink);
-        verify(sink, times(1)).sound(eq(first), eq(7), anyFloat(), anyFloat());
-        verify(sink, times(1)).sound(eq(second), eq(7), anyFloat(), anyFloat());
+                .with("sound", 7).with("volume", 1.0).with("pitch", 1.0).with("dy", 0.0), sink);
+        verify(sink, times(1)).sound(eq(first), eq(7), anyFloat(), anyFloat(), anyDouble());
+        verify(sink, times(1)).sound(eq(second), eq(7), anyFloat(), anyFloat(), anyDouble());
     }
 
     @Test

@@ -3116,13 +3116,16 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void sound(LivingEntity target, int soundId, float volume, float pitch) {
+    public void sound(LivingEntity target, int soundId, float volume, float pitch, double dy) {
         // Entity-anchored (the SOUND who-slot): the position is read at DISPATCH on the target's own region
         // thread, so a target that moved — or that was never co-region to begin with — still gets its cue
         // where it actually is. World play, not a per-player packet: bystanders hear it too.
         entityOp(target, () -> {
             Sound resolved = sound(soundId);
             Location at = target.getLocation();
+            if (dy != 0.0) {
+                at = at.add(0.0, dy, 0.0); // getLocation() already hands back a fresh copy — safe to move in place
+            }
             World world = at.getWorld();
             if (resolved != null && world != null) {
                 world.playSound(at, resolved, volume, pitch);
@@ -3598,10 +3601,10 @@ public abstract class DispatchSinkBase implements SinkReadback {
             message(target, message);
         }
         if (soundId >= 0) {
-            sound(target, soundId, 1.0f, 1.0f);
+            sound(target, soundId, 1.0f, 1.0f, 0.0);
         }
         if (particleId >= 0) {
-            particle(target, particleId, 8, -1, 0.4, 0.4, 0.4);
+            particle(target, particleId, 8, -1, 0.4, 0.4, 0.4, 0.0);
         }
     }
 

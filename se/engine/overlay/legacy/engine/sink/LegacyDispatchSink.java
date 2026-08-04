@@ -484,10 +484,10 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
 
     @Override
     public void particle(LivingEntity target, int particleId, int count, int blockMaterialId,
-                         double offsetX, double offsetY, double offsetZ) {
+                         double offsetX, double offsetY, double offsetZ, double dy) {
         // Entity-anchored: read the target's mid-body AT DISPATCH on its own region thread (getHeight is absent on
         // 1.8, so use a flat +1.0 body-centre); block data dropped as above.
-        entityOp(target, () -> sendParticleAt(target.getLocation().add(0.0, 1.0, 0.0), particleId, count,
+        entityOp(target, () -> sendParticleAt(target.getLocation().add(0.0, 1.0 + dy, 0.0), particleId, count,
                 (float) offsetX, (float) offsetY, (float) offsetZ));
     }
 

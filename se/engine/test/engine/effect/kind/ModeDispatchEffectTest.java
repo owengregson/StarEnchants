@@ -486,6 +486,53 @@ class ModeDispatchEffectTest {
                     verify(sink).title(who, "&cWARDED", "&7Ana", 10, 70, 20);
                     verifyNoMoreInteractions(sink);
                 }),
+                dynamicTest("MESSAGE colours {RELATION_COLOR} per RECIPIENT off the installed alliance hook", () -> {
+                    Player actor = mock(Player.class);
+                    Player friend = mock(Player.class);
+                    Player foe = mock(Player.class);
+                    engine.selector.kind.Allies.resolver((a, b) -> a == actor && b == friend);
+                    try {
+                        FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
+                                .with("channel", "chat").with("text", "{RELATION_COLOR}&lSHIFT")
+                                .with("ally-color", "&b").with("enemy-color", "&4")
+                                .targets("who", friend, foe);
+                        Sink sink = mock(Sink.class);
+                        new MessageEffect().run(ctx, sink);
+                        // ONE authored line, two recipients, two colours — a token filled once above the loop
+                        // would paint the whole audience whichever side happened to be resolved first.
+                        verify(sink).message(friend, "&b&lSHIFT");
+                        verify(sink).message(foe, "&4&lSHIFT");
+                        verifyNoMoreInteractions(sink);
+                    } finally {
+                        engine.selector.kind.Allies.resolver(null);
+                    }
+                }),
+                dynamicTest("MESSAGE colours the actor's OWN copy as an ally, and the subtitle too", () -> {
+                    // Allies.allied is a two-party question and answers false for a player against themselves, so
+                    // an unguarded read would paint the caster as their own enemy on every self-inclusive AoE.
+                    Player actor = mock(Player.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
+                            .with("channel", "title").with("text", "{RELATION_COLOR}A")
+                            .with("subtitle", "{RELATION_COLOR}B")
+                            .with("fadeIn", 10).with("stay", 70).with("fadeOut", 20)
+                            .with("ally-color", "&b").with("enemy-color", "&4").targets("who", actor);
+                    Sink sink = mock(Sink.class);
+                    new MessageEffect().run(ctx, sink);
+                    verify(sink).title(actor, "&bA", "&bB", 10, 70, 20);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("MESSAGE with no actor colours every recipient as an enemy", () -> {
+                    // No actor = no relation to read. Enemy is the side Allies itself degrades to when a bridge
+                    // is absent or throws, so the token can never invent an alliance that was never established.
+                    Player who = mock(Player.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("channel", "chat").with("text", "{RELATION_COLOR}x")
+                            .with("ally-color", "&b").with("enemy-color", "&4").targets("who", who);
+                    Sink sink = mock(Sink.class);
+                    new MessageEffect().run(ctx, sink);
+                    verify(sink).message(who, "&4x");
+                    verifyNoMoreInteractions(sink);
+                }),
                 dynamicTest("MESSAGE to a non-player who recipient is skipped", () -> {
                     LivingEntity mob = mock(LivingEntity.class); // titles/chat need a player
                     FakeEffectCtx ctx = FakeEffectCtx.create()

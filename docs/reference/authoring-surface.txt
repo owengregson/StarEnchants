@@ -270,6 +270,8 @@ effect MESSAGE
   param stay TICKS optional min=0 max=- enum=- handle=- default=70
   param fadeOut TICKS optional min=0 max=- enum=- handle=- default=20
   param tokens EXPR_MAP optional min=- max=- enum=- handle=- default=
+  param ally-color STRING optional min=- max=- enum=- handle=- default=&a
+  param enemy-color STRING optional min=- max=- enum=- handle=- default=&c
 effect MODIFY_EXP
   param amount INT required min=0 max=- enum=- handle=- default=-
   param mode ENUM optional min=- max=- enum=give,take,transfer handle=- default=give
@@ -298,6 +300,7 @@ effect PARTICLE
   param block HANDLE optional min=- max=- enum=- handle=MATERIAL default=-
   param spread DOUBLE optional min=0 max=4 enum=- handle=- default=0.4
   param spread-y DOUBLE optional min=-1 max=4 enum=- handle=- default=-1
+  param dy DOUBLE optional min=-16 max=16 enum=- handle=- default=0
 effect PARTICLE_LINE
   param particle HANDLE required min=- max=- enum=- handle=PARTICLE default=-
   param r INT optional min=0 max=255 enum=- handle=- default=255
@@ -397,6 +400,7 @@ effect SOUND
   param sound HANDLE required min=- max=- enum=- handle=SOUND default=-
   param volume DOUBLE optional min=0 max=- enum=- handle=- default=1
   param pitch DOUBLE optional min=0 max=- enum=- handle=- default=1
+  param dy DOUBLE optional min=-16 max=16 enum=- handle=- default=0
 effect SPAWNER_YIELD
   param chance DOUBLE optional min=0 max=100 enum=- handle=- default=65
   param extra INT optional min=1 max=8 enum=- handle=- default=1
@@ -722,6 +726,7 @@ var ragestacks NUM
 var recentattackers NUM
 var sneaking BOOL
 var sprinting BOOL
+var status.freeze BOOL
 var status.teleblock BOOL
 var swimming BOOL
 var victim.blocking BOOL
