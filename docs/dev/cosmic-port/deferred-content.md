@@ -876,6 +876,33 @@ batch recorded as a comment inside those files.
   change the sound everywhere the pack actually plays it; both era comments now state
   the verified outcome instead of the warn-skip claim.
 
+- **STOP — the 1.8.9 lane has no era gate, and the signature pack cannot publish
+  there.** Found while re-walking the content for the four alias rows above, and
+  recorded rather than fixed because the fix is an owner decision.
+  `ModernHandleEraTest` exists precisely because an unresolved handle is a
+  **blocking** `E_UNKNOWN_HANDLE` — `Severity.ERROR.blocking()`, and
+  `ContentReloader` publishes only when `!library.hasErrors()`, so ONE dead token
+  costs the whole library, not one effect. That test has no legacy twin. Resolving
+  every `SOUND:` effect token the shipped content authors through the production
+  `HandleResolver` + `Aliases` against the real Spigot 1.8.8 `Sound` enum:
+  `cosmic-pack` is CLEAN (40 distinct tokens, 0 unresolvable — this sweep's four
+  rows and the anvil flip closed the last of it), the default catalogue had exactly
+  one (`BLOCK_ANVIL_PLACE`, fixed here as a `FALLBACKS_1_8` lossy degradation to
+  1.8's `ANVIL_LAND`, which is the constant that owns `random.anvil_land` and so
+  cannot be an `Aliases` row), and `signature-pack` has **55 of 72** — beacons,
+  bells, shields, vexes, witches, illusioners, the 1.9 attack cues. Every one of
+  those refuses the signature pack's publish on a 1.8.9 server. It has never been
+  caught because the legacy smoke compiles its own inline library rather than the
+  shipped packs. The fork, for the owner: (a) downgrade an unresolved HANDLE to a
+  non-blocking warn so the op skips and the library still publishes — a policy
+  change that would also soften the modern gate this exact mechanism was built for;
+  (b) author ~55 `A|B` chains or `FALLBACKS_1_8` degradations, most onto cues 1.8
+  simply does not have; or (c) declare the signature pack modern-only and say so.
+  Whichever it is, the missing piece is the same: a legacy-era twin of
+  `ModernHandleEraTest` driven by a committed 1.8.8 constant fixture, so this class
+  fails `./gradlew build` instead of a live `/se pack apply`. Out of scope for the
+  port; owed by whoever owns the legacy lane.
+
 - **Found by the masks batch (11) — three engine findings no content file could
   close.**
   - **ADR-0074 §4's mask/crystal scope identity does not exist.** The ADR
