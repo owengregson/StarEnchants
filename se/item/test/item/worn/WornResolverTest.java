@@ -500,6 +500,17 @@ class WornResolverTest {
     }
 
     @Test
+    void aRepeatedChildFiresOnce() {
+        // A duplicate is ONE identity, not two sources: without the dedupe the same ability id lands in
+        // byTrigger twice and the executor runs it twice per trigger — two chance rolls, two cues. The fold
+        // gesture refuses duplicates, so this is the belt for an entry that arrived some other way.
+        CombatState helmet = new CombatState(Map.of(), List.of()).withMask("masks/agent+masks/agent");
+        WornState worn = resolver().resolveFrom(List.of(helmet), COMPOSITE_KEYS, COMPOSITE_ABILITIES, 1);
+        assertArrayEquals(new int[] {0, 1}, worn.byTrigger(0),
+                "the primary and its /a1 each once, not twice");
+    }
+
+    @Test
     void aStaleChildDoesNotSilenceItsSiblings() {
         // A child whose content was deleted between reloads resolves to no id. The siblings must still fire —
         // losing one folded mask must not cost the wearer the whole helmet.

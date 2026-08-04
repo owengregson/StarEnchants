@@ -521,6 +521,19 @@ class ModeDispatchEffectTest {
                     verify(sink).title(actor, "&bA", "&bB", 10, 70, 20);
                     verifyNoMoreInteractions(sink);
                 }),
+                dynamicTest("MESSAGE fills the {RELATION-COLOR} hyphen spelling too", () -> {
+                    // Tokens.sub substitutes the hyphen alias for any key carrying '_', so the PRESENCE scan
+                    // must look for both spellings — scanning only the underscore form left an authored
+                    // {RELATION-COLOR} unsubstituted and printed literally to chat.
+                    Player who = mock(Player.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("channel", "chat").with("text", "{RELATION-COLOR}x")
+                            .with("ally-color", "&b").with("enemy-color", "&4").targets("who", who);
+                    Sink sink = mock(Sink.class);
+                    new MessageEffect().run(ctx, sink);
+                    verify(sink).message(who, "&4x");
+                    verifyNoMoreInteractions(sink);
+                }),
                 dynamicTest("MESSAGE with no actor colours every recipient as an enemy", () -> {
                     // No actor = no relation to read. Enemy is the side Allies itself degrades to when a bridge
                     // is absent or throws, so the token can never invent an alliance that was never established.

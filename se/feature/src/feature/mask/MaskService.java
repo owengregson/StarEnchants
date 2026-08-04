@@ -88,11 +88,25 @@ public final class MaskService {
         return mint(new MaskItemData(children));
     }
 
-    /** Mint the mask (or composite) {@code data}; {@code null} when its FIRST child names no live content. */
+    /**
+     * Mint the mask (or composite) {@code data}; {@code null} only when NO child names live content.
+     *
+     * <p>The face comes from the first child that still resolves, not simply the first. A composite outlives the
+     * content it was folded from: if one child is deleted between reloads, the item must still mint, because the
+     * paths that mint it are the ones that HAND IT BACK to the player — popping a mask off a helmet, salvaging it
+     * from a broken one, splitting one off. Returning null there because of a stale FIRST child would destroy
+     * every live sibling with it, which is a strictly worse outcome than wearing a different face for a reload.
+     */
     public ItemStack mint(MaskItemData data) {
-        MaskDef first = content.library().maskDefOf(data.first());
+        MaskDef first = null;
+        for (String key : data.keys()) {
+            first = content.library().maskDefOf(key);
+            if (first != null) {
+                break;
+            }
+        }
         if (first == null) {
-            return null; // the face the item would wear is gone — there is nothing to mint it as
+            return null; // not one child resolves — there is genuinely nothing to mint
         }
         ItemStack stack = heads.head(first.head());
         if (stack == null) {
@@ -191,8 +205,13 @@ public final class MaskService {
 
     /**
      * Fold two masks (cursor ON TOP of the target) into one composite, capped at {@code masks.max-merge}
-     * (ADR-0074). The crystal merge verbatim, minus the stackability clash: a mask declares no
-     * {@code stackable}, and two copies of one mask fold to a doubled bonus the additive fold already sums.
+     * (ADR-0074). The crystal merge, including its duplicate refusal.
+     *
+     * <p>A repeated child is REFUSED outright, where crystals refuse only a repeated non-stackable one. Masks
+     * have no {@code stackable} knob to consult, and the worn walk resolves each child to its own dense ability
+     * id with no dedupe — so a duplicate is not a summed magnitude, it is the SAME ability activating twice:
+     * two independent chance rolls, two messages, two cues. At {@code max-merge: 4} that is a 4x multiplier on
+     * any mask in the pack, which is a duplication exploit rather than a design.
      */
     private GestureOutcome merge(ItemStack cursor, MaskItemData cursorMask, ItemStack target, MaskItemData targetMask) {
         if (target.getAmount() > 1) {
@@ -202,6 +221,10 @@ public final class MaskService {
         MaskItemData merged = targetMask.mergeWith(cursorMask, cap); // target keeps the item; cursor lands on top
         if (merged == null) {
             return GestureOutcome.noop(messages.format("mask.merge-cap", "MAX", cap));
+        }
+        String duplicate = firstDuplicate(merged.keys());
+        if (duplicate != null) {
+            return GestureOutcome.noop(messages.format("mask.merge-duplicate", "MASK", label(List.of(duplicate))));
         }
         ItemStack multi = mint(merged);
         if (multi == null) {
@@ -231,11 +254,29 @@ public final class MaskService {
         String popped = children.remove(children.size() - 1); // the topmost (most recently folded) child
         ItemStack single = mint(MaskItemData.single(popped));
         ItemStack remainder = mint(new MaskItemData(children));
-        if (single == null || remainder == null) {
+        if (single == null) {
+            // Only the popped child is stale. Refuse rather than destroy it — and say WHICH key is gone, since
+            // this refusal is the operator's only clue that content went missing under a live item.
             return GestureOutcome.noop(messages.format("mask.no-such", "KEY", popped));
+        }
+        if (remainder == null) {
+            // The remainder is stale to its last child, so there is nothing to leave behind. Naming `popped`
+            // here would send the operator hunting the one key that is still fine.
+            return GestureOutcome.noop(messages.format("mask.no-such", "KEY", String.join(", ", children)));
         }
         return GestureOutcome.committed(remainder, single, GestureOutcome.Cue.sound(removeSound(config.get())),
                 messages.format("mask.extract-success", "MASK", label(List.of(popped))));
+    }
+
+    /** The first child key appearing more than once in {@code keys}, or {@code null} when they are all distinct. */
+    private static String firstDuplicate(List<String> keys) {
+        java.util.Set<String> seen = new java.util.HashSet<>(keys.size());
+        for (String key : keys) {
+            if (!seen.add(key)) {
+                return key;
+            }
+        }
+        return null;
     }
 
     /** Whether {@code stack} is a mask carrying more than one child — the extractor's split target. */
@@ -253,7 +294,16 @@ public final class MaskService {
         // The WHOLE entry pops off intact (ADR-0035's convention, ADR-0074): a composite comes back as ONE
         // composite, which the extractor then splits — never N loose masks the wearer has to re-fold.
         String popped = result.poppedEntry();
-        ItemStack minted = mint(popped); // null for stale content — the helmet is still cleaned
+        ItemStack minted = mint(popped);
+        if (minted == null) {
+            // Not one child resolves, so there is nothing to hand back. Say so instead of reporting a success
+            // that quietly consumed the mask: the helmet HAS been cleaned by removeMask above (the pre-existing
+            // behaviour for a stale key — a mask nothing can mint is a mask nothing can wear), but the player
+            // must be told, or a reload that dropped a mask reads to them as the plugin eating it.
+            return new GestureOutcome(true, false, gear, null,
+                    GestureOutcome.Cue.sound(removeSound(config.get())),
+                    messages.format("mask.no-such", "KEY", popped), null);
+        }
         // consumeCursor stays FALSE: this outcome commits from the cursor-LESS right-click gesture
         // (MaskRemoveListener, ADR-0053 §3), so there is no cursor for the committed(...) factories to spend.
         return new GestureOutcome(true, false, gear, minted,

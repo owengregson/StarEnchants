@@ -2,6 +2,8 @@ package feature.mask;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -423,6 +425,52 @@ class MaskServiceTest {
         assertFalse(out.commit());
         assertEquals(messages.format("mask.no-such", "KEY", "masks/gone"), out.message());
         assertNull(combatCodec.read(helmet).maskKey());
+    }
+
+    @Test
+    void foldingAMaskIntoOneThatAlreadyHoldsItIsRefused() {
+        // Each child resolves to its OWN dense ability id and the worn walk has no dedupe of its own, so a
+        // repeat is the same ability activating twice per trigger — two chance rolls, two cues — not a summed
+        // magnitude. At max-merge 4 that is a 4x multiplier on any mask in the pack.
+        MaskService service = service(new FreshHeads());
+        ItemStack cursor = maskItem(MASK);
+
+        GestureOutcome out = service.interact(cursor, maskItem(MASK));
+
+        assertFalse(out.commit());
+        assertFalse(out.consumeCursor(), "a refused fold never eats the mask it refused");
+        assertEquals(messages.format("mask.merge-duplicate", "MASK", "&6&lMidas"), out.message());
+    }
+
+    @Test
+    void aCompositeWithAStaleFIRSTChildStillMintsOnItsNextLiveChild() {
+        // The data-loss edge. `remove`/`split`/the break salvage all HAND THE ITEM BACK; a null mint there
+        // would destroy every live sibling because one child was deleted between reloads. The face falls
+        // through to the first child that still resolves instead — a different face for a reload beats a
+        // vanished mask.
+        MaskService service = service(new FreshHeads());
+
+        ItemStack minted = service.mint("masks/gone+masks/blaze");
+
+        assertNotNull(minted, "one stale child must not void the whole composite");
+        assertEquals("masks/gone+masks/blaze", maskCodec.keyOf(minted), "and it keeps BOTH keys, stale one included");
+        assertNull(service.mint("masks/gone+masks/alsogone"), "only when NOTHING resolves is there nothing to mint");
+    }
+
+    @Test
+    void poppingACompositeNothingCanMintReportsTheFailureInsteadOfSuccess() {
+        MaskService service = service(new FreshHeads());
+        ItemStack helmet = gear(Material.DIAMOND_HELMET, 1);
+        // Stamp a fully-stale composite straight onto the helmet — the shape an item takes when its content is
+        // deleted under it.
+        combatCodec.write(helmet, combatCodec.read(helmet).withMask("masks/gone+masks/alsogone"));
+
+        GestureOutcome out = service.remove(helmet);
+
+        assertNull(out.produced(), "there is nothing to hand back");
+        assertNotEquals(messages.format("mask.remove-success", "MASK", ""), out.message());
+        assertEquals(messages.format("mask.no-such", "KEY", "masks/gone+masks/alsogone"), out.message(),
+                "a success line here reads to the player as the plugin eating their mask");
     }
 
     @Test

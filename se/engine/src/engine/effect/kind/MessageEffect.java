@@ -41,9 +41,15 @@ public final class MessageEffect implements EffectKind {
     private static final String SELF = "SELF";
     private static final String SELF_TOKEN = "{" + SELF + "}";
 
-    /** The per-recipient relation-colour token; {@code Tokens.sub} gives {@code {RELATION-COLOR}} free. */
+    /**
+     * The per-recipient relation-colour token. {@code Tokens.sub} substitutes the hyphen spelling for free (any
+     * key containing {@code _} gets the alias), so the PRESENCE scan has to look for both — a scan for the
+     * underscore form alone leaves an authored {@code {RELATION-COLOR}} unsubstituted and printed literally,
+     * which is the one failure the alias exists to prevent.
+     */
     private static final String RELATION_COLOR = "RELATION_COLOR";
     private static final String RELATION_COLOR_TOKEN = "{" + RELATION_COLOR + "}";
+    private static final String RELATION_COLOR_ALIAS = "{" + RELATION_COLOR.replace('_', '-') + "}";
 
     static final EffectSpec SPEC = EffectSpec.of("MESSAGE")
             .param("text", D.STRING)
@@ -89,7 +95,7 @@ public final class MessageEffect implements EffectKind {
         // Decided ONCE, not per recipient: these two are the only tokens whose value varies down the loop, so a
         // line carrying neither pays two scans and re-substitutes nothing.
         boolean named = has(text, SELF_TOKEN) || has(subtitle, SELF_TOKEN);
-        boolean coloured = has(text, RELATION_COLOR_TOKEN) || has(subtitle, RELATION_COLOR_TOKEN);
+        boolean coloured = hasRelationColor(text) || hasRelationColor(subtitle);
         Player actor = coloured ? ctx.actor() : null; // only the colour needs the actor as a relation SUBJECT
         String allyColor = coloured ? ctx.str("ally-color") : null;
         String enemyColor = coloured ? ctx.str("enemy-color") : null;
@@ -122,6 +128,11 @@ public final class MessageEffect implements EffectKind {
     /** Whether {@code s} carries {@code token} at all (a scan, never an allocation). */
     private static boolean has(String s, String token) {
         return s != null && s.contains(token);
+    }
+
+    /** Whether {@code s} carries the relation-colour token in EITHER spelling {@code Tokens.sub} would fill. */
+    private static boolean hasRelationColor(String s) {
+        return has(s, RELATION_COLOR_TOKEN) || has(s, RELATION_COLOR_ALIAS);
     }
 
     /**

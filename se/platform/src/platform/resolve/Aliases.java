@@ -135,6 +135,11 @@ public final class Aliases {
             Map.entry("EAT", "ENTITY_GENERIC_EAT"),
             Map.entry("ARROW_HIT", "ENTITY_ARROW_HIT"),
             // 1.8 named the flesh-hit cue for the SOUND it makes; the flattening named it for who makes it.
+            // ENTITY_GENERIC_HURT is arguably the closer descendant of 1.8's game.neutral.hurt, but the row
+            // exists to resolve what CONTENT authors, and both sniper files author ENTITY_PLAYER_HURT (their
+            // own era notes name HURT_FLESH as its 1.8 spelling). 1.8 has no player-specific hurt constant at
+            // all, so this is the only 1.8 sound that can serve it; mapping to GENERIC instead would leave the
+            // authored token unresolved and the cue silent, which is what this sweep set out to fix.
             Map.entry("HURT_FLESH", "ENTITY_PLAYER_HURT"),
             Map.entry("ORB_PICKUP", "ENTITY_EXPERIENCE_ORB_PICKUP"),
             Map.entry("FIRE", "BLOCK_FIRE_AMBIENT"),

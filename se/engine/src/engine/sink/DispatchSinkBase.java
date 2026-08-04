@@ -2397,7 +2397,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         }
         applyGuardName(spawned, flags.name(), ownerId);
         if (ownerId != null) {
-            GuardianCasts.bind(spawned.getUniqueId(), ownerId, flags.sourceGroup());
+            GuardianCasts.bind(spawned.getUniqueId(), ownerId);
             if (spawned instanceof Tameable tame) {
                 tame.setOwner(Bukkit.getOfflinePlayer(ownerId));
                 tame.setTamed(true);
@@ -3385,16 +3385,14 @@ public abstract class DispatchSinkBase implements SinkReadback {
         // Zeroing (not cancelling) is what keeps a crystal standing: it is destroyed by any damage that LANDS.
         PetSummons.bind(turretId, TURRET_FLAGS);
         if (ownerId != null) {
-            GuardianCasts.bind(turretId, ownerId, sourceGroup); // a hit on it fires GUARDIAN_HURT, like every owned spawn
+            GuardianCasts.bind(turretId, ownerId); // a hit on it fires GUARDIAN_HURT, like every owned spawn
         }
-        // The group is recorded on the EMPLACEMENT, not captured by the volley task: a turret outlives the
-        // activation that placed it, and the volley already re-reads its owner rather than holding one.
-        TurretCasts.bindTurret(turretId, sourceGroup);
+        TurretCasts.bindTurret(turretId);
         if (spawnLightning) {
             world.strikeLightningEffect(ground); // visual only — never the vanilla ~5 damage + fire
         }
         playFieldCue(ground, spawnCue, spawnSpread);
-        scheduleVolley(turret, ownerId, profile, profile.initialDelayTicks());
+        scheduleVolley(turret, ownerId, sourceGroup, profile, profile.initialDelayTicks());
         Scheduling.onEntityLater(turret, profile.ttlTicks(), () -> despawnTurret(turret, despawnCue, despawnSpread));
     }
 
@@ -3433,18 +3431,20 @@ public abstract class DispatchSinkBase implements SinkReadback {
      * the initial arming delay is just the first link. The chain ends the moment the body is gone — on Paper
      * the fallback scheduler still runs the pending task, so the liveness guard covers both platforms.
      */
-    private void scheduleVolley(Entity turret, UUID ownerId, TurretRingProfile profile, int delay) {
+    private void scheduleVolley(Entity turret, UUID ownerId, int sourceGroup, TurretRingProfile profile,
+                                int delay) {
         Scheduling.onEntityLater(turret, Math.max(1, delay), () -> {
             if (!turret.isValid()) {
                 return;
             }
-            fireVolley(turret, ownerId, profile);
-            scheduleVolley(turret, ownerId, profile, profile.drawPeriod(ThreadLocalRandom.current()));
+            fireVolley(turret, ownerId, sourceGroup, profile);
+            scheduleVolley(turret, ownerId, sourceGroup, profile,
+                    profile.drawPeriod(ThreadLocalRandom.current()));
         });
     }
 
     /** One shot at the nearest eligible body the turret can see, or nothing at all when it has no target. */
-    private void fireVolley(Entity turret, UUID ownerId, TurretRingProfile profile) {
+    private void fireVolley(Entity turret, UUID ownerId, int sourceGroup, TurretRingProfile profile) {
         Location muzzle = turret.getLocation().add(0.0, TURRET_MUZZLE_RISE, 0.0);
         World world = muzzle.getWorld();
         EntityType shotType = entityType(profile.projectileTypeId());
@@ -3472,7 +3472,10 @@ public abstract class DispatchSinkBase implements SinkReadback {
             projectile.setShooter(owner); // vanilla ProjectileSource, exactly as launchProjectile tracks a shot
         }
         UUID shotId = shot.getUniqueId();
-        TurretCasts.bindShot(shotId, ownerId, TurretCasts.groupOf(turret.getUniqueId()));
+        // CAPTURED, not re-read: the chain already carries ownerId and the profile the same way, and a
+        // registry read here would fail OPEN (a missed row scopes nothing, firing the owner's whole IMPACT
+        // roster) — the exact over-firing the scoping exists to stop.
+        TurretCasts.bindShot(shotId, ownerId, sourceGroup);
         // A shot that never hits anything would leak its row; the ceiling drops it. Scheduled on the REGION, not
         // the projectile — Folia retires an entity's tasks with the entity, which is exactly the case to cover.
         Scheduling.onRegionLater(muzzle, TURRET_SHOT_TTL_TICKS, () -> TurretCasts.forgetShot(shotId));
