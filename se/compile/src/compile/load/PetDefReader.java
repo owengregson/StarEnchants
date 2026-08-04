@@ -32,11 +32,11 @@ final class PetDefReader {
     private static final Set<String> ROOT_KEYS = Set.of(
             "display", "color", "type", "head", "material", "descriptor", "description", "permission",
             "message-on-no-home", "levels");
-    private static final Set<String> ABILITY_KEYS = ContentParse.withSoulKnobs(
+    private static final Set<String> ABILITY_KEYS = ContentParse.withEnvelopeKnobs(
             "trigger", "disabled-worlds", "repeat", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
             "no-souls-message",
             "condition", "effects");
-    private static final Set<String> BRACKET_KEYS = ContentParse.withSoulKnobs(
+    private static final Set<String> BRACKET_KEYS = ContentParse.withEnvelopeKnobs(
             "cooldown", "duration", "abilities",
             // single-ability shorthand (a bracket with exactly one ability authors these at the top level):
             "trigger", "disabled-worlds", "repeat", "chance", "soul-cost", "soul-cost-growth", "soul-cost-cap",
@@ -220,7 +220,8 @@ final class PetDefReader {
         }
         // The bracket's FIRST USE ability cools down under the pet-wide scope so a level-up that crosses a
         // bracket floor keeps the running cooldown; everything else scopes to its own stable key.
-        String cdScope = use && useKeys.size() == 1 ? "pet:" + key : stableKey;
+        String cdScope = ContentParse.resolveCooldownScope(node,
+                use && useKeys.size() == 1 ? "pet:" + key : stableKey, diags);
         AbilityDef ability = new AbilityDef(
                 SourceKind.PET, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, soulCost,
                 List.of(trigger), disabledWorlds, condition, effects, "pet:" + key, cdScope, null, null,

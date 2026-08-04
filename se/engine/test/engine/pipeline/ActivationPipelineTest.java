@@ -492,6 +492,24 @@ class ActivationPipelineTest {
     }
 
     @Test
+    void aScopelessAbilityNeitherBlocksOnNorArmsTheSharedBucket() {
+        // The `cooldown-scope: none` opt-out reaches gate 6 as cdEnchant == -1: the authored cooldown is still
+        // carried, but no bucket is checked or armed, so the ability fires every hit AND leaves the scope its
+        // siblings share untouched (Rocket Escape's FALL companion, starved by its own launch arming the bucket).
+        Ab optedOut = new Ab();
+        optedOut.cdEnchant = -1;
+        optedOut.cooldownTicks = 100;
+        Ab sibling = new Ab();
+        sibling.cdEnchant = 4;   // the bucket the opted-out ability would otherwise have shared
+        sibling.cooldownTicks = 100;
+
+        assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(optedOut.build(), act().build()));
+        assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(optedOut.build(), act().build())); // same tick
+        assertTrue(cooldowns.ready(ACTOR, CooldownStore.key(0, 4, 0), 100L), "the shared bucket was never armed");
+        assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(sibling.build(), act().build()));
+    }
+
+    @Test
     void groupIdNeverParticipatesInCooldownsSoASiblingCannotLockRageOut() {
         // ADR-0050 R4 field regression: any cooldown-carrying enchant used to arm its whole GROUP scope, and a
         // check-only cooldown-0 same-group sibling (rage, armored) was then refused fight-long. Group/type ids

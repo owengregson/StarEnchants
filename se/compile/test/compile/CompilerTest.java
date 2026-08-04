@@ -162,6 +162,25 @@ class CompilerTest {
     }
 
     @Test
+    void theCooldownScopeOptOutSurvivesTheLowerResolveEraseSeam() {
+        // A null cdScopeEnchant is the whole opt-out: it erases to -1, the id gate 6 skips. A stage that
+        // substitutes the stable key (or a back-compat ctor that re-derives it) silently re-shares the bucket,
+        // and the ability is cooldown-starved with no diagnostic.
+        Diagnostics diags = new Diagnostics();
+        Snapshot snap = Compiler.of(MapSpecRegistry.of(heal())).compile(List.of(
+                        Defs.ability().stableKey("ench/free").defId(1).cooldown(40)
+                                .cooldownScope(null, null, null)
+                                .effects(line("HEAL:1", "enchants.yml", 1)).build(),
+                        Defs.ability().stableKey("ench/shared").defId(2).cooldown(40)
+                                .cooldownScope("ench/shared", null, null)
+                                .effects(line("HEAL:1", "enchants.yml", 2)).build()),
+                3, diags);
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        assertEquals(-1, snap.byStableKey("ench/free").cdScopeEnchant());
+        assertTrue(snap.byStableKey("ench/shared").cdScopeEnchant() >= 0);
+    }
+
+    @Test
     void theSoulEnvelopeKnobsSurviveTheLowerResolveEraseSeam() {
         // The same def-level pin, for the three knobs added alongside no-souls-message. soul-cost-carried is
         // the dangerous one: dropped, gate 10 silently reverts to active-gem-only and the ability just stops

@@ -27,11 +27,11 @@ import schema.grammar.EffectLine;
  */
 final class UseItemDefReader {
 
-    private static final Set<String> ROOT_KEYS = Set.of(
+    private static final Set<String> ROOT_KEYS = ContentParse.withCooldownScope(
             "name", "material", "consumable", "is-food", "shiny", "lore", "permission", "commands", "abilities",
             // single-ability shorthand (a use-item with exactly one ability authors these at the top level):
             "trigger", "chance", "cooldown", "condition", "effects");
-    private static final Set<String> ABILITY_KEYS = Set.of(
+    private static final Set<String> ABILITY_KEYS = ContentParse.withCooldownScope(
             "trigger", "chance", "cooldown", "condition", "effects");
 
     private UseItemDefReader() {
@@ -131,7 +131,9 @@ final class UseItemDefReader {
         }
         return new AbilityDef(
                 SourceKind.USE_ITEM, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, 0, List.of("USE"),
-                List.of(), condition, effects, stableKey, stableKey, null, null, 0, fileSource, 0, false,
+                List.of(), condition, effects, stableKey,
+                ContentParse.resolveCooldownScope(node, stableKey, diags),
+                null, null, 0, fileSource, 0, false,
                 // no-souls-message and the rest of the soul envelope are deliberately absent: a use-item's soul
                 // cost is hard-zero, so gate 10 can never charge or abort one and the keys would be dead knobs.
                 chance.expr(), null, false, null, null, 1.0, 0, 0);

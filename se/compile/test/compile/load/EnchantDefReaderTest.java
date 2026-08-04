@@ -268,6 +268,88 @@ class EnchantDefReaderTest {
     }
 
     @Test
+    void cooldownScopeNoneThreadsFromYamlAndInheritsThroughTheCascade() {
+        // The gate-6 opt-out: `cooldown-scope: none` drops the ability's enchant scope so it neither blocks on
+        // nor arms the bucket its siblings share (Rocket Escape's FALL companion, starved by its own launch).
+        // The knob must ride the same block → level → root cascade `cooldown` itself does.
+        Diagnostics diags = new Diagnostics();
+        IntSupplier ids = counter();
+        String levelYaml = """
+            trigger: ATTACK
+            cooldown: 200
+            levels:
+              1: { cooldown-scope: none, effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        String rootYaml = """
+            trigger: ATTACK
+            cooldown: 200
+            cooldown-scope: none
+            levels:
+              1: { effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        String blockYaml = """
+            trigger: ATTACK
+            cooldown: 200
+            levels:
+              1:
+                abilities:
+                  - { effects: [{ HEAL: { amount: 2 } }] }
+                  - { cooldown-scope: none, effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        List<AbilityDef> defs = new ArrayList<>();
+        defs.addAll(EnchantDefReader.read("enchants/level", root(levelYaml, diags), ids, diags).abilities());
+        defs.addAll(EnchantDefReader.read("enchants/inherited", root(rootYaml, diags), ids, diags).abilities());
+        defs.addAll(EnchantDefReader.read("enchants/blocks", root(blockYaml, diags), ids, diags).abilities());
+
+        Snapshot snap = Compiler.of(MapSpecRegistry.of(heal())).compile(defs, 1, diags);
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        assertEquals(-1, snap.byStableKey("enchants/level/1").cdScopeEnchant());
+        assertEquals(-1, snap.byStableKey("enchants/inherited/1").cdScopeEnchant(),
+                "the root knob is the level's default, like every other envelope knob");
+        // Per-block: only the opted-out block loses its scope; its sibling keeps the shared enchant bucket.
+        assertTrue(snap.byStableKey("enchants/blocks/1").cdScopeEnchant() >= 0);
+        assertEquals(-1, snap.byStableKey("enchants/blocks/1/a1").cdScopeEnchant());
+    }
+
+    @Test
+    void anAbsentCooldownScopeKeepsTheSharedEnchantBucket() {
+        // The default must stay byte-identical: every block/level of one enchant shares ONE bucket (ADR-0050).
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            trigger: ATTACK
+            cooldown: 200
+            levels:
+              1: { effects: [{ HEAL: { amount: 2 } }] }
+              2: { effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        List<AbilityDef> defs = EnchantDefReader.read("enchants/shared", root(yaml, diags), counter(), diags)
+                .abilities();
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        for (AbilityDef def : defs) {
+            assertEquals("enchants/shared", def.cdScopeEnchant());
+        }
+    }
+
+    @Test
+    void aCooldownScopeValueOtherThanNoneIsDiagnosedAndFallsBackToTheSharedBucket() {
+        // Never a silent accept: an unrecognised value would otherwise read as "opted out" or "ignored",
+        // and both are gameplay-visible cooldown bugs with nothing to grep for.
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            trigger: ATTACK
+            levels:
+              1: { cooldown-scope: shared, effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        AbilityDef def = EnchantDefReader.read("enchants/typo", root(yaml, diags), counter(), diags)
+                .abilities().get(0);
+
+        assertCode(diags, DiagCode.E_ENUM);
+        assertEquals("enchants/typo", def.cdScopeEnchant(), "the default scope is kept, nothing is thrown");
+    }
+
+    @Test
     void escalatingSoulCostKnobsThreadFromYamlToTheCompiledAbility() {
         // The same producer seam as no-souls-message, for the three knobs only gate 10 reads: a stage that
         // rebuilds the record field-by-field drops them with no diagnostic. Three distinct non-default values

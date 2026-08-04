@@ -319,6 +319,31 @@ final class ContentParse {
     /** The names of {@link SoulKnobs}' keys, for a reader's allowed-key set. */
     static final Set<String> SOUL_KNOB_KEYS = Set.of("soul-cost-carried", "no-souls-sound", "no-souls-particle");
 
+    private static final String COOLDOWN_SCOPE = "cooldown-scope";
+
+    /** The one accepted {@code cooldown-scope} value; anything else is an {@code E_ENUM}. */
+    private static final String COOLDOWN_SCOPE_NONE = "none";
+
+    /**
+     * The ability's ENCHANT cooldown scope: {@code defaultScope}, or {@code null} for {@code cooldown-scope:
+     * none}. A null scope erases to {@code -1}, which gate 6 skips outright — so the ability neither blocks on
+     * nor arms the bucket its siblings share (Rocket Escape's FALL companion, starved by its own launch).
+     * An unrecognised value blocks with the default kept, never a throw and never a silent opt-out.
+     */
+    static String resolveCooldownScope(YamlNode node, String defaultScope, Diagnostics diags) {
+        String raw = blankToNull(resolveString(node, COOLDOWN_SCOPE, diags));
+        if (raw == null) {
+            return defaultScope;
+        }
+        if (COOLDOWN_SCOPE_NONE.equalsIgnoreCase(raw.trim())) {
+            return null;
+        }
+        diags.error(DiagCode.E_ENUM, label(COOLDOWN_SCOPE) + " must be '" + COOLDOWN_SCOPE_NONE + "', got '"
+                        + raw + "'", node.sourceOf(COOLDOWN_SCOPE),
+                "drop the key to keep the shared cooldown bucket");
+        return defaultScope;
+    }
+
     /**
      * The soul-cost envelope knobs beyond {@code soul-cost}/{@code no-souls-message}: whether the cost may be
      * charged against CARRIED gems outside soul mode, and the cue that rides the "out of souls" notice.
@@ -346,10 +371,17 @@ final class ContentParse {
                 blankToNull(resolveString(particle, "no-souls-particle", diags)));
     }
 
-    /** {@code keys} plus the soul-envelope knobs, which are accepted wherever {@code no-souls-message} is. */
-    static Set<String> withSoulKnobs(String... keys) {
+    /** {@code keys} plus the soul envelope (accepted wherever {@code no-souls-message} is) and the scope opt-out. */
+    static Set<String> withEnvelopeKnobs(String... keys) {
         List<String> all = new ArrayList<>(List.of(keys));
         all.addAll(SOUL_KNOB_KEYS);
+        return withCooldownScope(all.toArray(new String[0]));
+    }
+
+    /** {@code keys} plus {@code cooldown-scope} — accepted by every reader, soul envelope or not. */
+    static Set<String> withCooldownScope(String... keys) {
+        List<String> all = new ArrayList<>(List.of(keys));
+        all.add(COOLDOWN_SCOPE);
         return Set.copyOf(all);
     }
 }
