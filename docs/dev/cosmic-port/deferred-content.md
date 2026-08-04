@@ -90,6 +90,140 @@ come back.
 
 ## Engine follow-up pool fed by these rows
 
+- **Wave 2d (the sets/masks/pets family pool) — what SHIPPED.** Ten items, in the
+  order a reader meets them on the surface:
+  - `%actor.heroicpieces%` — the actor-side twin of wave 2c's victim fact, off the
+    same worn-fact source. Infinite Luck's accumulator reads its OWN holder's gear.
+    The row's other half is untouched: the accumulator is WEIGHTED (+12.5 per worn
+    LEATHER heroic piece, iron/diamond 0) while the fact is an unweighted count, and
+    whether the material weighting survives the port is still the owner ruling that
+    row names.
+  - `%actor.y%` (`POSITION_VARS`) — the first ABSOLUTE coordinate on the surface;
+    every positional fact before it was relative, so a build-height gate had nothing
+    to compare against. Feet Y, not eye Y (the eye offset moves with pose).
+  - `FACING_SET` — turns a body in place. The `of=` reference the matrix writes is
+    an `anchor` ENUM (activator|attacker|victim), matching `VELOCITY`: the DSL
+    carries exactly ONE target slot per effect (`ContentParse` reads `who` and
+    nothing else), so a second selector slot would have been a grammar change, and
+    the three combat roles are the references an activation actually has. The
+    recorded consumer authors `of=@Self`, which is `anchor: activator`.
+  - `FALL_SHIELD` — one-shot fall cancel on an arbitrary player, spent AHEAD of the
+    FALL walk so the landing is genuinely erased rather than reduced.
+  - `VULNERABILITY` — the fragility mark, consulted on BOTH damage paths
+    (`CombatDispatch` outside the defence-walk gate, `TriggerDispatch` on both
+    environmental paths) so "every source" really is every source. Folded as a
+    NEGATED reduction, not an outgoing bonus: the outgoing bucket is multiplied by
+    `combat.attack-scale`, so a +100 % mark would land as +500 % on this pack.
+    Non-stacking, tie-keeps-the-incumbent; the lapse notice is scheduled at the arm
+    and matched on the expiry tick so a refresh silences the older arm.
+  - `DEFENDER_KEYED_SUPPRESSION`, shipped as the head **`SUPPRESS_INCOMING`** (the
+    primitive name describes the mechanism; the head names the authored act, beside
+    `SUPPRESS`/`SUPPRESS_IMMUNE`). Same interned scope/key, parallel namespace on the
+    HOLDER, consulted at gate 5 with the activation's victim id, `chance` rolled at
+    the CONSULT. The erase stage lowers the new head through the SAME scope/key
+    bridge, and the fuzz gate + spec-conformance exemption follow it there.
+    **Known partial:** the consult is per ACTIVATION, keyed on the activation's
+    primary victim. The masks doc records per-TARGET-APPLICATION evaluation for the
+    chain-hop case (Chain Lifesteal), which needs the consult inside
+    `AbilityExecutor`'s target loop — carried to 2d.2.
+  - `STATUS_CLEAR` (+ `%status.teleblock%`) — lifts a named engine window
+    (TELEBLOCK / POTION_LOCK / DISARM). The wire codes live in
+    `engine.sink.StatusKinds` beside `ArmorSelect` so the sink never depends on the
+    effect package. The paired fact ships with it because a clear alone is half the
+    item: the "you must be affected by X" refusal was inexpressible.
+  - Asymmetric `@Bore` extents (`left`/`right`/`up`/`down`, `-1` = the symmetric
+    half) — a `-half..+half` loop always spans an ODD number of blocks, so the 4x4
+    and 6x6 rungs of the excavation ladders were unreachable at any half value.
+    This closes the Atomic Detonate stop the ledger records.
+  - `BREAK_BLOCK.void-materials` — the per-block exception to `drops`, read on the
+    region thread that owns each block (only it knows what the block is). This is
+    the void-drops rider, NOT the volume-drop transform surface (below).
+  - `EXP_MULTIPLY`'s doc line, which still said EXP_GAIN only across three surfaces
+    after #291 made it live on MINE. Both triggers are named now, with WHY they
+    round differently (EXP_GAIN rounds an already-granted amount; MINE truncates a
+    whole-orb block yield).
+
+- **Wave 2d ledger corrections.** `GHAST_FIREBALL→ENTITY_GHAST_SHOOT` and
+  `WITHER_SHOOT→ENTITY_WITHER_SHOOT` both landed in wave 2c, but four places still
+  read as owed: the struck line below records it correctly, the STILL-OWED list
+  re-listed the ghast row (fixed here), and the `enchants/demonic-gateway` and
+  `enchants/feign-death` prose still say the aliases are missing. Neither entry is
+  blocked on a sound row; demonic-gateway's only stop is `TURRET_RING`.
+
+- **Wave 2d STOPs — structural, not deferred for time.**
+  - `MOB_DISGUISE` (11, spectral). Rendering a player as a MOB to other clients is
+    not reachable from any Bukkit surface: `PlayerVisibility` (the #276 seam) is one
+    method, `setVisible(viewer, subject, boolean)`, and has no entity-type or
+    metadata axis at all. The modern lane has NO packet path and no ProtocolLib
+    dependency; the legacy lane does (`LegacyDispatchSink.sendPacket`,
+    `LegacyEquipmentRepaint`), so shipping this would mean a disguise that works
+    only on 1.8.9. The matrix already flags it MAJOR era-risk. **Options for the
+    owner:** (a) mint a `PlayerRender` era seam alongside `PlayerVisibility` with
+    real spawn/destroy/metadata packets on both lanes (largest, correct); (b) take a
+    soft-depend on a disguise plugin the way WorldGuard is taken, no-op without it;
+    (c) ship the spectral mask with its verbatim identity and an authored note, the
+    R9 shape. Not started — a half-disguise is worse than none.
+  - `VANISH` + decoy (07/12). The HIDE half is expressible today
+    (`VIEWER_HIDE{viewer: all}` IS the gap block's first clause, as the ledger
+    already notes). What is not: the unequipped DECOY corpse playing the death
+    animation. Nothing on the surface makes a player-shaped body —
+    `SPAWN_ENTITY`/`SPAWN_SWARM`/`GUARD` all take an EntityType — so the corpse is
+    the same greenfield packet work `MOB_DISGUISE` needs, and it STOPS on the same
+    decision. The other two clauses (early break after N landed outgoing hits, the
+    mid-vanish join re-sync) are ordinary work on top of the visibility seam and
+    are carried to 2d.2 as a `VANISH` that ships without a decoy IF the owner rules
+    the corpse out.
+  - `PHANTOM_BLOCKS` (07). Not a STOP but adjacent: a per-viewer client-only block
+    overlay has no seam at all (`sendBlockChange` has ZERO occurrences in the tree,
+    and `platform.caps` holds nothing block-related). Unlike the two above it IS
+    reachable from the public API on both lanes (`Player.sendBlockChange`, with the
+    era split on BlockData vs the data byte), so it is a `BlockVisibility` seam
+    minted the way `PlayerVisibility` was — sized, not blocked. Carried to 2d.2.
+
+- **What a 2d.2 carries (nothing below is blocked on a ruling except where said).**
+  Field family: `STACKING_DOT` + the `OWNED_GROUND` fact (the fact needs an OWNER
+  on `TempBlockLedger`, which has none today — `Layer` carries id/typeId/deadline
+  and the ledger is coordinate-keyed; `OwnerZones` is the shape to copy but is a
+  MARK_ZONE cylinder registry, not block ownership), `BLOCK_FIELD_PROFILE`
+  (extends FALLING_BLOCK; note `height`'s 0..12 range cannot express the profile's
+  +10 Y origin plus per-layer steps, so the range widens or layers become their own
+  param, and the re-hit cap belongs on `FallingBlockCasts` whose javadoc already
+  anticipates it), `DELAYED_STRIKE_FIELD` (matrix-10; no ledger row — the matrix is
+  its only authority). Masks/sets: `TURRET_RING` (also needs a per-SITE PvP query;
+  `ProtectionProvider.allows(actor, location)` is the candidate, `CombatDispatch`'s
+  `pvpEnabled` is a global config switch and is NOT it), `WORN_COMPOSITE` (item
+  module: `CombatState.maskKey` is single-per-helmet, and `WornResolver`'s mask fold
+  already walks an unbounded `/aN` chain from one key, so this is a list-shaped
+  codec field plus an N-way loop plus the compound lore render), `SPAWNER_YIELD`
+  (a new `CreatureSpawnEvent` source — the repo has NO listener for it today).
+  Pets: `INVENTORY_CONVERT` (no drop-protection concept exists anywhere in the
+  engine), `ITEM_XP_TRACK` — **and that one needs re-scoping, not building:** the
+  state layer is already SHIPPED (`PetCodec` + `PetService.gainExp`/`rollExp` +
+  `PetLevelCue` + `PetsSection`), so what is actually owed is an effect-kind wrapper
+  over `gainExp`, per-level threshold CURVES (config has one flat `expPerLevel`
+  while the codex records per-pet curves), the `window` per-item timestamp gate, and
+  an owner call on two semantic conflicts (the shipped `rollExp` rolls MULTIPLE
+  levels per grant where the ledger says at most one; the shipped cap PARKS exp
+  where the ledger says bank unbounded). `SOUL_COST_EXEMPT` (checked as instructed:
+  no exemption exists — the only "free" is `cost <= 0` in
+  `ActivationPipeline.consumeSouls`, a static authored-cost branch, and gate 10 is
+  the single choke point every debit passes, so the seam is a store consulted there
+  returning "paid"). `BOOK_RATE_MODIFIER` (rates flow through two pure statics,
+  `CarrierService.effectiveSuccess` and `capBookSuccess`; note the GENERATE site's
+  rate is fixed at MINT time, so a "next roll" modifier must hook the consume path,
+  not the mint). Marks: `POTION_AMP_REDUCE` (its era hazard is real —
+  `EntityPotionEffectEvent` does not exist below 1.13, so the "capped at source−N"
+  re-application rule has no interception point on the legacy lane and needs the
+  per-tick re-strip `POTION_LOCK` already uses there). Summons: `SUMMON_PURGE`,
+  `SUMMON_STRIKE_PAYLOAD` (a 5th `PHASE_*` rung + an `EntityDamageByEntityEvent`
+  listener beside `SummonPayloadListener`, reusing `PetSummons.flags` /
+  `GuardianCasts.owner`; note it fires the owner's `IMPACT`, not `SUMMON_PAYLOAD`).
+  Riders: the volume-drop TRANSFORM surface (`SMELT`/`TELEPORT_DROPS` are zero-param
+  booleans keyed to the ONE block that fired MINE, while the excavation enchants
+  need the same transforms applied per block of a resolved volume with per-material
+  selectivity — design minimally or STOP with options), and the defender-keyed
+  per-target-application refinement named above.
+
 - **Wave 2 critical path:** SUMMON_PAYLOAD (5 consumers above + sets/masks later),
   ESCALATING_SOUL_COST, PROC_REBOUND — **all three SHIPPED and drained.**
   PROC_REBOUND closed the last pair (`enchants/enchant-reflect` +
@@ -244,13 +378,15 @@ come back.
   `ORB_PICKUP` row for its ally blink; `reflective-block.yml`, batch 06, rides
   the `ZOMBIE_METAL` row too — it is that entry's ONLY cue, so the reflect lands
   silently on the legacy lane until the row does);
-  `GHAST_FIREBALL→ENTITY_GHAST_SHOOT` (`enchants/demonic-gateway`, batch 07 —
-  the turret's firing cue, and the one row on this list with no shipped file
-  behind it yet: the entry is stopped above on `TURRET_RING`, so the pair is
-  owed WHEN Demonic Gateway lands rather than now. Its second cue,
-  `WITHER_SHOOT→ENTITY_WITHER_SHOOT`, is the row Bidirectional Teleportation
-  already owes just above — Demonic Gateway rides it, and `enchants/feign-death`
-  makes three, so it lands once for all three);
+  ~~`GHAST_FIREBALL→ENTITY_GHAST_SHOOT` (`enchants/demonic-gateway`, batch 07)~~
+  **LANDED in wave 2c** (`Aliases.SOUND`, era-verified against the real Spigot
+  1.8.8 `Sound` enum and both committed modern constant lists), alongside
+  `WITHER_SHOOT→ENTITY_WITHER_SHOOT`. Demonic Gateway's two firing cues are
+  therefore NOT owed — the entry's only remaining stop is `TURRET_RING`. Wave 2d
+  re-read this list and found the pair struck once (line 242) and re-listed as
+  owed here: both are shipped, and the `enchants/demonic-gateway` /
+  `enchants/feign-death` rows above still carry the stale "carries neither"
+  claim in their prose;
   **`ANVIL_BREAK` collision — SETTLED on `BLOCK_ANVIL_BREAK`.** The batch-05
   Eagle Eye row used to map the same 1.8 `ANVIL_BREAK` to
   `BLOCK_ANVIL_DESTROY`, on the premise that only one of the two modern names
