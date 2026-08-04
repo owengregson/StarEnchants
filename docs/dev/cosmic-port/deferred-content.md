@@ -303,7 +303,7 @@ in play.
   - `POTION_AMP_REDUCE` and `SUPPRESS_INCOMING`'s per-target refinement — both
     recorded in their own entries above.
 
-- **Wave 2d.2 STOP — `WORN_COMPOSITE` (11, Multi-Mask).** The only item of the pool
+- **~~Wave 2d.2 STOP — `WORN_COMPOSITE` (11, Multi-Mask).~~ RULED AND SHIPPED in wave 2e.2 (ADR-0074) — the PER-ITEM reading, built as the Multi Crystal shape; see the 2e.2 block below for what landed and why the costing above was wrong.** The only item of the pool
   not built, and it stops on a CONTRADICTION between two lines of its own matrix
   entry rather than on size. `11-masks.md:597` gives the primitive `params: children
   (list of mask keys)` — a DEF-level declaration. `11-masks.md:606` says it is
@@ -363,22 +363,54 @@ in play.
   - Plus the two legacy sound rows, which also close `enchants/virus` and
     `enchants/tombstone`.
 
-- **What a 2e.2 carries.**
-  - `IMPACT` source scoping, narrowed to the group-shared identity (the row above
-    disqualifies the defId reading, which would fire nothing).
-  - The CONTENT lift the surface unblocks: the recorded rosters and probability rolls
-    onto the new roll forms, Yijki's `×1.25` revenge onto `%actor.setweapon%` so one
-    roll carries both rates, and Dimensional Traveler's re-hit unfreeze onto the new
-    `FREEZE` rung.
-  - `%status.freeze%`, the guard fact paired with that rung — every other
-    `STATUS_CLEAR` rung has one, on the reasoning that "you must be affected by X" is
-    otherwise inexpressible. `FrozenTargets.isFrozen` is already `public static` and
-    UUID-keyed, so it is a drop-in.
-  - A per-recipient relation-colour token on `MESSAGE` (a `MESSAGE`-surface question
-    for the owner, not a set one) and a Y offset on `SOUND` — both rows above.
+- **Wave 2e.2 — what SHIPPED (ADR-0074). The engine remainder is DRAINED.**
+  - **`WORN_COMPOSITE`, ruled PER-ITEM and built as the Multi Crystal shape.** The 2d.2
+    costing above priced option (b) as "larger than the rest of the masks pool combined"
+    on the premise that per-item children need a `CombatState` component, a `CombatCodec`
+    list label and three positional-ctor sites. They do not. Crystals already answered
+    "N identities on one item": pack them into ONE entry string. A helmet's existing
+    `maskKey` holds `"masks/a+masks/b"`, a plain key has no delimiter, and so the codec,
+    the record's arity and its ~30 construction sites are all untouched — a pre-composite
+    mask decodes as the single mask it always was. `MaskItemData` is `CrystalItemData`'s
+    twin over a shared `KeyEntries` packing, and `MaskDefReader` needs no change at all,
+    because there IS no container def: "Multi-Mask" is a likeness (`name-multi` on
+    `items/mask.yml`), exactly as "Multi Crystal" is. The three attendant rulings landed
+    as the owner set them — creation is the mask-onto-mask gesture (the crystal merge,
+    capped by a new `masks.max-merge`), the illusion wears the FIRST child's head, and
+    extraction is whole-entry with the Item Extractor splitting a composite's topmost
+    child through a `MaskSplitter` seam (the `ReforgeExtractor` arrangement). The jar's
+    generated compound name / ATTACHED stamp are NOT reproduced: those are its wording,
+    and our own universal likeness owns that string.
+  - **`IMPACT` source scoping**, on the group-shared identity as narrowed. All three
+    feeders carry it — falling blocks in the `Cast`, turrets on the EMPLACEMENT (a turret
+    outlives its activation, so a group captured by the volley task would scope only the
+    first shot), summon couriers on `SummonFlags` (the strike rung forgets the registries
+    before it dispatches). `-1` stays unscoped, so nothing authored today changes.
+  - **`%status.freeze%`**, actor-scoped, reading `FrozenTargets`' TICK-budget liveness.
+    **The row's premise was wrong and is corrected here:** only TELEBLOCK ever had a guard
+    fact — POTION_LOCK and DISARM have none either, and stay unbuilt because nothing asks.
+    No victim reading ships: `STATUS_CLEAR` on a target is already idempotent, so a re-hit
+    unfreeze needs no guard to ask permission of.
+  - **`{RELATION_COLOR}` on `MESSAGE`**, with its two colours in `ally-color`/`enemy-color`
+    params — the wave-1e rule (bindings in the parameter, never in the text), so the DT
+    freeze line stays byte-verbatim. It could not ride `tokens`, which is numeric end to
+    end, nor live in `Colors.translate`, which cannot see who is reading.
+  - **`dy` on `SOUND` and `PARTICLE`** — the "+4 Y" cue anchor, resolved in the sink for
+    the entity branch (ADR-0043 forbids the effect reading a target's position) and inline
+    for the location one. It TRANSLATES the anchor; `spread-y` only widens a scatter.
+  - Plus **the legacy alias sweep, CLOSED** — see that section below.
+
+- **What a 2e.3 carries.**
+  - The CONTENT lift these surfaces unblock: the recorded rosters and probability rolls
+    onto wave 2e's roll forms, Yijki's `×1.25` revenge onto `%actor.setweapon%` so one
+    roll carries both rates, Dimensional Traveler's re-hit unfreeze onto the `FREEZE`
+    rung, its `+4 Y` cues onto `dy`, and its freeze line onto `{RELATION_COLOR}`.
+  - The `group:` lines that USE `IMPACT` scoping — `sets/dimensional-traveler.yml`'s arm
+    and payload, and `enchants/tombstone.yml`'s. The engine change is opt-in by design, so
+    the collision the row records stays live until the content declares its groups.
 
 - **What a 2d.3 carries.**
-  - `WORN_COMPOSITE`, once the reading above is ruled.
+  - ~~`WORN_COMPOSITE`, once the reading above is ruled.~~ **SHIPPED in wave 2e.2** (ADR-0074).
   - The volume-drop TRANSFORM surface. `SMELT`/`TELEPORT_DROPS` are zero-param
     booleans keyed to the ONE block that fired MINE — no target slot, `CONTEXT_LOCAL`
     affinity, a boolean read-back on the sink, and `MineDrops.apply` takes a
@@ -507,7 +539,14 @@ in play.
   and Silence (batch 03), Plague Carrier and Eagle Eye (batch 05) — and Plague
   Carrier's `CREEPER_HISS` pairing is now verified, retiring the "unverified"
   caveat its entry row above carries.
-  STILL OWED:
+  **THE STILL-OWED LIST IS CLOSED — every row below LANDED in wave 2e.2**, each key
+  javap'd against the real Spigot 1.8.8 `Sound`/`Material` enums and each value grepped
+  verbatim out of BOTH committed modern fixtures, all values mutually distinct so the
+  reverse scan stays deterministic. `ZOMBIE_WOOD → ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR`
+  landed with them (Tombstone's second door cue, listed on that entry rather than here),
+  and `ENDERMAN_TELEPORT` was already shipped in wave 2e — this list was stale for it.
+  The rows it covered, all now landed (kept for provenance — each names the content it
+  was silencing):
   `ENDERMAN_SCREAM→ENTITY_ENDERMAN_SCREAM` (Soul Trap, batch 04 — the trap's ONLY
   cue, so the proc is silent on the legacy lane until the row lands; the entry's
   other era debt, the `WITCH_MAGIC`/`SPELL` particle pair, is already carried by
