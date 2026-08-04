@@ -29,28 +29,37 @@ import org.junit.jupiter.api.io.TempDir;
  * a unit JVM has no server to ask. The kind and param surface — which is where this class of typo lives — is
  * fully checkable here.
  *
- * <p>A suite that adds an inline fixture makes the constant package-private and adds a row here. This asserts
- * only that the content COMPILES — what it then does on a booted server is the suite's own business.
+ * <p>A suite that adds an inline fixture makes the constant package-private and adds a row here, naming the
+ * content FAMILY it is authored as — a mask fixture compiled as a set would fail for the wrong reason, and
+ * pass for the wrong one too. This asserts only that the content COMPILES; what it then does on a booted
+ * server is the suite's own business.
  */
 class SuiteFixtureCompileTest {
 
+    /** One inline fixture: the content family directory it is authored into, and its YAML. */
+    private record Fixture(String family, String yaml) {
+    }
+
     /** Every inline fixture, by the name its suite gives it. */
-    private static Map<String, String> fixtures() {
+    private static Map<String, Fixture> fixtures() {
         return Map.of(
-                "SetSuite.YETI", SetSuite.YETI,
-                "SetSuite.WRAITH", SetSuite.WRAITH);
+                "SetSuite.YETI", new Fixture("sets", SetSuite.YETI),
+                "SetSuite.WRAITH", new Fixture("sets", SetSuite.WRAITH),
+                "ApplySuite.MASK_A", new Fixture("masks", ApplySuite.MASK_A),
+                "ApplySuite.MASK_B", new Fixture("masks", ApplySuite.MASK_B));
     }
 
     @Test
     void everyInlineSuiteFixtureCompilesAgainstTheProductionRegistry(@TempDir Path root) throws IOException {
-        for (Map.Entry<String, String> fixture : fixtures().entrySet()) {
-            Path file = root.resolve(fixture.getKey()).resolve("sets/fixture.yml");
+        for (Map.Entry<String, Fixture> entry : fixtures().entrySet()) {
+            Fixture fixture = entry.getValue();
+            Path file = root.resolve(entry.getKey()).resolve(fixture.family()).resolve("fixture.yml");
             Files.createDirectories(file.getParent());
-            Files.writeString(file, fixture.getValue(), StandardCharsets.UTF_8);
+            Files.writeString(file, fixture.yaml(), StandardCharsets.UTF_8);
             Library library = LibraryLoader.load(file.getParent().getParent(),
                     ContentCompiler.production(testfx.PermissiveResolvers.INSTANCE), 0);
             assertFalse(library.hasErrors(),
-                    () -> fixture.getKey() + " does not compile: " + library.diagnostics());
+                    () -> entry.getKey() + " does not compile: " + library.diagnostics());
         }
     }
 }
