@@ -324,6 +324,15 @@ public final class CombatDispatch {
         // §N friendly-fire: skip ALL SE combat effects between two friendly players.
         boolean friendly = damager instanceof Player a && victimEntity instanceof Player v && friendlyFire.test(a, v);
 
+        // §5 Diminish (ADR-0049): the victim's armed cap is claimed HERE, ahead of every walk, and applied at
+        // the fold-commit below. The claim MUST lead the walks rather than sit beside its use — DAMAGE_CAP arms
+        // the store INLINE mid-walk, so claiming at the commit hands each hit the window it just opened for the
+        // next one and `duration:` is never consulted. Ahead of the ATTACK side too: a rebounded (PROC_REBOUND)
+        // Diminish runs the swapped walk with the victim as actor and arms this same window.
+        DamageCapStore.Cap armedCap = victimEntity instanceof Player capVictim
+                ? damageCap.consumeArmed(capVictim.getUniqueId(), now) // one-shot: consumed even if unused
+                : null;
+
         // Attack side: self = attacker, target = victim.
         UUID comboActor = null;      // set iff combo.hit ran — a cancelled event rolls the streak back below
         Object comboMark = null;
@@ -450,14 +459,15 @@ public final class CombatDispatch {
         double folded = sink.fold().apply(event.getDamage());
         double committed = folded;
         if (victimEntity instanceof Player capped) {
-            DamageCapStore.Cap cap = damageCap.consumeArmed(capped.getUniqueId(), now); // one-shot: consumed even if unused
-            if (cap != null && folded > cap.value()) {
-                committed = cap.value();
-                if (cap.reflectOverflow() && attacker != null) {
+            if (armedCap != null && folded > armedCap.value()) { // claimed above the walks, so it predates this hit
+                committed = armedCap.value();
+                if (armedCap.reflectOverflow() && attacker != null) {
                     sink.damage(attacker, folded - committed, capped); // §5 Vengeful Diminish: the excess back to the attacker
                 }
             }
-            damageCap.recordLastTaken(capped.getUniqueId(), committed); // ALWAYS record the committed value (post-cap)
+            // ALWAYS record the committed value (post-cap). Written AFTER the walks, so a cap this hit armed is
+            // priced off the PREVIOUS hit — a deliberate one-hit lag left standing until the basis is ruled on.
+            damageCap.recordLastTaken(capped.getUniqueId(), committed);
         }
         event.setDamage(committed);
         // /se damagedebug: report the fold's actual buckets to toggled parties (both belong to this event's region).
