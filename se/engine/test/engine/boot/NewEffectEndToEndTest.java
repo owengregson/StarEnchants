@@ -46,6 +46,7 @@ import org.junit.jupiter.api.io.TempDir;
 import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
+import schema.spec.PotionLoadout;
 import testfx.Abilities;
 import testfx.Envs;
 import testfx.PermissiveResolvers;
@@ -198,6 +199,34 @@ class NewEffectEndToEndTest {
             }
         }
         return null;
+    }
+
+    @Test
+    void aPayloadSpawnCompilesToTheSameKindTheRuntimeIndexes() throws Exception {
+        // The payload params ride SPAWN_ENTITY rather than a new head, so the whole feature is invisible to a
+        // spec test: only a compile-to-registry walk proves the stamped dense id still indexes SPAWN_ENTITY
+        // (a mis-stamp runs a neighbouring kind with its own args and stays green at both ends).
+        Snapshot snap = load("selfdestruct", """
+                SPAWN_ENTITY: { type: PRIMED_TNT, count: 4, ttl: 40, owner: activator, scatter: 3, \
+                payload-phase: detonate, payload-radius: 2, payload-height: 2, payload-filter: ENEMIES, \
+                payload-max-targets: 0, who: "@Self" }""");
+        CompiledEffect effect = snap.byStableKey("enchants/selfdestruct/1").effects()[0];
+        assertEquals("SPAWN_ENTITY",
+                BuiltinEffects.registry().kindsById()[effect.kindId()].spec().head());
+        assertEquals("detonate", effect.args().str("payload-phase"), "the phase survives the whole compile");
+        assertEquals(3L, effect.args().lng("scatter"));
+    }
+
+    @Test
+    void aSummonLoadoutKeepsItsPerEntryLevelThroughTheWholeCompile() throws Exception {
+        // Undead Ruse's minions carry leveled self-buffs; the level rides INSIDE the interned id, so a stage
+        // that re-resolves or re-packs it drops every buff back to level 1 with no diagnostic.
+        Snapshot snap = load("undeadruse", """
+                SPAWN_SWARM: { type: ZOMBIE, count: 6, name: "&cRuse", effects: "SPEED*3, INCREASE_DAMAGE" }""");
+        List<Integer> loadout = snap.byStableKey("enchants/undeadruse/1").effects()[0].args().ids("effects");
+        assertEquals(2, loadout.size());
+        assertEquals(2, PotionLoadout.amp(loadout.get(0)), "level 3 survives as amplifier 2");
+        assertEquals(0, PotionLoadout.amp(loadout.get(1)), "a bare entry stays level 1");
     }
 
     @Test

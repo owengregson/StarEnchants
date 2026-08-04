@@ -62,12 +62,14 @@ class TriggerDispatchWiringTest {
         assertEquals(id(triggers, "EQUIP_CHANGE"), dispatch.equipChange);
         assertEquals(id(triggers, "PROJECTILE_LAND"), dispatch.projectileLand);
         assertEquals(id(triggers, "PROXIMITY_EVENT"), dispatch.proximityEvent);
+        assertEquals(id(triggers, "SUMMON_PAYLOAD"), dispatch.summonPayload);
 
         // None of them silently fell back to the −1 no-op.
         for (int trigger : new int[] {dispatch.death, dispatch.bowFire, dispatch.fishing,
                 dispatch.eat, dispatch.itemDamage, dispatch.breakItem, dispatch.repeating,
                 dispatch.held, dispatch.passive, dispatch.command,
-                dispatch.hurt, dispatch.equipChange, dispatch.projectileLand, dispatch.proximityEvent}) {
+                dispatch.hurt, dispatch.equipChange, dispatch.projectileLand, dispatch.proximityEvent,
+                dispatch.summonPayload}) {
             assertTrue(trigger >= 0, "a §B trigger resolved to the -1 no-op");
         }
     }

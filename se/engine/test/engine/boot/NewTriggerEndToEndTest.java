@@ -54,9 +54,9 @@ class NewTriggerEndToEndTest {
     private static final Compiler COMPILER = ContentCompiler.production(PermissiveResolvers.INSTANCE);
     private static final UUID ACTOR = UUID.randomUUID();
 
-    /** The four triggers this wave adds — each must survive the same compile-and-route walk. */
+    /** The triggers these waves add — each must survive the same compile-and-route walk. */
     private static final List<String> WAVE_1C =
-            List.of("HURT", "EQUIP_CHANGE", "PROJECTILE_LAND", "PROXIMITY_EVENT");
+            List.of("HURT", "EQUIP_CHANGE", "PROJECTILE_LAND", "PROXIMITY_EVENT", "SUMMON_PAYLOAD");
 
     @TempDir
     Path root;

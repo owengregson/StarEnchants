@@ -19,6 +19,7 @@ import schema.diag.Diagnostics;
 import schema.diag.Source;
 import schema.spec.D;
 import schema.spec.ParamSpec;
+import schema.spec.PotionLoadout;
 import testfx.Defs;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -86,8 +87,64 @@ class ResolveStageTest {
         LoweredAbility resolved = new DefaultResolveStage(reg, resolvers).resolve(lowered, d);
 
         assertFalse(d.hasErrors());
-        assertEquals(List.of(7, 3), resolved.effects().get(0).args().ids("effects"),
+        assertEquals(List.of(PotionLoadout.pack(7, 0), PotionLoadout.pack(3, 0)),
+                resolved.effects().get(0).args().ids("effects"),
                 "authored order survives, and surrounding whitespace does not become an entry");
+    }
+
+    @Test
+    void aPotionLoadoutEntryCarriesItsLevelSuffixAsAPackedAmplifier() {
+        // Two entries, one suffixed and one bare, so a loop that packs only the first (or reuses one
+        // amplifier for every entry) shows up — the summon otherwise silently holds everything at level 1.
+        SpecRegistry reg = MapSpecRegistry.of(loadout());
+        Diagnostics d = new Diagnostics();
+        LoweredAbility lowered = lower(reg, def("LOADOUT:2:SPEED*3, STRENGTH"), d);
+
+        PlatformResolvers resolvers = FakeResolvers.builder()
+                .potionEffect("SPEED", 3).potionEffect("STRENGTH", 7).build();
+        LoweredAbility resolved = new DefaultResolveStage(reg, resolvers).resolve(lowered, d);
+
+        assertFalse(d.hasErrors());
+        List<Integer> ids = resolved.effects().get(0).args().ids("effects");
+        assertEquals(3, PotionLoadout.id(ids.get(0)));
+        assertEquals(2, PotionLoadout.amp(ids.get(0)), "level 3 is amplifier index 2");
+        assertEquals(7, PotionLoadout.id(ids.get(1)));
+        assertEquals(0, PotionLoadout.amp(ids.get(1)), "a bare name stays level 1");
+    }
+
+    @Test
+    void aLevelSuffixBelowOneIsARangeFaultRatherThanAWrappedAmplifier() {
+        SpecRegistry reg = MapSpecRegistry.of(loadout());
+        Diagnostics d = new Diagnostics();
+        LoweredAbility lowered = lower(reg, def("LOADOUT:2:SPEED*0"), d);
+
+        PlatformResolvers resolvers = FakeResolvers.builder().potionEffect("SPEED", 3).build();
+        LoweredAbility resolved = new DefaultResolveStage(reg, resolvers).resolve(lowered, d);
+
+        assertTrue(d.all().stream().anyMatch(x -> x.is(DiagCode.E_RANGE)));
+        assertTrue(resolved.effects().isEmpty());
+    }
+
+    /** A material list — the same handle-LIST shape, a different category. */
+    private static ParamSpec materials() {
+        return ParamSpec.of("BLOCKS")
+                .param("materials", D.materials().def(""))
+                .build();
+    }
+
+    @Test
+    void aLevelSuffixIsOnlyStrippedForPotionLoadoutsNotEveryHandleList() {
+        // The suffix is potion-loadout grammar; on a material list "STONE*3" must stay one opaque token, so a
+        // stray '*' reads as the typo it is instead of silently resolving STONE and packing an amplifier.
+        SpecRegistry reg = MapSpecRegistry.of(materials());
+        Diagnostics d = new Diagnostics();
+        LoweredAbility lowered = lower(reg, def("BLOCKS:STONE*3"), d);
+
+        PlatformResolvers resolvers = FakeResolvers.builder().material("STONE", 4).build();
+        LoweredAbility resolved = new DefaultResolveStage(reg, resolvers).resolve(lowered, d);
+
+        assertTrue(d.all().stream().anyMatch(x -> x.is(DiagCode.E_UNKNOWN_HANDLE)));
+        assertTrue(resolved.effects().isEmpty());
     }
 
     @Test
