@@ -168,7 +168,16 @@ public final class Aliases {
             Map.entry("FIZZ", "BLOCK_FIRE_EXTINGUISH"),
             Map.entry("DIG_WOOL", "BLOCK_WOOL_BREAK"),
             Map.entry("IRONGOLEM_DEATH", "ENTITY_IRON_GOLEM_DEATH"),
-            Map.entry("WITHER_DEATH", "ENTITY_WITHER_DEATH"));
+            Map.entry("WITHER_DEATH", "ENTITY_WITHER_DEATH"),
+            // The pets family's six. Same bar: key present in the 1.8.8 enum, value in both fixtures, no
+            // collision. ITEM_PICKUP is the one whose id changed noun rather than shape — 1.8 named the cue
+            // after the sound it makes (random.pop), the flattening after what made it (entity.item.pickup).
+            Map.entry("DIG_SNOW", "BLOCK_SNOW_BREAK"),
+            Map.entry("LAVA_POP", "BLOCK_LAVA_POP"),
+            Map.entry("VILLAGER_NO", "ENTITY_VILLAGER_NO"),
+            Map.entry("VILLAGER_YES", "ENTITY_VILLAGER_YES"),
+            Map.entry("NOTE_PLING", "BLOCK_NOTE_BLOCK_PLING"),
+            Map.entry("ITEM_PICKUP", "ENTITY_ITEM_PICKUP"));
 
     /**
      * The COMPLETE 1.20.5 particle rename wave (Spigot flattened the enum), floor name → modern name,
