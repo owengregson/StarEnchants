@@ -30,4 +30,13 @@ public interface WornFactSource {
 
     /** How many of {@code entity}'s worn armour pieces carry a heroic upgrade (0..4). */
     int heroicPieces(UUID entity);
+
+    /**
+     * Whether {@code entity} holds, in the main hand, the WEAPON of a set it has completed — the same truth
+     * that gates an {@code on: weapon} bonus. Defaults to {@code false} so an implementation written before
+     * this fact existed keeps compiling and simply never reports one.
+     */
+    default boolean holdsSetWeapon(UUID entity) {
+        return false;
+    }
 }

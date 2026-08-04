@@ -8228,6 +8228,10 @@
     "type": "BOOL"
     },
   {
+    "name": "actor.setweapon",
+    "type": "BOOL"
+    },
+  {
     "name": "actor.souls",
     "type": "NUM"
     },

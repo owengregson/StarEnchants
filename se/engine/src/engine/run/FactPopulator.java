@@ -218,6 +218,7 @@ public final class FactPopulator {
     private final int statusTeleblockSlot;    // %status.teleblock% (actor-scoped store read, mask-gated)
     private final int bookRateGenerateSlot;   // %bookrate.generate% (actor-scoped store read, mask-gated)
     private final int bookRateApplySlot;      // %bookrate.apply% (actor-scoped store read, mask-gated)
+    private final int actorSetWeaponSlot;     // %actor.setweapon% (from the worn-fact source, mask-gated)
 
     /** Search radius for {@code %nearbyenemies%}, in blocks. */
     private static final double NEARBY_RADIUS = 8.0;
@@ -338,6 +339,7 @@ public final class FactPopulator {
         this.statusTeleblockSlot = slot(vocabulary, "status.teleblock", VarKind.BOOL);
         this.bookRateGenerateSlot = slot(vocabulary, "bookrate.generate", VarKind.BOOL);
         this.bookRateApplySlot = slot(vocabulary, "bookrate.apply", VarKind.BOOL);
+        this.actorSetWeaponSlot = slot(vocabulary, "actor.setweapon", VarKind.BOOL);
     }
 
     /**
@@ -433,6 +435,11 @@ public final class FactPopulator {
                 // no-entity-read rule as its victim-side twin, so it costs nothing on the hit path.
                 if (id != null && actorHeroicPiecesSlot >= 0 && mask.readsNum(actorHeroicPiecesSlot)) {
                     facts.setNumber(actorHeroicPiecesSlot, wornFactSource.heroicPieces(id));
+                }
+                // %actor.setweapon%: also flattened at equip, so "is my set weapon in hand" is a UUID lookup
+                // and never a re-read of the live main hand.
+                if (id != null && actorSetWeaponSlot >= 0 && mask.readsFlag(actorSetWeaponSlot)) {
+                    facts.setFlag(actorSetWeaponSlot, wornFactSource.holdsSetWeapon(id));
                 }
                 // %status.teleblock%: a store read by UUID, mask-gated like the rest of this block.
                 if (id != null && statusTeleblockSlot >= 0 && mask.readsFlag(statusTeleblockSlot)) {

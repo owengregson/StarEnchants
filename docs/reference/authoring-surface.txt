@@ -689,6 +689,7 @@ var actor.heroicpieces NUM
 var actor.level NUM
 var actor.maxhealth NUM
 var actor.ownedground BOOL
+var actor.setweapon BOOL
 var actor.souls NUM
 var actor.totalexp NUM
 var actor.type STR

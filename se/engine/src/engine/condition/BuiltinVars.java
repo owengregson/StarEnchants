@@ -126,6 +126,12 @@ public final class BuiltinVars {
                 // Enchanter.
                 .flag("bookrate.generate")
                 .flag("bookrate.apply")
+                // Wave 2e fact — appended (slots are append-only per §3.4). Whether the actor holds the weapon
+                // of a set they have completed. `on: weapon` gates a WHOLE bonus on that and cannot modulate a
+                // number, so a set whose armour and weapon differ only in a rate had to ship the difference as
+                // a second independent roll; %actor.helditem% cannot stand in, being a material name and never
+                // an item identity.
+                .flag("actor.setweapon")
                 .build();
     }
 }

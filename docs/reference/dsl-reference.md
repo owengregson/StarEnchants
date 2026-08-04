@@ -1759,6 +1759,7 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%actor.level%` | NUM |
 | `%actor.maxhealth%` | NUM |
 | `%actor.ownedground%` | BOOL |
+| `%actor.setweapon%` | BOOL |
 | `%actor.souls%` | NUM |
 | `%actor.totalexp%` | NUM |
 | `%actor.type%` | STR |

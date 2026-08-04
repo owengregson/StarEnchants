@@ -235,6 +235,36 @@ class WornResolverTest {
     }
 
     @Test
+    void theSetWeaponFactAgreesWithTheOnWeaponGateInEveryWearState() {
+        // %actor.setweapon% exists so a CHANCE can be modulated where `on: weapon` can only gate a whole
+        // bonus. Both must therefore answer the same question — an author reading the fact and an author
+        // writing `on: weapon` would otherwise disagree about the same gear.
+        StableKeyIndex keys = new StableKeyIndex(List.of("sets/yeti", "sets/yeti/w1"));
+        Ability[] abilities = {
+            Abilities.ability().sourceKind(SourceKind.SET).triggerMask(1 << 1).level(0).setPieces(3).build(),
+            Abilities.ability().id(1).sourceKind(SourceKind.SET).triggerMask(1 << 0).level(0).build()
+        };
+        CombatState armor = new CombatState(Map.of(), List.of(), "sets/yeti", false);
+        CombatState weapon = CombatState.weaponMember("sets/yeti");
+
+        WornState held = resolver().resolveFrom(List.of(armor, armor, armor, weapon), 4, keys, abilities, 1);
+        assertEquals(true, held.holdsSetWeapon(), "complete set, its weapon in the main hand");
+
+        // Incomplete set: the /w bonus does not fire, so neither may the fact.
+        WornState incomplete = resolver().resolveFrom(List.of(armor, armor, weapon), 3, keys, abilities, 1);
+        assertEquals(0, incomplete.byTrigger(0).length);
+        assertEquals(false, incomplete.holdsSetWeapon(), "an incomplete set's weapon is just a sword");
+
+        // Off-hand: same gear, same refusal on both sides.
+        WornState offhand = resolver().resolveFrom(List.of(armor, armor, armor, weapon), 3, keys, abilities, 1);
+        assertEquals(false, offhand.holdsSetWeapon());
+
+        // No weapon at all.
+        assertEquals(false, resolver().resolveFrom(List.of(armor, armor, armor), 3, keys, abilities, 1)
+                .holdsSetWeapon());
+    }
+
+    @Test
     void nonStackableCrystalArmourWinsOverOffhand() {
         // §ADR-0035 seen-set spans both hands: an armour copy (processed first) wins, so the crystal fires ONCE
         // on the attack direction — the off-hand copy is deduped, not the armour one.
