@@ -635,14 +635,14 @@ Modify a player target's experience: give to them, take from them, or transfer (
 
 ### MODIFY_FOOD
 
-Modify a player target's hunger. give/take move the bar now (clamped to 20 / to 0). scale-gain multiplies the next food GAIN by factor for duration ticks; cancel-drain cancels hunger LOSS for duration ticks. Author the window modes on REPEATING with duration at least the period for an always-on effect while worn — the engine has no unequip teardown, so the window lapses shortly after re-arming stops. Replaces FEED.
+Modify a player target's hunger. give/take move the bar now (clamped to 20 / to 0). scale-gain multiplies the next food GAIN by factor for duration ticks; absolute instead multiplies the RESULTING food level (a bigger claim, so it wins if both are armed); cancel-drain cancels hunger LOSS for duration ticks. Author the window modes on REPEATING with duration at least the period for an always-on effect while worn — the engine has no unequip teardown, so the window lapses shortly after re-arming stops. Replaces FEED.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ MODIFY_FOOD: { amount: <int[0..]=0>, mode: <enum{give|take|scale-gain|cancel-drain}=give>, factor: <double[0..]=1>, duration: <ticks[0..]=100> } }`
+- _usage_: `{ MODIFY_FOOD: { amount: <int[0..]=0>, mode: <enum{give|take|scale-gain|cancel-drain|absolute}=give>, factor: <double[0..]=1>, duration: <ticks[0..]=100> } }`
 - _param_ `amount` `int[0..]`
-- _param_ `mode` `enum{give|take|scale-gain|cancel-drain}`
-- _param_ `factor` `double[0..]` — scale-gain: what a food-level gain is multiplied by
-- _param_ `duration` `ticks[0..]` — scale-gain/cancel-drain: ticks the armed window lasts
+- _param_ `mode` `enum{give|take|scale-gain|cancel-drain|absolute}`
+- _param_ `factor` `double[0..]` — scale-gain: what a food-level gain is multiplied by; absolute: what the RESULTING level is
+- _param_ `duration` `ticks[0..]` — scale-gain/cancel-drain/absolute: ticks the armed window lasts
 - _target_ `who`: selector `SELF`
 - _example_: `{ MODIFY_FOOD: { amount: 6, mode: give, who: "@Self" } }`
 
@@ -741,17 +741,22 @@ Draw a horizontal ring of `count` coloured-dust motes of radius `radius` at `hei
 
 ### PERIODIC_DAMAGE
 
-Burn the target for amount raw half-hearts every period ticks over duration ticks, attributed to the activator (kill credit, era-combat delivery). replace is a comma-separated set of potion effects the burn converts — each is stripped and held off the target for the whole window, so the converted DoT stops ticking on its own. feedback is sent to a player target on every pulse. Two burns on one victim both run: unlike FREEZE, this is not a refreshed window.
+Burn the target for amount raw half-hearts every period ticks over duration ticks, attributed to the activator (kill credit, era-combat delivery). replace is a comma-separated set of potion effects the burn converts — each named DoT's DAMAGE is cancelled for the whole window while the effect itself is left on the target, icon and particles intact; only WITHER and POISON tick damage, so any other name converts nothing. feedback is sent to a player target on every pulse, and tick-sound / tick-particle play there too (once per pulse, never deduped against the hit's other cues). Two burns on one victim both run: unlike FREEZE, this is not a refreshed window.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ PERIODIC_DAMAGE: { amount: <double[0..]>, period: <ticks[0..]=20>, duration: <ticks[0..]=100>, replace: <potion_effect list=>, feedback: <string=> } }`
+- _usage_: `{ PERIODIC_DAMAGE: { amount: <double[0..]>, period: <ticks[0..]=20>, duration: <ticks[0..]=100>, replace: <potion_effect list=>, feedback: <string=>, tick-sound: <sound>, tick-volume: <double[0..]=1>, tick-pitch: <double[0..]=1>, tick-particle: <particle>, tick-particle-count: <int[0..]=1> } }`
 - _param_ `amount` `double[0..]` — raw pre-armor half-hearts per pulse (never attack-scaled)
 - _param_ `period` `ticks[0..]`
 - _param_ `duration` `ticks[0..]`
-- _param_ `replace` `potion_effect list` — vanilla potion DoTs this burn converts: stripped and denied for the window
+- _param_ `replace` `potion_effect list` — vanilla DoTs this burn converts: their damage ticks are cancelled, the effect stays visible
 - _param_ `feedback` `string` — line sent to a player target on every pulse
+- _param_ `tick-sound` `sound` — cue played at the target on every pulse; omit for silence
+- _param_ `tick-volume` `double[0..]`
+- _param_ `tick-pitch` `double[0..]`
+- _param_ `tick-particle` `particle` — burst spawned on the target every pulse; omit for none
+- _param_ `tick-particle-count` `int[0..]`
 - _target_ `who`: selector `VICTIM`
-- _example_: `{ PERIODIC_DAMAGE: { amount: 6, period: 20, duration: 120, replace: WITHER } }`
+- _example_: `{ PERIODIC_DAMAGE: { amount: 6, period: 20, duration: 120, replace: WITHER, tick-particle: FLAME, tick-particle-count: 20 } }`
 
 ### POTION
 
@@ -1491,7 +1496,8 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%world.thundering%` | BOOL |
 | `%world.time%` | NUM |
 
-Three families take a name rather than being fixed facts, and read as NUM:
+Five families take a name rather than being fixed facts, and read as NUM:
 
 - `%victim.var.<name>%` — a counter `SET_VAR` wrote on the victim; `0` when unset.
 - `%actor.potion.<effect>%` / `%victim.potion.<effect>%` — the active level of one potion effect, as amplifier + 1, so `> 0` means "active" and `> 1` means "at least II"; `0` when absent. `<effect>` is resolved when the pack loads, so a name unknown on this version is a load error, not a condition that silently never matches.
+- `%actor.enchlevel.<key>%` / `%victim.enchlevel.<key>%` — that side's worn level of one custom enchant, so `> 0` means "has it" and `>= 3` means "at least III"; `0` when not worn. `<key>` is the enchant's file name (its stable-key stem), and an enchant absent from the pack simply reads `0` rather than failing the load.
