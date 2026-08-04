@@ -78,6 +78,16 @@ The per-slot heroic LADDER (a piece's own armour value, durability and reduction
 deferred with the second heroic tier: a minted heroic piece takes the pack's single configured tier,
 which is what `items/heroic.yml` can express today.
 
+**A set that already folds its heroic wall into a completion bonus cannot take the stamp.** The
+stamp routes the per-piece reduction into the SAME additive channel a `DAMAGE_MOD(side: defense)`
+row feeds — `DamageFold` sums `heroicReductionPercent + reductionPercent` — so a set whose 4/4 bonus
+IS its heroic reduction folded (the four M-Kit sets, at a measured 45 %) would bill 45 + 27 = 72 %.
+Dropping the folded row instead is not the fix: `items/heroic.yml` carries the plain tier, so the
+set would quietly lose 18 points of its measured wall. Those four keep the fold and take no stamp;
+the M-Kit's steeper tier is what unblocks them. A set with no such row (KOTH) takes the stamp and
+gains a channel it did not have. This is the standing note those files already carried, made
+load-bearing.
+
 ## Decision 4 — a levelless `PROC_REBOUND` rule has no level bound
 
 `AbilityDef.level` is an ENCHANT level; every non-enchant reader passes a literal `0` because a set,
