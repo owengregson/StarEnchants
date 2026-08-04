@@ -111,7 +111,13 @@ class NewEffectEndToEndTest {
                     + "projectile: WITHER_SKULL, projectile-speed: 0.065, spawn-sound: ENTITY_GHAST_SHOOT, "
                     + "spawn-volume: 3.0, spawn-pitch: 0.9, spawn-particle: FLAME, spawn-particle-count: 24, "
                     + "spawn-lightning: true, despawn-particle: SPELL_WITCH, despawn-particle-count: 16, "
-                    + "despawn-particle-spread: 0.75, who: \"@Self\" }");
+                    + "despawn-particle-spread: 0.75, who: \"@Self\" }",
+            "SOUL_COST_EXEMPT: { duration: 300, feedback-threshold: 10, message: \"+{souls}\", who: \"@Self\" }",
+            "BOOK_RATE_MODIFIER: { site: generate, percent: 5, who: \"@Self\" }",
+            "INVENTORY_CONVERT: { from: BUCKET, to: LAVA_BUCKET, limit: 1152, plain: true, "
+                    + "protect-seconds: 60, count-var: converted }",
+            "ITEM_XP_TRACK: { amount: 500, window: 1440, message: \"+{xp}\", "
+                    + "level-up-message: \"*** {level} ***\" }");
 
     @TempDir
     Path root;

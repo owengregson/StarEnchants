@@ -17,6 +17,9 @@ effect BLINK
   param arrival-accent HANDLE optional min=- max=- enum=- handle=SOUND default=BLOCK_AMETHYST_BLOCK_CHIME
   param accent-volume DOUBLE optional min=0 max=- enum=- handle=- default=0.4
   param accent-pitch DOUBLE optional min=0 max=- enum=- handle=- default=1.6
+effect BOOK_RATE_MODIFIER
+  param site ENUM required min=- max=- enum=apply,generate handle=- default=-
+  param percent INT required min=1 max=100 enum=- handle=- default=-
 effect BREAK_BLOCK
   param drops BOOL optional min=- max=- enum=- handle=- default=true
   param void-materials HANDLE optional min=- max=- enum=- handle=MATERIAL default=
@@ -205,10 +208,22 @@ effect IGNORE_HEROIC
 effect IMMUNE
   param type ENUM required min=- max=- enum=all,axe,fishhook,potion,projectile,sword handle=- default=-
   param duration TICKS optional min=0 max=- enum=- handle=- default=100
+effect INVENTORY_CONVERT
+  param from HANDLE required min=- max=- enum=- handle=MATERIAL default=-
+  param to HANDLE required min=- max=- enum=- handle=MATERIAL default=-
+  param limit INT required min=1 max=- enum=- handle=- default=-
+  param plain BOOL optional min=- max=- enum=- handle=- default=true
+  param protect-seconds INT optional min=0 max=- enum=- handle=- default=0
+  param count-var STRING optional min=- max=- enum=- handle=- default=converted
 effect INVERT_VAR
   param name STRING required min=- max=- enum=- handle=- default=-
 effect INVINCIBLE
   param ticks TICKS optional min=0 max=- enum=- handle=- default=100
+effect ITEM_XP_TRACK
+  param amount INT required min=1 max=- enum=- handle=- default=-
+  param window INT optional min=0 max=- enum=- handle=- default=0
+  param message STRING optional min=- max=- enum=- handle=- default=
+  param level-up-message STRING optional min=- max=- enum=- handle=- default=
 effect JAVELIN
   param speed DOUBLE optional min=0.05 max=- enum=- handle=- default=0.15
   param max-travel DOUBLE optional min=1 max=- enum=- handle=- default=12
@@ -360,6 +375,10 @@ effect SET_VAR
   param step INT optional min=- max=- enum=- handle=- default=1
   param cap INT optional min=0 max=- enum=- handle=- default=0
 effect SMELT
+effect SOUL_COST_EXEMPT
+  param duration TICKS required min=1 max=- enum=- handle=- default=-
+  param feedback-threshold INT optional min=0 max=- enum=- handle=- default=10
+  param message STRING optional min=- max=- enum=- handle=- default=
 effect SOUL_MODE_DISABLE
 effect SOUL_TRANSFER
   param cap INT required min=1 max=- enum=- handle=- default=-
@@ -660,6 +679,8 @@ var actor.y NUM
 var attackerindex NUM
 var block.type STR
 var blocking BOOL
+var bookrate.apply BOOL
+var bookrate.generate BOOL
 var combo NUM
 var damage NUM
 var damagecause STR

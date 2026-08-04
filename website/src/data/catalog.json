@@ -207,6 +207,48 @@
     "targets": []
     },
   {
+    "head": "BOOK_RATE_MODIFIER",
+    "doc": "Arm a one-shot `percent`-point bonus on each target's next enchant-book roll at `site`: `generate` raises the success rate of the book a black scroll mints, `apply` raises the chance a book applies to gear. The charge is consumed by the next roll at that site whatever it returns — a failed apply spends it — and it survives a relog, since the roll it is waiting for may be days away. Both sites cap at the server's global books.max-success ceiling. Guard a second arm with %bookrate.generate% / %bookrate.apply%.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ BOOK_RATE_MODIFIER: { site: <enum{generate|apply}>, percent: <int[1..100]> } }",
+    "example": "{ BOOK_RATE_MODIFIER: { site: generate, percent: 5, who: \"@Self\" } }",
+    "params": [
+      {
+        "name": "site",
+        "kind": "ENUM",
+        "label": "enum{generate|apply}",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [
+          "generate",
+          "apply"
+          ],
+        "handle": null,
+        "doc": "which roll the charge waits for: generate (a scroll minting a book) or apply"
+        },
+      {
+        "name": "percent",
+        "kind": "INT",
+        "label": "int[1..100]",
+        "required": true,
+        "default": null,
+        "min": 1,
+        "max": 100,
+        "enum": [],
+        "handle": null,
+        "doc": "percentage points added to that roll's success chance"
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
+    },
+  {
     "head": "BREAK_BLOCK",
     "doc": "Break the target block(s) (default @Here; drops=false clears). @Vein/@Tunnel/@Trench/@Bore for shapes. void-materials is the per-block exception to `drops`: the listed types are destroyed dropless while everything else in the same volume still yields, which is how a bulk excavator keeps the ore and voids the stone.",
     "affinity": "REGION",
@@ -2591,6 +2633,88 @@
       ]
     },
   {
+    "head": "INVENTORY_CONVERT",
+    "doc": "Replace up to `limit` of the activator's `from` items with `to`, walking the whole inventory. With `plain` only meta-less stacks are touched. A stack straddling the remaining limit converts up to the limit and returns the overflow as `from`; anything that no longer fits is dropped at their feet, pickable only by them for `protect-seconds`. The number converted lands in `count-var`, so the zero-converted failure branch and any count-scaled follow-up read it as %converted%.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ INVENTORY_CONVERT: { from: <material>, to: <material>, limit: <int[1..]>, plain: <bool=true>, protect-seconds: <int[0..]=0>, count-var: <string=converted> } }",
+    "example": "{ INVENTORY_CONVERT: { from: BUCKET, to: LAVA_BUCKET, limit: 1152, plain: true, protect-seconds: 60, count-var: converted } }",
+    "params": [
+      {
+        "name": "from",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": "the material consumed"
+        },
+      {
+        "name": "to",
+        "kind": "HANDLE",
+        "label": "material",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": "the material handed back in its place"
+        },
+      {
+        "name": "limit",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": true,
+        "default": null,
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "the most items one activation may convert"
+        },
+      {
+        "name": "plain",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "true",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "true = skip any stack carrying meta (a named/enchanted/plugin item is never raw material)"
+        },
+      {
+        "name": "protect-seconds",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "how long items that no longer fit stay owner-locked on the ground (0 = unprotected)"
+        },
+      {
+        "name": "count-var",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "converted",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "per-player variable the converted count is written to, read back as %name%"
+        }
+      ],
+    "targets": []
+    },
+  {
     "head": "INVERT_VAR",
     "doc": "Numerically invert a per-player variable (0↔1), preserving its remaining TTL.",
     "affinity": "CONTEXT_LOCAL",
@@ -2643,6 +2767,64 @@
         "selector": "SELF"
         }
       ]
+    },
+  {
+    "head": "ITEM_XP_TRACK",
+    "doc": "Credit `amount` experience to the item the activator is holding — the item whose ability fired. At most ONE level per grant: the remainder is banked toward the next, and at the item's cap the bank simply keeps growing. `window` gates the grant to once per that many minutes using a stamp carried BY the item, so the gate follows it through a trade and a freshly minted item earns straight away; a grant inside the window is skipped whole, never scaled. Per-level thresholds and the level cap come from the item's own definition (a pet's `exp-curve` / `max-level`), falling back to the universal `pets.exp-per-level` and `pets.max-level`.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ ITEM_XP_TRACK: { amount: <int[1..]>, window: <int[0..]=0>, message: <string=>, level-up-message: <string=> } }",
+    "example": "{ ITEM_XP_TRACK: { amount: 500, window: 1440, message: \"&a&l+ &a{xp} Pet EXP &a&l[&7{exp}/{needed}&a&l]\" } }",
+    "params": [
+      {
+        "name": "amount",
+        "kind": "INT",
+        "label": "int[1..]",
+        "required": true,
+        "default": null,
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "experience credited to the held item"
+        },
+      {
+        "name": "window",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "MINUTES between grants for this item (0 = ungated); 1440 = once a day"
+        },
+      {
+        "name": "message",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "line sent on a grant ({xp}, {exp}, {needed}); empty = silent"
+        },
+      {
+        "name": "level-up-message",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "line sent when the grant levels the item ({item} = its name BEFORE the level-up, {level})"
+        }
+      ],
+    "targets": []
     },
   {
     "head": "JAVELIN",
@@ -4559,6 +4741,57 @@
     "example": "{ SMELT: {} }",
     "params": [],
     "targets": []
+    },
+  {
+    "head": "SOUL_COST_EXEMPT",
+    "doc": "Waive every soul cost charged to each target for `duration`. Both debit paths are covered: a soul-cost ability's gate charge and a REMOVE_SOULS aimed at the holder's own gem. While exempt a soul-cost ability fires even with no gem active, and its escalating price stops advancing — a free activation cannot raise the next one. Each waiver above `feedback-threshold` sends `message` with {souls} filled in, so the small change stays quiet. Re-arming replaces the window rather than extending it.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ SOUL_COST_EXEMPT: { duration: <ticks[1..]>, feedback-threshold: <int[0..]=10>, message: <string=> } }",
+    "example": "{ SOUL_COST_EXEMPT: { duration: 300, feedback-threshold: 10, message: \"&a&lPET (&aTesla&a&l): &a+{souls} souls!\", who: \"@Self\" } }",
+    "params": [
+      {
+        "name": "duration",
+        "kind": "TICKS",
+        "label": "ticks[1..]",
+        "required": true,
+        "default": null,
+        "min": 1,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "how long the holder's soul costs are waived"
+        },
+      {
+        "name": "feedback-threshold",
+        "kind": "INT",
+        "label": "int[0..]",
+        "required": false,
+        "default": "10",
+        "min": 0,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "a waiver must EXCEED this many souls to send `message`"
+        },
+      {
+        "name": "message",
+        "kind": "STRING",
+        "label": "string",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "line sent on each waiver above the threshold ({souls} = the amount waived); empty = silent"
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "SELF"
+        }
+      ]
     },
   {
     "head": "SOUL_MODE_DISABLE",
@@ -7798,6 +8031,14 @@
     },
   {
     "name": "blocking",
+    "type": "BOOL"
+    },
+  {
+    "name": "bookrate.apply",
+    "type": "BOOL"
+    },
+  {
+    "name": "bookrate.generate",
     "type": "BOOL"
     },
   {

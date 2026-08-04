@@ -27,6 +27,10 @@ import java.util.List;
  * @param messageOnNoHome optional line sent when a digger pet is used with no home dug
  *                    ({@code message-on-no-home}); {@code ""} = fall back to the universal fail template
  *                    (ADR-0067)
+ * @param expCurve    this pet's own exp ladder, or {@code null} to use the universal flat
+ *                    {@code pets.exp-per-level} (ADR-0052 pets predate per-pet curves and declare none)
+ * @param maxLevel    this pet's own level cap, or {@code 0} for the universal {@code pets.max-level}; the
+ *                    universal value always binds as a ceiling, so a def can only ever cap LOWER
  * @param brackets    the authored level brackets, sorted ascending by {@link PetBracket#floor()}
  */
 public record PetDef(
@@ -40,12 +44,25 @@ public record PetDef(
         List<String> description,
         String permission,
         String messageOnNoHome,
+        PetCurve expCurve,
+        int maxLevel,
         List<PetBracket> brackets) {
 
     public PetDef {
+        maxLevel = Math.max(0, maxLevel);
         descriptor = List.copyOf(descriptor);
         description = List.copyOf(description);
         brackets = List.copyOf(brackets);
+    }
+
+    /** The exp needed to climb from {@code level} to the next, falling back to the universal flat rate. */
+    public int expNeededFrom(int level, int universalFlat) {
+        return expCurve == null ? Math.max(1, universalFlat) : expCurve.neededFrom(level);
+    }
+
+    /** This pet's effective cap under the universal one — a def may cap lower, never higher. */
+    public int cappedAt(int universalMax) {
+        return maxLevel <= 0 ? universalMax : Math.min(maxLevel, universalMax);
     }
 
     /**

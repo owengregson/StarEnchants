@@ -72,6 +72,6 @@ class PetMessengerFeedbackTest {
 
     private static PetDef def(String noHome) {
         return new PetDef("mole", "Mole", "&7", true, "", "PLAYER_HEAD", List.of(), List.of(), "", noHome,
-                List.of());
+                null, 0, List.of());
     }
 }

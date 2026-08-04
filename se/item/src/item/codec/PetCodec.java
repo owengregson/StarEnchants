@@ -21,6 +21,7 @@ public final class PetCodec {
     private final String expKey;
     private final String expFracKey;
     private final String foodKey;
+    private final String xpGateKey;
     private final ItemStateStore store;
 
     public PetCodec(ItemKeys keys, ItemStateStore store) {
@@ -29,6 +30,7 @@ public final class PetCodec {
         this.expKey = keys.petExp();
         this.expFracKey = keys.petExpFrac();
         this.foodKey = keys.petFood();
+        this.xpGateKey = keys.petXpGate();
         this.store = store;
     }
 
@@ -87,5 +89,22 @@ public final class PetCodec {
     /** Stamp a Pet Food item with its baked +levels amount (mint). */
     public void stampFood(ItemStack stack, int levels) {
         store.writeInt(stack, foodKey, Math.max(1, levels));
+    }
+
+    /**
+     * {@code ITEM_XP_TRACK}'s per-item window stamp, in MINUTES since the epoch, or {@code 0} for a pet that
+     * has never earned gated XP (a freshly minted pet is therefore due immediately).
+     *
+     * <p>Minutes, not milliseconds: {@link ItemStateStore} carries no 64-bit surface, and an ms epoch does not
+     * fit an int. A minute stamp fits until the year ~6000 and the coarsest window anyone gates on is 24 h, so
+     * the resolution costs nothing — whereas a seconds stamp would overflow in 2038 and a hi/lo int pair would
+     * add a second key and a torn-write case to a counter that travels with traded items.
+     */
+    public int xpGateMinutes(ItemStack stack) {
+        return Math.max(0, store.readInt(stack, xpGateKey, 0));
+    }
+
+    public void writeXpGateMinutes(ItemStack stack, int minutes) {
+        store.writeInt(stack, xpGateKey, Math.max(0, minutes));
     }
 }

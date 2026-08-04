@@ -38,6 +38,17 @@ Blink (reforges): instantly teleport up to distance blocks along your facing if 
 - _param_ `accent-pitch` `double[0..]`
 - _example_: `{ BLINK: { distance: 4 } }`
 
+### BOOK_RATE_MODIFIER
+
+Arm a one-shot `percent`-point bonus on each target's next enchant-book roll at `site`: `generate` raises the success rate of the book a black scroll mints, `apply` raises the chance a book applies to gear. The charge is consumed by the next roll at that site whatever it returns — a failed apply spends it — and it survives a relog, since the roll it is waiting for may be days away. Both sites cap at the server's global books.max-success ceiling. Guard a second arm with %bookrate.generate% / %bookrate.apply%.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ BOOK_RATE_MODIFIER: { site: <enum{generate|apply}>, percent: <int[1..100]> } }`
+- _param_ `site` `enum{generate|apply}` — which roll the charge waits for: generate (a scroll minting a book) or apply
+- _param_ `percent` `int[1..100]` — percentage points added to that roll's success chance
+- _target_ `who`: selector `SELF`
+- _example_: `{ BOOK_RATE_MODIFIER: { site: generate, percent: 5, who: "@Self" } }`
+
 ### BREAK_BLOCK
 
 Break the target block(s) (default @Here; drops=false clears). @Vein/@Tunnel/@Trench/@Bore for shapes. void-materials is the per-block exception to `drops`: the listed types are destroyed dropless while everything else in the same volume still yields, which is how a bulk excavator keeps the ore and voids the stone.
@@ -543,6 +554,20 @@ Make the target player(s) immune to a damage cause (sword/axe/projectile/potion/
 - _target_ `who`: selector `SELF`
 - _example_: `{ IMMUNE: { type: potion, duration: 100 } }`
 
+### INVENTORY_CONVERT
+
+Replace up to `limit` of the activator's `from` items with `to`, walking the whole inventory. With `plain` only meta-less stacks are touched. A stack straddling the remaining limit converts up to the limit and returns the overflow as `from`; anything that no longer fits is dropped at their feet, pickable only by them for `protect-seconds`. The number converted lands in `count-var`, so the zero-converted failure branch and any count-scaled follow-up read it as %converted%.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ INVENTORY_CONVERT: { from: <material>, to: <material>, limit: <int[1..]>, plain: <bool=true>, protect-seconds: <int[0..]=0>, count-var: <string=converted> } }`
+- _param_ `from` `material` — the material consumed
+- _param_ `to` `material` — the material handed back in its place
+- _param_ `limit` `int[1..]` — the most items one activation may convert
+- _param_ `plain` `bool` — true = skip any stack carrying meta (a named/enchanted/plugin item is never raw material)
+- _param_ `protect-seconds` `int[0..]` — how long items that no longer fit stay owner-locked on the ground (0 = unprotected)
+- _param_ `count-var` `string` — per-player variable the converted count is written to, read back as %name%
+- _example_: `{ INVENTORY_CONVERT: { from: BUCKET, to: LAVA_BUCKET, limit: 1152, plain: true, protect-seconds: 60, count-var: converted } }`
+
 ### INVERT_VAR
 
 Numerically invert a per-player variable (0↔1), preserving its remaining TTL.
@@ -562,6 +587,18 @@ Make the target invulnerable for a span of ticks, then restore.
 - _param_ `ticks` `ticks[0..]`
 - _target_ `who`: selector `SELF`
 - _example_: `{ INVINCIBLE: { ticks: 100 } }`
+
+### ITEM_XP_TRACK
+
+Credit `amount` experience to the item the activator is holding — the item whose ability fired. At most ONE level per grant: the remainder is banked toward the next, and at the item's cap the bank simply keeps growing. `window` gates the grant to once per that many minutes using a stamp carried BY the item, so the gate follows it through a trade and a freshly minted item earns straight away; a grant inside the window is skipped whole, never scaled. Per-level thresholds and the level cap come from the item's own definition (a pet's `exp-curve` / `max-level`), falling back to the universal `pets.exp-per-level` and `pets.max-level`.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ ITEM_XP_TRACK: { amount: <int[1..]>, window: <int[0..]=0>, message: <string=>, level-up-message: <string=> } }`
+- _param_ `amount` `int[1..]` — experience credited to the held item
+- _param_ `window` `int[0..]` — MINUTES between grants for this item (0 = ungated); 1440 = once a day
+- _param_ `message` `string` — line sent on a grant ({xp}, {exp}, {needed}); empty = silent
+- _param_ `level-up-message` `string` — line sent when the grant levels the item ({item} = its name BEFORE the level-up, {level})
+- _example_: `{ ITEM_XP_TRACK: { amount: 500, window: 1440, message: "&a&l+ &a{xp} Pet EXP &a&l[&7{exp}/{needed}&a&l]" } }`
 
 ### JAVELIN
 
@@ -986,6 +1023,18 @@ Auto-smelt the block broken by this MINE activation (ore→ingot, sand→glass, 
 - _affinity_: `CONTEXT_LOCAL`
 - _usage_: `{ SMELT: {} }`
 - _example_: `{ SMELT: {} }`
+
+### SOUL_COST_EXEMPT
+
+Waive every soul cost charged to each target for `duration`. Both debit paths are covered: a soul-cost ability's gate charge and a REMOVE_SOULS aimed at the holder's own gem. While exempt a soul-cost ability fires even with no gem active, and its escalating price stops advancing — a free activation cannot raise the next one. Each waiver above `feedback-threshold` sends `message` with {souls} filled in, so the small change stays quiet. Re-arming replaces the window rather than extending it.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ SOUL_COST_EXEMPT: { duration: <ticks[1..]>, feedback-threshold: <int[0..]=10>, message: <string=> } }`
+- _param_ `duration` `ticks[1..]` — how long the holder's soul costs are waived
+- _param_ `feedback-threshold` `int[0..]` — a waiver must EXCEED this many souls to send `message`
+- _param_ `message` `string` — line sent on each waiver above the threshold ({souls} = the amount waived); empty = silent
+- _target_ `who`: selector `SELF`
+- _example_: `{ SOUL_COST_EXEMPT: { duration: 300, feedback-threshold: 10, message: "&a&lPET (&aTesla&a&l): &a+{souls} souls!", who: "@Self" } }`
 
 ### SOUL_MODE_DISABLE
 
@@ -1669,6 +1718,8 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%attackerindex%` | NUM |
 | `%block.type%` | STR |
 | `%blocking%` | BOOL |
+| `%bookrate.apply%` | BOOL |
+| `%bookrate.generate%` | BOOL |
 | `%combo%` | NUM |
 | `%damage%` | NUM |
 | `%damagecause%` | STR |

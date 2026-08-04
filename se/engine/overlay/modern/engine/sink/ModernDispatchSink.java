@@ -608,4 +608,16 @@ public final class ModernDispatchSink extends DispatchSinkBase {
         String s = Colors.translate(subtitle);
         entityOp(target, () -> target.sendTitle(t, s, fadeIn, stay, fadeOut));
     }
+
+    @Override
+    protected void protectDrop(org.bukkit.entity.Item dropped, UUID owner, int ticks) {
+        if (dropped == null || owner == null || ticks <= 0) {
+            return;
+        }
+        // Item#setOwner is vanilla's own "only this player may pick it up" field — no timer of its own, so the
+        // window is closed by a task on the ITEM's scheduler (the drop is region-bound on Folia). An item that
+        // despawned or unloaded first simply never runs it.
+        dropped.setOwner(owner);
+        Scheduling.onEntityLater(dropped, ticks, () -> dropped.setOwner(null));
+    }
 }

@@ -1117,4 +1117,46 @@ public interface Sink {
      * (see {@code StatusClearEffect}'s wire ordinals). Clearing a window nobody holds is a silent no-op.
      */
     void clearStatus(Player target, int statusOrdinal);
+
+    /**
+     * Waive every soul debit charged to {@code holder} for {@code durationTicks} — {@code SOUL_COST_EXEMPT}.
+     * {@code message} (empty = silent) is sent to them on each waiver whose amount EXCEEDS {@code threshold},
+     * with {@code {souls}} filled in; a re-arm replaces the window rather than extending it.
+     */
+    void armSoulExempt(Player holder, int durationTicks, int threshold, String message);
+
+    /**
+     * Tell {@code holder} that {@code souls} were waived by their live exemption — the dispatch layer's emit
+     * after {@code ActivationPipeline.soulCostWaived} reads back a non-zero amount. The threshold test and the
+     * message live on the window, so the caller needs to know neither; a silent or below-threshold window
+     * emits nothing.
+     */
+    void soulRefundNotice(Player holder, int souls);
+
+    /**
+     * Arm {@code holder}'s one-shot additive book-success modifier of {@code percent} at {@code site} (see
+     * {@code BookRateStore}'s site ordinals) — {@code BOOK_RATE_MODIFIER}. The charge has no expiry: it is
+     * spent by the next roll at that site whatever that roll returns, and refusing a second arm is the
+     * authored guard's job (the {@code %bookrate.*%} facts), not this call's.
+     */
+    void armBookRate(Player holder, int site, int percent);
+
+    /**
+     * Replace up to {@code limit} of {@code actor}'s {@code fromMaterialId} items with {@code toMaterialId}
+     * across their whole inventory — {@code INVENTORY_CONVERT}. {@code plain} skips any stack carrying meta
+     * (a named/enchanted bucket is somebody's keepsake, not raw material). A stack that STRADDLES the
+     * remaining limit converts up to the limit and hands the overflow back as {@code fromMaterialId}; anything
+     * that no longer fits is dropped at the actor's feet, owner-locked for {@code protectTicks}. The converted
+     * count is written to {@code countVar} as a per-player variable, readable as {@code %<countVar>%}.
+     */
+    void convertInventory(Player actor, int fromMaterialId, int toMaterialId, int limit, boolean plain,
+                          int protectTicks, String countVar);
+
+    /**
+     * Credit {@code amount} progression XP to the item {@code holder} is holding — {@code ITEM_XP_TRACK}.
+     * {@code windowMinutes > 0} gates it to once per window on a stamp carried by the item itself, so the gate
+     * travels with a traded item and a freshly minted one earns immediately. The two templates are the
+     * authored gain / level-up lines (empty = silent).
+     */
+    void itemXpTrack(Player holder, int amount, int windowMinutes, String gainMessage, String levelUpMessage);
 }

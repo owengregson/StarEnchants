@@ -11,6 +11,7 @@ import engine.condition.GroundOwnership;
 import engine.condition.PotionLevels;
 import engine.condition.VarVocabulary;
 import engine.selector.kind.Allies;
+import engine.stores.BookRateStore;
 import engine.stores.EngineStores;
 import engine.stores.HeldSlotStore;
 import engine.stores.RageStackStore;
@@ -139,6 +140,7 @@ public final class FactPopulator {
     private final HeldSlotStore heldSlots;   // %heldticks% source — an actor-scoped read (mask-gated)
     private final SoulTotalStore soulTotals; // %actor.souls%/%victim.souls% source — cached totals, never an inventory walk
     private final engine.stores.TeleblockStore teleblock; // %status.teleblock% source — an actor-scoped read (mask-gated)
+    private final BookRateStore bookRate;    // %bookrate.generate%/%bookrate.apply% source (mask-gated)
     private final UnaryOperator<String> papiDelegate;
     private final ActorProbe probe; // §3.3 era-specific entity/material reads (swim/glide/isAir/main-hand)
     // rand()'s draw, installed on each activation's buffer. Volatile: written once at boot wiring, read on
@@ -214,6 +216,8 @@ public final class FactPopulator {
     private final int victimHeroicPiecesSlot; // worn heroic armour pieces on the victim (from the worn-fact source)
     private final int actorHeroicPiecesSlot;  // worn heroic armour pieces on the actor (from the worn-fact source)
     private final int statusTeleblockSlot;    // %status.teleblock% (actor-scoped store read, mask-gated)
+    private final int bookRateGenerateSlot;   // %bookrate.generate% (actor-scoped store read, mask-gated)
+    private final int bookRateApplySlot;      // %bookrate.apply% (actor-scoped store read, mask-gated)
 
     /** Search radius for {@code %nearbyenemies%}, in blocks. */
     private static final double NEARBY_RADIUS = 8.0;
@@ -246,6 +250,7 @@ public final class FactPopulator {
         this.heldSlots = stores.heldSlots();
         this.soulTotals = stores.soulTotals();
         this.teleblock = stores.teleblock();
+        this.bookRate = stores.bookRate();
         this.papiDelegate = papiDelegate == null ? t -> null : papiDelegate;
         this.probe = Objects.requireNonNull(probe, "probe");
         this.buffer = ThreadLocal.withInitial(vocabulary::newFactBuffer);
@@ -331,6 +336,8 @@ public final class FactPopulator {
         this.victimHeroicPiecesSlot = slot(vocabulary, "victim.heroicpieces", VarKind.NUM);
         this.actorHeroicPiecesSlot = slot(vocabulary, "actor.heroicpieces", VarKind.NUM);
         this.statusTeleblockSlot = slot(vocabulary, "status.teleblock", VarKind.BOOL);
+        this.bookRateGenerateSlot = slot(vocabulary, "bookrate.generate", VarKind.BOOL);
+        this.bookRateApplySlot = slot(vocabulary, "bookrate.apply", VarKind.BOOL);
     }
 
     /**
@@ -430,6 +437,13 @@ public final class FactPopulator {
                 // %status.teleblock%: a store read by UUID, mask-gated like the rest of this block.
                 if (id != null && statusTeleblockSlot >= 0 && mask.readsFlag(statusTeleblockSlot)) {
                     facts.setFlag(statusTeleblockSlot, teleblock.isBlocked(id, nowTicks));
+                }
+                // %bookrate.*%: the same UUID-keyed store read, one flag per armable site.
+                if (id != null && bookRateGenerateSlot >= 0 && mask.readsFlag(bookRateGenerateSlot)) {
+                    facts.setFlag(bookRateGenerateSlot, bookRate.armed(id, BookRateStore.GENERATE) > 0);
+                }
+                if (id != null && bookRateApplySlot >= 0 && mask.readsFlag(bookRateApplySlot)) {
+                    facts.setFlag(bookRateApplySlot, bookRate.armed(id, BookRateStore.APPLY) > 0);
                 }
                 facts.papiResolver(token -> {
                     String value = vars.get(id, token, nowTicks);
