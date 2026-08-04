@@ -115,7 +115,10 @@ public final class SpawnEntityEffect implements EffectKind {
                 ctx.integer("payload-max-targets"),
                 ctx.bool("payload-consume"),
                 ctx.bool("payload-cancel"),
-                ctx.integer("scatter"));
+                ctx.integer("scatter"),
+                // ADR-0074: the arming ability's group travels with the summon, so a `strike` courier fires only
+                // this feature's IMPACT abilities and not every one its owner happens to wear.
+                ctx.sourceGroup());
         Location origin = ctx.actorOrigin(); // hoisted: fresh instance per call (ADR-0043)
         boolean any = false;
         for (LivingEntity who : ctx.targets("who")) {

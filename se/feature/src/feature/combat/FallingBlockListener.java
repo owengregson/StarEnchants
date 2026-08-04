@@ -62,7 +62,9 @@ public final class FallingBlockListener implements Listener {
         // logged off — never burns a slot the victim would have kept.
         if (owner != null && victim != null && FallingBlockCasts.claimHit(
                 cast.target(), cast.rehitMax(), cast.rehitWindowTicks(), nowTicks.getAsLong())) {
-            dispatch.fireImpact(owner, victim, cast.damage());
+            // Scoped to the group that armed the CAST (ADR-0074): without it a wearer carrying a second IMPACT
+            // payload fired that one too, on every block of a ~142-block field.
+            dispatch.fireImpact(owner, victim, cast.damage(), cast.sourceGroup());
         }
     }
 

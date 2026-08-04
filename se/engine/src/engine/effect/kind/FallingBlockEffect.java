@@ -116,7 +116,9 @@ public final class FallingBlockEffect implements EffectKind {
             if (base.getWorld() == null) {
                 continue;
             }
-            sink.fallingBlockField(base, palette, profile, ttl, owner, target, carried);
+            // ADR-0074: each block carries the arming ability's group to its landing, so a wearer who also owns
+            // another IMPACT payload does not fire theirs on every one of this field's blocks.
+            sink.fallingBlockField(base, palette, profile, ttl, owner, target, carried, ctx.sourceGroup());
         }
     }
 

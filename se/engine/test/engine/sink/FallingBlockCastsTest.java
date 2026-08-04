@@ -62,7 +62,7 @@ class FallingBlockCastsTest {
     void theRehitCeilingIsAFixedBucketSharedByEveryWearerRainingOnOneVictim() {
         UUID victim = UUID.randomUUID();
         UUID block = UUID.randomUUID();
-        FallingBlockCasts.bind(block, UUID.randomUUID(), victim, 3.0, 4, 200);
+        FallingBlockCasts.bind(block, UUID.randomUUID(), victim, 3.0, 4, 200, -1);
         FallingBlockCasts.Cast cast = FallingBlockCasts.onLand(block);
 
         // Driven through the CAST, so a ceiling dropped anywhere in the bind → landing plumbing fails here too.
@@ -78,6 +78,21 @@ class FallingBlockCastsTest {
         assertTrue(FallingBlockCasts.claimHit(victim, cast.rehitMax(), cast.rehitWindowTicks(), 200L),
                 "...and re-anchors only once it has fully elapsed (a fixed bucket, not a sliding one)");
         assertTrue(FallingBlockCasts.claimHit(UUID.randomUUID(), 4, 200, 0L), "another victim has their own bucket");
+    }
+
+    @Test
+    void theArmingGroupSurvivesTheBindToLandingHop() {
+        // ADR-0074: the group is the ONLY thing connecting a landing back to the ability that armed the field —
+        // the owner lookup is fresh at each landing and the arm's defId is a different ability's entirely. A
+        // plumbing break here would silently restore the over-firing, since -1 means "run them all".
+        UUID scoped = UUID.randomUUID();
+        FallingBlockCasts.bind(scoped, UUID.randomUUID(), UUID.randomUUID(), 1.0, 0, 0, 42);
+        assertEquals(42, FallingBlockCasts.onLand(scoped).sourceGroup());
+
+        UUID ungrouped = UUID.randomUUID();
+        FallingBlockCasts.bind(ungrouped, UUID.randomUUID(), UUID.randomUUID(), 1.0); // the pre-scoping bind
+        assertEquals(-1, FallingBlockCasts.onLand(ungrouped).sourceGroup(),
+                "content authoring no group: stays unscoped, so nothing shipped before this changes behaviour");
     }
 
     @Test

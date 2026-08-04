@@ -350,8 +350,12 @@ public interface Sink {
      * to an IMPACT cast carrying {@code carriedDamage}, so the landing listener fires {@code owner}'s
      * {@code IMPACT}-triggered abilities on {@code target} — the entity the grid was aimed at — when it lands
      * under it (druid's Terrablender; any "debris" reuses it).
+     *
+     * <p>{@code sourceGroup} is the interned {@code group:} of the ability that armed the cast, so the landing
+     * can fire only THAT feature's IMPACT abilities (ADR-0074); {@code -1} fires them all, as before.
      */
-    void fallingBlock(Location at, int materialId, int ttlTicks, UUID owner, UUID target, double carriedDamage);
+    void fallingBlock(Location at, int materialId, int ttlTicks, UUID owner, UUID target, double carriedDamage,
+                      int sourceGroup);
 
     /**
      * Rain a whole {@link BlockFieldProfile} field of {@link #fallingBlock} cosmetics on {@code center} — the
@@ -365,7 +369,7 @@ public interface Sink {
      * kill-material counterplay all ride each spawned block to its landing.
      */
     void fallingBlockField(Location center, java.util.List<Integer> palette, BlockFieldProfile profile,
-                           int ttlTicks, UUID owner, UUID target, double carriedDamage);
+                           int ttlTicks, UUID owner, UUID target, double carriedDamage, int sourceGroup);
 
     /**
      * Sample {@code profile.points()} ground points around {@code origin}, telegraph each one NOW, warn every
@@ -398,7 +402,7 @@ public interface Sink {
      */
     void turretRing(Location origin, Player actor, TurretRingProfile profile,
                     FieldCue spawnCue, double spawnSpread, boolean spawnLightning,
-                    FieldCue despawnCue, double despawnSpread);
+                    FieldCue despawnCue, double despawnSpread, int sourceGroup);
 
     /**
      * Summon {@code count} guardian mobs of an interned type at {@code at}, each set to target

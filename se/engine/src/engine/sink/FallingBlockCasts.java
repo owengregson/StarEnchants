@@ -31,7 +31,7 @@ public final class FallingBlockCasts {
      * because the ceiling is authored on the field but only spendable at the landing; {@code rehitMax <= 0} is
      * uncapped (every pre-profile FALLING_BLOCK).
      */
-    public record Cast(UUID owner, UUID target, double damage, int rehitMax, int rehitWindowTicks) {
+    public record Cast(UUID owner, UUID target, double damage, int rehitMax, int rehitWindowTicks, int sourceGroup) {
     }
 
     /** One victim's fixed re-hit bucket: the tick its window was anchored at, and how many hits it has taken. */
@@ -47,14 +47,18 @@ public final class FallingBlockCasts {
      * IMPACT. {@code target} records the entity the grid was aimed at so the landing hits only it.
      */
     public static void bind(UUID entity, UUID owner, UUID target, double damage) {
-        bind(entity, owner, target, damage, 0, 0);
+        bind(entity, owner, target, damage, 0, 0, -1);
     }
 
-    /** {@link #bind(UUID, UUID, UUID, double)} carrying the field's per-victim re-hit ceiling to the landing. */
+    /**
+     * {@link #bind(UUID, UUID, UUID, double)} carrying the field's per-victim re-hit ceiling to the landing, plus
+     * the interned {@code group:} of the ability that armed it (ADR-0074) — {@code -1} for an ungrouped arm, which
+     * keeps the historical "fire every IMPACT the owner wears" behaviour.
+     */
     public static void bind(UUID entity, UUID owner, UUID target, double damage, int rehitMax,
-                            int rehitWindowTicks) {
+                            int rehitWindowTicks, int sourceGroup) {
         if (entity != null) {
-            BY_ENTITY.put(entity, new Cast(owner, target, damage, rehitMax, rehitWindowTicks));
+            BY_ENTITY.put(entity, new Cast(owner, target, damage, rehitMax, rehitWindowTicks, sourceGroup));
         }
     }
 

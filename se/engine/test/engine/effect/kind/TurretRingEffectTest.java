@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
@@ -65,7 +66,7 @@ class TurretRingEffectTest {
         // Every term distinct, so a transposed volume/pitch/spread or a swapped phase cannot pass.
         verify(sink).turretRing(any(Location.class), isNull(), any(TurretRingProfile.class),
                 eq(new FieldCue(7, 3.0f, 0.9f, 9, 24)), eq(0.25), eq(true),
-                eq(new FieldCue(11, 0.5f, 1.4f, 13, 16)), eq(0.75));
+                eq(new FieldCue(11, 0.5f, 1.4f, 13, 16)), eq(0.75), eq(-1));
     }
 
     @Test
@@ -77,7 +78,7 @@ class TurretRingEffectTest {
 
         // Interned ids start at 0, so a "no cue" that fell through as 0 would play whichever sound got id 0.
         verify(sink).turretRing(any(), isNull(), any(), eq(FieldCue.SILENT), anyDouble(), anyBoolean(),
-                eq(FieldCue.SILENT), anyDouble());
+                eq(FieldCue.SILENT), anyDouble(), anyInt());
     }
 
     @Test
@@ -89,7 +90,7 @@ class TurretRingEffectTest {
         new TurretRingEffect().run(ring().targets("who", originAt(world, 0, 0)), sink);
 
         verify(sink).turretRing(any(), isNull(), profile.capture(), any(), anyDouble(), anyBoolean(),
-                any(), anyDouble());
+                any(), anyDouble(), anyInt());
         // The two handle slots differ, as do the two tick ranges — a transposed pair here would arm the wrong
         // entity or the wrong beat, and every value below is distinct precisely so that fails.
         assertEquals(new TurretRingProfile(3, 5, 8.0, 300, 11.0, 30, 8, 13, 4, 0.065, "ENEMIES"),
@@ -105,7 +106,7 @@ class TurretRingEffectTest {
         new TurretRingEffect().run(ctx, sink);
 
         verify(sink, times(2)).turretRing(any(), isNull(), any(), any(), anyDouble(), anyBoolean(),
-                any(), anyDouble());
+                any(), anyDouble(), anyInt());
     }
 
     @Test
@@ -121,7 +122,7 @@ class TurretRingEffectTest {
         kind.run(ctx, sink);
 
         verify(sink).turretRing(any(), isNull(), profile.capture(), any(), anyDouble(), anyBoolean(),
-                any(), anyDouble());
+                any(), anyDouble(), anyInt());
         TurretRingProfile p = profile.getValue();
         assertTrue(p.count() > 1, "a ring of one is a spawn, not a ring");
         assertEquals(p.ringRadius(), Math.hypot(p.siteOffset(0)[0], p.siteOffset(0)[1]), 1e-9);
