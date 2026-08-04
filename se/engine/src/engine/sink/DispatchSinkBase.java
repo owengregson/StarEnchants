@@ -2813,6 +2813,26 @@ public abstract class DispatchSinkBase implements SinkReadback {
         entityOp(target, () -> souls.debitTarget(target, amount));
     }
 
+    @Override
+    public void disableSoulMode(Player target) {
+        if (target == null) {
+            return;
+        }
+        // Target's own thread: the exit settles any owed spend into their gems' PDC before dropping the pool,
+        // which is region-bound to where those gems sit.
+        entityOp(target, () -> souls.disableSoulMode(target));
+    }
+
+    @Override
+    public void transferSouls(Player actor, Player victim, int cap, double ratio, boolean mintWhenNone) {
+        if (actor == null || victim == null || cap <= 0 || ratio <= 0) {
+            return;
+        }
+        // VICTIM's thread: the take is a PDC drain across their gems. The credit half belongs to the actor's
+        // region, so the collaborator hops for it — one intent, two regions, and only it knows how much landed.
+        entityOp(victim, () -> souls.transferSouls(actor, victim, cap, ratio, mintWhenNone));
+    }
+
     // ── Variable intents ───────────────────────────────────────────────────────────────────────
 
     @Override

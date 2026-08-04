@@ -910,6 +910,27 @@ Auto-smelt the block broken by this MINE activation (ore→ingot, sand→glass, 
 - _usage_: `{ SMELT: {} }`
 - _example_: `{ SMELT: {} }`
 
+### SOUL_MODE_DISABLE
+
+Force the target out of soul mode: pending spends settle to their gems, the pool is dropped and they are told, with the same lines and cues a manual toggle-off sends. A no-op on a target who is not in soul mode. Pair with REMOVE_SOULS to drain the wallet AND flip the switch — draining alone leaves the mode running.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ SOUL_MODE_DISABLE: {} }`
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ SOUL_MODE_DISABLE: { who: "@Victim" } }`
+
+### SOUL_TRANSFER
+
+Move min(target's souls, cap) souls out of the target's gems and credit the actor floor(ratio x stolen) — the remainder is destroyed, not banked. Unlike REMOVE_SOULS this does not require either party to be in soul mode: it reads the gems themselves. overflow=mint gives the actor a fresh gem carrying the credit when they carry none; overflow=discard loses it. A target with no souls is a silent no-op, so the authored condition decides what a dry victim costs.
+
+- _affinity_: `TARGET_ENTITY`
+- _usage_: `{ SOUL_TRANSFER: { cap: <int[1..]>, ratio: <double[0..1]=1.0>, overflow: <enum{mint|discard}=mint> } }`
+- _param_ `cap` `int[1..]` — the most souls one activation may take
+- _param_ `ratio` `double[0..1]` — fraction of the take the actor keeps; the rest is destroyed
+- _param_ `overflow` `enum{mint|discard}` — what happens when the actor carries no gem to credit
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ SOUL_TRANSFER: { cap: 50, ratio: 0.5, who: "@Victim" } }`
+
 ### SOUND
 
 Play a sound at the activation location, or at each entity in `who` when given — world-audible there at the same volume and pitch. No-op if `who` resolves nothing and the activation has no location.

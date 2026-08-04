@@ -249,26 +249,99 @@ public final class SoulService implements SoulDebit, SoulSpender {
 
     /** Credit {@code amount} to the killer's carried gem (durable PDC), then keep the pool in sync. Killer thread. */
     private void creditKill(Player killer, int amount) {
-        PlayerInventory inv = killer.getInventory();
+        creditCarried(killer, amount, false);
+    }
+
+    /**
+     * Credit {@code amount} souls to {@code player}'s first carried gem, keeping the pool in sync if they are in
+     * soul mode. {@code mintWhenNone} gives them a fresh gem carrying the credit when they carry none — a kill
+     * deposit deliberately does NOT (a player with no gem has opted out of the economy), a steal does (the souls
+     * are already gone from the victim, so dropping them on the floor would just delete them). Player's thread.
+     */
+    private void creditCarried(Player player, int amount, boolean mintWhenNone) {
+        PlayerInventory inv = player.getInventory();
         int slot = locateGemSlot(inv);
         if (slot < 0) {
+            if (mintWhenNone) {
+                Inventories.giveOrDrop(player, mintGem(amount));
+            }
             return;
         }
+        creditSlot(player, inv, slot, amount);
+    }
+
+    /** Add {@code amount} to the gem in {@code slot}, settling and resyncing around it when in soul mode. */
+    private void creditSlot(Player holder, PlayerInventory inv, int slot, int amount) {
         SoulData data = codec.read(inv.getItem(slot));
         if (data == null) {
             return;
         }
-        if (modes.active(killer.getUniqueId()).isPresent()) {
-            flushPending(killer); // settle owed drains first, then credit + resync so the pool reflects the deposit
+        if (modes.active(holder.getUniqueId()).isPresent()) {
+            flushPending(holder); // settle owed drains first, then credit + resync so the pool reflects the deposit
             data = codec.read(inv.getItem(slot)); // re-read: a flush may have changed this gem's count
             if (data == null) {
                 return;
             }
         }
         writeGem(inv, slot, data.withSouls(data.souls() + amount));
-        if (modes.active(killer.getUniqueId()).isPresent()) {
-            pool.resync(killer.getUniqueId(), totalSouls(killer));
+        if (modes.active(holder.getUniqueId()).isPresent()) {
+            pool.resync(holder.getUniqueId(), totalSouls(holder));
         }
+    }
+
+    /**
+     * Steal souls from {@code victim}'s gems and credit {@code actor} a fraction ({@code SOUL_TRANSFER}).
+     * Deliberately NOT soul-mode gated on either end — a steal reads the gems, not the switch, which is the whole
+     * distance between this and {@link #debitTarget}. MUST run on {@code victim}'s thread; the credit half hops to
+     * {@code actor}'s, because two players' inventories are two regions.
+     *
+     * <p>The take is settled and resynced against the victim's pool exactly as {@link #debit} does, so a victim
+     * mid-spend is never charged twice for the same souls. {@code floor(ratio x stolen)} arrives, the remainder is
+     * destroyed — the loss term is the design (see the effect kind), not a rounding accident.
+     */
+    @Override
+    public void transferSouls(Player actor, Player victim, int cap, double ratio, boolean mintWhenNone) {
+        if (cap <= 0 || ratio <= 0) {
+            return;
+        }
+        UUID victimId = victim.getUniqueId();
+        boolean victimInMode = modes.active(victimId).isPresent();
+        if (victimInMode) {
+            flushPending(victim); // settle owed drains so the gems' durable counts are what we read and take from
+        }
+        int stolen = drainLeastFirst(victim, Math.min(cap, totalSouls(victim)));
+        if (victimInMode) {
+            pool.resync(victimId, totalSouls(victim));
+        }
+        if (stolen <= 0) {
+            return; // a dry victim: nothing taken, so nothing to credit and no feedback to fake
+        }
+        int credited = (int) Math.floor(ratio * stolen);
+        if (credited <= 0) {
+            return; // the whole take was destroyed by the ratio — the victim still lost it, by design
+        }
+        Scheduling.onEntity(actor, () -> creditCarried(actor, credited, mintWhenNone));
+    }
+
+    /**
+     * Force {@code player} out of soul mode ({@code SOUL_MODE_DISABLE}) — the toggle's disable arm without the
+     * manual path's rate limit, since the exit is not the victim's own gesture. Their debounce budget is left
+     * untouched for the same reason: being trapped must not also cost the next toggle they choose to make.
+     * MUST run on {@code player}'s own thread. No-op when they are not in soul mode.
+     */
+    @Override
+    public void disableSoulMode(Player player) {
+        UUID id = player.getUniqueId();
+        if (modes.active(id).isEmpty()) {
+            return;
+        }
+        flushPending(player); // settle owed drains to PDC before dropping the pool, else a spend refunds
+        modes.deactivate(id);
+        pool.disable(id);
+        SoulGemConfig cfg = config.get();
+        messages.sendLines(player, "soul.deactivate");
+        playSounds(player, cfg.sounds().toggleOff());
+        particles.spawn(player, cfg.particles().disable());
     }
 
     /**

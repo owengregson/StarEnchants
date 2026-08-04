@@ -315,6 +315,11 @@ effect SET_VAR
   param step INT optional min=- max=- enum=- handle=- default=1
   param cap INT optional min=0 max=- enum=- handle=- default=0
 effect SMELT
+effect SOUL_MODE_DISABLE
+effect SOUL_TRANSFER
+  param cap INT required min=1 max=- enum=- handle=- default=-
+  param ratio DOUBLE optional min=0 max=1 enum=- handle=- default=1.0
+  param overflow ENUM optional min=- max=- enum=discard,mint handle=- default=mint
 effect SOUND
   param sound HANDLE required min=- max=- enum=- handle=SOUND default=-
   param volume DOUBLE optional min=0 max=- enum=- handle=- default=1
