@@ -95,7 +95,12 @@ class NewEffectEndToEndTest {
     /** The kinds wave 2d.2 adds, in the same minimal authored form. */
     private static final List<String> WAVE_2D2 = List.of(
             "STACKING_DOT: { step: 2, period: 10, cap: 6, stack-ttl: 60, lead-in: 20, duration: 200, "
-                    + "message: \"decaying\", who: \"@Victim\" }");
+                    + "message: \"decaying\", who: \"@Victim\" }",
+            "DELAYED_STRIKE_FIELD: { points: 16, offset-min: 2, offset-max: 9, delay: 20, damage: 16, "
+                    + "health-floor: 1, filter: ENEMIES, target-range: 32, warning: \"incoming\", "
+                    + "cue-sound: ENTITY_WITHER_SPAWN, cue-particle: SPELL_WITCH, cue-particle-count: 32, "
+                    + "strike-sound: ENTITY_WITHER_DEATH, strike-particle: EXPLOSION_LARGE, "
+                    + "strike-particle-count: 4, who: \"@Self\" }");
 
     @TempDir
     Path root;

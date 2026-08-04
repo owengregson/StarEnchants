@@ -520,6 +520,11 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
     }
 
     @Override
+    protected void particleDirect(Location at, int particleId, int count, double spread) {
+        sendParticleAt(at, particleId, count, (float) spread, (float) spread, (float) spread);
+    }
+
+    @Override
     public void dust(Location at, int particleId, int r, int g, int b, float size, int count) {
         regionOp(at, () -> dustDirect(at, particleId, r, g, b, size, count));
     }

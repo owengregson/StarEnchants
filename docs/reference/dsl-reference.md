@@ -144,6 +144,36 @@ Contribute per resolved target in 'who' to the damage fold: total = per * count,
 - _target_ `who`: selector `AOE`
 - _example_: `{ DAMAGE_SCALE: { side: attack, mode: add, per: 10, cap: 100, who: "@AllPlayers{r=7}" } }`
 
+### DELAYED_STRIKE_FIELD
+
+Mark `points` ground spots around each target, at an independent per-axis offset of offset-min..offset-max blocks (a spot over lower ground snaps down onto it, but never rises above the origin), play the cue-* telegraph at each one and shout `warning` ({caster}) at everyone the `filter` admits within target-range. `delay` ticks later every spot detonates together: a damage-free lightning visual (unless lightning: false), the strike-* cue, and `damage` raw half-hearts subtracted from every body within hit-radius of it — floored at health-floor, so the field cannot kill, and the filter is RE-CHECKED then, so walking into a spot during the delay gets you hit. Spots are independent: overlapping ones each land their own hit.
+
+- _affinity_: `REGION`
+- _usage_: `{ DELAYED_STRIKE_FIELD: { points: <int[1..64]=16>, offset-min: <int[0..64]=2>, offset-max: <int[0..64]=9>, delay: <ticks[1..]=20>, hit-radius: <double[0..]=1.4142135623730951>, target-range: <double[0..]=32>, filter: <enum set{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}=ENEMIES>, damage: <double[0..]=16>, health-floor: <double[0..]=1>, warning: <string=>, cue-sound: <sound>, cue-volume: <double[0..]=1>, cue-pitch: <double[0..]=1>, cue-particle: <particle>, cue-particle-count: <int[0..]=1>, strike-sound: <sound>, strike-volume: <double[0..]=1>, strike-pitch: <double[0..]=1>, strike-particle: <particle>, strike-particle-count: <int[0..]=1>, lightning: <bool=true> } }`
+- _param_ `points` `int[1..64]` — how many ground spots are marked
+- _param_ `offset-min` `int[0..64]` — closest a spot lands, per axis
+- _param_ `offset-max` `int[0..64]` — furthest a spot lands, per axis
+- _param_ `delay` `ticks[1..]` — ticks between the telegraph and the strike
+- _param_ `hit-radius` `double[0..]` — how far from a spot the strike reaches
+- _param_ `target-range` `double[0..]` — how far the warning carries from the origin
+- _param_ `filter` `enum set{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}` — who the warning and the strike admit; re-checked at the strike, not carried from the warning
+- _param_ `damage` `double[0..]` — raw half-hearts subtracted from a struck body's health
+- _param_ `health-floor` `double[0..]` — health a strike can never take a body below — the reason the field cannot kill
+- _param_ `warning` `string` — line shouted at everyone in range ({caster}); empty = no warning
+- _param_ `cue-sound` `sound` — telegraph cue at each spot; omit for silence
+- _param_ `cue-volume` `double[0..]`
+- _param_ `cue-pitch` `double[0..]`
+- _param_ `cue-particle` `particle` — telegraph burst at each spot; omit for none
+- _param_ `cue-particle-count` `int[0..]`
+- _param_ `strike-sound` `sound` — detonation cue at each spot; omit for silence
+- _param_ `strike-volume` `double[0..]`
+- _param_ `strike-pitch` `double[0..]`
+- _param_ `strike-particle` `particle` — detonation burst at each spot; omit for none
+- _param_ `strike-particle-count` `int[0..]`
+- _param_ `lightning` `bool` — strike each spot with a damage-free lightning visual
+- _target_ `who`: selector `SELF`
+- _example_: `{ DELAYED_STRIKE_FIELD: { points: 16, offset-min: 2, offset-max: 9, delay: 20, damage: 16, health-floor: 1, filter: ENEMIES, target-range: 32, cue-sound: ENTITY_WITHER_SPAWN, cue-pitch: 0.4, cue-particle: SPELL_WITCH, cue-particle-count: 32, strike-sound: ENTITY_WITHER_DEATH, strike-pitch: 0.4, strike-particle: EXPLOSION_LARGE, strike-particle-count: 4, who: "@Self" } }`
+
 ### DESPAWN
 
 Silently remove the target mob(s) — no drops, no experience, no death event, so nothing downstream (kill counters, other plugins' death hooks) sees a kill. Players are never removed. Pair with @Aoe{filter=MOBS} for an area mob-clear; use KILL when the drops and the death are the point.
@@ -282,17 +312,30 @@ Turn each target to face toward (or away from) the anchor, without moving them. 
 
 ### FALLING_BLOCK
 
-Spawn a (2*radius+1)² grid of falling blocks `height` blocks above each target (removed after `ttl` if they never land). A landing block fires the actor's IMPACT abilities on what it hit; `carry` is forwarded to that impact as %damage% (set carry: "%damage%").
+Spawn a (2*radius+1)² grid of falling blocks `height` blocks above each target (removed after `ttl` if they never land). A landing block fires the actor's IMPACT abilities on what it hit; `carry` is forwarded to that impact as %damage% (set carry: "%damage%"). The block-field profile turns the grid into a storm and is entirely opt-in: layers-min/max stack that many grids, each layer index rising by its own draw from layer-step-min..max (so layer 0 is always `height`, and a layer above the world simply does not rain); density below 100 rains only that percent of positions, drawn fresh per position per layer, so a re-cast field never falls in the same holes; material2/3/4 give the storm a palette, drawn per block. damage-percent adds that percent of the target's max health — capped at health-cap — to `carry`, so one field hurts a 20-heart player and a boss proportionally. rehit-max/rehit-window cap how many impacts ONE victim can take in a fixed window shared across every wearer raining on them (the field's lethality ceiling), and kill-material names a block that kills a falling block mid-flight, so standing in it is real counterplay.
 
 - _affinity_: `REGION`
-- _usage_: `{ FALLING_BLOCK: { material: <material>, radius: <int[0..4]=1>, height: <int[0..12]=4>, ttl: <ticks[0..]=40>, carry: <double=0> } }`
+- _usage_: `{ FALLING_BLOCK: { material: <material>, material2: <material>, material3: <material>, material4: <material>, radius: <int[0..4]=1>, height: <int[0..64]=4>, ttl: <ticks[0..]=40>, carry: <double=0>, layers-min: <int[1..8]=1>, layers-max: <int[1..8]=1>, layer-step-min: <int[0..24]=0>, layer-step-max: <int[0..24]=0>, density: <double[0..100]=100>, damage-percent: <double[0..]=0>, health-cap: <double[0..]=0>, rehit-max: <int[0..]=0>, rehit-window: <ticks[0..]=200>, kill-material: <material> } }`
 - _param_ `material` `material`
+- _param_ `material2` `material`
+- _param_ `material3` `material`
+- _param_ `material4` `material`
 - _param_ `radius` `int[0..4]`
-- _param_ `height` `int[0..12]`
+- _param_ `height` `int[0..64]`
 - _param_ `ttl` `ticks[0..]`
 - _param_ `carry` `double`
+- _param_ `layers-min` `int[1..8]` — fewest grids stacked above the target
+- _param_ `layers-max` `int[1..8]` — most grids stacked above the target
+- _param_ `layer-step-min` `int[0..24]` — fewest blocks one layer rises per layer index
+- _param_ `layer-step-max` `int[0..24]` — most blocks one layer rises per layer index
+- _param_ `density` `double[0..100]` — percent of grid positions that actually rain, drawn per position per layer
+- _param_ `damage-percent` `double[0..]` — percent of the target's (capped) max health added to carry — a victim-scaled impact
+- _param_ `health-cap` `double[0..]` — ceiling on the max health damage-percent reads; 0 = uncapped
+- _param_ `rehit-max` `int[0..]` — most impacts one victim can take per rehit-window, shared across every wearer; 0 = uncapped
+- _param_ `rehit-window` `ticks[0..]` — length of that fixed bucket, anchored at the first impact
+- _param_ `kill-material` `material` — a block falling through this material dies without ever landing — the field's counterplay
 - _target_ `who`: selector `VICTIM`
-- _example_: `{ FALLING_BLOCK: { material: GRASS_BLOCK, radius: 1, height: 4, carry: "%damage%", who: "@Victim" } }`
+- _example_: `{ FALLING_BLOCK: { material: END_STONE, material2: NETHERRACK, radius: 4, height: 10, layers-min: 3, layers-max: 4, layer-step-min: 12, layer-step-max: 19, density: 50, damage-percent: 15, health-cap: 44, rehit-max: 4, rehit-window: 200, kill-material: COBWEB, ttl: 100, who: "@Aoe{r=25, filter=ENEMIES}" } }`
 
 ### FALL_SHIELD
 

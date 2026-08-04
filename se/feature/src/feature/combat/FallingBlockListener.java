@@ -3,6 +3,7 @@ package feature.combat;
 import engine.sink.FallingBlockCasts;
 import feature.trigger.TriggerDispatch;
 import java.util.Objects;
+import java.util.function.LongSupplier;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -36,9 +37,11 @@ public final class FallingBlockListener implements Listener {
     private static final double HIT_RADIUS = 1.5;
 
     private final TriggerDispatch dispatch;
+    private final LongSupplier nowTicks;
 
-    public FallingBlockListener(TriggerDispatch dispatch) {
+    public FallingBlockListener(TriggerDispatch dispatch, LongSupplier nowTicks) {
         this.dispatch = Objects.requireNonNull(dispatch, "dispatch");
+        this.nowTicks = Objects.requireNonNull(nowTicks, "nowTicks");
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -55,7 +58,10 @@ public final class FallingBlockListener implements Listener {
         }
         Player owner = Bukkit.getPlayer(cast.owner());
         LivingEntity victim = aimedTargetNear(event.getBlock().getLocation(), cast.target());
-        if (owner != null && victim != null) {
+        // The field's re-hit ceiling is claimed LAST, so a landing that misses its aimed target — or whose owner
+        // logged off — never burns a slot the victim would have kept.
+        if (owner != null && victim != null && FallingBlockCasts.claimHit(
+                cast.target(), cast.rehitMax(), cast.rehitWindowTicks(), nowTicks.getAsLong())) {
             dispatch.fireImpact(owner, victim, cast.damage());
         }
     }

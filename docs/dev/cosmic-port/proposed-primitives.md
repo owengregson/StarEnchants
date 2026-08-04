@@ -177,7 +177,12 @@ lanes but needs its own `BlockVisibility` seam minted first.
 
 **Field family:** `STACKING_DOT` (07), `OWNED_GROUND` fact (07),
 `DELAYED_STRIKE_FIELD` (10 — Yijki strike points), `BLOCK_FIELD_PROFILE` (10 —
-extends FALLING_BLOCK: layers, per-position probability, palette).
+extends FALLING_BLOCK: layers, per-position probability, palette). The last two
+**SHIPPED in wave 2d.2**: `DELAYED_STRIKE_FIELD` as its own head, and
+`BLOCK_FIELD_PROFILE` as new (inert-by-default) params on `FALLING_BLOCK` rather
+than a second head, since it only ever extends the one shape. Its phase chains
+are flat cue/payload params, not a nested effect list — the DSL has no
+effect-chain param type, and `PERIODIC_DAMAGE`'s `tick-*` cues are the precedent.
 
 **Combat marks:** `VULNERABILITY` (07), `POTION_AMP_REDUCE` (07),
 `DEFENDER_KEYED_SUPPRESSION` (11 — the incoming-direction complement of the

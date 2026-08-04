@@ -2,6 +2,7 @@ package engine.sink;
 
 import compile.model.ScopeKinds;
 import engine.interact.DamageFold;
+import engine.selector.kind.Targets;
 import engine.stores.BatteryStore;
 import engine.stores.CooldownStore;
 import engine.stores.DamageCapStore;
@@ -171,6 +172,10 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private static final int OUT_OF_SOULS_THROTTLE_TICKS = 300;
     /** PERIODIC_DAMAGE tick-burst spread: PARTICLE's own default, so a burn's aura frames the body, not a point. */
     private static final double TICK_CUE_SPREAD = 0.4;
+    /** How often a falling block re-checks the field's kill material — the measured 1s cobweb poll. */
+    private static final int BLOCK_KILL_POLL_TICKS = 20;
+    /** Max blocks a strike point drops looking for ground before it settles at the origin's level. */
+    private static final int STRIKE_GROUND_DROP_LIMIT = 128;
     private final ReflectMarksStore reflectMarks;   // ADR-0049 Hex reflect windows
     private final OutgoingDebuffStore outgoingDebuff; // ADR-0049 Weaken/Destruction outgoing nerfs
     private final DamageCapStore damageCap;          // ADR-0049 Diminish last-taken + armed cap
@@ -2753,24 +2758,211 @@ public abstract class DispatchSinkBase implements SinkReadback {
     @Override
     public void fallingBlock(Location at, int materialId, int ttlTicks, UUID owner, UUID target, double carriedDamage) {
         Location loc = at.clone();
-        regionOp(loc, () -> {
-            Material material = material(materialId);
-            World world = loc.getWorld();
-            if (material == null || !material.isBlock() || world == null) {
+        regionOp(loc, () -> spawnCosmeticBlock(loc, materialId, ttlTicks, owner, target, carriedDamage, 0, 0, -1));
+    }
+
+    @Override
+    public void fallingBlockField(Location center, List<Integer> palette, BlockFieldProfile profile,
+                                  int ttlTicks, UUID owner, UUID target, double carriedDamage) {
+        Location origin = center.clone(); // own the centre: a WAIT tier can defer this to a later tick
+        regionOp(origin, () -> {
+            World world = origin.getWorld();
+            if (world == null || palette.isEmpty()) {
                 return;
             }
-            FallingBlock fb = spawnFallingBlock(world, loc, material);
-            fb.setDropItem(false);     // never leave an item
-            fb.setHurtEntities(false); // no vanilla anvil-style damage — the impact is the IMPACT trigger's effects
-            // Track EVERY cosmetic block (owner or not) so the landing listener cancels its placement; an owner
-            // additionally drives the IMPACT abilities. A FALLING_BLOCK is always cosmetic and must never stick.
-            FallingBlockCasts.bind(fb.getUniqueId(), owner, target, carriedDamage);
-            if (ttlTicks > 0) {
-                UUID fbId = fb.getUniqueId();
-                Scheduling.onEntityLater(fb, ttlTicks, () -> { // never landed (void/edge) → forget + clean up
-                    FallingBlockCasts.forget(fbId);
-                    fb.remove();
+            int bx = origin.getBlockX();
+            int by = origin.getBlockY();
+            int bz = origin.getBlockZ();
+            int radius = profile.radius();
+            int maxHeight = world.getMaxHeight(); // no getMinHeight(): absent pre-1.17 and on the legacy tree
+            ThreadLocalRandom rnd = ThreadLocalRandom.current();
+            for (int dy : profile.layerYOffsets(rnd)) {
+                int y = by + dy;
+                if (y >= maxHeight) {
+                    continue; // outside world bounds: the layer simply does not rain, never a clamped double layer
+                }
+                for (int dx = -radius; dx <= radius; dx++) {
+                    for (int dz = -radius; dz <= radius; dz++) {
+                        if (!profile.spawns(rnd)) {
+                            continue;
+                        }
+                        int materialId = palette.size() == 1 ? palette.get(0) : palette.get(rnd.nextInt(palette.size()));
+                        // +0.5 centres each block on its column so the grid falls straight down onto the target.
+                        Location at = new Location(world, bx + dx + 0.5, y, bz + dz + 0.5);
+                        // Re-key EACH column to its OWN region (the tempBox rule): a 9-wide field straddles a
+                        // Folia region boundary, and the spawn must run on the column's owning thread.
+                        Scheduling.onRegion(at, () -> spawnCosmeticBlock(at, materialId, ttlTicks, owner, target,
+                                carriedDamage, profile.rehitMax(), profile.rehitWindowTicks(),
+                                profile.killMaterialId()));
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
+    public void delayedStrikeField(Location origin, Player caster, StrikeFieldProfile profile, FieldCue telegraph,
+                                   FieldCue strike, boolean lightning, String warning) {
+        Location anchor = origin.clone(); // own the origin: a WAIT tier can defer this to a later tick
+        // The caster is only ever needed as a UUID (self-exclusion) and a name (the warning), and phase 2 runs a
+        // whole delay later — capture both primitives now rather than dereferencing a handle that may be gone.
+        UUID casterId = caster == null ? null : caster.getUniqueId();
+        String casterName = caster == null ? "" : caster.getName();
+        Targets.Match filter = Targets.of(profile.filter());
+        regionOp(anchor, () -> {
+            World world = anchor.getWorld();
+            if (world == null) {
+                return;
+            }
+            ThreadLocalRandom rnd = ThreadLocalRandom.current();
+            for (int i = 0; i < profile.points(); i++) {
+                int[] offset = profile.drawOffset(rnd);
+                // The measured half-block centring: +0.5 on X and Z, the sampled Y untouched.
+                Location sampled = new Location(world, anchor.getBlockX() + offset[0] + 0.5,
+                        anchor.getBlockY(), anchor.getBlockZ() + offset[1] + 0.5);
+                // Re-key to the POINT's own region: the column scan, the cues and every phase-2 read below must
+                // run on the thread that owns that ground, which an offset of several blocks may not share.
+                Scheduling.onRegion(sampled, () -> {
+                    Location ground = snapDownTo(sampled, anchor.getBlockY());
+                    playFieldCue(ground, telegraph);
+                    Scheduling.onRegionLater(ground, profile.delayTicks(),
+                            () -> strikePoint(ground, casterId, filter, profile, strike, lightning));
                 });
+            }
+            warnNearby(anchor, casterId, filter, profile.targetRange(), Tokens.sub(Colors.translate(warning),
+                    "caster", casterName));
+        });
+    }
+
+    /**
+     * The strike point's ground: the first solid block from {@code from} downward, stood on top of, but never
+     * ABOVE {@code ceilingY} — so a point over a pit drops into it while one inside a hill stays level with the
+     * caster. Bounded scan, no {@code World#getMinHeight} (absent pre-1.17 / on the legacy tree), the
+     * {@code GravityWellService.groundUnder} rule.
+     */
+    private static Location snapDownTo(Location from, int ceilingY) {
+        World world = from.getWorld();
+        if (world == null) {
+            return from;
+        }
+        int x = from.getBlockX();
+        int z = from.getBlockZ();
+        int top = from.getBlockY();
+        for (int drop = 0; drop <= STRIKE_GROUND_DROP_LIMIT; drop++) {
+            if (world.getBlockAt(x, top - drop, z).getType().isSolid()) {
+                Location ground = from.clone();
+                ground.setY(Math.min(ceilingY, top - drop + 1));
+                return ground;
+            }
+        }
+        return from; // a bottomless column: strike at the origin's own level
+    }
+
+    /** Warn every body the field's own filter admits within {@code range} of the origin (phase-1 acquisition). */
+    private void warnNearby(Location origin, UUID casterId, Targets.Match filter, double range, String line) {
+        World world = origin.getWorld();
+        if (line == null || line.isEmpty() || world == null || range <= 0) {
+            return;
+        }
+        Player caster = casterId == null ? null : Bukkit.getPlayer(casterId);
+        // One radius each way — the engine's single-radius house rule for every area scan — rather than the
+        // ported ability's taller-than-wide acquisition box, which no other selector here can express.
+        for (Entity nearby : world.getNearbyEntities(origin, range, range, range)) {
+            if (nearby instanceof Player warned && !warned.getUniqueId().equals(casterId)
+                    && filter.accepts(caster, warned)) {
+                // Inline, not through message(): the per-event plan is flushed by the time this batch runs, and
+                // we are already on the region that owns the scan.
+                Scheduling.onEntity(warned, () -> warned.sendMessage(line));
+            }
+        }
+    }
+
+    /** Phase 2 at ONE stored point, on that point's own region thread: the visual, the cue, then the payload. */
+    private void strikePoint(Location ground, UUID casterId, Targets.Match filter, StrikeFieldProfile profile,
+                             FieldCue strike, boolean lightning) {
+        World world = ground.getWorld();
+        if (world == null) {
+            return;
+        }
+        if (lightning) {
+            world.strikeLightningEffect(ground); // visual only — never the vanilla ~5 damage + fire
+        }
+        playFieldCue(ground, strike);
+        Player caster = casterId == null ? null : Bukkit.getPlayer(casterId);
+        double range = profile.hitRadius();
+        for (Entity nearby : world.getNearbyEntities(ground, range, range, range)) {
+            if (!(nearby instanceof LivingEntity victim) || victim.getUniqueId().equals(casterId)) {
+                continue;
+            }
+            // Filters are RE-VALIDATED here, not carried from the acquisition: a whole delay has passed, and a
+            // body that walked into the point (or changed sides) must be judged as it is now.
+            if (!filter.accepts(caster, victim) || !profile.hits(nearby.getLocation().distanceSquared(ground))) {
+                continue;
+            }
+            // No de-duplication across points, by design: overlapping points each land their own subtraction.
+            Scheduling.onEntity(victim, () -> {
+                if (!alive(victim) || invincibleSummon(victim)) {
+                    return;
+                }
+                double next = profile.struckHealth(victim.getHealth());
+                if (next < victim.getHealth()) {
+                    victim.setHealth(Math.max(0.0, Math.min(next, maxHealth(victim))));
+                }
+            });
+        }
+    }
+
+    /** Emit a field's sound + particle burst at a point, on an already-owned thread (the dustDirect idiom). */
+    private void playFieldCue(Location at, FieldCue cue) {
+        playCueInline(at, cue.soundId(), cue.volume(), cue.pitch());
+        if (cue.particleId() >= 0 && cue.particleCount() > 0) {
+            // At the ground AND one block up, so the cue reads as a column rather than a smear on the floor.
+            particleDirect(at, cue.particleId(), cue.particleCount(), 0.0);
+            particleDirect(at.clone().add(0.0, 1.0, 0.0), cue.particleId(), cue.particleCount(), 0.0);
+        }
+    }
+
+    /** One cosmetic falling block, already on its own region thread — the body both falling-block intents share. */
+    private void spawnCosmeticBlock(Location at, int materialId, int ttlTicks, UUID owner, UUID target,
+                                    double carriedDamage, int rehitMax, int rehitWindowTicks, int killMaterialId) {
+        Material material = material(materialId);
+        World world = at.getWorld();
+        if (material == null || !material.isBlock() || world == null) {
+            return;
+        }
+        FallingBlock fb = spawnFallingBlock(world, at, material);
+        fb.setDropItem(false);     // never leave an item
+        fb.setHurtEntities(false); // no vanilla anvil-style damage — the impact is the IMPACT trigger's effects
+        // Track EVERY cosmetic block (owner or not) so the landing listener cancels its placement; an owner
+        // additionally drives the IMPACT abilities. A FALLING_BLOCK is always cosmetic and must never stick.
+        UUID fbId = fb.getUniqueId();
+        FallingBlockCasts.bind(fbId, owner, target, carriedDamage, rehitMax, rehitWindowTicks);
+        if (killMaterialId >= 0) {
+            armBlockKillWatch(fb, fbId, killMaterialId);
+        }
+        if (ttlTicks > 0) {
+            Scheduling.onEntityLater(fb, ttlTicks, () -> { // never landed (void/edge) → forget + clean up
+                FallingBlockCasts.forget(fbId);
+                fb.remove();
+            });
+        }
+    }
+
+    /**
+     * The field's counterplay: while the block falls, a cell of the authored kill material kills it where it is
+     * — unbound, removed, no IMPACT. Polled rather than event-driven because nothing fires when a falling entity
+     * enters a block; the poll rides the block's OWN entity scheduler, so it follows it across Folia regions.
+     */
+    private void armBlockKillWatch(FallingBlock fb, UUID fbId, int killMaterialId) {
+        TaskHandle[] task = new TaskHandle[1];
+        task[0] = Scheduling.repeatingEntity(fb, BLOCK_KILL_POLL_TICKS, BLOCK_KILL_POLL_TICKS, () -> {
+            boolean killed = fb.isValid() && fb.getLocation().getBlock().getType() == material(killMaterialId);
+            if (killed) {
+                FallingBlockCasts.forget(fbId);
+                fb.remove();
+            }
+            if ((killed || !fb.isValid()) && task[0] != null) {
+                task[0].cancel();
             }
         });
     }
@@ -3554,6 +3746,10 @@ public abstract class DispatchSinkBase implements SinkReadback {
      * {@code spread} is the per-axis Gaussian offset.
      */
     protected abstract void particleDirect(LivingEntity target, int particleId, int count, double spread);
+
+    /** {@link #particleDirect(LivingEntity, int, int, double)} anchored on a WORLD POINT — the form a timed
+     *  field's per-point cue needs, since it has no entity to hang the burst on. */
+    protected abstract void particleDirect(Location at, int particleId, int count, double spread);
 
     /** The player's main-hand item ({@code getItemInMainHand} on modern; {@code getItemInHand} on 1.8). */
     protected abstract ItemStack mainHand(Player target);
