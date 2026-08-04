@@ -1,0 +1,65 @@
+# Matrix: 04-enchants-axes.md § Reforged
+display: "Reforged"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eSwinging or mining can grind a point of"
+  - "&ewear back out of the tool in your hand."
+trigger: [ATTACK, MINE]
+# applies-to is the jar's weapons-and-tools item set spelled out (5 swords + 5 axes + bow + 5 pickaxes +
+# 5 hoes) — wider than the axes folder it lives in. Neither composite fits: WEAPON would add crossbow,
+# trident and mace, TOOL would add shovels, and the jar covered none of the four.
+applies-to: [SWORD, AXE, BOW, PICKAXE, HOE]
+group: "rare"
+tier: rare
+# One ability per level on BOTH triggers: a level's plain `effects:` list inherits the enchant's whole trigger
+# list, so melee hits and block breaks share one roll and one cooldown bucket — the jar's single proc path.
+# (Its BlockDamageEvent path is discarded dead work and is not ported.)
+# No condition: the jar's `getDurability() != 0 && getMaxStackSize() == 1` guards bought nothing the engine
+# does not already do — a restore on a pristine or non-damageable held item is a natural no-op.
+# The codex flags UNRESOLVED whether the jar's restore even lands (the patched-CraftBukkit `modifyDurability`
+# return value is discarded). Shipped as a working 1-point restore; no ledger row is possible without a
+# measured baseline to diverge from.
+# interactions: none. strings: none.
+# era: the durability model (legacy `short` damage vs modern `Damageable`) is absorbed by DURABILITY.
+levels:
+  # Highest max level and highest proc rate in the package — chance 8 pp per level to 80 %; restore flat 1.
+  1:
+    chance: 8
+    effects:
+      - { DURABILITY: { amount: 1, target: "item", mode: "restore", who: "@Self" } }
+  2:
+    chance: 16
+    effects:
+      - { DURABILITY: { amount: 1, target: "item", mode: "restore", who: "@Self" } }
+  3:
+    chance: 24
+    effects:
+      - { DURABILITY: { amount: 1, target: "item", mode: "restore", who: "@Self" } }
+  4:
+    chance: 32
+    effects:
+      - { DURABILITY: { amount: 1, target: "item", mode: "restore", who: "@Self" } }
+  5:
+    chance: 40
+    effects:
+      - { DURABILITY: { amount: 1, target: "item", mode: "restore", who: "@Self" } }
+  6:
+    chance: 48
+    effects:
+      - { DURABILITY: { amount: 1, target: "item", mode: "restore", who: "@Self" } }
+  7:
+    chance: 56
+    effects:
+      - { DURABILITY: { amount: 1, target: "item", mode: "restore", who: "@Self" } }
+  8:
+    chance: 64
+    effects:
+      - { DURABILITY: { amount: 1, target: "item", mode: "restore", who: "@Self" } }
+  9:
+    chance: 72
+    effects:
+      - { DURABILITY: { amount: 1, target: "item", mode: "restore", who: "@Self" } }
+  10:
+    chance: 80
+    effects:
+      - { DURABILITY: { amount: 1, target: "item", mode: "restore", who: "@Self" } }

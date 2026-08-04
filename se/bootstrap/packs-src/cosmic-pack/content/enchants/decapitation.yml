@@ -1,0 +1,41 @@
+# Matrix: 04-enchants-axes.md § Decapitation
+display: "Decapitation"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA hit on a player can mark them; their next"
+  - "&edeath leaves their head for the taking."
+trigger: ATTACK
+applies-to: [AXE]
+group: "common"
+tier: common
+condition: "%victim.type% == \"PLAYER\""
+# The matrix's PLAYER_HEAD_DROP gap is CLOSED: HEAD_TROPHY (wave 1) is the effect, and it carries the death
+# hook the gap asked for — no engine trigger has to run victim-side for attacker-planted state.
+# The mark is armed on a PROC, not on a kill (measured, kept): any later death from any cause drops the head,
+# lore-attributed to whoever the killer happened to be, or bare and lore-less if there was none.
+# {VICTIM} / {KILLER} / {MONTH} / {DAY} / {YEAR} / {X} / {Y} / {Z} / {ITEM} resolve at the death, so the lore
+# carries the KILL date — D-04-10: the jar captured a date object at class load, so every skull it ever
+# dropped named the server's BOOT date. The display strings themselves are unchanged.
+# {X}/{Y}/{Z} are the KILLER's block coordinates, not the victim's — codex-verified, plausibly by design, kept.
+# {ITEM} is the killer's held-item display name, else its capitalized material name, else `Fists`.
+# Lore lines are separated by '|'; the trailing spaces closing the first three lines are verbatim from the jar.
+# The death handler is level-independent — only the chance ladders.
+# Twin of swords/Headless (doc 03): same templates, same 3/6/9 ladder, different weapon family and its own
+# roster entry, so both files carry the strings rather than sharing one.
+# Not ported: the jar's CosmicContests console command and its once-per-victim contest marker (external plugin).
+# era: the head item is `SKULL_ITEM` durability 3 on 1.8.9 and `PLAYER_HEAD` on modern, and skull-owner-by-name
+# is 1.8-safe while modern profiles differ — the biggest era hazard in this doc, and all of it lives inside
+# HEAD_TROPHY's own resolver, not in this file. `{MONTH}` renders the full month name, locale-dependent.
+levels:
+  1:
+    chance: 3
+    effects:
+      - { HEAD_TROPHY: { name: "§fSkull of {VICTIM}", lore: "§7Defeated by §f{KILLER}§7 on |§f{MONTH} {DAY}, {YEAR}§7 at |§f{X}, {Y}, {Z}§7 with a(n) |§f{ITEM}!", who: "@Victim" } }
+  2:
+    chance: 6
+    effects:
+      - { HEAD_TROPHY: { name: "§fSkull of {VICTIM}", lore: "§7Defeated by §f{KILLER}§7 on |§f{MONTH} {DAY}, {YEAR}§7 at |§f{X}, {Y}, {Z}§7 with a(n) |§f{ITEM}!", who: "@Victim" } }
+  3:
+    chance: 9
+    effects:
+      - { HEAD_TROPHY: { name: "§fSkull of {VICTIM}", lore: "§7Defeated by §f{KILLER}§7 on |§f{MONTH} {DAY}, {YEAR}§7 at |§f{X}, {Y}, {Z}§7 with a(n) |§f{ITEM}!", who: "@Victim" } }

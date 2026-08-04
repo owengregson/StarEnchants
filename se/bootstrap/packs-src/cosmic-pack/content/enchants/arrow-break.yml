@@ -1,0 +1,62 @@
+# Matrix: 04-enchants-axes.md § Arrow Break
+display: "Arrow Break"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA chance to shatter an incoming arrow"
+  - "&ebefore it ever reaches you."
+trigger: DEFENSE
+applies-to: [AXE]
+group: "epic"
+tier: epic
+condition: "%damagecause% == \"PROJECTILE\""
+# D-04-3 (as-intended, extends D-001): the shipped chances are the SINGLE-PASS intent `0.1 + 0.04 × level` =
+# 14/18/22/26/30/34 %, never the jar's measured per-pass `(0.1 + 0.04 × level) / 2` = 7/9/11/13/15/17 %. The
+# jar rolled this once per defensive pass and fired that pass twice per arrow (00 §3.4), so the ÷2 reads as
+# hand-compensation for the double-fire — the tuned expression is never used alone anywhere in the corpus.
+# The engine runs ONE defensive pass, so keeping the halving would leave the enchant at half its own tuning.
+# For reference, the jar's effective per-arrow rate was 1-(1-p)² ≈ 13.5/17.2/20.8/24.3/27.8/31.1 %.
+# CANCEL negates the hit; the jar additionally removed the arrow entity, which the engine leaves flying past
+# — cosmetic only, and the same residual arrow-deflect.yml already carries.
+# The particle is @Self, not the matrix's @Victim: on a DEFENSE context the engine's victim IS the attacker
+# (ActivationContext(defender, attacker, attacker, …)), so "CRIT ×16 on the defender" is @Self here — the
+# whole defensive corpus reaches the other party through @Attacker. SOUND takes no `who`; it plays at the
+# activation location, which is the defender-local rendering the matrix records.
+# era: ITEM_BREAK is the 1.8-era spelling (`random.break`) and reaches ENTITY_ITEM_BREAK through the
+# boot-time sound resolver's existing alias; CRIT is safe on both lanes.
+levels:
+  1:
+    chance: 14
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CRIT", count: 16, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_ITEM_BREAK", volume: 0.7, pitch: 0.2 } }
+  2:
+    chance: 18
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CRIT", count: 16, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_ITEM_BREAK", volume: 0.7, pitch: 0.2 } }
+  3:
+    chance: 22
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CRIT", count: 16, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_ITEM_BREAK", volume: 0.7, pitch: 0.2 } }
+  4:
+    chance: 26
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CRIT", count: 16, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_ITEM_BREAK", volume: 0.7, pitch: 0.2 } }
+  5:
+    chance: 30
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CRIT", count: 16, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_ITEM_BREAK", volume: 0.7, pitch: 0.2 } }
+  6:
+    chance: 34
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CRIT", count: 16, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_ITEM_BREAK", volume: 0.7, pitch: 0.2 } }

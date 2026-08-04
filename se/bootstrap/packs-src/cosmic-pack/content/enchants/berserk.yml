@@ -1,0 +1,38 @@
+# Matrix: 04-enchants-axes.md § Berserk
+display: "Berserk"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eHitting a player can tip you into a short"
+  - "&eStrength II rage."
+trigger: ATTACK
+applies-to: [AXE]
+group: "uncommon"
+tier: uncommon
+condition: "%victim.type% == \"PLAYER\""
+# Chance 3 pp per level; only the DURATION ladders (2 s per level). The amplifier is a flat Strength II at
+# every level — a codex quirk, kept as measured rather than laddered.
+# The jar's mob-attacker ClassCastException path has no engine analogue: the activator is always the enchant
+# holder, so there is no damager to mis-cast.
+# era: INCREASE_DAMAGE is the legacy effect name (modern STRENGTH) and reaches it through the existing
+# potion-effect resolver alias — the same spelling drunk.yml and curse.yml already ship.
+levels:
+  1:
+    chance: 3
+    effects:
+      - { POTION: { effect: "INCREASE_DAMAGE", level: 2, duration: 40, who: "@Self" } }  # 2 s
+  2:
+    chance: 6
+    effects:
+      - { POTION: { effect: "INCREASE_DAMAGE", level: 2, duration: 80, who: "@Self" } }  # 4 s
+  3:
+    chance: 9
+    effects:
+      - { POTION: { effect: "INCREASE_DAMAGE", level: 2, duration: 120, who: "@Self" } }  # 6 s
+  4:
+    chance: 12
+    effects:
+      - { POTION: { effect: "INCREASE_DAMAGE", level: 2, duration: 160, who: "@Self" } }  # 8 s
+  5:
+    chance: 15
+    effects:
+      - { POTION: { effect: "INCREASE_DAMAGE", level: 2, duration: 200, who: "@Self" } }  # 10 s

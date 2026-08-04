@@ -1,0 +1,33 @@
+# Matrix: 04-enchants-axes.md § Confusion
+display: "Confusion"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA hit on a player can leave them"
+  - "&ereeling for several seconds."
+trigger: ATTACK
+applies-to: [AXE]
+group: "common"
+tier: common
+condition: "%victim.type% == \"PLAYER\""
+# POTION level is 1-based, so the jar's amplifier `level` (not the usual `level - 1`) becomes level + 1 here:
+# even L1 inflicts Nausea II. Kept as measured — the quirk is the whole reason this common-tier enchant bites.
+# Application is non-force, so a live stronger or longer nausea wins.
+# interactions: CONFUSION sits in Blessed's debuff list (HARMFUL category), so a Blessed proc strips it.
+# The jar's tier registry marks this one retired while the handler stays wired and functional; the port keeps
+# it live, because retirement is acquisition/progression metadata, not runtime behaviour.
+# strings: none.
+# era: CONFUSION is the 1.8-era spelling the handle resolver maps to the modern NAUSEA.
+levels:
+  # Chance 7.5 pp per level; duration (2 x level + 4) x 20 t; amplifier level + 1 (Nausea II/III/IV).
+  1:
+    chance: 7.5
+    effects:
+      - { POTION: { effect: "CONFUSION", level: 2, duration: 120, who: "@Victim" } }
+  2:
+    chance: 15
+    effects:
+      - { POTION: { effect: "CONFUSION", level: 3, duration: 160, who: "@Victim" } }
+  3:
+    chance: 22.5
+    effects:
+      - { POTION: { effect: "CONFUSION", level: 4, duration: 200, who: "@Victim" } }

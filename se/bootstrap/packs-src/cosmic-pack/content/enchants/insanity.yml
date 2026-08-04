@@ -1,0 +1,47 @@
+# Matrix: 04-enchants-axes.md § Insanity
+display: "Insanity"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eYour axe bites harder into anyone"
+  - "&ewho answers it with a sword."
+trigger: ATTACK
+applies-to: [AXE]
+group: "legendary"
+tier: legendary
+chance: 100  # no chance roll — the held-item gate IS the whole activation
+condition: "%victim.helditem% matchesregex \".*_SWORD$\""
+# Exact structural mirror of Barbarian (`_AXE`, 5 pp a rung, max 4); this side is `_SWORD`, 2 pp a rung,
+# max 8, so top-rung Insanity (+16%) still lands under top-rung Barbarian (+20%) exactly as the jar has it.
+# No player gate — a sword-holding mob feeds it too, which %victim.helditem% covers on both sides.
+# Measured equals intended here: the jar's `contains("_SWORD")` has no false-positive material, unlike
+# Barbarian's `contains("_AXE")` (which counts every pickaxe holder — ledger D-04-4 rules that one a bug and
+# the suffix regex is its fix). Nothing to correct, so no ledger row of its own.
+# strings: none. interactions: none.
+# era: 1.8.9 spells the gold sword `GOLD_SWORD` where modern spells it `GOLDEN_SWORD`; the `_SWORD`-suffix
+# regex holds on both eras, where any exact material list would not.
+levels:
+  # Level buys damage only: +2 pp a rung, every other knob is fixed.
+  1:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 2 } }
+  2:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 4 } }
+  3:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 6 } }
+  4:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 8 } }
+  5:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }
+  6:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12 } }
+  7:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 14 } }
+  8:
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 16 } }
