@@ -1,0 +1,68 @@
+# Matrix: 06-enchants-tools-heroic.md § Heroic Enchant Reflect
+display: "Heroic Enchant Reflect"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe heroic grade of Enchant Reflect: it"
+  - "&erebounds soul and heroic enchants too, which"
+  - "&ethe ordinary grade cannot touch."
+trigger: PASSIVE
+applies-to: [ARMOR]
+group: "heroic"
+tier: heroic
+requires: ["enchants/enchant-reflect"]
+removes-required: true  # the heroic supersedes its non-heroic partner (net-zero enchant slots)
+# HEROIC APPLICATION CONTRACT (matrix 06 § Heroic application rules). tier 7 = the `heroic` rung of tiers.yml
+# (`&d`, weight 70). `requires` + `removes-required` carry the APPLY-GATE, the REPLACE ("counterpart Enchant
+# Reflect replaced per contract" — the base's line is deleted, so the two never both run on ONE item) and the
+# SLOT-EXEMPT rule in one pair of knobs. The family's three unexpressible clauses are recorded once on
+# `ethereal-dodge.yml` and in deferred-content.md and are not repeated here; the one that matters on this file
+# is END-SUPPRESS, which is why no heroic carries `suppress-immune`.
+# BASE + DELTA. This grade is `enchant-reflect.yml` with ONE number changed — the tier band. Same effect, same
+# chance ladder rung for rung, same level gate, same player-only arming, same absence of strings. Everything
+# else on the entry is acquisition.
+# THE BAND, and why it is not the matrix's `6..7`. The gate compares the incoming enchant's rarity-tier
+# WEIGHT off `tiers.yml`, so the matrix's rungs are weights here: <= 7 is 70 (`heroic`), and the soul rung the
+# entry exists to answer for is 60. tier-max is therefore 70 — deliberately NOT 80, since tier-8 masteries
+# belong to the mastery grade's own band.
+# tier-min is 10, the LOWEST weight on the ladder, not the soul rung. That is what makes the chain exclusive
+# the way the matrix records it: the engine picks the armed band with the greatest tier-min that still reaches
+# the incoming tier, so a tier-min of 10 outranks the base's 0 across their whole shared range (weights 10-50)
+# and this grade answers for EVERY incoming enchant up to 70 — "mastery else heroic else normal, first match
+# wins, even when a lower grade sits at a higher level", exactly. Authored as `60..70` instead it would cede
+# tiers 1-5 to the base, which after an upgrade nobody still carries — the wearer would silently lose all
+# low-tier rebound, which is the opposite of an upgrade. A future mastery grade takes `80..80` and outranks
+# this one on tier 8 alone, without either file changing.
+# Acquisition: max 10; table weight 10; item set = 20 armor; base 25.0, interval 10.0; tier 7.
+# strings: none of its own — a rebounded enchant emits its own. era: none.
+levels:
+  # The same `0.02 + 0.01 x (level/3)` integer-division ladder the base ships: 2/2/3/3/3/4/4/4/5/5 %.
+  1:
+    effects:
+      - { PROC_REBOUND: { chance: 2, tier-min: 10, tier-max: 70, who: "@Self" } }
+  2:
+    effects:
+      - { PROC_REBOUND: { chance: 2, tier-min: 10, tier-max: 70, who: "@Self" } }
+  3:
+    effects:
+      - { PROC_REBOUND: { chance: 3, tier-min: 10, tier-max: 70, who: "@Self" } }
+  4:
+    effects:
+      - { PROC_REBOUND: { chance: 3, tier-min: 10, tier-max: 70, who: "@Self" } }
+  5:
+    effects:
+      - { PROC_REBOUND: { chance: 3, tier-min: 10, tier-max: 70, who: "@Self" } }
+  6:
+    effects:
+      - { PROC_REBOUND: { chance: 4, tier-min: 10, tier-max: 70, who: "@Self" } }
+  7:
+    effects:
+      - { PROC_REBOUND: { chance: 4, tier-min: 10, tier-max: 70, who: "@Self" } }
+  8:
+    effects:
+      - { PROC_REBOUND: { chance: 4, tier-min: 10, tier-max: 70, who: "@Self" } }
+  9:
+    effects:
+      - { PROC_REBOUND: { chance: 5, tier-min: 10, tier-max: 70, who: "@Self" } }
+  10:
+    effects:
+      - { PROC_REBOUND: { chance: 5, tier-min: 10, tier-max: 70, who: "@Self" } }

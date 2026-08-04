@@ -25,20 +25,21 @@ tier: soul
 # global souls toggle are all interaction/policy layers — nothing authored here.
 condition: "%actor.helditem% contains \"SWORD\" && (%heldticks% >= 5 || %heldticks% == 0) && %actor.souls% > 0"
 cooldown: 20  # D-03-13: measured, the 1 s throttle guarded only the soul spend and the AoE burst fired free; as-intended both share the pace
-# PERIODIC_DAMAGE (wave 1) owns the wither conversion: it strips WITHER and denies it for the window, so its
-# own pulses are the only ticking damage. The POTION row above it is the recorded status/visual layer and is
-# authored as measured, and kept:
-# inert until the wave-1f PERIODIC_DAMAGE replace fix — the shipped replace denies the status for the window;
-# the contract cancels only the TICKS (visual survives in the jar).
+# PERIODIC_DAMAGE owns the wither conversion, and the `replace` fix has since landed: the named DoT's DAMAGE
+# is cancelled for the window while the effect itself stays on the victim, icon and particles intact, so the
+# burn is the single damage clock. That makes the POTION(WITHER) row above it live rather than inert — it is
+# the recorded status/visual layer, authored as measured, and it now reads on the victim exactly as the jar's
+# did while this enchant's pulses do all the hurting.
 # Port choice: the codex contradicts itself on the wither cadence; 20 t is the plausible reading. The jar
 # marked a victim with divine fire FOREVER (any later wither source converted); the shipped window is owned
 # and expires with `duration`.
-# The recorded per-tick cosmetics — SOUND(ENTITY_ZOMBIFIED_PIGLIN_ANGRY, 0.6, 0.8), FLAME x20 and LAVA x15 —
-# have no home on the frozen surface: PERIODIC_DAMAGE carries a `feedback` line and nothing else. Dropped,
-# recorded here; the message itself is byte-verbatim on the feedback param.
+# The recorded per-tick cosmetics ride PERIODIC_DAMAGE's own `tick-*` params: SOUND(0.6, 0.8) and FLAME x20 on
+# every pulse, beside the byte-verbatim `feedback` line. The pulse's second burst — LAVA x15 — is still
+# dropped: the effect carries ONE particle slot, and the flame is the one the enchant is named for. Recorded
+# in deferred-content.md.
 # era: `ZOMBIE_PIG_ANGRY` (1.8.9) <-> `ENTITY_ZOMBIFIED_PIGLIN_ANGRY` (renamed 1.16) and `FIREWORK_BLAST`
-# <-> `ENTITY_FIREWORK_ROCKET_BLAST` both need legacy alias rows; FLAME / LAVA particles and WITHER exist
-# on 1.8.9 unchanged.
+# <-> `ENTITY_FIREWORK_ROCKET_BLAST` — both legacy-sweep rows have LANDED in `Aliases.SOUND`, so both cues
+# resolve on the 1.8 lane; FLAME / LAVA particles and WITHER exist on 1.8.9 unchanged.
 levels:
   # radius 1 x L; hit damage floor(1.25 x L) = 1/2/3/5 (the L3->L4 step is +2, measured); WITHER II for that
   # same number of seconds; conversion window (4 + L) s with min(7, 4 + L) damage a pulse (5/6/7/7, capped);
@@ -52,7 +53,7 @@ levels:
       - { PARTICLE: { particle: "LAVA", count: 20, spread: 0.5, who: "@Aoe{r=1, filter=ENEMIES}" } }
       - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_BLAST", volume: 1.0, pitch: 0.3 } }
       - { SOUND: { sound: "ENTITY_ZOMBIFIED_PIGLIN_ANGRY", volume: 0.8, pitch: 0.5 } }
-      - { PERIODIC_DAMAGE: { amount: 5, period: 20, duration: 100, replace: "WITHER", feedback: "§c§l** DIVINE IMMOLATION **", who: "@Aoe{r=1, filter=ENEMIES}" } }
+      - { PERIODIC_DAMAGE: { amount: 5, period: 20, duration: 100, replace: "WITHER", feedback: "§c§l** DIVINE IMMOLATION **", tick-sound: "ENTITY_ZOMBIFIED_PIGLIN_ANGRY", tick-volume: 0.6, tick-pitch: 0.8, tick-particle: "FLAME", tick-particle-count: 20, who: "@Aoe{r=1, filter=ENEMIES}" } }
   2:
     effects:
       - { REMOVE_SOULS: { amount: 20, who: "@Self" } }
@@ -62,7 +63,7 @@ levels:
       - { PARTICLE: { particle: "LAVA", count: 20, spread: 0.5, who: "@Aoe{r=2, filter=ENEMIES}" } }
       - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_BLAST", volume: 1.0, pitch: 0.3 } }
       - { SOUND: { sound: "ENTITY_ZOMBIFIED_PIGLIN_ANGRY", volume: 0.8, pitch: 0.5 } }
-      - { PERIODIC_DAMAGE: { amount: 6, period: 20, duration: 120, replace: "WITHER", feedback: "§c§l** DIVINE IMMOLATION **", who: "@Aoe{r=2, filter=ENEMIES}" } }
+      - { PERIODIC_DAMAGE: { amount: 6, period: 20, duration: 120, replace: "WITHER", feedback: "§c§l** DIVINE IMMOLATION **", tick-sound: "ENTITY_ZOMBIFIED_PIGLIN_ANGRY", tick-volume: 0.6, tick-pitch: 0.8, tick-particle: "FLAME", tick-particle-count: 20, who: "@Aoe{r=2, filter=ENEMIES}" } }
   3:
     effects:
       - { REMOVE_SOULS: { amount: 20, who: "@Self" } }
@@ -72,7 +73,7 @@ levels:
       - { PARTICLE: { particle: "LAVA", count: 20, spread: 0.5, who: "@Aoe{r=3, filter=ENEMIES}" } }
       - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_BLAST", volume: 1.0, pitch: 0.3 } }
       - { SOUND: { sound: "ENTITY_ZOMBIFIED_PIGLIN_ANGRY", volume: 0.8, pitch: 0.5 } }
-      - { PERIODIC_DAMAGE: { amount: 7, period: 20, duration: 140, replace: "WITHER", feedback: "§c§l** DIVINE IMMOLATION **", who: "@Aoe{r=3, filter=ENEMIES}" } }
+      - { PERIODIC_DAMAGE: { amount: 7, period: 20, duration: 140, replace: "WITHER", feedback: "§c§l** DIVINE IMMOLATION **", tick-sound: "ENTITY_ZOMBIFIED_PIGLIN_ANGRY", tick-volume: 0.6, tick-pitch: 0.8, tick-particle: "FLAME", tick-particle-count: 20, who: "@Aoe{r=3, filter=ENEMIES}" } }
   4:
     effects:
       - { REMOVE_SOULS: { amount: 20, who: "@Self" } }
@@ -82,4 +83,4 @@ levels:
       - { PARTICLE: { particle: "LAVA", count: 20, spread: 0.5, who: "@Aoe{r=4, filter=ENEMIES}" } }
       - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_BLAST", volume: 1.0, pitch: 0.3 } }
       - { SOUND: { sound: "ENTITY_ZOMBIFIED_PIGLIN_ANGRY", volume: 0.8, pitch: 0.5 } }
-      - { PERIODIC_DAMAGE: { amount: 7, period: 20, duration: 160, replace: "WITHER", feedback: "§c§l** DIVINE IMMOLATION **", who: "@Aoe{r=4, filter=ENEMIES}" } }
+      - { PERIODIC_DAMAGE: { amount: 7, period: 20, duration: 160, replace: "WITHER", feedback: "§c§l** DIVINE IMMOLATION **", tick-sound: "ENTITY_ZOMBIFIED_PIGLIN_ANGRY", tick-volume: 0.6, tick-pitch: 0.8, tick-particle: "FLAME", tick-particle-count: 20, who: "@Aoe{r=4, filter=ENEMIES}" } }

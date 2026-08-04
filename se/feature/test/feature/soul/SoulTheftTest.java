@@ -180,6 +180,19 @@ class SoulTheftTest {
     }
 
     @Test
+    void aZeroRatioIsAPureDrainRatherThanANoOp() {
+        // Soul Trap takes the gems and destroys the take, so ratio 0 is a shipped authoring value, not a
+        // degenerate one: a guard that refused the whole call on it would leave the trapped victim full.
+        Holder victim = holder(40);
+        Holder actor = holder(7);
+
+        service().transferSouls(actor.player, victim.player, 30, 0.0, false);
+
+        assertEquals(10, victim.totalSouls(), "min(cap, total) = 30 left the victim");
+        assertEquals(7, actor.totalSouls(), "nothing was credited");
+    }
+
+    @Test
     void aRatioThatRoundsToZeroStillCostsTheVictim() {
         // floor(0.4 x 1) == 0, and the victim's soul is still gone: the destroyed remainder IS the design, so a
         // credit-first implementation that bailed before the drain would silently refund them.

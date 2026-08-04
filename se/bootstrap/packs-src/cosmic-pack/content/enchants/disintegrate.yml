@@ -18,8 +18,8 @@ condition: "%victim.type% == \"PLAYER\""
 # The jar's chance test used `<=` against the roll, an extra ULP of chance at these magnitudes; the engine's
 # `<` gate is the shipped form.
 # interactions: none. strings: none.
-# era: `ANVIL_BREAK` (1.8.9) <-> `BLOCK_ANVIL_BREAK` (modern) — same rename as Disarmor; the legacy lane
-# needs that alias row for the sound to sound at all (an unresolved handle warn-and-skips).
+# era: `ANVIL_BREAK` (1.8.9) <-> `BLOCK_ANVIL_BREAK` (modern) — same rename as Disarmor; the legacy-sweep
+# row has LANDED in `Aliases.SOUND`, so the cue resolves on the 1.8 lane.
 levels:
   # chance 2 x level (2/4/6/8 %). The durability profile is level-independent — only the odds move.
   1:

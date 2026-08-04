@@ -1,0 +1,57 @@
+# Matrix: 07-enchants-mastery-soul.md § Poltergeist
+display: "Poltergeist"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eNo fall can hurt you, and the holds other enchants"
+  - "&eput on a player sometimes find nothing to grip."
+trigger: FALL
+applies-to: [ARMOR]
+group: "mastery"
+tier: mastery
+# THE MASTERY FAMILY CONTRACT (matrix 07 § family-wide rules), read once for this file:
+# tier 8 = the `mastery` rung of tiers.yml (&4, weight 80), which is what renders the recorded `§4<Name>
+# <Roman>` lore line. `group: "mastery"` is the pack's tier-mirroring group name and carries the matrix's
+# "Default" reading — a mastery conflicts with nothing, and no file blacklists this one. Masteries reach
+# armour ONLY through the Mastery Shard hand-off, an economy/config layer with no per-enchant knob, so
+# `applies-to: [ARMOR]` is the whole item rule the effect surface can state.
+# NOT suppression-immune, deliberately: the family's silence rule ports the jar's split behaviour (absolute
+# on the melee/projectile path, 50 % on the generic-damage path) to ONE uniform window per D-001, and FALL is
+# a DEFENSE-direction trigger, so a live `SUPPRESS(scope=TYPE, key=DEFENSE)` parks the cancel below. That IS
+# the recorded reading — no `suppress-immune:` here, unlike the maintained passives of batches 1-2.
+# The family's "lowest worn level procs" dedupe is a WornState rule, not a per-enchant one (recorded in the
+# matrix, not authored); the engine keeps the HIGHEST worn level, so the level a consumer reads below is the
+# best piece, not the worst.
+# ── THE FLAG IS THE WORN LEVEL, NOT A VAR ──────────────────────────────────────────────────────────────────
+# The matrix decomposes a second ability, `PASSIVE -> SET_VAR(name=mastery.poltergeist, value={level}, ttl=0)`,
+# purely so three consumers can read the wearer's level. Wave 1f retired that shape: the worn level IS a fact
+# now, and a ttl-0 marker written on a PASSIVE walk has no teardown half (the solitude.yml / metaphysical.yml
+# / polymorphic-metaphysical.yml reading — a var written while worn never drops). Nothing is authored for it.
+# Consumers read `%victim.enchlevel.poltergeist%` instead — `enchlevel` keys on the FILE STEM (`poltergeist`,
+# never the `enchants/poltergeist` stable key), reads a real 0 for a player who is not wearing it, and does
+# not fail the load on a pack that ships no Poltergeist.
+# The three consumers, and what each owes (all authored on THEIR entries, by owner ruling: a rebate belongs to
+# the roll it rebates):
+#   - Nature's Wrath freeze (doc 01) — measured treats any non-zero chance as 100 % immunity;
+#   - Dimensional Traveler (doc 10) — measured 12 / 25 / 37 %;
+#   - Mother of Yijki (doc 10) — measured 11.5 / 24 / 36.5 %.
+# Ledger D-07-13 rules that three-way spread a bug and the intended roll ONE uniform `12.5 x L` % everywhere
+# = 12.5 / 25 / 37.5 % at levels 1-3. On a block the consumer prints its own line,
+#   §4§l* POLTERGEIST [§7Immune: {source}§4§l] *
+# with {source} the blocked enchant's name inlined per consumer, since no token binds it. `nature-wrath.yml`
+# AUTHORS its branch (batch 7): the immune share is split off that entry's own proc roll, with the three
+# subject/scope deltas recorded there. The two doc-10 sets are not in this pack yet and owe the same branch
+# when the armour-set batch lands.
+# ── THE FALL CANCEL ────────────────────────────────────────────────────────────────────────────────────────
+# Level-independent, unconditional, no roll and no cooldown: every fall is negated at every level (measured
+# design, kept). The three levels differ ONLY in the number the consumers above read.
+# era: none. Nothing here touches a material, sound, particle or potion.
+levels:
+  1:
+    effects:
+      - { CANCEL: {} }
+  2:
+    effects:
+      - { CANCEL: {} }
+  3:
+    effects:
+      - { CANCEL: {} }

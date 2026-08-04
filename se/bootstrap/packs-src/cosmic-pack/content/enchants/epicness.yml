@@ -15,8 +15,8 @@ chance: 50  # flat 50 % at every level — level selects the cue pair, never the
 # The L1 burst is recorded at the victim's eye height; the engine centres a per-target particle on the body.
 # interactions: none of its own. strings: none.
 # era: `CHICKEN_HURT` / `MAGMACUBE_WALK2` / `GHAST_SCREAM` (1.8.9) <-> `ENTITY_CHICKEN_HURT` /
-# `ENTITY_MAGMA_CUBE_SQUISH` / `ENTITY_GHAST_SCREAM` (modern) — all three need legacy alias rows, or the
-# legacy lane resolves nothing and warn-and-skips the cue. `WITCH_MAGIC` <-> `SPELL_WITCH` and `SLIME` <->
+# `ENTITY_MAGMA_CUBE_SQUISH` / `ENTITY_GHAST_SCREAM` (modern) — all three legacy-sweep rows have LANDED in
+# `Aliases.SOUND`, so every cue resolves on the 1.8 lane. `WITCH_MAGIC` <-> `SPELL_WITCH` and `SLIME` <->
 # `ITEM_SLIME` are already in the particle table; CLOUD is era-neutral.
 levels:
   1:

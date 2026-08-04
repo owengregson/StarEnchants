@@ -26,7 +26,8 @@ tier: uncommon
 # left for the relation layer to keep or normalise (payload-filter: ALL below is that half). Summons drop no
 # loot and give no XP (engine summon rule), and the engine's 50-per-chunk summon cap applies.
 # era: a charged creeper is 1.8-safe; CREEPER_HISS is the 1.8 sound id, authored as its modern spelling
-# ENTITY_CREEPER_PRIMED — that alias row is the one the ledger still lists as UNVERIFIED. EXPLODE and
+# ENTITY_CREEPER_PRIMED — that alias row has LANDED in `Aliases.SOUND`, verified against both era constant
+# lists, so the burst plays on the legacy lane. EXPLODE and
 # LARGE_EXPLODE carry their own alias rows (ENTITY_GENERIC_EXPLODE / EXPLOSION_LARGE) and CLOUD resolves on
 # both eras.
 levels:

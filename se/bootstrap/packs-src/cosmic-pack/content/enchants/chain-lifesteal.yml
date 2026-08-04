@@ -1,0 +1,97 @@
+# Matrix: 07-enchants-mastery-soul.md § Chain Lifesteal
+display: "Chain Lifesteal"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA hit drains the player you struck and"
+  - "&eeveryone crowded around them, and every"
+  - "&edrop of it comes back to you."
+trigger: ATTACK
+# MASTERY FAMILY PRESENTATION (matrix 07 § Family-wide rules): tier 8 is the `mastery` rung of tiers.yml
+# (`&4`, weight 80 — the matrix-recorded lore colour); `group: "mastery"` is the scope key the interaction
+# layer needs, since BOTH family-wide offence rules are authored against the mastery GROUP elsewhere — the
+# RIFT mask negates any offensive mastery proc 50 % of the time (doc 11) and Dragon Slayer reflects 10.01 % /
+# negates 25.99 % of one (doc 10). Masteries never conflict, which is all the jar's "Default" group meant, and
+# this schema's `group:` carries no conflict semantics of its own.
+# ITEM SET: masteries reach locked kit ARMOR only, handed out by the Mastery Shard (economy/config layer, out
+# of the effect matrix). `ATTACK` scans worn equipment, so the four pieces are the dispatch surface.
+applies-to: [ARMOR]
+group: "mastery"
+tier: mastery
+# NO `suppress-immune`, per the heroic-contract precedent (alien-implants.yml / godly-overload.yml): tier > 5
+# END-SUPPRESS and the family's defensive silence window (Tombstone / the Silence sword) must be able to reach
+# a mastery, and `suppress-immune` exempts an enchant from ALL suppression.
+# FAMILY OFFENCE DISPATCH (matrix 07 § Family-wide rules): mastery ATTACK procs are player-vs-player only,
+# which is the `%victim.type% == "PLAYER"` gate below. The other half — with the same mastery on several worn
+# pieces the LOWEST level procs — is a WornState dedupe rule the engine resolves the other way (highest level
+# wins). Matrix records it as a family fact awaiting an owner ruling, not a per-file gap, so nothing is
+# authored here; on a mixed-level kit this file simply procs the better rung.
+condition: "%victim.type% == \"PLAYER\""
+# GEOMETRY: `@Aoe` centres on the ACTIVATION LOCATION, and on a combat walk that location IS the victim's
+# (`CombatDispatch`: `Location at = victimEntity.getLocation()`), so the scan is centred on the struck player
+# and INCLUDES them — the measured "the victim is added to its own chain" falls out without a second selector,
+# and the selector's own always-exclude-the-activator rule keeps the wearer out of their own drain. `limit` is
+# nearest-first. D-07-1: codex scan boxes are asymmetric `[−r, +r)` cubes and the engine's are symmetric
+# spheres; the family ledger row covers it once and no file compensates.
+# The drain is `mode: transfer`, which damages each resolved target and heals the ACTIVATOR by the same amount
+# per target — D-07-4's as-intended reading exactly. The jar wrote the drained health onto the HIT VICTIM
+# instead (bytecode-verified), which also made the victim's own slot in the chain a net zero; healing the
+# wearer turns that slot into the real drain the entry always described.
+# ENGINE DELTA, recorded rather than faked: the matrix reads `transfer` as a raw health write (armour bypassed,
+# no damage event) because that is what the jar did. The engine has ONE damage path (ADR-0054) — the drain is
+# attributed to the wearer, so armour and protection price it, and the primary victim's slot rides the
+# triggering hit's own fold instead of issuing a second hurt (one hit, one immunity window, one knockback).
+# `IGNORE_ARMOR` is deliberately NOT authored: it flags the TRIGGERING hit, so it would make the whole melee
+# swing armour-piercing rather than just the drain.
+# RANDOM_AMOUNT is HALF-CLOSED by the wave-1 expression params: `rand(lo, hi)` is uniform over [lo, hi), which
+# is the recorded `d1 ∈ [0.5, 0.5+L)` per-proc roll. What is missing is the RE-ROLL: an effect's numeric params
+# are evaluated once per activation (poison.yml / healing.yml precedent), so every target in one chain takes
+# the SAME drain where the jar rolled per target. Tracked in deferred-content.md's partial-entry table.
+# LETHAL_CANCEL is DROPPED for this entry (proposed-primitives.md lists it provisional, single-consumer, and
+# hands the call to this batch). The measured behaviour — a chain kill CANCELS the source hit — has nothing
+# left to cancel in the case that matters, because the primary victim's drain is folded into that very hit; and
+# voiding a landed melee because a bystander died to the chain reads as a bug in play, not as felt behaviour.
+# Ledger D-07-16 carries the drop, which is where the decision belongs.
+# interactions: NECROMANCER-mask immunity for the primary victim AND every chain target is the masks
+# interaction layer, not a condition here; the survival/vanish/god/PvP-region gates are engine-native. The
+# measured truce check compared each chain target to the VICTIM (so an attacker's own ally standing next to the
+# victim was drained); `filter=ENEMIES` is actor-relative, which the matrix names the intended reading. One
+# widening rides with it: the engine's ENEMIES admits hostile MOBS as well as non-allied players, where the
+# jar's scan was player-shaped — the entry is authored with the recorded filter rather than narrowed by hand.
+# strings: none — the client hurt flash and the block-crack burst are the whole feedback.
+# era: REDSTONE_BLOCK and the block-crack world effect both exist on 1.8.9, and `Aliases` already carries
+# `BLOCK_CRACK` → `BLOCK` and `DIG_STONE` → `BLOCK_STONE_BREAK`, so the modern handles below load on the
+# legacy fork unchanged. The jar's world-effect 2001 is this PARTICLE + SOUND pair (heavy.yml precedent).
+levels:
+  # Chance 5·L % = 5/10/15/20/25. Chain radius `d0 = 1+⌊L/2⌋` = 1/2/2/3/3 (measured, kept). Chain cap: measured
+  # 1/2/2/3/3, where a ceiling over an integer division is a no-op — D-07-3 rules the as-intended `1+⌈L/2⌉` =
+  # 2/2/3/3/4, which is what ships. Drain and heal per target `d1 ∈ [0.5, 0.5+L)` HP.
+  1:
+    chance: 5
+    effects:
+      - { MODIFY_HEALTH: { amount: "rand(0.5, 1.5)", mode: "transfer", who: "@Aoe{r=1, filter=ENEMIES, limit=2}" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 10, who: "@Aoe{r=1, filter=ENEMIES, limit=2}" } }
+      - { SOUND: { sound: "BLOCK_STONE_BREAK", volume: 1, pitch: 1, who: "@Aoe{r=1, filter=ENEMIES, limit=2}" } }
+  2:
+    chance: 10
+    effects:
+      - { MODIFY_HEALTH: { amount: "rand(0.5, 2.5)", mode: "transfer", who: "@Aoe{r=2, filter=ENEMIES, limit=2}" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 10, who: "@Aoe{r=2, filter=ENEMIES, limit=2}" } }
+      - { SOUND: { sound: "BLOCK_STONE_BREAK", volume: 1, pitch: 1, who: "@Aoe{r=2, filter=ENEMIES, limit=2}" } }
+  3:
+    chance: 15
+    effects:
+      - { MODIFY_HEALTH: { amount: "rand(0.5, 3.5)", mode: "transfer", who: "@Aoe{r=2, filter=ENEMIES, limit=3}" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 10, who: "@Aoe{r=2, filter=ENEMIES, limit=3}" } }
+      - { SOUND: { sound: "BLOCK_STONE_BREAK", volume: 1, pitch: 1, who: "@Aoe{r=2, filter=ENEMIES, limit=3}" } }
+  4:
+    chance: 20
+    effects:
+      - { MODIFY_HEALTH: { amount: "rand(0.5, 4.5)", mode: "transfer", who: "@Aoe{r=3, filter=ENEMIES, limit=3}" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 10, who: "@Aoe{r=3, filter=ENEMIES, limit=3}" } }
+      - { SOUND: { sound: "BLOCK_STONE_BREAK", volume: 1, pitch: 1, who: "@Aoe{r=3, filter=ENEMIES, limit=3}" } }
+  5:
+    chance: 25
+    effects:
+      - { MODIFY_HEALTH: { amount: "rand(0.5, 5.5)", mode: "transfer", who: "@Aoe{r=3, filter=ENEMIES, limit=4}" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 10, who: "@Aoe{r=3, filter=ENEMIES, limit=4}" } }
+      - { SOUND: { sound: "BLOCK_STONE_BREAK", volume: 1, pitch: 1, who: "@Aoe{r=3, filter=ENEMIES, limit=4}" } }

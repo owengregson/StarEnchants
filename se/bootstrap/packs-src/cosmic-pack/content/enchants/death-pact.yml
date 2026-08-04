@@ -1,0 +1,75 @@
+# Matrix: 07-enchants-mastery-soul.md § Death Pact
+display: "Death Pact"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eThe nearer death the wearer is, the harder"
+  - "&etheir hits land and the less each one taken"
+  - "&ehurts. At full health it is nothing at all."
+trigger: [ATTACK, DEFENSE]
+# MASTERY FAMILY PRESENTATION (matrix 07 § Family-wide rules): tier 8 is the `mastery` rung of tiers.yml
+# (`&4`, weight 80 — the matrix-recorded lore colour); `group: "mastery"` is the scope key both family-wide
+# offence rules are authored against elsewhere (the RIFT mask's 50 % negation, doc 11; Dragon Slayer's
+# reflect 10.01 % / negate 25.99 %, doc 10). A mastery never conflicts with anything, which is all the jar's
+# "Default" conflict group meant, and this schema's `group:` carries no conflict semantics of its own.
+# ITEM SET: masteries reach locked kit ARMOR only, via the Mastery Shard hand-off (economy/config layer, out of
+# the effect matrix). Both triggers below scan worn equipment, so the four pieces are the dispatch surface.
+applies-to: [ARMOR]
+group: "mastery"
+tier: mastery
+# NO `suppress-immune`, per the heroic-contract precedent (alien-implants.yml / godly-overload.yml), and here
+# it is load-bearing rather than housekeeping: the defence half is MEANT to be silenceable — the matrix has
+# Tombstone and the Silence sword closing a defensive window over it (the corpus `noDefenseProcs` flag, mapped
+# pack-wide to `SUPPRESS(scope=TYPE, key=defense)`, obsidianshield.yml / overload.yml). An enchant-scoped
+# immunity would make Death Pact the one defence that silence cannot touch, and tier > 5 END-SUPPRESS could
+# not reach it either.
+# VAR_SCALED_PARAM is CLOSED by the expression envelopes: `clamp(a·%var% + b, lo, hi)` evaluated at activation
+# is literally what the amounts below are. `%actor.healthpercent%` is 0–100 on BOTH walks — the defence context
+# is built with the DEFENDER as actor (`CombatDispatch`: "Defense side: self = victim, target = attacker") — so
+# one spelling reads the wearer's missing health on either side.
+# D-07-5 (offence, sign inversion): the jar multiplied the wearer's OWN outgoing hit by `×(1−0.01·d3)`, i.e. it
+# nerfed the dying wearer it was written to reward. As-intended is `×(1+0.01·d3)`, and on this surface a
+# POSITIVE `side: attack, mode: add` IS that bonus (a negative amount is the self-nerf the jar shipped).
+# D-07-6 (defence, cause filter): the jar's defence hook ignored the attacker entirely and fired on EVERY
+# damage cause — fall, fire, void. `DEFENSE` is the combat-only trigger, which is the as-intended reading;
+# `HURT` (the all-cause defender walk) is deliberately NOT taken here.
+# D-001 (defensive double-fire): a defence hook that ignores the attacker applies TWICE per melee hit in the
+# jar. The engine runs one defensive pass and the numbers below are the matrix's single-pass values.
+# No chance gate on either half — every qualifying hit fires — and no cooldown; the missing-health term is the
+# whole ramp. At full health both clamps floor at 0, so a healthy wearer contributes nothing to either fold.
+# interactions: the offence half sits behind the family dispatch (RIFT-mask negation, Dragon Slayer
+# reflect/negate — both interaction-layer rules keyed on the mastery GROUP, never authored per enchant). When
+# both parties wear it, the attacker's offence modifier folds before the victim's defence modifier — the jar's
+# priority order, and already the engine's own attack-then-defense fold order, so nothing is authored for it.
+# strings: none whatsoever — silent at both ends. era: none.
+levels:
+  # Offence `d1` = 2+2L = 4/6/8 → 0.4/0.6/0.8 percentage points of bonus damage per 1 % of the wearer's missing
+  # health, capped at 25 %. Defence `d1` = 2L = 2/4/6 → 0.2/0.4/0.6 pp of reduction per 1 % missing, capped at
+  # 50 % — a cap L1 and L2 cannot reach (20 % / 40 % at literally 1 HP short of death), measured and kept.
+  1:
+    abilities:
+      # PvP only (family offence rule); the defence half takes no attacker-type gate, exactly as recorded.
+      - trigger: ATTACK
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "clamp(4 * 10 * (1 - %actor.healthpercent% / 100), 0, 25)" } }
+      - trigger: DEFENSE
+        effects:
+          - { DAMAGE_MOD: { side: "defense", mode: "add", amount: "clamp(2 * 10 * (1 - %actor.healthpercent% / 100), 0, 50)" } }
+  2:
+    abilities:
+      - trigger: ATTACK
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "clamp(6 * 10 * (1 - %actor.healthpercent% / 100), 0, 25)" } }
+      - trigger: DEFENSE
+        effects:
+          - { DAMAGE_MOD: { side: "defense", mode: "add", amount: "clamp(4 * 10 * (1 - %actor.healthpercent% / 100), 0, 50)" } }
+  3:
+    abilities:
+      - trigger: ATTACK
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "clamp(8 * 10 * (1 - %actor.healthpercent% / 100), 0, 25)" } }
+      - trigger: DEFENSE
+        effects:
+          - { DAMAGE_MOD: { side: "defense", mode: "add", amount: "clamp(6 * 10 * (1 - %actor.healthpercent% / 100), 0, 50)" } }

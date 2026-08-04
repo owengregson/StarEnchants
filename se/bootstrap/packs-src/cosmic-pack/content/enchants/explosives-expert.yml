@@ -1,0 +1,53 @@
+# Matrix: 07-enchants-mastery-soul.md § Explosives Expert
+# Roster marker (metaphysical.yml / sticky.yml / fuse.yml precedent): the enchant is rollable, applicable and
+# displayed, and its whole meaning is one clause on SOMEONE ELSE'S file. The matrix decomposes it as one
+# maintained-passive flag — `SET_VAR(name=mastery.explosives-expert, value=1, ttl=0) @Self` — and it ships
+# EFFECT-LESS instead, for the reason the Solitude row settled pack-wide: a ttl-0 marker written on a PASSIVE
+# walk has no teardown, so one equip would leave it standing forever. The worn level publishes the same state
+# WITH a lifecycle, read as `%actor.enchlevel.explosives-expert%` (the file STEM is the key).
+# CONSUMER — Atomic Detonate (matrix 06): wearing this flag removes the tool-class gating of its explosion
+# mining, so pickaxe-class AND spade-class blocks break regardless of which of the two the miner holds. That
+# clause belongs on `atomic-detonate.yml` and nothing is authored here. The read it wants is
+# `%actor.enchlevel.explosives-expert%`, NOT the matrix's `%mastery.explosives-expert%` var spelling: with the
+# marker effect-less nothing writes that var, and an unknown key reads 0 in silence — a stale spelling would
+# compile and then gate nothing forever. The actor's worn map spans armour PLUS the held hands, so a mastery
+# sitting on the miner's chestplate is readable from their MINE activation, which is where the consumer runs.
+# Plain Detonate ignores the flag (measured; kept — only the atomic grade reads it).
+# Like fuse.yml, this marker's consumer is not shipped: both Detonate entries are deferred on the per-block
+# material filter (deferred-content.md), so the flag is inert until they land. Shipping it now keeps the
+# 16-strong mastery roster and its Mastery Shard hand-off whole, and it costs a slot exactly as the jar's does.
+display: "Explosives Expert"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eAn atomic blast no longer cares which"
+  - "&etool you swing — pickaxe ground and"
+  - "&espade ground both come apart."
+trigger: PASSIVE
+# The mastery item set: the four armor pieces the family's offence dispatch reads (matrix 07 § family-wide
+# rules). Masteries reach an item only through the Mastery Shard hand-off onto locked kit armor, which is an
+# economy/config-layer gate, not an `applies-to` the effect matrix owns. Note the split this creates and the
+# jar shares: the flag is worn, the tool it unlocks is held.
+applies-to: [ARMOR]
+group: "mastery"
+tier: mastery
+# MASTERY PRESENTATION (matrix 07 § presentation), as far as this file carries it: tier 8 is the `mastery`
+# rung (&4, weight 80) and that colour IS the recorded `§4<Name> <Roman>` lore line. `group: "mastery"` is
+# the pack's rung label and the suppression key the armour-set batch keys the Dragon Slayer reflect/negate
+# rule against (`scope=GROUP, key=mastery`, doc 10); the matrix's "Group Default — a mastery never conflicts
+# with anything" is the jar's conflict-set notion, which the engine expresses as the absence of a
+# `blacklist:`, and this file carries none. Black-scroll-extraction immunity and the locked-kit hand-off are
+# item-flow policy owned by the layers that read `tier:`, with no per-enchant knob.
+# NO `suppress-immune`, by the heroic-contract owner ruling: END-SUPPRESS ("all tier > 5 enchants are inert
+# while the holder is in The End") has to reach every mastery as surely as every heroic, and the flag exempts
+# an enchant from ALL suppression outright. Moot in both directions here — there is no ability to suppress,
+# and a worn level is read off WornState rather than an ability walk, so the published flag stands through a
+# silence window either way. Worth flagging for whoever authors the consumer: that makes the unlock immune to
+# silencing even though the Atomic Detonate proc reading it is not.
+# numbers: level-independent (max 1; table weight 1 — the lowest weight of any mastery, tied with Feign
+# Death, Horrify and Poltergeist; a book-roll number the content surface does not carry).
+# strings: none. era: none.
+levels:
+  # Max 1: the marker carries a level only so the lore line reads like every other enchant, and so the
+  # published `%actor.enchlevel.explosives-expert%` is non-zero for the consumer's gate.
+  1:
+    effects: []

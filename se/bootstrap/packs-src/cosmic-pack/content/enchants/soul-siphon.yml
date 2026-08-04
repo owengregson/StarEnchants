@@ -1,0 +1,128 @@
+# Matrix: 07-enchants-mastery-soul.md § Soul Siphon
+display: "Soul Siphon"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eEvery so often a hit tears souls straight out of a player's"
+  - "&egems and mends you with them; a victim with nothing left to"
+  - "&egive pays in armour instead."
+trigger: ATTACK
+applies-to: [ARMOR]
+group: "mastery"
+tier: mastery
+# THE MASTERY FAMILY CONTRACT (matrix 07 § family-wide rules) — the full reading lives in poltergeist.yml.
+# In short: tier 8 = the `mastery` rung (&4, weight 80) and the recorded `§4<Name> <Roman>` lore line;
+# `group: "mastery"` carries the matrix's "Default" (conflicts with nothing); masteries reach armour only via
+# the Mastery Shard hand-off, so `applies-to: [ARMOR]` is the whole item rule. This is an ATTACK-side mastery
+# fired off the wearer's armour on a PvP hit — the recorded offence dispatch — so the family's "lowest worn
+# level procs" dedupe applies (a WornState rule, recorded not authored; the engine keeps the HIGHEST). No
+# `suppress-immune:`: nothing in the entry claims it, and DEFENSE-scoped silence does not reach an ATTACK
+# trigger anyway. The RIFT-mask 50 % negation and the Dragon Slayer reflect/negate split are interaction-layer
+# rules against the mastery GROUP, authored on the mask and armour-set sides, never per enchant.
+# ── ONE ROLL, TWO MUTUALLY EXCLUSIVE BRANCHES ──────────────────────────────────────────────────────────────
+# The jar rolls once and then picks a branch off the victim's soul balance, and the heal fires either way —
+# even when both branches do nothing (measured; kept). A per-effect condition does not exist, so this ships as
+# TWO abilities at the SAME chance under complementary gates (`%victim.souls% > 0` / `== 0`): exactly one is
+# eligible per hit, so it is still a single roll, and the heal is repeated in both rather than split off into
+# a third ability that would take a roll of its own (the silence.yml one-block-eligible precedent).
+# The durability branch is reachable ONLY at exactly zero souls — that is the measured arithmetic, and the two
+# conditions preserve it rather than approximating it with a threshold.
+# ── THE SOUL BRANCH ────────────────────────────────────────────────────────────────────────────────────────
+# `SOUL_TRANSFER` (wave 2b) is the recorded primitive exactly: it moves min(victim souls, cap) souls out of
+# the victim's GEMS, credits the actor floor(ratio x stolen) and destroys the rest, and it needs neither party
+# in soul mode. `ratio: 0.5` IS the measured half-destroyed design (kept, not repaired), and `overflow: mint`
+# is the recorded "the actor carries no gem, so one is minted" fallback. Same pool Soul Mode drains.
+# The two soul strings are byte-verbatim from the matrix, including the missing trailing `*` all four Soul
+# Siphon lines uniquely omit; only the name placeholders became engine tokens ({attacker} -> {ATTACKER},
+# {victim} -> {VICTIM}). `{souls}` is the recorded `j = min(max(1, victimSouls), ceil(25 x L))` on the victim
+# line and `floor(j / 2)` on the attacker's. `%victim.souls%` is an activation-time snapshot (FactPopulator
+# fills the slot once, from the cached total, when the activation is built), so the token still prints the
+# PRE-transfer balance the strings mean even though the MESSAGE rows sit after the transfer.
+# ── THE DURABILITY BRANCH: WHAT SHIPS AND WHAT DOES NOT ────────────────────────────────────────────────────
+# `DURABILITY`'s percent modes (wave 2b) close the recorded percent-of-max half: `percent-damage` at 2.5 on a
+# `random-piece` of the victim's armour is the drain, and the repair is the same basis through the recorded
+# 1/3 transfer ratio (2.5 / 3 = 0.8333 % of max). The engine ROUNDS that product where the jar took a ceil
+# (`(int) Math.round(max x percent / 100)`), so each figure can sit one point low: on a diamond
+# helmet/chest/legs/boots the drain reads 9/13/12/11 against the measured 10/14/13/11 and the repair 3/4/4/4
+# against 3/4/4/3. Basis-faithful, one point of slack — recorded, not tuned around (no percent reproduces a
+# ceil at every max). Three further sub-clauses have no expression at all and are dropped rather than
+# approximated (tracked in deferred-content):
+#   - the SLOT COUPLING. The jar repairs the attacker's piece MATCHING the slot it just drained; nothing on
+#     the surface carries a pick from one DURABILITY row to another, so the repair takes its own
+#     `random-piece`. D-07-14 rules the jar's fallback (repair the confirmed-EMPTY matching slot, i.e. repair
+#     nothing) a major bug whose intent is "the attacker's first worn slot" — `select` has no first-worn rung
+#     either, and `random-piece` is the honest nearest for both.
+#   - the `max(1, ...)` FLOOR under the repair, and the `+0.02 x L` flat term added under the drain's ceil.
+#     A percent mode reads `percent` alone. The flat term is a measured no-op at every vanilla max durability
+#     anyway (the ceil swamps it — the same 10/14/13/11 at all four levels), so only the floor is a real loss,
+#     and only where the rounded product falls under a half point: a leather helmet (max 55) repairs 0.
+#   - the two durability STRINGS, `§c§l* SOUL SIPHON [§7-{durability} Durability§c§l]` (victim) and
+#     `§a§l* SOUL SIPHON [§7+{durability} Durability§a§l]` (attacker). Their whole content is the point count,
+#     and the count depends on which piece the random pick took — a value no fact reports. Authored with a
+#     wrong number they would be worse than absent, so the branch ships silent. Recorded here verbatim.
+# Armour pushed past breaking destroys the piece with the item-break sound — engine durability semantics,
+# nothing authored.
+# era: none notable. No material, particle or potion is named; the item-break cue the engine plays on a
+# destroyed piece resolves through the `ITEM_BREAK` <-> `ENTITY_ITEM_BREAK` alias row, which already ships.
+levels:
+  # Per level 1-4 — chance 4+L = 5/6/7/8 % (the jar's strict `<` roll is the same distribution);
+  # heal 2+2L = 4/6/8/10 HP raw, clamped at max; soul cap ceil(25 x L) = 25/50/75/100, attacker keeps half.
+  1:
+    abilities:
+      - chance: 5
+        condition: "%victim.type% == \"PLAYER\" && %victim.souls% > 0"
+        effects:
+          - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }
+          - { SOUL_TRANSFER: { cap: 25, ratio: 0.5, overflow: "mint", who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* SOUL SIPHON [§7-{souls} Souls (§7{ATTACKER})§c§l]", who: "@Victim", tokens: { souls: "min(max(1, %victim.souls%), 25)" } } }
+          - { MESSAGE: { text: "§a§l* SOUL SIPHON [§7{VICTIM} (+{souls} Souls)§a§l]", who: "@Self", tokens: { souls: "floor(min(max(1, %victim.souls%), 25) / 2)" } } }
+      - chance: 5
+        condition: "%victim.type% == \"PLAYER\" && %victim.souls% == 0"
+        effects:
+          - { MODIFY_HEALTH: { amount: 4, mode: "give", who: "@Self" } }
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 2.5, select: "random-piece", who: "@Victim" } }
+          - { DURABILITY: { target: "armor", mode: "percent-restore", percent: 0.8333, select: "random-piece", who: "@Self" } }
+  2:
+    abilities:
+      - chance: 6
+        condition: "%victim.type% == \"PLAYER\" && %victim.souls% > 0"
+        effects:
+          - { MODIFY_HEALTH: { amount: 6, mode: "give", who: "@Self" } }
+          - { SOUL_TRANSFER: { cap: 50, ratio: 0.5, overflow: "mint", who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* SOUL SIPHON [§7-{souls} Souls (§7{ATTACKER})§c§l]", who: "@Victim", tokens: { souls: "min(max(1, %victim.souls%), 50)" } } }
+          - { MESSAGE: { text: "§a§l* SOUL SIPHON [§7{VICTIM} (+{souls} Souls)§a§l]", who: "@Self", tokens: { souls: "floor(min(max(1, %victim.souls%), 50) / 2)" } } }
+      - chance: 6
+        condition: "%victim.type% == \"PLAYER\" && %victim.souls% == 0"
+        effects:
+          - { MODIFY_HEALTH: { amount: 6, mode: "give", who: "@Self" } }
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 2.5, select: "random-piece", who: "@Victim" } }
+          - { DURABILITY: { target: "armor", mode: "percent-restore", percent: 0.8333, select: "random-piece", who: "@Self" } }
+  3:
+    abilities:
+      - chance: 7
+        condition: "%victim.type% == \"PLAYER\" && %victim.souls% > 0"
+        effects:
+          - { MODIFY_HEALTH: { amount: 8, mode: "give", who: "@Self" } }
+          - { SOUL_TRANSFER: { cap: 75, ratio: 0.5, overflow: "mint", who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* SOUL SIPHON [§7-{souls} Souls (§7{ATTACKER})§c§l]", who: "@Victim", tokens: { souls: "min(max(1, %victim.souls%), 75)" } } }
+          - { MESSAGE: { text: "§a§l* SOUL SIPHON [§7{VICTIM} (+{souls} Souls)§a§l]", who: "@Self", tokens: { souls: "floor(min(max(1, %victim.souls%), 75) / 2)" } } }
+      - chance: 7
+        condition: "%victim.type% == \"PLAYER\" && %victim.souls% == 0"
+        effects:
+          - { MODIFY_HEALTH: { amount: 8, mode: "give", who: "@Self" } }
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 2.5, select: "random-piece", who: "@Victim" } }
+          - { DURABILITY: { target: "armor", mode: "percent-restore", percent: 0.8333, select: "random-piece", who: "@Self" } }
+  4:
+    abilities:
+      - chance: 8
+        condition: "%victim.type% == \"PLAYER\" && %victim.souls% > 0"
+        effects:
+          - { MODIFY_HEALTH: { amount: 10, mode: "give", who: "@Self" } }
+          - { SOUL_TRANSFER: { cap: 100, ratio: 0.5, overflow: "mint", who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* SOUL SIPHON [§7-{souls} Souls (§7{ATTACKER})§c§l]", who: "@Victim", tokens: { souls: "min(max(1, %victim.souls%), 100)" } } }
+          - { MESSAGE: { text: "§a§l* SOUL SIPHON [§7{VICTIM} (+{souls} Souls)§a§l]", who: "@Self", tokens: { souls: "floor(min(max(1, %victim.souls%), 100) / 2)" } } }
+      - chance: 8
+        condition: "%victim.type% == \"PLAYER\" && %victim.souls% == 0"
+        effects:
+          - { MODIFY_HEALTH: { amount: 10, mode: "give", who: "@Self" } }
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 2.5, select: "random-piece", who: "@Victim" } }
+          - { DURABILITY: { target: "armor", mode: "percent-restore", percent: 0.8333, select: "random-piece", who: "@Self" } }

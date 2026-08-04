@@ -1,0 +1,50 @@
+# Matrix: 07-enchants-mastery-soul.md § Auto Sell
+# R9: Auto Sell's selling requires a server economy (price table); the
+# behavior is not implemented — the enchant is obtainable but inert.
+display: "Auto Sell"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA mined block would go straight to the shop."
+  - "&eThe payout needs a server price table this"
+  - "&epack does not carry, so nothing is sold."
+trigger: MINE
+# MASTERY FAMILY PRESENTATION (matrix 07 § Family-wide rules), shared by all 16: tier 8 is the `mastery` rung
+# of tiers.yml (`&4`, weight 80 — the matrix-recorded lore colour), and `group: "mastery"` is the handle the
+# interaction layer keys on (the RIFT mask's 50 % negation of an offensive mastery proc, doc 11; the Dragon
+# Slayer reflect/negate against the mastery GROUP, doc 10). Masteries never conflict with anything, which is
+# what the jar's "Default" conflict group meant — this schema's `group:` carries no conflict semantics, so the
+# family name costs nothing and buys both interaction rules a scope key.
+# ITEM SET: masteries reach locked kit ARMOR only, handed out by the Mastery Shard (an economy/config-layer
+# flow, out of the effect matrix). MINE scans worn equipment (it is not a held-item trigger), so an armour-borne
+# break hook is exactly what the jar had.
+applies-to: [ARMOR]
+group: "mastery"
+tier: mastery
+# NO `suppress-immune`, per the heroic-contract precedent (alien-implants.yml / godly-overload.yml): tier > 5
+# END-SUPPRESS and the family's own defensive silence window (Tombstone / the Silence sword) have to be able to
+# reach a mastery, and `suppress-immune` exempts an enchant from ALL suppression. Moot on an inert file;
+# recorded so the whole family reads one way.
+# TRIGGER, verified against the engine rather than assumed: breaking a block dispatches `MINE` (`BREAK` is the
+# held-item-BREAKS trigger), so `MINE` is the correct hook. The jar also reached the same code from block-damage
+# and silently ignored it; not ported. The hook is kept on an empty body so the roster, the lore line and the
+# slot cost read like every other enchant (roster-marker precedent: fuse.yml / infinite-luck.yml).
+# WHAT THE JAR DID, recorded for reference and NOT shipped: `BREAK_BLOCK(drops=false)` at the mined block (the
+# jar handed the player the vanilla break XP directly), then credit of the FIRST drop's unit price out of the
+# shop's price table. The selling IS the enchant, and the price table is a server economy the engine
+# deliberately does not implement for an enchant — `MODIFY_MONEY` is unaffected by R9 and still available, but
+# it has no table to price a cobblestone against. The `SHOP_SELL` capability request is withdrawn
+# (proposed-primitives.md § Excluded by owner ruling R9).
+# D-07-2: the measured payout is the first drop's unit price ONLY — stack size ignored, further drops ignored —
+# where as-intended is Σ(price × amount) over all drops. NEITHER ships under R9; the ledger row is annotated,
+# not implemented. The jar's two impossible negative-drop-count guards and its duplicated drop lookup are
+# non-behavioural and are not ported either.
+# interactions: the jar's ordering rules (stand down for a held Detonate / Atomic Detonate; yield to Auto Smelt
+# on IRON_ORE / GOLD_ORE so the ore sells as an ingot) are moot while this file is inert. auto-smelt.yml already
+# records the same clause from its own side, and both Detonate entries are deferred on the block-material
+# filter, so no counterparty has anything to negotiate with.
+# numbers: level-independent (max 1). strings: none — completely silent, no message, sound or particle.
+# era: none — the jar's tools and drops are all 1.8.9-era, and the legacy GOLD_* / WOOD_* spellings ride the
+# resolver aliases wherever a shipped file names one.
+levels:
+  # Max 1: the level exists only so the lore line renders `§4Auto Sell I` like every other enchant.
+  1: { effects: [] }

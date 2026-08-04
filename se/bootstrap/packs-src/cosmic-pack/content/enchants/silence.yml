@@ -24,8 +24,9 @@ tier: legendary
 # blocks per level ARE the S = 0..3 ladder. A condition takes at most one ':' clause and a clause never
 # gates, so the matrix's `+N %chance%` boosts are folded into each block's own chance instead: exactly one
 # block is eligible per hit, so it is still a single roll.
-# The suppression channel is the shared one: Mastery Tombstone (07) rides it, Phoenix carries a self-scoped
-# SUPPRESS_IMMUNE (layer rule `phoenix-immune-to-defense-suppression`), and the Dragon Slayer set's
+# The suppression channel is the shared one: Mastery Tombstone (07) rides it, the matrix's Phoenix exemption
+# (layer rule `phoenix-immune-to-defense-suppression`) is NOT shipped — the END-SUPPRESS contract rule keeps
+# every tier > 5 enchant suppressible, so a live window parks that save too — and the Dragon Slayer set's
 # immune_silence is SUPPRESS_IMMUNE(chance=75) — the measured 25% leak IS that primitive's per-suppression
 # roll. On such a block the ATTACKER sees `§c§l* SILENCE BLOCKED [§7{VICTIM}§c§l] *`; SUPPRESS_IMMUNE carries
 # no feedback hook on the frozen surface, so that line is recorded here and authored with the immunity side.
@@ -43,9 +44,9 @@ tier: legendary
 # missing value.
 # {SECONDS} is (L + S), a per-block constant, so it is inlined and the rendered line is byte-identical to the
 # matrix string `§5§l* SILENCED §7[{SECONDS}s] §5§l*`.
-# era: `WITHER_HURT` (1.8.9) <-> `ENTITY_WITHER_HURT` (flattened 1.13) needs a legacy alias row — Aliases.SOUND
-# does not carry it yet, so the cue would warn-skip on the legacy fork (parked on the deferred-content
-# legacy-sweep list). ENCHANTMENT_TABLE is the cross-era spelling the particle resolver maps (ENCHANT since the
+# era: `WITHER_HURT` (1.8.9) <-> `ENTITY_WITHER_HURT` (flattened 1.13) — the legacy-sweep row has LANDED in
+# `Aliases.SOUND`, so the cue resolves on the legacy fork.
+# ENCHANTMENT_TABLE is the cross-era spelling the particle resolver maps (ENCHANT since the
 # 1.20.5 registry rename); PORTAL is fine on 1.8.9.
 levels:
   1:

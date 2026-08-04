@@ -34,8 +34,10 @@ tier: epic
 # era: `CRIT_MAGIC` maps to 1.8's `magicCrit` through `Aliases.PARTICLE` (already carried).
 # `ANVIL_BREAK` (1.8.9) is authored as `BLOCK_ANVIL_BREAK`, the batch-03 spelling `disarmor.yml` and
 # `disintegrate.yml` ship — the pack carries ONE modern spelling for that constant. The matrix records
-# DESTROY on this entry, but the collision is settled pack-wide rather than per file; `Aliases.SOUND` still
-# carries no `ANVIL_BREAK` row either way, so the legacy lane owes it (deferred-content.md legacy sweep).
+# DESTROY on this entry, but the collision is settled pack-wide rather than per file, and the settled row
+# (`ANVIL_BREAK` -> `BLOCK_ANVIL_BREAK`) has LANDED in `Aliases.SOUND`, so the legacy lane resolves today.
+# Open only on the cue's CHARACTER: 1.8's `random.anvil_break` is modern `block.anvil.destroy`, so if that
+# matters the sweep flips all three files and the alias row together (deferred-content.md legacy sweep).
 levels:
   # Chance 25/30/35/40/45 % (`0.05*level + 0.2`; L2/L3 measure 30.000000000000004 / 35.000000000000003) —
   # level-scoped, so all four distance branches share the single roll the jar made before branching.
