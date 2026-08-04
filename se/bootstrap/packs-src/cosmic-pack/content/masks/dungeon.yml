@@ -1,0 +1,38 @@
+# Matrix: 11-masks.md § Dungeon Mask
+# A COSMETIC mask: verbatim identity, no behaviour. The advertised 10 % chance to keep a /dungeon key is
+# advertised-only — the refund logic lived in an absent dungeons plugin (matrix-UNRESOLVED). The matrix
+# explicitly does NOT record this as a surface gap, and neither does this file: StarEnchants has no dungeon
+# subsystem, so the consuming system itself has no counterpart, and the R9 note-only rule (README § rulings)
+# is the shape for a behaviour that depends on a server subsystem the port does not carry. Same reasoning as
+# joker.yml, outpost.yml and stronghold.yml.
+display: "Dungeon Mask"
+color: "§6"
+# `display` carries the FULL matrix name and the likeness renders `{COLOR}&l{NAME}` (the cosmic family's names
+# are irregular — Santa, Party Hat and Multi-Mask carry no " Mask" suffix — so the whole name lives in the
+# def), reproducing `§6§lDungeon Mask`. The shared trailing lore block is likeness-level (family preamble);
+# the ATTACHED stamp's ability text is lore line 1 verbatim on this entry, so nothing diverges (unlike Joker).
+# HEAD TEXTURE: not carried by the matrix decomposition; the codex records the texture hash
+# `7eda3643...48710d1b` (profile `BasicBAE`, timestamp 1559834347205), re-encoded here into the pack's
+# standard profile blob (the Rift entry's "valid re-encoded texture" rule, applied family-wide). The jar's own
+# skull quirk — a GameProfile username containing a space, which is not a legal Minecraft name — is not
+# ported and cannot be: the blob carries the skin URL alone and no username at all, which is what head minting
+# reads on both eras.
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2VkYTM2NDNkNjg2ZDAxNDhiMDlhOWRhZTBiZWQ1MzgwOGY5MjU4NWYyYWY0ZGNhYTljYmMwOTA0ODcxMGQxYiJ9fX0="
+description:
+  - "§c10% chance to not use /dungeon key"
+  - "§7You take dungeon running extremely"
+  - "§7seriously, you solo most dungeons"
+  - "§7faster than other groups start them."
+  - "§6§l * §6Lit Lootbox Release"
+# DELIBERATELY EFFECT-LESS, the metaphysical.yml / sticky.yml form: a mask must declare at least one ability
+# (an ability-less mask is a load error), so the cosmetic form is one PASSIVE ability with an empty effect
+# list. It arms nothing, costs nothing at runtime, and keeps the mask rollable, mintable, wearable and
+# displayed — which is the entire entry. The advertised 10 % (`0.10`) is recorded here and authored nowhere:
+# there is no key to refund.
+# ACQUISITION: common generator pool, 90 %/11 = 8.1818 % per roll; active in the mask help menu. A mask def
+# carries no tier/weight/pool field and this pack has no mask-generator surface, so the percentage is ledgered
+# here rather than authored (family preamble).
+# era: head seam only — ADR-0053 owns it (`SKULL_ITEM:3` + a reflective authlib profile on 1.8.9,
+# `PLAYER_HEAD` on modern). Nothing else on this entry touches a versioned handle.
+trigger: PASSIVE
+effects: []

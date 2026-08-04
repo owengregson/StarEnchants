@@ -1,0 +1,41 @@
+# Matrix: 11-masks.md § Turkey Mask
+# A 2 % dodge on incoming hits: measured `Math.random() <= 0.02` (inclusive) then cancel, message, particle.
+# DEFENSE is the exact scope — it needs an attacker, so it fires on melee and projectile hits against the
+# wearer and never on fall, fire or any other cause, matching the source's entity-damage-by-entity-only reach.
+# The one roll gates all three effects, so the cue never plays without the dodge.
+#
+# CANCEL discards the WHOLE hit — every fold contribution from every source goes with it, which is what a dodge
+# should do. Effects after a CANCEL still run (the ethereal-dodge precedent), so the feedback lines below fire
+# on the cancelled hit rather than needing their own ability.
+#
+# MULTI-MASK: the source routes this through its per-player mask lookup, which makes it silently dead inside a
+# folded Multi-Mask. The port keeps every folded child active — deviation D-11-1 — and needs nothing here.
+#
+# Source quirk not ported because it is unobservable: the random draw is evaluated BEFORE the mask check, so
+# the source burns a roll on every player-victim damage event whether or not a Turkey Mask is involved.
+display: "Turkey Mask"
+color: "§e"
+# Head texture re-encoded from the codex's recorded hash
+# e7d97457d688dedc7fed4d5599a14c280f3dcab2937b2b071afd8feeac0ebfaf (profile `Merchant`) into the standard
+# SKIN-url value the worn repaint reads.
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTdkOTc0NTdkNjg4ZGVkYzdmZWQ0ZDU1OTlhMTRjMjgwZjNkY2FiMjkzN2IyYjA3MWFmZDhmZWVhYzBlYmZhZiJ9fX0="
+# Lore VERBATIM. A mask def has no `ability` field, so the source's `specialAbility` string — "§c+2% Dodge",
+# the text its ATTACHED stamp echoes — is line 1 below, exactly where its own lore repeats it.
+description:
+  - "§c+2% Dodge"
+  - "§7Stay nimble and fast, or the"
+  - "§7Pilgrims will catch and cook you!"
+  - "§6§l * §6Thanksgiving 2018"
+# ACQUISITION: help-menu visible; common generator pool, 90 %/11 = 8.1818 % per roll (matrix preamble
+# § Generator pools). No pool or weight surface on a mask def — see deferred-content.md, batch 11.
+# ERA: CLOUD exists on 1.8.9, so nothing beyond the family head seam (ADR-0053).
+trigger: DEFENSE
+chance: 2
+effects:
+  - { CANCEL: {} }
+  # Dodge line VERBATIM — note there is no trailing `*`, unlike the Zeus Mask's dodge line.
+  - { MESSAGE: { text: "§e§l* DODGED [§7Turkey Mask§e§l]", channel: chat, who: "@Self" } }
+  # Cue: CLOUD ×10 at a 0.2 spread. The source's per-axis offsets and 0.1 speed are cue-level detail with no
+  # port surface; its +0.5 y anchor needs no `dy` either, because a `who`-targeted burst already centres on the
+  # body rather than the feet — adding one would double-count the lift.
+  - { PARTICLE: { particle: CLOUD, count: 10, spread: 0.2, who: "@Self" } }

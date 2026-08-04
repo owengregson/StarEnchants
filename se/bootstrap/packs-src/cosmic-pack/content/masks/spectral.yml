@@ -1,0 +1,68 @@
+# Matrix: 11-masks.md § Spectral Mask
+# The one mask whose payload is a RENDER change: above y=200 the wearer is disguised as a zombie to every
+# other client, and the disguise lapses when they drop back down or the mask leaves the helmet. A polling
+# task in the source, every 20 t, iterating online players.
+#
+# SHIPPED AS A ROSTER MARKER — identity, lore and the recorded gate, with the disguise itself pending. The
+# effect it needs is `MOB_DISGUISE`, and that is the deferred POLISH DECISION (packet seam vs roster-marker,
+# owner ruling R-i in deferred-content.md), not an oversight: rendering a player as a MOB to other clients is
+# unreachable from any Bukkit surface — `PlayerVisibility` is one `setVisible(viewer, subject, boolean)` with
+# no entity-type or metadata axis — and the modern lane has no packet path at all while the legacy lane does,
+# so building it today would ship a disguise that works ONLY on 1.8.9. A half-disguise is worse than none.
+# The ghost.yml / headless.yml marker shape is therefore used here too, with one difference: the ability is
+# not bare. The poll cadence and the altitude gate ARE the matrix decomposition and both express today, so
+# they are authored live and the file takes ONE effect line the day the decision lands.
+display: "Spectral Mask"
+# `display` carries the FULL name text and the likeness renders `{COLOR}&l{NAME}` — the family's names are
+# irregular (Party Hat, Death Knight, Santa, Reindeer, Pumpkin Monster and Multi-Mask carry no " Mask"), so
+# the whole name lives in the def. With `color` this reproduces `§3§lSpectral Mask` exactly.
+color: "§3"
+# HEAD TEXTURE: the matrix decomposition carries no base64. The codex records the texture hash
+# `7aa1f8b3...119bd951` (profile MysteryMerchant, model `slim`, timestamp 1550697164586), re-encoded here into
+# the standard SKIN-url profile blob the worn repaint reads (the Rift entry's "valid re-encoded texture" rule,
+# applied family-wide). The slim flag is not carried — it is arm geometry and never shows on a head. NOTE the
+# separation this entry makes concrete: this blob is the HELMET repaint (the mask's own face, which ships and
+# works on both eras); the pending disguise is a whole-entity render and shares nothing with it.
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2FhMWY4YjMwMmMwN2RlYTJlNTA1M2FkNTVjOGQ4MTFkNjBjNTdlZWQyNjY5MzY5MGQzNTNiMzgxMTliZDk1MSJ9fX0="
+# Lore VERBATIM, in order. Line 1 is the source's `specialAbility` (the text its ATTACHED stamp echoed) and it
+# claims "(in combat)" — there is NO combat check anywhere in the source's task, the disguise applies at
+# y>200 unconditionally. Measured behaviour is what the port implements and the lore stays verbatim; the
+# mismatch is the source's, not a transcription slip. Credit line in the leading-space style (`§6§l * `). The
+# shared trailing block every mask appends is likeness-level (items/mask.yml).
+description:
+  - "§cZombie Auto-disguise at y>200 (in combat)"
+  - "§7As silent as the night, as mystic"
+  - "§7as the full moon: The Spectre"
+  - "§6§l * §6Baked Lootbox Release"
+# THE GATE IS LIVE, and it is the reason this file is not a bare marker. `%actor.y%` is the surface's first
+# absolute coordinate (POSITION_VARS, wave 2d — feet Y, not eye Y), which is exactly the fact the matrix said
+# the entry was missing; the poll period is the source's own 20 t (1.0 s, first run after 20 t).
+# D-11-9 is settled here rather than reproduced: the source used strict `>` to disguise and strict `<` to
+# undisguise, so `y == 200.0` exactly was a dead zone that froze whatever state the player was in. The
+# as-intended reading is one inclusive boundary — disguise strictly above 200, undisguise at or below — which
+# is what a single `%actor.y% > 200` gate on a maintained ability gives for free: above the line it holds,
+# at or below it lapses, no third state.
+# WHAT IS STILL OWED when the polish decision lands: `MOB_DISGUISE(type=ZOMBIE, adult=true)` as the one effect
+# under this ability, plus the four verbatim lines the transitions carry (recorded here, their only home):
+#   apply     "§3§l(SPECTRAL) §3You have been auto-disguised as a Zombie."
+#   apply     "§7This disguise will remain as long as you stay above y:200"
+#   remove    "§c§l(SPECTRAL) §cYour spectral-zombie disguise has been unequipped!"   (BOTH lapse branches)
+# The source's two guards — never disguise a player another plugin already disguised, and only undisguise
+# while the live disguise is still the zombie — do not travel: they are artefacts of driving a third-party
+# disguise API, and an engine-owned disguise has no such ambiguity. Ledgered in deferred-content.md, batch 11.
+# ACQUISITION: active in the mask help menu but in NO generator pool (neither the common nor the rare list),
+# so it reaches a player only through a lootbox or an operator mint. Neither fact has a mask-def surface —
+# recorded here and in deferred-content.md, batch 11 (family preamble).
+# MULTI-MASK: the source's task read the shared mask lookup, so this already worked inside a compound mask —
+# the family routing bug (D-11-1) does not touch this entry.
+# ERA — MAJOR, and it is the disguise half alone. Client-bound entity render diverges hard on 1.8.9 (spawn
+# and metadata packet shapes, the 1.8 datawatcher layout), so `MOB_DISGUISE` has to sit behind a version
+# resolver with the legacy lane owning its own packet shapes; the modern lane has no packet path today, which
+# is half of why the decision is deferred. Everything in THIS file is era-clean: the head repaint rides the
+# family seam ADR-0053 already owns (`SKULL_ITEM:3` plus a reflective authlib profile on 1.8.9, `PLAYER_HEAD`
+# on modern) and `%actor.y%` is a plain location read on both lanes.
+abilities:
+  - trigger: REPEATING
+    repeat: 20
+    condition: "%actor.y% > 200"
+    effects: []

@@ -1,0 +1,54 @@
+# Matrix: 11-masks.md § Lover Mask
+# One absolute immunity while worn: Mortal Coil's apply no-ops entirely against the wearer — in the source
+# `applyMortalEffect` early-returned on the mask check, so no debuff, no timer and not even the chat line the
+# mastery normally sends. DEFENDER-keyed, so SUPPRESS_INCOMING and not SUPPRESS: a SUPPRESS window keys on the
+# ACTIVATOR, and the only way to arm one on an attacker is `who: "@Attacker"` from a DEFENSE ability, which
+# resolves AFTER the attack pass and therefore leaks the opening proc of every engagement — the exact hit an
+# "Immune to …" mask exists to stop. `chance` stays at its default 100: the immunity is absolute, no roll.
+# WHAT A BLOCK COSTS THE ATTACKER matches the source's no-op exactly: gate 5 stops the WHOLE activation before
+# any effect runs, so the mastery's own message and its affected-player timer never happen either — the two
+# halves the codex singles out ("no message, no timer") are one consequence of one gate here.
+#
+# WHY REPEATING AND NOT PASSIVE: the window has no teardown half and the PASSIVE lifecycle fires once at
+# equip, so a PASSIVE arm would lapse mid-wear. `repeat: 20` under `duration: 60` holds it open continuously
+# and bounds the residual immunity after the mask leaves the helmet at 3 s (re-arming EXTENDS, never stacks).
+display: "Lover Mask"
+# `display` carries the FULL name text and the likeness renders `{COLOR}&l{NAME}` — the family's names are
+# irregular (Party Hat, Death Knight, Santa, Reindeer, Pumpkin Monster and Multi-Mask carry no " Mask"), so
+# the whole name lives in the def. With `color` this reproduces `§c§lLover Mask` exactly.
+color: "§c"
+# HEAD TEXTURE: the matrix decomposition carries no base64. The codex records the texture hash
+# `6aef6822...1e45d885` (profile MysteryMerchant, model `slim`, timestamp 1550077516733), re-encoded here into
+# the standard SKIN-url profile blob the worn repaint reads (the Rift entry's "valid re-encoded texture" rule,
+# applied family-wide). The slim flag is not carried — it is arm geometry and never shows on a head — and the
+# blob holds the skin URL alone, which is what head minting reads on both eras.
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNmFlZjY4MjJkZWVlY2ViYzg4Y2NlYTdmMTBlNGYzYWU0ZjRlNDczYzBkODA1OTdiMTQ4NDVlNWYxZTQ1ZDg4NSJ9fX0="
+# Lore VERBATIM, in order — including the source's own missing apostrophe in "its" on line 3. A mask def has
+# no `ability` field, so the source's `specialAbility` string (the text its ATTACHED stamp echoed) is line 1
+# of the block, exactly where the source's own lore repeats it. Credit line in the leading-space style
+# (`§6§l * `). The shared trailing block every mask appends is likeness-level (items/mask.yml).
+description:
+  - "§cImmune to Mortal Coil"
+  - "§7Make love, not Minecraft..."
+  - "§7or maybe its the other way around?"
+  - "§6§l * §6Valentine's Day 2019"
+# THE KEY IS INERT TODAY, deliberately. `enchants/mortal-coil` is a batch-07 deferral, so nothing in this pack
+# carries that stable key yet; a SUPPRESS_INCOMING key is an interned string, so naming an unshipped enchant
+# costs nothing and completes itself the day the file lands — exactly how crystals/anti-m-kit-necromancer.yml
+# already ships this same key, and the spelling matches it (this pack files every grade, mastery included,
+# under content/enchants/, so the matrix's `mastery/mortal-coil` is `enchants/mortal-coil` here).
+# THE SANTA SYNERGY IS EMERGENT, nothing to author: Mortal Coil also suppresses the Santa mask's max-health
+# bonus, so a Santa + Lover compound keeps its +2 hearts purely because this window stops the Coil that would
+# have taken them. Two rules, one outcome — no third rule to write.
+# MULTI-MASK: routed through the shared mask lookup in the source and already worked inside a compound mask,
+# so the family routing bug (D-11-1) does not touch this entry.
+# ACQUISITION: RARE generator pool, 10 %/9 = 1.1111 % per roll; active in the mask help menu. A mask def
+# carries no tier/weight/pool field and this pack has no mask-generator surface, so the percentage is ledgered
+# here rather than authored (family preamble).
+# ERA: nothing beyond the family head seam (loose masks are `SKULL_ITEM:3` with a reflective authlib profile
+# on 1.8.9, `PLAYER_HEAD` on modern) — the masks repaint era seam (ADR-0053) already owns it.
+abilities:
+  - trigger: REPEATING
+    repeat: 20
+    effects:
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/mortal-coil", duration: 60, who: "@Self" } }

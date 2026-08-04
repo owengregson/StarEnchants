@@ -1,0 +1,67 @@
+# Matrix: 11-masks.md § Boss Mask
+# The family's only conditional damage mask: +10% outgoing INTO a boss, -25% incoming FROM one. Both halves
+# are plain DAMAGE_MOD rows joining the ONE additive fold (ADR-0012) — the jar multiplied a separate shared
+# scalar, and the port contributes the same percents to the single fold instead (matrix preamble
+# § Composition). Mask damage lives in one entity-attack handler with no second listener, so the family is
+# exempt from the defensive double-fire (deviations D-001) and every number below is already single-pass.
+#
+# THE BOSS LIST. The jar keys on a "boss" metadata flag stamped by an ABSENT external plugin (UNRESOLVED),
+# so the designation is re-keyed pack-side — which mobs count as bosses is config, not engine. The matrix
+# writes that list as `%victim.mobtype%`, and it CANNOT be: that fact is the MythicMobs soft hook (ADR-0027)
+# and resolves to the empty string for every entity with no integration installed, which would ship this
+# mask exactly as inert as the flag it replaces. The list is therefore `%victim.type%` over the vanilla
+# bosses, needing no external plugin and resolving on both lanes — the identical ruling axes/boss-slayer.yml
+# already ships under, and deliberately the SAME list, so the pack has ONE boss designation rather than two.
+# A server running MythicMobs bosses widens either file with `|| %victim.mobtype% == "<mythic id>"`; that is
+# what "pack-configured" buys. `%victim.type% != "PLAYER"` is not carried: a list of mob types is already
+# non-player, and unlike boss-slayer.yml the matrix does not decompose it as its own clause here.
+#
+# THE DEFENSE-SIDE CONDITION reads the same fact deliberately. On a DEFENSE pass `%victim.*%` describes the
+# ATTACKER (guardians.yml's idiom since batch 01, aegis.yml's and the Dragon Slayer crystal's since), so one
+# spelling gates "hitting a boss" on ATTACK and "hit BY a boss" on DEFENSE. A projectile resolves to its
+# shooter on both sides — the jar's behaviour and the engine's combat dispatch agree, nothing to author.
+#
+# CALIBRATION: this pack's combat.attack-scale is 1.0, so an attack-side percent authors 1:1 and `amount: 10`
+# lands as the advertised +10% final (ADR-0050 R2). Defense-side reductions are NOT fold-scaled, so
+# `amount: 25` is -25% incoming as measured. Retune the ATTACK row alone if the attack-scale knob moves.
+#
+# D-11-1 (the family's Multi-Mask routing bug) does NOT touch this entry: both halves are routed through the
+# working lookup and already fire inside a compound mask in the jar. Under ADR-0074 the port folds every
+# child regardless, so the mask behaves identically alone and folded.
+#
+# strings (verbatim): name "§c§lBoss Mask" — items/mask.yml renders `{COLOR}&l{NAME}` and appends no " Mask"
+#   of its own (six of the 27 verbatim names carry none), so `display` below spells the FULL name and `color`
+#   supplies the §c. The jar's ATTACHED-stamp ability text WORDS THE SAME NUMBERS
+#   DIFFERENTLY from lore line 1 and the matrix says to transcribe both as-is:
+#     stamp: "§c-25% incoming Boss DMG, +10% outgoing Boss DMG"
+#     lore:  "§c-25% incoming DMG, +10% outgoing DMG to Bosses"   (the line authored below)
+#   The stamp text is not reproduced anywhere: our universal likeness owns the on-helmet line
+#   (items/mask.yml `lore-while-on-item`), the ADR-0074 ruling. The family's shared trailing lore block is
+#   likeness-owned too, never per-mask (matrix preamble § Shared trailing lore).
+# numbers: measured x1.1 = +10% outgoing vs bosses; x0.75 = -25% incoming from bosses. Generator pool: RARE
+#   branch, 10%/9 = 1.1111%; active in /mask help: yes. Neither has a MaskDef field (no pool weight, no
+#   help-menu flag on the mask surface), so both are ledgered here; the Mask Generator is not ported.
+# era: none beyond the head seam — the boss list is pack config on every era, and both ENDER_DRAGON and
+#   WITHER exist on 1.8.9 (the same pair boss-slayer.yml relies on). Loose masks are SKULL_ITEM:3 there vs
+#   PLAYER_HEAD modern, which ADR-0053's repaint seam owns.
+display: "Boss Mask"
+color: "§c"
+# HEAD TEXTURE: not carried by the matrix decomposition; the codex records the texture hash
+# `d8e6ec31...fc3e7969` (profile `BasicBAE`, timestamp 1562627260993), re-encoded here into the pack's standard
+# profile blob (the Rift entry's "valid re-encoded texture" rule, applied family-wide). The blob holds the skin
+# URL alone — profile name and timestamp are not carried, and nothing reads them.
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDhlNmVjMzE2NzJmZjU5YzVmMzMyYjhmNzkyMTAzNDViYTU2YjA3ZDk0ZDZiYzhmNTg5Y2JlM2FmYzNlNzk2OSJ9fX0="
+description:
+  - "§c-25% incoming DMG, +10% outgoing DMG to Bosses"
+  - "§7A seasoned monster hunter, you pride"
+  - "§7yourself on your boss slaying record."
+  - "§6§l * §6Sugar Daddy Lootbox Release"
+abilities:
+  - trigger: ATTACK
+    condition: "%victim.type% == \"ENDER_DRAGON\" || %victim.type% == \"WITHER\""
+    effects:
+      - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }
+  - trigger: DEFENSE
+    condition: "%victim.type% == \"ENDER_DRAGON\" || %victim.type% == \"WITHER\""
+    effects:
+      - { DAMAGE_MOD: { side: "defense", mode: "add", amount: 25 } }

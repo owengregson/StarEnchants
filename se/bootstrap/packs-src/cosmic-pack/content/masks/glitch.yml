@@ -1,0 +1,65 @@
+# Matrix: 11-masks.md § Glitch Mask
+# Two total immunities on one head, both DEFENDER-keyed. In the jar each was an early return inside the
+# ATTACKER's proc path guarded on the VICTIM's mask (codex quirk: "it is the victim's mask that is checked in
+# both cases"), which is exactly what SUPPRESS_INCOMING is — the window lives on the wearer and gate 5
+# consults it with the incoming activation's victim id, so the whole activation stops before any effect runs.
+# A plain SUPPRESS cannot express it: its window keys on the ACTIVATOR, and the only way to arm one on an
+# attacker is `who: "@Attacker"` from a DEFENSE ability, which resolves AFTER the attack pass and so leaks the
+# opening proc of every engagement — the exact hit an "Immune to ..." mask exists to stop. The matrix records
+# this as the DEFENDER_KEYED_SUPPRESSION gap; it shipped as SUPPRESS_INCOMING and closes the entry whole.
+# `chance` stays at its default 100: both immunities are absolute in the jar, no roll on either.
+# REPEATING re-arm rather than PASSIVE, the anti-m-kit crystal precedent: PASSIVE is a start/stop lifecycle
+# fired once at equip (LifecycleDriver), so a window armed there would expire mid-wear. `repeat: 20` under
+# `duration: 60` holds it open continuously and bounds the residual immunity after the mask leaves the helmet
+# at 3 s.
+display: "Glitch Mask"
+color: "§f"
+# `display` carries the FULL matrix name and the likeness renders `{COLOR}&l{NAME}` — the cosmic family's
+# names are irregular (Santa, Reindeer, Party Hat, Death Knight and Multi-Mask carry no " Mask" suffix), so a
+# suffixing template cannot spell the family and the whole name lives in the def. Together with `color` this
+# reproduces `§f§lGlitch Mask` exactly. The shared trailing lore block and the ATTACHED stamp are
+# likeness-level and are not repeated here (family preamble); the ability line the stamp showed is lore line 1
+# verbatim on this entry, so nothing diverges.
+# HEAD TEXTURE: the matrix decomposition carries no base64, and the entry's texture is codex-recorded as the
+# hash `92647ca5...fdbd5fbc` (profile MysteryMerchant, model `slim`, timestamp 1552487402991). Re-encoded here
+# into the standard profile blob the pack uses everywhere — the Rift entry's "the port uses a valid re-encoded
+# texture" rule applied family-wide. The slim model flag and the original profile name/timestamp are NOT
+# carried: the blob holds the skin URL alone, which is what the head minting reads on both eras.
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTI2NDdjYTVkYzRkNTE5Y2VhYjg3MjgyZWI5MDMxNzQ3NmRjNDU2MWZjZTVlZWM2YTk4Mzk2YTBmZGJkNWZiYyJ9fX0="
+description:
+  - "§cImmune to Teleblock, Bidirectional Teleport"
+  - "§7The aura around this mask"
+  - "§7is electrified and encoded."
+  - "§6§l * §6St. Patrick's Day 2019"
+# KEYS ARE THIS PACK'S FILE STEMS, not the matrix's spelling. The matrix writes the second key
+# `heroic/bidirectional-teleportation`; every heroic grade in this pack is a file under content/enchants/, so
+# the stable key gate 5 matches on is `enchants/bidirectional-teleportation`. A `heroic/...` string would
+# intern to a scope nothing carries and the immunity would silently never fire.
+# WHAT A BLOCK COSTS THE ATTACKER: gate 5 stops the WHOLE activation, so Teleblock's pearl-removal and its
+# victim line ride out with the block (all three are effects of the one BOW ability) — which is what the jar's
+# early return did, aborting before the pearls were taken. ONE recorded delta in the shooter's favour: the
+# defender gate is gate 5 and the soul charge is gate 10, so a blocked shot costs the shooter NOTHING, where
+# the jar had already billed his gems at launch and let the arrow land dead. Nothing to author either way —
+# the ordering is the pipeline's, and it is the kinder half of a difference nobody can see.
+# Bidirectional Teleportation: the bypassed roll is `Math.random() <= 0.066 x level`, and keying the ENCHANT
+# covers both of its arms (grapple and trap) without naming either.
+# ORDERING vs the RANGER set: the jar checked the set's teleblock immunity BEFORE this mask, invisible to
+# gameplay since both were early returns. Here both are idempotent windows, so order is irrelevant — note only
+# that sets/ranger.yml arms a KIND-scope TELEBLOCK window (any source of the effect) while this one is
+# ENCHANT-scoped (this enchant, all of its effects). Neither weakens the other.
+# MULTI-MASK: both of these were `hasEquipped()`-routed in the jar and already worked inside a compound mask,
+# so the family routing bug (D-11-1) does not touch this entry.
+# ACQUISITION: common generator pool, 90 %/11 = 8.1818 % per roll; active in the mask help menu. A mask def
+# carries no tier/weight/pool field and this pack has no mask-generator surface, so the percentage is ledgered
+# here rather than authored (family preamble).
+# era: nothing beyond the head seam. The seam itself is owned by ADR-0053 (loose masks are `SKULL_ITEM:3` with
+# a reflective authlib profile on 1.8.9, `PLAYER_HEAD` on modern). One era fact travels with the immunity and
+# is engine-side, not authored: TELEBLOCK denies pearls AND chorus fruit on modern, and chorus fruit does not
+# exist on 1.8.9, so the legacy lane has one fewer escape to deny — teleblock.yml already records it.
+abilities:
+  - trigger: REPEATING
+    repeat: 20
+    effects:
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/teleblock", duration: 60, who: "@Self" } }
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/bidirectional-teleportation", duration: 60,
+                               who: "@Self" } }

@@ -1,0 +1,53 @@
+# Matrix: 11-masks.md § Bunny Mask
+# The one mask whose payload is not combat at all: while it is worn, spawner spawns in the wearer's chunk roll
+# to come out doubled. The matrix records this as the SPAWNER_YIELD gap — no spawner trigger, no chunk-scoped
+# selector, and no effect that multiplies a spawn the engine did not create — and the primitive shipped, so
+# the entry is one line. It is a worn CHANNEL, not a proc: nothing activates it, and SpawnerYieldListener
+# reads the wearer's live PASSIVE abilities at each spawn instead.
+display: "Bunny Mask"
+color: "§d"
+# `display` carries the FULL matrix name and the likeness renders `{COLOR}&l{NAME}` (the cosmic family's names
+# are irregular — six of the 27 carry no " Mask" suffix — so the whole name lives in the
+# def), reproducing `§d§lBunny Mask`. The shared trailing lore block and the ATTACHED stamp are likeness-level
+# (family preamble); the stamp's ability text is lore line 1 verbatim here, so nothing diverges.
+# HEAD TEXTURE: not carried by the matrix decomposition; the codex records the texture hash
+# `cb30870e...c7d198f6` (profile MysteryMerchant, model `slim`, timestamp 1555602231045), re-encoded here into
+# the pack's standard profile blob (the Rift entry's "valid re-encoded texture" rule, applied family-wide).
+# The slim model flag is not carried — the blob holds the skin URL alone, which is what head minting reads on
+# both eras.
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2IzMDg3MGVmYWI1ZjMzNTk4YjEwNzg3MzRhNDRjMzM1NjJiZGU4M2I2YTM5ODc0NmRmZmNlMDZjN2QxOThmNiJ9fX0="
+description:
+  - "§c1.65x Mobs from Spawners in Chunk"
+  - "§7And so the gods declared to all"
+  - "§7the easter bunnies: be fruitful"
+  - "§7and multiply."
+  - "§6§l * §6Easter 2019"
+# THE NUMBERS ARE THE MATRIX'S, unchanged: chance 0.65 = 65 %, one extra copy, chunk scope. The advertised
+# "1.65x" is the marketing rendering of that roll — 1 x 0.35 + 2 x 0.65 = 1.65 expected mobs — so the headline
+# and the mechanic are the same number twice, not two knobs. The engine rolls `random x 100 < chance`, the
+# jar's strict `<` on `Math.random() < 0.65`, so the boundary matches too.
+# WHAT THE JAR ACTUALLY DID, and why this is a direct implementation rather than a port of it: the jar wrote
+# `monsterAmount` metadata (2, or +2 on an existing value) for an ABSENT external plugin to consume, and no
+# consumer exists anywhere in the corpus (matrix-UNRESOLVED). The multiplication itself was never observed.
+# The port implements the advertised expectation directly — the effect spawns the extra copies itself.
+# D-11-10: the jar cached wearer presence per chunk for 5 s and the very spawn that primed the cache granted
+# nothing, so it paid a wearer who had walked off and refused one who had just arrived. Shipped as-intended:
+# the wearer test is asked PER SPAWN against live worn state, so walking away stops it on the next spawn.
+# THREE ENGINE RULES that ride this effect and are not authored knobs: grants do NOT stack (two wearers at one
+# spawner get the stronger one's yield, never both — the strongest `chance x extra` wins); the added copies
+# spawn as CUSTOM, so they never re-trigger the roll and never count against the spawner's own budget; and a
+# suppression window on the wearer parks the channel, since the listener skips a suppressed source (the
+# Chef-mask idiom, ADR-0053 §7 — an interaction the jar could not have).
+# `scope: chunk` is the matrix's own wording ("Mobs from Spawners in Chunk") and the jar's own scan, which
+# walked the spawn chunk's entities. `radius` is left at its default and ignored under chunk scope.
+# MULTI-MASK: routed through the shared mask lookup in the jar, so it already worked inside a compound mask —
+# the family routing bug (D-11-1) does not touch this entry.
+# ACQUISITION: RARE generator pool, 10 %/9 = 1.1111 % per roll; active in the mask help menu. A mask def
+# carries no tier/weight/pool field and this pack has no mask-generator surface, so the percentage is ledgered
+# here rather than authored (family preamble).
+# era: `CreatureSpawnEvent` and `SpawnReason.SPAWNER` both exist on 1.8.9, so nothing beyond the head seam
+# ADR-0053 owns (`SKULL_ITEM:3` + a reflective authlib profile on 1.8.9, `PLAYER_HEAD` on modern).
+abilities:
+  - trigger: PASSIVE
+    effects:
+      - { SPAWNER_YIELD: { chance: 65, extra: 1, scope: chunk } }

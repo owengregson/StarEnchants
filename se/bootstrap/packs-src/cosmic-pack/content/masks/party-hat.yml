@@ -1,0 +1,45 @@
+# Matrix: 11-masks.md § Party Hat
+# The only mask in the family carrying BOTH an offensive and a defensive multiplier: measured
+# `setDamage(damage * 1.04)` as damager = +4 %, `setDamage(damage * 0.95)` as victim = -5 % (the victim branch
+# it shares with Monopoly). Mask multipliers live in ONE EntityDamageByEntityEvent handler with no
+# EntityDamageEvent twin, so the defensive double-fire (00-MECHANICS §3, deviation D-001) never touched this
+# family — both numbers below are already single-pass finals. The source multiplies its own damage channel;
+# the port contributes the same percents to the ONE additive fold (ADR-0012).
+#
+# CALIBRATION: attack-side percents are divided by this pack's `combat.attack-scale` at authoring time
+# (ADR-0050 R2) and cosmic-pack runs attack-scale 1.0, so the authored 4 IS the advertised +4 % final. The
+# defense side is never scaled (ADR-0050 R2), so the authored 5 is 5 % felt reduction, folded into the summed
+# reduction bucket the `combat.max-bonus-reduction` cap ceils.
+#
+# MULTI-MASK: BOTH halves are routed through the source's per-player mask lookup, which makes them silently
+# dead inside a folded Multi-Mask (the family bug). The port keeps every folded child active — deviation
+# D-11-1 — and needs nothing here: a composite helmet resolves each child's abilities as if that child alone
+# were worn (ADR-0074).
+display: "Party Hat"
+# `display` carries the FULL name text: this is one of the entries whose source name has NO " Mask" suffix
+# (`§f§lParty Hat`), so this pack's items/mask.yml must template `{COLOR}&l{NAME}` and append nothing of its
+# own — the same call headless.yml / monopoly.yml record. `color` is the name's §f minus the template's bold.
+color: "§f"
+# HEAD TEXTURE: the matrix decomposition carries no base64. The codex records the texture hash
+# `fc458cf0...e6dbf92b` (profile MysteryMerchant, timestamp 1545194599279), re-encoded here into the standard
+# SKIN-url profile blob the worn repaint reads (the Rift entry's "valid re-encoded texture" rule, applied
+# family-wide). Profile name and timestamp are not carried — the blob holds the skin URL alone.
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmM0NThjZjBlZDkyNGNhM2VhMzI4ZDg0MTMyODVhYWRlNTM0YTc0ZTQ2ZGQ1NTA0N2IxOWQxNmRlNmRiZjkyYiJ9fX0="
+# Lore VERBATIM, in order. A mask def has no `ability` field, so the source's `specialAbility` string
+# (`§c-5% ENEMY DMG` — the text its ATTACHED stamp echoes) is line 1 of the block, exactly where the source's
+# own lore repeats it; the +4 % line therefore never appears in the stamp. The credit line is the NO-leading-
+# space style (`§6§l* `), which this entry shares with Santa, Reindeer and Death Knight. The shared trailing
+# block every mask appends is likeness-level (items/mask.yml), not repeated here.
+description:
+  - "§c-5% ENEMY DMG"
+  - "§c+4% DMG"
+  - "§7Everywhere you are is a party."
+  - "§6§l* §6New Years 2018"
+# ACQUISITION: RARE generator pool, 10 %/9 = 1.1111 % per roll; active in the mask help menu. A mask def
+# carries no tier/weight/pool field and this pack has no mask-generator surface, so the percentage is ledgered
+# here rather than authored (family preamble; deferred-content.md, batch 11).
+# ERA: nothing beyond the family head seam (loose masks are `SKULL_ITEM:3` with a reflective authlib profile
+# on 1.8.9, `PLAYER_HEAD` on modern) — the masks repaint era seam (ADR-0053) already owns it.
+abilities:
+  - { trigger: ATTACK, effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 4 } } ] }
+  - { trigger: DEFENSE, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 5 } } ] }

@@ -1,0 +1,35 @@
+# Matrix: 11-masks.md § Pilgrim Mask
+# One EXP_GAIN rider, x1.25. The jar multiplied the DYING MOB's dropped orb, so whoever walked over it
+# collected the bonus; the port multiplies the WEARER's own gain, which is the scope the lore advertises
+# (deviations.md D-11-3). Second, smaller consequence of the move: EXP_GAIN rounds to the nearest whole XP
+# where the jar truncated the orb — the engine's documented rounding for this head, not a tuning choice.
+display: "Pilgrim Mask"
+# `display` carries the FULL codex name text. This family's names are NOT uniform: SIX of the 27 verbatim
+# NAMES carry no " Mask" suffix — "Pumpkin Monster", "Santa", "Reindeer", "Party Hat", "Death Knight" and
+# "Multi-Mask" — five of them mask defs, the sixth the composite likeness (ADR-0074), so items/mask.yml must
+# render `{COLOR}&l{NAME}` and never append a " Mask" of its own or those six render wrong. `color` is the
+# codex's §e minus the bold the likeness template adds.
+color: "§e"
+# era: the loose mask is a skull on both eras (1.8.9 SKULL_ITEM:3 vs modern PLAYER_HEAD) — the masks repaint
+# seam (ADR-0053) owns that, and nothing here adds to it. The texture is re-encoded from the codex-recorded
+# texture hash into the standard SKIN-url profile blob; the jar's own encoded blob carries a profile id and a
+# timestamp this port does not reproduce (the "valid re-encoded texture" treatment the matrix records at Rift).
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjNiNjNhY2EyNTVlNWFhMWE1OTFiN2I3NWI3YjVlNDc0M2Q0MTk0ZWZmNTJhZmUxMzkwN2FlOTNmNzkzMGJiYSJ9fX0="
+# description: the codex's DECLARED lore, verbatim and in order (ability line, flavour, credit line). The
+# shared trailing block ("Attach this mask to any helmet…" and the equip/remove pair) is family-wide and
+# belongs to items/mask.yml, not here. The JAR's ATTACHED stamp carried line 1's text; the port's on-helmet
+# line is the likeness's own "Mask Equipped ({NAME})" wording (deferred-content.md, wave 2e.2 ruling), so that
+# stamp string is recorded here rather than rendered anywhere.
+# The "/Drops" half of line 1 is XP-only in the jar — no item-drop multiplier exists anywhere in the corpus,
+# so nothing is authored for it and the string still ships verbatim.
+description:
+  - "§c+25% XP/Drops"
+  - "§7tHiS iS oUr lAnD nOw!"
+  - "§6§l * §6Thanksgiving 2018"
+# Acquisition: Random Mask generator, COMMON pool — 90 % / 11 = 8.1818 %. Neither the mask def (no tier, no
+# weight) nor config.yml's `masks:` section carries a generator knob, so the pool is recorded here and
+# ledgered, never improvised into a rung off tiers.yml.
+# Multi-Mask: this one is already routed through the shared lookup in the jar and works inside a compound;
+# the port keeps every folded child active regardless (D-11-1).
+abilities:
+  - { trigger: EXP_GAIN, effects: [ { EXP_MULTIPLY: { factor: 1.25 } } ] }

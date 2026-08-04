@@ -1,0 +1,46 @@
+# Matrix: 11-masks.md § Reindeer
+# Speed IV while worn, plus the flight the lore has always advertised. Both halves are as-intended reads of a
+# jar that half-delivered them: the speed arrived through an equip grant of near-infinite duration that the
+# first heartbeat silently downgraded to a 10 s rolling refresh (and granted NOTHING at all until that
+# heartbeat when the wearer carried no tracked speed), and the flight line has no implementation anywhere in
+# the corpus (deviations.md D-11-7 and D-11-6). Here both are uniform, maintained, and lapse on unequip.
+display: "Reindeer"
+# NO " Mask" suffix — the codex name is bare "Reindeer", the same as Santa; items/mask.yml must render
+# `{COLOR}&l{NAME}` and append nothing. `color` is the codex's §a minus the template bold.
+color: "§a"
+# era: head seam only (ADR-0053) — the speed potion and the flight flag are stable across the whole range.
+# The texture is re-encoded from the codex-recorded texture hash into the standard SKIN-url profile blob
+# (see pilgrim.yml).
+head: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNjY4MjQ3YTVmYjI5M2Q3ODU1MjAwOTc4NTRjZmFhNWQxNWY1ZjcxZDg0YTZlNjNhOTZiNjI2OGU3ZWQxM2UyNiJ9fX0="
+# description: the codex's DECLARED lore, verbatim and in order; the shared trailing block lives on
+# items/mask.yml. The JAR's ATTACHED stamp carried line 1's text ALONE (the flight line never appeared there);
+# the port's on-helmet line is the likeness's own "Mask Equipped ({NAME})" wording (deferred-content.md, wave
+# 2e.2 ruling), so that stamp string is recorded here rather than rendered. The credit line has NO leading
+# space before the asterisk (the Christmas pair's convention) — transcribed as-is.
+description:
+  - "§cSPEED IV"
+  - "§cFlight regardless of rank"
+  - "§7The decapitated and stuffed"
+  - "§7head of one of Santa's"
+  - "§7magical reindeer... yikes!"
+  - "§6§l* §6Christmas 2018"
+# Acquisition: Random Mask generator, COMMON pool — 8.1818 % (see pilgrim.yml for why the pool is comment-only).
+# Multi-Mask: works inside a compound in the jar and here (D-11-1).
+# NOT ported: the jar stripped the speed inside non-Cosmonaut outpost worlds, through an external outposts
+# plugin this port has no counterpart for. A world gate exists on the surface (`disabled-worlds`) but it names
+# literal worlds, and outpost tiers are a foreign runtime state, so there is nothing faithful to name.
+abilities:
+  # Amplifier 3 in the jar = level 4 here (the surface is 1-based). The authored duration never governs: the
+  # PASSIVE lifecycle maintains the buff while the mask is worn and tears it down on unequip, and the potion
+  # registry reconciles it against any other speed source (highest amplifier shows) instead of the jar's
+  # upgrade-in-place bookkeeping. Same idiom as sets/ranger.yml and sets/supreme.yml.
+  - { trigger: PASSIVE, effects: [ { POTION: { effect: SPEED, level: 4, duration: 200, who: "@Self" } } ] }
+  # FLY_MODE grants flight out of combat and revokes it in combat by itself, so "regardless of rank" needs no
+  # rank fact — there is no rank subsystem to consult. REPEATING at the matrix's 40 t is the re-check; PASSIVE
+  # rides with it for the unequip teardown the matrix asks for ("lapses on unequip"), which is the pairing the
+  # effect's own authoring note prescribes and signature-pack's sets/supreme.yml (Gifted Child) already ships;
+  # no set in THIS pack grants flight, so there is no in-pack precedent to point at.
+  - trigger: [REPEATING, PASSIVE]
+    repeat: 40
+    effects:
+      - { FLY_MODE: { who: "@Self" } }
