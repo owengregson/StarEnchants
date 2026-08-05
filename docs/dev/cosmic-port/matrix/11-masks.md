@@ -638,14 +638,19 @@ primitives in `docs/reference/authoring-surface.txt` at HEAD appear in decomposi
   attacker (−25%); projectile hits resolve to the shooter (both in the jar and in the
   engine's combat dispatch)
 - **decomposition:**
-  1. `[ATTACK condition="%victim.mobtype% == {boss-id}"]
+  1. `[ATTACK condition="<boss designation>"]
      DAMAGE_MOD(side=attack, mode=add, amount=10)`
-  2. `[DEFENSE condition="%victim.mobtype% == {boss-id}"]
+  2. `[DEFENSE condition="<boss designation>"]
      DAMAGE_MOD(side=defense, mode=add, amount=25)` — on the DEFENSE pass the
      `%victim.*%` facts read the ATTACKER, so the same condition gates the incoming
-     side; `{boss-id}` is the pack's boss-id list (or an OR-chain), fed by the
-     `%victim.mobtype%` soft hook (ADR-0027) that resolves external boss-plugin mob
-     ids without an engine dependency
+     side. The designation is a `%victim.type%` list over the vanilla bosses —
+     `%victim.type% == "ENDER_DRAGON" || %victim.type% == "WITHER"` (both resolve on
+     1.8.9). NOT `%victim.mobtype%`, which is the MythicMobs soft hook (ADR-0027):
+     with no integration installed it resolves to the empty string for every entity,
+     so the mask would ship as inert as the absent-plugin metadata flag it replaces.
+     Servers running MythicMobs widen the list with `%victim.mobtype%` entries, which
+     `masks/boss.yml` documents. Deliberately the same list `matrix/04` § Boss Slayer
+     carries, so the pack has ONE boss designation rather than two
 - **interactions:** the jar keys on `"boss"` metadata stamped by an ABSENT external
   plugin (UNRESOLVED) — the port re-keys on the pack's boss-id condition list, which
   is the interaction-layer decision (which mobs count as bosses is config, not

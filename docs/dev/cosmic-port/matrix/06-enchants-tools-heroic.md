@@ -79,8 +79,8 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   - Auto Sell (mastery, doc 07): a sellable smelted drop is sold for
     `price × count` instead of being given; ordering rule lives on Auto Sell.
 - **strings:** none.
-- **numbers:** max 3; table weight 6; item set = 5 pickaxes; base 10.0, interval
-  10.0. Chance `L×0.34`: L1 34%, L2 68%, L3 1.02 → always (known bug, see
+- **numbers:** max 3; table weight 6; item set = 5 pickaxes; tier 1; base 10.0,
+  interval 10.0. Chance `L×0.34`: L1 34%, L2 68%, L3 1.02 → always (known bug, see
   ledger D-06-1; intended 100%). Ingots per proc = L (1/2/3). No durability cost, no
   region check of its own.
 - **era:** legacy material names (`GOLD_INGOT` et al.) resolve via the boot-time
@@ -112,12 +112,19 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
     perpendicular layer (symmetric radius) and TUNNEL a 1×1 line — no combination
     yields a 3×3×depth slab (or Atomic's asymmetric cubes). Consumers: excavation
     volumes (this, Atomic Detonate).
+    **SHIPPED as `@Bore{half-width, half-height, depth, materials}`** for the
+    SYMMETRIC half — oriented on the mined face, so `@Bore{half-width=1,
+    half-height=1, depth=D}` IS this entry's 3×3×D slab. Only the ASYMMETRIC
+    extents (Atomic Detonate's `(1,2,1,2)` / `(2,3,2,3)`) stay open; both entries
+    stay deferred on `BLOCK_MATERIAL_FILTER`, not on the selector.
   - `BLOCK_MATERIAL_FILTER` — per-block filter on block-volume selectors/effects:
     deny list, allow list, tool-class-conditional sublists (list applies only when
     `%actor.helditem%` matches a pattern), void-drops list (break listed materials
     without drops). Conditions gate whole activations, not individual blocks of a
     resolved volume, and `BREAK_BLOCK.drops` is all-or-nothing. Consumers:
     excavation deny lists, Atomic Detonate bulk-drop voiding.
+    **PARTLY SHIPPED as `@Bore`'s `materials` / `exclude-materials`**; the
+    `BREAK_BLOCK` deny + void-drops half is still open.
 - **interactions:**
   - Volume drop treatment composes with the tool's other enchants: Telepathy →
     drops to inventory; Auto Smelt AND Fuse → iron/gold ore smelted in-volume
@@ -128,8 +135,8 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   - Spawner-break bookkeeping fires per broken spawner (engine break pipeline).
   - Heroic partner: Atomic Detonate (application contract above).
 - **strings:** none player-visible. Console tool-destroy line not ported.
-- **numbers:** max 9; table weight 6; item set = 21 tools; base 10.0, interval
-  10.0. Depth roll per level (probability → depth): L1 33%→1 else 0;
+- **numbers:** max 9; table weight 6; item set = 21 tools; tier 4; base 10.0,
+  interval 10.0. Depth roll per level (probability → depth): L1 33%→1 else 0;
   L2 66%→1 else 0; L3 always 1; L4 33%→2 else 1; L5 66%→2 else 1;
   L6 always 2; L7 33%→3 else 2; L8 66%→3 else 2;
   L9 always 3. Layer = 9 blocks; max blocks touched 10/10/10/19/19/19/28/28/28
@@ -168,8 +175,8 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   engine equivalence: EXP_MULTIPLY applies to the activation's XP before any
   drops-to-player effect reads it (same net result, no extra rule).
 - **strings:** none.
-- **numbers:** max 5; table weight 6; item set = 21 tools; base 10.0, interval
-  10.0. Factor 1.25 / 1.50 / 1.75 / 2.00 / 2.25; result `(int)`-truncated
+- **numbers:** max 5; table weight 6; item set = 21 tools; tier 1; base 10.0,
+  interval 10.0. Factor 1.25 / 1.50 / 1.75 / 2.00 / 2.25; result `(int)`-truncated
   (base 7 → 8/10/12/14/15); 0-XP blocks stay 0. No proc roll, no region check,
   fires even on breaks the player was not allowed to make (engine: normal
   cancelled-event handling applies).
@@ -188,7 +195,7 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
 - **strings:** none.
 - **numbers:** max 1; table weight 6; item set = 5 pickaxes (NOT the 21 tools — a
   table-rolled Detonate spade/axe can never receive Fuse; acquisition quirk
-  kept); base 10.0, interval 10.0.
+  kept); tier 4; base 10.0, interval 10.0.
 - **era:** none.
 
 ### Haste (`tools/haste`)
@@ -203,8 +210,8 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   potions on every hit); engine potion tracking never downgrades a stronger
   effect (ledger D-06-5).
 - **strings:** none.
-- **numbers:** max 3; table weight 2; item set = 21 tools; base 15.0, interval
-  10.0. Haste I/II/III (amplifier `L-1`), duration constant 40t (2.0 s),
+- **numbers:** max 3; table weight 2; item set = 21 tools; tier 1; base 15.0,
+  interval 10.0. Haste I/II/III (amplifier `L-1`), duration constant 40t (2.0 s),
   refreshed continuously while mining → effectively permanent during digging.
 - **era:** `FAST_DIGGING`→`HASTE` potion-type rename (alias resolver); jar's
   block-damage refresh path fired only while holding an iron/diamond pickaxe —
@@ -224,8 +231,8 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
 - **interactions:** Factions ownership + OBBY-destroy permission + war-zone veto →
   engine protection hooks. Single block per click, no radius.
 - **strings:** none.
-- **numbers:** max 5; table weight 6; item set = 5 pickaxes; base 10.0, interval
-  10.0. Chance 20/40/60/80/100%. No durability cost. Jar quirks not ported:
+- **numbers:** max 5; table weight 6; item set = 5 pickaxes; tier 2; base 10.0,
+  interval 10.0. Chance 20/40/60/80/100%. No durability cost. Jar quirks not ported:
   async Factions lookup race and the null-faction NPE path (engine protection
   checks are synchronous).
 - **era:** none (obsidian/left-click identical in 1.8.9).
@@ -241,11 +248,14 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   max air; params `amount` (ticks), optional `skip-if-overflow` to reproduce
   measured no-op inside the last `amount` ticks. No existing primitive restores a
   partial amount (`FILL_OXYGEN` = full). Consumers: incremental breath effects.
+  **SHIPPED as `FILL_OXYGEN.amount`** — "air ticks to add, clamped to the target's
+  maximum air" verbatim. The optional `skip-if-overflow` is not wanted: D-06-6 rules
+  the clamped top-up the as-intended reading.
 - **interactions:** retired — excluded from all random enchant pools and mystery
   books (acquisition metadata, not runtime).
 - **strings:** none.
-- **numbers:** max 1; table weight 6; item set = 21 tools; base 10.0, interval
-  10.0. +20 air ticks (1.0 s; max 300t). Level is never read. Measured guard
+- **numbers:** max 1; table weight 6; item set = 21 tools; tier 1; base 10.0,
+  interval 10.0. +20 air ticks (1.0 s; max 300t). Level is never read. Measured guard
   `remaining+20 <= max` skips the final 0–19 ticks entirely → intended clamped
   top-up (ledger D-06-6).
 - **era:** none.
@@ -264,12 +274,13 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   `factor`, `categories`; consumers: skill-XP tool enchants. `EXP_GAIN`/
   `EXP_MULTIPLY` cover only vanilla player XP; no primitive can observe another
   plugin's XP events. Scope call (drop vs soft-depend) belongs to the spec owner.
+  **STILL OPEN, and moot: ruling R-QC44 DROPPED Skilling** — no soft-depend ships.
 - **interactions:** none in-engine. The jar's gate-bypass (End/outposts) is an
   artifact of the raw listener; if ported, route through normal dispatch so END-
   SUPPRESS applies (flag to owner: felt change in The End).
 - **strings:** none.
-- **numbers:** max 10; table weight 2; item set = 21 tools; base 15.0, interval
-  6.0. Multiplier `1.0+0.04×L`: +4% … +40% (L1…L10, linear).
+- **numbers:** max 10; table weight 2; item set = 21 tools; tier 2; base 15.0,
+  interval 6.0. Multiplier `1.0+0.04×L`: +4% … +40% (L1…L10, linear).
 - **era:** none beyond the third-party dependency itself.
 
 ### Telepathy (`tools/telepathy`)
@@ -292,8 +303,8 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   - Inside Detonate/Atomic volumes, Telepathy's presence routes volume drops to
     inventory (recorded on those entries).
 - **strings:** none.
-- **numbers:** max 4; table weight 6; item set = 21 tools; base 10.0, interval
-  10.0. Chance 25/50/75/100% (L4 exactly 1.00 → always; by-design cap, not
+- **numbers:** max 4; table weight 6; item set = 21 tools; tier 2; base 10.0,
+  interval 10.0. Chance 25/50/75/100% (L4 exactly 1.00 → always; by-design cap, not
   ledgered). Measured drop handling (first drop stack only; custom Fortune floor
   table over COAL/DIAMOND/EMERALD/QUARTZ/LAPIS ore — F I: 1 roll @0.25
   (EV 1.25), F II: 3 rolls @0.25 (EV 1.75), F ≥III: 4 rolls @0.20 (EV 1.80,
@@ -325,6 +336,9 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   the flag is armed (equip → arm, unequip → lift); increases unaffected; params:
   none (or `chance`); consumers: sustain wearables. `MODIFY_FOOD` can only
   give/take discrete points; no primitive vetoes the drain event.
+  **SHIPPED as `MODIFY_FOOD mode=cancel-drain`** — cancels hunger LOSS for a window
+  and leaves gains alone, which is the jar's "only cancels decreases, so eating still
+  works"; re-armed on REPEATING per the effect's own authoring note.
 - **interactions:** counterpart `Implants` (heal +1 vs +2, no hunger lock) —
   replaced on application per the contract entry.
 - **strings:** none.
@@ -357,7 +371,9 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   - Y floor `y > 0` (engine world floor handles); the jar's `y > 200` ceiling
     clause is unreachable in practice (origin ≤7 + max 7-block span) — not ported.
 - **gaps:** `FACE_ORIENTED_BOX_SELECTOR`, `BLOCK_MATERIAL_FILTER` (defined at
-  Detonate).
+  Detonate). The selector's symmetric half **SHIPPED as `@Bore`**; this entry's
+  ASYMMETRIC extents (`(1,2,1,2)` / `(2,3,2,3)`) and the per-block DENY /
+  void-drops filter are what keep it deferred.
 - **interactions:**
   - Same volume-drop composition as Detonate (Telepathy / Auto Smelt+Fuse / Auto
     Sell), same Factions/war-zone protection hooks, same spawner bookkeeping.
@@ -396,9 +412,12 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
        arrow damage stands)
     2. `MESSAGE` (trapped string)
   - Ally, ability C (no roll):
-    1. condition `%distance% <= 30` and same-world (engine cross-world guard) —
+    1. `CANCEL()` (and the arrow is removed) — FIRST, before any range test: the
+       source cancels and removes, then compares `distanceSquared`, so a too-far
+       allied hit still deals ZERO and merely prints. `teleportation.yml` ships the
+       same shape for the non-heroic (both arms open with CANCEL)
+    2. condition `%distance% <= 30` and same-world (engine cross-world guard) —
        else too-far string
-    2. `CANCEL()` (and the arrow is removed)
     3. `TELEPORT(to=VICTIM)` — keeps the shooter's pitch/yaw
     4. `SOUND(ORB_PICKUP, 0.75, 0.341)` at self; `PARTICLE(SPELL_WITCH, 35)` +
        `PARTICLE(FLAME, 10)` at the ally (+0.5 y)
@@ -409,10 +428,15 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
     `VELOCITY` is a fixed vector (`away` only pushes), `GRAPPLE` moves the actor,
     `GRAVITY_WELL` is a periodic area pull — none produce a capped
     distance-scaled single impulse on the victim.
+    **SHIPPED as `VELOCITY mode=toward` + `anchor=activator` with an expression
+    `strength`** — the recorded `clamp(distance²/50, 1.0, cap)` is authored
+    literally, so only the jar's separate Y softening (`y × -mag/1.75`) is
+    approximated, not the magnitude curve.
   - `RELATION_VAR` — expose the actor↔victim relation as `%victim.relation%`
     (ALLY/MEMBER/ENEMY/NEUTRAL, duel-aware); consumers: relation-branched combat
     effects. Selector filters (ALLIES/ENEMIES) exist but conditions cannot branch
     an ability on relation.
+    **SHIPPED as `%victim.relation%`** (wave 1b).
 - **interactions:**
   - GLITCH mask (doc 11) on the victim blocks the entire enemy branch.
   - PvP-region gates: both ends must be PvP-enabled; The End/KOTH PvP-boundary
@@ -464,6 +488,7 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   clear hook; consumers: stacking debuffs (this), death-payout marks (Master
   Inquisitive). `SET_VAR` is documented per-player/self-scoped with no
   read-modify-write, and no condition scope reads a victim-side custom var.
+  **SHIPPED as `SET_VAR who=@Victim` + `%victim.var.<name>%`** (wave 1).
 - **interactions:**
   - Blood Lust ally leech (axes, doc 04): on each proc, allied players with
     Blood Lust `j` within a 7×7×7 box of the victim (excluding the damager) roll
@@ -519,6 +544,8 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   (and null-attacker context); consumers: any-source defensive procs (this,
   Guided Rocket Escape's lethal check, cross-doc death-saves). `DEFENSE` requires
   a target (entity-caused only); `FALL`/`FIRE` cover exactly two causes.
+  **SHIPPED as the `HURT` trigger** — DEFENSE-direction, no target, every damage
+  cause; `enlighted.yml` has taken it for the same jar behaviour since batch 01.
 - **interactions:** defensive double-fire: jar member of the double-fire column —
   measured proc rate on melee is the two-pass compound; matrix values are
   SINGLE-PASS intended per D-001. Counterpart Enlighted (heal 1.0, level clamp 3)
@@ -627,9 +654,10 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   8. `SOUND(EXPLODE, 1.0, 0.54)`
   9. `PARTICLE(particle=CLOUD, count=69, spread=2.0)` at launch; repeated once at
      the cleanup tick (`wait=20×(L+2)+5`)
-- **gaps:** `ANY_DAMAGE_TRIGGER` (defined at Divine Enlighted);
-  `FLY_SPEED_PARAM` — a `speed` param on `FLY` (fraction, vanilla default 0.1);
-  consumers: boosted escape flight. `FLY` grants flight with no speed control.
+- **gaps:** none. `ANY_DAMAGE_TRIGGER` (defined at Divine Enlighted) **SHIPPED as
+  the `HURT` trigger**; `FLY_SPEED_PARAM` — a `speed` param on `FLY` (fraction,
+  vanilla default 0.1); consumers: boosted escape flight — **SHIPPED as `FLY.speed`**,
+  which restores the PRIOR fly speed rather than the jar's hard-coded 0.1.
 - **interactions:**
   - Cooldown bucket SHARED with non-heroic Rocket Escape; asymmetric read —
     heroic honors 15 s, non-heroic 30 s (a heroic proc suppresses a non-heroic
@@ -669,6 +697,7 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   consumers: the reflect family (normal ≤5 / heroic ≤7 / mastery ==8). `REFLECT`
   returns damage %, `ECHO_STRIKE` re-runs the actor's own attack — neither
   re-executes the attacker's procs against him.
+  **SHIPPED as `PROC_REBOUND`.**
 - **interactions:** reflect-priority chain is exclusive: mastery (tier==8) else
   heroic (≤7) else normal (≤5) — a wearer with several reflect variants uses only
   the highest-priority branch even if a lower one has a higher level. Reflects
@@ -720,6 +749,7 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   activations: the projectile's Y minus the victim's feet Y at impact; consumers:
   headshot-style conditions. No existing var describes the projectile's impact
   geometry (`%actor.belowvictim%` is actor-vs-victim).
+  **SHIPPED as `%impactheight%`**, already load-bearing on `sniper.yml`.
 - **interactions:**
   - Rage (masks, doc 11): a victim inside the 200 ms rage window is immune to the
     headshot conversion (roll consumed).
@@ -765,16 +795,24 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
 ### Master Inquisitive (`heroic/master-inquisitive`)
 
 - **codex:** `06-enchants-tools-heroic.md § Master Inquisitive`
-- **activation:** two abilities: trigger `ATTACK` with condition
-  `%victim.type% != PLAYER` (mobs only), chance `15×L`%; trigger `EXP_GAIN` on
-  the marked mob's death XP.
+- **activation:** three abilities — ATTACK marks, KILL opens a pickup window,
+  EXP_GAIN spends it. An XP-gain activation carries NO victim (the marked mob is
+  already dead), so the mark cannot be read there; the KILL rule is what bridges it.
+  ATTACK: condition `%victim.type% != PLAYER` (mobs only), chance `15×L`%.
 - **decomposition:**
-  1. `ATTACK` ability: `TARGET_SCOPED_VAR(name=inquisitive-mark, op=set, value=L,
-     who=@Victim)` — gap (last hit's level wins, matching the jar's overwrite)
-  2. `EXP_GAIN` ability, condition `%victim.inquisitive-mark% >= 1`:
-     `EXP_MULTIPLY(factor=(1.0+0.25×<mark>)×2.0)` — banded per mark level
-     (2.5 / 3.0 / 3.5 / 4.0), consuming the mark
-- **gaps:** `TARGET_SCOPED_VAR` (defined at Deep Bleed).
+  1. `ATTACK` ability: `SET_VAR(name=inquisitive.master, value=L, ttl=0,
+     who=@Victim)` — last hit's level wins, matching the jar's overwrite
+  2. `KILL` ability, condition `%victim.var.inquisitive.master% > 0`:
+     `SET_VAR(name=minq.window, value=1, ttl=40, who=@Self)` — the 40 t pickup
+     window on the holder
+  3. `EXP_GAIN` ability, condition `%minq.window% == 1`:
+     `EXP_MULTIPLY(factor=(1.0+0.25×L)×2.0)` — 2.5 / 3.0 / 3.5 / 4.0 off the
+     HOLDER's rung (the mark is tested for presence only)
+  The base's own three-rule chain, so the two grades stay uniform; `inquisitive.yml`
+  already carries the same delta (the jar paid out on ANY killer's blow, the window
+  is the holder's own kill).
+- **gaps:** none. `TARGET_SCOPED_VAR` (defined at Deep Bleed) **SHIPPED as
+  `SET_VAR who=@Victim` + `%victim.var.<name>%`** in wave 1.
 - **interactions:** the jar pays out on the mob's death regardless of WHO kills
   it (global death listener); engine scoping pays the mark-owner's XP event —
   felt-equivalent in practice, flag if the owner wants cross-player payout.
@@ -859,6 +897,7 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
 - **gaps:** `CURE_COUNT_PARAM` — a `count` param on `CURE` limiting how many
   effects are stripped (default all); consumers: single-cleanse procs. `CURE`
   currently clears the whole category.
+  **SHIPPED as `CURE.count`.**
 - **interactions:** attacker-gated → single-pass measured (D-001 context). The
   bless bypasses the Deep Wounds lockout (jar 1-arg overload — measured, record
   on the Deep Wounds interaction when doc 03 lands). KOTH armor set rate-limits
@@ -1068,8 +1107,10 @@ level. Strings are verbatim jar output with placeholders as `{brace}` tokens.
   3. `MESSAGE(text=<DIMINISH>, who=@Self)`
 - **interactions:** jar shares the armed-cap key with non-heroic Diminish (a cap
   armed by one is honored/reflected by the other) — same-player co-occurrence
-  requires two armor pieces; contract blocks same-item only; engine state is
-  per-enchant (structural change, recorded). Reflect recursion can re-enter the
+  requires two armor pieces; contract blocks same-item only. Reproduced exactly, NOT
+  a structural change: `DamageCapStore` holds ONE armed cap keyed by player UUID, so
+  the wrinkle is last-arm-wins — a re-arm replaces factor and reflect wholesale, and
+  the co-occurrence caveat is the jar's own. Reflect recursion can re-enter the
   attacker's own gear (engine pipeline bounds it).
 - **strings:** `§e§l* DIMINISH [§eMAX DMG: {cap}§l] *` — cap rendered with two
   decimals. Console spam line not ported.

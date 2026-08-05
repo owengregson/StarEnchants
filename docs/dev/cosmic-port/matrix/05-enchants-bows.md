@@ -28,6 +28,29 @@ Corpus-wide notes (apply to every entry unless the entry says otherwise):
   line flags only genuine 1.8.9 hazards.
 - **Deviation rows.** Ledgered bugs below carry ids `D-05-1` … `D-05-7`, consolidated
   in `deviations.md`.
+- **NO ACQUISITION ROWS — editorial note (2026-08-05, ruling G5).** Docs 01–04 close
+  every `numbers` block with `Acquisition: max N, base X, interval Y, weight W,
+  tier T`; this doc carries none for any of its 22 entries (the backfill commit
+  covered 01 only). The missing data is the codex's own registration appendix
+  (`# | display | class | pkg | tier | max | base | interval`) — copy it wholesale,
+  do NOT re-derive 22 rungs by hand. Max levels are unambiguous from each entry's
+  per-level ladder. Rungs recorded so far, as the authored files took them:
+  - Pack already shipped a rung for the name, carried forward (noted in-file):
+    `pacify.yml` rare, `piercing.yml` epic, `snare.yml` uncommon, `sniper.yml`
+    legendary, `hellfire.yml` uncommon — so `pacify`, `snare` and `hellfire` ship
+    BELOW their appendix rung (tier 4 / 3 / 4). Re-check those five when 05 is
+    backfilled.
+  - No prior rung, appendix used: `virus.yml` uncommon (tier 2, max 4),
+    `teleportation.yml` rare (tier 3, max 5), `venom.yml` rare (tier 3, max 3),
+    `unfocus.yml` epic (tier 4, max 5), `teleblock.yml` soul (tier 6, max 5 — the
+    one entry whose tier this doc DOES state, and the appendix agrees).
+  - Bow-family batch, same appendix: `explosive.yml` uncommon (tier 2, max 5),
+    `cowification.yml` uncommon (tier 2, max 3), `farcast.yml` rare (tier 3, max 5),
+    `arrow-lifesteal.yml` epic (tier 4, max 5), `eagle-eye.yml` epic (tier 4, max 5),
+    `dimension-rift.yml` epic (tier 4, max 4), `healing.yml` common (tier 1, max 4),
+    `lightning.yml` common (tier 1, max 3), `infernal.yml` rare (tier 3, max 3),
+    `longbow.yml` epic (tier 4, max 4). Every max there is corroborated by the
+    entry's own numbers ladder — only the rungs are appendix-only.
 
 ---
 
@@ -83,10 +106,13 @@ Corpus-wide notes (apply to every entry unless the entry says otherwise):
     ignite, the fired projectile (selectors resolve living entities only). Consumers:
     Cowification (cow), Explosive (wither skull), Venom (XP orb), Hellfire (fire),
     Infernal (fire).
+    **SHIPPED as the `PROJECTILE_DRESSING` effect** — except the fire-ticks param,
+    which is STILL OPEN.
   - `PROJECTILE_LAND` — trigger fired where the actor's projectile lands (block lodge
     or entity strike), activation site = landing location, shot-time level binding.
     `BOW` needs a target and cannot fire on a miss; `IMPACT` is the FALLING_BLOCK
     landing hook. Consumers: the five arrow-AoE enchants above.
+    **SHIPPED as the `PROJECTILE_LAND` trigger** (wave 1c).
 - **interactions:** single rider slot — Explosive's wither skull wins over the cow
   (jar: cow suppressed when the held item also carries Explosive); authored as an
   interaction-layer priority rule on `PROJECTILE_DRESSING` riders. Ally exclusion in
@@ -134,9 +160,11 @@ Corpus-wide notes (apply to every entry unless the entry says otherwise):
   - `TEMP_BLOCK_FILL_CHANCE` — per-block probability `p` applied as a TEMP_BLOCK/CAGE
     shape lays each block (scatter fill). Ability-level `chance` is all-or-nothing per
     activation; no primitive rolls per block. Consumers: partial web/scatter overlays.
+    **SHIPPED as `TEMP_BLOCK.fill-chance`.**
   - `TEMP_BLOCK_REVERT_HOOK` — effect list executed when a temp-block placement
     reverts, targeting players within `r` of the restored blocks. No primitive can
     schedule effects at ledger-revert time. Consumers: rift-style terrain traps.
+    STILL OPEN.
 - **interactions:** the jar's placement gates (`world_koth` victim-world, `dungeon`
   shooter-world, "not a normal faction claim" **and** "inside a named WorldGuard
   region" — contradictory in open wilderness, so the enchant rarely fires; codex
@@ -210,7 +238,9 @@ Corpus-wide notes (apply to every entry unless the entry says otherwise):
        `POTION(effect=WITHER, level=2, duration=20*<level>)` — jar set: living
        entities (mobs included), excluding owner, allies, `spectator`, Ender Dragon;
        cube half-extent `level` vs SE spherical `r` (shape delta noted).
-- **gaps:** `PROJECTILE_DRESSING`, `PROJECTILE_LAND` (defined under Cowification).
+- **gaps:** `PROJECTILE_DRESSING`, `PROJECTILE_LAND` (defined under Cowification)
+  — both **SHIPPED** (the effect and the wave-1c trigger); only
+  `PROJECTILE_DRESSING`'s fire-ticks param is still open.
 - **interactions:** wins the single rider slot — Cowification and Venom check for
   Explosive and stand down; Explosive makes no reciprocal check (rider-priority
   interaction rule). **Virus multiplies every Wither tick this applies** (see Virus).
@@ -249,6 +279,7 @@ Corpus-wide notes (apply to every entry unless the entry says otherwise):
   Flow-mod `±N %chance%` clauses add constant points on one boolean test only; no
   primitive evaluates a var expression into the roll. Consumers: health-scaled
   defensive procs.
+  **SHIPPED as EXPR_PARAMS** — `chance` takes an expression over condition vars.
 - **interactions:** the jar's `pushAwayEntityEvent` anticheat stamp and
   `inDungeonParkour` abort are external-stack concerns (engine knockback path covers
   them). D-001 single-pass ruling applies.
@@ -304,13 +335,16 @@ Corpus-wide notes (apply to every entry unless the entry says otherwise):
     var backed by the engine's existing ally model; ally-awareness exists only as an
     `AOE`/`NEAREST` selector *filter* today, not as a condition fact. Consumers:
     ally-gated support procs (Healing, Teleportation), ally-exclusion conditions.
+    **SHIPPED as `%victim.relation%`.**
   - `RANDOM_RANGE_PARAM` — uniform random roll `[min, max]` for a numeric effect
     param, rolled per activation. Params are compile-time constants today; N
     chance-chained abilities cannot express an exclusive uniform partition sanely.
     Consumers: variable heal/damage rolls.
+    **SHIPPED as `rand(lo, hi)`.**
   - `DURABILITY_PIECE_SELECT` — piece-selection mode (`most-damaged` | `random` |
     `all`) on `DURABILITY(target=armor)`; today the effect addresses the slot set as
     a whole. Consumers: single-point armor-repair drips.
+    **SHIPPED as `DURABILITY select: most-damaged`.**
 - **interactions:** the jar cancels the event at LOWEST, so on an allied hit **no
   other bow enchant procs** — authored as an interaction-layer precedence rule
   (Healing's `CANCEL` suppresses same-hit abilities). Healing bypasses the jar's rank
@@ -359,7 +393,9 @@ Corpus-wide notes (apply to every entry unless the entry says otherwise):
        - `DAMAGE(amount=1+<level>)` — jar deals it 1 t later as a fresh no-damager
          hit (armor-reduced, no kill credit, no pipeline re-entry)
        - `PARTICLE(particle=LAVA, count=16)` per burned player (+1y, speed 0.5)
-- **gaps:** `PROJECTILE_DRESSING`, `PROJECTILE_LAND` (defined under Cowification).
+- **gaps:** `PROJECTILE_DRESSING`, `PROJECTILE_LAND` (defined under Cowification)
+  — both **SHIPPED** (the effect and the wave-1c trigger); only
+  `PROJECTILE_DRESSING`'s fire-ticks param is still open.
 - **interactions:** jar's `world_duels2` halving (radius `i*2/2`, damage `(1+i)/1.5`)
   is server-world wiring — interaction-layer world rule if ever wanted, not ported by
   default. Essentials god/vanish + StaffPlus freeze AoE filters → engine gates.
@@ -379,14 +415,20 @@ Corpus-wide notes (apply to every entry unless the entry says otherwise):
 
 - **codex:** `05-enchants-bows.md § Hijack`
 - **activation:** trigger `BOW`, chance `8*level` %; condition
-  `%victim.mobtype% == "IRON_GOLEM"`; melee mirror: **no** (`PROJECTILE` cause gate).
-  Jar additionally requires the golem to be a Guardians summon
-  (`guardianSummoner` metadata) — see decomposition note.
+  `%victim.type% == "IRON_GOLEM"` — NOT `%victim.mobtype%`, which is the MythicMobs
+  soft hook (ADR-0027) and resolves to the empty string with no integration installed
+  (same fact § Boss Slayer in `matrix/04` corrects); melee mirror: **no**
+  (`PROJECTILE` cause gate). Jar additionally requires the golem to be a Guardians
+  summon (`guardianSummoner` metadata) — see decomposition note.
 - **decomposition:**
-  1. `CONVERT_SUMMON(radius=1, who=@Victim)` — rebinds the struck golem to the
-     shooter (enemy summon turns on its former owner). Jar-only restriction: summons
-     only; `CONVERT_SUMMON` also converts wild mobs — the `%victim.mobtype%` gate
-     narrows to iron golems, residual delta (natural golems convertible) noted.
+  1. `CONVERT_SUMMON(radius=1, who=@Victim)` — **cannot be authored, and this is why
+     the entry is deferred.** The effect is the Grand Bell (ADR-0071): it is
+     player-targeted and rings around that player, so it cannot express "flip THIS
+     summon" and a golem target resolves to nothing. The intent is to rebind the
+     struck golem to the shooter (enemy summon turns on its former owner); the jar
+     restricts to summons, whereas a radius convert also takes wild mobs, so the
+     `%victim.type%` gate narrows to iron golems with a residual delta (natural
+     golems convertible) noted.
   2. fresh-respawn upgrade — **gap** `SUMMON_REBIND_UPGRADE`: jar deletes the golem
      (no death event, no drops) and respawns a **fresh, full-health** guardian 2
      blocks up at guardian tier `2*<level>`, name `§b§l{OWNER}'s Guardian`, 30 s
@@ -399,6 +441,7 @@ Corpus-wide notes (apply to every entry unless the entry says otherwise):
   respawn: full health at the new owner's summon tier (`tier` param), ttl reset,
   rename. `CONVERT_SUMMON` rebinds in place (current health, no tier change, no
   rename). Consumers: projectile summon-theft.
+  **SHIPPED as `SUMMON_REBIND`** (wave 1d.2).
 - **interactions:** consumes the Guardians (armor enchant) summon system — converted
   guard adopts the hijacker's `GUARDIAN_HURT` wiring and the Guardians stat ladder
   (health `50 + gtier*10` → `70/90/110/130`; permanent Fire Resistance always, plus
@@ -435,7 +478,9 @@ Corpus-wide notes (apply to every entry unless the entry says otherwise):
     2. via `@Aoe{r=<level>, filter=ENEMIES}`: `IGNITE(duration=<level>*20)` — jar
        set: living entities (mobs included) minus owner/allies/`spectator`/
        `do_not_clear`; no Ender Dragon filter; absolute set (can shorten a longer burn).
-- **gaps:** `PROJECTILE_DRESSING`, `PROJECTILE_LAND` (defined under Cowification).
+- **gaps:** `PROJECTILE_DRESSING`, `PROJECTILE_LAND` (defined under Cowification)
+  — both **SHIPPED** (the effect and the wave-1c trigger); only
+  `PROJECTILE_DRESSING`'s fire-ticks param is still open.
 - **interactions:** retired from tier rolls (listed twice in the jar's retired list —
   catalog trivia), fully functional when present. Fire damage not Virus-amplified.
 - **strings:** none.
@@ -506,8 +551,8 @@ Corpus-wide notes (apply to every entry unless the entry says otherwise):
      rewrite of the expiry stamp).
 - **interactions:** the sword enchant Rage is the sole consumer (jar key
   `noRageUntil`); authored as the SUPPRESS above against the interaction layer. The
-  distinct `effectedByRage` key (Rage → Sniper immunity) is **not** written by Pacify
-  — do not conflate.
+  distinct `raged` stamp (Rage → Sniper immunity; the jar spelled it
+  `effectedByRage`) is **not** written by Pacify — do not conflate.
 - **strings:** none (no sounds, no particles either).
 - **numbers:** chance `62.5 / 75 / 87.5 / 100` % (level 4: `Math.random() < 1.0`
   always passes — a guaranteed proc, copied as 100); lockout `750/1500/2250/3000` ms
@@ -594,9 +639,11 @@ Corpus-wide notes (apply to every entry unless the entry says otherwise):
   existing var exposes impact geometry (SE has no headshot detection — confirmed by
   the EE-import compromise that substituted flat damage). Consumers: headshot-gated
   procs (Sniper here; Lethal Sniper in doc 06).
-- **interactions:** victims stamped by Rage within the last 200 ms are immune
-  (`effectedByRage`, written by the sword enchant Rage) — interaction-layer condition
-  against Rage's recent-application window. Heroic upgrade path: an item with Lethal
+  **SHIPPED as `%impactheight%`.**
+- **interactions:** victims stamped by Rage within the last 200 ms are immune —
+  read as `%victim.var.raged%`. `matrix/03` § Rage decomposes exactly ONE victim-side
+  stamp, `raged` (4 t / 200 ms); there is no separate `effectedByRage` writer, and the
+  window and subject match, so `sniper.yml` reads the same key `execute.yml` does. Heroic upgrade path: an item with Lethal
   Sniper rejects Sniper; Lethal Sniper requires Sniper V (catalog rule; Lethal
   Sniper's own numbers live in doc 06). Composition with Longbow/Unfocus: see
   Longbow's interaction note (jar multiplicative at MONITOR, SE additive fold).
@@ -729,7 +776,8 @@ Corpus-wide notes (apply to every entry unless the entry says otherwise):
     2. `MESSAGE(text=<too-far string>, who=@Self)`
   - ability C (trigger `BOW_FIRE`, chance 100):
     1. `PARTICLE(particle=SPELL_WITCH, count=35, who=@Self)` (launch, speed 0.5)
-- **gaps:** `TARGET_RELATION_FACT` (defined under Healing).
+- **gaps:** none. `TARGET_RELATION_FACT` (defined under Healing) **SHIPPED as
+  `%victim.relation%`**.
 - **interactions:** like Healing, the LOWEST-priority cancel suppresses every other
   bow enchant on an allied hit — same interaction-layer precedence rule. The
   End/KOTH PvP-transition rule (may not teleport from PvP-enabled into PvP-disabled
@@ -776,9 +824,13 @@ Corpus-wide notes (apply to every entry unless the entry says otherwise):
     (`causes: [PROJECTILE]`, …) on outgoing-damage debuff marks (WEAKEN family). The
     mark is applied once but consumed at fold time; no condition hook exists at
     consumption. Consumers: projectile-only damage debuffs.
+    **SHIPPED as `OUTGOING_DEBUFF.cause`.**
   - `MARK_CONSUME_FEEDBACK` — per-consumption message param on stored damage marks
     (text + channel, sent to the mark's bearer when the mark modifies a hit).
     Consumers: Unfocus-style debuffs with per-hit feedback.
+    **SPLIT.** The SUPPRESS half **SHIPPED** as `OUTGOING_DEBUFF.feedback` plus
+    `SUPPRESS.consumed-message-actor` / `-victim` / `-sound`, built by ruling
+    **R-QC41**. The plain-`MARK` half is **DROPPED**, ratified **R-QC24**.
 - **interactions:** priority ordering vs Sniper/Longbow: the jar halves at HIGHEST
   *before* their MONITOR multiplies (`base / 2 * sniperMult * longbowMult`); SE fold
   ordering per engine damage-stacking rules (see Longbow note). The jar halves even
@@ -811,7 +863,9 @@ Corpus-wide notes (apply to every entry unless the entry says otherwise):
     1. via `@Aoe{r=<level>, filter=ENEMIES}` restricted to players (the jar's fixed
        check is a player-type test):
        `POTION(effect=POISON, level=2, duration=25*<level>)`
-- **gaps:** `PROJECTILE_DRESSING`, `PROJECTILE_LAND` (defined under Cowification).
+- **gaps:** `PROJECTILE_DRESSING`, `PROJECTILE_LAND` (defined under Cowification)
+  — both **SHIPPED** (the effect and the wave-1c trigger); only
+  `PROJECTILE_DRESSING`'s fire-ticks param is still open.
 - **interactions:** stands down its orb rider when Explosive is on the same item
   (single rider slot — same interaction rule as Cowification). **Virus multiplies
   every Poison tick this applies** (see Virus); Poison cannot kill in vanilla
@@ -850,6 +904,7 @@ Corpus-wide notes (apply to every entry unless the entry says otherwise):
   scales only the *actor's own later hits*; `DAMAGE_MOD`/`DAMAGE_SCALE` act on the
   triggering fold; nothing intercepts the victim's later DoT ticks. Consumers:
   DoT force-multiplier enchants.
+  **SHIPPED as `DOT_AMPLIFY_MARK`** (wave 1d.2).
 - **interactions:** the intended combo: Explosive's Wither II ticks and Venom's
   Poison II ticks (both vanilla 1.0/tick) become `2.0–5.0` per tick under Virus; any
   other wither/poison source is equally amplified. A Virus-only bow adds **no**
@@ -868,21 +923,25 @@ Corpus-wide notes (apply to every entry unless the entry says otherwise):
 
 ## Gap index (this doc)
 
-| Gap | Consumers here |
-| --- | --- |
-| `PROJECTILE_DRESSING` | Cowification, Explosive, Venom, Hellfire, Infernal |
-| `PROJECTILE_LAND` | Cowification, Explosive, Hellfire, Infernal, Venom |
-| `TEMP_BLOCK_FILL_CHANCE` | Dimension Rift |
-| `TEMP_BLOCK_REVERT_HOOK` | Dimension Rift |
-| `VAR_SCALED_CHANCE` | Farcast |
-| `TARGET_RELATION_FACT` | Healing, Teleportation |
-| `RANDOM_RANGE_PARAM` | Healing |
-| `DURABILITY_PIECE_SELECT` | Healing |
-| `SUMMON_REBIND_UPGRADE` | Hijack |
-| `PROJECTILE_HIT_HEIGHT` | Sniper |
-| `OUTGOING_DEBUFF_CAUSE_FILTER` | Unfocus |
-| `MARK_CONSUME_FEEDBACK` | Unfocus |
-| `DOT_AMPLIFY_MARK` | Virus |
+**12 of 13 CLOSED (2026-08-05, ruling G5).** Batch-1 snapshots; only
+`TEMP_BLOCK_REVERT_HOOK` is still open. Kept as the record of what each entry was
+deferred on.
+
+| Gap | Consumers here | Status |
+| --- | --- | --- |
+| `PROJECTILE_DRESSING` | Cowification, Explosive, Venom, Hellfire, Infernal | shipped as the effect; fire-ticks param still open |
+| `PROJECTILE_LAND` | Cowification, Explosive, Hellfire, Infernal, Venom | shipped as the trigger (wave 1c) |
+| `TEMP_BLOCK_FILL_CHANCE` | Dimension Rift | shipped as `TEMP_BLOCK.fill-chance` |
+| `TEMP_BLOCK_REVERT_HOOK` | Dimension Rift | **STILL OPEN** |
+| `VAR_SCALED_CHANCE` | Farcast | shipped as EXPR_PARAMS |
+| `TARGET_RELATION_FACT` | Healing, Teleportation | shipped as `%victim.relation%` |
+| `RANDOM_RANGE_PARAM` | Healing | shipped as `rand(lo, hi)` |
+| `DURABILITY_PIECE_SELECT` | Healing | shipped as `DURABILITY select: most-damaged` |
+| `SUMMON_REBIND_UPGRADE` | Hijack | shipped as `SUMMON_REBIND` (wave 1d.2) |
+| `PROJECTILE_HIT_HEIGHT` | Sniper | shipped as `%impactheight%` |
+| `OUTGOING_DEBUFF_CAUSE_FILTER` | Unfocus | shipped as `OUTGOING_DEBUFF.cause` |
+| `MARK_CONSUME_FEEDBACK` | Unfocus | SUPPRESS half shipped (`OUTGOING_DEBUFF.feedback`, `SUPPRESS.consumed-message-*`, R-QC41); plain-`MARK` half DROPPED (R-QC24) |
+| `DOT_AMPLIFY_MARK` | Virus | shipped as `DOT_AMPLIFY_MARK` (wave 1d.2) |
 
 ## Deviation rows
 

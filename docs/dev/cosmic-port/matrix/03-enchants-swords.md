@@ -108,6 +108,8 @@
   into the fold (verified against the engine reference: DAMAGE_SCALE
   contributes per resolved selector target — total = per × count — so it
   cannot read a variable's value).`
+  **SHIPPED — absorbed into EXPR_PARAMS** (wave 1a): effect params take expressions,
+  so a var reads straight into the fold.
 - **interactions:** reads the Bleed stack counter (axes doc; counter authored
   there via `COUNTER_VAR`, see §Rage). Blessed (axes) is blocked while its own
   wielder's `%deepwounds%` var is live — Blessed-side condition
@@ -137,6 +139,7 @@
   amount, mode, skip-undamaged(bool: a piece at full durability is left
   untouched); consumers: Demonforged (random slot, skip-undamaged),
   Disintegrate (per-slot profile), armor-doc durability attacks.`
+  **SHIPPED as `DURABILITY select:` + `skip-undamaged`.**
 - **interactions:** none.
 - **strings:** none.
 - **numbers:** chance 4/8/~12/16% (L3 measured `0.12000000000000001`); 1 point,
@@ -196,8 +199,9 @@
   3. `ARMOR_SLOT_DURABILITY(slot=leggings, amount=2, …) @Victim`
   4. `ARMOR_SLOT_DURABILITY(slot=boots, amount=1, …) @Victim`
   5. `SOUND(sound=BLOCK_ANVIL_BREAK, volume=0.3, pitch=0.8)`
-- **gaps:** `ARMOR_SLOT_DURABILITY` — defined at §Demonforged; consumer here
-  for the −1/−2/−2/−1 slot profile with `skip-undamaged=false`.
+- **gaps:** none. `ARMOR_SLOT_DURABILITY` — defined at §Demonforged, **SHIPPED as
+  `DURABILITY select:` + `skip-undamaged`** — carries this entry's −1/−2/−2/−1 slot
+  profile with `skip-undamaged=false`.
 - **interactions:** none.
 - **strings:** none.
 - **numbers:** chance 2/4/6/8%; durability loss level-independent. Jar plays
@@ -242,6 +246,7 @@
   consumers: Divine Immolation's wither conversion; other converted-DoT
   enchants across the corpus. FREEZE's dot is frost-themed (powder-snow
   visual) and cannot carry a fire/wither identity.`
+  **SHIPPED as `PERIODIC_DAMAGE`** (wave 1d.2).
 - **interactions:** shares the full soul-gate chain with Sabotage (souls
   system, Soul Trap debuff, held-switch window); AoE ally/vanish/gamemode/PvP
   filtering is the engine's `filter=ENEMIES` + region policy layer.
@@ -371,10 +376,10 @@
 - **decomposition:**
   1. `DAMAGE_MOD(side=attack, mode=add, amount=200)` (×3.0)
   2. `PARTICLE(particle=BLOCK_CRACK, block=REDSTONE_WIRE, count=8) @Victim`
-- **gaps:** `TARGET_VAR_FACT` — defined at §Inquisitive; consumer here for the
-  `!%victim.var.raged%` gate. Rage writes `raged` victim-scoped
-  (`SET_VAR(name=raged, …) @Victim`, §Rage) and Execute must read that other
-  entity's var — a cross-entity read the surface cannot express today.
+- **gaps:** none. `TARGET_VAR_FACT` — defined at §Inquisitive, **SHIPPED as
+  `%victim.var.<name>%`** — is this entry's `!%victim.var.raged%` gate. Rage writes
+  `raged` victim-scoped (`SET_VAR(name=raged, …) @Victim`, §Rage) and Execute reads
+  it back.
 - **interactions:** mutually exclusive with Rage inside Rage's 200 ms (4 t)
   victim window — interaction-layer rule `execute-blocked-while-victim-raged`,
   riding on the `TARGET_VAR_FACT` gap above rather than on any existing
@@ -404,6 +409,7 @@
   active amplifier as NUM); params: potion-effect handle; consumers:
   Featherweight (skip while hasted), IceAspect (skip while victim slowed),
   corpus-wide skip-while-active gates.`
+  **SHIPPED as `%actor.potion.<x>%` / `%victim.potion.<x>%`** (wave 1b).
 - **interactions:** any external Haste source (beacon, Haste enchant) starves
   it, as measured.
 - **strings:** none.
@@ -450,6 +456,7 @@
   (plain head, no lore); consumers: head-collection enchants. SET_VAR can arm
   a flag but no primitive drops a custom owned-skull item, and DEATH-side
   consumption fires on the victim, not the enchant holder.`
+  **SHIPPED as `HEAD_TROPHY`** (wave 1d.2).
 - **interactions:** CosmicContests console hook (`contests add {KILLER}
   headsCollected 1`, deduped per victim) is an external-plugin integration —
   out of port scope, recorded verbatim for completeness.
@@ -484,8 +491,9 @@
 - **decomposition:**
   1. `POTION(effect=SLOW, level=6, duration=2·L·20) @Victim` (Slowness VI)
   2. `PARTICLE(particle=BLOCK_CRACK, block=DIAMOND_BLOCK, count=8) @Victim`
-- **gaps:** `POTION_STATE_FACT` — defined at §Featherweight; consumer here for
-  the no-re-slow gate.
+- **gaps:** none. `POTION_STATE_FACT` — defined at §Featherweight, **SHIPPED as
+  `%actor.potion.<x>%` / `%victim.potion.<x>%`** (wave 1b) — is this entry's
+  no-re-slow gate.
 - **interactions:** Dragon Slayer set (`immune_freeze`) blocks outright — no
   leak chance — with the set-side message
   `§8§l* DRAGON SLAYER [§7Ice Aspect blocked!§8§l] *` (interaction-layer rule
@@ -519,6 +527,7 @@
   the victim's raged var), Rage (the victim-scoped writer of that var),
   cross-entity state gates across the corpus. SET_VAR is only readable
   actor-scoped (%name%) today.`
+  **SHIPPED as `%victim.var.<name>%`.**
 - **interactions:** none (self-contained mark → XP chain).
 - **strings:** none.
 - **numbers:** mark chance 7.5/15/~22.5/~30%; XP ×1.25/×1.5/×1.75/×2.0;
@@ -578,7 +587,8 @@
   drowning, poison ticks all invert in the jar). Today DEFENSE needs an
   attacking target and only FALL/FIRE exist as targetless defensive triggers;
   %damagecause% exists as a fact, suggesting the trigger is the only missing
-  piece.` (`RANDOM_PARAM` — §Poison — would collapse rows 1–3 to one.)
+  piece.` **SHIPPED as the `HURT` trigger** (wave 1c). (`RANDOM_PARAM` — §Poison,
+  **SHIPPED as `rand(lo, hi)`** — collapses rows 1–3 to one.)
 - **interactions:** Corrupt (armor/other doc): while the defender is corrupted,
   `corrupt·20`% of Inversion procs invert against them — the heal branch
   is replaced by `DAMAGE(amount=<same 1–3 draw>) @Self` + message, and the
@@ -707,6 +717,7 @@
   activation) to a numeric effect param; params: min, max, integer|double;
   consumers: Poison (duration 0..20·L−1), Inversion (the 1–3 draw, currently
   a chance ladder), corpus random-magnitude effects.`
+  **SHIPPED as `rand(lo, hi)` in EXPR_PARAMS.**
 - **interactions:** none.
 - **strings:** none.
 - **numbers:** chance 10/20/~30% (L3 `0.30000000000000004`); duration uniform
@@ -742,8 +753,10 @@
   (both reset when the HOLDER takes any damage — reset-on=damage-taken,
   exactly the jar's reset-on-any-damage rule), Bleed stacks (04 doc), masks monster
   counters (11 doc). The engine's native %combo%/%ragestacks% facts are
-  single-bucket and not authorable per-enchant.` Plus `VAR_SCALED_DAMAGE`
-  (defined §Deep Wounds).
+  single-bucket and not authorable per-enchant.`
+  **SHIPPED as `SET_VAR op=increment` + `%counter.<name>%`.** Plus
+  `VAR_SCALED_DAMAGE` (defined §Deep Wounds), **SHIPPED — absorbed into
+  EXPR_PARAMS**.
 - **interactions:** Devour (axes) suppresses the damage multiplier and the
   victim mark but NOT the counter increment (200 ms window) — layer rule
   `devour-suppresses-rage-multiplier`. Pacify (bow) → `SUPPRESS(scope=ENCHANT,
@@ -807,6 +820,7 @@
   (entity spawn provenance: spawner vs natural); params: none; consumers:
   spawner-mob-gated effects (Shackle; grinder-oriented enchants in other
   docs).`
+  **SHIPPED as `%victim.fromspawner%`.**
 - **interactions:** none.
 - **strings:** none.
 - **numbers:** no scaling beyond the two mob gates. Measured: the jar reads a
@@ -966,13 +980,16 @@
 
 - **codex:** `03-enchants-swords.md § Trap`
 - **activation:** trigger `ATTACK`; conditions: `%victim.type% == PLAYER`;
-  attacker not themself frozen — `!%trap.frozen%` (the var this enchant sets
-  on its victims; the attacker reads their own copy); chance `4·L`% minus the
-  Metaphysical rebate (interactions).
+  the no-re-trap guard `!%trap.frozen%` — authored VICTIM-side. The
+  attacker-side reading this row used to carry is the same wrong-subject idiom
+  `deviations.md` D-06-17 rules out on Heroic Titan Trap, for the same reason:
+  the intent is anti-re-trap. Chance `4·L`% minus the Metaphysical rebate
+  (interactions).
 - **decomposition:**
   1. `MOVEMENT_SPEED(speed=-0.2, ticks=35) @Victim` (walk speed to 0 for
-     35 t; the engine's timed modifier restores the PRIOR speed, fixing the
-     jar's hard-coded 0.2F restore clobber)
+     35 t; the timed revert hands back the vanilla 0.2 default, NOT the prior
+     speed — engine policy, so a re-fire can never ratchet speed upward. That
+     reproduces the jar's clobber rather than fixing it)
   2. `SET_VAR(name=trap.frozen, value=1, ttl=35) @Victim`
   3. `MESSAGE(text="§c§l(!) §cYou have been trapped by {ATTACKER}!") @Victim`
   4. `MESSAGE(text="§a§l(!) §aYou are no longer trapped!") @Victim wait=35`
@@ -992,8 +1009,10 @@
   NEGATIVE chance (−1%) — can never land, yet the "blocked" message still
   shows on the would-be proc; as-intended: clamp the effective chance at a 1%
   floor (Heroic Trap parity: a 0.01 chance floor) → ledger `D-03-11`. Overlapping
-  traps: jar's independent release tasks freed early; the timed modifier
-  refreshes instead. Jar's quit-reset and op-exempt particle echo are
+  traps: there is no refresh path — every grant registers its OWN timed revert,
+  so the first revert ends a freeze a later grant re-armed (the jar's
+  independent release tasks freed early the same way).
+  Jar's quit-reset and op-exempt particle echo are
   plumbing artifacts, not ported. Acquisition: max 3, base 15.0,
   interval 3.0, weight 2, tier 3.
 - **era:** block id 80 ↔ `SNOW_BLOCK`; walk-speed freezes behave identically
@@ -1030,18 +1049,21 @@
 
 ## Gap index (this doc)
 
-| Gap | Consumers here |
-| --- | --- |
-| `ARMOR_SLOT_DURABILITY` | Demonforged, Disintegrate |
-| `POTION_STATE_FACT` | Featherweight, IceAspect |
-| `RANDOM_PARAM` | Poison (Inversion optional) |
-| `VAR_SCALED_DAMAGE` | Deep Wounds, Rage |
-| `COUNTER_VAR` | Rage (pvp/pve buckets); Bleed/masks cross-doc |
-| `PERIODIC_DAMAGE` | Divine Immolation |
-| `HEAD_TROPHY_DROP` | Headless |
-| `TARGET_VAR_FACT` | Inquisitive, Execute (reader), Rage (victim-scoped writer) |
-| `SPAWN_ORIGIN_FACT` | Shackle |
-| `HURT_TRIGGER` | Inversion |
+**FULLY CLOSED (2026-08-05, ruling G5).** All ten were batch-1 snapshots; every one
+has since shipped. Kept as the record of what each entry was deferred on.
+
+| Gap | Consumers here | Shipped as |
+| --- | --- | --- |
+| `ARMOR_SLOT_DURABILITY` | Demonforged, Disintegrate | `DURABILITY select:` + `skip-undamaged` |
+| `POTION_STATE_FACT` | Featherweight, IceAspect | `%actor.potion.<x>%` / `%victim.potion.<x>%` (wave 1b) |
+| `RANDOM_PARAM` | Poison (Inversion optional) | `rand(lo, hi)` in EXPR_PARAMS |
+| `VAR_SCALED_DAMAGE` | Deep Wounds, Rage | absorbed into EXPR_PARAMS (wave 1a) |
+| `COUNTER_VAR` | Rage (pvp/pve buckets); Bleed/masks cross-doc | `SET_VAR op=increment` + `%counter.<name>%` |
+| `PERIODIC_DAMAGE` | Divine Immolation | `PERIODIC_DAMAGE` (wave 1d.2) |
+| `HEAD_TROPHY_DROP` | Headless | `HEAD_TROPHY` (wave 1d.2) |
+| `TARGET_VAR_FACT` | Inquisitive, Execute (reader), Rage (victim-scoped writer) | `%victim.var.<name>%` |
+| `SPAWN_ORIGIN_FACT` | Shackle | `%victim.fromspawner%` |
+| `HURT_TRIGGER` | Inversion | the `HURT` trigger (wave 1c) |
 
 ## Deviation rows
 

@@ -35,6 +35,7 @@ replicated). Shared context applied throughout, recorded once here:
   at three grades. Why no combination works: SUPPRESS can only block an activation,
   REFLECT only mirrors damage — nothing can re-run another item's ability with
   swapped roles.`
+  **SHIPPED as `PROC_REBOUND`** (wave 2b).
 - **interactions:** grade precedence mastery (tier-8 incomings only) → heroic
   (tier ≤ 7) → normal (tier ≤ 5), first match wins (a mastery-grade source shadows
   this one for tier-8 procs only); rebound applies only when rebound level >= the
@@ -125,12 +126,15 @@ replicated). Shared context applied throughout, recorded once here:
 - **gaps:** `FREEZE_BREAKOUT — per-blocked-action chance for a frozen target to
   shatter the root early; params: chance; consumers: struggle-out roots (here
   30 − 7.5·L %). Why: FREEZE's window is fixed, no struggle mechanic exists.`
+  **SHIPPED as `FREEZE.breakout-chance`.**
   `DESPAWN — silently remove target non-player entities (no drops, no XP, no death
   event); params: none beyond targeting; consumers: AoE mob-clear procs. Why: KILL
   fires a real death (drops/XP), no primitive removes silently.`
+  **SHIPPED as the `DESPAWN` effect** (wave 1d.2).
   `FILTER_COMPOSE — conjunction of selector filters (e.g. ENEMIES ∧ PLAYERS);
   params: filter list; consumers: player-only hostile payloads here and in Plague
   Carrier / Smoke Bomb. Why: AOE/NEAREST accept exactly one filter.`
+  **SHIPPED as the filter `+` conjunction on AOE/NEAREST.**
 - **interactions:** blocked while a Soul Trap window (axes doc) is active on the
   wearer; Poltergeist (mastery doc) grants freeze immunity — jar always-100%
   (bug), intended a 12.5%·level roll, and an immune victim still takes the bolt
@@ -166,6 +170,7 @@ replicated). Shared context applied throughout, recorded once here:
   factor, mode (absolute = scale the resulting food level, delta = scale the
   gain); consumers: hunger-amplifier leggings. Why: MODIFY_FOOD is a flat give and
   no fact exposes the eat event's before/after food values.`
+  **SHIPPED as `MODIFY_FOOD mode=scale-gain`.**
 - **interactions:** the jar also marked the wearer for an external golden-apple
   sickness system (consumer UNRESOLVED in the codex) — not ported.
 - **strings:** none.
@@ -233,6 +238,7 @@ replicated). Shared context applied throughout, recorded once here:
   count of allied players); params: radius; consumers: soul-charged ally auras
   that must not debit on an empty ally set. Why: %nearbyenemies% exists, no ally
   counterpart.`
+  **SHIPPED as `%nearbyallies%`** (wave 1b).
 - **interactions:** ally = faction ally/member both ways, neither in duel —
   engine relation layer; spectators excluded; soul discounts (Outposts/faction
   upgrades incl. the top-rank no-discount quirk) are environment gates, not
@@ -276,12 +282,14 @@ replicated). Shared context applied throughout, recorded once here:
   decay-period (12000 t, −1 step, floor 0); consumers: last-stand saves. Why:
   soul-cost is static, no soul-balance fact exists, and no primitive holds an
   arithmetic per-player counter.`
+  **SHIPPED as `soul-cost-growth` / `-cap` / `-decay-period`.**
   `MULTI_ABILITY_ENCHANT — an enchant carrying several ability blocks each with
   its own trigger/condition/chance; consumers here: Phoenix (DEFENSE save +
   PASSIVE immunity), Rocket Escape (DEFENSE + FALL), Protection (three
   independent sub-rolls per pulse), Spirit Link (mutually-exclusive condition
   split). Why: the enchant schema binds one trigger and one ability per level. If
   the compiler already accepts an ability list, this gap is zero work.`
+  **SHIPPED as the compiler's ability list** (wave 1a).
 - **interactions:** a Death Knight mask on the attacker blocks the save 50 % of
   the time (masks doc 11) — and the jar still burns the full cooldown on a
   blocked save (measured, shipped as measured); suppression exemption is the
@@ -329,6 +337,7 @@ replicated). Shared context applied throughout, recorded once here:
   params as listed; consumers: Plague Carrier, Self Destruct, Spirits, Undead
   Ruse. Why: SPAWN_ENTITY/SPAWN_SWARM/GUARD spawn bare bodies; detonate=PLAYER_HIT
   only gates a vanilla creeper explosion and cannot substitute a payload.`
+  **SHIPPED as the `SUMMON_PAYLOAD` trigger** (waves 1c/1d).
 - **interactions:** death-burst poison respects relations (truce+ skipped) while
   the creeper payload hits everyone including allies — measured asymmetry,
   recorded for the interaction layer to keep or normalize; summons drop no loot
@@ -378,8 +387,9 @@ replicated). Shared context applied throughout, recorded once here:
      who=@Aoe{…})` + `PARTICLE(SPELL, count=20)`
   4. (8.5 % roll, L ≥ 3) `POTION(effect=HEALTH_BOOST, level=L+2, duration=L·40,
      who=@Aoe{…})` + `PARTICLE(SPELL, count=30)`
-- **gaps:** consumes `MULTI_ABILITY_ENCHANT` (declared under Phoenix) for the
-  three independent sub-rolls sharing one pulse.
+- **gaps:** none — consumes `MULTI_ABILITY_ENCHANT` (declared under Phoenix) for the
+  three independent sub-rolls sharing one pulse, **SHIPPED as the compiler's ability
+  list** (wave 1a).
 - **interactions:** allies = faction ally/member (relation layer); the wearer is
   **never** buffed (AOE excludes the activator — matches the jar); spectator /
   duel / staff-freeze exemptions are engine-level; mixed-level pieces genuinely
@@ -407,6 +417,7 @@ replicated). Shared context applied throughout, recorded once here:
   attacker | victim) choosing the point the target is pushed away from; consumers:
   self-launch defensive procs. Why: away is hardwired to push away from the
   activator, which is the wearer itself here.`
+  **SHIPPED as `VELOCITY.anchor`.**
 - **interactions:** jar skips iron-golem attackers and The End / KOTH worlds
   (environment gates, not shipped); fires on any living damager including allies
   and pets (measured — record for the interaction layer); no fall-damage
@@ -429,6 +440,7 @@ replicated). Shared context applied throughout, recorded once here:
   (%item.durabilitypercent%); params: direction (equip|unequip); consumers:
   repair-window buffs. Why: PASSIVE is maintained state with no transition event,
   and ITEM_DAMAGE fires on durability loss, not removal.`
+  **SHIPPED as the `EQUIP_CHANGE` trigger** (wave 1c).
 - **interactions:** one proc per cooldown window no matter how many damaged
   pieces are removed; the jar's equip half was a dead no-op (nothing to port).
 - **strings:** none.
@@ -480,7 +492,8 @@ replicated). Shared context applied throughout, recorded once here:
   8. `MESSAGE` lines (strings below)
   9. (ability 2, FALL while `%rocketescaping%`) `CANCEL` — no fall damage from
      the launch (replaces the jar's external never-cleared exemption flag)
-- **gaps:** consumes `MULTI_ABILITY_ENCHANT` (declared under Phoenix).
+- **gaps:** none — consumes `MULTI_ABILITY_ENCHANT` (declared under Phoenix),
+  **SHIPPED as the compiler's ability list** (wave 1a).
 - **interactions:** an attacker's Sabotage window (swords doc, 1000 ms) blocks
   the escape at 10 %·sabotage-level — interaction rule; the jar burns the 30 s
   cooldown even on a sabotaged escape (measured, shipped as measured — same
@@ -514,8 +527,9 @@ replicated). Shared context applied throughout, recorded once here:
      volume=1.0, pitch=1.0)` + `PARTICLE(LARGE_EXPLODE, count=3)`
   — the wearer is neither healed nor saved: the incoming damage stands (measured;
   contrast Plague Carrier's deliberate finish and Smoke Bomb's cancel).
-- **gaps:** consumes `SUMMON_PAYLOAD` (declared under Plague Carrier; `scatter`
-  is a payload placement param).
+- **gaps:** none — consumes `SUMMON_PAYLOAD` (declared under Plague Carrier;
+  `scatter` is a payload placement param), **SHIPPED as the `SUMMON_PAYLOAD`
+  trigger** (waves 1c/1d).
 - **interactions:** PvP-region and relation checks per victim (relation layer);
   the jar resolved the owner by name — a logged-off owner dropped the ally filter
   entirely (bug-adjacent; engine ownership is identity-based, not replicated);
@@ -568,7 +582,8 @@ replicated). Shared context applied throughout, recorded once here:
   4. `PARTICLE(CLOUD, count=75)` + `SOUND(FIREWORK_TWINKLE2, volume=2.0,
      pitch=0.75)`; per victim `SOUND(FIREWORK_TWINKLE2, volume=1.6, pitch=0.75)`
   5. `MESSAGE(text=<escape line>, who=@Aoe{…})`
-- **gaps:** consumes `FILTER_COMPOSE` (declared under Nature Wrath).
+- **gaps:** none — consumes `FILTER_COMPOSE` (declared under Nature Wrath),
+  **SHIPPED as the filter `+` conjunction on AOE/NEAREST**.
 - **interactions:** helmet-only, non-stacking; truce+ players exempt (relation
   layer).
 - **strings:** `§c§l(!) §c{owner} has thrown a Smoke Bomb in an attempt to
@@ -596,7 +611,8 @@ replicated). Shared context applied throughout, recorded once here:
      `PARTICLE(HEART, count=3)` + `SOUND(ORB_PICKUP, volume=1.0, pitch=0.35)`
   — the split is roll-safe: the conditions are disjoint, so exactly one ability
   rolls per event.
-- **gaps:** consumes `MULTI_ABILITY_ENCHANT` (declared under Phoenix).
+- **gaps:** none — consumes `MULTI_ABILITY_ENCHANT` (declared under Phoenix),
+  **SHIPPED as the compiler's ability list** (wave 1a).
 - **interactions:** chestplate-only, non-stacking; ally = faction ally/member
   both ways, neither in duel; the wearer never heals themself (AOE excludes the
   activator — matches the jar); heal is per-ally, not divided (a faction ball
@@ -610,10 +626,11 @@ replicated). Shared context applied throughout, recorded once here:
 ### Spirits (`enchants/spirits`)
 
 - **codex:** `02-enchants-armor-m-z.md § Spirits`
-- **activation:** trigger `DEFENSE`; condition
-  `%damagecause% == "ENTITY_ATTACK"` (jar additionally required a **player**
-  damager — no attacker-type fact exists; the widening to mob melee is noted);
-  chance 2 % flat; cooldown 200 t (10 s).
+- **activation:** trigger `DEFENSE`; conditions
+  `%damagecause% == "ENTITY_ATTACK" && %victim.type% == "PLAYER"` — on a DEFENSE
+  pass the "victim" facts read the ATTACKER, so that IS the jar's player-damager
+  requirement (`guardians.yml` has shipped it since batch 01); chance 2 % flat;
+  cooldown 200 t (10 s).
 - **decomposition:**
   1. `SPAWN_ENTITY(type=BLAZE, count=(L==10 ? 2 : 1), ttl=200,
      health=50+10·L, owner=activator, targeting=false)` +
@@ -626,7 +643,8 @@ replicated). Shared context applied throughout, recorded once here:
   2. `PARTICLE(SPELL, count=45)` + `PARTICLE(FLAME, count=35)` on proc; per spawn
      `SOUND(IRONGOLEM_DEATH, volume=1.0, pitch=0.55)`; per pulse
      `PARTICLE(HEART, count=20)` at the blaze
-- **gaps:** consumes `SUMMON_PAYLOAD` (declared under Plague Carrier).
+- **gaps:** none — consumes `SUMMON_PAYLOAD` (declared under Plague Carrier),
+  **SHIPPED as the `SUMMON_PAYLOAD` trigger** (waves 1c/1d).
 - **interactions:** spirits can never damage or target players (jar cancels
   both; `targeting=false` + a passive payload reproduces it — the L≥6
   Strength/Speed buffs are decorative, measured); jar ally test is **exact**
@@ -759,9 +777,10 @@ replicated). Shared context applied throughout, recorded once here:
 ### Undead Ruse (`enchants/undead-ruse`)
 
 - **codex:** `02-enchants-armor-m-z.md § Undead Ruse`
-- **activation:** trigger `DEFENSE`; condition
-  `%damagecause% == "ENTITY_ATTACK"` (jar: player damager; widening noted);
-  chance `min(1·L, 4)` %.
+- **activation:** trigger `DEFENSE`; conditions
+  `%damagecause% == "ENTITY_ATTACK" && %victim.type% == "PLAYER"` — the jar's
+  player-damager requirement, kept: on DEFENSE the `%victim.*%` facts read the
+  attacker (see § Spirits); chance `min(1·L, 4)` %.
 - **decomposition:**
   1. `SPAWN_SWARM(type=ZOMBIE, count=<per-level>, ttl=0)` +
      `SUMMON_PAYLOAD(name="§d§l{owner}'s Undead Minion", self-buffs=[SPEED
@@ -773,11 +792,13 @@ replicated). Shared context applied throughout, recorded once here:
      intended duration; measured 20 t flat (see numbers)
   3. `PARTICLE(WITCH_MAGIC, count=20)` at the spawn; `PARTICLE(WITCH_MAGIC,
      count=35)` on vanish and on reappear
-- **gaps:** consumes `SUMMON_PAYLOAD` (declared under Plague Carrier).
+- **gaps:** none — consumes `SUMMON_PAYLOAD` (declared under Plague Carrier),
+  **SHIPPED as the `SUMMON_PAYLOAD` trigger** (waves 1c/1d).
   `VIEWER_HIDE — hide a target player from specific viewer(s) for a duration
   (full model hide, not a potion); params: duration, viewer (attacker | all);
   consumers: decoy/vanish defensive procs. Why: POTION INVISIBILITY hides from
   everyone, leaves armor visible, and cannot scope to one viewer.`
+  **SHIPPED as the `VIEWER_HIDE` effect** (wave 1d.2).
 - **interactions:** minions never hurt (or get hurt by) the owner or the owner's
   allies and never target them or spectators — engine summon-ownership rules
   (the jar's name-string ownership orphaned minions on rename; identity-based
