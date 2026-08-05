@@ -1,0 +1,336 @@
+# Matrix: 07-enchants-mastery-soul.md § Rot and Decay
+display: "Rot and Decay"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA hit clears every foreign summon around you,"
+  - "&eraises corpses of your own, and rots the ground"
+  - "&eunder the fight into something else entirely."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "mastery"
+tier: mastery
+# THE MASTERY FAMILY CONTRACT (matrix 07 § family-wide rules) — the full reading lives in poltergeist.yml.
+# tier 8, `group: "mastery"`, `applies-to: [ARMOR]`, no `suppress-immune:`.
+# ── THE PURGE ──────────────────────────────────────────────────────────────────────────────────────────────
+# `SUMMON_PURGE` REMOVES rather than converts, which is the whole distinction from `CONVERT_SUMMON`: the jar
+# cleared the field of other people's minions, it never recruited them. `filter: not-own-or-ally-or-offline`
+# is the jar's three-way test verbatim (owner offline, owner not the wearer, or owner allied), including its
+# own quirk that an ALLY's summons are cleared too. The wearer's own zombies carry the same shared summon tag,
+# so a later proc by anyone else can purge them — measured, and structural in the filter.
+# Particles per removed summon: `LARGE_SMOKE` at spread 0.3 count 10, then `SPELL_WITCH` count 12. The
+# recorded 0.01 / 0.7 particle SPEEDS have no authoring surface (the same note every particle burst in this
+# pack carries), so the second burst takes the spread default.
+# ── THE CORPSES ────────────────────────────────────────────────────────────────────────────────────────────
+# `SPAWN_ENTITY` now carries name AND speed on one primitive, which is what closed the matrix's `SUMMON_STYLE`
+# gap. `owner: activator` is what makes `{OWNER}` fill (the guardians/spirits contract) and what stops the
+# corpses attacking their summoner. `ttl: 0` is the jar's permanent zombie; `speed` is a multiplier on vanilla
+# movement speed, the port's reading of the jar's permanent Speed I/II/III potion.
+# `payload-phase: strike` is `SUMMON_STRIKE_PAYLOAD`: the corpse's melee hit is cancelled, the corpse is
+# consumed, and the OWNER's IMPACT abilities run on whoever it struck. That is the only thing that connects
+# the zombies to the payload at all — `periodic` would make them a walking aura with no hit to cancel.
+# The zombies drop nothing; that is the effect's own summon contract, not an authored row. The jar's 50-entity
+# chunk cap is an engine internal.
+# ── THE FIELD, AND THE ONE SEAM THIS FILE REPORTS ──────────────────────────────────────────────────────────
+# `PHANTOM_BLOCKS` is the field's only tell and it is CLIENT-ONLY: the wearer and anyone allied see glowstone,
+# everyone else sees end stone, and nothing is written to the world (which is exactly why `TEMP_BLOCK` /
+# `WALKER` are not the near-miss — they would rewrite up to a 13x13 patch of somebody's build and lose the
+# per-viewer colouring that IS the read).
+# `STACKING_DOT` is the damage half, and its ground test asks `TempBlockLedger` who PLACED the block under
+# each victim's feet. `PHANTOM_BLOCKS` places nothing and stamps no owner, so the two do not meet: the ramp
+# arms, re-reads the ground every pulse, and finds no owner — the DECAYING ladder is INERT until either the
+# overlay claims its patch or the ladder learns to read a phantom one. Recorded here and in
+# deferred-content.md rather than worked around: laying real ground to satisfy the test would be the world
+# rewrite the overlay exists to avoid, and picking a different DoT would lose the field. Everything else in
+# the entry — the purge, the corpses, the payload and the visible ground — is live.
+# The DoT's targets are resolved at arm time (`@Aoe` over the field radius), so the recorded "anyone who walks
+# in" half is bounded to the enemies already inside the patch when it is laid. Its ladder is per-VICTIM and
+# shared across attackers, which is the measured pooling quirk — now structural in the effect rather than
+# incidental.
+# ── THE PAYLOAD'S 50/50 ────────────────────────────────────────────────────────────────────────────────────
+# Two IMPACT abilities, mutually exclusive on a 1-tick marker: ability A rolls 50 and stamps `rot.branch`,
+# ability B runs only when the stamp is absent. SET_VAR writes straight through to the var store, so B reads
+# what A just wrote inside the same activation (the pets/feign-death.yml idiom). Disjoint branches keep it to
+# ONE coin flip per strike rather than two independent rolls.
+# Branch A carries `IGNORE_ARMOR` beside its 10 %-of-max bite because the decomposition records it, but the
+# flag is INERT on an IMPACT walk — only the combat dispatcher reads it, and this is not a folded combat event
+# — so the bite lands ARMOUR-REDUCED where the jar's was a raw health write. The row stays so that an IMPACT
+# dispatch honouring the flag costs no edit; recorded in deferred-content.md, shared with demonic-gateway.
+# Branch B takes `ceil(2.5 % of max
+# durability)` off the FIRST worn piece, which `getArmorContents()` order makes the boots — authored as
+# `select: slot:boots` so the measured order is explicit rather than emergent. The decay is level-independent.
+# `§c§l* DECAYED [§7- {durability} Durability§c§l] *` is NOT authored: `{durability}` is the number of points
+# actually taken, no fact reports a piece's max durability and nothing binds the token, and this pack does not
+# ship unbound `{token}` lines (R-QC2). Recorded in deferred-content.md; the sound still marks the branch.
+# IMPACT SCOPING (ADR-0074 §4) collides with the rest of the family, and this file is one of the three that
+# makes tombstone.yml's warning LIVE: the filter matches on the authored `group:` and every mastery's is the
+# family word `mastery`, so a corpse's strike also runs Tombstone's and Demonic Gateway's IMPACT abilities on
+# the same victim. Narrowing `group:` here would cut this enchant out of the Dragon Slayer and Rift mastery
+# negations, which key the same interned string. R-QC40 is the approved fix (a per-ABILITY `group:` override);
+# until it lands the cross-fire is recorded, not worked around.
+# ── STRINGS ────────────────────────────────────────────────────────────────────────────────────────────────
+# `§2§l{OWNER}'s Rotting Corpse` on the nameplate; `§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *` on
+# each field pulse (both tokens are STACKING_DOT's own); `§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *` on
+# the health branch, with `{damage}` bound to `%victim.maxhealth% * 0.1` — the same number the DAMAGE row
+# takes — and `{ATTACKER}` the corpse's owner, which is what the jar's metadata carried. The wearer receives
+# nothing at all: measured, kept.
+# ── INTERACTIONS ───────────────────────────────────────────────────────────────────────────────────────────
+# `crystals/anti-m-kit-necromancer.yml` already carries this enchant's key. The Mother of Yijki immunity to
+# both halves is set-side (doc 10) and is a held-weapon rule, not a crystal.
+# era: `ENDER_STONE` -> `END_STONE` (wave 2d.2) and `ZOMBIE_METAL` -> `ENTITY_ZOMBIE_ATTACK_IRON_DOOR`
+# (wave 2e.2) both carry alias rows, `SPELL_WITCH` and `LARGE_SMOKE` ride existing ones, and GLOWSTONE is
+# era-safe. The per-viewer overlay's 1.8 block-change format is handled by the `BlockVisibility` seam — the
+# primitive's hazard, not this file's.
+levels:
+  # Per level 1-10 — chance `5 + L`; field radius `3 + floor(L/3)`; corpses `k = 1 + floor(L/3)`; corpse speed
+  # multiplier 1.2/1.4/1.6 for the jar's Speed I/II/III; field duration `20 x L` t; stack cap `min(6, L)`, so
+  # the top tick is `2 x cap` = 2..12 HP. The zombie-hit branches ignore level entirely.
+  1:
+    abilities:
+      - chance: 6
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SUMMON_PURGE: { radius: 15, filter: "not-own-or-ally-or-offline", particle: "LARGE_SMOKE", particle-count: 10, particle-spread: 0.3, extra-particle: "SPELL_WITCH", extra-particle-count: 12, who: "@Self" } }
+          - { SPAWN_ENTITY: { type: "ZOMBIE", count: 1, ttl: 0, owner: "activator", speed: 1.2, name: "§2§l{OWNER}'s Rotting Corpse", payload-phase: "strike", payload-consume: true, payload-cancel: true, who: "@Self" } }
+          - { PHANTOM_BLOCKS: { radius: 3, material-ally: "GLOWSTONE", material-enemy: "END_STONE", duration: 20, who: "@Self" } }
+          - { STACKING_DOT: { step: 2, period: 10, cap: 1, stack-ttl: 60, lead-in: 20, duration: 20, message: "§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *", who: "@Aoe{r=3, filter=ENEMIES}" } }
+      # The corpse's strike, branch A — the coin flip and the armour-bypassing bite.
+      - trigger: IMPACT
+        chance: 50
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "rot.branch", value: "1", ttl: 1, who: "@Self" } }
+          - { IGNORE_ARMOR: {} }
+          - { DAMAGE: { percent-of-max: 10, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *", who: "@Victim", tokens: { damage: "%victim.maxhealth% * 0.1" } } }
+      # Branch B — the other half of the same flip, never both.
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\" && %rot.branch% != 1"
+        effects:
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 2.5, select: "slot:boots", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 3.0, pitch: 1.5, who: "@Victim" } }
+  2:
+    abilities:
+      - chance: 7
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SUMMON_PURGE: { radius: 15, filter: "not-own-or-ally-or-offline", particle: "LARGE_SMOKE", particle-count: 10, particle-spread: 0.3, extra-particle: "SPELL_WITCH", extra-particle-count: 12, who: "@Self" } }
+          - { SPAWN_ENTITY: { type: "ZOMBIE", count: 1, ttl: 0, owner: "activator", speed: 1.2, name: "§2§l{OWNER}'s Rotting Corpse", payload-phase: "strike", payload-consume: true, payload-cancel: true, who: "@Self" } }
+          - { PHANTOM_BLOCKS: { radius: 3, material-ally: "GLOWSTONE", material-enemy: "END_STONE", duration: 40, who: "@Self" } }
+          - { STACKING_DOT: { step: 2, period: 10, cap: 2, stack-ttl: 60, lead-in: 20, duration: 40, message: "§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *", who: "@Aoe{r=3, filter=ENEMIES}" } }
+      # The corpse's strike, branch A — the coin flip and the armour-bypassing bite.
+      - trigger: IMPACT
+        chance: 50
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "rot.branch", value: "1", ttl: 1, who: "@Self" } }
+          - { IGNORE_ARMOR: {} }
+          - { DAMAGE: { percent-of-max: 10, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *", who: "@Victim", tokens: { damage: "%victim.maxhealth% * 0.1" } } }
+      # Branch B — the other half of the same flip, never both.
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\" && %rot.branch% != 1"
+        effects:
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 2.5, select: "slot:boots", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 3.0, pitch: 1.5, who: "@Victim" } }
+  3:
+    abilities:
+      - chance: 8
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SUMMON_PURGE: { radius: 15, filter: "not-own-or-ally-or-offline", particle: "LARGE_SMOKE", particle-count: 10, particle-spread: 0.3, extra-particle: "SPELL_WITCH", extra-particle-count: 12, who: "@Self" } }
+          - { SPAWN_ENTITY: { type: "ZOMBIE", count: 2, ttl: 0, owner: "activator", speed: 1.2, name: "§2§l{OWNER}'s Rotting Corpse", payload-phase: "strike", payload-consume: true, payload-cancel: true, who: "@Self" } }
+          - { PHANTOM_BLOCKS: { radius: 4, material-ally: "GLOWSTONE", material-enemy: "END_STONE", duration: 60, who: "@Self" } }
+          - { STACKING_DOT: { step: 2, period: 10, cap: 3, stack-ttl: 60, lead-in: 20, duration: 60, message: "§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *", who: "@Aoe{r=4, filter=ENEMIES}" } }
+      # The corpse's strike, branch A — the coin flip and the armour-bypassing bite.
+      - trigger: IMPACT
+        chance: 50
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "rot.branch", value: "1", ttl: 1, who: "@Self" } }
+          - { IGNORE_ARMOR: {} }
+          - { DAMAGE: { percent-of-max: 10, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *", who: "@Victim", tokens: { damage: "%victim.maxhealth% * 0.1" } } }
+      # Branch B — the other half of the same flip, never both.
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\" && %rot.branch% != 1"
+        effects:
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 2.5, select: "slot:boots", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 3.0, pitch: 1.5, who: "@Victim" } }
+  4:
+    abilities:
+      - chance: 9
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SUMMON_PURGE: { radius: 15, filter: "not-own-or-ally-or-offline", particle: "LARGE_SMOKE", particle-count: 10, particle-spread: 0.3, extra-particle: "SPELL_WITCH", extra-particle-count: 12, who: "@Self" } }
+          - { SPAWN_ENTITY: { type: "ZOMBIE", count: 2, ttl: 0, owner: "activator", speed: 1.4, name: "§2§l{OWNER}'s Rotting Corpse", payload-phase: "strike", payload-consume: true, payload-cancel: true, who: "@Self" } }
+          - { PHANTOM_BLOCKS: { radius: 4, material-ally: "GLOWSTONE", material-enemy: "END_STONE", duration: 80, who: "@Self" } }
+          - { STACKING_DOT: { step: 2, period: 10, cap: 4, stack-ttl: 60, lead-in: 20, duration: 80, message: "§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *", who: "@Aoe{r=4, filter=ENEMIES}" } }
+      # The corpse's strike, branch A — the coin flip and the armour-bypassing bite.
+      - trigger: IMPACT
+        chance: 50
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "rot.branch", value: "1", ttl: 1, who: "@Self" } }
+          - { IGNORE_ARMOR: {} }
+          - { DAMAGE: { percent-of-max: 10, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *", who: "@Victim", tokens: { damage: "%victim.maxhealth% * 0.1" } } }
+      # Branch B — the other half of the same flip, never both.
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\" && %rot.branch% != 1"
+        effects:
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 2.5, select: "slot:boots", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 3.0, pitch: 1.5, who: "@Victim" } }
+  5:
+    abilities:
+      - chance: 10
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SUMMON_PURGE: { radius: 15, filter: "not-own-or-ally-or-offline", particle: "LARGE_SMOKE", particle-count: 10, particle-spread: 0.3, extra-particle: "SPELL_WITCH", extra-particle-count: 12, who: "@Self" } }
+          - { SPAWN_ENTITY: { type: "ZOMBIE", count: 2, ttl: 0, owner: "activator", speed: 1.4, name: "§2§l{OWNER}'s Rotting Corpse", payload-phase: "strike", payload-consume: true, payload-cancel: true, who: "@Self" } }
+          - { PHANTOM_BLOCKS: { radius: 4, material-ally: "GLOWSTONE", material-enemy: "END_STONE", duration: 100, who: "@Self" } }
+          - { STACKING_DOT: { step: 2, period: 10, cap: 5, stack-ttl: 60, lead-in: 20, duration: 100, message: "§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *", who: "@Aoe{r=4, filter=ENEMIES}" } }
+      # The corpse's strike, branch A — the coin flip and the armour-bypassing bite.
+      - trigger: IMPACT
+        chance: 50
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "rot.branch", value: "1", ttl: 1, who: "@Self" } }
+          - { IGNORE_ARMOR: {} }
+          - { DAMAGE: { percent-of-max: 10, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *", who: "@Victim", tokens: { damage: "%victim.maxhealth% * 0.1" } } }
+      # Branch B — the other half of the same flip, never both.
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\" && %rot.branch% != 1"
+        effects:
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 2.5, select: "slot:boots", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 3.0, pitch: 1.5, who: "@Victim" } }
+  6:
+    abilities:
+      - chance: 11
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SUMMON_PURGE: { radius: 15, filter: "not-own-or-ally-or-offline", particle: "LARGE_SMOKE", particle-count: 10, particle-spread: 0.3, extra-particle: "SPELL_WITCH", extra-particle-count: 12, who: "@Self" } }
+          - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 0, owner: "activator", speed: 1.4, name: "§2§l{OWNER}'s Rotting Corpse", payload-phase: "strike", payload-consume: true, payload-cancel: true, who: "@Self" } }
+          - { PHANTOM_BLOCKS: { radius: 5, material-ally: "GLOWSTONE", material-enemy: "END_STONE", duration: 120, who: "@Self" } }
+          - { STACKING_DOT: { step: 2, period: 10, cap: 6, stack-ttl: 60, lead-in: 20, duration: 120, message: "§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *", who: "@Aoe{r=5, filter=ENEMIES}" } }
+      # The corpse's strike, branch A — the coin flip and the armour-bypassing bite.
+      - trigger: IMPACT
+        chance: 50
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "rot.branch", value: "1", ttl: 1, who: "@Self" } }
+          - { IGNORE_ARMOR: {} }
+          - { DAMAGE: { percent-of-max: 10, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *", who: "@Victim", tokens: { damage: "%victim.maxhealth% * 0.1" } } }
+      # Branch B — the other half of the same flip, never both.
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\" && %rot.branch% != 1"
+        effects:
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 2.5, select: "slot:boots", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 3.0, pitch: 1.5, who: "@Victim" } }
+  7:
+    abilities:
+      - chance: 12
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SUMMON_PURGE: { radius: 15, filter: "not-own-or-ally-or-offline", particle: "LARGE_SMOKE", particle-count: 10, particle-spread: 0.3, extra-particle: "SPELL_WITCH", extra-particle-count: 12, who: "@Self" } }
+          - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 0, owner: "activator", speed: 1.6, name: "§2§l{OWNER}'s Rotting Corpse", payload-phase: "strike", payload-consume: true, payload-cancel: true, who: "@Self" } }
+          - { PHANTOM_BLOCKS: { radius: 5, material-ally: "GLOWSTONE", material-enemy: "END_STONE", duration: 140, who: "@Self" } }
+          - { STACKING_DOT: { step: 2, period: 10, cap: 6, stack-ttl: 60, lead-in: 20, duration: 140, message: "§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *", who: "@Aoe{r=5, filter=ENEMIES}" } }
+      # The corpse's strike, branch A — the coin flip and the armour-bypassing bite.
+      - trigger: IMPACT
+        chance: 50
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "rot.branch", value: "1", ttl: 1, who: "@Self" } }
+          - { IGNORE_ARMOR: {} }
+          - { DAMAGE: { percent-of-max: 10, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *", who: "@Victim", tokens: { damage: "%victim.maxhealth% * 0.1" } } }
+      # Branch B — the other half of the same flip, never both.
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\" && %rot.branch% != 1"
+        effects:
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 2.5, select: "slot:boots", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 3.0, pitch: 1.5, who: "@Victim" } }
+  8:
+    abilities:
+      - chance: 13
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SUMMON_PURGE: { radius: 15, filter: "not-own-or-ally-or-offline", particle: "LARGE_SMOKE", particle-count: 10, particle-spread: 0.3, extra-particle: "SPELL_WITCH", extra-particle-count: 12, who: "@Self" } }
+          - { SPAWN_ENTITY: { type: "ZOMBIE", count: 3, ttl: 0, owner: "activator", speed: 1.6, name: "§2§l{OWNER}'s Rotting Corpse", payload-phase: "strike", payload-consume: true, payload-cancel: true, who: "@Self" } }
+          - { PHANTOM_BLOCKS: { radius: 5, material-ally: "GLOWSTONE", material-enemy: "END_STONE", duration: 160, who: "@Self" } }
+          - { STACKING_DOT: { step: 2, period: 10, cap: 6, stack-ttl: 60, lead-in: 20, duration: 160, message: "§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *", who: "@Aoe{r=5, filter=ENEMIES}" } }
+      # The corpse's strike, branch A — the coin flip and the armour-bypassing bite.
+      - trigger: IMPACT
+        chance: 50
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "rot.branch", value: "1", ttl: 1, who: "@Self" } }
+          - { IGNORE_ARMOR: {} }
+          - { DAMAGE: { percent-of-max: 10, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *", who: "@Victim", tokens: { damage: "%victim.maxhealth% * 0.1" } } }
+      # Branch B — the other half of the same flip, never both.
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\" && %rot.branch% != 1"
+        effects:
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 2.5, select: "slot:boots", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 3.0, pitch: 1.5, who: "@Victim" } }
+  9:
+    abilities:
+      - chance: 14
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SUMMON_PURGE: { radius: 15, filter: "not-own-or-ally-or-offline", particle: "LARGE_SMOKE", particle-count: 10, particle-spread: 0.3, extra-particle: "SPELL_WITCH", extra-particle-count: 12, who: "@Self" } }
+          - { SPAWN_ENTITY: { type: "ZOMBIE", count: 4, ttl: 0, owner: "activator", speed: 1.6, name: "§2§l{OWNER}'s Rotting Corpse", payload-phase: "strike", payload-consume: true, payload-cancel: true, who: "@Self" } }
+          - { PHANTOM_BLOCKS: { radius: 6, material-ally: "GLOWSTONE", material-enemy: "END_STONE", duration: 180, who: "@Self" } }
+          - { STACKING_DOT: { step: 2, period: 10, cap: 6, stack-ttl: 60, lead-in: 20, duration: 180, message: "§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *", who: "@Aoe{r=6, filter=ENEMIES}" } }
+      # The corpse's strike, branch A — the coin flip and the armour-bypassing bite.
+      - trigger: IMPACT
+        chance: 50
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "rot.branch", value: "1", ttl: 1, who: "@Self" } }
+          - { IGNORE_ARMOR: {} }
+          - { DAMAGE: { percent-of-max: 10, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *", who: "@Victim", tokens: { damage: "%victim.maxhealth% * 0.1" } } }
+      # Branch B — the other half of the same flip, never both.
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\" && %rot.branch% != 1"
+        effects:
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 2.5, select: "slot:boots", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 3.0, pitch: 1.5, who: "@Victim" } }
+  10:
+    abilities:
+      - chance: 15
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SUMMON_PURGE: { radius: 15, filter: "not-own-or-ally-or-offline", particle: "LARGE_SMOKE", particle-count: 10, particle-spread: 0.3, extra-particle: "SPELL_WITCH", extra-particle-count: 12, who: "@Self" } }
+          - { SPAWN_ENTITY: { type: "ZOMBIE", count: 4, ttl: 0, owner: "activator", speed: 1.6, name: "§2§l{OWNER}'s Rotting Corpse", payload-phase: "strike", payload-consume: true, payload-cancel: true, who: "@Self" } }
+          - { PHANTOM_BLOCKS: { radius: 6, material-ally: "GLOWSTONE", material-enemy: "END_STONE", duration: 200, who: "@Self" } }
+          - { STACKING_DOT: { step: 2, period: 10, cap: 6, stack-ttl: 60, lead-in: 20, duration: 200, message: "§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *", who: "@Aoe{r=6, filter=ENEMIES}" } }
+      # The corpse's strike, branch A — the coin flip and the armour-bypassing bite.
+      - trigger: IMPACT
+        chance: 50
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { SET_VAR: { name: "rot.branch", value: "1", ttl: 1, who: "@Self" } }
+          - { IGNORE_ARMOR: {} }
+          - { DAMAGE: { percent-of-max: 10, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *", who: "@Victim", tokens: { damage: "%victim.maxhealth% * 0.1" } } }
+      # Branch B — the other half of the same flip, never both.
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\" && %rot.branch% != 1"
+        effects:
+          - { DURABILITY: { target: "armor", mode: "percent-damage", percent: 2.5, select: "slot:boots", who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 3.0, pitch: 1.5, who: "@Victim" } }
