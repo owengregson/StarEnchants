@@ -51,9 +51,12 @@
 # application (55 min / 99 max / 77 expected); random damage has no spelling, so the EXPECTED value ships flat
 # at 7 (D-12-32). `slow: 0` because the jar never slowed the victim — this FREEZE is a DoT carrier, not a pin.
 # NO REFUSAL BRANCH: the jar answered an empty box with `§c§nPET: No valid enemy players nearby! (30x30)` and
-# spent nothing. Not authored — `%nearbyenemies%` is fixed at an 8-block radius, so gating on it would refuse
-# uses whose real targets stand 9–30 blocks away, which is most of them. A whiff here is silent and burns the
-# cooldown; the missing fact (an emptiness answer for the activation's own selection) is a recorded stop.
+# spent nothing. The string is UNSHIPPED and stays so — a refusal ability needs a pre-selection fact to hang
+# on, and the only one here is `%nearbyenemies%`, fixed at an 8-block radius, so gating on it would refuse the
+# uses whose real targets stand 9–30 blocks away, which is most of them. (`pets/gaia.yml` DOES render its
+# twin line, because that pet already pays for the 8-block gate and the refusal only says what the gate did.)
+# A whiff here is silent and burns the cooldown; the missing fact — an emptiness answer for the activation's
+# own selection — is a recorded stop, deferred with the per-target subject family (R-QC49).
 # The XP grant is SILENT — this is the one pet with no XP-gain chat line at all (verbatim). The level-up line
 # is the family's.
 # Named after the Mother-of-Yijki set's Dimensional Cage (matrix/10) but a standalone reimplementation: no
@@ -103,7 +106,7 @@ levels:
           - { POTION: { effect: "POISON", level: 19, duration: 100, who: "@Aoe{r=30, filter=ENEMIES}" } }
           - { POTION: { effect: "WITHER", level: 19, duration: 100, who: "@Aoe{r=30, filter=ENEMIES}" } }
           - { FREEZE: { duration: 55, dot: 7, dot-period: 5, slow: 0, neutralize-frost-slow: false, who: "@Aoe{r=30, filter=ENEMIES}" } }
-          - { ITEM_XP_TRACK: { amount: 5, level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 5, level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET: ** DIMENSIONAL CAGE **" } }
           - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 10.0, pitch: 2.0 } }
       - condition: '%actor.gamemode% == "SPECTATOR"'

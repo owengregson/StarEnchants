@@ -49,7 +49,7 @@ levels:
         cooldown: 0
         effects:
           - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
       - condition: '%waterpet.fired% == 1 && %waterpet.filled% == 0'
         cooldown: 0
         effects:
@@ -70,7 +70,7 @@ levels:
         cooldown: 0
         effects:
           - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
       - condition: '%waterpet.fired% == 1 && %waterpet.filled% == 0'
         cooldown: 0
         effects:
@@ -91,7 +91,7 @@ levels:
         cooldown: 0
         effects:
           - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
       - condition: '%waterpet.fired% == 1 && %waterpet.filled% == 0'
         cooldown: 0
         effects:
@@ -112,7 +112,7 @@ levels:
         cooldown: 0
         effects:
           - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
       - condition: '%waterpet.fired% == 1 && %waterpet.filled% == 0'
         cooldown: 0
         effects:
@@ -133,7 +133,7 @@ levels:
         cooldown: 0
         effects:
           - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
       - condition: '%waterpet.fired% == 1 && %waterpet.filled% == 0'
         cooldown: 0
         effects:
@@ -154,7 +154,7 @@ levels:
         cooldown: 0
         effects:
           - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
       - condition: '%waterpet.fired% == 1 && %waterpet.filled% == 0'
         cooldown: 0
         effects:
@@ -175,7 +175,7 @@ levels:
         cooldown: 0
         effects:
           - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
       - condition: '%waterpet.fired% == 1 && %waterpet.filled% == 0'
         cooldown: 0
         effects:
@@ -196,7 +196,7 @@ levels:
         cooldown: 0
         effects:
           - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
       - condition: '%waterpet.fired% == 1 && %waterpet.filled% == 0'
         cooldown: 0
         effects:
@@ -217,7 +217,7 @@ levels:
         cooldown: 0
         effects:
           - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
       - condition: '%waterpet.fired% == 1 && %waterpet.filled% == 0'
         cooldown: 0
         effects:
@@ -239,7 +239,7 @@ levels:
         cooldown: 0
         effects:
           - { SOUND: { sound: "ENTITY_GENERIC_SPLASH", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: "%waterpet.filled%", message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
       - condition: '%waterpet.fired% == 1 && %waterpet.filled% == 0'
         cooldown: 0
         effects:

@@ -77,7 +77,7 @@ levels:
           - { LIGHTNING: { damage: 5, who: "@EntityInSight{r=8}" } }
           - { FREEZE: { duration: 25, dot: 0, slow: 100, neutralize-frost-slow: false, who: "@EntityInSight{r=8}" } }
           - { MESSAGE: { text: "§c§l(!) §cFrozen by {ATTACKER}'s Smite Pet [1.25s]!", who: "@EntityInSight{r=8}" } }
-          - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -90,7 +90,7 @@ levels:
           - { LIGHTNING: { damage: 5, who: "@EntityInSight{r=8}" } }
           - { FREEZE: { duration: 30, dot: 0, slow: 100, neutralize-frost-slow: false, who: "@EntityInSight{r=8}" } }
           - { MESSAGE: { text: "§c§l(!) §cFrozen by {ATTACKER}'s Smite Pet [1.5s]!", who: "@EntityInSight{r=8}" } }
-          - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -103,7 +103,7 @@ levels:
           - { LIGHTNING: { damage: 5, who: "@EntityInSight{r=8}" } }
           - { FREEZE: { duration: 35, dot: 0, slow: 100, neutralize-frost-slow: false, who: "@EntityInSight{r=8}" } }
           - { MESSAGE: { text: "§c§l(!) §cFrozen by {ATTACKER}'s Smite Pet [1.75s]!", who: "@EntityInSight{r=8}" } }
-          - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -116,7 +116,7 @@ levels:
           - { LIGHTNING: { damage: 5, who: "@EntityInSight{r=8}" } }
           - { FREEZE: { duration: 40, dot: 0, slow: 100, neutralize-frost-slow: false, who: "@EntityInSight{r=8}" } }
           - { MESSAGE: { text: "§c§l(!) §cFrozen by {ATTACKER}'s Smite Pet [2.0s]!", who: "@EntityInSight{r=8}" } }
-          - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -129,7 +129,7 @@ levels:
           - { LIGHTNING: { damage: 5, who: "@EntityInSight{r=8}" } }
           - { FREEZE: { duration: 45, dot: 0, slow: 100, neutralize-frost-slow: false, who: "@EntityInSight{r=8}" } }
           - { MESSAGE: { text: "§c§l(!) §cFrozen by {ATTACKER}'s Smite Pet [2.25s]!", who: "@EntityInSight{r=8}" } }
-          - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
