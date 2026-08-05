@@ -1,0 +1,245 @@
+# Matrix: 07-enchants-mastery-soul.md § Demonic Gateway
+display: "Demonic Gateway"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA rare hit answers with a ring of crystal turrets"
+  - "&ethat pick their own targets, shell them with wither"
+  - "&eskulls and pin whoever they hit."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "mastery"
+tier: mastery
+# THE MASTERY FAMILY CONTRACT (matrix 07 § family-wide rules) — the full reading lives in poltergeist.yml.
+# tier 8 = the `mastery` rung (&4, weight 80) and its `§4<Name> <Roman>` lore line; `group: "mastery"` carries
+# the matrix's "Default"; masteries reach armour only through the Mastery Shard hand-off, so `applies-to:
+# [ARMOR]` is the whole item rule. No `suppress-immune:` (the END-SUPPRESS contract rule).
+# ── THE RING ───────────────────────────────────────────────────────────────────────────────────────────────
+# `TURRET_RING` is the whole placement contract: `count` emplacements evenly spaced on a `ring-radius` circle,
+# each dropped onto the first open ground its own site scan finds, each gated by the protection provider, each
+# invulnerable and explosion-proof, each acquiring the nearest visible enemy inside `acquire-range` and firing
+# a wither skull on a jittered `period-min`..`period-max` after `initial-delay`. A skull that strikes a body
+# runs the ACTOR's `IMPACT` abilities on it — the three abilities below.
+# `spawn-lightning` is the jar's `strikeLightningEffect` (visual only, no fire, no damage) and is on by
+# default; the spawn burst is the jar's `Effect.MOBSPAWNER_FLAMES`, which is a world effect with no count, so
+# `FLAME` at `count: 10` is the port's reading of it (the anti-gank.yml convention for a countless world
+# effect). The despawn burst is `WITCH_MAGIC` count 16; its recorded 0.75 speed has no param, and
+# `despawn-particle-spread` carries the visible width instead.
+# THE 10 s LOCKOUT IS AUTHORED AS THE ABILITY COOLDOWN, and it arms on the PROC rather than on placement
+# success. The jar wrote its lockout only when at least one crystal actually spawned, so a proc whose every
+# ring site was blocked cost nothing and could re-roll immediately; gate 6 reserves before the effect runs and
+# no effect reports how many sites it took. Recorded, not reproduced — the divergence costs the wearer a
+# lockout on a wasted proc, never the other way.
+# ── THE SKULL PAYLOAD, AND WHAT THE IMPACT WALK CAN AND CANNOT SEE ─────────────────────────────────────────
+# Three IMPACT abilities, not one: the surface has no per-effect chance or condition, so the recorded "then
+# roll the trap, then check the distance" tail is three independently-gated abilities against one skull hit.
+# The hit itself is `IGNORE_ARMOR` + `DAMAGE(percent-of-max: 5)` — the recorded decomposition — but the flag
+# is INERT on this walk and the bite therefore lands ARMOUR-REDUCED where the jar's was a raw health write:
+# only the combat dispatcher reads `armorIgnored`, and an IMPACT activation is not a folded combat event, so
+# `DAMAGE` fires its own attributed hit for vanilla to reduce. The row stays authored so that the day an
+# IMPACT dispatch honours the flag costs no edit; recorded in deferred-content.md, shared with rot-and-decay.
+# `%distance%` and `VELOCITY(mode: away)` both anchor on the ACTIVATOR, and on an IMPACT walk the activator is
+# the WEARER, not the crystal that fired. The jar measured the 4-block gate and the 1.1 push from the firing
+# crystal. Nothing addresses a turret from the payload, so both read the wearer instead: the knockback still
+# throws the struck player off the fight, but off the wrong body. Recorded.
+# IMPACT SCOPING (ADR-0074 §4) collides here, and this file is one of the three that makes tombstone.yml's
+# warning LIVE rather than latent: the scope filter matches on the authored `group:`, and every mastery's is
+# the family word `mastery`, so a skull strike also runs Tombstone's and Rot and Decay's IMPACT abilities on
+# the same victim (and their carriers run these). `group:` is one root key per enchant and the same interned
+# string is the suppression match key `sets/dragon-slayer` and `masks/rift` both negate against, so narrowing
+# it here would cut this enchant out of them. R-QC40 is the approved fix (a per-ABILITY `group:` override on
+# the enchant reader); until it lands the cross-fire is recorded, not worked around.
+# ── STRINGS ────────────────────────────────────────────────────────────────────────────────────────────────
+# Broadcast `§2§l** DEMONIC GATEWAY <N> (§a{ATTACKER}§2§l) **` at 24 blocks, `filter=ENEMIES` for the jar's
+# non-truce test; `{ATTACKER}` on a DEFENSE walk is the WEARER, which is the name the jar printed. The roman
+# numeral is inlined per rung — no MESSAGE token binds one.
+# Trap line `§c§l* DEMONIC GATEWAY TRAP [by: §7{ATTACKER} (<s>s)§c§l] *`; on the IMPACT walk `{ATTACKER}` is
+# the turret's owner, i.e. the jar's `damagerName`. The seconds are inlined at the window the FREEZE really
+# holds (the bidirectional-teleportation.yml precedent), NOT at the jar's rendered `1s`: D-07-7 deletes that
+# truncation, and a line that undersells a live root is not the string being preserved.
+# The jar's walk-speed-0 trap is FREEZE at `slow: 100`; its "skip an already-slowed target" guard is FREEZE's
+# own refresh semantics. `dot: 0` keeps the root damage-free.
+# era: `ENDER_CRYSTAL` -> `END_CRYSTAL` (the 1.20.5 rename) and `GHAST_FIREBALL` -> `ENTITY_GHAST_SHOOT` /
+# `WITHER_SHOOT` -> `ENTITY_WITHER_SHOOT` (wave 2c) all carry alias rows, so both eras place the ring and both
+# cues play. `WITHER_SKULL`, `FLAME` and `SPELL_WITCH` are era-safe. The recorded 1.8.9 NMS-invulnerability
+# hazard did not materialise — both eras read a zeroed non-living damage event as cancelled.
+# One live divergence the primitive carries: a fireball takes a direction as well as a velocity and the 1.21
+# line rescaled that call, so the shot reads faster there than the authored `projectile-speed`.
+levels:
+  # Per level 1-6 — chance `1.5 + 0.5 x L`; crystals `min(2 + floor(L/2), 5)`; ring radius `3 + max/2 + i/2`
+  # with `max/2` a constant 3, so only two values (7 and 8); ttl `min(2.5 x L, 20)` s; acquire range `5 + L`;
+  # skull speed `0.05 + 0.0025 x L`; trap chance `6 + 3 x L` %; trap window D-07-7's `(1 + 0.125 x L)` s,
+  # rounded to whole ticks (23/25/28/30/33/35) because TICKS is an integer parameter.
+  1:
+    abilities:
+      - chance: 2.0
+        cooldown: 200
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { TURRET_RING: { type: "ENDER_CRYSTAL", count: 2, ring-radius: 7, ttl: 50, acquire-range: 6, initial-delay: 30, period-min: 8, period-max: 13, filter: "ENEMIES", projectile: "WITHER_SKULL", projectile-speed: 0.0525, spawn-sound: "ENTITY_GHAST_SHOOT", spawn-volume: 3.0, spawn-pitch: 0.9, spawn-particle: "FLAME", spawn-particle-count: 10, spawn-lightning: true, despawn-particle: "SPELL_WITCH", despawn-particle-count: 16, despawn-particle-spread: 0.75, who: "@Self" } }
+          - { MESSAGE: { text: "§2§l** DEMONIC GATEWAY I (§a{ATTACKER}§2§l) **", who: "@Aoe{r=24, filter=ENEMIES}" } }
+      # The skull strike itself — armour-bypassing, the jar's raw 5 %-of-max health write.
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { IGNORE_ARMOR: {} }
+          - { DAMAGE: { percent-of-max: 5, who: "@Victim" } }
+      # The trap, its own roll off the same strike.
+      - trigger: IMPACT
+        chance: 9
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { FREEZE: { duration: 23, dot: 0, slow: 100, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* DEMONIC GATEWAY TRAP [by: §7{ATTACKER} (1.15s)§c§l] *", who: "@Victim" } }
+      # The close-range shove; the distance is wearer-to-victim, not crystal-to-victim (see the header).
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\" && %distance% < 4"
+        effects:
+          - { VELOCITY: { mode: "away", strength: 1.1, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.0, pitch: 1.1, who: "@Victim" } }
+  2:
+    abilities:
+      - chance: 2.5
+        cooldown: 200
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { TURRET_RING: { type: "ENDER_CRYSTAL", count: 3, ring-radius: 7, ttl: 100, acquire-range: 7, initial-delay: 30, period-min: 8, period-max: 13, filter: "ENEMIES", projectile: "WITHER_SKULL", projectile-speed: 0.055, spawn-sound: "ENTITY_GHAST_SHOOT", spawn-volume: 3.0, spawn-pitch: 0.9, spawn-particle: "FLAME", spawn-particle-count: 10, spawn-lightning: true, despawn-particle: "SPELL_WITCH", despawn-particle-count: 16, despawn-particle-spread: 0.75, who: "@Self" } }
+          - { MESSAGE: { text: "§2§l** DEMONIC GATEWAY II (§a{ATTACKER}§2§l) **", who: "@Aoe{r=24, filter=ENEMIES}" } }
+      # The skull strike itself — armour-bypassing, the jar's raw 5 %-of-max health write.
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { IGNORE_ARMOR: {} }
+          - { DAMAGE: { percent-of-max: 5, who: "@Victim" } }
+      # The trap, its own roll off the same strike.
+      - trigger: IMPACT
+        chance: 12
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { FREEZE: { duration: 25, dot: 0, slow: 100, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* DEMONIC GATEWAY TRAP [by: §7{ATTACKER} (1.25s)§c§l] *", who: "@Victim" } }
+      # The close-range shove; the distance is wearer-to-victim, not crystal-to-victim (see the header).
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\" && %distance% < 4"
+        effects:
+          - { VELOCITY: { mode: "away", strength: 1.1, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.0, pitch: 1.1, who: "@Victim" } }
+  3:
+    abilities:
+      - chance: 3.0
+        cooldown: 200
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { TURRET_RING: { type: "ENDER_CRYSTAL", count: 3, ring-radius: 7, ttl: 150, acquire-range: 8, initial-delay: 30, period-min: 8, period-max: 13, filter: "ENEMIES", projectile: "WITHER_SKULL", projectile-speed: 0.0575, spawn-sound: "ENTITY_GHAST_SHOOT", spawn-volume: 3.0, spawn-pitch: 0.9, spawn-particle: "FLAME", spawn-particle-count: 10, spawn-lightning: true, despawn-particle: "SPELL_WITCH", despawn-particle-count: 16, despawn-particle-spread: 0.75, who: "@Self" } }
+          - { MESSAGE: { text: "§2§l** DEMONIC GATEWAY III (§a{ATTACKER}§2§l) **", who: "@Aoe{r=24, filter=ENEMIES}" } }
+      # The skull strike itself — armour-bypassing, the jar's raw 5 %-of-max health write.
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { IGNORE_ARMOR: {} }
+          - { DAMAGE: { percent-of-max: 5, who: "@Victim" } }
+      # The trap, its own roll off the same strike.
+      - trigger: IMPACT
+        chance: 15
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { FREEZE: { duration: 28, dot: 0, slow: 100, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* DEMONIC GATEWAY TRAP [by: §7{ATTACKER} (1.4s)§c§l] *", who: "@Victim" } }
+      # The close-range shove; the distance is wearer-to-victim, not crystal-to-victim (see the header).
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\" && %distance% < 4"
+        effects:
+          - { VELOCITY: { mode: "away", strength: 1.1, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.0, pitch: 1.1, who: "@Victim" } }
+  4:
+    abilities:
+      - chance: 3.5
+        cooldown: 200
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { TURRET_RING: { type: "ENDER_CRYSTAL", count: 4, ring-radius: 8, ttl: 200, acquire-range: 9, initial-delay: 30, period-min: 8, period-max: 13, filter: "ENEMIES", projectile: "WITHER_SKULL", projectile-speed: 0.06, spawn-sound: "ENTITY_GHAST_SHOOT", spawn-volume: 3.0, spawn-pitch: 0.9, spawn-particle: "FLAME", spawn-particle-count: 10, spawn-lightning: true, despawn-particle: "SPELL_WITCH", despawn-particle-count: 16, despawn-particle-spread: 0.75, who: "@Self" } }
+          - { MESSAGE: { text: "§2§l** DEMONIC GATEWAY IV (§a{ATTACKER}§2§l) **", who: "@Aoe{r=24, filter=ENEMIES}" } }
+      # The skull strike itself — armour-bypassing, the jar's raw 5 %-of-max health write.
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { IGNORE_ARMOR: {} }
+          - { DAMAGE: { percent-of-max: 5, who: "@Victim" } }
+      # The trap, its own roll off the same strike.
+      - trigger: IMPACT
+        chance: 18
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { FREEZE: { duration: 30, dot: 0, slow: 100, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* DEMONIC GATEWAY TRAP [by: §7{ATTACKER} (1.5s)§c§l] *", who: "@Victim" } }
+      # The close-range shove; the distance is wearer-to-victim, not crystal-to-victim (see the header).
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\" && %distance% < 4"
+        effects:
+          - { VELOCITY: { mode: "away", strength: 1.1, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.0, pitch: 1.1, who: "@Victim" } }
+  5:
+    abilities:
+      - chance: 4.0
+        cooldown: 200
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { TURRET_RING: { type: "ENDER_CRYSTAL", count: 4, ring-radius: 8, ttl: 250, acquire-range: 10, initial-delay: 30, period-min: 8, period-max: 13, filter: "ENEMIES", projectile: "WITHER_SKULL", projectile-speed: 0.0625, spawn-sound: "ENTITY_GHAST_SHOOT", spawn-volume: 3.0, spawn-pitch: 0.9, spawn-particle: "FLAME", spawn-particle-count: 10, spawn-lightning: true, despawn-particle: "SPELL_WITCH", despawn-particle-count: 16, despawn-particle-spread: 0.75, who: "@Self" } }
+          - { MESSAGE: { text: "§2§l** DEMONIC GATEWAY V (§a{ATTACKER}§2§l) **", who: "@Aoe{r=24, filter=ENEMIES}" } }
+      # The skull strike itself — armour-bypassing, the jar's raw 5 %-of-max health write.
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { IGNORE_ARMOR: {} }
+          - { DAMAGE: { percent-of-max: 5, who: "@Victim" } }
+      # The trap, its own roll off the same strike.
+      - trigger: IMPACT
+        chance: 21
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { FREEZE: { duration: 33, dot: 0, slow: 100, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* DEMONIC GATEWAY TRAP [by: §7{ATTACKER} (1.65s)§c§l] *", who: "@Victim" } }
+      # The close-range shove; the distance is wearer-to-victim, not crystal-to-victim (see the header).
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\" && %distance% < 4"
+        effects:
+          - { VELOCITY: { mode: "away", strength: 1.1, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.0, pitch: 1.1, who: "@Victim" } }
+  6:
+    abilities:
+      - chance: 4.5
+        cooldown: 200
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { TURRET_RING: { type: "ENDER_CRYSTAL", count: 5, ring-radius: 8, ttl: 300, acquire-range: 11, initial-delay: 30, period-min: 8, period-max: 13, filter: "ENEMIES", projectile: "WITHER_SKULL", projectile-speed: 0.065, spawn-sound: "ENTITY_GHAST_SHOOT", spawn-volume: 3.0, spawn-pitch: 0.9, spawn-particle: "FLAME", spawn-particle-count: 10, spawn-lightning: true, despawn-particle: "SPELL_WITCH", despawn-particle-count: 16, despawn-particle-spread: 0.75, who: "@Self" } }
+          - { MESSAGE: { text: "§2§l** DEMONIC GATEWAY VI (§a{ATTACKER}§2§l) **", who: "@Aoe{r=24, filter=ENEMIES}" } }
+      # The skull strike itself — armour-bypassing, the jar's raw 5 %-of-max health write.
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { IGNORE_ARMOR: {} }
+          - { DAMAGE: { percent-of-max: 5, who: "@Victim" } }
+      # The trap, its own roll off the same strike.
+      - trigger: IMPACT
+        chance: 24
+        condition: "%victim.type% == \"PLAYER\""
+        effects:
+          - { FREEZE: { duration: 35, dot: 0, slow: 100, who: "@Victim" } }
+          - { MESSAGE: { text: "§c§l* DEMONIC GATEWAY TRAP [by: §7{ATTACKER} (1.75s)§c§l] *", who: "@Victim" } }
+      # The close-range shove; the distance is wearer-to-victim, not crystal-to-victim (see the header).
+      - trigger: IMPACT
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\" && %distance% < 4"
+        effects:
+          - { VELOCITY: { mode: "away", strength: 1.1, who: "@Victim" } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.0, pitch: 1.1, who: "@Victim" } }
