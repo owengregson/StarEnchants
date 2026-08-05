@@ -9,7 +9,8 @@ applies-to: [AXE]
 group: "epic"
 tier: epic
 condition: "%damage% > 0"
-cooldown: 30  # the jar's 1500 ms attacker throttle, one bucket for the whole ability
+cooldown: 30  # the jar's 1500 ms attacker throttle
+cooldown-per-victim: true  # R-QC8: the recorded pacing is PER TARGET, so the bucket keys on the struck entity (thundering-blow.yml's shape)
 # The splash is centred on the VICTIM — AOE resolves around the combat target — and the victim is never in it:
 # the jar used the victim as the search origin and skipped it, which `exclude=victim` reproduces exactly.
 # Shape delta, values kept: the jar's number is a bounding-box half-extent, AOE's is a sphere radius, so the
@@ -17,9 +18,12 @@ cooldown: 30  # the jar's 1500 ms attacker throttle, one bucket for the whole ab
 # D-04-8: the jar's splash was attacker-less generic damage — armour-reduced, NO kill credit, and it re-entered
 # the defensive pass only (`00-MECHANICS.md` §3.5 mode B). Engine DAMAGE is activator-attributed, so a splash
 # kill now credits the swinger.
-# PENDING PER-VICTIM COOLDOWN — the recorded 20 t (1000 ms) per-splash-victim stamp is NOT authored. The
-# engine's cooldown bucket is per-player, so the 30 t above paces the whole ability and a per-target window
-# has nowhere to live; same blocker as `enchants/thundering-blow` (deferred-content.md, partial entries).
+# PER-VICTIM PACING (R-QC8), and it is not exactly the jar's: the recorded stamp is 20 t on each SPLASH
+# victim, while `cooldown-per-victim` keys the bucket on the activation's own victim — the player actually
+# struck. So the throttle now follows the target rather than the swinger (chasing a second enemy no longer
+# waits on the first), and the splash itself is paced by the primary target's window, not per bystander. The
+# 30 t figure stays the jar's attacker throttle; nothing here promotes it to the 20 t splash number, which
+# belongs to a keying the engine still has no slot for.
 # The heroic twin shares a mutual 20 t exclusion window with this one, authored from the HEROIC side (batch 06)
 # as SUPPRESS(scope=ENCHANT, key=enchants/cleave, duration=20, who=@Self) — nothing is owed here.
 # Not ported: the mcMMO Skull Splitter hook (external plugin — with it gone the jar's
