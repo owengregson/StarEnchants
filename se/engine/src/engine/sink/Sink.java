@@ -695,13 +695,23 @@ public interface Sink {
      * As {@link #setVar} for ANY living carrier — a mob can hold its own stacks, read back as
      * {@code %victim.var.<name>%} (TARGET_VAR).
      */
-    void setVarOn(LivingEntity target, String name, String value, int ttlTicks);
+    void setVarOn(LivingEntity target, String name, String value, int ttlTicks, boolean clearOnDeath);
+
+    /** {@link #setVarOn} that survives its carrier's death (the add-on SPI shape). */
+    default void setVarOn(LivingEntity target, String name, String value, int ttlTicks) {
+        setVarOn(target, name, value, ttlTicks, false);
+    }
 
     /**
      * Add {@code step} to {@code target}'s named variable, pinned at {@code cap} ({@code 0} = uncapped) and
      * preserving the remaining TTL, so a stack re-applied every hit cannot extend its own window (TARGET_VAR).
      */
-    void incrementVar(LivingEntity target, String name, int step, int cap, int ttlTicks);
+    void incrementVar(LivingEntity target, String name, int step, int cap, int ttlTicks, boolean clearOnDeath);
+
+    /** {@link #incrementVar} that survives its carrier's death (the add-on SPI shape). */
+    default void incrementVar(LivingEntity target, String name, int step, int cap, int ttlTicks) {
+        incrementVar(target, name, step, cap, ttlTicks, false);
+    }
 
     /** Numerically invert {@code target}'s named variable (0↔1), preserving its remaining TTL (INVERT_VAR). */
     void invertVar(Player target, String name);

@@ -3655,9 +3655,9 @@
     },
   {
     "head": "MOVEMENT_SPEED",
-    "doc": "Set the player target's walk speed for a span of ticks, then restore the default (0.2).",
+    "doc": "Set the player target's walk speed for a span of ticks, then restore the default (0.2). hold keeps it instead of scheduling that restore, for a debuff whose life is a STACK COUNT rather than a clock — the caller then owns handing it back, and the only thing the engine still guarantees is that a logout restores 0.2 rather than persisting an altered speed to disk. ticks is ignored when hold is set.",
     "affinity": "TARGET_ENTITY",
-    "usage": "{ MOVEMENT_SPEED: { speed: <double[-1..1]>, ticks: <ticks[0..]=200> } }",
+    "usage": "{ MOVEMENT_SPEED: { speed: <double[-1..1]>, ticks: <ticks[0..]=200>, hold: <bool=false> } }",
     "example": "{ MOVEMENT_SPEED: { speed: 0.4, ticks: 200 } }",
     "params": [
       {
@@ -3683,6 +3683,18 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "hold",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "keep the speed with NO timed revert; something else must hand it back"
         }
       ],
     "targets": [
@@ -4916,9 +4928,9 @@
     },
   {
     "head": "SET_VAR",
-    "doc": "Set (or with op=increment, add to) a variable on the target, readable in later conditions as %name% on the activator or %victim.var.name% on the victim. ttl ticks, 0 = forever; cap 0 = uncapped. Any living entity can carry one, so a mob holds its own stacks.",
+    "doc": "Set (or with op=increment, add to) a variable on the target, readable in later conditions as %name% on the activator or %victim.var.name% on the victim. ttl ticks, 0 = forever; cap 0 = uncapped. Any living entity can carry one, so a mob holds its own stacks. clear-on-death ends the var when its CARRIER dies: a mob's vars always go, but a player's deliberately survive their death (a mark meant to outlast one, a window somebody else armed), so a counter that should not — a bleed ladder — has to say so.",
     "affinity": "CONTEXT_LOCAL",
-    "usage": "{ SET_VAR: { name: <string>, value: <string=>, ttl: <ticks[0..]=0>, op: <enum{set|increment}=set>, step: <int=1>, cap: <int[0..]=0> } }",
+    "usage": "{ SET_VAR: { name: <string>, value: <string=>, ttl: <ticks[0..]=0>, op: <enum{set|increment}=set>, step: <int=1>, cap: <int[0..]=0>, clear-on-death: <bool=false> } }",
     "example": "{ SET_VAR: { name: bleedstacks, op: increment, step: 1, cap: 20, ttl: 200, who: \"@Victim\" } }",
     "params": [
       {
@@ -4995,6 +5007,18 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "clear-on-death",
+        "kind": "BOOL",
+        "label": "bool",
+        "required": false,
+        "default": "false",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "the carrier's own death ends this var, not just its ttl"
         }
       ],
     "targets": [

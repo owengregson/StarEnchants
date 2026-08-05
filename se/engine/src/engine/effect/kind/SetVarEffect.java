@@ -22,11 +22,16 @@ public final class SetVarEffect implements EffectKind {
             .param("op", D.enumOf("set", "increment").def("set"))
             .param("step", D.INT.def(1))
             .param("cap", D.INT.min(0).def(0))
+            .param("clear-on-death", D.BOOL.def(false),
+                    "the carrier's own death ends this var, not just its ttl")
             .target("who", T.SELF)
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Set (or with op=increment, add to) a variable on the target, readable in later conditions "
                     + "as %name% on the activator or %victim.var.name% on the victim. ttl ticks, 0 = forever; "
-                    + "cap 0 = uncapped. Any living entity can carry one, so a mob holds its own stacks.")
+                    + "cap 0 = uncapped. Any living entity can carry one, so a mob holds its own stacks. "
+                    + "clear-on-death ends the var when its CARRIER dies: a mob's vars always go, but a "
+                    + "player's deliberately survive their death (a mark meant to outlast one, a window "
+                    + "somebody else armed), so a counter that should not — a bleed ladder — has to say so.")
             .example("{ SET_VAR: { name: bleedstacks, op: increment, step: 1, cap: 20, ttl: 200, who: \"@Victim\" } }")
             .build();
 
@@ -40,11 +45,12 @@ public final class SetVarEffect implements EffectKind {
         String name = ctx.str("name");
         int ttl = ctx.integer("ttl");
         boolean increment = "increment".equalsIgnoreCase(ctx.str("op"));
+        boolean clearOnDeath = ctx.bool("clear-on-death");
         for (LivingEntity target : ctx.targets("who")) {
             if (increment) {
-                sink.incrementVar(target, name, ctx.integer("step"), ctx.integer("cap"), ttl);
+                sink.incrementVar(target, name, ctx.integer("step"), ctx.integer("cap"), ttl, clearOnDeath);
             } else {
-                sink.setVarOn(target, name, ctx.str("value"), ttl);
+                sink.setVarOn(target, name, ctx.str("value"), ttl, clearOnDeath);
             }
         }
     }

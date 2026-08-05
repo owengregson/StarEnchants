@@ -291,6 +291,7 @@ effect MODIFY_MONEY
 effect MOVEMENT_SPEED
   param speed DOUBLE required min=-1 max=1 enum=- handle=- default=-
   param ticks TICKS optional min=0 max=- enum=- handle=- default=200
+  param hold BOOL optional min=- max=- enum=- handle=- default=false
 effect OUTGOING_DEBUFF
   param percent DOUBLE required min=0 max=- enum=- handle=- default=-
   param duration TICKS optional min=0 max=- enum=- handle=- default=100
@@ -396,6 +397,7 @@ effect SET_VAR
   param op ENUM optional min=- max=- enum=increment,set handle=- default=set
   param step INT optional min=- max=- enum=- handle=- default=1
   param cap INT optional min=0 max=- enum=- handle=- default=0
+  param clear-on-death BOOL optional min=- max=- enum=- handle=- default=false
 effect SMELT
 effect SOUL_COST_EXEMPT
   param duration TICKS required min=1 max=- enum=- handle=- default=-

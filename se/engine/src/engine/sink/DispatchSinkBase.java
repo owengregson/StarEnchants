@@ -526,6 +526,13 @@ public abstract class DispatchSinkBase implements SinkReadback {
      * — so the reverted flag is what persists to disk. Non-player targets keep the direct schedule (mobs never
      * quit; registering them would leak entries when their region unloads).
      */
+    /** Register {@code revert} with the quit drain WITHOUT scheduling it — the held-grant half of {@link #revertLater}. */
+    private void holdRevert(LivingEntity target, Runnable revert) {
+        if (target instanceof Player player) {
+            timedReverts.begin(player.getUniqueId(), revert);
+        }
+    }
+
     private void revertLater(LivingEntity target, int durationTicks, Runnable revert) {
         if (target instanceof Player player) {
             UUID id = player.getUniqueId();
@@ -1281,6 +1288,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
     public void movementSpeed(Player target, double speed, int durationTicks) {
         entityOp(target, () -> {
             target.setWalkSpeed((float) Math.max(-1.0, Math.min(1.0, speed)));
+            if (durationTicks < 0) {
+                // A HELD grant: no timer, because what ends it is a stack count somewhere else. It still
+                // registers with the quit drain, so a logout mid-hold restores 0.2 instead of persisting an
+                // altered abilities.walkSpeed to disk (F08) — the one thing a hold may not opt out of.
+                holdRevert(target, () -> target.setWalkSpeed(0.2f));
+            }
             if (durationTicks >= 0) {
                 // Restore the vanilla default (0.2) rather than the captured prior value, so re-firing the
                 // buff before it elapses can never leak an inflated speed upward. Revert-on-quit too (F08): a
@@ -3954,19 +3967,20 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void setVarOn(LivingEntity target, String name, String value, int ttlTicks) {
+    public void setVarOn(LivingEntity target, String name, String value, int ttlTicks, boolean clearOnDeath) {
         if (target == null || name == null) {
             return;
         }
-        vars.set(target.getUniqueId(), name, value, nowTicks.getAsLong(), ttlTicks);
+        vars.set(target.getUniqueId(), name, value, nowTicks.getAsLong(), ttlTicks, clearOnDeath);
     }
 
     @Override
-    public void incrementVar(LivingEntity target, String name, int step, int cap, int ttlTicks) {
+    public void incrementVar(LivingEntity target, String name, int step, int cap, int ttlTicks,
+                             boolean clearOnDeath) {
         if (target == null || name == null) {
             return;
         }
-        vars.increment(target.getUniqueId(), name, step, cap, nowTicks.getAsLong(), ttlTicks);
+        vars.increment(target.getUniqueId(), name, step, cap, nowTicks.getAsLong(), ttlTicks, clearOnDeath);
     }
 
     @Override

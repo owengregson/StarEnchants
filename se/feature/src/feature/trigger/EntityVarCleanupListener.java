@@ -23,11 +23,21 @@ public final class EntityVarCleanupListener implements Listener {
         this.vars = vars;
     }
 
-    /** MONITOR: the death is decided; this only reclaims memory, so it never influences the outcome. */
+    /**
+     * MONITOR: the death is decided; this only reclaims memory, so it never influences the outcome.
+     *
+     * <p>A MOB loses everything — it will never be seen again, so nothing it carried can mean anything. A
+     * PLAYER loses only what asked to go ({@code SET_VAR clear-on-death}): their vars otherwise survive death
+     * on purpose, and a blanket clear here would silently end every mark and window somebody else armed on
+     * them. {@code PlayerDeathEvent} extends {@code EntityDeathEvent}, so both arms are this one handler.
+     */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDeath(EntityDeathEvent event) {
-        if (!(event.getEntity() instanceof Player)) {
-            vars.clear(event.getEntity().getUniqueId());
+        java.util.UUID id = event.getEntity().getUniqueId();
+        if (event.getEntity() instanceof Player) {
+            vars.clearDeathScoped(id);
+        } else {
+            vars.clear(id);
         }
     }
 }
