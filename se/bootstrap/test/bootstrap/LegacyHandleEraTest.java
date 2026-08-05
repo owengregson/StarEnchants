@@ -13,6 +13,7 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -21,6 +22,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import pack.PackManifest;
 import platform.caps.Capabilities;
+import platform.resolve.Aliases;
 import platform.resolve.HandleResolver;
 import platform.resolve.LegacyFallbacks;
 import schema.diag.Diagnostic;
@@ -82,8 +84,11 @@ class LegacyHandleEraTest {
         return new PlatformResolvers() {
             @Override public OptionalInt material(String t) { return OptionalInt.of(0); }
             @Override public OptionalInt sound(String t) {
-                return HandleResolver.resolve(t, LegacyFallbacks.withAliases(HandleCategory.SOUND), sounds::contains)
-                        .isPresent() ? OptionalInt.of(0) : OptionalInt.empty();
+                // The same table RenameResolvers builds on the legacy lane: renames + the 1.8 degradations.
+                Map<String, String> table = Aliases.mergedWith(
+                        HandleCategory.SOUND, LegacyFallbacks.forCategory(HandleCategory.SOUND));
+                return HandleResolver.resolve(t, table, sounds::contains).isPresent()
+                        ? OptionalInt.of(0) : OptionalInt.empty();
             }
             @Override public OptionalInt particle(String t) { return OptionalInt.of(0); }
             @Override public OptionalInt entityType(String t) { return OptionalInt.of(0); }

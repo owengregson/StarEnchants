@@ -234,6 +234,17 @@ public final class Aliases {
         };
     }
 
+    /** The resolve table for a category: these renames with a platform's lossy fallbacks layered on top. */
+    public static Map<String, String> mergedWith(HandleCategory category, Map<String, String> fallbacks) {
+        Map<String, String> renames = forCategory(category);
+        if (fallbacks.isEmpty()) {
+            return renames;
+        }
+        Map<String, String> merged = new java.util.HashMap<>(renames);
+        merged.putAll(fallbacks); // the platform fallback wins on the rare key clash
+        return merged;
+    }
+
     public static String normalize(String token) {
         return token == null ? "" : token.trim().toUpperCase(Locale.ROOT);
     }

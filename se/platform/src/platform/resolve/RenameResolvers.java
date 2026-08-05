@@ -53,14 +53,7 @@ public abstract class RenameResolvers implements PlatformResolvers {
     }
 
     private Map<String, String> aliasesFor(HandleCategory category) {
-        Map<String, String> renames = Aliases.forCategory(category);
-        Map<String, String> fallbacks = fallbackAliases(category);
-        if (fallbacks.isEmpty()) {
-            return renames;
-        }
-        Map<String, String> merged = new java.util.HashMap<>(renames);
-        merged.putAll(fallbacks); // platform fallback wins on the rare key clash
-        return merged;
+        return Aliases.mergedWith(category, fallbackAliases(category));
     }
 
     @Override
