@@ -1,6 +1,7 @@
 package engine.sink;
 
 import compile.model.ScopeKinds;
+import engine.condition.GroundOwnership;
 import engine.interact.DamageFold;
 import engine.selector.kind.Allies;
 import engine.selector.kind.Targets;
@@ -241,6 +242,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final PlayerVisibility visibility;
     /** The PHANTOM_BLOCKS seam (1.8.9 has no {@code BlockData}, so the send cannot live in shared code). */
     private final BlockVisibility blockVisibility;
+    /** PHANTOM_BLOCKS ground claims — the packet-only overlay's answer to "whose field is this?". */
+    private final PhantomFields phantomFields;
     /** VANISH windows — store-backed (unlike VIEWER_HIDE) so a landed hit can end one early. */
     private final VanishStore vanishStore;
     /** The SUMMON_PAYLOAD seam a periodic summon pulses through (firing a trigger is the feature layer's). */
@@ -319,6 +322,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.rebounds = env.stores().rebounds();
         this.visibility = env.visibility();
         this.blockVisibility = env.blockVisibility();
+        this.phantomFields = env.phantomFields();
         this.vanishStore = env.stores().vanish();
         this.payloads = env.payloads();
         this.siteGate = env.siteGate();
@@ -781,6 +785,13 @@ public abstract class DispatchSinkBase implements SinkReadback {
             if (patch.isEmpty()) {
                 return;
             }
+            // The patch is CLAIMED even though nothing is placed: an overlay is a field somebody owns, and
+            // OWNED_GROUND / STACKING_DOT ask the claim, not the world. Claimed before the paint loop and
+            // released with the window, so the ground a wearer is standing on is theirs for exactly as long
+            // as their illusion covers it — including on a server where nobody happens to be watching.
+            long fieldId = actorId == null ? -1
+                    : phantomFields.claim(world.getUID(), actorId, nowTicks.getAsLong() + durationTicks,
+                            surfacePositions(patch), nowTicks.getAsLong());
             List<UUID> painted = new ArrayList<>();
             for (Entity nearby : world.getNearbyEntities(anchor, PHANTOM_VIEW_RANGE, PHANTOM_VIEW_RANGE,
                     PHANTOM_VIEW_RANGE)) {
@@ -800,15 +811,27 @@ public abstract class DispatchSinkBase implements SinkReadback {
                     }
                 });
             }
-            if (painted.isEmpty()) {
-                return;
-            }
             // The revert re-reads the ground rather than replaying an arm-time snapshot: a block somebody mined
             // during the window has already been sent to these clients for real, and resending a stale capture
             // would strand THAT as the ghost. A client that relogs meanwhile is served the true chunk by the
-            // server, so a missed viewer needs no rejoin hook.
-            Scheduling.onRegionLater(anchor, durationTicks, () -> revertPhantom(patch, painted));
+            // server, so a missed viewer needs no rejoin hook. The claim drops on the SAME task, so a field
+            // can never outlive its own illusion.
+            Scheduling.onRegionLater(anchor, durationTicks, () -> {
+                phantomFields.release(fieldId);
+                if (!painted.isEmpty()) {
+                    revertPhantom(patch, painted);
+                }
+            });
         });
+    }
+
+    /** The claimed patch as bare {@code {x, y, z}} triples — {@link PhantomFields} is coordinate-keyed and Bukkit-free. */
+    private static List<int[]> surfacePositions(List<Location> patch) {
+        List<int[]> out = new ArrayList<>(patch.size());
+        for (Location at : patch) {
+            out.add(new int[] {at.getBlockX(), at.getBlockY(), at.getBlockZ()});
+        }
+        return out;
     }
 
     /** Phase 2: snapshot the live ground on its own region thread, then hand each viewer their own resend. */
@@ -1634,6 +1657,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
         }
         int period = Math.max(1, periodTicks);
         String line = feedback == null ? "" : Colors.translate(feedback);
+        // Resolved once at arm and captured by the pulse: the SAME composed read %actor.ownedground% installs,
+        // so a real temp-block floor and a packet-only PHANTOM_BLOCKS patch are both ground with a claimant.
+        GroundOwnership ground = PhantomFields.over(tempBlocks, phantomFields, nowTicks);
         entityOp(target, () -> {
             // Counted pulses, like periodicDamage — lag never adds or drops one. The lead-in is the arming
             // delay before the ground is first read, so a proc that lays its field and its watcher in the same
@@ -1660,10 +1686,11 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 Location feet = target.getLocation();
                 World world = feet.getWorld();
                 // The field test. We are on the target's own thread, which owns the block under their feet —
-                // the owning-region rule the ledger's layer read documents. Off the ground: no stack, no
-                // damage, no message, and the ladder is left to lapse on its own window.
-                if (world == null || !owner.equals(tempBlocks.ownerAt(world.getUID(),
-                        feet.getBlockX(), feet.getBlockY() - 1, feet.getBlockZ()))) {
+                // the owning-region rule the ledger's layer read documents, and the one the phantom claim's
+                // map read is safe under from any thread. Off the ground: no stack, no damage, no message,
+                // and the ladder is left to lapse on its own window.
+                if (world == null || !ground.ownedBy(owner, world.getUID(),
+                        feet.getBlockX(), feet.getBlockY() - 1, feet.getBlockZ())) {
                     return;
                 }
                 long now = nowTicks.getAsLong();

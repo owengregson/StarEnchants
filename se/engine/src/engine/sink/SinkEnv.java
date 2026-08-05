@@ -32,8 +32,10 @@ import platform.economy.EconomyService;
  * per-boot {@link TrapStructures} registry (ADR-0071), shared so a confining placement and its Turnkey break
  * (separate events) see the same structures. {@code permanentPotions} is the ADR-0072 cleanse seam, riding the
  * env for the same reason {@code movementExemption} does — instance wiring, not a mutable static installer.
- * {@code siteGate} is the per-site protection seam for the same reason. All shared via the env like the
- * stores, never a mutable static.
+ * {@code siteGate} is the per-site protection seam for the same reason. {@code phantomFields} is the ONE
+ * per-boot {@link PhantomFields} claim registry, shared so a packet-only overlay laid by one activation is
+ * ground the SEPARATE activation running a ramping DoT can see somebody standing on. All shared via the env
+ * like the stores, never a mutable static.
  */
 public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
                       Consumer<Player> movementExemption, TempBlockLedger<BlockState> tempBlocks,
@@ -42,7 +44,7 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
                       ToDoubleFunction<UUID> lightningBoost, TrapStructures trapStructures,
                       PlayerVisibility visibility, PermanentPotions permanentPotions,
                       SummonPayloads payloads, SiteGate siteGate, ItemXpGrant itemXp,
-                      BlockVisibility blockVisibility) {
+                      BlockVisibility blockVisibility, PhantomFields phantomFields) {
 
     public SinkEnv {
         Objects.requireNonNull(economy, "economy");
@@ -64,6 +66,16 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
         Objects.requireNonNull(siteGate, "siteGate");
         Objects.requireNonNull(itemXp, "itemXp");
         Objects.requireNonNull(blockVisibility, "blockVisibility");
+        Objects.requireNonNull(phantomFields, "phantomFields");
+    }
+
+    /**
+     * The composed ground-ownership read this env's two field registries answer together — see
+     * {@link PhantomFields#over}. Built here so the composition root and the sink cannot install two
+     * different readings of who owns a patch of ground.
+     */
+    public engine.condition.GroundOwnership groundOwnership() {
+        return PhantomFields.over(tempBlocks, phantomFields, nowTicks);
     }
 
     /** The four-arg shape every non-root site used before the exemption rode the env — no-op movement hook. */
@@ -170,6 +182,6 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
         return new SinkEnv(economy, souls, stores, nowTicks, movementExemption, BukkitBlockOps.ledger(),
                 new TrailWalker(), new TimedRevert(), new DotParkLedger(), moneyInterestCap, gearProtection,
                 lightningBoost, new TrapStructures(), visibility, permanentPotions, payloads, siteGate, itemXp,
-                blockVisibility);
+                blockVisibility, new PhantomFields());
     }
 }
