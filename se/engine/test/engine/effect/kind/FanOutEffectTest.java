@@ -187,12 +187,26 @@ class FanOutEffectTest {
         return List.of(
                 entity("SET_VAR op=set → setVarOn(name, value, ttl)", new SetVarEffect(),
                         c -> c.with("name", "rage").with("value", "1").with("ttl", 200)
-                                .with("op", "set").with("step", 1).with("cap", 0),
-                        (s, t) -> verify(s).setVarOn(t, "rage", "1", 200)),
+                                .with("op", "set").with("step", 1).with("cap", 0)
+                                .with("clear-on-death", false),
+                        (s, t) -> verify(s).setVarOn(t, "rage", "1", 200, false)),
                 entity("SET_VAR op=increment → incrementVar(name, step, cap, ttl)", new SetVarEffect(),
                         c -> c.with("name", "bleedstacks").with("value", "").with("ttl", 200)
-                                .with("op", "increment").with("step", 2).with("cap", 20),
-                        (s, t) -> verify(s).incrementVar(t, "bleedstacks", 2, 20, 200)));
+                                .with("op", "increment").with("step", 2).with("cap", 20)
+                                .with("clear-on-death", false),
+                        (s, t) -> verify(s).incrementVar(t, "bleedstacks", 2, 20, 200, false)),
+                // The flag must reach the store on BOTH ops: a counter that survives its carrier's death is
+                // the bug D-04-6 records, and it is written by increment while `blessed.yml` clears it by set.
+                entity("SET_VAR clear-on-death carries to the store on op=increment", new SetVarEffect(),
+                        c -> c.with("name", "bleedstacks").with("value", "").with("ttl", 0)
+                                .with("op", "increment").with("step", 1).with("cap", 20)
+                                .with("clear-on-death", true),
+                        (s, t) -> verify(s).incrementVar(t, "bleedstacks", 1, 20, 0, true)),
+                entity("SET_VAR clear-on-death carries to the store on op=set", new SetVarEffect(),
+                        c -> c.with("name", "mark").with("value", "1").with("ttl", 60)
+                                .with("op", "set").with("step", 1).with("cap", 0)
+                                .with("clear-on-death", true),
+                        (s, t) -> verify(s).setVarOn(t, "mark", "1", 60, true)));
     }
 
     @TestFactory
@@ -233,8 +247,13 @@ class FanOutEffectTest {
                 playerOnly("TELEBLOCK → teleblock(duration)", new TeleblockEffect(),
                         c -> c.with("duration", 400), (s, p) -> verify(s).teleblock(p, 400)),
                 playerOnly("MOVEMENT_SPEED → movementSpeed(speed, ticks)", new MovementSpeedEffect(),
-                        c -> c.with("speed", 0.4).with("ticks", 200),
+                        c -> c.with("speed", 0.4).with("ticks", 200).with("hold", false),
                         (s, p) -> verify(s).movementSpeed(p, 0.4, 200)),
+                // hold lowers to the sink's -1 "no revert" sentinel and OVERRIDES ticks — the surface cannot
+                // spell a negative span (D.TICKS floors at 0), which is the whole reason the flag exists.
+                playerOnly("MOVEMENT_SPEED hold → the no-revert sentinel, ticks ignored", new MovementSpeedEffect(),
+                        c -> c.with("speed", 0.15).with("ticks", 200).with("hold", true),
+                        (s, p) -> verify(s).movementSpeed(p, 0.15, -1)),
                 playerOnly("GIVE_ITEM → giveItem(material, count)", new GiveItemEffect(),
                         c -> c.with("material", 4).with("count", 2), (s, p) -> verify(s).giveItem(p, 4, 2)),
                 playerOnly("REMOVE_ITEM → removeItem(material, count)", new RemoveItemEffect(),

@@ -22,8 +22,13 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class VarStore implements PlayerScoped {
 
-    /** A stored value and its expiry tick; {@link Long#MAX_VALUE} means "never expires". */
-    private record Entry(String value, long expiry) {}
+    /**
+     * A stored value, its expiry tick ({@link Long#MAX_VALUE} = never), and whether the carrier's own DEATH
+     * ends it. The death flag is per ENTRY rather than a registry of names because content is reloadable:
+     * an entry knows how it was written, so a name that stops asking for the clear stops getting it on the
+     * next write instead of keeping a stale global opinion.
+     */
+    private record Entry(String value, long expiry, boolean clearOnDeath) {}
 
     private final Map<UUID, Map<String, Entry>> byPlayer = new ConcurrentHashMap<>();
 
@@ -50,9 +55,14 @@ public final class VarStore implements PlayerScoped {
      * it elapses at {@code nowTicks + ttlTicks}. A {@code null} value is stored as "" (read returns "").
      */
     public void set(UUID player, String name, String value, long nowTicks, int ttlTicks) {
+        set(player, name, value, nowTicks, ttlTicks, false);
+    }
+
+    /** {@link #set} with the carrier's own death ending the var as well as its TTL. */
+    public void set(UUID player, String name, String value, long nowTicks, int ttlTicks, boolean clearOnDeath) {
         long expiry = ttlTicks <= 0 ? Long.MAX_VALUE : nowTicks + ttlTicks;
         byPlayer.computeIfAbsent(player, k -> new ConcurrentHashMap<>())
-                .put(canonical(name), new Entry(value == null ? "" : value, expiry));
+                .put(canonical(name), new Entry(value == null ? "" : value, expiry, clearOnDeath));
     }
 
     /**
@@ -73,7 +83,8 @@ public final class VarStore implements PlayerScoped {
             }
             // else: expired — treat as unset (value 0, no expiry)
         }
-        vars.put(key, new Entry(value == 0.0 ? "1" : "0", expiry));
+        vars.put(key, new Entry(value == 0.0 ? "1" : "0", expiry,
+                current != null && current.clearOnDeath()));
     }
 
     /**
@@ -83,6 +94,12 @@ public final class VarStore implements PlayerScoped {
      * from {@code 0}, so a hand-set string can't poison the counter.
      */
     public void increment(UUID carrier, String name, int step, int cap, long nowTicks, int ttlTicks) {
+        increment(carrier, name, step, cap, nowTicks, ttlTicks, false);
+    }
+
+    /** {@link #increment} with the carrier's own death ending the counter as well as its TTL. */
+    public void increment(UUID carrier, String name, int step, int cap, long nowTicks, int ttlTicks,
+                          boolean clearOnDeath) {
         Map<String, Entry> vars = byPlayer.computeIfAbsent(carrier, k -> new ConcurrentHashMap<>());
         String key = canonical(name);
         Entry current = vars.get(key);
@@ -96,7 +113,7 @@ public final class VarStore implements PlayerScoped {
         if (cap > 0 && next > cap) {
             next = cap;
         }
-        vars.put(key, new Entry(format(next), expiry));
+        vars.put(key, new Entry(format(next), expiry, clearOnDeath));
     }
 
     /** Whole numbers render without a trailing {@code .0} so a counter reads back as {@code "3"}, not {@code "3.0"}. */
@@ -108,6 +125,23 @@ public final class VarStore implements PlayerScoped {
     /** Forget every variable for one carrier (a player on quit, a mob on death). */
     public void clear(UUID player) {
         byPlayer.remove(player);
+    }
+
+    /**
+     * Forget only the vars {@code carrier} holds that asked to end at their death — the PLAYER-side sweep.
+     * A blanket clear is deliberately not it: a player's vars otherwise survive their death (a mark meant to
+     * outlive one, a window someone else armed), and the whole point of the flag is that a bleed counter
+     * should not while a mark should.
+     */
+    public void clearDeathScoped(UUID carrier) {
+        Map<String, Entry> vars = byPlayer.get(carrier);
+        if (vars == null) {
+            return;
+        }
+        vars.entrySet().removeIf(e -> e.getValue().clearOnDeath());
+        if (vars.isEmpty()) {
+            byPlayer.remove(carrier, vars);
+        }
     }
 
     /** Forget every variable for every player (call on disable). */

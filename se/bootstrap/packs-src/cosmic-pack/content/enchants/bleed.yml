@@ -29,10 +29,19 @@ tier: epic
 # two, gated on mutually exclusive victim types. The level's chance applies to both and only one gate can ever
 # pass, so a hit still rolls once: "stack added" and "debuff applied" stay the single outcome they are in the
 # jar, instead of the two independent rolls a non-exclusive split would give.
-# PENDING DERIVED HOLD — the player-side slow is NOT authored: `MOVEMENT_SPEED(speed = 0.2 - 0.005 * i)` is
-# recorded as held for as long as stacks live, and the surface has no unbounded form (`ticks` is a finite span
-# and 0 reverts on the spot), so shipping it would mean inventing a window the matrix never records. The mob
-# branch below has a finite duration and ships in full. Tracked in deferred-content.md under partial entries.
+# THE DERIVED PLAYER SLOW IS AUTHORED (R-QC57). `MOVEMENT_SPEED(speed = 0.2 - 0.005 * i)` is recorded as held
+# for as long as stacks live, and the surface had no unbounded form — `ticks` is a finite span and 0 reverts
+# on the spot — so `hold: true` is that form: the grant schedules NO revert, because what ends it is a stack
+# count rather than a clock. Three things end it, and they are the jar's own three: `blessed.yml`'s proc,
+# which already restores 0.2 beside its counter reset; the next stack, which re-grants at the new depth; and
+# a logout, which the engine still drains (F08) rather than persisting an altered walk speed to disk. What
+# does NOT end it is the wearer's death — measured, and the codex says so outright ("a bled player keeps the
+# reduced walk speed and the stack count until Blessed procs on them or the server restarts"). The stacks now
+# DO clear on death (below), so the residue is one slow that the next bleed re-derives or a bless lifts.
+# THE DEATH CLEAR (R-QC57, D-04-6's other half). `clear-on-death: true` is the player-side sweep the store
+# never had: a MOB's vars always go, but a PLAYER's deliberately survive death (a mark meant to outlast one,
+# a window somebody else armed), so a counter that should not has to say so. Without it a bled player kept
+# their stacks through death and Deep Wounds went on folding damage off a corpse's ladder forever.
 # The 15-per-burst particle count is port-chosen: the jar plays the countless block-break world effect once per
 # repeat, `max(1, i / 2)` repeats, which is folded into the one count expression.
 # era: REDSTONE_BLOCK and the BLOCK_CRACK crack burst both resolve on 1.8.9, and `SLOW` -> `SLOWNESS` is
@@ -52,12 +61,13 @@ levels:
     abilities:
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\""
         effects:
-          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, clear-on-death: true, who: "@Victim" } }
           - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
+          - { MOVEMENT_SPEED: { speed: "0.2 - 0.005 * max(1, floor(%victim.var.bleedstacks% / 2))", hold: true, who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\""
         effects:
-          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, clear-on-death: true, who: "@Victim" } }
           # Jar amplifier `max(1, i / 3)`; the engine's level is that amplifier + 1, so Slowness II at one
           # stack up to IV at the cap;
           # duration `i * 20` t, re-applied by every later stack (how an overlapping application settles is
@@ -69,12 +79,13 @@ levels:
     abilities:
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\""
         effects:
-          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, clear-on-death: true, who: "@Victim" } }
           - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
+          - { MOVEMENT_SPEED: { speed: "0.2 - 0.005 * max(1, floor(%victim.var.bleedstacks% / 2))", hold: true, who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\""
         effects:
-          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, clear-on-death: true, who: "@Victim" } }
           - { POTION: { effect: "SLOWNESS", level: "max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 3)) + 1", duration: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
   3:
@@ -82,12 +93,13 @@ levels:
     abilities:
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\""
         effects:
-          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, clear-on-death: true, who: "@Victim" } }
           - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
+          - { MOVEMENT_SPEED: { speed: "0.2 - 0.005 * max(1, floor(%victim.var.bleedstacks% / 2))", hold: true, who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\""
         effects:
-          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, clear-on-death: true, who: "@Victim" } }
           - { POTION: { effect: "SLOWNESS", level: "max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 3)) + 1", duration: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
   4:
@@ -95,12 +107,13 @@ levels:
     abilities:
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\""
         effects:
-          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, clear-on-death: true, who: "@Victim" } }
           - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
+          - { MOVEMENT_SPEED: { speed: "0.2 - 0.005 * max(1, floor(%victim.var.bleedstacks% / 2))", hold: true, who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\""
         effects:
-          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, clear-on-death: true, who: "@Victim" } }
           - { POTION: { effect: "SLOWNESS", level: "max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 3)) + 1", duration: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
   5:
@@ -108,12 +121,13 @@ levels:
     abilities:
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\""
         effects:
-          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, clear-on-death: true, who: "@Victim" } }
           - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
+          - { MOVEMENT_SPEED: { speed: "0.2 - 0.005 * max(1, floor(%victim.var.bleedstacks% / 2))", hold: true, who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\""
         effects:
-          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, clear-on-death: true, who: "@Victim" } }
           - { POTION: { effect: "SLOWNESS", level: "max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 3)) + 1", duration: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
   6:
@@ -121,11 +135,12 @@ levels:
     abilities:
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\""
         effects:
-          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, clear-on-death: true, who: "@Victim" } }
           - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
+          - { MOVEMENT_SPEED: { speed: "0.2 - 0.005 * max(1, floor(%victim.var.bleedstacks% / 2))", hold: true, who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\""
         effects:
-          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, clear-on-death: true, who: "@Victim" } }
           - { POTION: { effect: "SLOWNESS", level: "max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 3)) + 1", duration: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }

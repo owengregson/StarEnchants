@@ -776,12 +776,13 @@ Modify a player target's balance: give to them, take from them, transfer (move a
 
 ### MOVEMENT_SPEED
 
-Set the player target's walk speed for a span of ticks, then restore the default (0.2).
+Set the player target's walk speed for a span of ticks, then restore the default (0.2). hold keeps it instead of scheduling that restore, for a debuff whose life is a STACK COUNT rather than a clock — the caller then owns handing it back, and the only thing the engine still guarantees is that a logout restores 0.2 rather than persisting an altered speed to disk. ticks is ignored when hold is set.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ MOVEMENT_SPEED: { speed: <double[-1..1]>, ticks: <ticks[0..]=200> } }`
+- _usage_: `{ MOVEMENT_SPEED: { speed: <double[-1..1]>, ticks: <ticks[0..]=200>, hold: <bool=false> } }`
 - _param_ `speed` `double[-1..1]`
 - _param_ `ticks` `ticks[0..]`
+- _param_ `hold` `bool` — keep the speed with NO timed revert; something else must hand it back
 - _target_ `who`: selector `SELF`
 - _example_: `{ MOVEMENT_SPEED: { speed: 0.4, ticks: 200 } }`
 
@@ -1056,16 +1057,17 @@ Set the target block(s) to a material (default @Here = the activation block).
 
 ### SET_VAR
 
-Set (or with op=increment, add to) a variable on the target, readable in later conditions as %name% on the activator or %victim.var.name% on the victim. ttl ticks, 0 = forever; cap 0 = uncapped. Any living entity can carry one, so a mob holds its own stacks.
+Set (or with op=increment, add to) a variable on the target, readable in later conditions as %name% on the activator or %victim.var.name% on the victim. ttl ticks, 0 = forever; cap 0 = uncapped. Any living entity can carry one, so a mob holds its own stacks. clear-on-death ends the var when its CARRIER dies: a mob's vars always go, but a player's deliberately survive their death (a mark meant to outlast one, a window somebody else armed), so a counter that should not — a bleed ladder — has to say so.
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ SET_VAR: { name: <string>, value: <string=>, ttl: <ticks[0..]=0>, op: <enum{set|increment}=set>, step: <int=1>, cap: <int[0..]=0> } }`
+- _usage_: `{ SET_VAR: { name: <string>, value: <string=>, ttl: <ticks[0..]=0>, op: <enum{set|increment}=set>, step: <int=1>, cap: <int[0..]=0>, clear-on-death: <bool=false> } }`
 - _param_ `name` `string`
 - _param_ `value` `string`
 - _param_ `ttl` `ticks[0..]`
 - _param_ `op` `enum{set|increment}`
 - _param_ `step` `int`
 - _param_ `cap` `int[0..]`
+- _param_ `clear-on-death` `bool` — the carrier's own death ends this var, not just its ttl
 - _target_ `who`: selector `SELF`
 - _example_: `{ SET_VAR: { name: bleedstacks, op: increment, step: 1, cap: 20, ttl: 200, who: "@Victim" } }`
 
