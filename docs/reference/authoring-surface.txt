@@ -365,6 +365,8 @@ effect REFLECT
   param duration TICKS optional min=0 max=- enum=- handle=- default=80
   param cap DOUBLE optional min=0 max=- enum=- handle=- default=0
   param feedback STRING optional min=- max=- enum=- handle=- default=
+effect REFUND_COOLDOWN
+  param unless DOUBLE optional min=- max=- enum=- handle=- default=0
 effect REMOVE_ARMOR
 effect REMOVE_ITEM
   param material HANDLE required min=- max=- enum=- handle=MATERIAL default=-

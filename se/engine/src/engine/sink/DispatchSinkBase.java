@@ -204,7 +204,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final ReflectMarksStore reflectMarks;   // ADR-0049 Hex reflect windows
     private final OutgoingDebuffStore outgoingDebuff; // ADR-0049 Weaken/Destruction outgoing nerfs
     private final DamageCapStore damageCap;          // ADR-0049 Diminish last-taken + armed cap
-    private final RecentAttackersStore recentAttackers; // ADR-0068 bat-cloud arm-time seed
+    private final RecentAttackersStore recentAttackers;
+    /** Gate 6's store, for the REFUND_COOLDOWN release only — the sink never ARMS a cooldown. */
+    private final CooldownStore cooldowns; // ADR-0068 bat-cloud arm-time seed
     /** The ONE per-boot ledger (via {@link SinkEnv}), so temp blocks from separate events compound, not clobber. */
     private final TempBlockLedger<BlockState> tempBlocks;
     /** The ONE per-boot trail memory (via {@link SinkEnv}), so the footprint snake connects across activations. */
@@ -296,6 +298,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.outgoingDebuff = env.stores().outgoingDebuff();
         this.damageCap = env.stores().damageCap();
         this.recentAttackers = env.stores().recentAttackers();
+        this.cooldowns = env.stores().cooldowns();
         this.nowTicks = env.nowTicks();
         this.movementExemption = env.movementExemption();
         this.permanentPotions = env.permanentPotions();
@@ -3606,6 +3609,19 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     // ── Player feedback ──────────────────────────────────────────────────────────────────────────
+
+    @Override
+    public void refundCooldown(Player actor, int scopeId, int cooldownTicks) {
+        if (actor == null || scopeId < 0 || cooldownTicks <= 0) {
+            return; // nothing was reserved, so there is nothing to hand back
+        }
+        // The gate-6 release, value-matched on the expiry it wrote: this runs INLINE in the same tick the
+        // gate reserved (CONTEXT_LOCAL), so the recomputed expiry is the one in the map. A later tick would
+        // simply miss and leave the window standing, which is the safe direction to fail.
+        long now = nowTicks.getAsLong();
+        cooldowns.release(actor.getUniqueId(),
+                CooldownStore.key(ScopeKinds.ENCHANT, scopeId, 0), now + cooldownTicks);
+    }
 
     @Override
     public void message(Player target, String message) {

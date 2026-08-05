@@ -1222,4 +1222,16 @@ public interface Sink {
      * activation is REFUSED, which is the opposite event.
      */
     void vanish(Player subject, int durationTicks, int breakHits, String varName, String endMessage);
+
+    /**
+     * Hand back the gate-6 cooldown reservation this activation made — {@code REFUND_COOLDOWN} (R-QC15).
+     * {@code scopeId} is the ability's own ENCHANT-scope id and {@code cooldownTicks} its authored duration, so
+     * a refund can only ever release the window this very ability armed. The release is value-matched on the
+     * expiry the gate wrote, so a stale call misses and leaves the window standing.
+     *
+     * <p>The point of it: gate 6 reserves BEFORE the effects run, and some refusals are only knowable after —
+     * a conversion that found nothing to convert has to run the conversion to find out. A condition cannot
+     * express that, and charging five minutes for a click that did nothing is the bug.
+     */
+    void refundCooldown(Player actor, int scopeId, int cooldownTicks);
 }

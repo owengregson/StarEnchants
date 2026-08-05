@@ -961,6 +961,15 @@ Mark the target so a percent of their own outgoing damage is reflected back onto
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ REFLECT: { percent: 20, duration: 80, who: "@Victim" } }`
 
+### REFUND_COOLDOWN
+
+Hand back the cooldown this ability's own gate-6 reservation armed, unless `unless` evaluates non-zero. Author it AFTER the payload whose outcome decides the refusal — a condition cannot, because the fact it would read does not exist until the payload has run. It can only ever release THIS ability's window, and only in the tick the gate reserved it, so a WAIT tier between the payload and the refund silently forfeits it.
+
+- _affinity_: `CONTEXT_LOCAL`
+- _usage_: `{ REFUND_COOLDOWN: { unless: <double=0> } }`
+- _param_ `unless` `double` — skip the refund when this evaluates non-zero; the default (0) always refunds
+- _example_: `{ REFUND_COOLDOWN: { unless: "%lavapet.filled%" } }`
+
 ### REMOVE_ARMOR
 
 Strip one random worn armour piece from the target(s) and drop it.

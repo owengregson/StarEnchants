@@ -116,6 +116,9 @@ public final class FakeEffectCtx implements EffectCtx {
         return this;
     }
 
+    private int cooldownScope = -1;
+    private int cooldownTicks;
+
     public FakeEffectCtx level(int level) {
         this.level = level;
         return this;
@@ -129,6 +132,28 @@ public final class FakeEffectCtx implements EffectCtx {
     public FakeEffectCtx sourceDefId(int sourceDefId) {
         this.sourceDefId = sourceDefId;
         return this;
+    }
+
+    /** The ENCHANT-scope cooldown id gate 6 reserved for this ability (REFUND_COOLDOWN's only key). */
+    public FakeEffectCtx cooldownScope(int cooldownScope) {
+        this.cooldownScope = cooldownScope;
+        return this;
+    }
+
+    /** The cooldown duration gate 6 reserved, in ticks. */
+    public FakeEffectCtx cooldownTicks(int cooldownTicks) {
+        this.cooldownTicks = cooldownTicks;
+        return this;
+    }
+
+    @Override
+    public int cooldownScope() {
+        return cooldownScope;
+    }
+
+    @Override
+    public int cooldownTicks() {
+        return cooldownTicks;
     }
 
     // ── EffectCtx ────────────────────────────────────────────────────────────────────────────────────

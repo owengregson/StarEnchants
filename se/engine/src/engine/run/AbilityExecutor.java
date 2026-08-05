@@ -335,6 +335,7 @@ public final class AbilityExecutor {
                 List<org.bukkit.Location> locations = selector == null ? List.of() : selector.resolveLocations(sel);
                 EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets),
                         locationSlotMap(kind, locations), ability.level(), ability.defId(), ability.cdScopeGroup(),
+                        -1, 0, // a lifecycle transition walks no gates, so it reserved no cooldown to refund
                         null, null, origin);
                 sink.delay(0);
                 if (stopping) {
@@ -389,6 +390,7 @@ public final class AbilityExecutor {
                 }
                 EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets),
                         locationSlotMap(kind, locations), ability.level(), ability.defId(), ability.cdScopeGroup(),
+                        ability.cdScopeEnchant(), ability.cooldownTicks(),
                         activeGem, facts, origin);
                 // WAIT (§3.6): defer only this effect's world-mutation intents by its accumulated tick tier.
                 // Targets are resolved now on the firing thread; inline feedback (fold/cancel) stays instant.

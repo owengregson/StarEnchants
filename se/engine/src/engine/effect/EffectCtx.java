@@ -116,6 +116,20 @@ public interface EffectCtx {
     }
 
     /**
+     * The interned ENCHANT-scope cooldown id gate 6 reserved for this ability, or {@code -1} when it carries no
+     * cooldown at all — the ONE key {@code REFUND_COOLDOWN} can hand back, so a refund can never release a
+     * window some other ability owns.
+     */
+    default int cooldownScope() {
+        return -1;
+    }
+
+    /** The cooldown duration gate 6 reserved, in ticks; {@code 0} when none (nothing to refund). */
+    default int cooldownTicks() {
+        return 0;
+    }
+
+    /**
      * The activator's active soul-gem id, or {@code null} when they are not in soul mode (REMOVE_SOULS).
      * Souls bind to the activator, so this is the actor's gem — not a target's.
      */
