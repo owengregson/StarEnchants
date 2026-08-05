@@ -8405,6 +8405,10 @@
     "type": "BOOL"
     },
   {
+    "name": "soulcost",
+    "type": "NUM"
+    },
+  {
     "name": "sprinting",
     "type": "BOOL"
     },

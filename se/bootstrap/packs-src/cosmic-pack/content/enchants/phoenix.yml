@@ -33,11 +33,11 @@ soul-cost-decay-period: 12000
 # among them — a last-stand save that only fired in soul mode would never fire.
 soul-cost-carried: true
 no-souls-message: "§c§l** OUT OF SOULS **"  # the engine's 300 t throttle IS the recorded 15 s
-# {cost} and {souls} stay UNBOUND, recorded verbatim — the same treatment paradox.yml gives this pair. MESSAGE
-# does carry a `tokens` expr-map that binds any author-named {name} to an expression over the activation's
-# facts, but neither of these has a fact to bind: the escalated price lives only in the per-player escalation
-# counter (no %fact% exposes it), and %actor.souls% is snapshotted into the FactBuffer BEFORE gate 10 debits,
-# so binding it would print the PRE-spend balance under a line that says "left".
+# {cost} and {souls} are BOUND through MESSAGE's `tokens` expr-map (R-QC2). %soulcost% is the price gate 10
+# actually resolved for THIS proc — the escalated rung off the per-player ladder, not the authored 500 — so the
+# line reports what the save cost rather than what a first save would have. %actor.souls% is snapshotted BEFORE
+# gate 10 debits, so the balance "left" is that snapshot minus the same price; reading it raw would print the
+# pre-spend total under a line that says "left".
 # {ATTACKER} is the engine's bound name token for the ACTIVATING player, which on a DEFENSE pass is the
 # wearer — the matrix's {owner}. @AllPlayers excludes the activator, so the broadcast never doubles the
 # wearer's own lines.
@@ -61,10 +61,10 @@ levels:
       - { PARTICLE: { particle: "LAVA", count: 20, who: "@Self" } }
       - { MESSAGE: { text: "" } }
       - { MESSAGE: { text: "§6§l*** §nPHOENIX SOUL§6§l ***" } }
-      - { MESSAGE: { text: "§c§l- {cost} Soul Gems" } }
-      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: "%soulcost%" } } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - %soulcost%" } } }
       - { MESSAGE: { text: "" } }
-      - { MESSAGE: { text: "§c§l*** PHOENIX SOUL (§7{ATTACKER}, -{cost} souls§c§l) ***", who: "@AllPlayers{r=48}" } }
+      - { MESSAGE: { text: "§c§l*** PHOENIX SOUL (§7{ATTACKER}, -{cost} souls§c§l) ***", who: "@AllPlayers{r=48}", tokens: { cost: "%soulcost%" } } }
   2:
     cooldown: 2400
     effects:
@@ -75,10 +75,10 @@ levels:
       - { PARTICLE: { particle: "LAVA", count: 20, who: "@Self" } }
       - { MESSAGE: { text: "" } }
       - { MESSAGE: { text: "§6§l*** §nPHOENIX SOUL§6§l ***" } }
-      - { MESSAGE: { text: "§c§l- {cost} Soul Gems" } }
-      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: "%soulcost%" } } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - %soulcost%" } } }
       - { MESSAGE: { text: "" } }
-      - { MESSAGE: { text: "§c§l*** PHOENIX SOUL (§7{ATTACKER}, -{cost} souls§c§l) ***", who: "@AllPlayers{r=48}" } }
+      - { MESSAGE: { text: "§c§l*** PHOENIX SOUL (§7{ATTACKER}, -{cost} souls§c§l) ***", who: "@AllPlayers{r=48}", tokens: { cost: "%soulcost%" } } }
   3:
     cooldown: 1200
     effects:
@@ -89,7 +89,7 @@ levels:
       - { PARTICLE: { particle: "LAVA", count: 20, who: "@Self" } }
       - { MESSAGE: { text: "" } }
       - { MESSAGE: { text: "§6§l*** §nPHOENIX SOUL§6§l ***" } }
-      - { MESSAGE: { text: "§c§l- {cost} Soul Gems" } }
-      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: "%soulcost%" } } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - %soulcost%" } } }
       - { MESSAGE: { text: "" } }
-      - { MESSAGE: { text: "§c§l*** PHOENIX SOUL (§7{ATTACKER}, -{cost} souls§c§l) ***", who: "@AllPlayers{r=48}" } }
+      - { MESSAGE: { text: "§c§l*** PHOENIX SOUL (§7{ATTACKER}, -{cost} souls§c§l) ***", who: "@AllPlayers{r=48}", tokens: { cost: "%soulcost%" } } }

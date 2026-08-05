@@ -2,7 +2,9 @@ package engine.pipeline;
 
 import compile.model.Ability;
 import compile.model.ScopeKinds;
+import compile.cond.VarBinding;
 import compile.model.cond.NumExpr;
+import engine.condition.BuiltinVars;
 import engine.condition.ConditionEvaluator;
 import engine.condition.ConditionResult;
 import engine.condition.Flow;
@@ -47,6 +49,10 @@ public final class ActivationPipeline {
         Guard ALLOW = (ability, activation) -> true;
     }
 
+
+    /** {@code %soulcost%}'s numeric slot, or {@code -1} when the vocabulary does not declare it (R-QC2). */
+    private static final int SOUL_COST_SLOT =
+            BuiltinVars.vocabulary().lookup(null, "soulcost").map(VarBinding::slot).orElse(-1);
 
     /** Escalation-scope namespaces for the two fallbacks, kept clear of the {@link ScopeKinds} range. */
     private static final int ESCALATION_BY_SUPPRESS_KEY = 8;
@@ -206,6 +212,7 @@ public final class ActivationPipeline {
         // 10. soul cost — only if a gem is active (§3.3); single-authority debit. Fail code = pA (0 no gem, 1 pool
         //     short). The ESCALATED price is what /se why renders as COST, so it is what the abort reports.
         int cost = soulCostFor(ability, act);
+        publishSoulCost(act, cost);
         int soulFail = consumeSouls(ability, act, cost);
         if (soulFail >= 0) {
             releaseCooldowns(ability, act);
@@ -280,6 +287,20 @@ public final class ActivationPipeline {
             return 0;
         }
         return soulExempt.waives(act.actor(), act.nowTicks()) ? soulCostFor(ability, act) : 0;
+    }
+
+    /**
+     * Publish gate 10's resolved price into the activation's fact buffer as {@code %soulcost%} (R-QC2), so an
+     * effect can print what this proc actually cost. The populator cannot source it: the escalated rung lives in
+     * the per-player ladder and is only known once the gate prices it, long after facts are filled.
+     *
+     * <p>Written on EVERY pass through the gate, zero included — one buffer serves the whole walk, so skipping a
+     * soul-free ability would leave it reading the previous ability's price.
+     */
+    private static void publishSoulCost(Activation act, int cost) {
+        if (SOUL_COST_SLOT >= 0 && SOUL_COST_SLOT < act.facts().numberSlots()) {
+            act.facts().setNumber(SOUL_COST_SLOT, cost);
+        }
     }
 
     /** Report one attempt's verdict + per-gate payload to the recorder, then return the verdict (ADR-0045). */

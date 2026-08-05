@@ -47,6 +47,12 @@ public final class FactBuffer {
         return numbers[slot];
     }
 
+    /** How many numeric slots this buffer was sized for — a writer outside the populator must bounds-check
+     *  against it, since a synthetic activation's buffer is sized 0 while the vocabulary's slot ids are not. */
+    public int numberSlots() {
+        return numbers.length;
+    }
+
     public void setFlag(int slot, boolean value) {
         long bit = 1L << (slot & 63);
         if (slot < Long.SIZE) {
