@@ -74,6 +74,10 @@ class RepeatingDriverTest {
         assertEquals(2, backend.repeating.size());
         assertEquals(20L, backend.repeating.get(0).periodTicks);
         assertEquals(40L, backend.repeating.get(1).periodTicks);
+        // Unset repeat-delay: the first run stays one full period out, the shape every shipped file was written
+        // against — a driver that defaulted it to 0 would fire every REPEATING ability on the equip tick.
+        assertEquals(20L, backend.repeating.get(0).initialDelayTicks);
+        assertEquals(40L, backend.repeating.get(1).initialDelayTicks);
         assertTrue(store.has(uuid, 3));
         assertTrue(store.has(uuid, 7));
         assertFalse(store.has(uuid, 9), "a repeatTicks=0 ability is never scheduled");
@@ -113,6 +117,25 @@ class RepeatingDriverTest {
         assertEquals(3, backend.repeating.size(), "one fresh task scheduled on re-arm");
         assertTrue(store.has(uuid, 3));
         assertFalse(store.has(uuid, 7));
+    }
+
+    @Test
+    void anAuthoredRepeatDelayMovesTheFirstRunOffThePeriodAndZeroClampsToTheNextTick() {
+        // R-QC35b. The period is untouched either way — only the FIRST run moves.
+        Ability[] abilities = new Ability[3];
+        abilities[0] = Abilities.ability().id(0).defId(0).trigger(REPEATING).repeatTicks(100).repeatDelay(5).build();
+        abilities[1] = Abilities.ability().id(1).defId(1).trigger(REPEATING).repeatTicks(100).repeatDelay(0).build();
+        abilities[2] = Abilities.ability().id(2).defId(2).trigger(REPEATING).repeatTicks(100).build();
+        ContentHolder held = mock(ContentHolder.class);
+        when(held.snapshot()).thenReturn(Snapshots.snapshot().abilities(abilities).build());
+        RepeatingDriver delayed = new RepeatingDriver(mock(TriggerDispatch.class), held, REPEATING, store);
+
+        delayed.arm(player, worn(0, 1, 2));
+
+        assertEquals(5L, backend.repeating.get(0).initialDelayTicks);
+        assertEquals(100L, backend.repeating.get(0).periodTicks);
+        assertEquals(1L, backend.repeating.get(1).initialDelayTicks, "0 clamps to the earliest tick a task can hold");
+        assertEquals(100L, backend.repeating.get(2).initialDelayTicks, "unset still means one full period");
     }
 
     private static Ability ability(int id, int repeatTicks) {

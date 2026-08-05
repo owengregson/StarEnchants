@@ -33,13 +33,13 @@ final class PetDefReader {
             "display", "color", "type", "head", "material", "descriptor", "description", "permission",
             "message-on-no-home", "exp-curve", "max-level", "levels");
     private static final Set<String> ABILITY_KEYS = ContentParse.withEnvelopeKnobs(
-            "trigger", "disabled-worlds", "repeat", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
+            "trigger", "disabled-worlds", "repeat", "repeat-delay", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
             "no-souls-message",
             "condition", "effects");
     private static final Set<String> BRACKET_KEYS = ContentParse.withEnvelopeKnobs(
             "cooldown", "duration", "abilities",
             // single-ability shorthand (a bracket with exactly one ability authors these at the top level):
-            "trigger", "disabled-worlds", "repeat", "chance", "soul-cost", "soul-cost-growth", "soul-cost-cap",
+            "trigger", "disabled-worlds", "repeat", "repeat-delay", "chance", "soul-cost", "soul-cost-growth", "soul-cost-cap",
             "soul-cost-decay-period", "no-souls-message", "condition", "effects");
 
     private PetDefReader() {
@@ -221,6 +221,8 @@ final class PetDefReader {
                 ContentParse.resolveString(node, "no-souls-message", diags));
         ContentParse.SoulKnobs soulKnobs = ContentParse.resolveSoulKnobs(node, diags);
         int repeatTicks = ContentParse.optInt(node, "repeat", 0, diags);
+        // R-QC35b: ticks before the FIRST run; -1 keeps the historical shape (one full period out).
+        int repeatDelayTicks = ContentParse.optInt(node, "repeat-delay", -1, diags);
         List<String> disabledWorlds = node.stringList("disabled-worlds");
         String condition = ContentParse.blankToNull(node.string("condition"));
 
@@ -244,7 +246,8 @@ final class PetDefReader {
                 List.of(trigger), disabledWorlds, condition, effects, "pet:" + key, cdScope, null, null,
                 repeatTicks, node.source(), 0, false, chance.expr(), noSoulsMessage, soulKnobs.carried(),
                 soulKnobs.sound(), soulKnobs.particle(), soulCostGrowth, soulCostCap, soulCostDecayPeriod,
-                ContentParse.resolveCooldownPerVictim(node, diags));
+                ContentParse.resolveCooldownPerVictim(node, diags),
+                repeatDelayTicks);
         out.add(ability);
         return ability;
     }

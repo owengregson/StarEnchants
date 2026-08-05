@@ -39,6 +39,7 @@ public final class Abilities {
         private CompiledCondition condition = null;
         private CompiledEffect[] effects = new CompiledEffect[0];
         private int repeatTicks = 0;
+        private int repeatDelayTicks = -1;
         private Affinity affinity = Affinity.CONTEXT_LOCAL;
         private int cdScopeEnchant = -1;
         private int cdScopeGroup = -1;
@@ -197,6 +198,12 @@ public final class Abilities {
             return this;
         }
 
+        /** Ticks before a REPEATING ability's first run; {@code -1} (the default) is one full period. */
+        public Builder repeatDelay(int repeatDelayTicks) {
+            this.repeatDelayTicks = repeatDelayTicks;
+            return this;
+        }
+
         /** Key the cooldown on the victim rather than the coarse target bucket ({@code cooldown-per-victim}). */
         public Builder cooldownPerVictim(boolean cooldownPerVictim) {
             this.cooldownPerVictim = cooldownPerVictim;
@@ -208,7 +215,7 @@ public final class Abilities {
                     worldBlacklist, condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup,
                     cdScopeType, suppressKey, setPieces, suppressImmune, factMask, chanceExpr, noSoulsMessage,
                     soulCostCarried, noSoulsSound, noSoulsParticle,
-                    soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim);
+                    soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim, repeatDelayTicks);
         }
     }
 }

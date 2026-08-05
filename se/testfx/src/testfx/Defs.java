@@ -52,6 +52,7 @@ public final class Defs {
         private String cdScopeGroup = null;
         private String cdScopeType = null;
         private int repeatTicks = 0;
+        private int repeatDelayTicks = -1;
         private Source source = Source.UNKNOWN;
         private int setPieces = 0;
         private boolean suppressImmune = false;
@@ -237,7 +238,7 @@ public final class Defs {
                     triggers, worldBlacklist, conditionExpr, lines, suppressKey, cdScopeEnchant, cdScopeGroup,
                     cdScopeType, repeatTicks, source, setPieces, suppressImmune, chanceExpr, noSoulsMessage,
                     soulCostCarried, noSoulsSound, noSoulsParticle,
-                    soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim);
+                    soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim, repeatDelayTicks);
         }
     }
 
@@ -260,6 +261,7 @@ public final class Defs {
         private String cdScopeGroup = null;
         private String cdScopeType = null;
         private int repeatTicks = 0;
+        private int repeatDelayTicks = -1;
         private Affinity affinity = Affinity.CONTEXT_LOCAL;
         private Source source = Source.UNKNOWN;
         private int setPieces = 0;
@@ -434,7 +436,7 @@ public final class Defs {
                     triggers, worldBlacklist, condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup,
                     cdScopeType, repeatTicks, affinity, source, setPieces, suppressImmune, loweredChanceExpr,
                     noSoulsMessage, soulCostCarried, noSoulsSound, noSoulsParticle,
-                    soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim);
+                    soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim, repeatDelayTicks);
         }
     }
 }

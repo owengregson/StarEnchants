@@ -20,6 +20,7 @@ import java.util.List;
  * @param condition      compiled condition AST, or {@code null} for always-true
  * @param suppressKey    {@code DISABLE_*} key (interned by erasure), or {@code null}
  * @param repeatTicks    repeating-trigger period; {@code 0} = none
+ * @param repeatDelayTicks ticks before the FIRST run; {@code -1} = one full period
  * @param affinity       affinity folded MAX over {@link #effects} (CONTEXT_LOCAL if none)
  * @param setPieces      worn-piece count that completes a {@link SourceKind#SET} bonus; {@code 0} otherwise
  * @param chanceExpr     evaluated at the chance gate instead of {@link #baseChance}; {@code null} = constant
@@ -62,7 +63,8 @@ public record LoweredAbility(
         double soulCostGrowth,
         int soulCostCap,
         int soulCostDecayPeriod,
-        boolean cooldownPerVictim) {
+        boolean cooldownPerVictim,
+        int repeatDelayTicks) {
 
     public LoweredAbility {
         triggers = List.copyOf(triggers);
@@ -78,7 +80,7 @@ public record LoweredAbility(
                           Affinity affinity, Source source, int setPieces, boolean suppressImmune) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks, affinity,
-                source, setPieces, suppressImmune, null, null, false, -1, -1, 1.0, 0, 0, false);
+                source, setPieces, suppressImmune, null, null, false, -1, -1, 1.0, 0, 0, false, -1);
     }
 
     /** Back-compat construction defaulting {@code suppressImmune=false} — most callers never set it. */
@@ -89,6 +91,6 @@ public record LoweredAbility(
                           Affinity affinity, Source source, int setPieces) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks, affinity,
-                source, setPieces, false, null, null, false, -1, -1, 1.0, 0, 0, false);
+                source, setPieces, false, null, null, false, -1, -1, 1.0, 0, 0, false, -1);
     }
 }

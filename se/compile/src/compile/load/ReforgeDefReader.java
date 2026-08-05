@@ -30,11 +30,11 @@ final class ReforgeDefReader {
     private static final Set<String> ROOT_KEYS = ContentParse.withEnvelopeKnobs(
             "display", "color", "icon", "material", "type", "description", "abilities",
             // single-ability shorthand (a reforge whose whole behaviour is the active):
-            "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
+            "trigger", "disabled-worlds", "group", "repeat", "repeat-delay", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
             "no-souls-message",
             "condition", "effects");
     private static final Set<String> ABILITY_KEYS = ContentParse.withEnvelopeKnobs(
-            "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
+            "trigger", "disabled-worlds", "group", "repeat", "repeat-delay", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
             "no-souls-message",
             "condition", "effects");
 
@@ -143,6 +143,8 @@ final class ReforgeDefReader {
         List<String> disabledWorlds = node.stringList("disabled-worlds");
         String group = ContentParse.blankToNull(node.string("group"));
         int repeatTicks = ContentParse.optInt(node, "repeat", 0, diags);
+        // R-QC35b: ticks before the FIRST run; -1 keeps the historical shape (one full period out).
+        int repeatDelayTicks = ContentParse.optInt(node, "repeat-delay", -1, diags);
         ContentParse.Chance chance = ContentParse.resolveChanceValue(node, "chance", diags);
         int cooldown = ContentParse.resolveInt(node, "cooldown", 0, diags);
         int soulCost = ContentParse.resolveInt(node, "soul-cost", 0, diags);
@@ -170,7 +172,8 @@ final class ReforgeDefReader {
                 group, null, repeatTicks, fileSource, 0, false,
                 chance.expr(), noSoulsMessage, soulKnobs.carried(), soulKnobs.sound(), soulKnobs.particle(),
                 soulCostGrowth, soulCostCap, soulCostDecayPeriod,
-                ContentParse.resolveCooldownPerVictim(node, diags));
+                ContentParse.resolveCooldownPerVictim(node, diags),
+                repeatDelayTicks);
     }
 
     private static String orEmpty(String value) {

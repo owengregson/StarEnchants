@@ -19,6 +19,7 @@ import compile.model.cond.NumExpr;
  * @param condition      pre-built condition AST; {@code null} = always true
  * @param effects        the flyweight effects to run, in authored order
  * @param repeatTicks    period for a repeating-trigger ability; {@code 0} = none
+ * @param repeatDelayTicks ticks before the FIRST run; {@code -1} = one full period (R-QC35b)
  * @param affinity       dispatch affinity folded MAX over {@link #effects} (§3.6)
  * @param cdScopeEnchant interned cooldown-scope id (enchant scope), or {@code -1}
  * @param cdScopeGroup   interned cooldown-scope id (group scope), or {@code -1}
@@ -66,7 +67,8 @@ public record Ability(
         double soulCostGrowth,
         int soulCostCap,
         int soulCostDecayPeriod,
-        boolean cooldownPerVictim) {
+        boolean cooldownPerVictim,
+        int repeatDelayTicks) {
 
     /** Back-compat construction for a constant {@code chance:} — the hot-path fast case. */
     public Ability(int id, int defId, SourceKind sourceKind, int triggerMask, int level, double baseChance,
@@ -76,7 +78,8 @@ public record Ability(
                    FactMask factMask) {
         this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
                 condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
-                suppressKey, setPieces, suppressImmune, factMask, null, null, false, -1, -1, 1.0, 0, 0, false);
+                suppressKey, setPieces, suppressImmune, factMask, null, null, false, -1, -1, 1.0, 0, 0, false,
+                -1);
     }
 
     /** No derived fact mask — populate everything (the safe default for hand-built test abilities). */
@@ -86,7 +89,7 @@ public record Ability(
                    int cdScopeGroup, int cdScopeType, int suppressKey, int setPieces) {
         this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
                 condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
-                suppressKey, setPieces, false, FactMask.ALL, null, null, false, -1, -1, 1.0, 0, 0, false);
+                suppressKey, setPieces, false, FactMask.ALL, null, null, false, -1, -1, 1.0, 0, 0, false, -1);
     }
 
     public boolean firesOn(int triggerId) {

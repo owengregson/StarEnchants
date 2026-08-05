@@ -22,6 +22,7 @@ import java.util.List;
  * @param effects         lexed effect lines in authored order ({@code WAIT:n} lines control timing)
  * @param suppressKey     the key by which a {@code DISABLE_*} cancels this ability (§6.2), or {@code null}
  * @param repeatTicks     period for a repeating-trigger ability; {@code 0} = none
+ * @param repeatDelayTicks ticks before the FIRST run; {@code -1} = one full period, the historical shape
  * @param setPieces       for a {@link SourceKind#SET} bonus, the worn-piece count that completes the
  *                        set; {@code 0} for every non-set source
  * @param chanceExpr      raw expression text when {@code chance:} was authored as an expression rather than
@@ -65,7 +66,8 @@ public record AbilityDef(
         double soulCostGrowth,
         int soulCostCap,
         int soulCostDecayPeriod,
-        boolean cooldownPerVictim) {
+        boolean cooldownPerVictim,
+        int repeatDelayTicks) {
 
     public AbilityDef {
         triggers = List.copyOf(triggers);
@@ -81,7 +83,7 @@ public record AbilityDef(
                       boolean suppressImmune) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 conditionExpr, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks,
-                source, setPieces, suppressImmune, null, null, false, null, null, 1.0, 0, 0, false);
+                source, setPieces, suppressImmune, null, null, false, null, null, 1.0, 0, 0, false, -1);
     }
 
     /** Back-compat construction defaulting {@code suppressImmune=false} — only enchants author it today. */
@@ -91,6 +93,6 @@ public record AbilityDef(
                       String cdScopeGroup, String cdScopeType, int repeatTicks, Source source, int setPieces) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 conditionExpr, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks,
-                source, setPieces, false, null, null, false, null, null, 1.0, 0, 0, false);
+                source, setPieces, false, null, null, false, null, null, 1.0, 0, 0, false, -1);
     }
 }

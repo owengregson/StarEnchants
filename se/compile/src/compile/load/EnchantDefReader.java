@@ -25,7 +25,7 @@ final class EnchantDefReader {
 
     private static final Set<String> ROOT_KEYS = ContentParse.withEnvelopeKnobs(
             "display", "description", "tier", "applies-to", "trigger", "disabled-worlds", "group",
-            "repeat", "levels", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap",
+            "repeat", "repeat-delay", "levels", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap",
             "soul-cost-decay-period", "no-souls-message", "condition",
             "requires", "blacklist", "removes-required", "suppress-immune");
     private static final Set<String> LEVEL_KEYS = ContentParse.withEnvelopeKnobs(
@@ -33,7 +33,7 @@ final class EnchantDefReader {
             "no-souls-message", "condition", "effects", "abilities");
     private static final Set<String> ABILITY_KEYS = ContentParse.withEnvelopeKnobs(
             "trigger", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap",
-            "soul-cost-decay-period", "no-souls-message", "condition", "repeat", "effects");
+            "soul-cost-decay-period", "no-souls-message", "condition", "repeat", "repeat-delay", "effects");
 
     private EnchantDefReader() {
     }
@@ -80,6 +80,8 @@ final class EnchantDefReader {
                     root.sourceOf("removes-required"));
         }
         int repeatTicks = ContentParse.optInt(root, "repeat", 0, diags);
+        // R-QC35b: ticks before the FIRST run; -1 keeps the historical shape (one full period out).
+        int repeatDelayTicks = ContentParse.optInt(root, "repeat-delay", -1, diags);
         // Per-enchant suppression immunity (Silence & derivatives): when true, THIS enchant's abilities can never
         // be disabled, so a permanent buff survives while the wearer's other enchants are still silenced.
         boolean suppressImmune = ContentParse.boolOr(root.string("suppress-immune"), false, "suppress-immune",
@@ -116,7 +118,7 @@ final class EnchantDefReader {
             String levelKey = baseKey + "/" + level;
             if (!lvl.has("abilities")) {
                 abilities.add(ability(levelKey, level, null, lvl, root, baseKey, triggers, disabledWorlds, group,
-                        repeatTicks, suppressImmune, nextDefId, diags));
+                        repeatTicks, repeatDelayTicks, suppressImmune, nextDefId, diags));
                 continue;
             }
             if (lvl.has("effects")) {
@@ -138,7 +140,7 @@ final class EnchantDefReader {
                 // WornResolver runs over them (crystal/mask/reforge/set/pet).
                 String stableKey = index == 0 ? levelKey : levelKey + "/a" + index;
                 abilities.add(ability(stableKey, level, block, lvl, root, baseKey, triggers, disabledWorlds, group,
-                        repeatTicks, suppressImmune, nextDefId, diags));
+                        repeatTicks, repeatDelayTicks, suppressImmune, nextDefId, diags));
                 index++;
             }
             if (index == 0) {
@@ -160,8 +162,8 @@ final class EnchantDefReader {
      */
     private static AbilityDef ability(String stableKey, int level, YamlNode block, YamlNode lvl, YamlNode root,
                                       String baseKey, List<String> triggers, List<String> disabledWorlds,
-                                      String group, int rootRepeatTicks, boolean suppressImmune,
-                                      IntSupplier nextDefId, Diagnostics diags) {
+                                      String group, int rootRepeatTicks, int rootRepeatDelayTicks,
+                                      boolean suppressImmune, IntSupplier nextDefId, Diagnostics diags) {
         ContentParse.Chance chance =
                 ContentParse.resolveChanceValue(knobNode(block, lvl, root, "chance"), "chance", diags);
         int cooldown = ContentParse.resolveInt(knobNode(block, lvl, root, "cooldown"), "cooldown", 0, diags);
@@ -189,6 +191,8 @@ final class EnchantDefReader {
         List<String> blockTriggers = block != null && block.has("trigger") ? block.stringList("trigger") : triggers;
         int repeatTicks = block != null && block.has("repeat")
                 ? ContentParse.optInt(block, "repeat", 0, diags) : rootRepeatTicks;
+        int repeatDelayTicks = block != null && block.has("repeat-delay")
+                ? ContentParse.optInt(block, "repeat-delay", -1, diags) : rootRepeatDelayTicks;
         YamlNode effectsNode = block != null ? block : lvl;
         List<EffectLine> effects = effectsFor(baseKey, level, effectsNode, diags);
 
@@ -220,7 +224,8 @@ final class EnchantDefReader {
                 soulCostGrowth,
                 soulCostCap,
                 soulCostDecayPeriod,
-                cooldownPerVictim);
+                cooldownPerVictim,
+                repeatDelayTicks);
     }
 
     /** The node a knob is read from: the innermost scope that declares it — block, then level, then file root. */

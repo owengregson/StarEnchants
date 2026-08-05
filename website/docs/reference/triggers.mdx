@@ -42,7 +42,7 @@ Defensive effects (`GUARD`, `KNOCKBACK_CONTROL` on yourself, retaliation `DAMAGE
 Both are always-on while the item is worn, but they differ:
 
 - **`PASSIVE`** is a continuous state — best for effects that *are* a condition (a permanent potion buff, a `HEALTH` bump). The engine keeps them applied while worn and cleans them up on unequip.
-- **`REPEATING`** runs on a fixed timer — best for periodic upkeep (top up a buff, lay a `WALKER` platform, refresh `KEEP_ON_DEATH`).
+- **`REPEATING`** runs on a fixed timer — best for periodic upkeep (top up a buff, lay a `WALKER` platform, refresh `KEEP_ON_DEATH`). `repeat: N` is the period in ticks; `repeat-delay: D` moves the **first** run to `D` ticks after equip instead of a full period out, so an upkeep ability can start straight away without shortening the loop.
 :::
 
 <TriggerTable />
