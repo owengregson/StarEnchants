@@ -28,10 +28,10 @@
 # The per-piece rosters ARE authored on the members, every entry at MAX level: this set has no random rolls
 # anywhere (measured), so the family's nearly-maxed draw does not apply and a bare level is the right form —
 # it consumes no draw and mints one certain rung.
-# TWO ROSTER FACTS STAY RECORDED: the chest's `Blood Lust`, a batch-01 stop that is not in this pack yet (a
-# set's `enchants:` ref is validated library-wide, so naming it would be a compile error rather than an inert
-# key), and the leggings' `7.5 % Nature Wrath (max)` — the set's ONE probability, and a roster entry's
-# `chance` is an integer percent. The per-slot armour and durability values still have no surface at all:
+# The chest's `Blood Lust` is AUTHORED as of wave 3b-3 (R-QC46) — it was held back only because a set's
+# `enchants:` ref is validated library-wide and naming an absent enchant is a compile error rather than an
+# inert key. ONE ROSTER FACT STAYS RECORDED: the leggings' `7.5 % Nature Wrath (max)` — the set's ONE
+# probability, and a roster entry's `chance` is an integer percent. The per-slot armour and durability values still have no surface at all:
 # helm 3/810, chest 8/1000, legs 6/935, boots 3/686.
 display: "§f§l§k;§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k;§r"  # the `;`-bookended banner variant (the piece names use the `!` one — two banners exist, each reproduced where it appears)
 # description: not matrix-recorded (factual paraphrase)
@@ -93,7 +93,7 @@ armor:
       color: "red"
       heroic: true
       enchants:
-        # `Blood Lust` sits first in the codex order — batch-01 stop, see the header.
+        enchants/blood-lust: 6
         enchants/overload: 3
         enchants/deathbringer: 3
         enchants/enlighted: 3

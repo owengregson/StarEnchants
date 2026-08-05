@@ -250,6 +250,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
     private final VanishStore vanishStore;
     /** The SUMMON_PAYLOAD seam a periodic summon pulses through (firing a trigger is the feature layer's). */
     private final SummonPayloads payloads;
+    private final ProximityEvents proximity;
     /** The per-site protection gate (gate 2's provider list), asked once per TURRET_RING emplacement. */
     private final SiteGate siteGate;
     /** The ITEM_XP_TRACK seam the pets family implements (item-attached progression is theirs, not the engine's). */
@@ -307,6 +308,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         this.nowTicks = env.nowTicks();
         this.movementExemption = env.movementExemption();
         this.permanentPotions = env.permanentPotions();
+        this.proximity = env.proximity();
         this.tempBlocks = env.tempBlocks();
         this.trails = env.trails();
         this.timedReverts = env.timedReverts();
@@ -2856,6 +2858,16 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 at.getBlock().setType(material);
             }
         });
+    }
+
+    @Override
+    public void announceProximity(LivingEntity subject, String tag, double radius) {
+        if (subject == null || tag == null || tag.isBlank() || radius <= 0) {
+            return;
+        }
+        // The observer walk is the feature layer's (it fires a trigger), but the region hop is ours: the scan
+        // reads the subject's neighbours, so it must run on the thread that owns the subject.
+        entityOp(subject, () -> proximity.announce(subject, tag, radius));
     }
 
     @Override

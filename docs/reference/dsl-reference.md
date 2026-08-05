@@ -953,6 +953,17 @@ Ride an entity of type on the projectile this BOW_FIRE activation is loosing —
 - _param_ `fire-ticks` `ticks[0..]` — set the ARROW alight for this long (0 = as loosed); no rider needed
 - _example_: `{ PROJECTILE_DRESSING: { type: COW, ttl: 200, invulnerable: 200 } }`
 
+### PROXIMITY_ANNOUNCE
+
+Fire PROXIMITY_EVENT on every player within radius of each target — never the target themselves — with tag readable as %proximityevent%. The observer's activation carries the target as its victim, so %distance%, %victim.relation% and every %victim.*% read (including %victim.var.<name>%) describes the subject rather than the observer. The tag exists because one trigger carries several unrelated observations: without it an ally-death watcher and an ally-bleeding watcher would each proc on the other's event.
+
+- _affinity_: `REGION`
+- _usage_: `{ PROXIMITY_ANNOUNCE: { tag: <string>, radius: <double[1..64]=7> } }`
+- _param_ `tag` `string` — what happened, read by an observer as %proximityevent%
+- _param_ `radius` `double[1..64]` — how far the news carries
+- _target_ `who`: selector `VICTIM`
+- _example_: `{ PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }`
+
 ### REFLECT
 
 Mark the target so a percent of their own outgoing damage is reflected back onto them for a duration in ticks (Hex). Player targets only; default target the combat victim. cap is a flat per-hit ceiling on the health returned (0 = uncapped); feedback is an optional chat line sent to the afflicted on each reflected hit, with {damage} filled in.
@@ -1815,6 +1826,7 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%onground%` | BOOL |
 | `%posthit.health%` | NUM |
 | `%projectilekind%` | STR |
+| `%proximityevent%` | STR |
 | `%ragestacks%` | NUM |
 | `%recentattackers%` | NUM |
 | `%sneaking%` | BOOL |

@@ -44,7 +44,8 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
                       ToDoubleFunction<UUID> lightningBoost, TrapStructures trapStructures,
                       PlayerVisibility visibility, PermanentPotions permanentPotions,
                       SummonPayloads payloads, SiteGate siteGate, ItemXpGrant itemXp,
-                      BlockVisibility blockVisibility, PhantomFields phantomFields) {
+                      BlockVisibility blockVisibility, PhantomFields phantomFields,
+                      ProximityEvents proximity) {
 
     public SinkEnv {
         Objects.requireNonNull(economy, "economy");
@@ -67,6 +68,7 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
         Objects.requireNonNull(itemXp, "itemXp");
         Objects.requireNonNull(blockVisibility, "blockVisibility");
         Objects.requireNonNull(phantomFields, "phantomFields");
+        Objects.requireNonNull(proximity, "proximity");
     }
 
     /**
@@ -179,9 +181,24 @@ public record SinkEnv(EconomyService economy, SoulDebit souls, EngineStores stor
                              PlayerVisibility visibility, PermanentPotions permanentPotions,
                              SummonPayloads payloads, SiteGate siteGate, ItemXpGrant itemXp,
                              BlockVisibility blockVisibility) {
+        return of(economy, souls, stores, nowTicks, movementExemption, moneyInterestCap, gearProtection,
+                lightningBoost, visibility, permanentPotions, payloads, siteGate, itemXp, blockVisibility,
+                ProximityEvents.NONE);
+    }
+
+    /**
+     * The {@code proximity} shape: the PROXIMITY_ANNOUNCE seam, the second place the sink has to hand a
+     * trigger back to the feature layer ({@link ProximityEvents#NONE} = nothing is ever announced).
+     */
+    public static SinkEnv of(EconomyService economy, SoulDebit souls, EngineStores stores, LongSupplier nowTicks,
+                             Consumer<Player> movementExemption, DoubleSupplier moneyInterestCap,
+                             GearProtection gearProtection, ToDoubleFunction<UUID> lightningBoost,
+                             PlayerVisibility visibility, PermanentPotions permanentPotions,
+                             SummonPayloads payloads, SiteGate siteGate, ItemXpGrant itemXp,
+                             BlockVisibility blockVisibility, ProximityEvents proximity) {
         return new SinkEnv(economy, souls, stores, nowTicks, movementExemption, BukkitBlockOps.ledger(),
                 new TrailWalker(), new TimedRevert(), new DotParkLedger(), moneyInterestCap, gearProtection,
                 lightningBoost, new TrapStructures(), visibility, permanentPotions, payloads, siteGate, itemXp,
-                blockVisibility, new PhantomFields());
+                blockVisibility, new PhantomFields(), proximity);
     }
 }

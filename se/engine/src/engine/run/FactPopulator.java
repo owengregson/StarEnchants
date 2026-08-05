@@ -235,6 +235,7 @@ public final class FactPopulator {
     private final int impactHeightSlot;      // projectile height above the struck entity's feet (from the context)
     private final int projectileKindSlot;    // ARROW/FIREBALL/THROWN/OTHER (from the context)
     private final int equipChangeSlot;       // EQUIP/UNEQUIP on an EQUIP_CHANGE activation (from the context)
+    private final int proximityTagSlot;      // which nearby event fired a PROXIMITY_EVENT (from the context)
     private final int itemDurabilitySlot;    // ITEM_DAMAGE: the damaged item's remaining durability % (from the context)
     private final int victimHeroicPiecesSlot; // worn heroic armour pieces on the victim (from the worn-fact source)
     private final int actorHeroicPiecesSlot;  // worn heroic armour pieces on the actor (from the worn-fact source)
@@ -357,6 +358,7 @@ public final class FactPopulator {
         this.impactHeightSlot = slot(vocabulary, "impactheight", VarKind.NUM);
         this.projectileKindSlot = slot(vocabulary, "projectilekind", VarKind.STR);
         this.equipChangeSlot = slot(vocabulary, "equipchange", VarKind.STR);
+        this.proximityTagSlot = slot(vocabulary, "proximityevent", VarKind.STR);
         this.itemDurabilitySlot = slot(vocabulary, "item.durabilitypercent", VarKind.NUM);
         this.victimHeroicPiecesSlot = slot(vocabulary, "victim.heroicpieces", VarKind.NUM);
         this.actorHeroicPiecesSlot = slot(vocabulary, "actor.heroicpieces", VarKind.NUM);
@@ -609,6 +611,9 @@ public final class FactPopulator {
         }
         if (equipChangeSlot >= 0 && mask.readsStr(equipChangeSlot)) {
             facts.setString(equipChangeSlot, context.equipChange());
+        }
+        if (proximityTagSlot >= 0 && mask.readsStr(proximityTagSlot)) {
+            facts.setString(proximityTagSlot, context.proximityTag());
         }
         boolean wantsBlockType = blockTypeSlot >= 0 && mask.readsStr(blockTypeSlot);
         boolean wantsIsBlock = isBlockSlot >= 0 && mask.readsFlag(isBlockSlot);

@@ -40,17 +40,34 @@ import org.bukkit.entity.Player;
  *                        of its effective max ({@code %item.durabilitypercent%}), measured on the firing thread
  *                        from that exact stack. {@link Double#NaN} everywhere else (and for an item that carries
  *                        no durability bar), where the fact stays 0
+ * @param proximityTag    on a PROXIMITY_EVENT activation, WHICH nearby event fired it ({@code %proximityevent%}):
+ *                        {@code death} for the subject dying, or the tag an authored {@code PROXIMITY_ANNOUNCE}
+ *                        carried. Empty everywhere else, so no unrelated trigger can satisfy a tag gate — and
+ *                        the reason it exists at all is that two observers of DIFFERENT nearby events would
+ *                        otherwise be indistinguishable and both would proc on either
  */
 public record ActivationContext(Player actor, LivingEntity victim, LivingEntity attacker, Location location,
                                 double damage, Block block, int combo, String damageCauseName,
                                 boolean itemDamageArmor, int recentAttackers, int attackerIndex,
                                 double vanillaFinalDamage, double impactHeight, String projectileKind,
-                                String equipChange, double itemDurabilityPercent) {
+                                String equipChange, double itemDurabilityPercent, String proximityTag) {
 
     public ActivationContext {
         damageCauseName = damageCauseName == null ? "" : damageCauseName;
         projectileKind = projectileKind == null ? "" : projectileKind;
         equipChange = equipChange == null ? "" : equipChange;
+        proximityTag = proximityTag == null ? "" : proximityTag;
+    }
+
+    /** Every context but a PROXIMITY_EVENT one — the tag is empty, so a tag gate can never pass by accident. */
+    public ActivationContext(Player actor, LivingEntity victim, LivingEntity attacker, Location location,
+                             double damage, Block block, int combo, String damageCauseName,
+                             boolean itemDamageArmor, int recentAttackers, int attackerIndex,
+                             double vanillaFinalDamage, double impactHeight, String projectileKind,
+                             String equipChange, double itemDurabilityPercent) {
+        this(actor, victim, attacker, location, damage, block, combo, damageCauseName, itemDamageArmor,
+                recentAttackers, attackerIndex, vanillaFinalDamage, impactHeight, projectileKind, equipChange,
+                itemDurabilityPercent, "");
     }
 
     /** Full combat payload with no equipment transition — every context but EQUIP_CHANGE's. */
@@ -91,7 +108,19 @@ public record ActivationContext(Player actor, LivingEntity victim, LivingEntity 
     public ActivationContext withCombatFacts(String damageCauseName, int recentAttackers, int attackerIndex) {
         return new ActivationContext(actor, victim, attacker, location, damage, block, combo,
                 damageCauseName, itemDamageArmor, recentAttackers, attackerIndex, vanillaFinalDamage,
-                impactHeight, projectileKind, equipChange, itemDurabilityPercent);
+                impactHeight, projectileKind, equipChange, itemDurabilityPercent, proximityTag);
+    }
+
+    /**
+     * The PROXIMITY_EVENT payload: {@code observer} reacts to something that happened to {@code subject}
+     * nearby. The subject rides as the victim (so {@code %distance%}, {@code %victim.relation%} and every
+     * {@code %victim.*%} read describes them) and anchors the activation, and {@code tag} says WHICH nearby
+     * event this was — without it an ally-death observer and an ally-bleeding observer would each proc on
+     * the other's event.
+     */
+    public static ActivationContext proximity(Player observer, LivingEntity subject, String tag) {
+        return new ActivationContext(observer, subject, null, subject.getLocation(), 0.0, null, 0, "", false,
+                0, 0, Double.NaN, 0.0, "", "", Double.NaN, tag);
     }
 
     /** The EQUIP_CHANGE payload: an equipment transition on {@code actor}, no combat and no position of its own. */

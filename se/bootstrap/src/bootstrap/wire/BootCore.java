@@ -554,7 +554,10 @@ public final class BootCore {
                 (holder, amount, window, gain, levelUp) ->
                         itemXp.grant(holder, amount, window, gain, levelUp),
                 // PHANTOM_BLOCKS: the era seam again, this time for blocks — 1.8 has no BlockData at all.
-                bindings.blockVisibility());
+                bindings.blockVisibility(),
+                // PROXIMITY_ANNOUNCE: the second place the sink hands a trigger back to the feature layer.
+                // Late-bound like summonPayloads for the same reason — the dispatch this env feeds is built below.
+                this::announceProximity);
         // mcMMO friendly-fire gate — ONE alliance predicate feeding both consumers. Combat suppression has
         // always used it; the targeting filters (@Aoe{filter=ENEMIES|ALLIES}) never had it installed, so they
         // treated a party-mate as an enemy while the damage gate spared them. Same predicate, both sides.
@@ -750,6 +753,12 @@ public final class BootCore {
     public CombatDispatch dispatch() { return dispatch; }
 
     public TriggerDispatch triggerDispatch() { return triggerDispatch; }
+
+    /** The PROXIMITY_ANNOUNCE seam's body, as a method reference: the dispatch it reads is assigned later in
+     *  this same constructor, and a lambda over a blank final cannot be. */
+    private void announceProximity(org.bukkit.entity.LivingEntity subject, String tag, double radius) {
+        triggerDispatch.announceProximity(subject, tag, radius);
+    }
 
     public feature.summon.SummonPayloadService summonPayloads() { return summonPayloads; }
 

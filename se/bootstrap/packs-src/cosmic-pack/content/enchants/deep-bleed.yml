@@ -63,6 +63,9 @@ removes-required: true  # the heroic supersedes its non-heroic partner (net-zero
 # era: `BLOCK_CRACK` is the jar's legacy world effect 2001; the particle, `REDSTONE_BLOCK`, `BEDROCK` and the
 # `SLOW` -> `SLOWNESS` mapping all resolve on 1.8.9 through the existing alias map. Walk-speed mechanics are
 # identical on both eras.
+# THE BLOOD LUST ANNOUNCE (R-QC46), the same publication `bleed.yml` carries and for the same reason: the
+# jar's Blood Lust coupling is duplicated verbatim in `HeroicBleed`, so the heroic grade feeds nearby allies
+# exactly as the base grade does. Player branch only, immediately after the increment.
 levels:
   # Chance 8 x level + 40. Everything downstream is level-INDEPENDENT — level buys frequency only, and the cap
   # is 20 at every level.
@@ -72,6 +75,7 @@ levels:
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && %victim.var.bleedstacks% != 9 && %victim.var.bleedstacks% != 10 && %victim.var.bleedstacks% != 19"
         effects:
           - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
           - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
@@ -79,6 +83,7 @@ levels:
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && (%victim.var.bleedstacks% == 9 || %victim.var.bleedstacks% == 10 || %victim.var.bleedstacks% == 19)"
         effects:
           - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
           - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
@@ -107,12 +112,14 @@ levels:
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && %victim.var.bleedstacks% != 9 && %victim.var.bleedstacks% != 10 && %victim.var.bleedstacks% != 19"
         effects:
           - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
           - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && (%victim.var.bleedstacks% == 9 || %victim.var.bleedstacks% == 10 || %victim.var.bleedstacks% == 19)"
         effects:
           - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
           - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
@@ -136,12 +143,14 @@ levels:
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && %victim.var.bleedstacks% != 9 && %victim.var.bleedstacks% != 10 && %victim.var.bleedstacks% != 19"
         effects:
           - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
           - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && (%victim.var.bleedstacks% == 9 || %victim.var.bleedstacks% == 10 || %victim.var.bleedstacks% == 19)"
         effects:
           - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
           - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
@@ -165,12 +174,14 @@ levels:
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && %victim.var.bleedstacks% != 9 && %victim.var.bleedstacks% != 10 && %victim.var.bleedstacks% != 19"
         effects:
           - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
           - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && (%victim.var.bleedstacks% == 9 || %victim.var.bleedstacks% == 10 || %victim.var.bleedstacks% == 19)"
         effects:
           - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
           - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
@@ -194,12 +205,14 @@ levels:
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && %victim.var.bleedstacks% != 9 && %victim.var.bleedstacks% != 10 && %victim.var.bleedstacks% != 19"
         effects:
           - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
           - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && (%victim.var.bleedstacks% == 9 || %victim.var.bleedstacks% == 10 || %victim.var.bleedstacks% == 19)"
         effects:
           - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
           - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
@@ -223,12 +236,14 @@ levels:
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && %victim.var.bleedstacks% != 9 && %victim.var.bleedstacks% != 10 && %victim.var.bleedstacks% != 19"
         effects:
           - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
           - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\" && (%victim.var.bleedstacks% == 9 || %victim.var.bleedstacks% == 10 || %victim.var.bleedstacks% == 19)"
         effects:
           - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
           - { MOVEMENT_SPEED: { speed: "0.2 - 0.0075 * max(1, floor(%victim.var.bleedstacks% / 2))", ticks: "max(1, floor(%victim.var.bleedstacks% / 2)) * 20", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "BEDROCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }

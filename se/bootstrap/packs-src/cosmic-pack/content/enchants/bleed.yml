@@ -37,6 +37,13 @@ tier: epic
 # repeat, `max(1, i / 2)` repeats, which is folded into the one count expression.
 # era: REDSTONE_BLOCK and the BLOCK_CRACK crack burst both resolve on 1.8.9, and `SLOW` -> `SLOWNESS` is
 # already in the alias map. Blood Lust's DRIP_LAVA / EAT cues are the armour doc's sweep, not this file's.
+# THE BLOOD LUST ANNOUNCE (R-QC46). The jar's Blood Lust block lives INSIDE `addBleedStack`, on the Player
+# branch only: every stack landed on a player scans 7 blocks for allies wearing the chestplate and leeches
+# them a heal. That is not something Blood Lust can do from its own file — a chestplate cannot observe a
+# sword hit on somebody else — so this file publishes the event and Blood Lust subscribes. The announce sits
+# immediately after the increment, so an observer's `%victim.var.bleedstacks%` reads the POST-add count, which
+# is the count the jar's `i` is taken from. The mob branch does not announce: the jar's block is Player-only,
+# a mob has no allies to leech for, and a scan per mob bleed stack would be paid for nothing.
 levels:
   # Chance 8 x level + 40. Everything downstream is level-INDEPENDENT — level buys frequency only, and the cap
   # is 20 at every level (the jar's per-level cap getter is dead code; measured = intended).
@@ -46,6 +53,7 @@ levels:
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\""
         effects:
           - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\""
         effects:
@@ -62,6 +70,7 @@ levels:
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\""
         effects:
           - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\""
         effects:
@@ -74,6 +83,7 @@ levels:
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\""
         effects:
           - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\""
         effects:
@@ -86,6 +96,7 @@ levels:
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\""
         effects:
           - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\""
         effects:
@@ -98,6 +109,7 @@ levels:
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\""
         effects:
           - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\""
         effects:
@@ -110,6 +122,7 @@ levels:
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% == \"PLAYER\""
         effects:
           - { SET_VAR: { name: "bleedstacks", op: "increment", step: 1, cap: 20, ttl: 0, who: "@Victim" } }
+          - { PROXIMITY_ANNOUNCE: { tag: "bleed", radius: 7, who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: "15 * max(1, floor(max(1, floor(%victim.var.bleedstacks% / 2)) / 2))", who: "@Victim" } }
       - condition: "%damage% > 0 && %victim.var.bleedstacks% < 20 && %victim.type% != \"PLAYER\""
         effects:

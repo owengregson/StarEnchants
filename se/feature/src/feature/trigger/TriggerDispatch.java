@@ -617,11 +617,37 @@ public final class TriggerDispatch {
      * where every observer the walk found is co-region.
      */
     public void fireProximity(Player observer, Player subject) {
+        fireProximity(observer, subject, DEATH_TAG);
+    }
+
+    /** The tag the death half announces itself with — the observer reads it as {@code %proximityevent%}. */
+    public static final String DEATH_TAG = "death";
+
+    /** {@link #fireProximity(Player, Player)} with an explicit tag (the PROXIMITY_ANNOUNCE half). */
+    public void fireProximity(Player observer, LivingEntity subject, String tag) {
         if (proximityEvent < 0 || observer == null || subject == null
                 || observer.getUniqueId().equals(subject.getUniqueId())) {
             return;
         }
-        fire(observer, proximityEvent, new ActivationContext(observer, subject, null, subject.getLocation()), null);
+        fire(observer, proximityEvent, ActivationContext.proximity(observer, subject, tag), null);
+    }
+
+    /**
+     * The PROXIMITY_ANNOUNCE walk: every player within {@code radius} of {@code subject} runs their own
+     * PROXIMITY_EVENT abilities against it. Same shape as the death walk one layer up in
+     * {@code TriggerListeners}, and bounded the same way — {@code radius} is authored, but never beyond the
+     * scan ceiling, because a radius the scan cannot reach would be a silently-never-firing ability.
+     */
+    public void announceProximity(LivingEntity subject, String tag, double radius) {
+        if (proximityEvent < 0 || subject == null || tag == null || tag.isBlank()) {
+            return;
+        }
+        double r = Math.min(radius, PROXIMITY_RADIUS);
+        for (Entity nearby : subject.getNearbyEntities(r, r, r)) {
+            if (nearby instanceof Player observer) {
+                fireProximity(observer, subject, tag);
+            }
+        }
     }
 
     /**
