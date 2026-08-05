@@ -1,10 +1,10 @@
 # Matrix: 07-enchants-mastery-soul.md § Permafrost
 display: "Permafrost"
-# description: not matrix-recorded (factual paraphrase). It stops at the freeze, because the reduction half is
-# not authored (see PENDING below) and a description must not promise what the file does not do.
+# description: not matrix-recorded (factual paraphrase); it names both halves now that the rebate is authored.
 description:
   - "&eBeing struck can freeze the ground around you"
-  - "&einto a field of snow that thaws on its own."
+  - "&einto a field of snow. While you stand on your"
+  - "&eown frost, hits land softer and tire the striker."
 trigger: DEFENSE
 applies-to: [ARMOR]
 # Tier 8 = the `mastery` rung (&4, weight 80) — the lore line renders `§4Permafrost VI` (matrix 07
@@ -39,19 +39,17 @@ tier: mastery
 # would be a different cue at a different cadence. Dropped, recorded.
 # D-07-1 (family): codex scan boxes are asymmetric `[-r, +r)` cubes; the engine's FOOTPRINT is the symmetric
 # (2r+1)² square. Recorded once for the family, not per entry.
-# PENDING — the standing-on-your-own-frost half, which the matrix decomposes as a SECOND `DEFENSE` ability:
-#   conditions `%actor.groundblock% == "SNOW_BLOCK" && %mastery.ownedground% == 1` and
-#   `%damagecause% == "ENTITY_ATTACK" || %damagecause% == "PROJECTILE"`
-#   → `DAMAGE_MOD(side=defense, mode=add, amount=14+L)` = 15…20 % off the hit (x0.85…x0.80)
-#   + `POTION(effect=SLOW_DIGGING, level=2, duration=50, who=@Attacker)`, re-applied per hit.
-# It is NOT authored, and the missing piece is the OWNED_GROUND fact: "the block I stand on is a temp block I
-# placed" (a TempBlockLedger owner lookup). `%actor.groundblock%` alone is not it — keyed to the material
-# alone, the rebate and the attacker's Mining Fatigue would land for anyone standing on ANY snow block: a
-# natural snowy biome, a teammate's field, or the ATTACKER standing on the very frost this proc just laid under
-# the wearer. The matrix is explicit that the reduction is keyed to the block's OWNER (the victim) and that
-# attackers and teammates on the frost get nothing, so shipping the material check alone would invert the
-# feature in the one situation it exists for. Tracked in deferred-content; it is a one-condition drop-in the
-# day the fact lands.
+# THE STANDING-ON-YOUR-OWN-FROST HALF is the SECOND `DEFENSE` ability below (R-QC6), authored the day
+# `%actor.ownedground%` landed. Both halves of its gate are load-bearing and neither alone is the rule:
+# `ownedground` asks the temp-block ledger "is the block under my feet one I laid", and the material test
+# keeps a wearer standing on some OTHER enchant's field (an ice column, a snake trail) out of a snow rebate.
+# Keyed to the material alone it would invert outright — a natural snowy biome, a teammate's field, or the
+# ATTACKER standing on the very frost this proc just laid would all pay out. The recorded amount is
+# `14 + storedLevel` % and the level stored is the level that laid the block; worn level is the closest the
+# engine can key it, and the two differ only for a wearer who changed grades inside one 5-6 s field.
+# The cause filter is the jar's own listener shape (EntityDamageByEntityEvent with a player damager or a
+# player-shot projectile), which is ENTITY_ATTACK or PROJECTILE and nothing else — so fall, fire and void
+# never buy the rebate even though the freeze half fires on the same DEFENSE walk.
 # era: SNOW_BLOCK is block id 80 on 1.8.9 and needs no alias. The modern handle names ship here, per the
 # pack-wide convention, and the two renames land differently: `SLOW_DIGGING` → `MINING_FATIGUE` IS in
 # `Aliases.POTION_EFFECT`, so the pending attacker debuff resolves on both lanes the day it is authored, and
@@ -60,7 +58,8 @@ tier: mastery
 # to fire in silence there.
 levels:
   # Chance `2 + L/3` % in true double division — 2.33333 / 2.66667 / 3.0 / 3.33333 / 3.66667 / 4.0, the
-  # matrix's own figures, not the jar's integer-division shape.
+  # matrix's own figures, not the jar's integer-division shape. It is the FREEZE roll only: the rebate
+  # ability rolls nothing, because the jar's damage listener is a flat consultation of the block ledger.
   # Radius `i = min(2 + L, 5)` = 3 / 4 / 5 / 5 / 5 / 5 — an 11x11 field from L3 up, which TEMP_BLOCK's
   # FOOTPRINT cap now reaches (the matrix's TEMP_BLOCK_EXTENT gap was extent-only and has since closed at
   # radius 5).
@@ -71,49 +70,81 @@ levels:
   # field can never scaffold the wearer upward and the ledger restores whatever it took.
   # `who: "@Self"` on both, and it matters: TEMP_BLOCK targets @Victim by default, and on a DEFENSE pass the
   # "victim" IS the attacker — the field belongs under the WEARER.
+  # The rebate ladder is `14 + L` % = 15 / 16 / 17 / 18 / 19 / 20, and its Mining Fatigue is fixed at level 2
+  # for 50 t on the ATTACKER at every rung (the jar's amplifier 1, which is the II tier).
   1:
-    chance: 2.33333
-    effects:
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 3, dy: -1, ticks: 100, airOnly: false, who: "@Self" } }
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 3, dy: -2, ticks: 100, airOnly: false, who: "@Self" } }
-      # Volume 3.0 is the jar's own number, kept verbatim — audible well past the fight. The activation
-      # location on a DEFENSE pass is the wearer's, so the default @Here anchor already plays it there.
-      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 3.0, pitch: 1.1 } }
-      # `{seconds}` is the matrix's own placeholder; MESSAGE's `tokens` binds it to a number and the line stays
-      # byte-verbatim because the binding lives in the parameter, never in the text.
-      - { MESSAGE: { text: "§c§l* PERMAFROST [§7{seconds}s§c§l] *", who: "@Self", tokens: { seconds: 5 } } }
+    abilities:
+      - chance: 2.33333
+        effects:
+          - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 3, dy: -1, ticks: 100, airOnly: false, who: "@Self" } }
+          - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 3, dy: -2, ticks: 100, airOnly: false, who: "@Self" } }
+          # Volume 3.0 is the jar's own number, kept verbatim — audible well past the fight. The activation
+          # location on a DEFENSE pass is the wearer's, so the default @Here anchor already plays it there.
+          - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 3.0, pitch: 1.1 } }
+          # `{seconds}` is the matrix's own placeholder; MESSAGE's `tokens` binds it to a number and the line
+          # stays byte-verbatim because the binding lives in the parameter, never in the text.
+          - { MESSAGE: { text: "§c§l* PERMAFROST [§7{seconds}s§c§l] *", who: "@Self", tokens: { seconds: 5 } } }
+      - condition: "%actor.ownedground% && %actor.groundblock% == \"SNOW_BLOCK\" && (%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\")"
+        effects:
+          - { DAMAGE_MOD: { side: defense, mode: add, amount: 15 } }
+          - { POTION: { effect: "SLOW_DIGGING", level: 2, duration: 50, who: "@Attacker" } }
   2:
-    chance: 2.66667
-    effects:
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 4, dy: -1, ticks: 100, airOnly: false, who: "@Self" } }
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 4, dy: -2, ticks: 100, airOnly: false, who: "@Self" } }
-      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 3.0, pitch: 1.1 } }
-      - { MESSAGE: { text: "§c§l* PERMAFROST [§7{seconds}s§c§l] *", who: "@Self", tokens: { seconds: 5 } } }
+    abilities:
+      - chance: 2.66667
+        effects:
+          - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 4, dy: -1, ticks: 100, airOnly: false, who: "@Self" } }
+          - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 4, dy: -2, ticks: 100, airOnly: false, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 3.0, pitch: 1.1 } }
+          - { MESSAGE: { text: "§c§l* PERMAFROST [§7{seconds}s§c§l] *", who: "@Self", tokens: { seconds: 5 } } }
+      - condition: "%actor.ownedground% && %actor.groundblock% == \"SNOW_BLOCK\" && (%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\")"
+        effects:
+          - { DAMAGE_MOD: { side: defense, mode: add, amount: 16 } }
+          - { POTION: { effect: "SLOW_DIGGING", level: 2, duration: 50, who: "@Attacker" } }
   3:
-    chance: 3.0
-    effects:
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -1, ticks: 100, airOnly: false, who: "@Self" } }
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -2, ticks: 100, airOnly: false, who: "@Self" } }
-      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 3.0, pitch: 1.1 } }
-      - { MESSAGE: { text: "§c§l* PERMAFROST [§7{seconds}s§c§l] *", who: "@Self", tokens: { seconds: 5 } } }
+    abilities:
+      - chance: 3.0
+        effects:
+          - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -1, ticks: 100, airOnly: false, who: "@Self" } }
+          - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -2, ticks: 100, airOnly: false, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 3.0, pitch: 1.1 } }
+          - { MESSAGE: { text: "§c§l* PERMAFROST [§7{seconds}s§c§l] *", who: "@Self", tokens: { seconds: 5 } } }
+      - condition: "%actor.ownedground% && %actor.groundblock% == \"SNOW_BLOCK\" && (%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\")"
+        effects:
+          - { DAMAGE_MOD: { side: defense, mode: add, amount: 17 } }
+          - { POTION: { effect: "SLOW_DIGGING", level: 2, duration: 50, who: "@Attacker" } }
   4:
-    chance: 3.33333
-    effects:
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -1, ticks: 120, airOnly: false, who: "@Self" } }
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -2, ticks: 120, airOnly: false, who: "@Self" } }
-      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 3.0, pitch: 1.1 } }
-      - { MESSAGE: { text: "§c§l* PERMAFROST [§7{seconds}s§c§l] *", who: "@Self", tokens: { seconds: 6 } } }
+    abilities:
+      - chance: 3.33333
+        effects:
+          - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -1, ticks: 120, airOnly: false, who: "@Self" } }
+          - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -2, ticks: 120, airOnly: false, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 3.0, pitch: 1.1 } }
+          - { MESSAGE: { text: "§c§l* PERMAFROST [§7{seconds}s§c§l] *", who: "@Self", tokens: { seconds: 6 } } }
+      - condition: "%actor.ownedground% && %actor.groundblock% == \"SNOW_BLOCK\" && (%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\")"
+        effects:
+          - { DAMAGE_MOD: { side: defense, mode: add, amount: 18 } }
+          - { POTION: { effect: "SLOW_DIGGING", level: 2, duration: 50, who: "@Attacker" } }
   5:
-    chance: 3.66667
-    effects:
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -1, ticks: 120, airOnly: false, who: "@Self" } }
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -2, ticks: 120, airOnly: false, who: "@Self" } }
-      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 3.0, pitch: 1.1 } }
-      - { MESSAGE: { text: "§c§l* PERMAFROST [§7{seconds}s§c§l] *", who: "@Self", tokens: { seconds: 6 } } }
+    abilities:
+      - chance: 3.66667
+        effects:
+          - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -1, ticks: 120, airOnly: false, who: "@Self" } }
+          - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -2, ticks: 120, airOnly: false, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 3.0, pitch: 1.1 } }
+          - { MESSAGE: { text: "§c§l* PERMAFROST [§7{seconds}s§c§l] *", who: "@Self", tokens: { seconds: 6 } } }
+      - condition: "%actor.ownedground% && %actor.groundblock% == \"SNOW_BLOCK\" && (%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\")"
+        effects:
+          - { DAMAGE_MOD: { side: defense, mode: add, amount: 19 } }
+          - { POTION: { effect: "SLOW_DIGGING", level: 2, duration: 50, who: "@Attacker" } }
   6:
-    chance: 4.0
-    effects:
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -1, ticks: 120, airOnly: false, who: "@Self" } }
-      - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -2, ticks: 120, airOnly: false, who: "@Self" } }
-      - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 3.0, pitch: 1.1 } }
-      - { MESSAGE: { text: "§c§l* PERMAFROST [§7{seconds}s§c§l] *", who: "@Self", tokens: { seconds: 6 } } }
+    abilities:
+      - chance: 4.0
+        effects:
+          - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -1, ticks: 120, airOnly: false, who: "@Self" } }
+          - { TEMP_BLOCK: { shape: FOOTPRINT, material: "SNOW_BLOCK", radius: 5, dy: -2, ticks: 120, airOnly: false, who: "@Self" } }
+          - { SOUND: { sound: "BLOCK_GLASS_BREAK", volume: 3.0, pitch: 1.1 } }
+          - { MESSAGE: { text: "§c§l* PERMAFROST [§7{seconds}s§c§l] *", who: "@Self", tokens: { seconds: 6 } } }
+      - condition: "%actor.ownedground% && %actor.groundblock% == \"SNOW_BLOCK\" && (%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\")"
+        effects:
+          - { DAMAGE_MOD: { side: defense, mode: add, amount: 20 } }
+          - { POTION: { effect: "SLOW_DIGGING", level: 2, duration: 50, who: "@Attacker" } }
