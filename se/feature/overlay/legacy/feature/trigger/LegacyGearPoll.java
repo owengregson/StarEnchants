@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import platform.sched.Scheduling;
+import platform.sched.TaskHandle;
 
 /**
  * The ONE legacy (1.8.9) per-tick gear poll (ADR-0044; docs/legacy-1.8.9-codeshare-design.md §6) — the
@@ -21,7 +22,14 @@ import platform.sched.Scheduling;
  * heroic-durability / instant-armour-refresh). One repeating global task, one online-players walk, one 5-slot
  * scan per player (held + the four armour pieces: material ordinal, durability value, combat-state identity, and
  * the armour type+count+identity signature). The task starts in the constructor; the legacy bindings then attach
- * the three subscribers.
+ * the three subscribers. Keep the returned handle and {@link #stop()} it when the owner goes away — a poll whose
+ * subscribers outlive their plugin keeps walking the roster and mutating items.
+ *
+ * <p><strong>The scoping invariant (R-QC60).</strong> Each subscriber slot holds exactly ONE consumer and
+ * {@linkplain #fireItemDamage rejects} a second: with two polls alive the last registration silently won, and
+ * the loser's checks then observed a poll they did not own. <em>A consumer that does not own every online
+ * player must scope every subscriber it registers</em> — every subscriber carries the owning {@link Player}
+ * precisely so a harness can compare it against its own actor and return without acting.
  *
  * <p><strong>Fixed subscriber order per slot delta</strong>, preserving the shipped semantics exactly:
  * <ol>
@@ -77,24 +85,49 @@ public final class LegacyGearPoll {
     private HeroicSave heroicSave;           // subscriber 2
     private Consumer<Player> refreshEquip;   // subscriber 3
 
+    /** The repeating task, kept so {@link #stop()} can cancel it (R-QC60). */
+    private final TaskHandle task;
+
     public LegacyGearPoll(Function<ItemStack, String> identity) {
         this.identity = Objects.requireNonNull(identity, "identity");
-        Scheduling.repeatingGlobal(1L, 1L, this::poll);
+        this.task = Scheduling.repeatingGlobal(1L, 1L, this::poll);
+    }
+
+    /** Cancel the poll and forget every player's last-seen slots. Idempotent. */
+    public void stop() {
+        task.cancel();
+        lastType.clear();
+        lastDamage.clear();
+        lastIdentity.clear();
+        lastArmour.clear();
     }
 
     /** Subscriber 1: fire ITEM_DAMAGE for the player on each detected durability rise (before any restore). */
     public void fireItemDamage(ItemDamageFeed subscriber) {
-        this.fireItemDamage = subscriber;
+        this.fireItemDamage = claim(this.fireItemDamage, subscriber, "fireItemDamage");
     }
 
     /** Subscriber 2: roll + restore the specific damaged item's heroic durability save. */
     public void heroicSave(HeroicSave subscriber) {
-        this.heroicSave = subscriber;
+        this.heroicSave = claim(this.heroicSave, subscriber, "heroicSave");
     }
 
     /** Subscriber 3: re-resolve the player's worn state when the armour signature changes. */
     public void refreshEquip(Consumer<Player> subscriber) {
-        this.refreshEquip = subscriber;
+        this.refreshEquip = claim(this.refreshEquip, subscriber, "refreshEquip");
+    }
+
+    /**
+     * Take a subscriber slot, refusing a second claim. The slot is single-valued and the poll MUTATES items,
+     * so a silent overwrite left the displaced consumer believing it was still wired while another one acted
+     * on its players. {@code null} releases the slot, which is how a harness hands it back.
+     */
+    private static <T> T claim(T held, T subscriber, String slot) {
+        if (held != null && subscriber != null) {
+            throw new IllegalStateException("LegacyGearPoll." + slot + " is already subscribed; "
+                    + "release it before registering another (one poll owns one consumer per slot)");
+        }
+        return subscriber;
     }
 
     private void poll() {

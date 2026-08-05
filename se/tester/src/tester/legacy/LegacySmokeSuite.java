@@ -426,6 +426,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                             }
                         });
                         FakePlayers.despawn(p);
+                        gearPoll.stop(); // R-QC60: a poll that outlives its check keeps mutating other checks' items
                     });
                 });
             });
@@ -623,6 +624,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                                     }
                                 });
                                 FakePlayers.despawn(p);
+                                pollA.stop(); // R-QC60: one poll per check, cancelled with it
                             });
                         });
                     });
@@ -692,6 +694,7 @@ public final class LegacySmokeSuite implements Harness.Scenario {
                                 }
                             });
                             FakePlayers.despawn(p);
+                            pollB.stop(); // R-QC60: one poll per check, cancelled with it
                         });
                     });
                 });
