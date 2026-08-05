@@ -115,6 +115,7 @@ settleable from source and should be replaced with the strings below.
     For Supreme this means `§2§l` followed by `§4§l` (renders dark red).
   - **per-set bonus lines — VERBATIM** (these are the jar's own crystal descriptions;
     the pack currently carries hand-written paraphrases marked "not matrix-recorded"):
+
     | Set | description list |
     | --- | --- |
     | Phantom | `+5% DMG` |
@@ -125,6 +126,7 @@ settleable from source and should be replaced with the strings below.
     | Dimensional Traveler | `+7.5% Outgoing DMG`, `20% Dimensional Shift Ability` |
     | Dragon Slayer | `+3% PvP DMG`, `-5% Incoming DMG`, `10% Silence Immunity`, `10% Freeze Immunity` |
     | KOTH | `+5% PvP DMG`, `+12.5% PvE DMG` |
+
 - **apply flow (guard order, exact):** target must be armour → cancel the click → the
   cursor must carry crystal data → **refuse on a set piece**
   (`You cannot apply an Armor Set Crystal to an existing Armor Set piece!`) → dupe check
@@ -302,6 +304,7 @@ settleable from source and should be replaced with the strings below.
     ```
 
 - **absolute numbers (the values `deferred-content.md` lists as missing):**
+
   | Slot | material | armour points | durability | M-Kit armour points |
   | --- | --- | --- | --- | --- |
   | Helmet | `LEATHER_HELMET` | **3** | **810** | 2 |
@@ -318,6 +321,7 @@ settleable from source and should be replaced with the strings below.
   Depth Strider / Protection / Unbreaking. A background pass re-checks and rewrites a
   stale armour-value line on every inventory click, with no version marker.
 - **damage reduction (§C.4) — per-slot percents:**
+
   | Slot | non-M-Kit | M-Kit |
   | --- | --- | --- |
   | Chestplate | **10 %** | **16 %** |
@@ -325,6 +329,7 @@ settleable from source and should be replaced with the strings below.
   | Boots | **4.5 %** | **8 %** |
   | Helmet | **4.5 %** | **8 %** |
   | **Full set** | **27 %** | **45 %** |
+
 - **outpost drawback (§C.4 part B):** an attacker holding a trainee outpost adds `0.025`,
   an attacker holding the courtyard outpost adds `0.0625`, summed and multiplied by the
   victim's heroic-leather piece count → max `0.35` → **+35 % damage taken**. External
@@ -455,7 +460,7 @@ settleable from source and should be replaced with the strings below.
   dupe gate (**only when the stack size is exactly 1**, so a stacked one bypasses it) →
   roll a set → mint a targeted upgrade at a uniform `1..100` success →
   `§a§l(!) §aYou have received a <upgradeDisplayName>§a from your Random Heroic Upgrade!`
-  + `LEVEL_UP` `1.0F`/`1.1F`.
+  - `LEVEL_UP` `1.0F`/`1.1F`.
 - **roll table:** 70 % common tier → Yeti / Supreme / Ranger (23.3̅ % each); 30 % rare tier
   → Phantom / Mother of Yijki / Dimensional Traveler (10 % each). Dragon Slayer and KOTH
   are excluded; a KOTH upgrade silently becomes a Ranger upgrade.
@@ -476,6 +481,7 @@ settleable from source and should be replaced with the strings below.
   name or lore for this item — it records **both**, plus the material and the per-set dye
   data):
   - material `Material.INK_SACK`, per-set data value:
+
     | Set | data | dye | name (verbatim) |
     | --- | --- | --- | --- |
     | Ghost | `7` | Light Gray | `§6§lMastery Shard §6(§3§lGhost§6)` |
@@ -587,6 +593,7 @@ settleable from source and should be replaced with the strings below.
 - **likeness — VERBATIM, all seven tiers:** material `Material.BOOK`, lore line 1 always
   `§7Examine to recieve a random` (**the misspelling is load-bearing** — recognition
   matches that exact string).
+
   | Tier | name | lore line 2 |
   | --- | --- | --- |
   | 1 | `§fSimple Enchantment Book§7 (Right Click)` | `§fsimple§7 enchantment book.` |
@@ -875,6 +882,7 @@ settleable from source and should be replaced with the strings below.
   codex-silent. The gem is minted by an external plugin that is absent from the corpus;
   only the call contract is observable.
 - **contract — fully recorded, and it matches the port exactly:**
+
   | Capability | Recorded meaning |
   | --- | --- |
   | soul-mode flag | a per-player on/off state, toggled by the item |
@@ -884,6 +892,7 @@ settleable from source and should be replaced with the strings below.
   | "is a soul gem" | item identity test |
   | per-gem get/set | souls are stored **on the item** |
   | mint | a new gem item holding N souls |
+
 - **toggle mechanics — VERBATIM:** right-click (air or block) while holding a soul gem,
   with **at least 1 soul**, toggles soul mode. Refused while soul-trapped:
   `§c§l(!) §cYou cannot enable soul mode while in a Soul Trap!`
