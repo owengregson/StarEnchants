@@ -199,6 +199,19 @@ undetectable.
 cross-suite leak that let a stranded `CombatListener`/`TriggerListeners` dispatch on every
 later suite's hit.
 
+**The gear-poll scoping invariant (R-QC60).** `LegacyGearPoll` walks *every* online player
+each tick, and its heroic-save subscriber MUTATES the item it finds. The legacy smoke runs
+one poll per check, so:
+
+> **A consumer that does not own every online player must scope every subscriber it
+> registers.** Every subscriber signature carries the owning `Player` for exactly this
+> reason — compare it against your own actor and return without acting.
+
+Unscoped, one check's poll silently restores another check's simulated wear before that
+check's own poll can observe it. Two further guards back the rule up: each subscriber slot
+holds one consumer and a second claim throws rather than silently displacing the first, and
+`stop()` cancels the repeating task — a poll that outlives its check keeps mutating.
+
 **Timing-flake fixes (the class, not the instance).** Two live suites asserted emergent
 server state on a *fixed* tick, which is a latent flake the instant matrix load defers the
 work past the wait — exactly what bit `TeleportSuite` on `paper:1.21.4`. Both are now
