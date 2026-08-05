@@ -2,9 +2,9 @@
 # Cosmetic staff/personal mask — the source builds it from the 7-arg constructor with `specialAbility = null`
 # and no listener anywhere references it. Authored as a ROSTER MARKER on an empty PASSIVE (the headless.yml /
 # ghost.yml precedent in this family, and enchants/metaphysical.yml before them): a mask file must declare one
-# ability with a trigger, so the identity ships on an empty PASSIVE and the loader's "declares no effects"
-# warning is the accurate statement of what this mask does. It mints, attaches to a helmet and repaints it;
-# it just does nothing else.
+# ability with a trigger, so the identity ships on an empty PASSIVE. The explicit `effects: []` below is
+# deliberate — the loader warns only on a MISSING `effects:` key (R-QC59), so this loads silently. It mints,
+# attaches to a helmet and repaints it; it just does nothing else.
 display: "Beanie__ Mask"
 # The double underscore IS the name (the source's own display and its skull profile name both carry it) — not
 # a placeholder, not an escape, and it survives to the item verbatim. `display` carries the FULL name text and

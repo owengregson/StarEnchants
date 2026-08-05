@@ -11,10 +11,9 @@ trigger: MINE
 applies-to: [PICKAXE]
 group: "common"
 tier: common
-# Matrix-06 records no tier for the tool enchants — only the enchant-table weight (6 here) — so the rung comes
-# from the codex's own tier table (`autosmelt` 1 = the ladder's first rung), the same source doc 05's files
-# used for their unrecorded acquisition rows. Weight itself has no field in this schema; the ladder drives
-# rarity, and the two are independent in the jar (a weight-6 enchant sits on tier 1).
+# Tier 1 = `common`: matrix-06's own numbers row and the codex tier table (`autosmelt` 1) agree. Table weight
+# has no field in this schema, and the two axes are independent in the jar — this weight-6 enchant sits on
+# the ladder's first rung.
 # Iron and gold are two ABILITIES rather than one condition with an `||`, because the make-up ingots below
 # name their material at compile time: one rule per ore is the only shape that can hand out the right metal.
 # The two conditions are mutually exclusive, so a break still rolls the ladder's chance exactly once.

@@ -11,6 +11,8 @@ chance: 100
 levels:
   # Level sets only the ally radius (level x 2 + 3); the per-ally rate and the cap are level-independent.
   # The count resolves live per hit, and the buff holds only while the enchant is worn (D-01-12).
+  # The jar's 6 s ally scan also emitted a snow-block break burst at the wearer's eyes; that scan is gone, so
+  # the cue has no cadence to hang off and is dropped rather than re-timed to the swing (D-01-17).
   1:
     effects:
       - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 10, cap: 75, who: "@Aoe{r=5, filter=ALLIES}" } }

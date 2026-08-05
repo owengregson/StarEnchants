@@ -20,9 +20,8 @@ trigger: MINE
 applies-to: [TOOL, FISHING_ROD]
 group: "common"
 tier: common
-# Matrix-06 records no tier for the tool enchants — only the enchant-table weight (6 here) — so the rung
-# comes from the codex's own tier table (`experience` 1 = the ladder's first rung), the same source doc 05's
-# files used for their unrecorded acquisition rows.
+# Tier 1 = `common`: matrix-06's own numbers row and the codex tier table (`experience` 1) agree. Table
+# weight (6) is a separate axis with no field in this schema.
 # No chance, no cooldown, no condition: the break IS the activation, at every level (max 5; base 10.0,
 # interval 10.0). A 0-XP block stays 0 — a multiplier over nothing is nothing, so stone costs nothing to
 # scale and no guard is needed.

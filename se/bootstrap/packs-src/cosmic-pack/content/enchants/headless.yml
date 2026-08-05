@@ -13,9 +13,10 @@ condition: "%victim.type% == \"PLAYER\""
 # resolves {VICTIM} / {KILLER} / {MONTH} / {DAY} / {YEAR} / {X} / {Y} / {Z} / {ITEM} at that moment — so the
 # lore carries the KILL date (D-03-7: a date object captured at class load made every jar skull show the
 # server BOOT date; the as-intended kill date ships, display strings unchanged). {ITEM} is the killer's held
-# display name, else the capitalized material, else `Fists`. A killer-less death drops the bare, lore-less
-# head, as measured. Lore lines are separated by '|'; the trailing spaces closing the first three are
-# verbatim from the jar.
+# display name, else the humanised material (`DIAMOND_SWORD` -> `Diamond Sword`, where the jar's
+# `WordUtils.capitalize` rendered `Diamond_sword` — D-03-15), else `Fists`. A killer-less death drops the
+# bare, lore-less head, as measured. Lore lines are separated by '|'; the trailing spaces closing the first
+# three are verbatim from the jar.
 # The mark is per-victim and survives relogs (the jar's own semantics), but it is bounded state the engine
 # clears on consumption rather than the jar's unbounded, never-cleaned name-keyed map.
 # The jar's console line `HEADLESS ENCH -- Dropping skull of {VICTIM}!` is a server log, not an authorable
