@@ -129,17 +129,17 @@ armor:
         enchants/tank: 4
         enchants/angelic: 5
         enchants/rocket-escape: 3
-# THE SWORD. Gold tools on both eras (`GOLDEN_SWORD` resolves to 1.8's `GOLD_SWORD` through the alias
-# resolver). The jar mints this weapon in an external plugin and reads only its identity tag, so the matrix
-# records NO display string and NO enchant loadout for it: the name below extends the recorded piece-name
-# pattern with `Sword` in the {Piece} slot (port-chosen, flagged), and the `enchants:` block is deliberately
-# absent rather than invented. Engine identity is the set-weapon PDC stamp, so it is not forgeable and it
-# survives a heroic reforge.
+# THE SWORD. `DIAMOND_SWORD` by owner ruling R-QC35d — "the KOTH set is diamond just like the others" — which
+# replaces the port's invented gold. The jar mints this weapon in an external plugin and reads only its
+# identity tag, so the matrix records NO display string and NO enchant loadout for it: the name below extends
+# the recorded piece-name pattern with `Sword` in the {Piece} slot (port-chosen, flagged), and the `enchants:`
+# block is deliberately absent rather than invented. Engine identity is the set-weapon PDC stamp, so it is
+# not forgeable and it survives a heroic reforge.
 # No `lore:` either: every OTHER set's weapon carries a recorded `<SET> WEAPON BONUS` block, and KOTH's has
 # none because the jar never built the item. Writing one would be authoring strings the codex does not hold,
 # so the weapon ships with the pattern-derived name and nothing else.
 weapon:
-  material: GOLDEN_SWORD
+  material: DIAMOND_SWORD
   name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nSword§r"
 bonuses:
   # 1. +20% outgoing vs players.
@@ -201,14 +201,14 @@ bonuses:
   # identity is a distinct item. The one alternative on the surface, gating on `%actor.helditem%
   # matchesregex ".*_AXE$"`, would hand the strip to ANY axe a KOTH wearer picks up (a Yeti Maul included),
   # which is a play change, not a translation. Closes with a multi-weapon set surface.
-  # The item, recorded so it lands whole that day: `GOLDEN_AXE` named
+  # The item, recorded so it lands whole that day: `DIAMOND_AXE` (R-QC35d, the sword's ruling) named
   # `§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nAxe§r` — the piece-name pattern with `Axe`
   # in the {Piece} slot, port-chosen like the sword's because the jar never built either item. The strip must
   # route through the item-damage layer on both eras (a synthetic PlayerItemDamageEvent on the 1.8 harness).
-# era: `§k` magic text renders on both eras and LeatherArmorMeta dye is era-safe; the gold weapons are
-# `GOLD_SWORD` / `GOLD_AXE` on 1.8 and `GOLDEN_*` on modern (the resolver takes either spelling, so the
-# modern one is authored per pack convention); the extra armour value beyond the leather base needs the
-# engine's heroic defence mods on 1.8.9, which has no `generic.armor` attribute.
+# era: `§k` magic text renders on both eras and LeatherArmorMeta dye is era-safe; `DIAMOND_SWORD` /
+# `DIAMOND_AXE` need no alias at all (the flattening never touched them), which is one fewer resolver row
+# than the gold pair carried; the extra armour value beyond the leather base needs the engine's heroic
+# defence mods on 1.8.9, which has no `generic.armor` attribute.
 # Interaction-layer rules the set decomposition does NOT own, recorded but not authored here:
 #  * NO Infinite Luck check on any hook (shared with Dragon Slayer).
 #  * the Armor Crystal route above, owned by the crystals family (content/crystals/koth.yml).

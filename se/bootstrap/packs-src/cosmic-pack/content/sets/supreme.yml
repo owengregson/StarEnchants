@@ -71,8 +71,9 @@ armor:
         - "§4§oconverting clout into flight."
       # Deathbringer is certain (both arms carry it) but its level is not: MAX in the 10 % Planetary arm, the
       # family's draw in the other. The draw is authored, so the Planetary arm mints it a rung or two low
-      # 2/3 of the time. Its partner in that other arm, `Ghost`, is deferred pending its own owner ruling and
-      # has no target in this pack.
+      # 2/3 of the time. Its partner in that other arm, `Ghost`, is PERMANENTLY OMITTED (R-QC38): the enchant
+      # is dropped from the port outright — no consumer for its marker exists anywhere in the corpus — so this
+      # roster line has no target and never will.
       enchants:
         enchants/springs: 2                # the family's only FIXED-level roll (measured)
         DEPTH_STRIDER: { min: 1, max: 3 }  # uniform
@@ -88,7 +89,7 @@ weapon:
   # THE MATERIAL IS NOT RECORDED. The matrix gives the Fanny Pack no material; DIAMOND_SWORD is the family's
   # weapon default (the Phantom Scythe and Yijki's World Ender are diamond swords, the Yeti Maul a diamond
   # axe), the only choice that makes its recorded Sharpness V mean anything, and the only one consistent with
-  # the SWORD-only `applies-to` both custom enchants above declare. Flagged for the owner.
+  # the SWORD-only `applies-to` both custom enchants above declare. CONFIRMED by owner ruling R-QC35d.
   material: DIAMOND_SWORD
   name: "§4§lSupreme Fanny Pack"
   lore:

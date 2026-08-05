@@ -74,8 +74,8 @@ public final class Aliases {
             // reverse scan never runs and a modern-authored WATER stays flowing there. It earns its place by
             // reading a 1.8-authored config on a modern server, which is the migrator's direction.
             Map.entry("STATIONARY_WATER", "WATER"),
-            // The 1.13 flattening spelled out GOLD_ → GOLDEN_ on tools. The cosmic pack authors the modern
-            // pair (the KOTH set piece and both heroic weapon conversions), and 1.8 has only the short form.
+            // The 1.13 flattening spelled out GOLD_ → GOLDEN_ on tools. The packs author the modern pair (the
+            // heroic weapon conversions), and 1.8 has only the short form.
             Map.entry("GOLD_SWORD", "GOLDEN_SWORD"),
             Map.entry("GOLD_AXE", "GOLDEN_AXE"));
 
