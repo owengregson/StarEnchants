@@ -14,10 +14,17 @@ armor:
     UNBREAKING: 3
     PROTECTION: 4
   # The shared bonus block, verbatim. Per-piece flavour is authored on the `pieces:` members below, above this
-  # block — the source's own `forebidden` typo included, which ships as written.
-  # STILL RECORDED, NOT AUTHORED: the per-piece custom-enchant rosters. The codex gives their SIZES (13/15/15/15
-  # entries, each rolled at the family's nearly-maxed draw) and never enumerates the entries, so there is
-  # nothing to name — the roll form exists now, the roster does not.
+  # block — the source's own `forebidden` typo included, which ships as written. So are the per-piece rosters
+  # (13/15/15/15 entries), entry-for-entry in codex order through §A.16's `applyCustomEnchantments`, which has
+  # no heroic gate — every entry lands. A plain entry takes the family's nearly-maxed draw
+  # min(M, max(1, M-2) + rand(3)) over that enchant's own max M, which `{ nearly-maxed: M }` reproduces
+  # literally (the outer min() skew and all); `enchants/obsidianshield` tops out at 1, where the draw is
+  # degenerate, so it takes the bare level instead and consumes no draw. A HEROIC entry is TWO stamps in the
+  # jar — the heroic at uniform 1..M and its non-heroic partner at that partner's max — and all three heroics
+  # here (helmet Planetary Deathbringer, chest Godly Overload, boots Divine Enlighted) author both halves.
+  # ONE ENTRY IS NOT AUTHORED: the chest's `Blood Lust`, not in this pack yet — a set's `enchants:` ref is
+  # validated library-wide, so naming it would be a compile error rather than an inert key. It lands with the
+  # enchant.
   lore:
     - "§f§lYIJKI SET BONUS"
     - "§f§l* §fEnemies deal 30% less damage to you."
@@ -30,24 +37,89 @@ armor:
       lore:
         - "§f§oThe god-mask of Yijki, imbued with"
         - "§f§othe power of absolute destruction."
+      enchants:
+        enchants/deathbringer: 3                             # the heroic's partner stamp — at max, no draw
+        enchants/planetary-deathbringer: { min: 1, max: 3 }
+        enchants/drunk: { nearly-maxed: 4 }
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/angelic: { nearly-maxed: 5 }
+        enchants/hardened: { nearly-maxed: 3 }
+        enchants/valor: { nearly-maxed: 5 }
+        enchants/dodge: { nearly-maxed: 5 }
+        enchants/guardians: { nearly-maxed: 10 }
+        enchants/sticky: { nearly-maxed: 8 }
+        enchants/implants: { nearly-maxed: 3 }
+        enchants/repair-guard: { nearly-maxed: 3 }
     chestplate:
       material: DIAMOND_CHESTPLATE
       name: "§f§lMantel of Yijki the Destroyer of Worlds"
       lore:
         - "§f§oThe forebidden mantel of Yijki,"   # verbatim, `forebidden` and all
         - "§f§owoven from the dust of fallen stars."
+      enchants:
+        enchants/overload: 3                          # the heroic's partner stamp — at max, no draw
+        enchants/godly-overload: { min: 1, max: 3 }
+        # `Blood Lust` sits here in the codex order — not in this pack yet, see the header.
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/angelic: { nearly-maxed: 5 }
+        enchants/arrow-deflect: { nearly-maxed: 4 }
+        enchants/dodge: { nearly-maxed: 5 }
+        enchants/valor: { nearly-maxed: 5 }
+        enchants/hardened: { nearly-maxed: 3 }
+        enchants/aegis: { nearly-maxed: 6 }
+        enchants/spirit-link: { nearly-maxed: 5 }
+        enchants/blood-link: { nearly-maxed: 5 }
+        enchants/leadership: { nearly-maxed: 5 }
     leggings:
       material: DIAMOND_LEGGINGS
       name: "§f§lRobeset of Yijki the Destroyer of Worlds"
       lore:
         - "§f§oThe fabled robes of Yijki,"
         - "§f§ohalf angelic, half demonic."
+      enchants:
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/clarity: { nearly-maxed: 3 }
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/nature-wrath: { nearly-maxed: 4 }
+        enchants/lucky: { nearly-maxed: 10 }
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/angelic: { nearly-maxed: 5 }
+        enchants/obsidianshield: 1   # max 1 — a nearly-maxed draw here can only ever return 1
+        enchants/cactus: { nearly-maxed: 2 }
+        enchants/valor: { nearly-maxed: 5 }
+        enchants/hardened: { nearly-maxed: 3 }
+        enchants/metaphysical: { nearly-maxed: 4 }
+        enchants/death-god: { nearly-maxed: 3 }
+        enchants/dodge: { nearly-maxed: 5 }
     boots:
       material: DIAMOND_BOOTS
       name: "§f§lFootwraps of Yijki the Destroyer of Worlds"
       lore:
         - "§f§oLight as a feather, heavy as"
         - "§f§oa mountain - the footwraps of Yijki."
+      enchants:
+        enchants/enlighted: 3                          # the heroic's partner stamp — at max, no draw
+        enchants/divine-enlighted: { min: 1, max: 3 }
+        enchants/gears: { nearly-maxed: 3 }
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/angelic: { nearly-maxed: 5 }
+        enchants/ender-walker: { nearly-maxed: 5 }
+        enchants/hardened: { nearly-maxed: 3 }
+        enchants/rocket-escape: { nearly-maxed: 3 }
+        enchants/springs: { nearly-maxed: 3 }
+        enchants/valor: { nearly-maxed: 5 }
+        enchants/dodge: { nearly-maxed: 5 }
+        enchants/guardians: { nearly-maxed: 10 }
+        enchants/sticky: { nearly-maxed: 8 }
+        enchants/diminish: { nearly-maxed: 6 }
 weapon:
   enchants:
     SHARPNESS: 5

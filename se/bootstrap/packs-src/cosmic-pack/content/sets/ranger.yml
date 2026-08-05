@@ -18,10 +18,15 @@ armor:
     UNBREAKING: 3
     PROTECTION: 4
   # The shared bonus block, verbatim. Per-piece flavour is authored on the `pieces:` members below — the
-  # source's own stray comma and "a ancient" included, which ship as written.
-  # STILL RECORDED, NOT AUTHORED: the per-piece custom-enchant rosters. The codex gives their SIZE (12 entries
-  # a piece, each at the family's nearly-maxed draw) and never names an entry, so the roll form the bow below
-  # now uses has nothing to draw here.
+  # source's own stray comma and "a ancient" included, which ship as written. So are the per-piece rosters
+  # (12 entries a piece), entry-for-entry in codex order through §A.16's `applyCustomEnchantments`. Every
+  # entry is plain — this is the only plain set with no heroic anywhere in its rosters — so each takes the
+  # family's nearly-maxed draw min(M, max(1, M-2) + rand(3)) over that enchant's own max M, which
+  # `{ nearly-maxed: M }` reproduces literally (the outer min() skew and all); `enchants/obsidianshield` tops
+  # out at 1, where the draw is degenerate, so it takes the bare level instead and consumes no draw.
+  # ONE ENTRY IS NOT AUTHORED: the cuirass's `Blood Lust`, not in this pack yet — a set's `enchants:` ref is
+  # validated library-wide, so naming it would be a compile error rather than an inert key. It lands with the
+  # enchant.
   lore:
     - "§a§lRANGER SET BONUS"
     - "§a§l* §aEnemies bows deal 25% less damage to you."
@@ -36,24 +41,76 @@ armor:
       lore:
         - "§a§oThe hood of a legendary"
         - "§a§oRanger lost with time itself."
+      enchants:
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/drunk: { nearly-maxed: 4 }
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/marksman: { nearly-maxed: 4 }
+        enchants/implants: { nearly-maxed: 3 }
+        enchants/angelic: { nearly-maxed: 5 }
+        enchants/heavy: { nearly-maxed: 5 }
+        enchants/dodge: { nearly-maxed: 5 }
+        enchants/sticky: { nearly-maxed: 8 }
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/hardened: { nearly-maxed: 3 }
     chestplate:
       material: DIAMOND_CHESTPLATE
       name: "§a§lRanger Cuirass"
       lore:
         - "§a§oThe lost cuirass of the,"   # verbatim, stray comma and all
         - "§a§olast known legendary archer."
+      enchants:
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/aegis: { nearly-maxed: 6 }
+        # `Blood Lust` sits here in the codex order — not in this pack yet, see the header.
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/overload: { nearly-maxed: 3 }
+        enchants/marksman: { nearly-maxed: 4 }
+        enchants/angelic: { nearly-maxed: 5 }
+        enchants/heavy: { nearly-maxed: 5 }
+        enchants/arrow-deflect: { nearly-maxed: 4 }
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/hardened: { nearly-maxed: 3 }
     leggings:
       material: DIAMOND_LEGGINGS
       name: "§a§lRanger Greaves"
       lore:
         - "§a§oThe fabled shin protectors,"
         - "§a§oof an ancient agile Ranger."
+      enchants:
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/clarity: { nearly-maxed: 3 }
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/marksman: { nearly-maxed: 4 }
+        enchants/angelic: { nearly-maxed: 5 }
+        enchants/heavy: { nearly-maxed: 5 }
+        enchants/lucky: { nearly-maxed: 10 }
+        enchants/obsidianshield: 1   # max 1 — a nearly-maxed draw here can only ever return 1
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/hardened: { nearly-maxed: 3 }
+        enchants/cactus: { nearly-maxed: 2 }
     boots:
       material: DIAMOND_BOOTS
       name: "§a§lRanger Slippers"
       lore:
         - "§a§oLightweight footgear for"
         - "§a§oa ancient nimble Ranger."   # verbatim, "a ancient" and all
+      enchants:
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/gears: { nearly-maxed: 3 }
+        enchants/marksman: { nearly-maxed: 4 }
+        enchants/angelic: { nearly-maxed: 5 }
+        enchants/heavy: { nearly-maxed: 5 }
+        enchants/metaphysical: { nearly-maxed: 4 }
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/hardened: { nearly-maxed: 3 }
+        enchants/springs: { nearly-maxed: 3 }
+        enchants/rocket-escape: { nearly-maxed: 3 }
 weapon:
   # Power V / Durability III / Flame II / Infinity I are fixed, and Sniper is recorded AT max. The other twelve
   # are ROLLS, and they are drawn as rolls now: Lethal Sniper is the jar's hard-coded uniform 2..5, and the
@@ -143,7 +200,9 @@ bonuses:
 #  * Armor Crystal route (§A.7/§C.1): DAMAGE_MOD(side=defense, amount=5) and DAMAGE_MOD(side=attack, amount=6)
 #    per crystal-bearing non-set piece, BOTH projectile-conditioned (4 → ×0.80 in / ×1.24 out; ×1.612 measured
 #    with the bow). Owned by the crystals family — crystals/ranger.yml ships it.
-#  * D-10-4: the crystal's advertised "20% Immune to Teleblock" is absent from the jar and ships anyway, since
-#    display strings never deviate — as a 20 %-per-piece teleblock-immunity chance, on the crystal's file.
+#  * the crystal's advertised "20% Immune to Teleblock" IS implemented — not in the armour-sets plugin (which
+#    is why matrix/10 reads it as absent) but in the Enchants plugin's TeleblockListener, as
+#    `Math.random() < 0.2 * crystalPieces` with its own verbatim block line (codex 05 § Teleblock). It ships
+#    on the crystal's file as a 20 %-per-piece immunity chance, which is the measured rate.
 #  * outpost world gates (TRAINEE/VANILLA/HERO, §A.8) are off by default in the port; `disabled-worlds:` on a
 #    bonus is the knob. Measured: the projectile reduction has no such gate in the jar even where others do.

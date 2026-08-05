@@ -13,13 +13,20 @@ armor:
   enchants:
     UNBREAKING: 3
     PROTECTION: 4
-  # The shared bonus block, verbatim; per-piece flavour is authored on the `pieces:` members below.
-  # STILL RECORDED, NOT AUTHORED: the per-piece custom-enchant rosters — the codex never enumerates them, so
-  # the roll form has nothing to draw. The quirk worth carrying is that the HELMET roster lists `Armored`
-  # twice and the second roll wins; a member's `enchants:` map is keyed by ref, so a duplicate entry has no
-  # spelling either way, and "the second roll wins" IS what one entry means. Purely cosmetic quirks are not
-  # replicated: the jar double-transmogs chest/legs/boots against the helmet's single, but the engine renders
-  # lore from state, so there is nothing to double.
+  # The shared bonus block, verbatim; per-piece flavour and the per-piece rosters are authored on the
+  # `pieces:` members below, entry-for-entry in codex order (§A.16's `applyCustomEnchantments`, which has no
+  # heroic gate — every entry lands). A plain entry takes the family's nearly-maxed draw
+  # min(M, max(1, M-2) + rand(3)) over that enchant's own max M, which `{ nearly-maxed: M }` reproduces
+  # literally (the outer min() skew and all); `enchants/obsidianshield` tops out at 1, where the draw is
+  # degenerate, so it takes the bare level instead and consumes no draw. A HEROIC entry is TWO stamps in the
+  # jar — the heroic at uniform 1..M and its non-heroic partner at that partner's max — and this set's one
+  # heroic (the chest's Godly Overload) authors both.
+  # The HELMET roster lists `Armored` twice and the second roll wins; a map is keyed by ref, so ONE entry is
+  # exactly what that means. ONE ENTRY IS NOT AUTHORED: the chest's `Blood Lust`, not in this pack yet — a
+  # set's `enchants:` ref is validated library-wide, so naming it would be a compile error rather than an
+  # inert key. It lands with the enchant.
+  # Purely cosmetic quirks are not replicated: the jar double-transmogs chest/legs/boots against the helmet's
+  # single, but the engine renders lore from state, so there is nothing to double.
   lore:
     - "§b§lYETI SET BONUS"
     - "§b§l* §bDeal +10% damage to all enemies."
@@ -31,21 +38,78 @@ armor:
       name: "§b§lYeti Facemask"
       lore:
         - "§bThe savage mask of the Yeti."
+      # The roster's `Protection` is the pack's CUSTOM enchant, not the vanilla one the shared block stamps.
+      enchants:
+        enchants/drunk: { nearly-maxed: 4 }
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/armored: { nearly-maxed: 4 }   # listed twice; the second roll wins, which is this one entry
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/hardened: { nearly-maxed: 3 }
+        enchants/implants: { nearly-maxed: 3 }
+        enchants/valor: { nearly-maxed: 5 }
+        enchants/protection: { nearly-maxed: 5 }
+        enchants/ender-shift: { nearly-maxed: 3 }
+        enchants/arrow-deflect: { nearly-maxed: 4 }
+        enchants/death-god: { nearly-maxed: 3 }
+        enchants/angelic: { nearly-maxed: 5 }
     chestplate:
       material: DIAMOND_CHESTPLATE
       name: "§b§lBloody Yeti Torso"
       lore:
         - "§bThe impermeable chestplate of the Yeti."
+      enchants:
+        enchants/overload: 3                          # the heroic's partner stamp — at max, no draw
+        enchants/godly-overload: { min: 1, max: 3 }
+        # `Blood Lust` sits here in the codex order — not in this pack yet, see the header.
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/leadership: { nearly-maxed: 5 }
+        enchants/spirit-link: { nearly-maxed: 5 }
+        enchants/aegis: { nearly-maxed: 6 }
+        enchants/blood-link: { nearly-maxed: 5 }
+        enchants/guardians: { nearly-maxed: 10 }
+        enchants/angelic: { nearly-maxed: 5 }
     leggings:
       material: DIAMOND_LEGGINGS
       name: "§b§lFuzzy Yeti Leggings"
       lore:
         - "§bThe cozy yet monstrous legs of the Yeti."
+      enchants:
+        enchants/clarity: { nearly-maxed: 3 }
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/angelic: { nearly-maxed: 5 }
+        enchants/obsidianshield: 1   # max 1 — a nearly-maxed draw here can only ever return 1
+        enchants/dodge: { nearly-maxed: 5 }
+        enchants/sticky: { nearly-maxed: 8 }
+        enchants/repair-guard: { nearly-maxed: 3 }
+        enchants/valor: { nearly-maxed: 5 }
+        enchants/lucky: { nearly-maxed: 10 }
+        enchants/cactus: { nearly-maxed: 2 }
     boots:
       material: DIAMOND_BOOTS
       name: "§b§lBig-Yeti Boots"
       lore:
         - "§bBigfoot has nothing on these boots."
+      enchants:
+        enchants/gears: { nearly-maxed: 3 }
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/angelic: { nearly-maxed: 5 }
+        enchants/springs: { nearly-maxed: 3 }
+        enchants/rocket-escape: { nearly-maxed: 3 }
+        enchants/ender-walker: { nearly-maxed: 5 }
+        enchants/hardened: { nearly-maxed: 3 }
+        enchants/metaphysical: { nearly-maxed: 4 }
+        enchants/repair-guard: { nearly-maxed: 3 }
+        enchants/valor: { nearly-maxed: 5 }
+        enchants/tank: { nearly-maxed: 4 }
 weapon:
   # Silence and Lifesteal are minted at their pack maxima (4 and 5). Both declare `applies-to: [SWORD…]` while
   # the Maul is an axe — applies-to gates the APPLY path only, so a minted copy still fires.

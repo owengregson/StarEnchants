@@ -29,23 +29,25 @@
 # This is the only crystal in the family whose advertised numbers all match measured behaviour at 1 piece.
 # The full-set negation flags below and the crystal roll are INDEPENDENT mechanisms and can both be live.
 # ── PHYSICAL LIKENESS ──────────────────────────────────────────────────────────────────────────────────────
-# Per-piece flavour lore and the two bonus rolls this surface can spell are authored on the `pieces:` members
-# below, the flavour above the shared `armor.lore`.
-#   mint rules: heroic-enchant roster gate 40 % per heroic entry; base roster entries roll nearly maxed as
-#   min(M, max(1, M-2) + rand(3)) over each enchant's own max M; per-piece bonus rolls:
-#     helmet  30 % Immortal — AUTHORED
-#     chest   5 % Enchant Reflect (max) — AUTHORED; its partner `Heroic Enchant Reflect` is NOT: it is a
-#             heroic-roster entry behind the 40 % gate as well, so its real rate is a product of two recorded
-#             gates rather than a recorded figure, and the roster it belongs to is never enumerated
-#     legs    7.5 % Nature Wrath (max) — a roster entry's `chance` is an integer percent, so this half-point
-#             probability has no spelling
-#     boots   7.5 % Phoenix — half-point again, so not authored. Guardians is not authored either, for the
-#             other reason: it is an entry of the boots' BASE roster, which the codex never enumerates, so it
-#             carries no rate of its own to spell. LEDGER D-10-7: the measured roster misspells it
-#             `Gaurdians`, so that bonus silently never applies; the typo's intent is unambiguous and the port
-#             rolls Guardians as intended the day that roster is recorded.
-# The BASE roster the rolls sit beside is recorded as a rule and never as entries, so there is still nothing
-# there for the roll form to name.
+# Per-piece flavour lore, the base rosters and the per-piece bonus rolls are all authored on the `pieces:`
+# members below, the flavour above the shared `armor.lore` and the roster entries in codex order.
+#   mint rules: a base roster entry rolls nearly maxed as min(M, max(1, M-2) + rand(3)) over each enchant's
+#   own max M, which `{ nearly-maxed: M }` reproduces literally. A HEROIC entry is gated at 40 % (this set's
+#   `addEnchants(item, list, 0.4)`, unique in the family — the other plain sets land every heroic), and on a
+#   pass it stamps TWO enchants: the heroic at uniform 1..M and its non-heroic partner at that partner's MAX.
+#   Every heroic here sits at the END of its roster and every partner is listed earlier, so a passing gate
+#   OVERWRITES the partner's draw with its max. A map holds one entry per ref, so the partner carries its
+#   certain draw and that 40 %-of-the-time bump to max has no spelling (R-QC51's overwriting-re-roll shape).
+#   per-piece bonus rolls, all authored:
+#     helmet  30 % Immortal at the nearly-maxed draw
+#     chest   5 % Enchant Reflect (max) + Heroic Enchant Reflect (nearly-maxed). Enchant Reflect is ALREADY
+#             certain from the base roster, so the entry carries that draw and only the heroic takes the 5 %
+#             gate — the same overwrite shape as the heroic partners above
+#     legs    7.5 % Nature Wrath at max
+#     boots   7.5 % Phoenix at the nearly-maxed draw
+# LEDGER D-10-7: the boots' base roster misspells Guardians as `Gaurdians`, so the jar silently never applies
+# it. The typo's intent is unambiguous and the roster is now recorded, so `enchants/guardians` is authored as
+# intended.
 display: "§e§lDragon Slayer"  # matrix records no standalone set display; §e is the family's own colour
 # description: not matrix-recorded (factual paraphrase)
 description: "§eThe dragon-hunter's plate — everything hits it softer, players take more, and freezes, silences and masteries slide off."
@@ -79,24 +81,76 @@ armor:
       lore:
         - "§e§oThe mythical helmet of a Slayer of Dragons."
       enchants:
-        enchants/immortal: { chance: 30, nearly-maxed: 4 }
+        enchants/drunk: { nearly-maxed: 4 }
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/angelic: { nearly-maxed: 5 }
+        enchants/implants: { nearly-maxed: 3 }
+        enchants/valor: { nearly-maxed: 5 }
+        enchants/death-god: { nearly-maxed: 3 }
+        enchants/repair-guard: { nearly-maxed: 3 }
+        enchants/ender-shift: { nearly-maxed: 3 }
+        enchants/paladin-armored: { chance: 40, min: 1, max: 4 }
+        enchants/planetary-deathbringer: { chance: 40, min: 1, max: 3 }
+        enchants/alien-implants: { chance: 40, min: 1, max: 3 }
+        enchants/immortal: { chance: 30, nearly-maxed: 4 }   # the bonus roll, beside the roster
     chestplate:
       material: DIAMOND_CHESTPLATE
       name: "§e§lFirey Chestplate of Dragons§r"
       lore:
         - "§e§oThe mythical chestplate of a Slayer of Dragons."
       enchants:
-        enchants/enchant-reflect: { chance: 5, max: 10 }   # recorded AT max, so no draw — just the gate
+        enchants/overload: { nearly-maxed: 3 }
+        enchants/leadership: { nearly-maxed: 5 }
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/angelic: { nearly-maxed: 5 }
+        enchants/valor: { nearly-maxed: 5 }
+        enchants/aegis: { nearly-maxed: 6 }
+        enchants/dodge: { nearly-maxed: 5 }
+        enchants/frozen: { nearly-maxed: 3 }
+        enchants/enchant-reflect: { nearly-maxed: 10 }   # certain from the roster; the 5 % bonus bumps it to max
+        enchants/godly-overload: { chance: 40, min: 1, max: 3 }
+        enchants/heroic-enchant-reflect: { chance: 5, nearly-maxed: 10 }   # the bonus roll's other half
     leggings:
       material: DIAMOND_LEGGINGS
       name: "§e§lScorched Leggings of Dragons§r"
       lore:
         - "§e§oThe mythical leggings of a Slayer of Dragons."
+      enchants:
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/lucky: { nearly-maxed: 10 }
+        enchants/obsidianshield: 1   # max 1 — a nearly-maxed draw here can only ever return 1
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/valor: { nearly-maxed: 5 }
+        enchants/angelic: { nearly-maxed: 5 }
+        enchants/arrow-deflect: { nearly-maxed: 4 }
+        enchants/clarity: { nearly-maxed: 3 }
+        enchants/cactus: { nearly-maxed: 2 }
+        enchants/divine-enlighted: { chance: 40, min: 1, max: 3 }
+        enchants/nature-wrath: { chance: 7.5, max: 4 }   # the bonus roll — recorded AT max, so no draw
     boots:
       material: DIAMOND_BOOTS
       name: "§e§lDragon Slayer Battle Boots§r"
       lore:
         - "§e§oThe mythical boots of a Slayer of Dragons."
+      enchants:
+        enchants/gears: { nearly-maxed: 3 }
+        enchants/rocket-escape: { nearly-maxed: 3 }
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/valor: { nearly-maxed: 5 }
+        enchants/angelic: { nearly-maxed: 5 }
+        enchants/springs: { nearly-maxed: 3 }
+        enchants/guardians: { nearly-maxed: 10 }   # spelled `Gaurdians` in the roster — D-10-7, authored as intended
+        enchants/voodoo: { nearly-maxed: 6 }
+        enchants/ender-walker: { nearly-maxed: 5 }
+        # `Ghost` and `Ghostly Ghost` sit here in the codex order. Both are DROPPED from the port permanently
+        # (R-QC38 — no consumer for either marker exists anywhere in the corpus), so these two lines have no
+        # target and never will.
+        enchants/phoenix: { chance: 7.5, nearly-maxed: 3 }   # the bonus roll, beside the roster
 bonuses:
   # 1. -20% incoming, all entity-routed sources. No REMOVE_POTION opener on this set (Phantom / Yeti / Yijki
   # carry one; this one does not — measured).
