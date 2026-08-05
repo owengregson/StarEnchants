@@ -39,22 +39,6 @@ public final class LegacyHandleLookup implements HandleLookup {
             "GENERIC_MAX_HEALTH", "GENERIC_MOVEMENT_SPEED", "GENERIC_ATTACK_DAMAGE",
             "GENERIC_KNOCKBACK_RESISTANCE", "GENERIC_FOLLOW_RANGE", "GENERIC_ATTACK_SPEED");
 
-    /**
-     * Lossy 1.8-only DEGRADATIONS merged on top of the {@link Aliases} renames at resolve time: a token with
-     * no 1.8 equivalent maps to the closest 1.8 constant so the effect still fires (visibly degraded) instead
-     * of being warn-skipped. Kept OUT of {@link Aliases} because these are not renames — the migrator must not
-     * rewrite a modern config through them. {@code SOUL} (1.16) &rarr; the 1.8 large-smoke particle.
-     *
-     * <p>An unresolved handle is a BLOCKING {@code E_UNKNOWN_HANDLE}, so a token with no 1.8 landing costs the
-     * whole publish, not one effect. {@code BLOCK_ANVIL_PLACE} is the default catalogue's — 1.8 spells the
-     * anvil's place cue {@code random.anvil_land}, which its {@code ANVIL_LAND} constant already owns, so this
-     * cannot be an {@link Aliases} row without duplicating that key.
-     */
-    private static final java.util.Map<HandleCategory, java.util.Map<String, String>> FALLBACKS_1_8 =
-            java.util.Map.of(
-                    HandleCategory.PARTICLE, java.util.Map.of("SOUL", "SMOKE_LARGE"),
-                    HandleCategory.SOUND, java.util.Map.of("BLOCK_ANVIL_PLACE", "ANVIL_LAND"));
-
     /** Whether {@code canonicalName} (1.8-era, upper-case) resolves for {@code category} on 1.8.9. */
     @Override
     public boolean exists(HandleCategory category, String canonicalName) {
@@ -65,10 +49,10 @@ public final class LegacyHandleLookup implements HandleLookup {
         };
     }
 
-    /** Legacy-only lossy fallbacks ({@link #FALLBACKS_1_8}) merged on top of {@link Aliases} for resolution. */
+    /** Legacy-only lossy fallbacks ({@link LegacyFallbacks}) merged on top of {@link Aliases} for resolution. */
     @Override
     public java.util.Map<String, String> fallbackAliases(HandleCategory category) {
-        return FALLBACKS_1_8.getOrDefault(category, java.util.Map.of());
+        return LegacyFallbacks.forCategory(category);
     }
 
     /** The live 1.8 Bukkit object {@code canonicalName} denotes, or {@code null} (particle/attribute → NMS-by-name). */
