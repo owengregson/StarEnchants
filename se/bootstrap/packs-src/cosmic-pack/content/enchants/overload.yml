@@ -17,7 +17,10 @@ suppress-immune: true
 # Progression interlock with the tier-7 heroic upgrade (the upgrade only applies over max-level Overload, and
 # Overload refuses to apply over the upgrade) is an anvil/progression rule, not runtime.
 # The mastery drain reduces the expressed HEALTH_BOOST amplifier by its own level + 1 and skips the effect
-# entirely at <= 0 — an interaction rule, not authored here.
+# entirely at <= 0 — an interaction rule, not authored here. Its counterparty now EXISTS:
+# `enchants/mortal-coil` ships (R-QC1) and spells the drain as `POTION_AMP_REDUCE(HEALTH_BOOST, amount: L+1)`,
+# a PARTIAL cut — which is why that file could not settle for POTION_LOCK, whose full strip would take all
+# three rungs here instead of the recorded two-to-four amplifier steps.
 # Equip/removal feedback is the shared potion-registry [+]/[-] pair (see Obsidianshield); the recorded
 # tracker-equivalents it replaces read, e.g.:
 #   §b§l[+] §bOverload III:§7 applying HEALTH_BOOST III
