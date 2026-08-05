@@ -4,13 +4,16 @@
 # Aspect proc. The set's own full-set negation flags and this crystal's roll are independent mechanisms in
 # the jar and both can be live at once (measured) — nothing here suppresses the set half.
 display: "Dragon Slayer"
-# description: not matrix-recorded (factual paraphrase; percents and colour from the set's `§e` bonus block)
+# The source's own crystalDescription, verbatim (codex §A.2); see phantom.yml for the construction rule. Its
+# four bullets are the only ones in the family that name TWO immunities as separate lines. The set line's
+# display name is this pack's `§e§lDragon Slayer` (sets/dragon-slayer.yml): the codex records the enum colour
+# `§e` but no standalone display string for this set, so the colour is source and the wording is ours.
 description:
-  - "§e§lDRAGON SLAYER CRYSTAL BONUS"
-  - "§e* +3% PvP Damage"
-  - "§e* -5% Incoming Damage"
-  - "§e* 10% Silence and Ice Aspect Negation"
-  - "§e* Dragon Slayer Crystal is stackable"
+  - " §e§l§e§lDragon Slayer"
+  - "  §e§l* §e+3% PvP DMG"
+  - "  §e§l* §e-5% Incoming DMG"
+  - "  §e§l* §e10% Silence Immunity"
+  - "  §e§l* §e10% Freeze Immunity"
 tier: legendary  # (port-chosen) see phantom.yml
 applies-to: [ARMOR]
 stackable: true

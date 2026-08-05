@@ -3,11 +3,14 @@
 # Same shape as anti-m-kit-ghost.yml, over the Death Knight pool — the one pool whose four members are all
 # authored, so this crystal is complete on the day it lands.
 display: "Anti-M-Kit (Death Knight)"
-# description: not matrix-recorded (factual paraphrase; `§9` is the Death Knight set's own colour)
+# The counter-crystal's own recorded lore (codex §C.2); see anti-m-kit-ghost.yml for the block's shape.
 description:
-  - "§9§lANTI-M-KIT CRYSTAL BONUS"
-  - "§9* Negates all Death Knight M-Kit abilities used against you"
-  - "§9* Anti-M-Kit Crystal is not stackable"
+  - "§7to negate the following"
+  - "§7custom Mastery Enchantments:"
+  - "§6§l * §4Chain Lifesteal"
+  - "§6§l * §4Death Pact"
+  - "§6§l * §4Tombstone"
+  - "§6§l * §4Permafrost"
 tier: mastery  # (port-chosen) see anti-m-kit-ghost.yml
 applies-to: [ARMOR]
 stackable: false

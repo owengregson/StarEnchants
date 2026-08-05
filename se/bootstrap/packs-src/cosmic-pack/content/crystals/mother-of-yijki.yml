@@ -2,16 +2,14 @@
 # The defensive sixth of the set's -30% incoming, per crystal-bearing piece; four pieces fold to -20% in,
 # plus the set's own Revenge of Yijki at a hundredth of its rate per piece.
 display: "Mother of Yijki"
-# description: not matrix-recorded (factual paraphrase; percent and colour are the set's `§f` bonus block at
-# a sixth). The "20%" the jar's crystal lore advertises for the revenge roll ships now that the roll it names
-# does — the advert is the jar's own, against a measured 0.010000000000000002 per piece, and the mismatch is
-# the jar's too (recorded on sets/mother-of-yijki.yml). A string ships attached to the thing it describes,
-# never ahead of it.
+# The source's own crystalDescription, verbatim (codex §A.2); see phantom.yml for the construction rule. The
+# "20%" it advertises for the revenge roll is the source's own advert against a measured 0.010000000000000002
+# per piece — its mismatch, not this port's (recorded on sets/mother-of-yijki.yml) — and it ships because the
+# roll it names ships.
 description:
-  - "§f§lYIJKI CRYSTAL BONUS"
-  - "§f* Enemies deal 5% less damage to you"
-  - "§f* 20% Revenge of Yijki Ability"
-  - "§f* Yijki Crystal is stackable"
+  - " §f§l§f§lMother of Yijki"
+  - "  §f§l* §f-5% Incoming DMG"
+  - "  §f§l* §f20% Revenge of Yijki Ability"
 tier: legendary  # (port-chosen) see phantom.yml
 applies-to: [ARMOR]
 stackable: true

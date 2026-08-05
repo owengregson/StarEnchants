@@ -4,11 +4,18 @@
 # mastery-pool procs aimed at them OUTRIGHT — 100%, no roll. The percent a player sees on this crystal is its
 # APPLY chance (the family-wide 20% gamble on the likeness, items/crystal.yml), never a proc chance.
 display: "Anti-M-Kit (Ghost)"
-# description: not matrix-recorded (factual paraphrase; `§3` is the Ghost set's own colour)
+# The counter-crystal's OWN recorded lore (matrix/13 § Anti-M-Kit Crystal; codex §C.2), which is a different
+# block from the armour crystals' set-line-and-bullets shape (phantom.yml): two header lines and one `§6§l * §4`
+# line per cancelled enchant, enumerated live from the registry at mint there and authored from the pool here.
+# The source's own first line, "§7Apply to any piece of armor", is dropped: it duplicates the family lore this
+# fold puts above every crystal (items/crystal.yml), which says the same thing.
 description:
-  - "§3§lANTI-M-KIT CRYSTAL BONUS"
-  - "§3* Negates all Ghost M-Kit abilities used against you"
-  - "§3* Anti-M-Kit Crystal is not stackable"
+  - "§7to negate the following"
+  - "§7custom Mastery Enchantments:"
+  - "§6§l * §4Horrify"
+  - "§6§l * §4Feign Death"
+  - "§6§l * §4Poltergeist"
+  - "§6§l * §4Mark of the Beast"
 tier: mastery  # (port-chosen) the matrix records no crystal rarity; the rung it answers is the mastery tier
 applies-to: [ARMOR]
 # One worn copy is the whole effect (100%, no roll), so a second adds nothing and says so: a non-stackable

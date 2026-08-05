@@ -2,15 +2,13 @@
 # The steepest damage crystal in the family: +7.5% outgoing per crystal-bearing piece, four pieces to x1.30 —
 # the full set's own multiplier, reproduced by crystals alone.
 display: "Dimensional Traveler"
-# description: not matrix-recorded (factual paraphrase; percent and colour from the set's `§5` bonus block).
-# The "20%" the jar's crystal lore advertises for the Dimensional Shift roll ships now that the roll it names
-# does — the advert is the jar's own, against a measured 0.2% per piece, and the mismatch is the jar's too
-# (recorded on sets/dimensional-traveler.yml).
+# The source's own crystalDescription, verbatim (codex §A.2); see phantom.yml for the construction rule. The
+# "20%" it advertises for the Dimensional Shift roll is the source's own advert against a measured 0.2% per
+# piece — its mismatch (recorded on sets/dimensional-traveler.yml) — and it ships because the roll ships.
 description:
-  - "§5§lTRAVELER CRYSTAL BONUS"
-  - "§5* You deal 7.5% more damage"
-  - "§5* 20% Dimensional Shift Ability"
-  - "§5* Traveler Crystal is stackable"
+  - " §5§l§5§lDimensional Traveler"
+  - "  §5§l* §5+7.5% Outgoing DMG"
+  - "  §5§l* §520% Dimensional Shift Ability"
 tier: legendary  # (port-chosen) see phantom.yml
 applies-to: [ARMOR]
 stackable: true
