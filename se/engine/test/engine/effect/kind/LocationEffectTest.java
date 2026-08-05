@@ -113,19 +113,40 @@ class LocationEffectTest {
                     FakeEffectCtx ctx = FakeEffectCtx.create().locations("at", a, b).with("drops", false);
                     Sink sink = mock(Sink.class);
                     new BreakBlockEffect().run(ctx, sink);
-                    // drops=false carries an EMPTY void list: the exception list only means anything against
-                    // a yielding break, and passing it through would let a stray id read as "also void".
-                    verify(sink).breakBlock(a, false, List.of());
-                    verify(sink).breakBlock(b, false, List.of());
+                    // drops=false carries an EMPTY void list and no transform: both only mean anything against
+                    // a yielding break, and passing them through would let a stray id read as "also void".
+                    verify(sink).breakBlock(a, false, List.of(), 0, List.of());
+                    verify(sink).breakBlock(b, false, List.of(), 0, List.of());
                     verifyNoMoreInteractions(sink);
                 }),
                 dynamicTest("BREAK_BLOCK void-materials rides a YIELDING break as the per-block exception", () -> {
                     Location a = mock(Location.class);
                     FakeEffectCtx ctx = FakeEffectCtx.create().locations("at", a)
-                            .with("drops", true).with("void-materials", List.of(4, 11));
+                            .with("drops", true).with("void-materials", List.of(4, 11)).with("smelt", 0);
                     Sink sink = mock(Sink.class);
                     new BreakBlockEffect().run(ctx, sink);
-                    verify(sink).breakBlock(a, true, List.of(4, 11));
+                    verify(sink).breakBlock(a, true, List.of(4, 11), 0, List.of());
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("BREAK_BLOCK smelt carries its count AND its material restriction per block", () -> {
+                    Location a = mock(Location.class);
+                    Location b = mock(Location.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().locations("at", a, b)
+                            .with("drops", true).with("void-materials", List.of(7))
+                            .with("smelt", 3).with("smelt-materials", List.of(21, 22));
+                    Sink sink = mock(Sink.class);
+                    new BreakBlockEffect().run(ctx, sink);
+                    verify(sink).breakBlock(a, true, List.of(7), 3, List.of(21, 22));
+                    verify(sink).breakBlock(b, true, List.of(7), 3, List.of(21, 22));
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("BREAK_BLOCK smelt=0 never reads its material list (a co-enchant rule that rolled 0)", () -> {
+                    Location a = mock(Location.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().locations("at", a)
+                            .with("drops", true).with("void-materials", List.of()).with("smelt", 0);
+                    Sink sink = mock(Sink.class);
+                    new BreakBlockEffect().run(ctx, sink);
+                    verify(sink).breakBlock(a, true, List.of(), 0, List.of());
                     verifyNoMoreInteractions(sink);
                 }),
                 dynamicTest("BREAK_BLOCK with no target locations → no-op", () -> {

@@ -72,6 +72,7 @@ import org.bukkit.util.Vector;
 import platform.caps.Regions;
 import platform.economy.EconomyService;
 import platform.item.Inventories;
+import platform.item.SmeltTable;
 import platform.sched.Scheduling;
 import platform.sched.TaskHandle;
 import platform.text.Colors;
@@ -2802,25 +2803,48 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void breakBlock(Location at, boolean drops, java.util.List<Integer> voidMaterialIds) {
+    public void breakBlock(Location at, boolean drops, java.util.List<Integer> voidMaterialIds,
+                           int smeltCount, java.util.List<Integer> smeltMaterialIds) {
         regionOp(at, () -> {
             Block block = at.getBlock();
-            if (isAir(block.getType())) {
+            Material type = block.getType();
+            if (isAir(type)) {
                 return;
             }
             // The void list is read HERE and not at the effect: only the region thread that owns the block
             // knows what it actually is, so a per-material exception cannot be decided at activation time.
-            if (drops && !voids(block.getType(), voidMaterialIds)) {
-                block.breakNaturally(); // yields the block's natural drops at its location
-            } else {
+            // The smelt transform is decided on the same thread and for the same reason.
+            if (!drops || voids(type, voidMaterialIds)) {
                 block.setType(Material.AIR);
+                return;
+            }
+            Material smelted = smeltCount > 0 && listed(type, smeltMaterialIds, true)
+                    ? SmeltTable.productOf(type)
+                    : null;
+            if (smelted == null) {
+                block.breakNaturally(); // yields the block's natural drops at its location
+                return;
+            }
+            World world = at.getWorld();
+            block.setType(Material.AIR);
+            if (world != null) {
+                // Centred on the block, exactly where breakNaturally would have left the raw drop.
+                world.dropItemNaturally(at.clone().add(0.5, 0.5, 0.5), new ItemStack(smelted, smeltCount));
             }
         });
     }
 
     /** Whether {@code type} is on the authored void list (interned material ids, resolved on this thread). */
     private boolean voids(Material type, java.util.List<Integer> voidMaterialIds) {
-        for (int id : voidMaterialIds) {
+        return listed(type, voidMaterialIds, false);
+    }
+
+    /** Whether {@code type} is one of {@code materialIds}; an EMPTY list means {@code emptyMatchesAll}. */
+    private boolean listed(Material type, java.util.List<Integer> materialIds, boolean emptyMatchesAll) {
+        if (materialIds.isEmpty()) {
+            return emptyMatchesAll;
+        }
+        for (int id : materialIds) {
             if (type == material(id)) {
                 return true;
             }
