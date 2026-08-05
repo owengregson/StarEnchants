@@ -19,9 +19,10 @@ tier: epic
 # (`base / 2 * sniperMult * longbowMult`, all MONITOR-stage). SE's damage fold is additive by engine invariant,
 # so the three compose by summed percentage points instead — an engine-wide ruling (the ADR-0050 family),
 # recorded here and not ledgered per-enchant.
-# SOUND plays at the activation location rather than to the victim alone (the effect has no recipient param);
-# the jar's victim-only cue is a cosmetic delta. The jar's NPE on null mob equipment has no analogue — the
-# engine's var read is null-safe.
+# R-QC55: SOUND does take `who` — the premise this line used to carry was wrong — but the cue needs none:
+# the jar played it at the victim's own location, which is where a bow impact activates. Residue: it was a
+# victim-only play, and `who` moves where a cue plays, never who hears it, so it ships world-audible there.
+# The jar's NPE on null mob equipment has no analogue — the engine's var read is null-safe.
 # era: `ARROW_HIT` is the 1.8-era spelling of ENTITY_ARROW_HIT — the matrix marks the entry era-clean and the
 # resolver now carries the pair (wave 2e.2, closing the legacy sweep), so the cue lands on both lanes.
 levels:

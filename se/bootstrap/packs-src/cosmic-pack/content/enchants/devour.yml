@@ -38,23 +38,25 @@ levels:
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "10 + 1.5 * %victim.var.bleedstacks%" } }
       # Jar world-effect 2001 (block-break) with block id 110, at the victim's FEET — no +1y, unlike Bleed's.
-      # PARTICLE centres on the body and the world effect carries no count, so the count is port-chosen at 8 —
-      # the count the same doc's Anti Gank row records for a single-burst 2001 mapping (Bleed's is the
-      # repeat-scaled variant, 15 a repeat).
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "MYCELIUM", count: 8, who: "@Victim" } }
+      # R-QC55: `dy: -0.9` drops the burst back to those feet, since an entity-anchored burst centres on the
+      # body (feet + height/2, 0.9 on a standing player). Flat offset: this entry has no player gate, so a
+      # shorter or taller victim lands off its own feet by the difference. The world effect carries no count,
+      # so the count is port-chosen at 8 — the count the same doc's Anti Gank row records for a single-burst
+      # 2001 mapping (Bleed's is the repeat-scaled variant, 15 a repeat).
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "MYCELIUM", count: 8, who: "@Victim", dy: -0.9 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 4, mode: "timed", who: "@Self" } }
   2:
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "20 + 1.5 * %victim.var.bleedstacks%" } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "MYCELIUM", count: 8, who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "MYCELIUM", count: 8, who: "@Victim", dy: -0.9 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 4, mode: "timed", who: "@Self" } }
   3:
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "30 + 1.5 * %victim.var.bleedstacks%" } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "MYCELIUM", count: 8, who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "MYCELIUM", count: 8, who: "@Victim", dy: -0.9 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 4, mode: "timed", who: "@Self" } }
   4:
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: "40 + 1.5 * %victim.var.bleedstacks%" } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "MYCELIUM", count: 8, who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "MYCELIUM", count: 8, who: "@Victim", dy: -0.9 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/rage", duration: 4, mode: "timed", who: "@Self" } }

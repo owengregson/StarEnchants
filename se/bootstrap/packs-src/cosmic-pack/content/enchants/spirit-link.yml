@@ -15,6 +15,10 @@ tier: rare
 # %damage% / D below T and block B heals the flat 4.0 at or above it. The conditions are disjoint, so
 # exactly one block rolls per event and the shared 10 x level chance stays a single roll.
 # The wearer never heals themself — @Aoe excludes the activator, which is the measured behaviour.
+# R-QC55: both hearts carry their recorded anchors. An entity-anchored burst centres on the body (feet +
+# height/2, 0.9 on a standing player; a flat +1.0 on the 1.8 lane), so the ally heart's eye +0.35 is
+# `dy: 1.07` and the wearer's feet +0.5 is `dy: -0.4`. Both sets are players — allies by the relation
+# layer, the wearer by construction — so the player-sized arithmetic is exact on the modern lane.
 # The heal is PER ALLY, never divided: a faction ball multiplies the total healing (measured).
 # Ally = faction ally/member both ways with neither side in a duel (relation layer); chestplate-only and
 # non-stacking, so the highest worn level is the only one that fires.
@@ -25,15 +29,15 @@ levels:
         condition: "%damagecause% == \"ENTITY_ATTACK\" && %damage% < 80"
         effects:
           - { MODIFY_HEALTH: { amount: "%damage% / 20", mode: "give", who: "@Aoe{r=2, filter=ALLIES}" } }
-          - { PARTICLE: { particle: "HEART", count: 1, who: "@Aoe{r=2, filter=ALLIES}" } }  # recorded at each ally's eye height; the engine centres a per-target particle on the body
-          - { PARTICLE: { particle: "HEART", count: 3, who: "@Self" } }
+          - { PARTICLE: { particle: "HEART", count: 1, who: "@Aoe{r=2, filter=ALLIES}", dy: 1.07 } }
+          - { PARTICLE: { particle: "HEART", count: 3, who: "@Self", dy: -0.4 } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 0.35 } }
       - chance: 10
         condition: "%damagecause% == \"ENTITY_ATTACK\" && %damage% >= 80"
         effects:
           - { MODIFY_HEALTH: { amount: 4.0, mode: "give", who: "@Aoe{r=2, filter=ALLIES}" } }
-          - { PARTICLE: { particle: "HEART", count: 1, who: "@Aoe{r=2, filter=ALLIES}" } }
-          - { PARTICLE: { particle: "HEART", count: 3, who: "@Self" } }
+          - { PARTICLE: { particle: "HEART", count: 1, who: "@Aoe{r=2, filter=ALLIES}", dy: 1.07 } }
+          - { PARTICLE: { particle: "HEART", count: 3, who: "@Self", dy: -0.4 } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 0.35 } }
   2:
     abilities:
@@ -41,15 +45,15 @@ levels:
         condition: "%damagecause% == \"ENTITY_ATTACK\" && %damage% < 64"
         effects:
           - { MODIFY_HEALTH: { amount: "%damage% / 16", mode: "give", who: "@Aoe{r=4, filter=ALLIES}" } }
-          - { PARTICLE: { particle: "HEART", count: 1, who: "@Aoe{r=4, filter=ALLIES}" } }
-          - { PARTICLE: { particle: "HEART", count: 3, who: "@Self" } }
+          - { PARTICLE: { particle: "HEART", count: 1, who: "@Aoe{r=4, filter=ALLIES}", dy: 1.07 } }
+          - { PARTICLE: { particle: "HEART", count: 3, who: "@Self", dy: -0.4 } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 0.35 } }
       - chance: 20
         condition: "%damagecause% == \"ENTITY_ATTACK\" && %damage% >= 64"
         effects:
           - { MODIFY_HEALTH: { amount: 4.0, mode: "give", who: "@Aoe{r=4, filter=ALLIES}" } }
-          - { PARTICLE: { particle: "HEART", count: 1, who: "@Aoe{r=4, filter=ALLIES}" } }
-          - { PARTICLE: { particle: "HEART", count: 3, who: "@Self" } }
+          - { PARTICLE: { particle: "HEART", count: 1, who: "@Aoe{r=4, filter=ALLIES}", dy: 1.07 } }
+          - { PARTICLE: { particle: "HEART", count: 3, who: "@Self", dy: -0.4 } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 0.35 } }
   3:
     abilities:
@@ -57,15 +61,15 @@ levels:
         condition: "%damagecause% == \"ENTITY_ATTACK\" && %damage% < 48"
         effects:
           - { MODIFY_HEALTH: { amount: "%damage% / 12", mode: "give", who: "@Aoe{r=6, filter=ALLIES}" } }
-          - { PARTICLE: { particle: "HEART", count: 1, who: "@Aoe{r=6, filter=ALLIES}" } }
-          - { PARTICLE: { particle: "HEART", count: 3, who: "@Self" } }
+          - { PARTICLE: { particle: "HEART", count: 1, who: "@Aoe{r=6, filter=ALLIES}", dy: 1.07 } }
+          - { PARTICLE: { particle: "HEART", count: 3, who: "@Self", dy: -0.4 } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 0.35 } }
       - chance: 30
         condition: "%damagecause% == \"ENTITY_ATTACK\" && %damage% >= 48"
         effects:
           - { MODIFY_HEALTH: { amount: 4.0, mode: "give", who: "@Aoe{r=6, filter=ALLIES}" } }
-          - { PARTICLE: { particle: "HEART", count: 1, who: "@Aoe{r=6, filter=ALLIES}" } }
-          - { PARTICLE: { particle: "HEART", count: 3, who: "@Self" } }
+          - { PARTICLE: { particle: "HEART", count: 1, who: "@Aoe{r=6, filter=ALLIES}", dy: 1.07 } }
+          - { PARTICLE: { particle: "HEART", count: 3, who: "@Self", dy: -0.4 } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 0.35 } }
   4:
     abilities:
@@ -73,15 +77,15 @@ levels:
         condition: "%damagecause% == \"ENTITY_ATTACK\" && %damage% < 32"
         effects:
           - { MODIFY_HEALTH: { amount: "%damage% / 8", mode: "give", who: "@Aoe{r=8, filter=ALLIES}" } }
-          - { PARTICLE: { particle: "HEART", count: 1, who: "@Aoe{r=8, filter=ALLIES}" } }
-          - { PARTICLE: { particle: "HEART", count: 3, who: "@Self" } }
+          - { PARTICLE: { particle: "HEART", count: 1, who: "@Aoe{r=8, filter=ALLIES}", dy: 1.07 } }
+          - { PARTICLE: { particle: "HEART", count: 3, who: "@Self", dy: -0.4 } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 0.35 } }
       - chance: 40
         condition: "%damagecause% == \"ENTITY_ATTACK\" && %damage% >= 32"
         effects:
           - { MODIFY_HEALTH: { amount: 4.0, mode: "give", who: "@Aoe{r=8, filter=ALLIES}" } }
-          - { PARTICLE: { particle: "HEART", count: 1, who: "@Aoe{r=8, filter=ALLIES}" } }
-          - { PARTICLE: { particle: "HEART", count: 3, who: "@Self" } }
+          - { PARTICLE: { particle: "HEART", count: 1, who: "@Aoe{r=8, filter=ALLIES}", dy: 1.07 } }
+          - { PARTICLE: { particle: "HEART", count: 3, who: "@Self", dy: -0.4 } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 0.35 } }
   5:
     abilities:
@@ -89,13 +93,13 @@ levels:
         condition: "%damagecause% == \"ENTITY_ATTACK\" && %damage% < 16"
         effects:
           - { MODIFY_HEALTH: { amount: "%damage% / 4", mode: "give", who: "@Aoe{r=10, filter=ALLIES}" } }
-          - { PARTICLE: { particle: "HEART", count: 1, who: "@Aoe{r=10, filter=ALLIES}" } }
-          - { PARTICLE: { particle: "HEART", count: 3, who: "@Self" } }
+          - { PARTICLE: { particle: "HEART", count: 1, who: "@Aoe{r=10, filter=ALLIES}", dy: 1.07 } }
+          - { PARTICLE: { particle: "HEART", count: 3, who: "@Self", dy: -0.4 } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 0.35 } }
       - chance: 50
         condition: "%damagecause% == \"ENTITY_ATTACK\" && %damage% >= 16"
         effects:
           - { MODIFY_HEALTH: { amount: 4.0, mode: "give", who: "@Aoe{r=10, filter=ALLIES}" } }
-          - { PARTICLE: { particle: "HEART", count: 1, who: "@Aoe{r=10, filter=ALLIES}" } }
-          - { PARTICLE: { particle: "HEART", count: 3, who: "@Self" } }
+          - { PARTICLE: { particle: "HEART", count: 1, who: "@Aoe{r=10, filter=ALLIES}", dy: 1.07 } }
+          - { PARTICLE: { particle: "HEART", count: 3, who: "@Self", dy: -0.4 } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 0.35 } }

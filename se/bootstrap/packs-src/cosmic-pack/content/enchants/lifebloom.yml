@@ -25,7 +25,11 @@ levels:
     effects:
       - { MODIFY_HEALTH: { amount: 100, mode: "give", who: "@Aoe{r=2, filter=ALLIES}" } }
       - { MESSAGE: { text: "§a§l(!) §a{ATTACKER}'s Lifebloom was activated, fight on!", who: "@Aoe{r=2, filter=ALLIES}" } }
-      - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 2.0, pitch: 0.75 } }  # world-audible at the wearer; SOUND has no per-target form, so the recorded per-ally copy (volume 1.5) rides this one
+      # R-QC55: this one stays coarsened. SOUND does take `who`, but the jar played TWO copies of the SAME
+      # id — world-broadcast at the wearer at 2.0, and one per ally at 1.5 — and ADR-0066 emits a sound id
+      # at most once per event sink, so a second authored copy would never play. Residue: the per-ally 1.5
+      # copies are gone; the wearer's 2.0 play ships and the allies hear it from where they stand.
+      - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 2.0, pitch: 0.75 } }
       - { PARTICLE: { particle: "REDSTONE", count: 65, who: "@Self" } }
       - { PARTICLE: { particle: "HAPPY_VILLAGER", count: 16, who: "@Aoe{r=2, filter=ALLIES}" } }
   2:

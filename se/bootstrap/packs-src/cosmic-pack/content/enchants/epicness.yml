@@ -12,7 +12,10 @@ chance: 50  # flat 50 % at every level — level selects the cue pair, never the
 # The jar played the sound only to non-truce players within 16 blocks of the victim, and never to the victim
 # itself. SOUND is location-scoped and audible to anyone in range — the ally-exclusion audio targeting is a
 # cosmetic delta, dropped (noted; not gap-worthy).
-# The L1 burst is recorded at the victim's eye height; the engine centres a per-target particle on the body.
+# R-QC55: all THREE bursts are recorded at the victim's eye height (not only L1, as this note used to say),
+# authored as `dy: 0.7` over the engine's body centre (feet + height/2, 0.9 on a standing player; a flat
+# +1.0 on the 1.8 lane). Flat offset: this entry has no player gate, so a mob victim takes a player-sized
+# approximation of its own eye height.
 # interactions: none of its own. strings: none.
 # era: `CHICKEN_HURT` / `MAGMACUBE_WALK2` / `GHAST_SCREAM` (1.8.9) <-> `ENTITY_CHICKEN_HURT` /
 # `ENTITY_MAGMA_CUBE_SQUISH` / `ENTITY_GHAST_SCREAM` (modern) — all three legacy-sweep rows have LANDED in
@@ -22,12 +25,12 @@ levels:
   1:
     effects:
       - { SOUND: { sound: "ENTITY_CHICKEN_HURT", volume: 1.0, pitch: 0.85 } }
-      - { PARTICLE: { particle: "CLOUD", count: 20, spread: 0.25, who: "@Victim" } }
+      - { PARTICLE: { particle: "CLOUD", count: 20, spread: 0.25, who: "@Victim", dy: 0.7 } }
   2:
     effects:
       - { SOUND: { sound: "ENTITY_MAGMA_CUBE_SQUISH", volume: 1.2, pitch: 0.8 } }
-      - { PARTICLE: { particle: "SLIME", count: 20, spread: 1.0, who: "@Victim" } }
+      - { PARTICLE: { particle: "SLIME", count: 20, spread: 1.0, who: "@Victim", dy: 0.7 } }
   3:
     effects:
       - { SOUND: { sound: "ENTITY_GHAST_SCREAM", volume: 1.0, pitch: 1.25 } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 15, spread: 0.95, who: "@Victim" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 15, spread: 0.95, who: "@Victim", dy: 0.7 } }

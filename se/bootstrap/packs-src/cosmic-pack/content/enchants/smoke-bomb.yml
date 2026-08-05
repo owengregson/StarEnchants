@@ -19,15 +19,22 @@ cooldown: 300
 levels:
   # Radius round(1.5 x level) = 2/3/5/6/8/9/11/12; window max(level, 3) x 20 t; amplifier min(level, 3) + 1 —
   # the jar's max/min-in-opposite-directions quirk, so both effects saturate at IV from L3 (measured).
-  # {owner} is unbound — token binding lands with wave 1e.
+  # R-QC2: `{owner}` is the wearer who ate the lethal hit, which on a DEFENSE pass is the activating player
+  # — MESSAGE's native `{ATTACKER}`. Not `{SELF}`: the line goes to the victim set, so `{SELF}` would name
+  # each victim instead of the escaper.
   1:
     effects:
       - { CANCEL: {} }
       - { POTION: { effect: "BLINDNESS", level: 2, duration: 60, who: "@Aoe{r=2, filter=ENEMIES+PLAYERS}" } }
       - { POTION: { effect: "SLOW_DIGGING", level: 2, duration: 60, who: "@Aoe{r=2, filter=ENEMIES+PLAYERS}" } }
       - { PARTICLE: { particle: "CLOUD", count: 75, who: "@Self" } }
-      - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_TWINKLE_FAR", volume: 2.0, pitch: 0.75 } }  # world-audible at the wearer; SOUND has no per-target form, so the recorded per-victim copy (volume 1.6) rides this one
-      - { MESSAGE: { text: "§c§l(!) §c{owner} has thrown a Smoke Bomb in an attempt to escape!", who: "@Aoe{r=2, filter=ENEMIES+PLAYERS}" } }
+      # R-QC55: this one stays coarsened. SOUND does take `who`, but the jar played TWO copies of the SAME
+      # id — world-audible at the wearer at 2.0, and one per victim at 1.6 — and ADR-0066 emits a sound id
+      # at most once per event sink, so a second authored copy would be dead on arrival. Residue: the
+      # per-victim 1.6 copies are gone; the wearer's 2.0 play ships, heard by the victims from where they
+      # stand. `who` moves where a cue plays, never who hears it or how loud they hear it.
+      - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_TWINKLE_FAR", volume: 2.0, pitch: 0.75 } }
+      - { MESSAGE: { text: "§c§l(!) §c{ATTACKER} has thrown a Smoke Bomb in an attempt to escape!", who: "@Aoe{r=2, filter=ENEMIES+PLAYERS}" } }
   2:
     effects:
       - { CANCEL: {} }
@@ -35,7 +42,7 @@ levels:
       - { POTION: { effect: "SLOW_DIGGING", level: 3, duration: 60, who: "@Aoe{r=3, filter=ENEMIES+PLAYERS}" } }
       - { PARTICLE: { particle: "CLOUD", count: 75, who: "@Self" } }
       - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_TWINKLE_FAR", volume: 2.0, pitch: 0.75 } }
-      - { MESSAGE: { text: "§c§l(!) §c{owner} has thrown a Smoke Bomb in an attempt to escape!", who: "@Aoe{r=3, filter=ENEMIES+PLAYERS}" } }
+      - { MESSAGE: { text: "§c§l(!) §c{ATTACKER} has thrown a Smoke Bomb in an attempt to escape!", who: "@Aoe{r=3, filter=ENEMIES+PLAYERS}" } }
   3:
     effects:
       - { CANCEL: {} }
@@ -43,7 +50,7 @@ levels:
       - { POTION: { effect: "SLOW_DIGGING", level: 4, duration: 60, who: "@Aoe{r=5, filter=ENEMIES+PLAYERS}" } }
       - { PARTICLE: { particle: "CLOUD", count: 75, who: "@Self" } }
       - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_TWINKLE_FAR", volume: 2.0, pitch: 0.75 } }
-      - { MESSAGE: { text: "§c§l(!) §c{owner} has thrown a Smoke Bomb in an attempt to escape!", who: "@Aoe{r=5, filter=ENEMIES+PLAYERS}" } }
+      - { MESSAGE: { text: "§c§l(!) §c{ATTACKER} has thrown a Smoke Bomb in an attempt to escape!", who: "@Aoe{r=5, filter=ENEMIES+PLAYERS}" } }
   4:
     effects:
       - { CANCEL: {} }
@@ -51,7 +58,7 @@ levels:
       - { POTION: { effect: "SLOW_DIGGING", level: 4, duration: 80, who: "@Aoe{r=6, filter=ENEMIES+PLAYERS}" } }
       - { PARTICLE: { particle: "CLOUD", count: 75, who: "@Self" } }
       - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_TWINKLE_FAR", volume: 2.0, pitch: 0.75 } }
-      - { MESSAGE: { text: "§c§l(!) §c{owner} has thrown a Smoke Bomb in an attempt to escape!", who: "@Aoe{r=6, filter=ENEMIES+PLAYERS}" } }
+      - { MESSAGE: { text: "§c§l(!) §c{ATTACKER} has thrown a Smoke Bomb in an attempt to escape!", who: "@Aoe{r=6, filter=ENEMIES+PLAYERS}" } }
   5:
     effects:
       - { CANCEL: {} }
@@ -59,7 +66,7 @@ levels:
       - { POTION: { effect: "SLOW_DIGGING", level: 4, duration: 100, who: "@Aoe{r=8, filter=ENEMIES+PLAYERS}" } }
       - { PARTICLE: { particle: "CLOUD", count: 75, who: "@Self" } }
       - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_TWINKLE_FAR", volume: 2.0, pitch: 0.75 } }
-      - { MESSAGE: { text: "§c§l(!) §c{owner} has thrown a Smoke Bomb in an attempt to escape!", who: "@Aoe{r=8, filter=ENEMIES+PLAYERS}" } }
+      - { MESSAGE: { text: "§c§l(!) §c{ATTACKER} has thrown a Smoke Bomb in an attempt to escape!", who: "@Aoe{r=8, filter=ENEMIES+PLAYERS}" } }
   6:
     effects:
       - { CANCEL: {} }
@@ -67,7 +74,7 @@ levels:
       - { POTION: { effect: "SLOW_DIGGING", level: 4, duration: 120, who: "@Aoe{r=9, filter=ENEMIES+PLAYERS}" } }
       - { PARTICLE: { particle: "CLOUD", count: 75, who: "@Self" } }
       - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_TWINKLE_FAR", volume: 2.0, pitch: 0.75 } }
-      - { MESSAGE: { text: "§c§l(!) §c{owner} has thrown a Smoke Bomb in an attempt to escape!", who: "@Aoe{r=9, filter=ENEMIES+PLAYERS}" } }
+      - { MESSAGE: { text: "§c§l(!) §c{ATTACKER} has thrown a Smoke Bomb in an attempt to escape!", who: "@Aoe{r=9, filter=ENEMIES+PLAYERS}" } }
   7:
     effects:
       - { CANCEL: {} }
@@ -75,7 +82,7 @@ levels:
       - { POTION: { effect: "SLOW_DIGGING", level: 4, duration: 140, who: "@Aoe{r=11, filter=ENEMIES+PLAYERS}" } }
       - { PARTICLE: { particle: "CLOUD", count: 75, who: "@Self" } }
       - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_TWINKLE_FAR", volume: 2.0, pitch: 0.75 } }
-      - { MESSAGE: { text: "§c§l(!) §c{owner} has thrown a Smoke Bomb in an attempt to escape!", who: "@Aoe{r=11, filter=ENEMIES+PLAYERS}" } }
+      - { MESSAGE: { text: "§c§l(!) §c{ATTACKER} has thrown a Smoke Bomb in an attempt to escape!", who: "@Aoe{r=11, filter=ENEMIES+PLAYERS}" } }
   8:
     effects:
       - { CANCEL: {} }
@@ -83,4 +90,4 @@ levels:
       - { POTION: { effect: "SLOW_DIGGING", level: 4, duration: 160, who: "@Aoe{r=12, filter=ENEMIES+PLAYERS}" } }
       - { PARTICLE: { particle: "CLOUD", count: 75, who: "@Self" } }
       - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_TWINKLE_FAR", volume: 2.0, pitch: 0.75 } }
-      - { MESSAGE: { text: "§c§l(!) §c{owner} has thrown a Smoke Bomb in an attempt to escape!", who: "@Aoe{r=12, filter=ENEMIES+PLAYERS}" } }
+      - { MESSAGE: { text: "§c§l(!) §c{ATTACKER} has thrown a Smoke Bomb in an attempt to escape!", who: "@Aoe{r=12, filter=ENEMIES+PLAYERS}" } }

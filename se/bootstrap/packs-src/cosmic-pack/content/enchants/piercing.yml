@@ -26,31 +26,33 @@ condition: "%victim.type% == \"PLAYER\""
 # era: `ARROW_HIT` is the 1.8-era spelling of ENTITY_ARROW_HIT — the matrix marks the entry era-clean and the
 # resolver now carries the pair (wave 2e.2, closing the legacy sweep), so the cue lands on both lanes.
 levels:
-  # bonus 2.5 pp per level = 2.5/5/7.5/10/12.5 % of the triggering hit. The SOUND rides the activation
-  # location (the hit) — the jar played it to the attacker at the attacker's own location, and SOUND has no
-  # per-target form; the CRIT burst's recorded 0.5 particle speed has no surface param (both cosmetic).
+  # bonus 2.5 pp per level = 2.5/5/7.5/10/12.5 % of the triggering hit.
+  # R-QC55: the cue moves back to the ATTACKER — the jar played it at the attacker's OWN location where a
+  # hit activates at the victim, so SOUND's `who` is doing real work here. Residue: it was an
+  # attacker-only play, and `who` moves where a cue plays, never who hears it. The CRIT burst's recorded
+  # 0.5 particle speed still has no surface param.
   1:
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 2.5 } }
-      - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.2, pitch: 0.6 } }
+      - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.2, pitch: 0.6, who: "@Self" } }
       - { PARTICLE: { particle: "CRIT", count: 20, who: "@Victim" } }
   2:
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 5 } }
-      - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.2, pitch: 0.6 } }
+      - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.2, pitch: 0.6, who: "@Self" } }
       - { PARTICLE: { particle: "CRIT", count: 20, who: "@Victim" } }
   3:
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 7.5 } }
-      - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.2, pitch: 0.6 } }
+      - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.2, pitch: 0.6, who: "@Self" } }
       - { PARTICLE: { particle: "CRIT", count: 20, who: "@Victim" } }
   4:
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 10 } }
-      - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.2, pitch: 0.6 } }
+      - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.2, pitch: 0.6, who: "@Self" } }
       - { PARTICLE: { particle: "CRIT", count: 20, who: "@Victim" } }
   5:
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 12.5 } }
-      - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.2, pitch: 0.6 } }
+      - { SOUND: { sound: "ENTITY_ARROW_HIT", volume: 1.2, pitch: 0.6, who: "@Self" } }
       - { PARTICLE: { particle: "CRIT", count: 20, who: "@Victim" } }

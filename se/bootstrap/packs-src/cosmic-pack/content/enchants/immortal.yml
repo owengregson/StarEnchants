@@ -26,11 +26,13 @@ levels:
           - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Attacker" } }  # a mob attacker carries no repairable set, so this lands on player attackers in practice
       # Every-20-souls feedback. Condition facts are read at the gate, ahead of the charge above, so the
       # test is whether paying the cost steps the total over a 20-boundary — the post-deduction crossing.
+      # R-QC2 binds `{souls}` on the same footing: this block never charges, so it subtracts the funded
+      # branch's own per-level cost from the pre-spend balance the facts carry.
       - condition: "%actor.souls% >= 4 && floor(%actor.souls% / 20) > floor((%actor.souls% - 4) / 20)"
         effects:
           - { MESSAGE: { text: "" } }
           - { MESSAGE: { text: "§6§l** IMMORTAL **" } }
-          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 4" } } }
           - { MESSAGE: { text: "" } }
           - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
   2:
@@ -44,7 +46,7 @@ levels:
         effects:
           - { MESSAGE: { text: "" } }
           - { MESSAGE: { text: "§6§l** IMMORTAL **" } }
-          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 3" } } }
           - { MESSAGE: { text: "" } }
           - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
   3:
@@ -58,7 +60,7 @@ levels:
         effects:
           - { MESSAGE: { text: "" } }
           - { MESSAGE: { text: "§6§l** IMMORTAL **" } }
-          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 2" } } }
           - { MESSAGE: { text: "" } }
           - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
   4:
@@ -72,6 +74,6 @@ levels:
         effects:
           - { MESSAGE: { text: "" } }
           - { MESSAGE: { text: "§6§l** IMMORTAL **" } }
-          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 1" } } }
           - { MESSAGE: { text: "" } }
           - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }

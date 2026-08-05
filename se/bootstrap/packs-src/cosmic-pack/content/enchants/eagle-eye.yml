@@ -49,8 +49,9 @@ levels:
         effects:
           - { DURABILITY: { amount: 1, target: "armor", mode: "damage", who: "@Victim" } }
           - { PARTICLE: { particle: "CRIT_MAGIC", count: 30, who: "@Victim" } }
-          # The jar played this to the ATTACKER at the victim's location; SOUND has no `who`, so it plays at
-          # the activation location for everyone in earshot (delivery delta, recorded).
+          # R-QC55: SOUND does take `who`, and it would change nothing — the jar played this at the
+          # VICTIM's location (to the attacker), and the victim is where a hit activates. Residue: the
+          # attacker-only delivery, which `who` cannot express, so it ships for everyone in earshot.
           - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 0.3, pitch: 0.8 } }
       - condition: "%victim.type% == \"PLAYER\" && %distance% >= 10 && %distance% < 20"
         effects:

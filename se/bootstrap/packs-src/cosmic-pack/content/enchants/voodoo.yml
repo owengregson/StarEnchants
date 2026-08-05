@@ -13,36 +13,38 @@ condition: '%damagecause% == "ENTITY_ATTACK"'
 # Durations are the original's truncated (int)(1.5 x level) seconds plus a 25-tick tail — the quarter-second
 # ends and the uneven +1s/+2s steps are the real values, shipped as measured.
 # Weakness I through L3, II from L4 (POTION level is 1-based: level 1 = the I tier).
-# era: SPELL_MOB is the 1.8 EnumParticle constant (MOB_SPELL is the jar's name). The matrix records the swirl at the
-# attacker's eye height; the engine centres an entity-targeted particle on the body.
+# era: SPELL_MOB is the 1.8 EnumParticle constant (MOB_SPELL is the jar's name).
+# R-QC55: the swirl is recorded at the attacker's eye height +0.5, authored as `dy: 1.2` over the engine's
+# body centre (feet + height/2, 0.9 on a standing player; a flat +1.0 on the 1.8 lane). Flat offset, and a
+# DEFENSE pass admits mob attackers, so a non-player attacker takes a player-sized approximation.
 levels:
   1:
     chance: 4
     effects:
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 45, who: "@Attacker" } }
-      - { PARTICLE: { particle: "SPELL_MOB", count: 15, who: "@Attacker" } }
+      - { PARTICLE: { particle: "SPELL_MOB", count: 15, who: "@Attacker", dy: 1.2 } }
   2:
     chance: 8
     effects:
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 85, who: "@Attacker" } }
-      - { PARTICLE: { particle: "SPELL_MOB", count: 15, who: "@Attacker" } }
+      - { PARTICLE: { particle: "SPELL_MOB", count: 15, who: "@Attacker", dy: 1.2 } }
   3:
     chance: 12
     effects:
       - { POTION: { effect: "WEAKNESS", level: 1, duration: 105, who: "@Attacker" } }
-      - { PARTICLE: { particle: "SPELL_MOB", count: 15, who: "@Attacker" } }
+      - { PARTICLE: { particle: "SPELL_MOB", count: 15, who: "@Attacker", dy: 1.2 } }
   4:
     chance: 16
     effects:
       - { POTION: { effect: "WEAKNESS", level: 2, duration: 145, who: "@Attacker" } }
-      - { PARTICLE: { particle: "SPELL_MOB", count: 15, who: "@Attacker" } }
+      - { PARTICLE: { particle: "SPELL_MOB", count: 15, who: "@Attacker", dy: 1.2 } }
   5:
     chance: 20
     effects:
       - { POTION: { effect: "WEAKNESS", level: 2, duration: 165, who: "@Attacker" } }
-      - { PARTICLE: { particle: "SPELL_MOB", count: 15, who: "@Attacker" } }
+      - { PARTICLE: { particle: "SPELL_MOB", count: 15, who: "@Attacker", dy: 1.2 } }
   6:
     chance: 24
     effects:
       - { POTION: { effect: "WEAKNESS", level: 2, duration: 205, who: "@Attacker" } }
-      - { PARTICLE: { particle: "SPELL_MOB", count: 15, who: "@Attacker" } }
+      - { PARTICLE: { particle: "SPELL_MOB", count: 15, who: "@Attacker", dy: 1.2 } }

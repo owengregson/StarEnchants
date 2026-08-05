@@ -52,8 +52,11 @@ removes-required: true
 # grapple hear it anyway, which is what the recorded pair was for.
 # TELEPORT lands the shooter on the ally's position with the engine's orientation semantics; the jar
 # preserved the shooter's pitch/yaw. Noted for the parity harness, as teleportation.yml notes it.
-# PARTICLE has no height offset: the recorded victim EYE height (grapple) and +0.5 y (ally blink) both
-# render as the body-centred burst `who:` gives, the same treatment teleportation.yml recorded.
+# R-QC55: PARTICLE does have a height offset — `dy` — so both recorded anchors are authored. An
+# entity-anchored burst centres on the body (feet + height/2, 0.9 on a standing player; a flat +1.0 on
+# the 1.8 lane), so the grapple's victim EYE height is `dy: 0.7` and the ally blink's feet +0.5 y is
+# `dy: -0.4`. Both arms are player-gated, so the player-sized arithmetic is exact rather than an
+# approximation; the 1.8 lane's flat centre leaves each ~0.1 blocks high.
 # era: `ZOMBIE_METAL`->`ENTITY_ZOMBIE_ATTACK_IRON_DOOR` (wave 2e.2) and `WITHER_SHOOT`->`ENTITY_WITHER_SHOOT`
 # (wave 2c) both carry alias rows now, as does `ORB_PICKUP`->`ENTITY_EXPERIENCE_ORB_PICKUP` (wave 2e.2, the
 # row Healing/Teleportation share) — so all three cues land on the 1.8 lane.
@@ -77,8 +80,8 @@ levels:
       - condition: "%bidir.proc% == 1 && %distance% <= 10"
         chance: 100
         effects:
-          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
-          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim", dy: 0.7 } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim", dy: 0.7 } }
           - { VELOCITY: { mode: "toward", anchor: "activator", strength: "clamp(%distance% * %distance% / 50, 1.0, 6.5)", who: "@Victim" } }
           - { CANCEL: {} }  # a landed grapple deals zero bow damage
           - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 10.0, pitch: 1.1 } }
@@ -105,8 +108,8 @@ levels:
           - { CANCEL: {} }
           - { TELEPORT: { to: "VICTIM", who: "@Self" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
-          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
-          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim", dy: -0.4 } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim", dy: -0.4 } }
       - condition: "%victim.relation% == \"ALLY\" && %distance% > 30"
         chance: 100
         effects:
@@ -121,8 +124,8 @@ levels:
       - condition: "%bidir.proc% == 1 && %distance% <= 20"
         chance: 100
         effects:
-          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
-          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim", dy: 0.7 } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim", dy: 0.7 } }
           - { VELOCITY: { mode: "toward", anchor: "activator", strength: "clamp(%distance% * %distance% / 50, 1.0, 7.0)", who: "@Victim" } }
           - { CANCEL: {} }
           - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 10.0, pitch: 1.1 } }
@@ -145,8 +148,8 @@ levels:
           - { CANCEL: {} }
           - { TELEPORT: { to: "VICTIM", who: "@Self" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
-          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
-          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim", dy: -0.4 } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim", dy: -0.4 } }
       - condition: "%victim.relation% == \"ALLY\" && %distance% > 30"
         chance: 100
         effects:
@@ -161,8 +164,8 @@ levels:
       - condition: "%bidir.proc% == 1 && %distance% <= 30"
         chance: 100
         effects:
-          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
-          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim", dy: 0.7 } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim", dy: 0.7 } }
           - { VELOCITY: { mode: "toward", anchor: "activator", strength: "clamp(%distance% * %distance% / 50, 1.0, 7.5)", who: "@Victim" } }
           - { CANCEL: {} }
           - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 10.0, pitch: 1.1 } }
@@ -185,8 +188,8 @@ levels:
           - { CANCEL: {} }
           - { TELEPORT: { to: "VICTIM", who: "@Self" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
-          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
-          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim", dy: -0.4 } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim", dy: -0.4 } }
       - condition: "%victim.relation% == \"ALLY\" && %distance% > 30"
         chance: 100
         effects:
@@ -201,8 +204,8 @@ levels:
       - condition: "%bidir.proc% == 1 && %distance% <= 40"
         chance: 100
         effects:
-          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
-          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim", dy: 0.7 } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim", dy: 0.7 } }
           - { VELOCITY: { mode: "toward", anchor: "activator", strength: "clamp(%distance% * %distance% / 50, 1.0, 8.0)", who: "@Victim" } }
           - { CANCEL: {} }
           - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 10.0, pitch: 1.1 } }
@@ -225,8 +228,8 @@ levels:
           - { CANCEL: {} }
           - { TELEPORT: { to: "VICTIM", who: "@Self" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
-          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
-          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim", dy: -0.4 } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim", dy: -0.4 } }
       - condition: "%victim.relation% == \"ALLY\" && %distance% > 30"
         chance: 100
         effects:
@@ -241,8 +244,8 @@ levels:
       - condition: "%bidir.proc% == 1 && %distance% <= 50"
         chance: 100
         effects:
-          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
-          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim", dy: 0.7 } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim", dy: 0.7 } }
           - { VELOCITY: { mode: "toward", anchor: "activator", strength: "clamp(%distance% * %distance% / 50, 1.0, 8.5)", who: "@Victim" } }
           - { CANCEL: {} }
           - { SOUND: { sound: "ENTITY_ZOMBIE_ATTACK_IRON_DOOR", volume: 10.0, pitch: 1.1 } }
@@ -266,8 +269,8 @@ levels:
           - { CANCEL: {} }
           - { TELEPORT: { to: "VICTIM", who: "@Self" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
-          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
-          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim", dy: -0.4 } }
+          - { PARTICLE: { particle: "FLAME", count: 10, who: "@Victim", dy: -0.4 } }
       - condition: "%victim.relation% == \"ALLY\" && %distance% > 30"
         chance: 100
         effects:

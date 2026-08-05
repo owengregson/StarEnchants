@@ -29,9 +29,12 @@ tier: uncommon
 # order. Table-roll quirk: the measured `interval = 0.0` meant the table only ever rolled level 4 — catalog
 # plumbing with no expression here.
 # era: none. `SPELL_WITCH` crosses through the particle alias table;
-# `ENDERMAN_TELEPORT`->`ENTITY_ENDERMAN_TELEPORT` carries its alias row (landed in wave 2e). The recorded
-# +1 y offset and 0.4 particle speed have no param (PARTICLE centres on the body), and SOUND has no `who`,
-# so the recorded victim cue plays at the impact.
+# `ENDERMAN_TELEPORT`->`ENTITY_ENDERMAN_TELEPORT` carries its alias row (landed in wave 2e).
+# R-QC55: the burst's recorded +1 y over the victim's feet takes no `dy` — an entity-anchored burst
+# already centres on the body (feet + height/2, ~0.9 on a player; a flat +1.0 on the 1.8 lane), inside
+# ~0.1 blocks of the record — and the scream's anchor is already the victim, since that is where a hit
+# activates. Residue: the jar played the scream to the victim alone, and `who` moves where a cue plays,
+# never who hears it, so it ships world-audible. The 0.4 particle speed still has no param.
 levels:
   # Infection window 30 t per level (1.5 s per level) at a multiplier of `level + 1`; strip chance 15 x level
   # (L3 measured 44.999999999999996, float noise on 45).

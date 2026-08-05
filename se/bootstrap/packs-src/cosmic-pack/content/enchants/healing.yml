@@ -33,8 +33,10 @@ tier: common
 # probable copy/paste slip but gives no ruling, so measured behavior ships — flagged for owner review, NOT
 # ledgered as a deviation.
 # The emerald crack burst is `count: 8` (port-chosen): the jar plays world effect 2001, which carries no count.
-# SOUND has no `who`: the recorded shooter-only chime plays at the impact instead, where the healed ally is
-# standing (the same cosmetic delta §Piercing and §Unfocus already carry).
+# R-QC55: the chime moves back to the SHOOTER. The jar played it at the shooter's own location and a bow
+# impact activates at the victim, so `who` is doing real work here rather than restating the default.
+# Residue: it was a shooter-only play, and `who` moves where a cue plays, never who hears it, so it ships
+# world-audible at the shooter.
 # era: `BLOCK_CRACK` with block data exists on 1.8.9 (`blockcrack_133_0`) and EMERALD_BLOCK/ABSORPTION/
 # HEALTH_BOOST all predate it; `ENTITY_EXPERIENCE_ORB_PICKUP` is the 1.8 `ORB_PICKUP` sound and carries its alias
 # row (wave 2e.2, closing the legacy sweep).
@@ -47,7 +49,7 @@ levels:
         condition: "%victim.relation% == \"ALLY\""
         effects:
           - { CANCEL: {} }
-          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341 } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "EMERALD_BLOCK", count: 8, who: "@Victim" } }
       # C — the heal itself, only for an ally who is actually hurt.
       - trigger: BOW
@@ -79,7 +81,7 @@ levels:
         condition: "%victim.relation% == \"ALLY\""
         effects:
           - { CANCEL: {} }
-          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341 } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "EMERALD_BLOCK", count: 8, who: "@Victim" } }
       - trigger: BOW
         chance: 100
@@ -107,7 +109,7 @@ levels:
         condition: "%victim.relation% == \"ALLY\""
         effects:
           - { CANCEL: {} }
-          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341 } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "EMERALD_BLOCK", count: 8, who: "@Victim" } }
       # B — the Absorption branch, absent below L3 (chance 15 x (level - 2)).
       - trigger: BOW
@@ -142,7 +144,7 @@ levels:
         condition: "%victim.relation% == \"ALLY\""
         effects:
           - { CANCEL: {} }
-          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341 } }
+          - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "EMERALD_BLOCK", count: 8, who: "@Victim" } }
       # L4 Absorption chance is the measured `30.000000000000004`.
       - trigger: BOW

@@ -41,9 +41,14 @@ tier: soul
 # eras through the particle table. The block itself is the SE `TELEBLOCK` effect (the jar delegated
 # enforcement to an external combat plugin — UNRESOLVED in the codex): SE stops ender pearls AND chorus
 # fruit, and chorus fruit does not exist on 1.8.9, so the legacy fork blocks pearls only — the same enchant,
-# one fewer escape to deny. The recorded +1 y offset and 0.5 particle speed have no param — PARTICLE centres
-# on the body — and SOUND has no `who`, so the recorded per-recipient cues play at the activation location: the launch cue at
-# the shooter, the impact cue at the victim, which is where the jar put them anyway.
+# one fewer escape to deny.
+# R-QC55: both premises this file used to carry were false — SOUND takes `who`, PARTICLE takes `dy` — and
+# neither correction moves a cue here. The burst's recorded +1 y over the shooter's feet is where an
+# entity-anchored burst already centres (feet + height/2, ~0.9 on a player; a flat +1.0 on the 1.8 lane),
+# and the two sound anchors are already the shooter and the victim, since that is where each ability
+# activates. Residue: the jar played each cue to ONE player (shooter on launch, victim on impact), and
+# `who` moves where a cue plays, never who hears it, so both ship world-audible. The 0.5 particle speed
+# still has no param.
 levels:
   # Souls 6 x level, pearls 3 x level. The duration is the AS-INTENDED `5000 + level*3000` ms = 8/11/14/17/20 s
   # (D-05-6; the jar's operator precedence measured 3.005-15.005 s). The message renders that SAME window

@@ -29,8 +29,11 @@ condition: "%victim.type% == \"PLAYER\""
 # order. Table-roll quirk: the measured `interval = 0.0` meant the table only ever rolled level 5 — catalog
 # plumbing with no expression here.
 # era: `PORTAL_TRIGGER`->`BLOCK_PORTAL_TRIGGER` and `ARROW_HIT`->`ENTITY_ARROW_HIT` both carry alias rows
-# (wave 2e.2, closing the legacy sweep), so both cues land on the 1.8 lane. SOUND has no `who`: the recorded
-# victim cue and shooter cue both play at the impact, where both parties are standing anyway.
+# (wave 2e.2, closing the legacy sweep), so both cues land on the 1.8 lane.
+# R-QC55: SOUND does take `who`, and neither cue needs it — the jar played the portal cue to the victim
+# and the arrow cue to the attacker AT THE VICTIM'S location, and the victim is where a bow impact
+# activates. Residue: both were private plays, and `who` moves where a cue plays, never who hears it, so
+# both ship world-audible at the hit.
 levels:
   # Chance `0.5 x level` vs [0,1) — levels 2-5 are guaranteed. The codex marks the guarantee and gives no
   # different intent, so it is copied as measured (no ledger row). Duration 2 s per level = 40 t per level;

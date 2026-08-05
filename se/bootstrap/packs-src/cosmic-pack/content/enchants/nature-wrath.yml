@@ -15,13 +15,19 @@ no-souls-message: "§c§l** OUT OF SOULS **"
 # payloads here", and the wave-1 filter conjunction (ENEMIES+PLAYERS) now expresses exactly that — the mobs
 # inside the same radius take the DESPAWN sweep instead of the root.
 # The two mob-sweep bursts are authored BEFORE the sweep and carry the sweep's own selector body, so they
-# resolve the mob set while it still exists (the per-mob closing cue).
+# resolve the mob set while it still exists (the per-mob closing cue). R-QC55: both are recorded at the
+# mob's feet +1 y and neither takes a `dy` — an entity-anchored burst already centres on the body (feet +
+# height/2, a flat +1.0 on the 1.8 lane), which lands within ~0.1 blocks of the record for a humanoid mob.
+# `dy` translates by a FLAT distance, so it could not track the mob set's per-entity heights anyway.
 # The recorded per-DoT-pulse cues — SOUND(GHAST_SCREAM2, 2.0, 2.0), PARTICLE(SPELL, 35) and the frozen
 # victim's "§2§l** NATURE'S WRATH **" line — have no home on the frozen surface: FREEZE carries no per-pulse
 # feedback hook (only PERIODIC_DAMAGE does, and re-homing the DoT there would move its attribution). Dropped
 # as cosmetics, recorded here. Same for the out-of-souls PARTICLE(LAVA, 20) at eye height and
 # SOUND(ITEM_BREAK, 0.7, 0.4): a failed soul gate runs no effects, so no-souls-message carries that branch.
-# {cost} and {souls} are recorded verbatim and stay unfilled — token binding lands with wave 1e.
+# R-QC2 binds both tokens. `{cost}` is the flat 75 on every rung and both arms — the KOTH doubling is an
+# environment gate this port declines. `{souls}` subtracts it, because facts are populated before the
+# gate-10 debit and the jar read the balance AFTER it; one activation charges once, so the immune arm
+# subtracts 75 too.
 # Interactions carried by the OTHER side, nothing authored here: a live Soul Trap window (axes doc) blocks
 # this proc. Frozen players cannot melee or shoot (engine freeze-lock), FREEZE scopes its root per target (the
 # jar's global walk-speed enforcement is not replicated), and the jar's die-while-rooted speed leak is engine
@@ -73,8 +79,8 @@ levels:
           - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }  # recorded per frozen victim; ADR-0066 plays one sound id at most once per event, so the copies collapse into this single play
           - { MESSAGE: { text: "" } }
           - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
-          - { MESSAGE: { text: "§c§l- {cost} Soul Gems" } }
-          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+          - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: 75 } } }
+          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 75" } } }
           - { MESSAGE: { text: "" } }
       # Poltergeist immune: the same proc without the root, plus the blocked line.
       - chance: "0.05 * %victim.enchlevel.poltergeist%"
@@ -88,8 +94,8 @@ levels:
           - { MESSAGE: { text: "§4§l* POLTERGEIST [§7Immune: Nature's Wrath§4§l] *", who: "@Victim" } }
           - { MESSAGE: { text: "" } }
           - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
-          - { MESSAGE: { text: "§c§l- {cost} Soul Gems" } }
-          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+          - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: 75 } } }
+          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 75" } } }
           - { MESSAGE: { text: "" } }
   2:
     abilities:
@@ -105,8 +111,8 @@ levels:
           - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
           - { MESSAGE: { text: "" } }
           - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
-          - { MESSAGE: { text: "§c§l- {cost} Soul Gems" } }
-          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+          - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: 75 } } }
+          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 75" } } }
           - { MESSAGE: { text: "" } }
       - chance: "0.1 * %victim.enchlevel.poltergeist%"
         effects:
@@ -119,8 +125,8 @@ levels:
           - { MESSAGE: { text: "§4§l* POLTERGEIST [§7Immune: Nature's Wrath§4§l] *", who: "@Victim" } }
           - { MESSAGE: { text: "" } }
           - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
-          - { MESSAGE: { text: "§c§l- {cost} Soul Gems" } }
-          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+          - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: 75 } } }
+          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 75" } } }
           - { MESSAGE: { text: "" } }
   3:
     abilities:
@@ -136,8 +142,8 @@ levels:
           - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
           - { MESSAGE: { text: "" } }
           - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
-          - { MESSAGE: { text: "§c§l- {cost} Soul Gems" } }
-          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+          - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: 75 } } }
+          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 75" } } }
           - { MESSAGE: { text: "" } }
       - chance: "0.15 * %victim.enchlevel.poltergeist%"
         effects:
@@ -150,8 +156,8 @@ levels:
           - { MESSAGE: { text: "§4§l* POLTERGEIST [§7Immune: Nature's Wrath§4§l] *", who: "@Victim" } }
           - { MESSAGE: { text: "" } }
           - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
-          - { MESSAGE: { text: "§c§l- {cost} Soul Gems" } }
-          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+          - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: 75 } } }
+          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 75" } } }
           - { MESSAGE: { text: "" } }
   4:
     abilities:
@@ -167,8 +173,8 @@ levels:
           - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
           - { MESSAGE: { text: "" } }
           - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
-          - { MESSAGE: { text: "§c§l- {cost} Soul Gems" } }
-          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+          - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: 75 } } }
+          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 75" } } }
           - { MESSAGE: { text: "" } }
       - chance: "0.2 * %victim.enchlevel.poltergeist%"
         effects:
@@ -181,6 +187,6 @@ levels:
           - { MESSAGE: { text: "§4§l* POLTERGEIST [§7Immune: Nature's Wrath§4§l] *", who: "@Victim" } }
           - { MESSAGE: { text: "" } }
           - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
-          - { MESSAGE: { text: "§c§l- {cost} Soul Gems" } }
-          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left." } }
+          - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: 75 } } }
+          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 75" } } }
           - { MESSAGE: { text: "" } }
