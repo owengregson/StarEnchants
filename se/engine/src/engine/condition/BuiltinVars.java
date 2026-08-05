@@ -100,6 +100,11 @@ public final class BuiltinVars {
                 // exact stack is in hand and measured BEFORE that wear lands — %damage% carries the points
                 // about to be lost, so an author can price either side. 0 on every other trigger.
                 .number("item.durabilitypercent")
+                // Wave 3b-3 fact — appended (slots are append-only per §3.4). WHICH nearby event fired a
+                // PROXIMITY_EVENT: `death` when the subject died, or the tag an authored PROXIMITY_ANNOUNCE
+                // carried. Empty on every other trigger. One trigger carries several unrelated observations,
+                // and without this the ally-death watcher and the ally-bleeding watcher each fire on both.
+                .string("proximityevent")
                 // Wave 2c fact — appended (slots are append-only per §3.4). How many of the VICTIM's four worn
                 // armour pieces carry a heroic upgrade. A COUNT, not the heroic stat sum the reduction fold
                 // already uses: "wearing at least one heroic piece" is a gate no percentage can express, and a

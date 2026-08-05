@@ -20,9 +20,9 @@ armor:
   # over that enchant's own max M, which `{ nearly-maxed: M }` reproduces literally (the outer min() skew and
   # all). `enchants/obsidianshield` tops out at 1, where the draw is degenerate, so it takes the bare level
   # instead and consumes no draw.
-  # ONE ENTRY IS NOT AUTHORED: the shroud's `Blood Lust`, a batch-01 stop that is not in this pack yet — a
-  # set's `enchants:` ref is validated library-wide, so naming it would be a compile error rather than an
-  # inert key. It lands with the enchant.
+  # The shroud's `Blood Lust` is AUTHORED as of wave 3b-3 (R-QC46) — it was the one roster entry held back,
+  # because a set's `enchants:` ref is validated library-wide and naming an absent enchant is a compile error
+  # rather than an inert key. The enchant landed, so the roster is whole.
   lore:
     - "§c§lPHANTOM SET BONUS"
     - "§cDeal +25% damage to all enemies."
@@ -48,7 +48,7 @@ armor:
         - "§cThe legendary shroud of the Phantom."
       enchants:
         enchants/overload: { nearly-maxed: 3 }
-        # `Blood Lust` sits here in the codex order — batch-01 stop, see the header.
+        enchants/blood-lust: { nearly-maxed: 6 }
         enchants/enlighted: { nearly-maxed: 3 }
         enchants/armored: { nearly-maxed: 4 }
         enchants/tank: { nearly-maxed: 4 }

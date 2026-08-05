@@ -4611,6 +4611,45 @@
     "targets": []
     },
   {
+    "head": "PROXIMITY_ANNOUNCE",
+    "doc": "Fire PROXIMITY_EVENT on every player within radius of each target — never the target themselves — with tag readable as %proximityevent%. The observer's activation carries the target as its victim, so %distance%, %victim.relation% and every %victim.*% read (including %victim.var.<name>%) describes the subject rather than the observer. The tag exists because one trigger carries several unrelated observations: without it an ally-death watcher and an ally-bleeding watcher would each proc on the other's event.",
+    "affinity": "REGION",
+    "usage": "{ PROXIMITY_ANNOUNCE: { tag: <string>, radius: <double[1..64]=7> } }",
+    "example": "{ PROXIMITY_ANNOUNCE: { tag: \"bleed\", radius: 7, who: \"@Victim\" } }",
+    "params": [
+      {
+        "name": "tag",
+        "kind": "STRING",
+        "label": "string",
+        "required": true,
+        "default": null,
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "what happened, read by an observer as %proximityevent%"
+        },
+      {
+        "name": "radius",
+        "kind": "DOUBLE",
+        "label": "double[1..64]",
+        "required": false,
+        "default": "7",
+        "min": 1,
+        "max": 64,
+        "enum": [],
+        "handle": null,
+        "doc": "how far the news carries"
+        }
+      ],
+    "targets": [
+      {
+        "name": "who",
+        "selector": "VICTIM"
+        }
+      ]
+    },
+  {
     "head": "REFLECT",
     "doc": "Mark the target so a percent of their own outgoing damage is reflected back onto them for a duration in ticks (Hex). Player targets only; default target the combat victim. cap is a flat per-hit ceiling on the health returned (0 = uncapped); feedback is an optional chat line sent to the afflicted on each reflected hit, with {damage} filled in.",
     "affinity": "CONTEXT_LOCAL",
@@ -8583,6 +8622,10 @@
     },
   {
     "name": "projectilekind",
+    "type": "STR"
+    },
+  {
+    "name": "proximityevent",
     "type": "STR"
     },
   {

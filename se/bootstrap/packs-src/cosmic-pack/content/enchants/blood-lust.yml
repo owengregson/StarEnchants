@@ -1,0 +1,78 @@
+# Matrix: 01-enchants-armor-a-l.md § Blood Lust
+display: "Blood Lust"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eWhen a teammate near you is bleeding,"
+  - "&esome of it comes back to you as health."
+# PROXIMITY_EVENT, the observer trigger — and this entry is why its authored half exists (R-QC46). The jar
+# never gave Blood Lust a hook of its own: `applyDefenseEffect` is an EMPTY OVERRIDE, and the whole behaviour
+# lives inside `Bleed.addBleedStack` (and `HeroicBleed`'s identical copy), which scans 7 blocks around the
+# bleeding player for allies carrying the `bloodLust` metadata and heals them. A chestplate cannot observe a
+# sword hit landing on somebody else, so the port inverts the coupling rather than reproducing it: `bleed.yml`
+# and `deep-bleed.yml` ANNOUNCE each stack they land on a player, and this file subscribes. Same events, same
+# 7 blocks, same ally test, and the direction of the dependency is now the honest one — Bleed still works with
+# nobody wearing this, and this still does nothing without somebody's Bleed axe.
+trigger: PROXIMITY_EVENT
+# Chestplates only, the jar's `GeneralUtil.chestplates` (5 materials); enchant-table weight 2.
+applies-to: [CHESTPLATE]
+group: "soul"
+tier: soul
+# `TieredEnchantments.bloodlust = 5` — tier 5 is this pack's `soul` rung. Max 6; base 17.0, interval 4.0.
+# THE GATE, in the jar's own order. `%proximityevent% == "bleed"` is the tag half: PROXIMITY_EVENT also fires
+# on a nearby player DEATH (Avenging Angel's half), and without the tag each of the two would proc on the
+# other's event. `%victim.relation% == "ALLY"` is `GeneralUtil.isAlly(bleedingPlayer, wearer)` — the subject
+# rides the activation as the victim, so every `%victim.*%` read here describes the BLEEDING player and not
+# the wearer. `%distance% <= 7` is the jar's `getNearbyEntities(7, 7, 7)` box narrowed to a sphere (the
+# engine's single-radius house rule; the corners of that box reached 12 blocks).
+# The jar's `entity.getEntityId() != leDamager.getEntityId()` exclusion is NOT authored, because the codex
+# marks it moot from both ends: `getNearbyEntities` never returns the calling entity, and the only case it
+# could ever have covered is an attacker who is an ally of their own victim.
+# NO COOLDOWN — the jar has none; the roll is the whole pacing, and it is taken per landed stack.
+condition: "%proximityevent% == \"bleed\" && %victim.relation% == \"ALLY\" && %distance% <= 7"
+# THE ROLL is `0.2 + level * 0.05` = 25/30/35/40/45/50 %.
+# THE HEAL is `max(2.0, i * 0.05 * level)` where `i` is the bleeding player's stack count HALVED — the same
+# derived step every other bleed consumer takes, here read off the subject as `%victim.var.bleedstacks%`.
+# The codex is blunt about what that formula is worth in play: the 2.0 floor dominates at every level (the
+# earliest any rung clears it is level 6 at 14 stacks), so six levels buy +25 percentage points of chance and
+# almost never a bigger heal. Authored as written anyway — the ceiling case is reachable and the floor is the
+# jar's own `Math.max`, not a simplification.
+# strings: none — the jar sends no message.
+# era: `EAT` is the 1.8 name of the eating cue, carried by `Aliases.SOUND` to `ENTITY_GENERIC_EAT`; DRIP_LAVA
+# exists on both lanes unchanged.
+levels:
+  1:
+    chance: 25
+    effects:
+      - { MODIFY_HEALTH: { amount: "max(2.0, max(1, floor(%victim.var.bleedstacks% / 2)) * 0.05 * 1)", mode: "give", who: "@Self" } }
+      - { PARTICLE: { particle: "DRIP_LAVA", count: 10, spread: 0.075, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 0.4, pitch: 0.6 } }
+  2:
+    chance: 30
+    effects:
+      - { MODIFY_HEALTH: { amount: "max(2.0, max(1, floor(%victim.var.bleedstacks% / 2)) * 0.05 * 2)", mode: "give", who: "@Self" } }
+      - { PARTICLE: { particle: "DRIP_LAVA", count: 10, spread: 0.075, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 0.4, pitch: 0.6 } }
+  3:
+    chance: 35
+    effects:
+      - { MODIFY_HEALTH: { amount: "max(2.0, max(1, floor(%victim.var.bleedstacks% / 2)) * 0.05 * 3)", mode: "give", who: "@Self" } }
+      - { PARTICLE: { particle: "DRIP_LAVA", count: 10, spread: 0.075, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 0.4, pitch: 0.6 } }
+  4:
+    chance: 40
+    effects:
+      - { MODIFY_HEALTH: { amount: "max(2.0, max(1, floor(%victim.var.bleedstacks% / 2)) * 0.05 * 4)", mode: "give", who: "@Self" } }
+      - { PARTICLE: { particle: "DRIP_LAVA", count: 10, spread: 0.075, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 0.4, pitch: 0.6 } }
+  5:
+    chance: 45
+    effects:
+      - { MODIFY_HEALTH: { amount: "max(2.0, max(1, floor(%victim.var.bleedstacks% / 2)) * 0.05 * 5)", mode: "give", who: "@Self" } }
+      - { PARTICLE: { particle: "DRIP_LAVA", count: 10, spread: 0.075, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 0.4, pitch: 0.6 } }
+  6:
+    chance: 50
+    effects:
+      - { MODIFY_HEALTH: { amount: "max(2.0, max(1, floor(%victim.var.bleedstacks% / 2)) * 0.05 * 6)", mode: "give", who: "@Self" } }
+      - { PARTICLE: { particle: "DRIP_LAVA", count: 10, spread: 0.075, who: "@Self" } }
+      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 0.4, pitch: 0.6 } }

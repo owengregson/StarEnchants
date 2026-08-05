@@ -365,6 +365,9 @@ effect PROJECTILE_DRESSING
   param invulnerable TICKS optional min=0 max=- enum=- handle=- default=200
   param no-pickup BOOL optional min=- max=- enum=- handle=- default=true
   param fire-ticks TICKS optional min=0 max=- enum=- handle=- default=0
+effect PROXIMITY_ANNOUNCE
+  param tag STRING required min=- max=- enum=- handle=- default=-
+  param radius DOUBLE optional min=1 max=64 enum=- handle=- default=7
 effect REFLECT
   param percent DOUBLE required min=0 max=- enum=- handle=- default=-
   param duration TICKS optional min=0 max=- enum=- handle=- default=80
@@ -738,6 +741,7 @@ var onfire BOOL
 var onground BOOL
 var posthit.health NUM
 var projectilekind STR
+var proximityevent STR
 var ragestacks NUM
 var recentattackers NUM
 var sneaking BOOL

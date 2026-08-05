@@ -15,28 +15,28 @@ tier: epic
 levels:
   1:
     # radius min(50 + level x 12, 100) = 62; the observer walk itself is bounded at 16 blocks by the engine
-    condition: "%victim.relation% == \"ALLY\" && %distance% <= 62 && %actor.healthpercent% < 100"
+    condition: "%proximityevent% == \"death\" && %victim.relation% == \"ALLY\" && %distance% <= 62 && %actor.healthpercent% < 100"
     cooldown: 200  # as-intended 10 s (D-01-03); the measured 20 s is the cooldown map's write-expiry winning over the stored value
     effects:
       - { MODIFY_HEALTH: { amount: 100, mode: "give", who: "@Self" } }  # full heal, clamped to max health
       - { POTION: { effect: "ABSORPTION", level: 6, duration: 140, who: "@Self" } }  # 20 x (6 + level); ABSORPTION exists on 1.8.9 — no era hazards
       - { MESSAGE: { text: "§e§l* AVENGING ANGEL [§7+{hp} HP ({VICTIM})§e§l *", tokens: { hp: "%actor.maxhealth% - %actor.health%" } } }
   2:
-    condition: "%victim.relation% == \"ALLY\" && %distance% <= 74 && %actor.healthpercent% < 100"
+    condition: "%proximityevent% == \"death\" && %victim.relation% == \"ALLY\" && %distance% <= 74 && %actor.healthpercent% < 100"
     cooldown: 200  # as-intended 10 s (D-01-03)
     effects:
       - { MODIFY_HEALTH: { amount: 100, mode: "give", who: "@Self" } }
       - { POTION: { effect: "ABSORPTION", level: 6, duration: 160, who: "@Self" } }
       - { MESSAGE: { text: "§e§l* AVENGING ANGEL [§7+{hp} HP ({VICTIM})§e§l *", tokens: { hp: "%actor.maxhealth% - %actor.health%" } } }
   3:
-    condition: "%victim.relation% == \"ALLY\" && %distance% <= 86 && %actor.healthpercent% < 100"
+    condition: "%proximityevent% == \"death\" && %victim.relation% == \"ALLY\" && %distance% <= 86 && %actor.healthpercent% < 100"
     cooldown: 200  # as-intended 10 s (D-01-03)
     effects:
       - { MODIFY_HEALTH: { amount: 100, mode: "give", who: "@Self" } }
       - { POTION: { effect: "ABSORPTION", level: 6, duration: 180, who: "@Self" } }
       - { MESSAGE: { text: "§e§l* AVENGING ANGEL [§7+{hp} HP ({VICTIM})§e§l *", tokens: { hp: "%actor.maxhealth% - %actor.health%" } } }
   4:
-    condition: "%victim.relation% == \"ALLY\" && %distance% <= 98 && %actor.healthpercent% < 100"
+    condition: "%proximityevent% == \"death\" && %victim.relation% == \"ALLY\" && %distance% <= 98 && %actor.healthpercent% < 100"
     cooldown: 200  # as-intended 10 s (D-01-03)
     effects:
       - { MODIFY_HEALTH: { amount: 100, mode: "give", who: "@Self" } }

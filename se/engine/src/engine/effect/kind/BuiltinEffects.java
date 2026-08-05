@@ -142,7 +142,7 @@ public final class BuiltinEffects {
                 .register(new SuppressIncomingEffect())  // masks: gate 5 read from the DEFENDER's end
                 .register(new StatusClearEffect())       // lift a named engine window (teleblock/potion-lock/disarm)
                 // Cosmic-port wave 2d.2. APPENDED, never inserted (ADR-0039 dense kind ids).
-                .register(new StackingDotEffect())       // Rot and Decay: a ladder that burns only on the wearer's ground
+                .register(new StackingDotEffect())     // Rot and Decay: a ladder that burns only on the wearer's ground
                 .register(new DelayedStrikeFieldEffect()) // Revenge of Yijki: telegraphed ground spots, struck as one
                 .register(new SummonPurgeEffect())       // Rot and Decay: despawn foreign summons (CONVERT_SUMMON's inverse)
                 .register(new TurretRingEffect())        // Demonic Gateway: a ring of invulnerable firing emplacements
@@ -158,6 +158,8 @@ public final class BuiltinEffects {
                 .register(new PotionAmpReduceEffect())   // Mortal Coil: sap LEVELS off a live buff, give them back
                 // Cosmic-port wave 3a. APPENDED, never inserted (ADR-0039 dense kind ids).
                 .register(new RefundCooldownEffect())    // elemental pets: give back a window whose payload did nothing
+                // Cosmic-port wave 3b-3. APPENDED, never inserted (ADR-0039 dense kind ids).
+                .register(new ProximityAnnounceEffect()) // Bleed: tell nearby allies, so Blood Lust can leech off it
                 .build();
     }
 }

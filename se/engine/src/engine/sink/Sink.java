@@ -451,6 +451,14 @@ public interface Sink {
     void blockChange(Location at, int blockDataId);
 
     /**
+     * Announce that something happened to {@code subject}, so every player within {@code radius} runs their
+     * own {@code PROXIMITY_EVENT} abilities against it (PROXIMITY_ANNOUNCE). {@code tag} rides the observers'
+     * activations as {@code %proximityevent%}, which is what stops one nearby observation firing another's
+     * watcher. The subject is never their own observer.
+     */
+    void announceProximity(LivingEntity subject, String tag, double radius);
+
+    /**
      * Break the block at {@code at}; {@code drops} controls whether it yields its drops, {@code voidMaterialIds}
      * are the per-material exceptions destroyed dropless anyway (BREAK_BLOCK).
      *

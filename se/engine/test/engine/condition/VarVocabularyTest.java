@@ -55,10 +55,12 @@ class VarVocabularyTest {
         // (actor.setweapon flag — the held-set-weapon identity `on: weapon` gates a whole bonus on and no
         // chance expression could read), and wave 2e.2 (status.freeze flag — STATUS_CLEAR's FREEZE rung
         // paired guard, the teleblock flag's sibling), and wave 3a (soulcost number — gate 10's resolved price,
-        // the one fact written from inside the gate walk rather than by the populator, R-QC2).
+        // the one fact written from inside the gate walk rather than by the populator, R-QC2), and wave 3b-3
+        // (proximityevent string — WHICH nearby event fired a PROXIMITY_EVENT, so an ally-death watcher and an
+        // ally-bleeding watcher stop firing on each other's, R-QC46).
         assertEquals(30, v.numberSlots());
         assertEquals(27, v.flagSlots());
-        assertEquals(13, v.stringSlots());
+        assertEquals(14, v.stringSlots());
         assertEquals(VarKind.NUM, v.lookup("victim", "health").orElseThrow().kind());
         assertEquals(VarKind.NUM, v.lookup("actor", "maxhealth").orElseThrow().kind());
         assertEquals(VarKind.NUM, v.lookup("world", "time").orElseThrow().kind());
