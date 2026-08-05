@@ -29,6 +29,8 @@ public final class VanishEffect implements EffectKind {
             .param("break-hits", D.INT.min(0).def(1),
                     "landed outgoing hits the window absorbs before it breaks; 0 = only the timer ends it")
             .param("var", D.STRING.def(""), "player variable reading 1 while the window is live; empty = none")
+            .param("end-message", D.STRING.def(""),
+                    "line sent to the target when the window ends, by ANY route; empty = silent")
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Hide the target from EVERY online player for `duration` ticks — a packet-level hide, so worn "
@@ -37,8 +39,9 @@ public final class VanishEffect implements EffectKind {
                     + "hit but not hitting back. A player who joins mid-window is re-synced, so a vanish cannot "
                     + "be beaten by relogging. While it is live `var` reads 1, and it drops to 0 the moment it "
                     + "ends by any route (timer, hit, quit). A re-proc REPLACES the window: fresh duration, "
-                    + "fresh hit allowance.")
-            .example("{ VANISH: { duration: 60, break-hits: 2, var: feign.active, who: \"@Self\" } }")
+                    + "fresh hit allowance. `end-message` is sent to the target once the window ends, whichever "
+                    + "route ended it — exactly once, never on the refusal path.")
+            .example("{ VANISH: { duration: 60, break-hits: 2, end-message: \"&4&l* Feign Death - UNVANISHED *\", who: \"@Self\" } }")
             .build();
 
     @Override
@@ -51,9 +54,10 @@ public final class VanishEffect implements EffectKind {
         int duration = ctx.integer("duration");
         int breakHits = ctx.integer("break-hits");
         String var = ctx.str("var");
+        String endMessage = ctx.str("end-message");
         for (LivingEntity target : ctx.targets("who")) {
             if (target instanceof Player subject) {
-                sink.vanish(subject, duration, breakHits, var);
+                sink.vanish(subject, duration, breakHits, var, endMessage);
             }
         }
     }
