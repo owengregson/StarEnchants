@@ -67,6 +67,7 @@ public enum DiagCode {
     E_DUPLICATE_KEY,
     E_CONFIG_IO,
     E_CONFIG_SHAPE,
+    E_PACK_ERA,            // a config pack declares a server floor this server is below (R-QC11)
     W_CONFIG_NUM,
     W_CONFIG_BOOL,         // a config.yml boolean outside the canonical vocabulary — warned, fallback kept
     W_UNKNOWN_KEY,

@@ -957,7 +957,9 @@ public final class BootCore {
     private void saveDefaults() {
         saveDefaultTree("packs"); // ADR-0023: always keep the pack LIBRARY current (newly-shipped packs appear)
         // When a pack owns the config surface, the bundled defaults must NOT be re-laid over it.
-        if (pack.PackStore.activePack(plugin.getDataFolder().toPath()).isPresent()) {
+        java.util.Optional<String> active = pack.PackStore.activePack(plugin.getDataFolder().toPath());
+        if (active.isPresent()) {
+            warnIfActivePackIsBelowItsFloor(active.get());
             return;
         }
         saveDefaultFile("config.yml");
@@ -965,6 +967,21 @@ public final class BootCore {
         saveDefaultTree("content");
         saveDefaultTree("items");
         saveDefaultTree("menus");
+    }
+
+    /**
+     * R-QC11: the applied pack's config surface is already on disk, so its era-specific handles are about to
+     * fail one by one. Say WHY once, at boot, instead of leaving the operator to read the handle storm.
+     */
+    private void warnIfActivePackIsBelowItsFloor(String name) {
+        try {
+            new pack.PackStore(plugin.getDataFolder().toPath()).info(name)
+                    .filter(manifest -> !bootstrap.PackGate.meetsFloor(manifest, caps))
+                    .ifPresent(manifest -> plugin.getLogger()
+                            .severe(bootstrap.PackGate.belowFloor(manifest, caps)));
+        } catch (IOException unreadable) {
+            plugin.getLogger().log(Level.WARNING, "could not read the active pack's manifest", unreadable);
+        }
     }
 
     private void saveDefaultFile(String name) {

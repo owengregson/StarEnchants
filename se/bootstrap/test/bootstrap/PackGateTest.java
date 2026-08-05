@@ -10,6 +10,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import pack.Pack;
 import pack.PackManifest;
+import platform.caps.Capabilities;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostic;
 import testfx.PermissiveResolvers;
@@ -21,9 +22,12 @@ import testfx.PermissiveResolvers;
  */
 class PackGateTest {
 
+    private static final Capabilities MODERN = Capabilities.probe("1.21.4-R0.1-SNAPSHOT", false);
+    private static final Capabilities LEGACY = Capabilities.probe("1.8.9-R0.1-SNAPSHOT", false);
+
     private static final PackGate GATE = new PackGate(
             () -> ContentCompiler.production(PermissiveResolvers.INSTANCE),
-            () -> "1:live", () -> "effects 1");
+            () -> "1:live", () -> "effects 1", MODERN);
 
     // A minimal shipped enchant (scorch), known clean under PermissiveResolvers (CatalogValidationTest proves it).
     private static final String SCORCH =
@@ -123,6 +127,25 @@ class PackGateTest {
         PackGate.Report report = GATE.check(pack(stamped("1:live"), Map.of("items/soul-gem.yml", bytes(gem))));
         assertTrue(report.clean());
         assertTrue(report.warningCount() > 0);
+    }
+
+    @Test
+    void aPackBelowItsDeclaredFloorIsRefusedWithoutCompiling() {
+        // R-QC11: one E_PACK_ERA naming the declaration, not the handle storm the compile would produce.
+        PackGate legacyGate = new PackGate(
+                () -> ContentCompiler.production(PermissiveResolvers.INSTANCE),
+                () -> "1:live", () -> "effects 1", LEGACY);
+        PackGate.Report report = legacyGate.check(pack(stamped("1:live").requiring("1.17.1"),
+                Map.of("content/enchants/scorch.yml", bytes(SCORCH))));
+
+        assertFalse(report.clean());
+        assertEquals(1, report.blocking().size());
+        assertTrue(report.blocking().get(0).is(DiagCode.E_PACK_ERA));
+        assertEquals(0, report.abilityCount()); // nothing was compiled
+
+        // The same pack on a server that meets the floor compiles as usual.
+        assertTrue(GATE.check(pack(stamped("1:live").requiring("1.17.1"),
+                Map.of("content/enchants/scorch.yml", bytes(SCORCH)))).clean());
     }
 
     private static PackManifest stamped(String fingerprint) {

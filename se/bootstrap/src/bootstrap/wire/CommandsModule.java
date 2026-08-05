@@ -31,7 +31,8 @@ final class CommandsModule {
         PackGate packGate = new PackGate(
                 core.compilerFactory(), // the same factory the reloader uses (§9 resolver reuse)
                 () -> RegistryFingerprint.hash(core.effectRegistry().get()),
-                () -> RegistryFingerprint.summary(core.effectRegistry().get()));
+                () -> RegistryFingerprint.summary(core.effectRegistry().get()),
+                core.caps()); // R-QC11: a pack's declared min-server floor is checked before the dry-run
         this.seCommand = new SeCommand(reload.reloader, core.enchanter(),
                 player -> core.worn().refresh(player, core.content().snapshot()), core.soulService(),
                 core.plugin().getDataFolder().toPath().resolve("migrated"), menus.registry, core.content(),

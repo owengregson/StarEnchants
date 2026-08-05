@@ -118,7 +118,7 @@ public final class PackStore {
         }
         Map<String, byte[]> captured = PackSurface.collect(dataRoot);
         PackManifest manifest = new PackManifest(name, description, author, PackManifest.CURRENT_FORMAT,
-                createdIso, captured.size(), fingerprint, surface);
+                createdIso, captured.size(), fingerprint, surface, "");
         Files.createDirectories(packsDir);
         Path file = packFile(name);
         try (OutputStream out = Files.newOutputStream(file)) {
@@ -157,7 +157,7 @@ public final class PackStore {
         if (!current.isEmpty() && isValidName(backupLabel)) {
             PackManifest backupManifest = new PackManifest(backupLabel,
                     "Automatic backup taken before applying '" + name + "'.", "auto",
-                    PackManifest.CURRENT_FORMAT, createdIso, current.size(), liveFingerprint, liveSurface);
+                    PackManifest.CURRENT_FORMAT, createdIso, current.size(), liveFingerprint, liveSurface, "");
             Files.createDirectories(packsDir);
             try (OutputStream out = Files.newOutputStream(packFile(backupLabel))) {
                 PackArchive.write(out, backupManifest, current);

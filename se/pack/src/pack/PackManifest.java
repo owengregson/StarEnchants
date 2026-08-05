@@ -10,9 +10,13 @@ import java.util.Objects;
  * older StarEnchants). {@link #CURRENT_FORMAT} does NOT bump for them: manifest keys are forward/backward
  * ignorable ({@link #fromYaml} drops unknown keys, {@link #toYaml} omits empty ones), so an old server reads a
  * stamped pack and a new server reads an unstamped one — format bumps only for archive-LAYOUT breaks.
+ *
+ * <p>{@code minServer} is the pack's declared server floor (R-QC11), e.g. {@code "1.17.1"} for a modern-only
+ * pack; empty = every era. This module stays version-blind — the comparison lives where the live version does.
  */
 public record PackManifest(String name, String description, String author, int format,
-                           String created, int fileCount, String fingerprint, String surface) {
+                           String created, int fileCount, String fingerprint, String surface,
+                           String minServer) {
 
     /** Bumped only on an incompatible archive-layout change (NOT for added manifest keys — those are ignorable). */
     public static final int CURRENT_FORMAT = 1;
@@ -28,19 +32,25 @@ public record PackManifest(String name, String description, String author, int f
         fileCount = Math.max(0, fileCount);
         fingerprint = fingerprint == null ? "" : fingerprint;
         surface = surface == null ? "" : surface;
+        minServer = minServer == null ? "" : minServer;
     }
 
     public static PackManifest of(String name, String description, String author, String created) {
-        return new PackManifest(name, description, author, CURRENT_FORMAT, created, 0, "", "");
+        return new PackManifest(name, description, author, CURRENT_FORMAT, created, 0, "", "", "");
     }
 
     public PackManifest withFileCount(int count) {
-        return new PackManifest(name, description, author, format, created, count, fingerprint, surface);
+        return new PackManifest(name, description, author, format, created, count, fingerprint, surface, minServer);
     }
 
     /** Stamp the ADR-0046 registry fingerprint + human-readable surface summary onto this manifest. */
     public PackManifest stamped(String fingerprint, String surface) {
-        return new PackManifest(name, description, author, format, created, fileCount, fingerprint, surface);
+        return new PackManifest(name, description, author, format, created, fileCount, fingerprint, surface, minServer);
+    }
+
+    /** Declare a server floor (R-QC11) — {@code ""} clears it. */
+    public PackManifest requiring(String minServer) {
+        return new PackManifest(name, description, author, format, created, fileCount, fingerprint, surface, minServer);
     }
 
     public String toYaml() {
@@ -59,6 +69,9 @@ public record PackManifest(String name, String description, String author, int f
         if (!surface.isEmpty()) {
             sb.append("surface: ").append(quote(surface)).append('\n');
         }
+        if (!minServer.isEmpty()) {
+            sb.append("min-server: ").append(quote(minServer)).append('\n');
+        }
         return sb.toString();
     }
 
@@ -72,6 +85,7 @@ public record PackManifest(String name, String description, String author, int f
         int fileCount = 0;
         String fingerprint = "";
         String surface = "";
+        String minServer = "";
         for (String raw : yaml.split("\n", -1)) {
             String line = raw.strip();
             if (line.isEmpty() || line.startsWith("#")) {
@@ -92,10 +106,11 @@ public record PackManifest(String name, String description, String author, int f
                 case "files" -> fileCount = parseInt(unquote(value), 0);
                 case "fingerprint" -> fingerprint = unquote(value);
                 case "surface" -> surface = unquote(value);
+                case "min-server" -> minServer = unquote(value);
                 default -> { /* forward-compatible: ignore unknown keys */ }
             }
         }
-        return new PackManifest(name, description, author, format, created, fileCount, fingerprint, surface);
+        return new PackManifest(name, description, author, format, created, fileCount, fingerprint, surface, minServer);
     }
 
     private static String quote(String s) {
