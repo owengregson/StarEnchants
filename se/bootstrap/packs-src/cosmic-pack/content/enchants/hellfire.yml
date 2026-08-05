@@ -6,11 +6,13 @@ description:
   - "&eburst into a pool of fire where they land."
 trigger: [BOW, ATTACK, PROJECTILE_LAND]
 applies-to: [BOW]
-group: "uncommon"
-tier: uncommon
-# The rung is carried forward from the Hellfire the pack already shipped — matrix 05 records no acquisition
-# row for any bow entry (the backfill covered doc 01 only, tracked in deferred-content.md). It reads low for a
-# five-level enchant that lights a 10-block pool; the acquisition backfill settles it.
+group: "epic"
+tier: epic
+# tier (R-QC13): doc 05 DOES carry the bow rows — as a shared `Tier assignments` prose block rather than a
+# per-entry numbers row (`hellfire` = 4) — and doc 09's Appendix A repeats them
+# (`| 95 | Hellfire | … | 4 | 5 | 15.0 | 5.0 |`). Rung 4 is the jar's "ultra-rare", which this pack spells
+# `epic`. The pack shipped `uncommon` — TWO rungs low, and it read low for a five-level enchant that lights a
+# 10-block pool. This is the correction.
 # PENDING PRIMITIVE — the flaming-arrow half is NOT authored here. The matrix's BOW_FIRE row dresses the loosed
 # arrow with `2147483647` fire ticks (a permanently burning arrow, level-independent); the shipped
 # PROJECTILE_DRESSING rides an ENTITY on the shot and carries no fire, and IGNITE cannot address a projectile.

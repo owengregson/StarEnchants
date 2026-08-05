@@ -6,9 +6,14 @@ description:
   - "&ewear back out of the tool in your hand."
 trigger: [ATTACK, MINE]
 # applies-to is the jar's weapons-and-tools item set spelled out (5 swords + 5 axes + bow + 5 pickaxes +
-# 5 hoes) — wider than the axes folder it lives in. Neither composite fits: WEAPON would add crossbow,
-# trident and mace, TOOL would add shovels, and the jar covered none of the four.
-applies-to: [SWORD, AXE, BOW, PICKAXE, HOE]
+# 5 hoes + 5 SPADES) — wider than the axes folder it lives in. The spades were missing until R-QC37: doc 04's
+# own registration line trails off at "(+ further tools)", and the two item-set appendices spell it out —
+# `15-shared-library-utilities.md:232` and `09-…:2730` both list `weapons_and_tools` as 31 entries / 26
+# distinct, spades at positions 22-26 (the duplicated axe block is a jar artifact with no membership
+# consequence; `applies-to` is a set). Neither composite fits: WEAPON would add crossbow, trident and mace,
+# which the jar's 1.7/1.8 Material set had none of. `[TOOL, SWORD, BOW]` would be equivalent (TOOL is
+# PICKAXE u AXE u SHOVEL u HOE), but the explicit list stays closer to the jar's literal array.
+applies-to: [SWORD, AXE, BOW, PICKAXE, HOE, SHOVEL]
 group: "rare"
 tier: rare
 # One ability per level on BOTH triggers: a level's plain `effects:` list inherits the enchant's whole trigger

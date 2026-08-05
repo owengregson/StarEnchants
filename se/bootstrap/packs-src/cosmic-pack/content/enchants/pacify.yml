@@ -6,11 +6,13 @@ description:
   - "&eleaves a player unable to build Rage."
 trigger: [BOW, ATTACK]
 applies-to: [BOW]
-# tier: doc 05 carries no acquisition rows (every other matrix doc records max/base/interval/weight/tier in
-# its numbers block; 05 was never backfilled), so the rung the pack ALREADY ships for this enchant carries
-# forward unchanged rather than being invented here. Max level 4 comes from the chance ladder itself.
-group: "rare"
-tier: rare
+# tier (R-QC13): doc 05 DOES carry the acquisition rows — as a shared prose block rather than a per-entry
+# numbers row (`05 § Tier assignments`: `pacify` = 4), restated in table form by doc 09's Appendix A
+# (`| 133 | Pacify | … | 4 | 4 | 17.0 | 4.0 |`). Rung 4 is the jar's "ultra-rare", which this pack spells
+# `epic` (tiers.yml). The pack shipped `rare` — one rung low — and this is the correction.
+# Max level 4 comes from the chance ladder and matches the codex's own max.
+group: "epic"
+tier: epic
 condition: "%victim.type% == \"PLAYER\""
 # Melee mirror: the jar's impact pipeline accepts ENTITY_ATTACK as well as PROJECTILE, so a swing with the
 # bow in hand pacifies too. Authored as the enchant's trigger LIST with a plain per-level `effects:` block —

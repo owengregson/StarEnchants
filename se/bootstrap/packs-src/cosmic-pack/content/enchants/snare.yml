@@ -6,10 +6,14 @@ description:
   - "&eheavy slowness, and mining fatigue higher up."
 trigger: [BOW, ATTACK]
 applies-to: [BOW]
-# tier: doc 05 records no acquisition rows (see pacify.yml), so the rung the pack already ships carries
-# forward. Max level 4 comes from the chance ladder.
-group: "uncommon"
-tier: uncommon
+# tier (R-QC13): doc 05 carries the rows in its shared `Tier assignments` prose block (`snare` = 3) and doc
+# 09's Appendix A repeats them (`| 98 | Snare | … | 3 | 4 | 15.0 | 5.0 |`); rung 3 is `rare` here. The pack
+# shipped `uncommon` — one rung low — and this is the correction. Being on the jar's `retiredEnchantments`
+# list is an acquisition-ROLL property (excluded from random rolls, fully functional once applied), not a
+# rarity rung, and it is what made a naive "how often does this turn up" read suggest a lower one.
+# Max level 4 comes from the chance ladder and matches the codex's own max.
+group: "rare"
+tier: rare
 # No victim gate: mobs are snareable in the jar and stay snareable here (copied). Melee mirror via the
 # trigger list (the reforged.yml shape, reasoned in pacify.yml) — one ability, one roll, the jar's single
 # shared impact path.
