@@ -40,7 +40,9 @@
 display: "Smite Pet"
 color: "&e"
 type: ACTIVE
-# head: the per-type skull texture is not recorded in the matrix (codex carries the profile, not the base64).
+# HEAD TEXTURE (R-QC56): the source's own `skinBlob` constant, verbatim — the family reading (why the
+# blob IS the identity, and the two source data bugs) is in `items/pet.yml`.
+head: "eyJ0aW1lc3RhbXAiOjE1NjMyNzc0OTc4MTUsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9lMDU3OGFkN2FiYjE1ZDBlNmIyNTQ1MzE3YTQ3ZWUwNWZmMWM0MTM4NzJkMGJhNTEzOWEyMDhhNzA2MTM3ZjBlIn19fQ=="
 descriptor:
   - "§7§7An electrified skeleton totem"
   - "§7§7that contains powerful elemental"

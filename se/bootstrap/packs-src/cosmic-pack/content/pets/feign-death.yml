@@ -43,10 +43,9 @@
 display: "Feign Death Pet"
 color: "&e"
 type: ACTIVE
-# head: the per-pet skull texture is not matrix-recorded, so no `head:` is authored and the mint falls back to
-# a plain PLAYER_HEAD.
-# On 1.8.9 that token degrades to `SKULL_ITEM` — data 0, so a skeleton skull rather than the
-# seam's `SKULL_ITEM:3` (see `items/pet.yml`).
+# HEAD TEXTURE (R-QC56): the source's own `skinBlob` constant, verbatim — the family reading (why the
+# blob IS the identity, and the two source data bugs) is in `items/pet.yml`.
+head: "eyJ0aW1lc3RhbXAiOjE1NTk2ODAwNTI5MDcsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS81NjBhMDE0ZDhjOTAyMzVmNzc1Y2Y5OTljY2M2ODM2NWQ3OGM2YTM2NjI0MDM5MjBlNjQ5NjM0MjZlY2IyNDc1In19fQ=="
 descriptor:
   - "§7§7A ghastly pet that can"
   - "§7§7control death itself."
