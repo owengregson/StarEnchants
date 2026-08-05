@@ -408,6 +408,7 @@ class SetDefReaderTest {
                 enchants/band: { min: 2, max: 5 }
                 enchants/near: { nearly-maxed: 4 }
                 enchants/gated: { chance: 25, min: 1, max: 4 }
+                enchants/half: { chance: 17.5, min: 1, max: 4 }
                 enchants/one: { max: 3 }
                 enchants/levelless: { chance: 30 }
               pieces:
@@ -426,6 +427,9 @@ class SetDefReaderTest {
         // nearly-maxed fixes both bounds from M: max(1, M-2) .. M
         assertEquals(new EnchantRoll(2, 4, 100, EnchantRoll.Mode.NEARLY_MAXED), roster.get("enchants/near"));
         assertEquals(new EnchantRoll(1, 4, 25, EnchantRoll.Mode.UNIFORM), roster.get("enchants/gated"));
+        // R-QC51: a half-point survives the reader. It used to fail Integer.valueOf, warn, and fall back to
+        // 100 — turning the rarest entry in a roster into one that minted on every single piece.
+        assertEquals(new EnchantRoll(1, 4, 17.5, EnchantRoll.Mode.UNIFORM), roster.get("enchants/half"));
         // a band of one is not a draw — it degrades to the fixed form so no RNG is consumed for it
         assertEquals(EnchantRoll.Mode.FIXED, roster.get("enchants/one").mode());
         assertEquals(3, roster.get("enchants/one").max());

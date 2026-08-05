@@ -77,19 +77,29 @@ final class SetMintTest {
     @Test
     void aFailedChanceGateYieldsNoLevelAndDropsTheEntryRatherThanMintingItAtZero() {
         EnchantRoll gated = new EnchantRoll(1, 4, 25, EnchantRoll.Mode.UNIFORM);
-        // Rolls.passes is nextInt(100) < chance: 24 passes a 25% gate, 25 does not.
-        assertTrue(SetMint.level(gated, new ScriptedRandom(24, 0)) > 0);
-        assertEquals(0, SetMint.level(gated, new ScriptedRandom(25)));
+        // The fractional gate draws BASIS points: nextInt(10_000) < chance x 100, so 2499 passes a 25% gate
+        // and 2500 does not.
+        assertTrue(SetMint.level(gated, new ScriptedRandom(2499, 0)) > 0);
+        assertEquals(0, SetMint.level(gated, new ScriptedRandom(2500)));
 
         Map<String, EnchantRoll> roster = new LinkedHashMap<>();
         roster.put("PROTECTION", EnchantRoll.fixed(4));
         roster.put("enchants/immortal", gated);
         roster.put("UNBREAKING", EnchantRoll.fixed(3));
-        Map<String, Integer> minted = SetMint.resolve(roster, new ScriptedRandom(25));
+        Map<String, Integer> minted = SetMint.resolve(roster, new ScriptedRandom(2500));
 
         assertFalse(minted.containsKey("enchants/immortal"), "a gate that fails leaves the entry off the piece");
         // authored order survives the draw — it is the piece's enchant-lore order
         assertEquals(List.of("PROTECTION", "UNBREAKING"), List.copyOf(minted.keySet()));
         assertEquals(4, minted.get("PROTECTION"));
+    }
+
+    @Test
+    void aHalfPointChanceRollsAtItsHalfPointAndNotAtAnAdjacentInteger() {
+        // R-QC51: the measured rosters carry half-points. Rounding 17.5 either way moves the gate by a whole
+        // basis-point block — 1750 must be the boundary, not 1700 or 1800.
+        EnchantRoll half = new EnchantRoll(1, 4, 17.5, EnchantRoll.Mode.UNIFORM);
+        assertTrue(SetMint.level(half, new ScriptedRandom(1749, 0)) > 0);
+        assertEquals(0, SetMint.level(half, new ScriptedRandom(1750)));
     }
 }
