@@ -6,12 +6,14 @@
 # crystal-bearing pieces fold four +5% terms and land the matrix's x1.20. The apply gesture, the 20% gamble
 # and the refusal rules are family-wide and live on the likeness (items/crystal.yml).
 display: "Phantom"
-# description: not matrix-recorded (factual paraphrase; the percent and the colour are the matrix's own —
-# the set's `§c` and its "+25% damage to all enemies" block, at the crystal's per-piece fifth of it)
+# THE SOURCE'S OWN crystalDescription, verbatim (matrix/13 § Armor Crystal; codex §A.2) — the family's shape,
+# reproduced in all eight set crystals: a SET LINE (one leading space, the set's colour + bold, then its
+# display name, which carries its OWN colour and bold — the doubled codes are the source's) followed by one
+# BULLET per recorded bonus (two spaces, colour + bold, "* ", the colour again, the string). The header above
+# it, `§6§lCrystal Bonus:`, is family-wide and lives on the likeness (items/crystal.yml).
 description:
-  - "§c§lPHANTOM CRYSTAL BONUS"
-  - "§c* Deal +5% damage to all enemies"
-  - "§c* Phantom Crystal is stackable"
+  - " §c§l§c§lPhantom"
+  - "  §c§l* §c+5% DMG"
 tier: legendary  # (port-chosen) the matrix records no crystal rarity; legendary is the plain-set rung
 applies-to: [ARMOR]
 stackable: true

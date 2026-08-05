@@ -2,13 +2,12 @@
 # Both halves of the Yeti set bonus at a quarter each: four crystal-bearing pieces fold to x1.10 outgoing and
 # x0.90 incoming — the set's own numbers. Per-piece scaling is the stackable fold (see phantom.yml).
 display: "Yeti"
-# description: not matrix-recorded (factual paraphrase; percents and colour are the set's `§b` bonus block at
-# a quarter each)
+# The source's own crystalDescription, verbatim (codex §A.2) — set line then one bullet per bonus, in its
+# order (defensive first here); see phantom.yml for the family's construction rule.
 description:
-  - "§b§lYETI CRYSTAL BONUS"
-  - "§b* Deal +2.5% damage to all enemies"
-  - "§b* Enemies deal 2.5% less damage to you"
-  - "§b* Yeti Crystal is stackable"
+  - " §b§l§b§lYeti"
+  - "  §b§l* §b-2.5% Incoming DMG"
+  - "  §b§l* §b+2.5% Outgoing DMG"
 tier: legendary  # (port-chosen) see phantom.yml
 applies-to: [ARMOR]
 stackable: true

@@ -3,12 +3,18 @@
 # +5% per crystal-bearing piece against players and +12.5% per piece against everything else, so four pieces
 # land the set's own x1.20 PvP / x1.50 PvE. No defensive half — KOTH is a glass cannon on both routes.
 display: "KOTH"
-# description: not matrix-recorded (factual paraphrase; percents and colour from the set's `§d` bonus block)
+# The source's own crystalDescription, verbatim (codex §A.2); see phantom.yml for the construction rule.
+# TWO KOTH-only traps, both codex-verified:
+#  * the colour here is AQUA `§b` — the ArmorSet enum's own colour, which is what the crystal reads. The `§d`
+#    this block used to carry is KothArmorSet's private LIGHT_PURPLE, which drives the PIECE lore and the
+#    equip message and is never read by a crystal. Both spellings are correct, on different items.
+#  * the set line takes the enum's display name, which for KOTH is the `;`-bookended banner (the `!`-bookended
+#    variant with its `§r`s belongs to the armour pieces, sets/koth.yml). Its own `§f§l§k` masks the `§b§l`
+#    prefix entirely, and its trailing space survives into the line — verbatim, not tidied.
 description:
-  - "§d§lKOTH CRYSTAL BONUS"
-  - "§d* +5% PvP Damage"
-  - "§d* +12.5% PvE Damage"
-  - "§d* KOTH Crystal is stackable"
+  - " §b§l§f§l§k;§c§l K§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k;"
+  - "  §b§l* §b+5% PvP DMG"
+  - "  §b§l* §b+12.5% PvE DMG"
 tier: legendary  # (port-chosen) see phantom.yml
 applies-to: [ARMOR]
 stackable: true

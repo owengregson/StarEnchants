@@ -5,13 +5,12 @@
 # `[damagecause == PROJECTILE]` gate; the outgoing half rides BOW, which IS the projectile trigger on this
 # surface (see enchants/sniper.yml) — the gate is structural there rather than a repeated condition.
 display: "Ranger"
-# description: not matrix-recorded (factual paraphrase; percents and colour from the set's `§a` bonus block)
+# The source's own crystalDescription, verbatim (codex §A.2); see phantom.yml for the construction rule.
 description:
-  - "§a§lRANGER CRYSTAL BONUS"
-  - "§a* Enemies bows deal 5% less damage to you"
-  - "§a* Deal +6% bow damage"
-  - "§a* 20% Immune to Teleblock"
-  - "§a* Ranger Crystal is stackable"
+  - " §a§l§a§lRanger"
+  - "  §a§l* §a-5% Incoming Bow DMG"
+  - "  §a§l* §a+6% Outgoing Bow DMG"
+  - "  §a§l* §a20% Immune to Teleblock"
 tier: legendary  # (port-chosen) see phantom.yml
 applies-to: [ARMOR]
 stackable: true

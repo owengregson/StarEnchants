@@ -3,11 +3,13 @@
 # the set's drawbacks either: the crystal route sells the bonus without the +10% incoming arrow damage the
 # full set carries.
 display: "Supreme"
-# description: not matrix-recorded (factual paraphrase; percent and colour from the set's `§4` bonus block)
+# The source's own crystalDescription, verbatim (codex §A.2); see phantom.yml for the construction rule.
+# Supreme is the family's colour SPLIT: its enum colour is DARK_GREEN `§2` — which is what the set line's
+# prefix and every bullet carry — while its display name is `§4§lSupreme`, so the set line's doubled codes
+# disagree and render dark red. The source's quirk, reproduced rather than tidied.
 description:
-  - "§4§lSUPREME CRYSTAL BONUS"
-  - "§4* Deal +3% damage to all enemies"
-  - "§4* Supreme Crystal is stackable"
+  - " §2§l§4§lSupreme"
+  - "  §2§l* §2+3% Outgoing DMG"
 tier: legendary  # (port-chosen) see phantom.yml
 applies-to: [ARMOR]
 stackable: true

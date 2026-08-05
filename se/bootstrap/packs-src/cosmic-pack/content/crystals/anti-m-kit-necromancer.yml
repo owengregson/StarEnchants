@@ -3,11 +3,14 @@
 # Same shape as anti-m-kit-ghost.yml, over the Necromancer pool: one worn copy cancels all four of that set's
 # mastery procs aimed at the wearer, 100%, no roll. The crystal's advertised percent is its APPLY chance.
 display: "Anti-M-Kit (Necromancer)"
-# description: not matrix-recorded (factual paraphrase; `§2` is the Necromancer set's own colour)
+# The counter-crystal's own recorded lore (codex §C.2); see anti-m-kit-ghost.yml for the block's shape.
 description:
-  - "§2§lANTI-M-KIT CRYSTAL BONUS"
-  - "§2* Negates all Necromancer M-Kit abilities used against you"
-  - "§2* Anti-M-Kit Crystal is not stackable"
+  - "§7to negate the following"
+  - "§7custom Mastery Enchantments:"
+  - "§6§l * §4Mortal Coil"
+  - "§6§l * §4Soul Siphon"
+  - "§6§l * §4Rot and Decay"
+  - "§6§l * §4Demonic Gateway"
 tier: mastery  # (port-chosen) see anti-m-kit-ghost.yml
 applies-to: [ARMOR]
 stackable: false
