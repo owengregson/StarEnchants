@@ -50,5 +50,9 @@ final class ItemFactoryTest {
         // equivalent (real red dye was INK_SACK+data), so it degrades to REDSTONE (a red item that exists).
         assertEquals("BOOK_AND_QUILL", ItemFactory.legacyFallback("WRITABLE_BOOK"));
         assertEquals("REDSTONE", ItemFactory.legacyFallback("RED_DYE"));
+        // The cosmic pack's two recovered dye-family materials: INK_SAC is a plain rename, YELLOW_DYE is the
+        // same data-value problem RED_DYE has and degrades to the closest 1.8 yellow item.
+        assertEquals("INK_SACK", ItemFactory.legacyFallback("INK_SAC"));
+        assertEquals("GOLD_INGOT", ItemFactory.legacyFallback("YELLOW_DYE"));
     }
 }
