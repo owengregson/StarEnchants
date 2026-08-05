@@ -229,10 +229,16 @@ public final class TriggerRunner {
         }
         long now = nowTicks.getAsLong();
         Activation activation = Activation.builder(actor.getUniqueId(), worldId, triggerId, now)
+                // R-QC25c: the same random-backed roll every other entry point installs. This run walks no
+                // gates, but the per-target defender consult still draws per window — with the builder's
+                // constant 0.0 default a partial SUPPRESS_INCOMING blocked every hop instead of its authored share.
+                .chanceRoll(() -> ThreadLocalRandom.current().nextDouble() * 100.0)
                 .facts(factPopulator.populate(context, now, FactMask.ALL))
                 .location(context.location())
                 .targetBucket(context.victim() instanceof Player ? 1 : 0)
-                .victimId(context.victim() == null ? null : context.victim().getUniqueId())
+                // No victimId, deliberately: the per-target consult exempts it as "the body gate 5 already
+                // adjudicated", and on a gateless run gate 5 never spoke. Naming one here would exempt the
+                // reflected-upon attacker from every window — the one body the re-run is most aimed at.
                 .build();
         executor.runForced(abilities, candidates, activation, context, sink, stableKeys);
     }

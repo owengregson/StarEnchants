@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -499,6 +500,31 @@ class AbilityExecutorTest {
         verify(one).setFireTicks(60);
         verify(two).setFireTicks(60);
         assertEquals(1, draws[0], "gate 8 only — neither gate 5b nor the per-target consult read the store");
+    }
+
+    @Test
+    void aReboundedHopRollsAPartialDefenderWindowInsteadOfBlockingEveryTime() {
+        // R-QC25c: the gateless re-run consulted NO defender window at all, and its Activation carried the
+        // builder's constant 0.0 roll — so wiring the consult without the supplier would have swung it the
+        // other way, blocking every reflected hop at a 50% mask. Two runs, one draw each side of the line.
+        LivingEntity masked = target();
+        SuppressionStore suppression = new SuppressionStore();
+        suppression.defend(masked.getUniqueId(), CooldownStore.key(ScopeKinds.ENCHANT, 5), 0L, 100, 50, -1, null);
+        AbilityExecutor chained = chainExecutor(suppression, WhyRecorder.NONE, masked);
+        ModernDispatchSink sink = sink();
+
+        chained.runForced(new Ability[] {chainAbility()}, new int[] {0}, rolling(10.0),
+                context(mock(Player.class), null), sink, KEYS); // 10 < 50 → the window takes this hop
+        chained.runForced(new Ability[] {chainAbility()}, new int[] {0}, rolling(90.0),
+                context(mock(Player.class), null), sink, KEYS); // 90 >= 50 → the same window lets it through
+        sink.flush();
+
+        verify(masked, times(1)).setFireTicks(60);
+    }
+
+    /** An activation whose every chance draw is {@code roll} — the reflect path's supplier, made deterministic. */
+    private static Activation rolling(double roll) {
+        return Activation.builder(ACTOR, 0, TRIGGER, 0L).chanceRoll(() -> roll).build();
     }
 
     /** The chain fixture's ability: scoped so a defender window keyed to ENCHANT id 5 matches it. */

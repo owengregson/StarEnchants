@@ -51,11 +51,11 @@ description:
 # (`i >= level && 0.02 + 0.0267 x (i / 3) >= random`, then a per-level `random <= 0.5` skip), i.e. it negated
 # mastery applications arriving through the reflect gate specifically. The window authored here covers the
 # ordinary incoming path — any mastery-group ability aimed at the wearer, gate 5 — which is the shape the
-# matrix's own "exact semantics" line asks for, and it deliberately does NOT cover the port's rebound re-run
-# (`PROC_REBOUND`): that path walks no gates and carries no random-backed roll supplier, so a partial window
-# consulted there would block deterministically rather than roll (wave 2d.2 ruling). Net: broader than the
-# source on every ordinary proc, empty on the one path the source keyed. Ledgered in deferred-content.md,
-# batch 11.
+# matrix's own "exact semantics" line asks for. Since R-QC25c it ALSO covers the port's rebound re-run
+# (`PROC_REBOUND`): that path still walks no gates, but it now carries a random-backed roll supplier, so the
+# per-target consult rolls this window at its authored 50 % there instead of blocking deterministically —
+# which is why it was left out before (wave 2d.2). Net: broader than the source on every ordinary proc, and
+# the one path the source keyed is no longer empty. Ledgered in deferred-content.md, batch 11.
 # MULTI-MASK: this one was routed through the shared mask lookup and already worked inside a compound mask,
 # so the family routing bug (D-11-1) does not touch this entry.
 # ACQUISITION: COMMON generator pool, 90 %/11 = 8.1818 % per roll; active in the mask help menu. A mask def
