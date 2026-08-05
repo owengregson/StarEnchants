@@ -101,6 +101,21 @@ public final class TriggerRunner {
     }
 
     /**
+     * The ability ids {@code owner}'s walk on {@code triggerId} resolves to RIGHT NOW — the read a summon
+     * pins at spawn so its payload can outlive the gear that armed it. {@code null} when the owner has no
+     * resolved worn state, and the shared empty array is never returned as "nothing": an empty pin and no
+     * pin must be told apart, since only the second falls back to a live read.
+     */
+    public int[] candidatesNow(java.util.UUID owner, int triggerId) {
+        WornState wornState = worn.get(owner);
+        if (wornState == null) {
+            return null;
+        }
+        int[] candidates = wornState.byTrigger(triggerId);
+        return candidates.length == 0 ? null : candidates.clone();
+    }
+
+    /**
      * Run an EXPLICIT candidate id list (the §B REPEATING driver supplies one ability id from its timer).
      * Caller chooses the candidates rather than {@code byTrigger(triggerId)} and is responsible they fire on
      * {@code triggerId} (gate 3 still enforces it).

@@ -15,4 +15,13 @@ public interface SummonPayloads {
 
     /** Run {@code summon}'s owner's {@code SUMMON_PAYLOAD} abilities over the box {@code flags} describes. */
     void fire(Entity summon, SummonFlags flags);
+
+    /**
+     * The ability ids {@code ownerId}'s {@code SUMMON_PAYLOAD} walk resolves to RIGHT NOW, to be pinned onto a
+     * summon being spawned; {@code null} when there is nothing to pin. Reading worn state is the feature
+     * layer's business, which is why it rides this seam rather than the sink.
+     */
+    default int[] payloadCandidates(java.util.UUID ownerId) {
+        return null;
+    }
 }

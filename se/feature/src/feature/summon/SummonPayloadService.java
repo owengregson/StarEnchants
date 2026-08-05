@@ -2,6 +2,7 @@ package feature.summon;
 
 import engine.selector.kind.Targets;
 import engine.sink.GuardianCasts;
+import engine.sink.PetSummons;
 import engine.sink.SummonFlags;
 import engine.sink.SummonPayloads;
 import feature.trigger.TriggerDispatch;
@@ -42,14 +43,30 @@ public final class SummonPayloadService implements SummonPayloads {
         }
         Player owner = Bukkit.getPlayer(ownerId);
         if (owner != null) {
-            dispatch(owner, summon, select(summon, owner, flags));
+            dispatch(owner, summon, select(summon, owner, flags), PetSummons.pinnedPayload(summon.getUniqueId()));
         }
     }
 
-    /** One activation per target, so the payload's damage/ignite/knockback stay ordinary authored effects. */
-    void dispatch(Player owner, Entity summon, List<LivingEntity> targets) {
+    @Override
+    public int[] payloadCandidates(UUID ownerId) {
+        return ownerId == null ? null : dispatch.payloadCandidatesNow(ownerId);
+    }
+
+    /**
+     * One activation per target, so the payload's damage/ignite/knockback stay ordinary authored effects.
+     *
+     * <p>{@code pinned} is the spawning activation's own answer, kept because a death-triggered charge goes
+     * off for an owner who has already dropped the armour that armed it — the live walk would find nothing
+     * and the blast, whose vanilla explosion the detonate phase already cancelled, would land as a dud. With
+     * no pin (an older summon, a reload since, a phase nobody pinned) the live read is still the right one.
+     */
+    void dispatch(Player owner, Entity summon, List<LivingEntity> targets, int[] pinned) {
         for (int i = 0; i < targets.size(); i++) {
-            dispatch.fireSummonPayload(owner, summon, targets.get(i));
+            if (pinned != null) {
+                dispatch.fireSummonPayloadPinned(owner, summon, targets.get(i), pinned);
+            } else {
+                dispatch.fireSummonPayload(owner, summon, targets.get(i));
+            }
         }
     }
 

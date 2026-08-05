@@ -2513,8 +2513,11 @@ public abstract class DispatchSinkBase implements SinkReadback {
         }
         if (flags.tracked()) {
             // The summon-guard listener enforces no-target + hit-gated detonation from this registry, and
-            // every payload phase looks the summon up in it.
-            PetSummons.bind(spawned.getUniqueId(), flags);
+            // every payload phase looks the summon up in it. A payload's abilities are PINNED here, at spawn:
+            // the owner of a death-triggered charge is dead (or dying) by the time it goes off, and a payload
+            // read out of their LIVE worn state would find the armour already dropped and blast nothing.
+            PetSummons.bind(spawned.getUniqueId(), flags,
+                    flags.payloadArmed() && ownerId != null ? payloads.payloadCandidates(ownerId) : null);
         }
         if (flags.payloadOn(SummonFlags.PHASE_PERIODIC)) {
             armPayloadPulse(spawned, flags, payloads);

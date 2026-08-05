@@ -15,12 +15,13 @@ tier: uncommon
 # a cooldown here would gate the CREEPER PAYLOAD too — every ability of one enchant shares one cooldown
 # bucket (EnchantDefReader: "one cooldown scope"), and a zero-cooldown block still RESPECTS a bucket a
 # sibling armed, so the detonations inside those 10 s would all be swallowed.
-# ENGINE SEAM (reported, not authorable around): a summon payload runs the OWNER's abilities out of their
-# LIVE WornState, and this wearer is dead before the first creeper reaches anyone. Death drops the armour,
-# the armour-change feeder (modern) / gear poll (1.8) refreshes off that drop and respawn refreshes again —
-# so by the time a creeper goes off its owner most likely carries no Plague Carrier, the payload resolves
-# nothing, and the phase has already cancelled the vanilla blast. The fix is engine-side: pin the payload's
-# abilities to the SPAWNING activation instead of re-reading the owner. Recorded in deferred-content.md.
+# THE DEAD-OWNER SEAM IS CLOSED (R-QC57). A summon payload used to run the OWNER's abilities out of their
+# LIVE WornState, and this wearer is dead before the first creeper reaches anyone: death drops the armour,
+# the armour-change feeder (modern) / gear poll (1.8) refreshes off that drop and respawn refreshes again, so
+# by the time a creeper went off its owner carried no Plague Carrier, the payload resolved nothing, and the
+# phase had already cancelled the vanilla blast — a dud. The payload's ability ids are now PINNED onto each
+# creeper at spawn and run through the engine's cold detached path, so the burst is the one the wearer armed
+# with the gear they died in. Same fix serves self-destruct.yml.
 # Interactions carried by the OTHER side, nothing authored here: the death burst respects relations
 # (truce+ skipped) while the creeper payload hits everyone including allies — the jar's measured asymmetry,
 # left for the relation layer to keep or normalise (payload-filter: ALL below is that half). Summons drop no

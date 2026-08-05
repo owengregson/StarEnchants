@@ -18,8 +18,12 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class PetSummons {
 
-    /** The flags a summon was spawned with, plus the snapshot generation that interned their group id. */
-    private record Tracked(SummonFlags flags, int gen) {
+    /**
+     * The flags a summon was spawned with, the snapshot generation that interned their group id, and the
+     * owner's PINNED payload candidates — the ability ids their {@code SUMMON_PAYLOAD} walk resolved to at
+     * SPAWN time ({@code null} when nothing was pinned).
+     */
+    private record Tracked(SummonFlags flags, int gen, int[] payload) {
     }
 
     private static final Map<UUID, Tracked> FLAGS = new ConcurrentHashMap<>();
@@ -28,7 +32,18 @@ public final class PetSummons {
     }
 
     public static void bind(UUID entity, SummonFlags flags) {
-        FLAGS.put(entity, new Tracked(flags, CastGeneration.current()));
+        bind(entity, flags, null);
+    }
+
+    /**
+     * Bind with the owner's payload abilities PINNED to this spawn. A payload otherwise resolves out of the
+     * owner's LIVE worn state, and every death-triggered summon in the pack is spawned by an owner who is
+     * about to stop wearing the piece — death drops the armour and the equip feeder refreshes off that drop,
+     * so the blast would run an empty ability set and leave a dud. The pin is the spawning activation's
+     * answer, kept for the summon's whole life.
+     */
+    public static void bind(UUID entity, SummonFlags flags, int[] payloadCandidates) {
+        FLAGS.put(entity, new Tracked(flags, CastGeneration.current(), payloadCandidates));
     }
 
     /**
@@ -38,6 +53,16 @@ public final class PetSummons {
     public static SummonFlags flags(UUID entity) {
         Tracked tracked = FLAGS.get(entity);
         return tracked == null || CastGeneration.stale(tracked.gen()) ? null : tracked.flags();
+    }
+
+    /**
+     * The payload ability ids pinned at spawn, or {@code null} when none was (an untracked summon, one bound
+     * with no pin, or one whose snapshot generation has since moved — dense ids do not survive a reload, so
+     * a stale pin is dropped and the caller falls back to the live read).
+     */
+    public static int[] pinnedPayload(UUID entity) {
+        Tracked tracked = FLAGS.get(entity);
+        return tracked == null || CastGeneration.stale(tracked.gen()) ? null : tracked.payload();
     }
 
     public static void forget(UUID entity) {
