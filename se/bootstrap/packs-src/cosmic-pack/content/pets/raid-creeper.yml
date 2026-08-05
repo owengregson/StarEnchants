@@ -44,7 +44,9 @@
 display: "Raid Creeper Pet"
 color: "&e"
 type: ACTIVE
-# head: the per-type skull texture is not recorded in the matrix (codex carries the profile, not the base64).
+# HEAD TEXTURE (R-QC56): the source's own `skinBlob` constant, verbatim — the family reading (why the
+# blob IS the identity, and the two source data bugs) is in `items/pet.yml`.
+head: "eyJ0aW1lc3RhbXAiOjE1NjI2MjczMjIzMTIsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS81MDg0ZWVlY2UxOTM4ZjViZGY3M2ViNjY4YzBhOTEwZDU5Y2UzYjRkMzExODViN2VkNzUyNTQxYjFiN2ZmZmY3In19fQ=="
 descriptor:
   - "§7§7A mythical hybrid creeper,"
   - "§7§7a rare cross between the"

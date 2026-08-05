@@ -65,7 +65,11 @@
 display: "World Destroyer Pet"
 color: "&e"
 type: ACTIVE
-# head: the per-type skull texture is not recorded in the matrix (codex carries the profile, not the base64).
+# HEAD TEXTURE (R-QC56): the source's own `skinBlob` constant, verbatim — the family reading (why the
+# blob IS the identity, and the two source data bugs) is in `items/pet.yml`.
+# This one is the 313-char blob corrected to 312: the source carries one padding character past legal
+# base64 and a strict decoder throws on it; the decoded payload is identical.
+head: "eyJ0aW1lc3RhbXAiOjE1NjYyNDY4MTk4MDIsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS80MjQ4NjAwM2U4NTQ1OThiODAxZjA3ZDc2NjI2MDBjZmJkNmY0MGVmZTcyYjI2MmI1Mjc5NGNjYWRhNTlhMWE2In19fQ=="
 descriptor:
   - "§7§7A fragment of the legendary"
   - "§7§7World Destroyer, Yijki."

@@ -29,16 +29,14 @@
 # it) needs nothing authored — the engine's bar is proportional and clamps full.
 # era: `LAVA_POP` / `VILLAGER_NO` are the 1.7/1.8 spellings; the modern names ship per the pack convention and
 # `Aliases.SOUND` carries both rows (`LAVA_POP`->`BLOCK_LAVA_POP`, `VILLAGER_NO`->`ENTITY_VILLAGER_NO`),
-# so both cues play on the legacy lane. `SKULL_ITEM:3` is the era seam's shape, but only for a pet that
-# authors a `head:` — see `pet.yml`. No other hazard.
+# so both cues play on the legacy lane. `SKULL_ITEM:3` is the era seam's shape, and every pet authors a
+# `head:` now, so the legacy lane mints the textured player head — see `pet.yml`. No other hazard.
 display: "Anti Teleblock Pet"
 color: "&e"
 type: ACTIVE
-# head: the per-pet skull texture is not matrix-recorded (the codex captured names and lore, not profile
-# values), so no `head:` is authored and the mint falls back to a plain PLAYER_HEAD.
-# On 1.8.9 that token degrades to `SKULL_ITEM` — data 0, so a skeleton skull rather than the
-# seam's `SKULL_ITEM:3` (see `items/pet.yml`). A texture is a one-line
-# add whenever the value is recovered.
+# HEAD TEXTURE (R-QC56): the source's own `skinBlob` constant, verbatim — the family reading (why the
+# blob IS the identity, and the two source data bugs) is in `items/pet.yml`.
+head: "eyJ0aW1lc3RhbXAiOjE1NjAyMTE0NDQ0NTksInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8xYjA5YTM3NTI1MTBlOTE0YjBiZGM5MDk2YjM5MmJiMzU5ZjdhOGU4YTk1NjZhMDJlN2Y2NmZhZmY4ZDZmODllIn19fQ=="
 descriptor:
   - "§7§7An elusive creature that"
   - "§7§7has the power to negate"

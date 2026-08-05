@@ -38,7 +38,9 @@
 display: "Vile Creeper Pet"
 color: "&e"
 type: ACTIVE
-# head: the per-type skull texture is not recorded in the matrix (codex carries the profile, not the base64).
+# HEAD TEXTURE (R-QC56): the source's own `skinBlob` constant, verbatim — the family reading (why the
+# blob IS the identity, and the two source data bugs) is in `items/pet.yml`.
+head: "eyJ0aW1lc3RhbXAiOjE1NjMyNzczNjY1MDYsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS80YjA2OWNlY2Y0MjNjMzFiNDQ0ZTE4MGVlNGU3ODcyZDBhMmNkZjM0YjQ4YzNkMzI3MGJlZmY1MmM3MjRhOWIzIn19fQ=="
 # The second line's broken grammar is the source text, verbatim.
 descriptor:
   - "§7§7An extremely dangerous creeper,"

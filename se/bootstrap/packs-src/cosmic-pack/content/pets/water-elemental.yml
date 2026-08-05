@@ -16,9 +16,9 @@
 display: "Water Elemental Pet"
 color: "&e"
 type: ACTIVE
-# head: not matrix-recorded, so the mint falls back to a plain PLAYER_HEAD (see `lava-elemental.yml`).
-# On 1.8.9 that token degrades to `SKULL_ITEM` — data 0, so a skeleton skull rather than the
-# seam's `SKULL_ITEM:3` (see `items/pet.yml`).
+# HEAD TEXTURE (R-QC56): the source's own `skinBlob` constant, verbatim — the family reading (why the
+# blob IS the identity, and the two source data bugs) is in `items/pet.yml`.
+head: "eyJ0aW1lc3RhbXAiOjE1NTk2Nzk5NDQ5NzQsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS83YjBhZjJhOWNkOWExYTk2MTU3M2ZhZWE2NGFmYzhlYjZiN2U3NTdkZjMwZDdmNWY3ZWUyZGJmYzFmYmUzNGRiIn19fQ=="
 descriptor:
   - "§7§7A watery pet that is"
   - "§7§7capable of extracting water"

@@ -21,9 +21,8 @@
 #    and the body carries its own `§7§f§lAbility` / `§7§f§lCooldown` headers and cooldown value line
 #    (`§7§7 10 Minutes`). The pack's ONE pet likeness, `items/pet.yml`, holds the cosmic name template and the
 #    family's Level/EXP tail, and nothing else.
-#  - HEAD: the per-type skull texture is codex-side and not matrix-recorded, so no base64 is authored and the
-#    head mints untextured — PLAYER_HEAD on modern, its SKULL_ITEM degradation on 1.8.9 (`items/pet.yml`).
-#    Family-wide across all 17 entries.
+#  - HEAD: the source's own `skinBlob`, authored verbatim below (R-QC56); the family reading is in
+#    `items/pet.yml`.
 #  - Pet heads are invalid helmet items (the masks family refuses to wear one) — an interaction-layer rule.
 # THE NO-TARGET GATE, and what it costs. The jar wipes the mobs FIRST and only then throws when no enemy
 # player is in range, so a mob-only click still cleared the mobs — for free, since the throw also skipped the
@@ -72,6 +71,9 @@
 display: "Gaia Pet"
 color: "&e"
 type: ACTIVE
+# HEAD TEXTURE (R-QC56): the source's own `skinBlob` constant, verbatim — the family reading (why the
+# blob IS the identity, and the two source data bugs) is in `items/pet.yml`.
+head: "eyJ0aW1lc3RhbXAiOjE1NjIwOTAxODY4OTYsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9jY2UzYTc0MjdiY2IwNTRlZjFhNzY0NGY2Y2EwZWQwZWRjOTY3NDdhYWJjZjJlMWQ1ZjVmNjc3YjhkZGY2NDA3In19fQ=="
 descriptor:
   - "§7§7A segment of the goddess"
   - "§7§7of the earth and nature itself."

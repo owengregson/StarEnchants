@@ -25,9 +25,8 @@
 #    (`§7` / `§f§lLevel` / `§7 {level}` / `§7` / `§f§lEXP` / `{bar}` / `§7 ({exp}/{needed})`), nothing else.
 #    `{LEVEL}` is the likeness token for the stored level, and here it doubles as the bonus percent, which IS
 #    the level; `{TIME_FORMATTED}` renders the live bracket's cooldown, flat `15m` at every rung.
-#  - HEAD: the per-type skull texture is codex-side and not matrix-recorded, so no base64 is authored and the
-#    head mints untextured — PLAYER_HEAD on modern, its SKULL_ITEM degradation on 1.8.9 (`items/pet.yml`).
-#    Family-wide across all 17 entries.
+#  - HEAD: the source's own `skinBlob`, authored verbatim below (R-QC56); the family reading is in
+#    `items/pet.yml`.
 #  - Pet heads are invalid helmet items (the masks family refuses to wear one) — an interaction-layer rule,
 #    engine-owned, not authored here.
 # NOT RENDERED (recorded): the guard's verbatim refusal line
@@ -47,11 +46,15 @@
 # era: none beyond the family notes. `LAVA_POP` and `ITEM_PICKUP` are 1.7/1.8 sound names, authored here in
 # their modern spellings (`BLOCK_LAVA_POP`, `ENTITY_ITEM_PICKUP`); `Aliases.SOUND` carries both rows
 # (`LAVA_POP → BLOCK_LAVA_POP`, `ITEM_PICKUP → ENTITY_ITEM_PICKUP`), so both play on the legacy fork.
-# `SKULL_ITEM:3` is the era seam's shape, but only for a pet that authors a `head:` — see `pet.yml`.
+# `SKULL_ITEM:3` is the era seam's shape, and this pet authors a `head:`, so the legacy lane mints the
+# textured player head — see `pet.yml`.
 # FOLDER HARMONISATION (owner ruling): '&' colour form, own Cooldown block, spectator refusal as its own ability.
 display: "Blackscroll Pet"
 color: "&e"
 type: ACTIVE
+# HEAD TEXTURE (R-QC56): the source's own `skinBlob` constant, verbatim — the family reading (why the
+# blob IS the identity, and the two source data bugs) is in `items/pet.yml`.
+head: "eyJ0aW1lc3RhbXAiOjE1NjE1OTM4MTMxMDYsInByb2ZpbGVJZCI6IjdjODk1YWQwMTFkMDQzNTA5YWU1ZjJiYjFjZjZjOGVhIiwicHJvZmlsZU5hbWUiOiJCYXNpY0JBRSIsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8yNzY4MGE4MjMxNmNhNjc5YmI2ZDc0YTQzZTU4ZTUzMWI4Mjg2NzhkNzU5ZDRkYzIxMDlkZjY5ODI0YjZiYmI3In19fQ=="
 descriptor:
   - "§7§7A strange organic box"
   # "eminates" is the source's own typo, kept verbatim.

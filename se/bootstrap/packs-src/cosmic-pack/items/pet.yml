@@ -6,11 +6,22 @@
 # {DESCRIPTION} its ability body (which carries the family's own `§7§f§lAbility` / `§7§f§lCooldown` headers
 # and cooldown value line — those are per-pet here, not template text), {LEVEL} / {MAX_LEVEL} / {EXP} /
 # {EXP_NEXT} the stored progress, {EXP_BAR} the progress meter, {TIME_FORMATTED} the live bracket's cooldown.
-# era: no pet authors a `head:` (the codex carries the profile, not the base64), so none reaches the textured
-# era seam and every one mints from `PetDefReader`'s default `PLAYER_HEAD` token instead. That token is
-# modern-only, so the 1.8 lane takes `ItemFactory`'s `PLAYER_HEAD → SKULL_ITEM` degradation — head-shaped, but
-# data 0, i.e. the skeleton skull rather than the seam's `SKULL_ITEM:3` player variant. Recovering the
-# seventeen profiles fixes both lanes at once and is a codex question (deferred-content.md).
+# HEAD TEXTURES (R-QC56) — the family reading every pet file cites rather than repeats. All 17 profiles were
+# recoverable after all: the `skinBlob` constructor argument of each enum constant carries the complete base64
+# blob, cross-checked byte-for-byte against the bytecode constant pool and against the codex's decoded profile
+# table (12-pets.md:352-369). The claim this note used to carry — that the codex held the profile but not the
+# base64 — was false in both halves, and the 13 shipped pets now author their own `head:` verbatim.
+# The blob IS the whole identity. The jar built its GameProfile with `UUID.randomUUID()` and the lower-cased
+# enum name, so there is no player-name skull and no stable source UUID to port; the `profileId` inside a blob
+# belongs to the skin's AUTHOR (16 of 17 share one), and nothing reads it.
+# Two source data bugs travel with the set. `world-destroyer`'s blob is 313 characters ending `===` — one
+# padding character past legal base64, which a strict decoder throws on — so its file ships the corrected
+# 312-char form; the decoded payload is identical. `alchemist`'s texture hash is 63 hex characters rather than
+# 64 and the missing character is in neither source, bytecode nor codex; that pet is on the R-QC54 cut list,
+# so nothing here carries it.
+# era: a `head:` IS the textured seam — `SKULL_ITEM:3` on 1.8.9 against modern `PLAYER_HEAD` — so both lanes
+# now mint a textured player head instead of the untextured data-0 skeleton skull that `PetDefReader`'s
+# default `PLAYER_HEAD` token degraded to on the legacy fork.
 type: pet
 
 # The name is the source's, verbatim: `§e§lLava Elemental Pet§7 [LVL 1]`. `{COLOR}` is the pet's `&e` and the
