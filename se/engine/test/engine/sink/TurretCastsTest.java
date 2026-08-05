@@ -27,7 +27,7 @@ class TurretCastsTest {
     void aShotCarriesItsTurretsGroupToTheStrikeAndPaysExactlyOnce() {
         UUID owner = UUID.randomUUID();
         UUID shot = UUID.randomUUID();
-        TurretCasts.bindShot(shot, owner, 12);
+        TurretCasts.bindShot(shot, owner, 12, CastGeneration.current());
 
         TurretCasts.Impact first = TurretCasts.claimImpact(shot);
         assertNotNull(first);
@@ -42,7 +42,7 @@ class TurretCastsTest {
     @Test
     void anOwnerlessOrUnknownShotClaimsNothing() {
         UUID orphan = UUID.randomUUID();
-        TurretCasts.bindShot(orphan, null, 12); // fired by nobody — no actor to run IMPACT against
+        TurretCasts.bindShot(orphan, null, 12, CastGeneration.current()); // fired by nobody — no actor to run IMPACT against
         assertNull(TurretCasts.claimImpact(orphan));
         assertNull(TurretCasts.claimImpact(UUID.randomUUID()));
         assertNull(TurretCasts.claimImpact(null));
@@ -61,7 +61,7 @@ class TurretCastsTest {
         UUID turret = UUID.randomUUID();
         UUID shot = UUID.randomUUID();
         TurretCasts.bindTurret(turret);
-        TurretCasts.bindShot(shot, UUID.randomUUID(), 1);
+        TurretCasts.bindShot(shot, UUID.randomUUID(), 1, CastGeneration.current());
         assertTrue(TurretCasts.neverGriefs(turret));
         assertTrue(TurretCasts.neverGriefs(shot));
         assertFalse(TurretCasts.neverGriefs(UUID.randomUUID()));

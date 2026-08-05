@@ -23,7 +23,7 @@ public final class TurretCasts {
 
     /** One in-flight shot: the turret owner's id (may be {@code null} — no owner, so no IMPACT), the group that
      *  armed the ring, and whether its one IMPACT has already been paid. */
-    private record Shot(UUID owner, int sourceGroup, boolean spent) {
+    private record Shot(UUID owner, int sourceGroup, boolean spent, int gen) {
     }
 
     /** A claimed strike: who pays the payload, and which authored {@code group:} it is scoped to (ADR-0074). */
@@ -53,13 +53,15 @@ public final class TurretCasts {
 
     /** Track a shot a turret just launched; {@code owner} is who pays its IMPACT ({@code null} = nobody). */
     public static void bindShot(UUID projectile, UUID owner) {
-        bindShot(projectile, owner, -1);
+        bindShot(projectile, owner, -1, CastGeneration.current());
     }
 
     /** {@link #bindShot(UUID, UUID)} carrying its turret's group all the way to the strike. */
-    public static void bindShot(UUID projectile, UUID owner, int sourceGroup) {
+    public static void bindShot(UUID projectile, UUID owner, int sourceGroup, int gen) {
         if (projectile != null) {
-            SHOTS.put(projectile, new Shot(owner, sourceGroup, false));
+            // R-QC58: the ARM generation, captured by the volley chain — not the live one. A turret that
+            // outlives a reload keeps firing, and its shots must stop claiming a group id that moved.
+            SHOTS.put(projectile, new Shot(owner, sourceGroup, false, gen));
         }
     }
 
@@ -79,8 +81,11 @@ public final class TurretCasts {
             if (shot.spent()) {
                 return shot;
             }
-            claimed[0] = shot.owner() == null ? null : new Impact(shot.owner(), shot.sourceGroup());
-            return new Shot(shot.owner(), shot.sourceGroup(), true);
+            // R-QC58: a shot armed under an older snapshot is SPENT without paying — dropped, never unscoped,
+            // since an unscoped strike fires the owner's whole IMPACT roster instead of the ring's own payload.
+            claimed[0] = shot.owner() == null || CastGeneration.stale(shot.gen())
+                    ? null : new Impact(shot.owner(), shot.sourceGroup());
+            return new Shot(shot.owner(), shot.sourceGroup(), true, shot.gen());
         });
         return claimed[0];
     }

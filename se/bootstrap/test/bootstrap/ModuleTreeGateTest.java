@@ -115,8 +115,14 @@ class ModuleTreeGateTest {
      * the item store meet) has no instance to wire; a stateless read-only lookup with no teardown. It is ONE
      * hook for the whole family on purpose: a second static per worn fact would grow this set without adding
      * a single new consideration to adjudicate.
+     * CastGeneration#current is adjudicated (R-QC58): the live snapshot generation the four IMPACT-scope
+     * carriers stamp beside their interned group id, so a cast that outlives a reload is dropped instead of
+     * firing an unscoped payload. Bound by the composition root at boot and on every reload publish, beside
+     * WhyStore#generation — a read-only int with no teardown, and ONE holder for all four carriers on purpose:
+     * four per-registry counters would grow this set without adding a consideration to adjudicate.
      */
     private static final Set<String> FROZEN_STATICS = Set.of(
+            "CastGeneration#current",
             "CombatDispatch#friendlyFire",
             "FactPopulator#wornFactSource",
             // %actor.ownedground% off the per-boot temp-block ledger: same adjudication as

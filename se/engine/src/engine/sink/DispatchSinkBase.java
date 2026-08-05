@@ -3422,7 +3422,11 @@ public abstract class DispatchSinkBase implements SinkReadback {
             world.strikeLightningEffect(ground); // visual only — never the vanilla ~5 damage + fire
         }
         playFieldCue(ground, spawnCue, spawnSpread);
-        scheduleVolley(turret, ownerId, sourceGroup, profile, profile.initialDelayTicks());
+        // R-QC58: the ARM generation is captured into the chain here, once, and rides every shot it binds —
+        // a turret outlives the activation that placed it, and re-reading the live one at each shot would
+        // silently re-scope a ring the operator has already reloaded out from under.
+        scheduleVolley(turret, ownerId, sourceGroup, CastGeneration.current(), profile,
+                profile.initialDelayTicks());
         Scheduling.onEntityLater(turret, profile.ttlTicks(), () -> despawnTurret(turret, despawnCue, despawnSpread));
     }
 
@@ -3461,20 +3465,20 @@ public abstract class DispatchSinkBase implements SinkReadback {
      * the initial arming delay is just the first link. The chain ends the moment the body is gone — on Paper
      * the fallback scheduler still runs the pending task, so the liveness guard covers both platforms.
      */
-    private void scheduleVolley(Entity turret, UUID ownerId, int sourceGroup, TurretRingProfile profile,
-                                int delay) {
+    private void scheduleVolley(Entity turret, UUID ownerId, int sourceGroup, int gen,
+                                TurretRingProfile profile, int delay) {
         Scheduling.onEntityLater(turret, Math.max(1, delay), () -> {
             if (!turret.isValid()) {
                 return;
             }
-            fireVolley(turret, ownerId, sourceGroup, profile);
-            scheduleVolley(turret, ownerId, sourceGroup, profile,
+            fireVolley(turret, ownerId, sourceGroup, gen, profile);
+            scheduleVolley(turret, ownerId, sourceGroup, gen, profile,
                     profile.drawPeriod(ThreadLocalRandom.current()));
         });
     }
 
     /** One shot at the nearest eligible body the turret can see, or nothing at all when it has no target. */
-    private void fireVolley(Entity turret, UUID ownerId, int sourceGroup, TurretRingProfile profile) {
+    private void fireVolley(Entity turret, UUID ownerId, int sourceGroup, int gen, TurretRingProfile profile) {
         Location muzzle = turret.getLocation().add(0.0, TURRET_MUZZLE_RISE, 0.0);
         World world = muzzle.getWorld();
         EntityType shotType = entityType(profile.projectileTypeId());
@@ -3505,7 +3509,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         // CAPTURED, not re-read: the chain already carries ownerId and the profile the same way, and a
         // registry read here would fail OPEN (a missed row scopes nothing, firing the owner's whole IMPACT
         // roster) — the exact over-firing the scoping exists to stop.
-        TurretCasts.bindShot(shotId, ownerId, sourceGroup);
+        TurretCasts.bindShot(shotId, ownerId, sourceGroup, gen);
         // A shot that never hits anything would leak its row; the ceiling drops it. Scheduled on the REGION, not
         // the projectile — Folia retires an entity's tasks with the entity, which is exactly the case to cover.
         Scheduling.onRegionLater(muzzle, TURRET_SHOT_TTL_TICKS, () -> TurretCasts.forgetShot(shotId));
