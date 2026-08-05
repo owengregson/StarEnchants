@@ -231,12 +231,17 @@ final class EnchantDefReader {
         return lvl != null && lvl.has(key) ? lvl : root;
     }
 
-    /** The level's own {@code effects:} list; an empty list warns (a no-op ability is almost always a mistake). */
+    /**
+     * The level's own {@code effects:} list. A MISSING key warns — a no-op ability is almost always a mistake —
+     * but an explicitly authored {@code effects: []} loads silently (R-QC59): a level whose whole job is a
+     * condition, a cooldown or a lore rung is a deliberate shape, and warning at it trained authors to ignore
+     * the code that catches the real omission.
+     */
     private static List<EffectLine> effectsFor(String baseKey, int level, YamlNode lvl, Diagnostics diags) {
         List<EffectLine> effects = lvl.has("effects")
                 ? ContentParse.effectItems(lvl, "effects", diags)
                 : new ArrayList<>();
-        if (effects.isEmpty()) {
+        if (effects.isEmpty() && !lvl.has("effects")) {
             diags.warning(DiagCode.W_LOAD_EFFECTS, "level " + level + " of '" + baseKey + "' declares no effects",
                     lvl.sourceOf("effects"));
         }
