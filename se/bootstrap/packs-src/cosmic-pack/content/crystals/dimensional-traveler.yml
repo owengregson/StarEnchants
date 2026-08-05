@@ -32,8 +32,7 @@ stackable: true
 # that twice and cannot mean both — § Dimensional Traveler calls this hook "unique among damage sets" while
 # § Dragon Slayer calls KOTH and Dragon Slayer "the only two damage-modifying sets without one", which is three
 # sets for two slots. The uncontested fact is the one stated above; the exclusivity is a matrix-maintenance row
-# (deferred-content.md). sets/dimensional-traveler.yml still carries the "uniquely in the family" spelling and
-# is named on that row.
+# (deferred-content.md). sets/dimensional-traveler.yml carries the same normalised wording.
 abilities:
   - { trigger: ATTACK, effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 7.5 } } ] }
   # The set's own "dungeon" world gate rides its defensive rungs; the crystal path carries the same gate, from

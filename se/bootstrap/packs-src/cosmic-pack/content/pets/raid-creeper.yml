@@ -14,6 +14,7 @@
 # grant, remainder banked, unbounded banking at the cap) and the two verbatim lines; the ladder is this pet's
 # own `exp-curve` + `max-level`. The jar's always-empty/overflowing 50-segment EXP bar is D-12-2 — the engine
 # renders a proportional bar clamped at full.
+# FAMILY-WIDE, AUTHORED ONCE FOR THE FOLDER: items/pet.yml + config.yml — full reading in anti-teleblock.yml.
 # ── THIS PET ───────────────────────────────────────────────────────────────────────────────────────────────
 # Spawns ONE creeper. Everything that made it a "Raid" creeper in the jar — the Lucky + Tactical hybrid
 # stats, its AI, its explosion and the 100 % spawner drop rate — lived in an EXTERNAL custom-creeper system

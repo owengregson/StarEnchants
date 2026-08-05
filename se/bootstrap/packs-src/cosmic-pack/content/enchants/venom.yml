@@ -20,9 +20,12 @@ tier: rare
 # has no experience param; a plain orb spawn carries no XP payload, which is what the jar's explicit
 # setExperience(0) produced — flagged for the live sweep, not compensated. `ttl` covers any rider, but
 # `invulnerable` / `no-pickup` are LivingEntity-only guards in the sink and an orb is not one, so both are
-# inert here — the same caveat §Explosive records for its wither skull. Left at their defaults either way. The jar STOOD DOWN its rider when
-# Explosive shared the item (one passenger slot); the engine owns that collision itself — one rider per shot,
-# a second dressing replaces the first — so no held-enchant condition is authored (none exists).
+# inert here — the same caveat §Explosive records for its wither skull. Left at their defaults either way.
+# Rider slot: ONE rider per shot, and a second PROJECTILE_DRESSING on the same shot replaces the first. The
+# jar additionally STOOD DOWN the lesser rider when Explosive shared the item; that stand-down IS ported, on
+# `cowification.yml` (`%actor.enchlevel.explosive% == 0`), and is NOT authored here — with Venom and Explosive
+# on one bow the replacement rule decides, so dispatch order picks the rider. Cosmetic either way; recorded
+# rather than fixed, since Venom's dressing sits inside a larger effect list that a condition would gate whole.
 # D-05-7 (as-intended): the landing AoE is DEAD in the jar — its loop tests the ARROW for player-ness
 # instead of the candidate, so the body is unreachable and Venom's area poison never applies. Shipped as the
 # author meant it, matching §Explosive's landing AoE, which tests the candidate: the same Poison II on enemy

@@ -25,14 +25,13 @@ soul-cost: 4  # flat at every level, charge-or-abort — the D-04-11 as-intended
 #  - `%soultrap% != 1`, the attacker reading HIS OWN copy of the trap mark: a trapped player cannot spend
 #    souls. Bare (actor-scope) read of the var soul-trap.yml writes victim-side, so that name is load-bearing
 #    across the two files; it reads 0 in silence whether or not Soul Trap itself is on anyone's axe;
-#  - THE VICTIM'S HEROIC ARMOR, which is what this enchant is FOR and what kept it deferred through wave 1f.
-#    `%victim.heroicpieces%` (wave 2c) counts how many of the defender's four worn armour pieces carry a
-#    heroic upgrade — a COUNT, not the heroic stat SUM the reduction fold already folds, because "wearing at
-#    least one piece" is a gate no percentage can express and four 10 % pieces must not read as one 40 % one.
+#  - THE VICTIM'S HEROIC ARMOR, which is what this enchant is FOR. `%victim.heroicpieces%` counts how many of
+#    the defender's four worn armour pieces carry a heroic upgrade — a COUNT, not the heroic stat SUM the
+#    reduction fold already folds, because "wearing at least one piece" is a gate no percentage can express
+#    and four 10 % pieces must not read as one 40 % one.
 #    Armour ONLY: a heroic sword in the hand is not a piece the defender is wearing.
-# LIVE as of wave 2e: a set member declaring `heroic: true` mints already heroic through the upgrade
-# gesture's own stats write, so the count is real for any M-Kit wearer and the gate bites today. (The drain
-# authored this block as inert-on-purpose while no heroic item existed; the liveness arrived in flight.)
+# A set member declaring `heroic: true` mints already heroic through the upgrade gesture's own stats write, so
+# the count is real for any M-Kit wearer and the gate bites.
 # The gate is NOT softened either way: without it this would be a flat +10/20/30 % against every player
 # alive, which is a different enchant.
 # Heroic-armour detection is the item model's own classification (`HeroicStat`), never an NBT probe — the

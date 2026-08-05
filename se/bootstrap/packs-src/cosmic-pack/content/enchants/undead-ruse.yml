@@ -23,8 +23,7 @@ condition: "%damagecause% == \"ENTITY_ATTACK\" && %victim.type% == \"PLAYER\""
 # The vanish window is the INTENDED (zombies x 20) + 20 t; the jar's flat 20 t is its own loop counter already
 # decremented to zero (D-02-13). The reappear burst rides that window as a `wait:` on the last line, so it must
 # stay last — a wait tier accumulates down the effect list.
-# The minion name carries `{OWNER}` for the matrix's `{owner}` (batch 05 authored the placeholder `{player}`,
-# which nothing ever substituted; the flip landed pack-wide with the token). Here it fills EMPTY for now — see
+# The minion name carries `{OWNER}` for the matrix's `{owner}`. Here it fills EMPTY for now — see
 # the gap below: SPAWN_SWARM only passes an owner when `cloud:` is set, and an ownerless summon substitutes the
 # empty string rather than showing a player the authoring syntax. So the nameplate reads `'s Undead Minion`
 # until the same `owner` param lands, at which point both halves fix together.

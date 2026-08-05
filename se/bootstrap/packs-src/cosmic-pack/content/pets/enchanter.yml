@@ -28,6 +28,7 @@
 #    `items/pet.yml`.
 #  - Pet heads are invalid helmet items (the masks family refuses to wear one) — an interaction-layer rule,
 #    engine-owned, not authored here.
+# FAMILY-WIDE, AUTHORED ONCE FOR THE FOLDER: items/pet.yml + config.yml — full reading in anti-teleblock.yml.
 # NOT RENDERED (recorded): the guard's verbatim refusal line
 #   `§c§lPET: §cYou already have an active Enchanter Pet applied. Use an Enchantment Book before attempting to
 #   use another Enchanter Pet.`

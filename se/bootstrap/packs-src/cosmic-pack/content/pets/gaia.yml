@@ -24,6 +24,7 @@
 #  - HEAD: the source's own `skinBlob`, authored verbatim below (R-QC56); the family reading is in
 #    `items/pet.yml`.
 #  - Pet heads are invalid helmet items (the masks family refuses to wear one) — an interaction-layer rule.
+# FAMILY-WIDE, AUTHORED ONCE FOR THE FOLDER: items/pet.yml + config.yml — full reading in anti-teleblock.yml.
 # THE NO-TARGET GATE, and what it costs. The jar wipes the mobs FIRST and only then throws when no enemy
 # player is in range, so a mob-only click still cleared the mobs — for free, since the throw also skipped the
 # XP and the cooldown stamp. The engine cannot have both: a condition gates the WHOLE ability. Gating it (the

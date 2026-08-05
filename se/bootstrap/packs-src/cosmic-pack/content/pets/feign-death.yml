@@ -1,8 +1,8 @@
 # Matrix: 12-pets.md § Feign Death Pet
 # THE PET FAMILY SHAPE (12-pets.md § Family-level facts) is read once in `anti-teleblock.yml` and not repeated
 # here: ACTIVE pet = right-click = the implicit USE trigger (D-12-1), the as-intended cooldown ships as the
-# bracket `cooldown:`, progression is this pet's own `exp-curve` + `max-level` through ITEM_XP_TRACK, and the
-# `items/pet.yml` + `config.yml` likeness is authored once for the folder.
+# bracket `cooldown:`, and progression is this pet's own `exp-curve` + `max-level` through ITEM_XP_TRACK.
+# FAMILY-WIDE, AUTHORED ONCE FOR THE FOLDER: items/pet.yml + config.yml — full reading in anti-teleblock.yml.
 # COOLDOWN: 12 000 t = the as-intended 600 s (ledger D-12-8) — PLUS the shared 10 s window below, which is the
 # only gate that ever worked in the measured jar.
 # THE SHARED WINDOW IS THE POINT OF THIS ENTRY. `feignwindow` is one var written and read by BOTH this pet

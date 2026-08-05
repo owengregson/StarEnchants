@@ -56,7 +56,9 @@ armor:
 # The set's OWN world gate (a substring test on the wearer's world, part of the decomposition) rides every
 # defensive rung; the family's outpost world gates are a different, interaction-layer rule and stay off.
 bonuses:
-  # +30 % outgoing, unconditional — and, uniquely in the family, with no Infinite Luck check (measured).
+  # +30 % outgoing, unconditional, with no Infinite Luck check (measured). No exclusivity claimed: the matrix
+  # awards that exemption twice, to three sets, and the contradiction is a matrix-maintenance row
+  # (deferred-content.md). crystals/dimensional-traveler.yml carries the same normalised wording.
   - on: armor
     trigger: ATTACK
     chance: 100
