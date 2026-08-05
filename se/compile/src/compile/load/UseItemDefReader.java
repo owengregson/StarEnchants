@@ -125,7 +125,7 @@ final class UseItemDefReader {
 
         List<EffectLine> effects = new ArrayList<>(ContentParse.effectItems(node, "effects", diags));
         effects.addAll(extraEffects);
-        if (effects.isEmpty()) {
+        if (effects.isEmpty() && !node.has("effects")) {
             diags.warning(DiagCode.W_LOAD_EFFECTS, "use-item ability '" + stableKey + "' declares no effects",
                     node.sourceOf("effects"));
         }

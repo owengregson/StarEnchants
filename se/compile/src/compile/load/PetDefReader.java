@@ -225,7 +225,7 @@ final class PetDefReader {
         String condition = ContentParse.blankToNull(node.string("condition"));
 
         List<EffectLine> effects = new ArrayList<>(ContentParse.effectItems(node, "effects", diags));
-        if (effects.isEmpty()) {
+        if (effects.isEmpty() && !node.has("effects")) {
             diags.warning(DiagCode.W_LOAD_EFFECTS, "pet ability '" + stableKey + "' declares no effects",
                     node.sourceOf("effects"));
         }

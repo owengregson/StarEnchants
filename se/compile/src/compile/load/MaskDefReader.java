@@ -114,7 +114,7 @@ final class MaskDefReader {
         ContentParse.SoulKnobs soulKnobs = ContentParse.resolveSoulKnobs(node, diags);
         String condition = ContentParse.blankToNull(node.string("condition"));
         List<EffectLine> effects = ContentParse.effectItems(node, "effects", diags);
-        if (effects.isEmpty()) {
+        if (effects.isEmpty() && !node.has("effects")) {
             diags.warning(DiagCode.W_LOAD_EFFECTS, "mask ability '" + stableKey + "' declares no effects",
                     node.sourceOf("effects"));
         }
