@@ -538,7 +538,36 @@ class EnchantDefReaderTest {
             assertEquals("enchants/phoenix", ability.cdScopeEnchant());
             assertEquals("combat", ability.cdScopeGroup());
             assertEquals(2, ability.level());
+            assertNull(ability.sourceGroup(), "no per-ability group authored — the family group scopes IMPACT");
         }
+    }
+
+    @Test
+    void aPerAbilityGroupNarrowsOnlyTheImpactScopeAndLeavesTheFamilyMatchKeyAlone() {
+        // R-QC40. The two identities split here: an arm/payload pair narrows `group:` per block so a landing
+        // fires only its own payload, while the enchant's ROOT group stays the key a family-wide
+        // SUPPRESS_INCOMING{scope: GROUP} names. Narrowing both would trade one bug for the other.
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            trigger: DEFENSE
+            group: mastery
+            levels:
+              1:
+                abilities:
+                  - { group: tombstone, effects: [{ HEAL: { amount: 1 } }] }
+                  - { trigger: IMPACT, group: tombstone, effects: [{ HEAL: { amount: 2 } }] }
+                  - { trigger: IMPACT, effects: [{ HEAL: { amount: 3 } }] }
+            """;
+        List<AbilityDef> abilities =
+                EnchantDefReader.read("enchants/tombstone", root(yaml, diags), counter(), diags).abilities();
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        for (AbilityDef ability : abilities) {
+            assertEquals("mastery", ability.cdScopeGroup(), "the family match key is never moved by the override");
+        }
+        assertEquals("tombstone", abilities.get(0).sourceGroup());
+        assertEquals("tombstone", abilities.get(1).sourceGroup());
+        assertNull(abilities.get(2).sourceGroup(), "a block that authors none falls back to the family group");
     }
 
     @Test
@@ -582,7 +611,7 @@ class EnchantDefReaderTest {
                 Source.ofFile("normalised.yml"), d.setPieces(), d.suppressImmune(), d.chanceExpr(),
                 d.noSoulsMessage(), d.soulCostCarried(), d.noSoulsSound(), d.noSoulsParticle(),
                 d.soulCostGrowth(), d.soulCostCap(), d.soulCostDecayPeriod(), d.cooldownPerVictim(),
-                d.repeatDelayTicks());
+                d.repeatDelayTicks(), d.sourceGroup());
     }
 
     /** Effect lines by head + named args; their embedded Source tracks the line they were written on. */

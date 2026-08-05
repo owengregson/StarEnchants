@@ -334,7 +334,7 @@ public final class AbilityExecutor {
                 List<LivingEntity> targets = selector == null ? List.of() : selector.resolve(sel);
                 List<org.bukkit.Location> locations = selector == null ? List.of() : selector.resolveLocations(sel);
                 EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets),
-                        locationSlotMap(kind, locations), ability.level(), ability.defId(), ability.cdScopeGroup(),
+                        locationSlotMap(kind, locations), ability.level(), ability.defId(), ability.sourceGroup(),
                         -1, 0, // a lifecycle transition walks no gates, so it reserved no cooldown to refund
                         null, null, origin);
                 sink.delay(0);
@@ -389,7 +389,7 @@ public final class AbilityExecutor {
                     targets = withoutDefendedTargets(ability, gated, targets);
                 }
                 EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets),
-                        locationSlotMap(kind, locations), ability.level(), ability.defId(), ability.cdScopeGroup(),
+                        locationSlotMap(kind, locations), ability.level(), ability.defId(), ability.sourceGroup(),
                         ability.cdScopeEnchant(), ability.cooldownTicks(),
                         activeGem, facts, origin);
                 // WAIT (§3.6): defer only this effect's world-mutation intents by its accumulated tick tier.

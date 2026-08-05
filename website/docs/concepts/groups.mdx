@@ -2,14 +2,14 @@
 id: groups
 title: Groups
 sidebar_position: 8
-description: Suppression match keys that tie related enchants together.
+description: Shared labels that tie related enchants together for suppression, and scope deferred payloads.
 ---
 
 # Groups
 
-A **group** is a shared label that ties related enchants together for **suppression**. You give an
-enchant a `group:` (a free-form name like `combat`, `defense`, or `mining`), and that name becomes a
-handle a `SUPPRESS` effect can aim at.
+A **group** is a shared label that ties related abilities together. You give an enchant a `group:` (a
+free-form name like `combat`, `defense`, or `mining`), and that name does two jobs: it becomes a
+handle a `SUPPRESS` effect can aim at, and it tells a deferred payload which landing it belongs to.
 
 Groups are how one enchant can shut a whole family of others down.
 
@@ -31,6 +31,42 @@ the victim for 200 ticks.
 - **`mode`** is `timed` (the default — a duration window) or `next-hit`, a one-shot that clears
   after the target's next incoming hits.
 - **`charges`** is how many incoming hits a `next-hit` suppression absorbs before it lapses.
+
+## The other job: scoping an `IMPACT` payload
+
+A group does one more thing. Some effects arm something that lands **later** — a falling-block field,
+a summoned minion's strike, a turret's shot — and whatever it hits runs the owner's `IMPACT`
+abilities. Without a group, every `IMPACT` ability the owner is wearing fires on every landing,
+including payloads belonging to a completely different enchant.
+
+Give the **arming** ability and its **payload** ability the same `group:` and the landing runs only
+that pair. The group is the identity they share: they are two separate abilities with two different
+ids, so nothing else could tie them together.
+
+An enchant's `group:` normally sits at the top of the file and applies to every ability in it. When a
+payload needs to be *narrower* than that — an enchant that lives in a wide family but whose landing
+must only fire its own bite — author `group:` **on the ability** instead:
+
+```yaml
+group: "mastery"          # the family: what SUPPRESS { scope: GROUP, key: mastery } silences
+levels:
+  1:
+    abilities:
+      - group: "tombstone"        # the arm
+        effects: [{ FALLING_BLOCK: { material: ANVIL, radius: 0, height: 5, who: "@Aoe{r=7}" } }]
+      - trigger: IMPACT
+        group: "tombstone"        # the payload — same word, so only this pair fires
+        effects: [{ DURABILITY: { target: armor, mode: percent-damage, percent: 10, who: "@Victim" } }]
+```
+
+The two uses do not interfere. **Suppression always matches the enchant's root `group:`** — the
+per-ability word narrows the payload filter and nothing else — so the example above still goes quiet
+under a `key: mastery` suppression while its anvil fires nobody else's payload.
+
+Crystals, masks, sets and the rest have no root/ability split: their `group:` is per ability already,
+and it does both jobs. An ability with no group at all arms an **unscoped** payload, which runs the
+owner's whole `IMPACT` roster — the old behaviour, and rarely what you want once two enchants on one
+kit both have payloads.
 
 ## Choosing group names
 

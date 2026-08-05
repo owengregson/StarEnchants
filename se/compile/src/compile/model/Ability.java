@@ -22,7 +22,12 @@ import compile.model.cond.NumExpr;
  * @param repeatDelayTicks ticks before the FIRST run; {@code -1} = one full period (R-QC35b)
  * @param affinity       dispatch affinity folded MAX over {@link #effects} (§3.6)
  * @param cdScopeEnchant interned cooldown-scope id (enchant scope), or {@code -1}
- * @param cdScopeGroup   interned cooldown-scope id (group scope), or {@code -1}
+ * @param cdScopeGroup   interned cooldown-scope id (group scope), or {@code -1} — the FAMILY match key a
+ *                       {@code SUPPRESS}/{@code SUPPRESS_INCOMING} {@code scope: GROUP} window matches on
+ * @param sourceGroup    interned IMPACT source-scope id (ADR-0074 §4, amended): which deferred payloads a cast
+ *                       armed by this ability may fire, defaulting to {@link #cdScopeGroup} and narrowed by a
+ *                       per-ability {@code group:} (R-QC40). SEPARATE from the match key on purpose — narrowing
+ *                       a payload's scope must not drop its enchant out of a family-wide negation
  * @param cdScopeType    interned cooldown-scope id (type scope), or {@code -1}
  * @param suppressKey    interned key (enchant id | group id | type) by which a {@code DISABLE_*} cancels this ability (§6.2), or {@code -1}
  * @param setPieces      for a {@link SourceKind#SET} bonus, the worn-piece count that completes the set (§6.6); {@code 0} for every non-set source
@@ -68,7 +73,23 @@ public record Ability(
         int soulCostCap,
         int soulCostDecayPeriod,
         boolean cooldownPerVictim,
-        int repeatDelayTicks) {
+        int repeatDelayTicks,
+        int sourceGroup) {
+
+    /** Construction where the IMPACT source group IS the family group — every ability with no per-ability override. */
+    public Ability(int id, int defId, SourceKind sourceKind, int triggerMask, int level, double baseChance,
+                   int cooldownTicks, int soulCost, long worldBlacklist, CompiledCondition condition,
+                   CompiledEffect[] effects, int repeatTicks, Affinity affinity, int cdScopeEnchant,
+                   int cdScopeGroup, int cdScopeType, int suppressKey, int setPieces, boolean suppressImmune,
+                   FactMask factMask, NumExpr chanceExpr, String noSoulsMessage, boolean soulCostCarried,
+                   int noSoulsSound, int noSoulsParticle, double soulCostGrowth, int soulCostCap,
+                   int soulCostDecayPeriod, boolean cooldownPerVictim, int repeatDelayTicks) {
+        this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
+                condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
+                suppressKey, setPieces, suppressImmune, factMask, chanceExpr, noSoulsMessage, soulCostCarried,
+                noSoulsSound, noSoulsParticle, soulCostGrowth, soulCostCap, soulCostDecayPeriod,
+                cooldownPerVictim, repeatDelayTicks, cdScopeGroup);
+    }
 
     /** Back-compat construction for a constant {@code chance:} — the hot-path fast case. */
     public Ability(int id, int defId, SourceKind sourceKind, int triggerMask, int level, double baseChance,
@@ -79,7 +100,7 @@ public record Ability(
         this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
                 condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
                 suppressKey, setPieces, suppressImmune, factMask, null, null, false, -1, -1, 1.0, 0, 0, false,
-                -1);
+                -1, cdScopeGroup);
     }
 
     /** No derived fact mask — populate everything (the safe default for hand-built test abilities). */
@@ -89,7 +110,8 @@ public record Ability(
                    int cdScopeGroup, int cdScopeType, int suppressKey, int setPieces) {
         this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
                 condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
-                suppressKey, setPieces, false, FactMask.ALL, null, null, false, -1, -1, 1.0, 0, 0, false, -1);
+                suppressKey, setPieces, false, FactMask.ALL, null, null, false, -1, -1, 1.0, 0, 0, false, -1,
+                cdScopeGroup);
     }
 
     public boolean firesOn(int triggerId) {

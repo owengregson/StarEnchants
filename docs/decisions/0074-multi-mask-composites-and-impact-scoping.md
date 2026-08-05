@@ -132,3 +132,29 @@ construction, and worth knowing before relying on the filter for isolation.
   nothing asks for the first, and the second is jar wording our own likeness replaces.
 - The ledger's premise that "every other `STATUS_CLEAR` rung has a guard fact" was wrong —
   only TELEBLOCK had one. POTION_LOCK and DISARM still have none, and stay unbuilt.
+
+## Amendment (2026-08-05, R-QC40): the IMPACT scope is its OWN identity, and §4's stem claim was false
+
+`Ability` now carries `sourceGroup` beside `cdScopeGroup`. The FAMILY group stays the match key
+(gate 5 reads `cdScopeGroup`, unchanged); the IMPACT filter and `EffectCtx.sourceGroup()` read the
+new field, which defaults to the family group and is narrowed by a per-ABILITY `group:` on the
+enchant reader. Both intern into the one `cooldownScopes` interner, so an unauthored override lands
+on exactly the id the match key already has and today's content is bit-identical.
+
+§4's "a pack wanting exactness gives the pair its own group" was not actually available, and the
+first pack to need it proved so. Content batch 2B authored three mastery enchants with `IMPACT`
+payloads — `tombstone`, `rot-and-decay`, `demonic-gateway` — all under the family word `mastery`, so
+a Demonic Gateway turret skull fired Tombstone's whole-set armour damage and both of Rot and Decay's
+payload branches. Giving the pair its own group was the documented fix and it was a trap: the same
+string is the key `sets/dragon-slayer` and `masks/rift` name in
+`SUPPRESS_INCOMING{scope: GROUP, key: mastery}`, so renaming the enchant's root group to sharpen the
+payload filter would have cut it out of both family-wide negations. One authored word could not be
+two identities; splitting the field is what makes "give the pair its own group" real. The three files
+now declare `group:` on their arms and payloads and keep `group: "mastery"` at the root.
+
+§4's parenthetical **"the bare def stem for masks and crystals" is false and is withdrawn.** No
+reader derives a group from a def stem. `MaskDefReader` and `CrystalDefReader` read an authored
+per-ability `group:` and pass `null` when there is none, which erases to `-1` — unscoped, so a mask
+or crystal that arms a cast without authoring a group still fires the owner's whole IMPACT roster.
+The rest of the paragraph stands: the group remains a COARSE identity, the three scope kinds still
+share one interner, and a mask and a crystal authoring the same word still intern the same id.

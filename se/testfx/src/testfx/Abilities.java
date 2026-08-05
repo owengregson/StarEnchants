@@ -44,6 +44,7 @@ public final class Abilities {
         private int cdScopeEnchant = -1;
         private int cdScopeGroup = -1;
         private int cdScopeType = -1;
+        private Integer sourceGroup = null; // null = mirror cdScopeGroup, the no-override shape (R-QC40)
         private int suppressKey = -1;
         private int setPieces = 0;
         private boolean suppressImmune = false;
@@ -141,6 +142,12 @@ public final class Abilities {
             return this;
         }
 
+        /** Narrow this ability's IMPACT source scope away from its family group (the R-QC40 per-ability override). */
+        public Builder sourceGroup(int sourceGroup) {
+            this.sourceGroup = sourceGroup;
+            return this;
+        }
+
         public Builder suppressKey(int suppressKey) {
             this.suppressKey = suppressKey;
             return this;
@@ -215,7 +222,8 @@ public final class Abilities {
                     worldBlacklist, condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup,
                     cdScopeType, suppressKey, setPieces, suppressImmune, factMask, chanceExpr, noSoulsMessage,
                     soulCostCarried, noSoulsSound, noSoulsParticle,
-                    soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim, repeatDelayTicks);
+                    soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim, repeatDelayTicks,
+                    sourceGroup == null ? cdScopeGroup : sourceGroup);
         }
     }
 }

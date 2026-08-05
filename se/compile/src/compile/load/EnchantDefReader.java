@@ -20,6 +20,10 @@ import schema.grammar.EffectLine;
  * as a shared default. A level is normally ONE ability, but may fan into several via an {@code abilities:}
  * list — the first keeps the bare {@code <base>/<level>} key items store, the rest take {@code /a1, /a2, …}.
  * A bad field/level is warned-and-skipped, never thrown.
+ *
+ * <p>{@code group:} is the one knob that reads differently at the two scopes: at the ROOT it is the enchant's
+ * family, the key suppression matches on, and on a BLOCK it narrows only that ability's IMPACT source scope
+ * (R-QC40). An arm and its payload can therefore be a private pair inside a family everything else shares.
  */
 final class EnchantDefReader {
 
@@ -33,7 +37,8 @@ final class EnchantDefReader {
             "no-souls-message", "condition", "effects", "abilities");
     private static final Set<String> ABILITY_KEYS = ContentParse.withEnvelopeKnobs(
             "trigger", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap",
-            "soul-cost-decay-period", "no-souls-message", "condition", "repeat", "repeat-delay", "effects");
+            "soul-cost-decay-period", "no-souls-message", "condition", "repeat", "repeat-delay", "effects",
+            "group");
 
     private EnchantDefReader() {
     }
@@ -195,6 +200,13 @@ final class EnchantDefReader {
                 ? ContentParse.optInt(block, "repeat-delay", -1, diags) : rootRepeatDelayTicks;
         YamlNode effectsNode = block != null ? block : lvl;
         List<EffectLine> effects = effectsFor(baseKey, level, effectsNode, diags);
+        // R-QC40: a block may narrow its OWN IMPACT source scope, so an arm and its payload can be a pair
+        // inside a family whose root group everything else shares. Deliberately NOT the root group itself —
+        // that stays the suppression match key a family-wide negation names (ADR-0074 §4, amended), which is
+        // why this rides sourceGroup and leaves cdScopeGroup alone. The crystal/mask readers have no such
+        // split: one authored group per ability, so it is both there.
+        String sourceGroup = block != null && block.has("group")
+                ? ContentParse.blankToNull(block.string("group")) : null;
 
         return new AbilityDef(
                 SourceKind.ENCHANT,
@@ -225,7 +237,8 @@ final class EnchantDefReader {
                 soulCostCap,
                 soulCostDecayPeriod,
                 cooldownPerVictim,
-                repeatDelayTicks);
+                repeatDelayTicks,
+                sourceGroup);
     }
 
     /** The node a knob is read from: the innermost scope that declares it — block, then level, then file root. */
