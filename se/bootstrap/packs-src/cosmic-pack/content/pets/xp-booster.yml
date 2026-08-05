@@ -71,7 +71,7 @@ levels:
       - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% != 1'
         effects:
           - { SET_VAR: { name: "xp-boost", value: "1", ttl: 6000, who: "@Self" } }
-          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aXP Booster§a§l)§a:§f§a§l [§7XP Booster Pet (§a+1.25§7x XP)§a§l]" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
           - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
@@ -94,7 +94,7 @@ levels:
       - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% != 1'
         effects:
           - { SET_VAR: { name: "xp-boost", value: "1", ttl: 7800, who: "@Self" } }
-          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aXP Booster§a§l)§a:§f§a§l [§7XP Booster Pet (§a+1.45§7x XP)§a§l]" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
           - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
@@ -117,7 +117,7 @@ levels:
       - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% != 1'
         effects:
           - { SET_VAR: { name: "xp-boost", value: "1", ttl: 9600, who: "@Self" } }
-          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aXP Booster§a§l)§a:§f§a§l [§7XP Booster Pet (§a+1.65§7x XP)§a§l]" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
           - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
@@ -140,7 +140,7 @@ levels:
       - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% != 1'
         effects:
           - { SET_VAR: { name: "xp-boost", value: "1", ttl: 11400, who: "@Self" } }
-          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aXP Booster§a§l)§a:§f§a§l [§7XP Booster Pet (§a+1.85§7x XP)§a§l]" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
           - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
@@ -163,7 +163,7 @@ levels:
       - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% != 1'
         effects:
           - { SET_VAR: { name: "xp-boost", value: "1", ttl: 13200, who: "@Self" } }
-          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aXP Booster§a§l)§a:§f§a§l [§7XP Booster Pet (§a+2.05§7x XP)§a§l]" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
           - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
@@ -186,7 +186,7 @@ levels:
       - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% != 1'
         effects:
           - { SET_VAR: { name: "xp-boost", value: "1", ttl: 15000, who: "@Self" } }
-          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aXP Booster§a§l)§a:§f§a§l [§7XP Booster Pet (§a+2.25§7x XP)§a§l]" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
           - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
@@ -209,7 +209,7 @@ levels:
       - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% != 1'
         effects:
           - { SET_VAR: { name: "xp-boost", value: "1", ttl: 16800, who: "@Self" } }
-          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aXP Booster§a§l)§a:§f§a§l [§7XP Booster Pet (§a+2.45§7x XP)§a§l]" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
           - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
@@ -232,7 +232,7 @@ levels:
       - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% != 1'
         effects:
           - { SET_VAR: { name: "xp-boost", value: "1", ttl: 18600, who: "@Self" } }
-          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aXP Booster§a§l)§a:§f§a§l [§7XP Booster Pet (§a+2.65§7x XP)§a§l]" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
           - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
@@ -255,7 +255,7 @@ levels:
       - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% != 1'
         effects:
           - { SET_VAR: { name: "xp-boost", value: "1", ttl: 20400, who: "@Self" } }
-          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aXP Booster§a§l)§a:§f§a§l [§7XP Booster Pet (§a+2.85§7x XP)§a§l]" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
           - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
@@ -279,7 +279,7 @@ levels:
       - condition: '%actor.gamemode% != "SPECTATOR" && %xp-boost% != 1'
         effects:
           - { SET_VAR: { name: "xp-boost", value: "1", ttl: 22200, who: "@Self" } }
-          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 15, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aXP Booster§a§l)§a:§f§a§l [§7XP Booster Pet (§a+3.0§7x XP)§a§l]" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
           - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }

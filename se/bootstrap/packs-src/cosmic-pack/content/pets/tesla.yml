@@ -36,12 +36,16 @@ descriptor:
   - "§7§7that acts as a temporarily"
   - "§7§7infinite source of player souls."
 # PER-LEVEL LORE NUMBERS ARE PINNED AT LEVEL 1, for the reason written out on `xp-booster.yml`: `description`
-# is per-PET and no likeness token carries a bracket's duration. `{duration}` therefore renders 5s — a freshly
-# minted pet's real window — and stays there as it levels. The true ladder, shipped in the effect values
-# below: `(int) min(30.0, 5.0 + (level - 1) x 2.5)` s = 5/7/10/12/15/17/20/22/25/27 (the truncation drops the
-# half-second on even levels, and the 30 s cap is unreachable) = 100…540 t. The activation line below carries
-# no number either — the jar's own line says only "No Soul Costs" — so the window length is the one fact a
-# levelled pet under-reports. Tracked as a partial entry until pets grow per-bracket lore.
+# is per-PET and no likeness token carries a bracket's DURATION (the renderer fills COLOR/NAME/TIME_FORMATTED/
+# LEVEL/MAX_LEVEL/EXP/EXP_NEXT/EXP_BAR, and TIME_FORMATTED is the bracket's cooldown, flat 5 m here). So where
+# the source substitutes `TimeUtils.formatSeconds(getDuration(level))` this file ships the LITERAL `5s` — a
+# freshly minted pet's real window — and it stays there as the pet levels. The true ladder, verified against
+# the codex and shipped in the effect values below: `(int) min(30.0, 5.0 + (level - 1) x 2.5)` s =
+# 5/7/10/12/15/17/20/22/25/27 (the truncation drops the half-second on even rungs, and the 30 s cap is
+# unreachable) = 100/140/200/240/300/340/400/440/500/540 t. The activation line below carries no number either
+# — the jar's own line says only "No Soul Costs" — so the window length is the one fact a levelled pet
+# under-reports. Tracked as a partial entry until pets grow per-bracket lore; a token invented for this one
+# line is not the trade.
 # The cooldown line is a level-independent literal ("5 minutes", not {TIME_FORMATTED}, which renders `5m`).
 description:
   - "§7"
@@ -69,7 +73,7 @@ levels:
         effects:
           - { SET_VAR: { name: "tesla-armed", value: "1", ttl: 100, who: "@Self" } }
           - { SOUL_COST_EXEMPT: { duration: 100, feedback-threshold: 10, message: "§a§lPET (§aTesla§a§l): §a+{souls} souls!", who: "@Self" } }
-          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aTesla§a§l)§a:§f§a§l [§7Tesla Pet Boost (§aNo Soul Costs§7)§a§l]" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
           - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
@@ -89,7 +93,7 @@ levels:
         effects:
           - { SET_VAR: { name: "tesla-armed", value: "1", ttl: 140, who: "@Self" } }
           - { SOUL_COST_EXEMPT: { duration: 140, feedback-threshold: 10, message: "§a§lPET (§aTesla§a§l): §a+{souls} souls!", who: "@Self" } }
-          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aTesla§a§l)§a:§f§a§l [§7Tesla Pet Boost (§aNo Soul Costs§7)§a§l]" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
           - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
@@ -109,7 +113,7 @@ levels:
         effects:
           - { SET_VAR: { name: "tesla-armed", value: "1", ttl: 200, who: "@Self" } }
           - { SOUL_COST_EXEMPT: { duration: 200, feedback-threshold: 10, message: "§a§lPET (§aTesla§a§l): §a+{souls} souls!", who: "@Self" } }
-          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aTesla§a§l)§a:§f§a§l [§7Tesla Pet Boost (§aNo Soul Costs§7)§a§l]" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
           - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
@@ -129,7 +133,7 @@ levels:
         effects:
           - { SET_VAR: { name: "tesla-armed", value: "1", ttl: 240, who: "@Self" } }
           - { SOUL_COST_EXEMPT: { duration: 240, feedback-threshold: 10, message: "§a§lPET (§aTesla§a§l): §a+{souls} souls!", who: "@Self" } }
-          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aTesla§a§l)§a:§f§a§l [§7Tesla Pet Boost (§aNo Soul Costs§7)§a§l]" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
           - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
@@ -149,7 +153,7 @@ levels:
         effects:
           - { SET_VAR: { name: "tesla-armed", value: "1", ttl: 300, who: "@Self" } }
           - { SOUL_COST_EXEMPT: { duration: 300, feedback-threshold: 10, message: "§a§lPET (§aTesla§a§l): §a+{souls} souls!", who: "@Self" } }
-          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aTesla§a§l)§a:§f§a§l [§7Tesla Pet Boost (§aNo Soul Costs§7)§a§l]" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
           - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
@@ -169,7 +173,7 @@ levels:
         effects:
           - { SET_VAR: { name: "tesla-armed", value: "1", ttl: 340, who: "@Self" } }
           - { SOUL_COST_EXEMPT: { duration: 340, feedback-threshold: 10, message: "§a§lPET (§aTesla§a§l): §a+{souls} souls!", who: "@Self" } }
-          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aTesla§a§l)§a:§f§a§l [§7Tesla Pet Boost (§aNo Soul Costs§7)§a§l]" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
           - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
@@ -189,7 +193,7 @@ levels:
         effects:
           - { SET_VAR: { name: "tesla-armed", value: "1", ttl: 400, who: "@Self" } }
           - { SOUL_COST_EXEMPT: { duration: 400, feedback-threshold: 10, message: "§a§lPET (§aTesla§a§l): §a+{souls} souls!", who: "@Self" } }
-          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aTesla§a§l)§a:§f§a§l [§7Tesla Pet Boost (§aNo Soul Costs§7)§a§l]" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
           - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
@@ -209,7 +213,7 @@ levels:
         effects:
           - { SET_VAR: { name: "tesla-armed", value: "1", ttl: 440, who: "@Self" } }
           - { SOUL_COST_EXEMPT: { duration: 440, feedback-threshold: 10, message: "§a§lPET (§aTesla§a§l): §a+{souls} souls!", who: "@Self" } }
-          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aTesla§a§l)§a:§f§a§l [§7Tesla Pet Boost (§aNo Soul Costs§7)§a§l]" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
           - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
@@ -229,7 +233,7 @@ levels:
         effects:
           - { SET_VAR: { name: "tesla-armed", value: "1", ttl: 500, who: "@Self" } }
           - { SOUL_COST_EXEMPT: { duration: 500, feedback-threshold: 10, message: "§a§lPET (§aTesla§a§l): §a+{souls} souls!", who: "@Self" } }
-          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aTesla§a§l)§a:§f§a§l [§7Tesla Pet Boost (§aNo Soul Costs§7)§a§l]" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
           - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }
@@ -249,7 +253,7 @@ levels:
         effects:
           - { SET_VAR: { name: "tesla-armed", value: "1", ttl: 540, who: "@Self" } }
           - { SOUL_COST_EXEMPT: { duration: 540, feedback-threshold: 10, message: "§a§lPET (§aTesla§a§l): §a+{souls} souls!", who: "@Self" } }
-          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 4, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aTesla§a§l)§a:§f§a§l [§7Tesla Pet Boost (§aNo Soul Costs§7)§a§l]" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 1.0, pitch: 3.0 } }
           - { SOUND: { sound: "BLOCK_NOTE_BLOCK_PLING", volume: 1.0, pitch: 1.0 } }

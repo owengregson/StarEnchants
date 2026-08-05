@@ -33,9 +33,12 @@
 # side worth losing. Two further deltas ride the fact itself: `%nearbyenemies%` is a FIXED 8-block scan of
 # LIVING ENTITIES (mobs included), where the payload reaches 13–28 blocks and the jar's check was hostile
 # PLAYERS only — so a lone cow inside 8 blocks passes the gate and a player at 20 blocks does not open it.
-# The verbatim no-target line `§c§lPET: §cNo valid enemy players nearby!` is lost with it: a USE ability has
-# no per-condition feedback hook, so a failed condition sends the universal `pets.message-on-fail` template.
-# The family's spectator line is not — the folder ruling gives that one refusal an ability of its own.
+# The verbatim no-target line `§c§lPET: §cNo valid enemy players nearby!` DOES render, as its own ability on
+# the exact complement of that gate (the `anti-teleblock.yml` shape, `cooldown: 0` so it still burns nothing).
+# It needs no post-selection branch precisely because the gate is a pre-selection FACT — but it inherits the
+# gate's coarsening with it: the refusal speaks for "nothing living within 8 blocks", not for the jar's
+# "no hostile player in range", so it can fire with an enemy standing at 20 blocks. That is the same delta the
+# gate already ships, said out loud, and it beats the universal `pets.message-on-fail` answering for it.
 # WHAT THE PACKAGE DROPS, each for a reason another file already settled:
 #  - `POTION(JUMP, level=129)`: NOT shipped on either lane, by the pack-wide amplifier-128 ruling
 #    (`titan-trap.yml`, restated on `tombstone.yml` / `enchants/horrify`) — on 1.8 it is an integer overflow
@@ -81,8 +84,10 @@ descriptor:
 description:
   - "§7"
   - "§7§f§lAbility"
-  # The matrix line reads `[§cNature Wrath {roman}§7]`. There is no roman-numeral token, and one `description`
-  # serves all four brackets, so the live level renders in arabic through the likeness's own {LEVEL}.
+  # The source renders a ROMAN numeral here (`RomanNumber.toRoman(level)` — `Nature Wrath I` … `IV`). The pet
+  # lore surface has no roman token (the renderer fills COLOR/NAME/TIME_FORMATTED/LEVEL/MAX_LEVEL/EXP/EXP_NEXT/
+  # EXP_BAR and nothing else) and one `description` serves all four brackets, so the live level renders in
+  # arabic through {LEVEL}. Inventing a token for one line is not the trade; the numeral form is the residue.
   - "§7§7Call upon the wrath of Nature."
   - "§7§7[§cNature Wrath {LEVEL}§7] (50% duration)"
   - "§7"
@@ -117,7 +122,11 @@ levels:
           - { MESSAGE: { text: "§a§lPET: ** NATURE'S WRATH **" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
           - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
-          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %nearbyenemies% < 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cNo valid enemy players nearby!" } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -138,7 +147,11 @@ levels:
           - { MESSAGE: { text: "§a§lPET: ** NATURE'S WRATH **" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
           - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
-          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %nearbyenemies% < 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cNo valid enemy players nearby!" } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -159,7 +172,11 @@ levels:
           - { MESSAGE: { text: "§a§lPET: ** NATURE'S WRATH **" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
           - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
-          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %nearbyenemies% < 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cNo valid enemy players nearby!" } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -180,7 +197,11 @@ levels:
           - { MESSAGE: { text: "§a§lPET: ** NATURE'S WRATH **" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
           - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
-          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 5, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %nearbyenemies% < 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cNo valid enemy players nearby!" } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:

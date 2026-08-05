@@ -74,7 +74,7 @@ levels:
           - { SPAWN_ENTITY: { type: CREEPER, ttl: 600, invincible: true, powered: true, targeting: false, detonate: PLAYER_HIT, who: "@Self" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
           - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
-          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -87,7 +87,7 @@ levels:
           - { SPAWN_ENTITY: { type: CREEPER, ttl: 600, invincible: true, powered: true, targeting: false, detonate: PLAYER_HIT, who: "@Self" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
           - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
-          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -100,7 +100,7 @@ levels:
           - { SPAWN_ENTITY: { type: CREEPER, ttl: 600, invincible: true, powered: true, targeting: false, detonate: PLAYER_HIT, who: "@Self" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
           - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
-          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -113,7 +113,7 @@ levels:
           - { SPAWN_ENTITY: { type: CREEPER, ttl: 600, invincible: true, powered: true, targeting: false, detonate: PLAYER_HIT, who: "@Self" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
           - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
-          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -126,7 +126,7 @@ levels:
           - { SPAWN_ENTITY: { type: CREEPER, ttl: 600, invincible: true, powered: true, targeting: false, detonate: PLAYER_HIT, who: "@Self" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
           - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
-          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:

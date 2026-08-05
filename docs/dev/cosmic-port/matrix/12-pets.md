@@ -43,7 +43,9 @@ local-only codex; no decompiled code is quoted here.
   - XP gain (14 pets): `§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]`
     (jar quirk kept: `{exp}` is post-grant, `{needed}` is the post-level-up
     requirement on the activation that levels you)
-  - Level-up: `§a§l*** {item-name-with-old-level} §a has increased to level §a§n{level}§a§l ***`
+  - Level-up: `§a§l*** {item-name-with-old-level}§a has increased to level §a§n{level}§a§l ***`
+    (no space between the name and the trailing `§a` — the jar concatenates
+    them directly; the single space belongs to ` has increased to level `)
     — jar reads the pre-rebuild display name, so the name shows the *old*
     level; rendered example:
     `§a§l*** §e§lLava Elemental Pet§7 [LVL 1]§a has increased to level §a§n2§a§l ***`

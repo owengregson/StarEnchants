@@ -29,13 +29,10 @@
 #  - Pet heads are invalid helmet items (the masks family refuses to wear one) — an interaction-layer rule,
 #    engine-owned, not authored here.
 # FAMILY-WIDE, AUTHORED ONCE FOR THE FOLDER: items/pet.yml + config.yml — full reading in anti-teleblock.yml.
-# NOT RENDERED (recorded): the guard's verbatim refusal line
-#   `§c§lPET: §cYou already have an active Enchanter Pet applied. Use an Enchantment Book before attempting to
-#   use another Enchanter Pet.`
-# A USE ability has no per-condition feedback hook, so a failed condition simply does not activate and the
-# player sees the universal `pets.message-on-fail` template. The guard IS authored as a condition, so the
-# behaviour is exact (nothing fires, no cooldown burns, no XP lands); only the string is lost. The family's
-# spectator line is NOT in this class — the folder ruling gives it an ability of its own, so it renders.
+# THE ALREADY-CHARGED REFUSAL renders, as its own ability on the complement of the payload's guard — the
+# `anti-teleblock.yml` shape (`pets/blackscroll.yml` carries the twin): `%bookrate.apply%` is a readable fact,
+# so the branch is takeable BEFORE selection. `cooldown: 0` scopes it to its own key, so a refused click still
+# burns nothing.
 # The consumption-side line the book flow prints when the charge is spent —
 #   `§7Applying enchantment book... §e{rate}§6(+{bonus})§e% success chance...`
 # — belongs to the book-apply gate, not to this file, and is recorded here for whoever authors that flow.
@@ -84,10 +81,14 @@ levels:
         effects:
           - { BOOK_RATE_MODIFIER: { site: apply, percent: 1 } }
           - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           # {level} has no token binding on MESSAGE, so the percent is inlined per rung (the batch-1 convention).
           - { MESSAGE: { text: "§a§lPET: §aThe next Enchantment Book you use will have a +1% modifier applied to its success rate." } }
           - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 1.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %bookrate.apply%'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou already have an active Enchanter Pet applied. Use an Enchantment Book before attempting to use another Enchanter Pet." } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -99,9 +100,13 @@ levels:
         effects:
           - { BOOK_RATE_MODIFIER: { site: apply, percent: 2 } }
           - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET: §aThe next Enchantment Book you use will have a +2% modifier applied to its success rate." } }
           - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 1.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %bookrate.apply%'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou already have an active Enchanter Pet applied. Use an Enchantment Book before attempting to use another Enchanter Pet." } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -113,9 +118,13 @@ levels:
         effects:
           - { BOOK_RATE_MODIFIER: { site: apply, percent: 3 } }
           - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET: §aThe next Enchantment Book you use will have a +3% modifier applied to its success rate." } }
           - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 1.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %bookrate.apply%'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou already have an active Enchanter Pet applied. Use an Enchantment Book before attempting to use another Enchanter Pet." } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -127,9 +136,13 @@ levels:
         effects:
           - { BOOK_RATE_MODIFIER: { site: apply, percent: 4 } }
           - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET: §aThe next Enchantment Book you use will have a +4% modifier applied to its success rate." } }
           - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 1.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %bookrate.apply%'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou already have an active Enchanter Pet applied. Use an Enchantment Book before attempting to use another Enchanter Pet." } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -141,9 +154,13 @@ levels:
         effects:
           - { BOOK_RATE_MODIFIER: { site: apply, percent: 5 } }
           - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET: §aThe next Enchantment Book you use will have a +5% modifier applied to its success rate." } }
           - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 1.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %bookrate.apply%'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou already have an active Enchanter Pet applied. Use an Enchantment Book before attempting to use another Enchanter Pet." } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -155,9 +172,13 @@ levels:
         effects:
           - { BOOK_RATE_MODIFIER: { site: apply, percent: 6 } }
           - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET: §aThe next Enchantment Book you use will have a +6% modifier applied to its success rate." } }
           - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 1.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %bookrate.apply%'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou already have an active Enchanter Pet applied. Use an Enchantment Book before attempting to use another Enchanter Pet." } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -169,9 +190,13 @@ levels:
         effects:
           - { BOOK_RATE_MODIFIER: { site: apply, percent: 7 } }
           - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET: §aThe next Enchantment Book you use will have a +7% modifier applied to its success rate." } }
           - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 1.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %bookrate.apply%'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou already have an active Enchanter Pet applied. Use an Enchantment Book before attempting to use another Enchanter Pet." } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -183,9 +208,13 @@ levels:
         effects:
           - { BOOK_RATE_MODIFIER: { site: apply, percent: 8 } }
           - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET: §aThe next Enchantment Book you use will have a +8% modifier applied to its success rate." } }
           - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 1.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %bookrate.apply%'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou already have an active Enchanter Pet applied. Use an Enchantment Book before attempting to use another Enchanter Pet." } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -197,9 +226,13 @@ levels:
         effects:
           - { BOOK_RATE_MODIFIER: { site: apply, percent: 9 } }
           - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET: §aThe next Enchantment Book you use will have a +9% modifier applied to its success rate." } }
           - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 1.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %bookrate.apply%'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou already have an active Enchanter Pet applied. Use an Enchantment Book before attempting to use another Enchanter Pet." } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -211,9 +244,13 @@ levels:
         effects:
           - { BOOK_RATE_MODIFIER: { site: apply, percent: 10 } }
           - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 50, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET: §aThe next Enchantment Book you use will have a +10% modifier applied to its success rate." } }
           - { SOUND: { sound: "ENTITY_ITEM_PICKUP", volume: 1.0, pitch: 1.1 } }
+      - condition: '%actor.gamemode% != "SPECTATOR" && %bookrate.apply%'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cYou already have an active Enchanter Pet applied. Use an Enchantment Book before attempting to use another Enchanter Pet." } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:

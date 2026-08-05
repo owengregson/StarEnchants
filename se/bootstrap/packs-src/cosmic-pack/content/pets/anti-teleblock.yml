@@ -70,7 +70,7 @@ levels:
         effects:
           - { STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }
           - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aAnti Teleblock Pet§a§l)§a:§f Teleblock removed!" } }
       - condition: '%actor.gamemode% != "SPECTATOR" && !%status.teleblock%'
         cooldown: 0
@@ -88,7 +88,7 @@ levels:
         effects:
           - { STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }
           - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aAnti Teleblock Pet§a§l)§a:§f Teleblock removed!" } }
       - condition: '%actor.gamemode% != "SPECTATOR" && !%status.teleblock%'
         cooldown: 0
@@ -106,7 +106,7 @@ levels:
         effects:
           - { STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }
           - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aAnti Teleblock Pet§a§l)§a:§f Teleblock removed!" } }
       - condition: '%actor.gamemode% != "SPECTATOR" && !%status.teleblock%'
         cooldown: 0
@@ -124,7 +124,7 @@ levels:
         effects:
           - { STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }
           - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aAnti Teleblock Pet§a§l)§a:§f Teleblock removed!" } }
       - condition: '%actor.gamemode% != "SPECTATOR" && !%status.teleblock%'
         cooldown: 0
@@ -142,7 +142,7 @@ levels:
         effects:
           - { STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }
           - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aAnti Teleblock Pet§a§l)§a:§f Teleblock removed!" } }
       - condition: '%actor.gamemode% != "SPECTATOR" && !%status.teleblock%'
         cooldown: 0
@@ -160,7 +160,7 @@ levels:
         effects:
           - { STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }
           - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aAnti Teleblock Pet§a§l)§a:§f Teleblock removed!" } }
       - condition: '%actor.gamemode% != "SPECTATOR" && !%status.teleblock%'
         cooldown: 0
@@ -178,7 +178,7 @@ levels:
         effects:
           - { STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }
           - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aAnti Teleblock Pet§a§l)§a:§f Teleblock removed!" } }
       - condition: '%actor.gamemode% != "SPECTATOR" && !%status.teleblock%'
         cooldown: 0
@@ -196,7 +196,7 @@ levels:
         effects:
           - { STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }
           - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aAnti Teleblock Pet§a§l)§a:§f Teleblock removed!" } }
       - condition: '%actor.gamemode% != "SPECTATOR" && !%status.teleblock%'
         cooldown: 0
@@ -214,7 +214,7 @@ levels:
         effects:
           - { STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }
           - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aAnti Teleblock Pet§a§l)§a:§f Teleblock removed!" } }
       - condition: '%actor.gamemode% != "SPECTATOR" && !%status.teleblock%'
         cooldown: 0
@@ -232,7 +232,7 @@ levels:
         effects:
           - { STATUS_CLEAR: { status: TELEBLOCK, who: "@Self" } }
           - { SOUND: { sound: "BLOCK_LAVA_POP", volume: 1.1, pitch: 1.0 } }
-          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
+          - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET (§aAnti Teleblock Pet§a§l)§a:§f Teleblock removed!" } }
       - condition: '%actor.gamemode% != "SPECTATOR" && !%status.teleblock%'
         cooldown: 0
