@@ -20,13 +20,16 @@ removes-required: true
 # NO `%damage% > 0` GATE, deliberately: the counterpart carries one and the heroic does not (measured, kept),
 # so a 0-damage hit can arm this where it could never arm Diminish.
 # Arm chance 0.05 x level = 5 / 10 / 15 / 20 / 25 / 30 %; no cooldown.
-# THE DOUBLE HALVING is measured and kept. The arming hit takes -50 % from the DAMAGE_MOD below, and
-# DAMAGE_CAP then stores `factor 0.5` x the wearer's last committed damage — so the stored cap sits at about
-# a QUARTER of what the arming hit would have been, and that is the number the feedback line shows.
-# ENGINE ORDERING, recorded not fixed: the cap value is fixed AT ARM TIME from the last-taken history, and
-# the defence walk runs BEFORE this hit is committed and recorded. So the cap prices off the PREVIOUS
-# committed hit, not the arming one — a one-hit lag the counterpart inherits identically (diminish.yml ships
-# the same shape at factor 1.0). Ledgered as a partial for the pair.
+# THE DOUBLE HALVING is measured and kept, and since R-QC19 it is exact rather than approximate. The arming
+# hit takes -50 % from the DAMAGE_MOD below, and DAMAGE_CAP stores `factor 0.5` x THAT hit's committed damage
+# — so the cap lands at exactly a quarter of what the arming swing would have been, which is the number the
+# feedback line shows.
+# ENGINE ORDERING, FIXED (R-QC19): the cap is priced at the fold commit, below every walk, against the value
+# this event actually committed. It used to price at ARM time off the last-taken history — one hit of lag, so
+# "half the hit that armed it" named an earlier, unrelated swing, and on a first hit of an engagement it armed
+# nothing at all. The counterpart inherits the correction identically (diminish.yml ships the same shape at
+# factor 1.0). The arming hit still lands in full: the window is claimed above the walks, so it opens for the
+# NEXT hit and never for itself.
 # ARMED-STATE SHARING: the matrix expects the engine's state to be per-enchant and records that as a
 # structural change from the jar's shared key. It is not — `DamageCapStore` is keyed per PLAYER with one
 # armed cap, and re-arming replaces it. So the jar's shared-key behaviour is reproduced exactly (a cap armed

@@ -10,6 +10,8 @@ tier: legendary
 condition: "%damage% > 0"
 # D-01-07: the charge is bounded by the DAMAGE_CAP window (100t default) and caps the next hit at exactly the
 # stored value, replacing the measured never-expiring charge and its armour-re-reduced over-delivery.
+# The stored value is `factor 1.0` x the committed damage of the hit that armed it (R-QC19) — the description
+# above says exactly that, and since the basis correction it is literally true; it used to name the hit before.
 # The arming line is DAMAGE_CAP's own `feedback`, not a separate MESSAGE: the primitive fills `{damage}` with
 # the cap value it just committed, which is the token the matrix string already carries. MESSAGE fills only
 # {ATTACKER}/{VICTIM}, so the same string there rendered `{damage}` literally. Heroic Vengeful Diminish rides
