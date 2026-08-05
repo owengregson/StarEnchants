@@ -550,12 +550,18 @@ Family-wide notes:
      jar searches around the victim and the victim is never in their own result;
      `exclude=victim` reproduces it exactly. Amplifier `level - 1` (Slowness
      I/II/III) = engine level 1/2/3.
-  2. `PARTICLE(particle=BLOCK_CRACK, block=STONE, who=@Aoe{r=<level>,
-     filter=ENEMIES, exclude=victim})` — jar uses the victim's standing-block id
-     (fallback STONE when air); a dynamic block param is not expressible — STONE
+  2. `PARTICLE(particle=BLOCK_CRACK, block=STONE, who=@Victim, dy=-0.4)` — the jar
+     anchors every burst at the VICTIM's feet + 0.5 (`playerHit.getLocation().add(0,
+     0.5, 0)`), not at the bystanders it slows, and replays it once per affected
+     bystander inside the same loop. `dy: -0.4` is that point off the engine's
+     body-centre anchor. The jar also uses the victim's standing-block id (fallback
+     STONE when air); a dynamic block param is not expressible — STONE
      approximation, cosmetic only.
-- **gaps:** none new (the Metaphysical veto is interaction-layer; the `±N %chance%`
-  condition clause carries the arithmetic).
+- **gaps:** the per-bystander REPEAT has no spelling — `PARTICLE`'s single `who` both
+  selects the targets and supplies the anchor, so a bystander-counted repeat at a
+  victim anchor cannot be written; one burst ships (D-04-15). Nothing else new (the
+  Metaphysical veto is interaction-layer; the `±N %chance%` condition clause carries
+  the arithmetic).
 - **interactions:** armor/Metaphysical (and heroic variant) reduces the proc chance
   against its wearer by 4 percentage points per Metaphysical level and emits the
   blocked line — authored as an interaction-layer per-target veto. Jar ally test is
