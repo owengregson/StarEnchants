@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import compile.Compiler;
 import compile.load.Library;
 import compile.load.LibraryLoader;
+import compile.load.MasterConfig;
+import compile.load.MasterConfigLoader;
 import compile.resolve.PlatformResolvers;
 import engine.boot.ContentCompiler;
 import java.nio.file.Files;
@@ -41,5 +43,23 @@ class CatalogValidationTest {
         // Guard against a silent empty load (wrong CWD) — the catalog is large.
         assertTrue(library.snapshot().abilityCount() > 60,
                 () -> "expected a large catalog, got " + library.snapshot().abilityCount() + " abilities");
+    }
+
+    /**
+     * The bundled {@code config.yml} is what a fresh server runs on, yet only the two PACK configs were
+     * load-gated — a typo in the default shipped silently and surfaced as a fallback nobody asked for.
+     * Warnings included: an unknown key or a mistyped number in the default is a defect, not an operator's.
+     */
+    @Test
+    void shippedDefaultConfigLoadsClean() {
+        Path configFile = Path.of("resources/config.yml");
+        assertTrue(Files.isRegularFile(configFile), "config.yml not found from " + Path.of("").toAbsolutePath());
+
+        MasterConfig master = MasterConfigLoader.load(configFile);
+        String diagnostics = master.diagnostics().stream()
+                .map(Diagnostic::toString)
+                .collect(Collectors.joining("\n  "));
+        assertTrue(master.diagnostics().isEmpty(),
+                () -> "the shipped config.yml has diagnostics:\n  " + diagnostics);
     }
 }
