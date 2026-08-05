@@ -218,6 +218,14 @@ public final class CombatDispatch {
     @SuppressWarnings("deprecation") // EntityDamageEvent.DamageModifier.ARMOR/MAGIC: deprecated-not-removed across the whole range (the IGNORE_ARMOR primitive).
     public void onDamage(EntityDamageByEntityEvent event) {
         if (EngineDamage.active()) {
+            if (EngineDamage.armorBypassed()) {
+                // IGNORE_ARMOR on a walk with no combat event of its own (an IMPACT landing's bite, a forced
+                // payload run). The flag can only ever be honoured on an EVENT — the reduction is the server's
+                // — so it rides the hurt the sink issues and is spent here, on the very event that hurt fired.
+                // Same two modifiers, same reason as the folded path below; only the event differs.
+                zeroModifier(event, EntityDamageEvent.DamageModifier.ARMOR);
+                zeroModifier(event, EntityDamageEvent.DamageModifier.MAGIC);
+            }
             // SE-issued damage (reflects, DoT ticks, lightning bolts — ADR-0054): attributed events are
             // for DOWNSTREAM plugins; our own walks never proc off our own damage. This is the same
             // re-entrancy contract the old bare hurt() enforced structurally (no damager → no dispatch);

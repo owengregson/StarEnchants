@@ -1,6 +1,9 @@
 package feature.combat;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -23,6 +26,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.Test;
@@ -39,6 +43,41 @@ import testfx.Envs;
  * {@code DispatchSinkDamageFoldTest}.
  */
 class EngineDamageReentryTest {
+
+    /** The dispatch under test, wired the way every case here needs it. */
+    private static CombatDispatch dispatch(SinkFactory sinkFactory, ContentHolder content) {
+        return new CombatDispatch(mock(AbilityExecutor.class), sinkFactory, mock(ActorProbe.class), content,
+                mock(WornStateStore.class), 0, 1, -1, -1, p -> Optional.empty(), Envs.sink().build(),
+                CombatDispatch.Caps.unlimited(), new ModernProjectiles());
+    }
+
+    @Test
+    @SuppressWarnings("deprecation") // DamageModifier: deprecated-not-removed across the range, as production reads it.
+    void anIgnoreArmorFrameZeroesTheModifiersOnTheEventItFiresAndStillStandsDown() {
+        // R-QC40's sibling: a payload walk (an IMPACT landing's bite) has no folded combat event to hand
+        // IGNORE_ARMOR to, so the flag rides the hurt and is spent HERE, on the very event that hurt fires —
+        // the same two modifiers the folded path zeroes, because the reduction is the server's either way.
+        // Staged through the real hurt so the frame, the flag and the synchronous event dispatch are the
+        // production ones; only the "entity fires an event" step is faked.
+        SinkFactory sinkFactory = mock(SinkFactory.class);
+        ContentHolder content = mock(ContentHolder.class);
+        CombatDispatch dispatch = dispatch(sinkFactory, content);
+        EntityDamageByEntityEvent event = mock(EntityDamageByEntityEvent.class);
+        when(event.isApplicable(any())).thenReturn(true);
+        LivingEntity victim = mock(LivingEntity.class);
+        doAnswer(fired -> {
+            dispatch.onDamage(event);
+            return null;
+        }).when(victim).damage(anyDouble(), any(org.bukkit.entity.Entity.class));
+
+        EngineDamage.hurt(victim, 4.0, mock(LivingEntity.class), true);
+
+        verify(event).setDamage(EntityDamageEvent.DamageModifier.ARMOR, 0.0);
+        verify(event).setDamage(EntityDamageEvent.DamageModifier.MAGIC, 0.0);
+        // Bypassing armour is NOT re-entering: the walk must still stand down, or an armour-piercing payload
+        // would proc the whole attacker roster a second time.
+        verifyNoInteractions(sinkFactory, content);
+    }
 
     @Test
     void combatDispatchStandsDownInsideTheEngineFrame() {

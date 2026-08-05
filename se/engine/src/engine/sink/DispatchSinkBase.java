@@ -591,7 +591,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
             activeFold.addEffectiveDamage(amount);
             return;
         }
-        entityOp(target, () -> hurtOrPark(target, amount, attacker));
+        // armorIgnored is read at EXECUTION, not at emit: the flag is a per-activation read-back and the
+        // authored order of IGNORE_ARMOR against its DAMAGE line must not decide whether the bite bypasses.
+        entityOp(target, () -> hurtOrPark(target, amount, attacker, armorIgnored));
     }
 
     @Override
@@ -608,7 +610,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
         }
         // The max-health read and the damage both run on the target's own thread (entityOp) — never a cross-region
         // max-health read. Uses the era-adaptive maxHealth() leaf, so it is version-stable.
-        entityOp(target, () -> hurtOrPark(target, maxHealth(target) * percentOfMax / 100.0, attacker));
+        entityOp(target, () -> hurtOrPark(target, maxHealth(target) * percentOfMax / 100.0, attacker,
+                armorIgnored));
     }
 
     /**
@@ -622,8 +625,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
      * frame preserves the old bare-damage re-entrancy mechanism: SE's own combat pipeline stands down
      * for the events this call fires.
      */
-    private static void hurt(LivingEntity target, double amount, LivingEntity attacker) {
-        EngineDamage.hurt(target, amount, attacker);
+    private static void hurt(LivingEntity target, double amount, LivingEntity attacker, boolean ignoreArmor) {
+        EngineDamage.hurt(target, amount, attacker, ignoreArmor);
     }
 
     /**
@@ -638,13 +641,25 @@ public abstract class DispatchSinkBase implements SinkReadback {
      * combo applies normally.
      */
     private void hurtOrPark(LivingEntity target, double amount, LivingEntity attacker) {
+        hurtOrPark(target, amount, attacker, false);
+    }
+
+    /**
+     * As {@link #hurtOrPark(LivingEntity, double, LivingEntity)}, with {@code ignoreArmor} carrying this
+     * activation's {@code IGNORE_ARMOR} read-back onto the event the hurt fires. It rides the two DIRECT
+     * damage intents only ({@code DAMAGE}'s flat and percent-of-max lines) — the shape a payload walk's bite
+     * takes when there is no combat event to fold into. A parked hit (ADR-0069) rejoins its victim's next
+     * real hit through the fold, which is armour-priced there; the bank has no per-entry flag to carry, and
+     * a hit that lands as part of somebody else's swing is not the one the author bypassed armour on.
+     */
+    private void hurtOrPark(LivingEntity target, double amount, LivingEntity attacker, boolean ignoreArmor) {
         if (amount > 0 && target instanceof Player p
                 && dotPark.tryPark(p.getUniqueId(),
                         attacker != null && !attacker.equals(target) ? attacker : null,
                         amount, nowTicks.getAsLong())) {
             return;
         }
-        hurt(target, amount, attacker);
+        hurt(target, amount, attacker, ignoreArmor);
     }
 
     @Override
