@@ -145,8 +145,8 @@ Two packs ship in the jar and land in `packs/` on first boot, so `/se pack list`
 
 | Pack | What it is |
 | --- | --- |
-| `signature-pack` | the **default** — StarEnchants' own flagship library, already live when you first start the server |
-| `cosmic-pack` | the classic Cosmic experience, ported number-exact: its enchant library, armour sets, socketable crystals, masks, pets, and the Heroic gear tier |
+| `signature-pack` | the **default** — StarEnchants' own flagship library, already live when you first start the server. **Modern-only**: it declares `min-server: "1.17.1"` and is refused on the 1.8.9 build |
+| `cosmic-pack` | the classic Cosmic experience, ported number-exact: its enchant library, armour sets, socketable crystals, masks, pets, and the Heroic gear tier. Runs on the whole supported range, 1.8.9 included |
 
 `cosmic-pack` is a **preset you opt into**, not the default. Apply it with:
 
@@ -157,6 +157,11 @@ Two packs ship in the jar and land in `packs/` on first boot, so `/se pack list`
 Applying swaps the **whole** config surface — `config.yml`, `lang.yml`, `content/`, `items/`, and `menus/`
 are all replaced by the pack's, not merged with yours. Your current surface is snapshotted into a timestamped
 backup pack first, so `/se pack apply backup-<stamp>` puts everything back.
+
+`cosmic-pack` does not carry every item yet: it ships `content/` in full plus four item likenesses, so 18
+item likenesses and all menus stay at the engine defaults after you apply it. Nothing breaks — those items
+just still look like stock StarEnchants. The rest are being decomposed from source and land as their own
+batch. See [Configuring](../configuring/index.mdx) for the full note.
 
 ## Migrating
 
