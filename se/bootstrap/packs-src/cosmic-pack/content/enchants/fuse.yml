@@ -4,9 +4,13 @@
 # file. In-volume smelting for Detonate and Atomic Detonate requires BOTH Auto Smelt and Fuse on the tool
 # (iron/gold ore -> ingot x the tool's Auto Smelt level, inside the blast), so the clause belongs on those two
 # excavation entries and nothing is authored here.
-# Unlike the other two markers, Fuse's consumer is not shipped: both Detonate entries are deferred on the
-# per-block material filter, so Fuse is inert until they land (tracked in deferred-content). Shipping it now
-# keeps the roster and the acquisition tables whole, and it costs a slot on the item exactly as the jar's does.
+# LIVE since R-QC10. The rule now has somewhere to live: `BREAK_BLOCK.smelt` gives an excavation volume the
+# drop transform the MINE-scoped `SMELT` read-back could never reach (that flag addresses the ONE block a
+# MINE event names, and a blast's blocks are broken by the sink). Both Detonate grades author it as
+# `min(1, %actor.enchlevel.fuse%) * %actor.enchlevel.auto-smelt%` — a product that reads 0 without this
+# marker and the Auto Smelt level with it, which IS the jar's `flag && flag1` co-enchant test and its
+# `setAmount(autoSmeltLevel)` in one number. Nothing is authored here; the marker's whole job is to be worn
+# so that product is non-zero, which is why the file still carries an empty body.
 display: "Fuse"
 # description: not matrix-recorded (factual paraphrase)
 description:

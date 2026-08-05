@@ -5,17 +5,17 @@
 # EFFECT-LESS instead, for the reason the Solitude row settled pack-wide: a ttl-0 marker written on a PASSIVE
 # walk has no teardown, so one equip would leave it standing forever. The worn level publishes the same state
 # WITH a lifecycle, read as `%actor.enchlevel.explosives-expert%` (the file STEM is the key).
-# CONSUMER — Atomic Detonate (matrix 06): wearing this flag removes the tool-class gating of its explosion
-# mining, so pickaxe-class AND spade-class blocks break regardless of which of the two the miner holds. That
-# clause belongs on `atomic-detonate.yml` and nothing is authored here. The read it wants is
-# `%actor.enchlevel.explosives-expert%`, NOT the matrix's `%mastery.explosives-expert%` var spelling: with the
-# marker effect-less nothing writes that var, and an unknown key reads 0 in silence — a stale spelling would
-# compile and then gate nothing forever. The actor's worn map spans armour PLUS the held hands, so a mastery
-# sitting on the miner's chestplate is readable from their MINE activation, which is where the consumer runs.
-# Plain Detonate ignores the flag (measured; kept — only the atomic grade reads it).
-# Like fuse.yml, this marker's consumer is not shipped: both Detonate entries are deferred on the per-block
-# material filter (deferred-content.md), so the flag is inert until they land. Shipping it now keeps the
-# 16-strong mastery roster and its Mastery Shard hand-off whole, and it costs a slot exactly as the jar's does.
+# CONSUMER — Atomic Detonate (matrix 06), LIVE since R-QC10: wearing this flag removes the tool-class gating
+# of its explosion mining, so pickaxe-class AND spade-class blocks break regardless of which of the two the
+# miner holds. That clause belongs on `atomic-detonate.yml`, which now authors the sublists as four mutually
+# exclusive arms per rung — this marker's arm is the one that denies neither list — and nothing is authored
+# here. The read it uses is `%actor.enchlevel.explosives-expert%`, NOT the matrix's
+# `%mastery.explosives-expert%` var spelling: with the marker effect-less nothing writes that var, and an
+# unknown key reads 0 in silence — a stale spelling would compile and then gate nothing forever. The actor's
+# worn map spans armour PLUS the held hands, so a mastery sitting on the miner's chestplate is readable from
+# their MINE activation, which is where the consumer runs.
+# Plain Detonate ignores the flag (measured; kept — only the atomic grade reads it), and that grade does not
+# author the sublists either, so there is nothing there for this flag to lift even in principle.
 display: "Explosives Expert"
 # description: not matrix-recorded (factual paraphrase)
 description:

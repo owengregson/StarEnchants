@@ -51,12 +51,14 @@ Arm a one-shot `percent`-point bonus on each target's next enchant-book roll at 
 
 ### BREAK_BLOCK
 
-Break the target block(s) (default @Here; drops=false clears). @Vein/@Tunnel/@Trench/@Bore for shapes. void-materials is the per-block exception to `drops`: the listed types are destroyed dropless while everything else in the same volume still yields, which is how a bulk excavator keeps the ore and voids the stone.
+Break the target block(s) (default @Here; drops=false clears). @Vein/@Tunnel/@Trench/@Bore for shapes. void-materials is the per-block exception to `drops`: the listed types are destroyed dropless while everything else in the same volume still yields, which is how a bulk excavator keeps the ore and voids the stone. `smelt` is the volume's drop TRANSFORM — the excavation twin of the MINE-scoped SMELT read-back, which only ever addresses the one block a MINE event names: a smeltable block yields that many of its smelted product instead of its raw drop. Being a number rather than a flag, it takes a fact expression, so a co-enchant rule ('only alongside Fuse') is one authored product and needs no second ability.
 
 - _affinity_: `REGION`
-- _usage_: `{ BREAK_BLOCK: { drops: <bool=true>, void-materials: <material list=> } }`
+- _usage_: `{ BREAK_BLOCK: { drops: <bool=true>, void-materials: <material list=>, smelt: <int[0..64]=0>, smelt-materials: <material list=> } }`
 - _param_ `drops` `bool`
 - _param_ `void-materials` `material list` — these block types break WITHOUT drops even when drops is true (empty = none)
+- _param_ `smelt` `int[0..64]` — smelted products per smeltable block in the volume; 0 = no transform
+- _param_ `smelt-materials` `material list` — restrict the smelt transform to these block types (empty = every type that smelts)
 - _target_ `at`: selector `HERE`
 - _example_: `{ BREAK_BLOCK: { drops: true } }`
 

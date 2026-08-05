@@ -19,18 +19,26 @@ tier: common
 # name their material at compile time: one rule per ore is the only shape that can hand out the right metal.
 # The two conditions are mutually exclusive, so a break still rolls the ladder's chance exactly once.
 # `%block.type%` is the MINE activation's own block (the engine's only block-fact source).
-# interactions, none authored here: the jar stands the whole enchant down on a tool that also carries Detonate
-# or Atomic Detonate (those smelt in-volume themselves, and only alongside Fuse), and Auto Sell (doc 07) sells
-# a smelted drop instead of giving it. Both counterparties are unshipped — Detonate is deferred on the
-# block-filter gap, Auto Sell is a mastery — so nothing here has anything to stand down for yet; the clause is
-# tracked in deferred-content rather than approximated with `blacklist:`, which would refuse the very
-# Auto Smelt + Fuse + Detonate tool the in-volume smelt rule requires.
+# THE DETONATE STAND-DOWN (R-QC10) is now authored, and it is the second half of one rule rather than a
+# refusal in its own right: the jar disables Auto Smelt outright on a tool that also carries Detonate or
+# Atomic Detonate, because inside those volumes smelting is Detonate's own job and requires Auto Smelt AND
+# Fuse. Both halves land together — `BREAK_BLOCK.smelt` gives the volumes their transform, so the tool that
+# stands down here still smelts, through the blast. It rides the ability conditions rather than `blacklist:`,
+# which is an APPLY-time refusal and would forbid the exact Auto Smelt + Fuse + Detonate tool the in-volume
+# rule is built on. One honest looseness: `%actor.enchlevel.*%` spans the wearer's armour plus both hands
+# rather than the activating item alone, so a Detonate pickaxe in the OFF hand would also stand the mined
+# block's smelt down. Detonate is a tool enchant and the mining hand is the main one, so the divergence needs
+# a deliberately built two-pickaxe loadout to reach.
+# Auto Sell (doc 07) selling a smelted drop instead of giving it stays out entirely under owner ruling R9.
 # Block XP needs no step: the jar hands the block's XP to the player directly, the engine leaves the vanilla
 # orb, and the value is the same.
 # era: the jar's ore ids resolve straight through (`IRON_ORE`/`GOLD_ORE` survive the flattening; the ingots
-# are unchanged), so the gate below is the jar's two ores verbatim. The engine's own smelt table additionally
-# knows the deepslate/nether/copper ores that postdate the jar — widening this gate to them is an era ruling
-# for the owner, not a translation, and it is tracked in deferred-content.
+# are unchanged), and under the STANDING ERA RULE R-QC22b each widens to its post-flattening variants —
+# `DEEPSLATE_IRON_ORE`, `DEEPSLATE_GOLD_ORE` and `NETHER_GOLD_ORE`. Without that, most iron mined below y=0
+# on a modern world would fall straight through the gate. The names live in a STRING comparison against
+# `%block.type%`, so a spelling that does not exist on 1.8 simply never matches there — no fallback chain is
+# needed and none is written. Copper is deliberately NOT added: it is a new ore, not a flattening variant of
+# one the jar knew, and R-QC22b widens spellings rather than rosters.
 levels:
   # Chance 34 pp per level. L3 computes to 1.02 in the jar — over the ceiling, so it always fires; D-06-1 rules
   # the 100 % cap as-intended, which is what ships. Ingots per proc = level: SMELT yields the one, GIVE_ITEM
@@ -38,23 +46,23 @@ levels:
   1:
     chance: 34
     abilities:
-      - condition: "%block.type% == \"IRON_ORE\""
+      - condition: "(%block.type% == \"IRON_ORE\" || %block.type% == \"DEEPSLATE_IRON_ORE\") && %actor.enchlevel.detonate% == 0 && %actor.enchlevel.atomic-detonate% == 0"
         effects:
           - { SMELT: {} }
           - { TELEPORT_DROPS: {} }
-      - condition: "%block.type% == \"GOLD_ORE\""
+      - condition: "(%block.type% == \"GOLD_ORE\" || %block.type% == \"DEEPSLATE_GOLD_ORE\" || %block.type% == \"NETHER_GOLD_ORE\") && %actor.enchlevel.detonate% == 0 && %actor.enchlevel.atomic-detonate% == 0"
         effects:
           - { SMELT: {} }
           - { TELEPORT_DROPS: {} }
   2:
     chance: 68
     abilities:
-      - condition: "%block.type% == \"IRON_ORE\""
+      - condition: "(%block.type% == \"IRON_ORE\" || %block.type% == \"DEEPSLATE_IRON_ORE\") && %actor.enchlevel.detonate% == 0 && %actor.enchlevel.atomic-detonate% == 0"
         effects:
           - { SMELT: {} }
           - { TELEPORT_DROPS: {} }
           - { GIVE_ITEM: { material: "IRON_INGOT", count: 1, who: "@Self" } }
-      - condition: "%block.type% == \"GOLD_ORE\""
+      - condition: "(%block.type% == \"GOLD_ORE\" || %block.type% == \"DEEPSLATE_GOLD_ORE\" || %block.type% == \"NETHER_GOLD_ORE\") && %actor.enchlevel.detonate% == 0 && %actor.enchlevel.atomic-detonate% == 0"
         effects:
           - { SMELT: {} }
           - { TELEPORT_DROPS: {} }
@@ -62,12 +70,12 @@ levels:
   3:
     chance: 100
     abilities:
-      - condition: "%block.type% == \"IRON_ORE\""
+      - condition: "(%block.type% == \"IRON_ORE\" || %block.type% == \"DEEPSLATE_IRON_ORE\") && %actor.enchlevel.detonate% == 0 && %actor.enchlevel.atomic-detonate% == 0"
         effects:
           - { SMELT: {} }
           - { TELEPORT_DROPS: {} }
           - { GIVE_ITEM: { material: "IRON_INGOT", count: 2, who: "@Self" } }
-      - condition: "%block.type% == \"GOLD_ORE\""
+      - condition: "(%block.type% == \"GOLD_ORE\" || %block.type% == \"DEEPSLATE_GOLD_ORE\" || %block.type% == \"NETHER_GOLD_ORE\") && %actor.enchlevel.detonate% == 0 && %actor.enchlevel.atomic-detonate% == 0"
         effects:
           - { SMELT: {} }
           - { TELEPORT_DROPS: {} }

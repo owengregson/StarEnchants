@@ -23,6 +23,8 @@ effect BOOK_RATE_MODIFIER
 effect BREAK_BLOCK
   param drops BOOL optional min=- max=- enum=- handle=- default=true
   param void-materials HANDLE optional min=- max=- enum=- handle=MATERIAL default=
+  param smelt INT optional min=0 max=64 enum=- handle=- default=0
+  param smelt-materials HANDLE optional min=- max=- enum=- handle=MATERIAL default=
 effect CAGE
   param floor HANDLE required min=- max=- enum=- handle=MATERIAL default=-
   param walls HANDLE required min=- max=- enum=- handle=MATERIAL default=-

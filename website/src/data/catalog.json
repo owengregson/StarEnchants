@@ -250,9 +250,9 @@
     },
   {
     "head": "BREAK_BLOCK",
-    "doc": "Break the target block(s) (default @Here; drops=false clears). @Vein/@Tunnel/@Trench/@Bore for shapes. void-materials is the per-block exception to `drops`: the listed types are destroyed dropless while everything else in the same volume still yields, which is how a bulk excavator keeps the ore and voids the stone.",
+    "doc": "Break the target block(s) (default @Here; drops=false clears). @Vein/@Tunnel/@Trench/@Bore for shapes. void-materials is the per-block exception to `drops`: the listed types are destroyed dropless while everything else in the same volume still yields, which is how a bulk excavator keeps the ore and voids the stone. `smelt` is the volume's drop TRANSFORM — the excavation twin of the MINE-scoped SMELT read-back, which only ever addresses the one block a MINE event names: a smeltable block yields that many of its smelted product instead of its raw drop. Being a number rather than a flag, it takes a fact expression, so a co-enchant rule ('only alongside Fuse') is one authored product and needs no second ability.",
     "affinity": "REGION",
-    "usage": "{ BREAK_BLOCK: { drops: <bool=true>, void-materials: <material list=> } }",
+    "usage": "{ BREAK_BLOCK: { drops: <bool=true>, void-materials: <material list=>, smelt: <int[0..64]=0>, smelt-materials: <material list=> } }",
     "example": "{ BREAK_BLOCK: { drops: true } }",
     "params": [
       {
@@ -278,6 +278,30 @@
         "enum": [],
         "handle": "MATERIAL",
         "doc": "these block types break WITHOUT drops even when drops is true (empty = none)"
+        },
+      {
+        "name": "smelt",
+        "kind": "INT",
+        "label": "int[0..64]",
+        "required": false,
+        "default": "0",
+        "min": 0,
+        "max": 64,
+        "enum": [],
+        "handle": null,
+        "doc": "smelted products per smeltable block in the volume; 0 = no transform"
+        },
+      {
+        "name": "smelt-materials",
+        "kind": "HANDLE",
+        "label": "material list",
+        "required": false,
+        "default": "",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": "MATERIAL",
+        "doc": "restrict the smelt transform to these block types (empty = every type that smelts)"
         }
       ],
     "targets": [

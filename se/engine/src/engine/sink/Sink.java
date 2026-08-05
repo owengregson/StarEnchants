@@ -450,12 +450,28 @@ public interface Sink {
 
     void blockChange(Location at, int blockDataId);
 
-    /** Break the block at {@code at}; {@code drops} controls whether it yields its drops (BREAK_BLOCK). */
-    void breakBlock(Location at, boolean drops, java.util.List<Integer> voidMaterialIds);
+    /**
+     * Break the block at {@code at}; {@code drops} controls whether it yields its drops, {@code voidMaterialIds}
+     * are the per-material exceptions destroyed dropless anyway (BREAK_BLOCK).
+     *
+     * <p>{@code smeltCount > 0} is the volume-scoped drop TRANSFORM: a block whose type both smelts (the shared
+     * {@code SmeltTable}) and passes {@code smeltMaterialIds} (empty = every type the table knows) yields
+     * {@code smeltCount} of its product instead of its natural drops. The transform is decided on the block's
+     * OWN region thread for the same reason the void list is — only that thread knows what the block actually
+     * is — which is why it rides this call rather than the {@code SMELT} read-back, whose whole vocabulary is
+     * the one block a MINE event names.
+     */
+    void breakBlock(Location at, boolean drops, java.util.List<Integer> voidMaterialIds,
+                    int smeltCount, java.util.List<Integer> smeltMaterialIds);
 
-    /** {@link #breakBlock(Location, boolean, java.util.List)} with no per-material exceptions (the add-on SPI form). */
+    /** {@link #breakBlock(Location, boolean, java.util.List, int, java.util.List)} with no per-material exceptions and no transform. */
     default void breakBlock(Location at, boolean drops) {
-        breakBlock(at, drops, java.util.List.of());
+        breakBlock(at, drops, java.util.List.of(), 0, java.util.List.of());
+    }
+
+    /** {@link #breakBlock(Location, boolean, java.util.List, int, java.util.List)} with no drop transform (the add-on SPI form). */
+    default void breakBlock(Location at, boolean drops, java.util.List<Integer> voidMaterialIds) {
+        breakBlock(at, drops, voidMaterialIds, 0, java.util.List.of());
     }
 
     /**

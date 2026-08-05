@@ -43,16 +43,32 @@ condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\"
 # the list is unconditional here. `GRASS_BLOCK|GRASS` is written modern-first, against this file's usual
 # `1.8|modern` order: 1.8's `GRASS` IS the grass block, but the modern `GRASS` is the plant (aliased to
 # SHORT_GRASS), so a 1.8-first chain would void tall grass on every modern server.
-# What this grade still owes ON TOP of the counterpart's riders, recorded rather than approximated:
-#   - the EXPLOSIVES EXPERT clause. Wearing that mastery dropped this entry's tool-class gating so pickaxe
-#     AND spade ground broke from either tool. Moot here: the tool-class sublists are not authored on either
-#     grade (Detonate's own reading), so every tool already breaks everything the deny list allows and the
-#     flag has nothing left to unlock. When the sublists land, the gate reads
-#     `%actor.enchlevel.explosives-expert%` and NOT the matrix's `%mastery.explosives-expert%` var spelling —
-#     nothing writes that var, and an unknown key reads 0 in silence, so a stale spelling would compile and
-#     gate nothing forever. Plain Detonate must keep ignoring the flag (measured).
+# THE IN-VOLUME SMELT (R-QC10). `BREAK_BLOCK.smelt` is the excavation twin of the MINE-scoped `SMELT`
+# read-back, which only ever addresses the one block a MINE event names and so could never reach a block the
+# sink breaks itself. The jar's rule is a CO-ENCHANT one — iron/gold ore inside the blast becomes ingots only
+# when the tool carries Auto Smelt AND Fuse, at `setAmount(autoSmeltLevel)` — and the param is a number, so
+# the whole rule is one authored product: `min(1, %actor.enchlevel.fuse%) * %actor.enchlevel.auto-smelt%`
+# reads 0 without Fuse (max 1, hence the `min` is belt-and-braces) and the Auto Smelt level with it. That is
+# what finally makes `fuse.yml` mean something on an item. `smelt-materials` holds the gate to the jar's two
+# ores, widened to their post-flattening variants under the standing era rule R-QC22b — without it the
+# engine's shared smelt table would also turn blasted sand into glass, which the jar never did.
+# THE TOOL-CLASS SUBLISTS (R-QC10) are authored here, and ONLY here. The jar gated 15 materials (stone,
+# ores, spawners, netherrack…) to a pickaxe and 6 (dirt, sand, gravel, grass, mycelium, clay) to a spade,
+# and the EXPLOSIVES EXPERT mastery lifted BOTH so either tool broke either class. Four mutually exclusive
+# arms carry it, because a selector body is a literal and the list a rung needs depends on what the miner is
+# holding: expert (neither sublist), pickaxe (spade list denied), spade (pickaxe list denied), and anything
+# else in the 21-tool set — axe, hoe, fishing rod — which breaks neither class. The gate reads
+# `%actor.enchlevel.explosives-expert%` and NOT the matrix's `%mastery.explosives-expert%` var spelling:
+# nothing writes that var with the marker effect-less, and an unknown key reads 0 in silence, so a stale
+# spelling would compile and gate nothing forever. `_SPADE` is joined by `_SHOVEL` because the material was
+# renamed at the flattening and the jar's name test only knew the 1.8 spelling.
+# The ORIGIN-BLOCK deny is repeated on every arm: an ability-level `condition:` REPLACES the file-level one
+# rather than being ANDed with it, so the top-level line above is the default for a future ability and the
+# arms below have to restate it. Plain Detonate keeps ignoring the flag AND the sublists (measured for the
+# flag; the sublists are a recorded widening on that grade, see `detonate.yml` — its nine rungs would take
+# 36 arms for a rider the deny list already keeps out of grief range).
 # The Y floor (`y > 0`) is the world's own; the jar's `y > 200` ceiling clause is unreachable with a 7-block
-# span and is not ported. Drop composition (Telepathy / Auto Smelt + Fuse), the Factions and war-zone hooks
+# span and is not ported. Telepathy's in-volume routing, the Factions and war-zone hooks
 # and spawner bookkeeping are all as Detonate records them. D-06-10 (Auto Sell dropping the `x amount`) is
 # retired by R9; D-06-11 is the same origin re-process D-06-3 names, which the engine's break path does not
 # do; D-06-2's null cached face cannot happen when the face IS the activation.
@@ -66,24 +82,105 @@ levels:
   # activation block's own layer, so the four rungs are 4 / 5 / 6 / 7 layers deep.
   # One EXPLOSION_LARGE burst and one durability point per explosion, the counterpart's reading verbatim
   # (per-block particles have no spelling; the pickaxe-only and dropless-block gates on the charge are not
-  # ported).
+  # ported). The four tool-class arms below all carry the SAME cube for their rung — only the deny list
+  # differs, so a rung's volume never changes with the tool, exactly as the jar's per-block guard worked.
   1:
-    effects:
-      - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", who: "@Bore{left=1, right=2, up=1, down=2, depth=4, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
-      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
-      - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
+    abilities:
+      # EXPERT — the mastery lifts BOTH sublists: every tool breaks everything the deny list allows.
+      - condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\") && %actor.enchlevel.explosives-expert% > 0"
+        effects:
+          - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", smelt: "min(1, %actor.enchlevel.fuse%) * %actor.enchlevel.auto-smelt%", smelt-materials: "IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE", who: "@Bore{left=1, right=2, up=1, down=2, depth=4, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+      # PICKAXE held — spade ground is spared.
+      - condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\") && %actor.enchlevel.explosives-expert% == 0 && %actor.helditem% contains \"_PICKAXE\""
+        effects:
+          - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", smelt: "min(1, %actor.enchlevel.fuse%) * %actor.enchlevel.auto-smelt%", smelt-materials: "IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE", who: "@Bore{left=1, right=2, up=1, down=2, depth=4, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR,DIRT,SAND,RED_SAND|SAND,GRAVEL,GRASS_BLOCK|GRASS,MYCEL|MYCELIUM,CLAY]}" } }
+      # SPADE held — pickaxe ground is spared.
+      - condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\") && %actor.enchlevel.explosives-expert% == 0 && (%actor.helditem% contains \"_SPADE\" || %actor.helditem% contains \"_SHOVEL\")"
+        effects:
+          - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", smelt: "min(1, %actor.enchlevel.fuse%) * %actor.enchlevel.auto-smelt%", smelt-materials: "IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE", who: "@Bore{left=1, right=2, up=1, down=2, depth=4, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR,SANDSTONE,STONE,COBBLESTONE,MOSSY_COBBLESTONE,SMOOTH_BRICK|STONE_BRICKS,OBSIDIAN,MOB_SPAWNER|SPAWNER,COAL_ORE,DEEPSLATE_COAL_ORE|COAL_ORE,IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE,DIAMOND_ORE,DEEPSLATE_DIAMOND_ORE|DIAMOND_ORE,LAPIS_ORE,DEEPSLATE_LAPIS_ORE|LAPIS_ORE,REDSTONE_ORE,DEEPSLATE_REDSTONE_ORE|REDSTONE_ORE,EMERALD_ORE,DEEPSLATE_EMERALD_ORE|EMERALD_ORE,NETHERRACK]}" } }
+      # AXE / HOE / ROD — neither class breaks; only the ungated middle goes.
+      - condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\") && %actor.enchlevel.explosives-expert% == 0 && !(%actor.helditem% contains \"_PICKAXE\") && !(%actor.helditem% contains \"_SPADE\") && !(%actor.helditem% contains \"_SHOVEL\")"
+        effects:
+          - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", smelt: "min(1, %actor.enchlevel.fuse%) * %actor.enchlevel.auto-smelt%", smelt-materials: "IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE", who: "@Bore{left=1, right=2, up=1, down=2, depth=4, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR,SANDSTONE,STONE,COBBLESTONE,MOSSY_COBBLESTONE,SMOOTH_BRICK|STONE_BRICKS,OBSIDIAN,MOB_SPAWNER|SPAWNER,COAL_ORE,DEEPSLATE_COAL_ORE|COAL_ORE,IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE,DIAMOND_ORE,DEEPSLATE_DIAMOND_ORE|DIAMOND_ORE,LAPIS_ORE,DEEPSLATE_LAPIS_ORE|LAPIS_ORE,REDSTONE_ORE,DEEPSLATE_REDSTONE_ORE|REDSTONE_ORE,EMERALD_ORE,DEEPSLATE_EMERALD_ORE|EMERALD_ORE,NETHERRACK,DIRT,SAND,RED_SAND|SAND,GRAVEL,GRASS_BLOCK|GRASS,MYCEL|MYCELIUM,CLAY]}" } }
+      # The burst and the durability point are ONCE PER EXPLOSION and tool-blind, so they ride
+      # their own ability rather than being copied into all four arms (which would fire the
+      # cue four times where the jar fired it once).
+      - condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\")"
+        effects:
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+          - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
   2:
-    effects:
-      - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", who: "@Bore{half-width=2, half-height=2, depth=5, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
-      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
-      - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
+    abilities:
+      # EXPERT — the mastery lifts BOTH sublists: every tool breaks everything the deny list allows.
+      - condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\") && %actor.enchlevel.explosives-expert% > 0"
+        effects:
+          - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", smelt: "min(1, %actor.enchlevel.fuse%) * %actor.enchlevel.auto-smelt%", smelt-materials: "IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE", who: "@Bore{half-width=2, half-height=2, depth=5, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+      # PICKAXE held — spade ground is spared.
+      - condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\") && %actor.enchlevel.explosives-expert% == 0 && %actor.helditem% contains \"_PICKAXE\""
+        effects:
+          - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", smelt: "min(1, %actor.enchlevel.fuse%) * %actor.enchlevel.auto-smelt%", smelt-materials: "IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE", who: "@Bore{half-width=2, half-height=2, depth=5, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR,DIRT,SAND,RED_SAND|SAND,GRAVEL,GRASS_BLOCK|GRASS,MYCEL|MYCELIUM,CLAY]}" } }
+      # SPADE held — pickaxe ground is spared.
+      - condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\") && %actor.enchlevel.explosives-expert% == 0 && (%actor.helditem% contains \"_SPADE\" || %actor.helditem% contains \"_SHOVEL\")"
+        effects:
+          - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", smelt: "min(1, %actor.enchlevel.fuse%) * %actor.enchlevel.auto-smelt%", smelt-materials: "IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE", who: "@Bore{half-width=2, half-height=2, depth=5, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR,SANDSTONE,STONE,COBBLESTONE,MOSSY_COBBLESTONE,SMOOTH_BRICK|STONE_BRICKS,OBSIDIAN,MOB_SPAWNER|SPAWNER,COAL_ORE,DEEPSLATE_COAL_ORE|COAL_ORE,IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE,DIAMOND_ORE,DEEPSLATE_DIAMOND_ORE|DIAMOND_ORE,LAPIS_ORE,DEEPSLATE_LAPIS_ORE|LAPIS_ORE,REDSTONE_ORE,DEEPSLATE_REDSTONE_ORE|REDSTONE_ORE,EMERALD_ORE,DEEPSLATE_EMERALD_ORE|EMERALD_ORE,NETHERRACK]}" } }
+      # AXE / HOE / ROD — neither class breaks; only the ungated middle goes.
+      - condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\") && %actor.enchlevel.explosives-expert% == 0 && !(%actor.helditem% contains \"_PICKAXE\") && !(%actor.helditem% contains \"_SPADE\") && !(%actor.helditem% contains \"_SHOVEL\")"
+        effects:
+          - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", smelt: "min(1, %actor.enchlevel.fuse%) * %actor.enchlevel.auto-smelt%", smelt-materials: "IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE", who: "@Bore{half-width=2, half-height=2, depth=5, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR,SANDSTONE,STONE,COBBLESTONE,MOSSY_COBBLESTONE,SMOOTH_BRICK|STONE_BRICKS,OBSIDIAN,MOB_SPAWNER|SPAWNER,COAL_ORE,DEEPSLATE_COAL_ORE|COAL_ORE,IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE,DIAMOND_ORE,DEEPSLATE_DIAMOND_ORE|DIAMOND_ORE,LAPIS_ORE,DEEPSLATE_LAPIS_ORE|LAPIS_ORE,REDSTONE_ORE,DEEPSLATE_REDSTONE_ORE|REDSTONE_ORE,EMERALD_ORE,DEEPSLATE_EMERALD_ORE|EMERALD_ORE,NETHERRACK,DIRT,SAND,RED_SAND|SAND,GRAVEL,GRASS_BLOCK|GRASS,MYCEL|MYCELIUM,CLAY]}" } }
+      # The burst and the durability point are ONCE PER EXPLOSION and tool-blind, so they ride
+      # their own ability rather than being copied into all four arms (which would fire the
+      # cue four times where the jar fired it once).
+      - condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\")"
+        effects:
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+          - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
   3:
-    effects:
-      - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", who: "@Bore{left=2, right=3, up=2, down=3, depth=6, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
-      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
-      - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
+    abilities:
+      # EXPERT — the mastery lifts BOTH sublists: every tool breaks everything the deny list allows.
+      - condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\") && %actor.enchlevel.explosives-expert% > 0"
+        effects:
+          - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", smelt: "min(1, %actor.enchlevel.fuse%) * %actor.enchlevel.auto-smelt%", smelt-materials: "IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE", who: "@Bore{left=2, right=3, up=2, down=3, depth=6, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+      # PICKAXE held — spade ground is spared.
+      - condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\") && %actor.enchlevel.explosives-expert% == 0 && %actor.helditem% contains \"_PICKAXE\""
+        effects:
+          - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", smelt: "min(1, %actor.enchlevel.fuse%) * %actor.enchlevel.auto-smelt%", smelt-materials: "IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE", who: "@Bore{left=2, right=3, up=2, down=3, depth=6, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR,DIRT,SAND,RED_SAND|SAND,GRAVEL,GRASS_BLOCK|GRASS,MYCEL|MYCELIUM,CLAY]}" } }
+      # SPADE held — pickaxe ground is spared.
+      - condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\") && %actor.enchlevel.explosives-expert% == 0 && (%actor.helditem% contains \"_SPADE\" || %actor.helditem% contains \"_SHOVEL\")"
+        effects:
+          - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", smelt: "min(1, %actor.enchlevel.fuse%) * %actor.enchlevel.auto-smelt%", smelt-materials: "IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE", who: "@Bore{left=2, right=3, up=2, down=3, depth=6, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR,SANDSTONE,STONE,COBBLESTONE,MOSSY_COBBLESTONE,SMOOTH_BRICK|STONE_BRICKS,OBSIDIAN,MOB_SPAWNER|SPAWNER,COAL_ORE,DEEPSLATE_COAL_ORE|COAL_ORE,IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE,DIAMOND_ORE,DEEPSLATE_DIAMOND_ORE|DIAMOND_ORE,LAPIS_ORE,DEEPSLATE_LAPIS_ORE|LAPIS_ORE,REDSTONE_ORE,DEEPSLATE_REDSTONE_ORE|REDSTONE_ORE,EMERALD_ORE,DEEPSLATE_EMERALD_ORE|EMERALD_ORE,NETHERRACK]}" } }
+      # AXE / HOE / ROD — neither class breaks; only the ungated middle goes.
+      - condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\") && %actor.enchlevel.explosives-expert% == 0 && !(%actor.helditem% contains \"_PICKAXE\") && !(%actor.helditem% contains \"_SPADE\") && !(%actor.helditem% contains \"_SHOVEL\")"
+        effects:
+          - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", smelt: "min(1, %actor.enchlevel.fuse%) * %actor.enchlevel.auto-smelt%", smelt-materials: "IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE", who: "@Bore{left=2, right=3, up=2, down=3, depth=6, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR,SANDSTONE,STONE,COBBLESTONE,MOSSY_COBBLESTONE,SMOOTH_BRICK|STONE_BRICKS,OBSIDIAN,MOB_SPAWNER|SPAWNER,COAL_ORE,DEEPSLATE_COAL_ORE|COAL_ORE,IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE,DIAMOND_ORE,DEEPSLATE_DIAMOND_ORE|DIAMOND_ORE,LAPIS_ORE,DEEPSLATE_LAPIS_ORE|LAPIS_ORE,REDSTONE_ORE,DEEPSLATE_REDSTONE_ORE|REDSTONE_ORE,EMERALD_ORE,DEEPSLATE_EMERALD_ORE|EMERALD_ORE,NETHERRACK,DIRT,SAND,RED_SAND|SAND,GRAVEL,GRASS_BLOCK|GRASS,MYCEL|MYCELIUM,CLAY]}" } }
+      # The burst and the durability point are ONCE PER EXPLOSION and tool-blind, so they ride
+      # their own ability rather than being copied into all four arms (which would fire the
+      # cue four times where the jar fired it once).
+      - condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\")"
+        effects:
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+          - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
   4:
-    effects:
-      - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", who: "@Bore{half-width=3, half-height=3, depth=7, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
-      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
-      - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
+    abilities:
+      # EXPERT — the mastery lifts BOTH sublists: every tool breaks everything the deny list allows.
+      - condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\") && %actor.enchlevel.explosives-expert% > 0"
+        effects:
+          - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", smelt: "min(1, %actor.enchlevel.fuse%) * %actor.enchlevel.auto-smelt%", smelt-materials: "IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE", who: "@Bore{half-width=3, half-height=3, depth=7, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+      # PICKAXE held — spade ground is spared.
+      - condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\") && %actor.enchlevel.explosives-expert% == 0 && %actor.helditem% contains \"_PICKAXE\""
+        effects:
+          - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", smelt: "min(1, %actor.enchlevel.fuse%) * %actor.enchlevel.auto-smelt%", smelt-materials: "IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE", who: "@Bore{half-width=3, half-height=3, depth=7, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR,DIRT,SAND,RED_SAND|SAND,GRAVEL,GRASS_BLOCK|GRASS,MYCEL|MYCELIUM,CLAY]}" } }
+      # SPADE held — pickaxe ground is spared.
+      - condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\") && %actor.enchlevel.explosives-expert% == 0 && (%actor.helditem% contains \"_SPADE\" || %actor.helditem% contains \"_SHOVEL\")"
+        effects:
+          - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", smelt: "min(1, %actor.enchlevel.fuse%) * %actor.enchlevel.auto-smelt%", smelt-materials: "IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE", who: "@Bore{half-width=3, half-height=3, depth=7, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR,SANDSTONE,STONE,COBBLESTONE,MOSSY_COBBLESTONE,SMOOTH_BRICK|STONE_BRICKS,OBSIDIAN,MOB_SPAWNER|SPAWNER,COAL_ORE,DEEPSLATE_COAL_ORE|COAL_ORE,IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE,DIAMOND_ORE,DEEPSLATE_DIAMOND_ORE|DIAMOND_ORE,LAPIS_ORE,DEEPSLATE_LAPIS_ORE|LAPIS_ORE,REDSTONE_ORE,DEEPSLATE_REDSTONE_ORE|REDSTONE_ORE,EMERALD_ORE,DEEPSLATE_EMERALD_ORE|EMERALD_ORE,NETHERRACK]}" } }
+      # AXE / HOE / ROD — neither class breaks; only the ungated middle goes.
+      - condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\") && %actor.enchlevel.explosives-expert% == 0 && !(%actor.helditem% contains \"_PICKAXE\") && !(%actor.helditem% contains \"_SPADE\") && !(%actor.helditem% contains \"_SHOVEL\")"
+        effects:
+          - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", smelt: "min(1, %actor.enchlevel.fuse%) * %actor.enchlevel.auto-smelt%", smelt-materials: "IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE", who: "@Bore{half-width=3, half-height=3, depth=7, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR,SANDSTONE,STONE,COBBLESTONE,MOSSY_COBBLESTONE,SMOOTH_BRICK|STONE_BRICKS,OBSIDIAN,MOB_SPAWNER|SPAWNER,COAL_ORE,DEEPSLATE_COAL_ORE|COAL_ORE,IRON_ORE,DEEPSLATE_IRON_ORE|IRON_ORE,GOLD_ORE,DEEPSLATE_GOLD_ORE|GOLD_ORE,NETHER_GOLD_ORE|GOLD_ORE,DIAMOND_ORE,DEEPSLATE_DIAMOND_ORE|DIAMOND_ORE,LAPIS_ORE,DEEPSLATE_LAPIS_ORE|LAPIS_ORE,REDSTONE_ORE,DEEPSLATE_REDSTONE_ORE|REDSTONE_ORE,EMERALD_ORE,DEEPSLATE_EMERALD_ORE|EMERALD_ORE,NETHERRACK,DIRT,SAND,RED_SAND|SAND,GRAVEL,GRASS_BLOCK|GRASS,MYCEL|MYCELIUM,CLAY]}" } }
+      # The burst and the durability point are ONCE PER EXPLOSION and tool-blind, so they ride
+      # their own ability rather than being copied into all four arms (which would fire the
+      # cue four times where the jar fired it once).
+      - condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\")"
+        effects:
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+          - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
