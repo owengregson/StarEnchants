@@ -1,13 +1,12 @@
 # Matrix: 10-armor-sets.md § Dragon Slayer (crystal route, family preamble §A.7/§C.1)
 # The one crystal in the family whose advertised numbers all match measured behaviour at one piece: -5%
-# incoming and +3% PvP outgoing per crystal-bearing piece, plus a 10% cancel of an incoming Silence or Ice
-# Aspect proc. The set's own full-set negation flags and this crystal's roll are independent mechanisms in
-# the jar and both can be live at once (measured) — nothing here suppresses the set half.
-display: "Dragon Slayer"
+# incoming and +3% PvP outgoing per crystal-bearing piece, plus a 10%-per-piece cancel of an incoming Silence
+# or Ice Aspect proc (40% at four). The set's own full-set negation flags and this crystal's roll are
+# independent mechanisms in the jar and both can be live at once (measured) — nothing here suppresses the
+# set half.
+display: "§e§lDragon Slayer"  # ArmorSet.DRAGON_SLAYER.getDisplayName (codex §A.2, `CC.YellowB + "Dragon Slayer"`); see phantom.yml
 # The source's own crystalDescription, verbatim (codex §A.2); see phantom.yml for the construction rule. Its
-# four bullets are the only ones in the family that name TWO immunities as separate lines. The set line's
-# display name is this pack's `§e§lDragon Slayer` (sets/dragon-slayer.yml): the codex records the enum colour
-# `§e` but no standalone display string for this set, so the colour is source and the wording is ours.
+# four bullets are the only ones in the family that name TWO immunities as separate lines.
 description:
   - " §e§l§e§lDragon Slayer"
   - "  §e§l* §e+3% PvP DMG"
@@ -23,9 +22,14 @@ stackable: true
 # (PASSIVE is a start/stop lifecycle, fired once at equip, so a window armed there would expire mid-wear);
 # `repeat: 20` under `duration: 60` bounds the residual cancel after the crystal comes off at 3 s.
 # The block lines are the matrix's verbatim crystal strings, sent to the protected wearer at the block.
-# NOT expressible: per-piece scaling of the 10% (four pieces should read 40%). A suppression window is keyed
-# per (holder, scope, key), so a second crystal re-arms the same window rather than compounding it, and no
-# fact counts crystal-bearing pieces — recorded in deferred-content.md. The damage halves scale exactly.
+# PER-PIECE SCALING (R-QC52). The jar's hook is `Math.random() <= multiplier * 0.1` — 10 % per crystal-bearing
+# piece, 10/20/30/40 at n = 1..4 (codex §Dragon Slayer, "Crystal hooks"/onEnchantImmuneToProced). Two engine
+# facts make that authorable in one file: `%actor.crystals.<stem>%` counts the wearer's crystal-bearing ARMOUR
+# pieces, and `SuppressionStore.strongerDefender` resolves two arms of the same (holder, scope, key) to the
+# STRONGER chance. So the four rungs below are a ladder, not four competing windows — at n = 3 the >= 1, >= 2
+# and >= 3 rungs all arm and 30 governs. `chance` is `int[1..100]`, which is why the ladder exists at all: an
+# expression cannot ride an effect param. The rung is one ability per step because a condition gates the whole
+# ability, and both keys must move together on every step.
 abilities:
   - trigger: DEFENSE
     effects:
@@ -34,10 +38,35 @@ abilities:
     trigger: ATTACK
     effects:
       - { DAMAGE_MOD: { side: attack, mode: add, amount: 3 } }
+  # n >= 1 — the base rung; a crystal that is running at all is worn on at least one piece.
   - trigger: REPEATING
     repeat: 20
     effects:
       - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/silence", chance: 10, duration: 60, who: "@Self",
                                consumed-message-actor: "§e§l* DRAGON SLAYER CRYSTAL [§7Silence blocked§e§l] *" } }
       - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/ice-aspect", chance: 10, duration: 60, who: "@Self",
+                               consumed-message-actor: "§e§l* DRAGON SLAYER CRYSTAL [§7Ice Aspect blocked§e§l] *" } }
+  - trigger: REPEATING
+    repeat: 20
+    condition: "%actor.crystals.dragon-slayer% >= 2"
+    effects:
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/silence", chance: 20, duration: 60, who: "@Self",
+                               consumed-message-actor: "§e§l* DRAGON SLAYER CRYSTAL [§7Silence blocked§e§l] *" } }
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/ice-aspect", chance: 20, duration: 60, who: "@Self",
+                               consumed-message-actor: "§e§l* DRAGON SLAYER CRYSTAL [§7Ice Aspect blocked§e§l] *" } }
+  - trigger: REPEATING
+    repeat: 20
+    condition: "%actor.crystals.dragon-slayer% >= 3"
+    effects:
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/silence", chance: 30, duration: 60, who: "@Self",
+                               consumed-message-actor: "§e§l* DRAGON SLAYER CRYSTAL [§7Silence blocked§e§l] *" } }
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/ice-aspect", chance: 30, duration: 60, who: "@Self",
+                               consumed-message-actor: "§e§l* DRAGON SLAYER CRYSTAL [§7Ice Aspect blocked§e§l] *" } }
+  - trigger: REPEATING
+    repeat: 20
+    condition: "%actor.crystals.dragon-slayer% >= 4"
+    effects:
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/silence", chance: 40, duration: 60, who: "@Self",
+                               consumed-message-actor: "§e§l* DRAGON SLAYER CRYSTAL [§7Silence blocked§e§l] *" } }
+      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/ice-aspect", chance: 40, duration: 60, who: "@Self",
                                consumed-message-actor: "§e§l* DRAGON SLAYER CRYSTAL [§7Ice Aspect blocked§e§l] *" } }

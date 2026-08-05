@@ -2,7 +2,13 @@
 # The only crystal split by victim kind, and the only one whose four-piece fold reproduces its set exactly:
 # +5% per crystal-bearing piece against players and +12.5% per piece against everything else, so four pieces
 # land the set's own x1.20 PvP / x1.50 PvE. No defensive half — KOTH is a glass cannon on both routes.
-display: "KOTH"
+# THE BANNER IS THE DISPLAY NAME — verbatim, not a paraphrase and not normalised. `ArmorSet.KOTH.displayName`
+# is a built expression, resolved in codex §A.2 to exactly this: the `;` bookends are `CC.WhiteB + CC.Magic`
+# (`§f§l§k`, so both semicolons render as obfuscated noise), the leading space belongs to `" K"`, and the
+# space after `H` survives into the string. The name slot takes `getDisplayName()` (matrix/13 § Armor Crystal),
+# so the whole banner lands inside the gold wrapper. Two KOTH banners exist: this `;` one on the enum, and the
+# `!`-bookended `getKothName()` on the armour pieces (sets/koth.yml). Different strings, different items.
+display: "§f§l§k;§c§l K§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k;"
 # The source's own crystalDescription, verbatim (codex §A.2); see phantom.yml for the construction rule.
 # TWO KOTH-only traps, both codex-verified:
 #  * the colour here is AQUA `§b` — the ArmorSet enum's own colour, which is what the crystal reads. The `§d`

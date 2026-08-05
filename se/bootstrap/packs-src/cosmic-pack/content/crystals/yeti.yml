@@ -1,7 +1,7 @@
 # Matrix: 10-armor-sets.md § Yeti (crystal route, family preamble §A.7/§C.1)
 # Both halves of the Yeti set bonus at a quarter each: four crystal-bearing pieces fold to x1.10 outgoing and
 # x0.90 incoming — the set's own numbers. Per-piece scaling is the stackable fold (see phantom.yml).
-display: "Yeti"
+display: "§b§lYeti"  # ArmorSet.YETI.getDisplayName (codex §A.2); the likeness takes the styled name — see phantom.yml
 # The source's own crystalDescription, verbatim (codex §A.2) — set line then one bullet per bonus, in its
 # order (defensive first here); see phantom.yml for the family's construction rule.
 description:
@@ -11,8 +11,11 @@ description:
 tier: legendary  # (port-chosen) see phantom.yml
 applies-to: [ARMOR]
 stackable: true
-# The set's Maul riders (armour strip, heroic bypass) are weapon-held branches and have no crystal half; the
-# victim Infinite Luck >= 1 suppression and the outpost world gate sit on the set hooks, not on this path.
+# The set's Maul riders (armour strip, heroic bypass) are weapon-held branches and have no crystal half, and
+# the victim Infinite Luck >= 1 suppression sits on the set hook alone (measured).
+# The outpost world gate (§A.8, TRAINEE/VANILLA/HERO) DOES ride this path — Yeti is one of the sets whose
+# BOTH crystal hooks open with `isBlockedOutpostWorld`. Off by default in this port like its set-side twin;
+# `disabled-worlds:` on either ability below is the seam.
 abilities:
   - { trigger: ATTACK,  effects: [ { DAMAGE_MOD: { side: attack,  mode: add, amount: 2.5 } } ] }
   - { trigger: DEFENSE, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 2.5 } } ] }

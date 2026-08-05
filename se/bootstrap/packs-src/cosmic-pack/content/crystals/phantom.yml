@@ -5,7 +5,13 @@
 # crystal delivers under the additive fold (ADR-0012), so `stackable: true` IS the per-piece scaling — four
 # crystal-bearing pieces fold four +5% terms and land the matrix's x1.20. The apply gesture, the 20% gamble
 # and the refusal rules are family-wide and live on the likeness (items/crystal.yml).
-display: "Phantom"
+# THE FAMILY'S DISPLAY RULE, stated once here and cited by the other seven set crystals. The likeness spells
+# its name `§6§lArmor Crystal (<setDisplayName>§6§l)` (matrix/13 § Armor Crystal: "name (single set)"), and
+# `<setDisplayName>` is `ArmorSet.getDisplayName()` — the STYLED name, colour and bold included, not the bare
+# enum word. So `display:` carries the codex §A.2 string verbatim and the likeness supplies nothing but the
+# gold wrapper. The description's doubled `§c§l§c§l` below is the proof from the other end: that line is
+# `" " + getColor() + §l + getDisplayName()`, so the second run IS this display.
+display: "§c§lPhantom"
 # THE SOURCE'S OWN crystalDescription, verbatim (matrix/13 § Armor Crystal; codex §A.2) — the family's shape,
 # reproduced in all eight set crystals: a SET LINE (one leading space, the set's colour + bold, then its
 # display name, which carries its OWN colour and bold — the doubled codes are the source's) followed by one
@@ -17,9 +23,13 @@ description:
 tier: legendary  # (port-chosen) the matrix records no crystal rarity; legendary is the plain-set rung
 applies-to: [ARMOR]
 stackable: true
-# The set half carries a victim Infinite Luck >= 3 suppression and an outpost-world gate on its ATTACK hook.
-# Neither rides the crystal: the jar composes attacker set, THEN attacker crystals, as separate steps, and
-# the matrix records the luck threshold and the world gate on the set hook only. No defensive crystal half
-# exists for Phantom (measured).
+# The set half's victim Infinite Luck >= 3 suppression does NOT ride the crystal — the jar composes attacker
+# set, THEN attacker crystals, and the luck check sits on the set hook alone (measured).
+# THE OUTPOST WORLD GATE DOES ride it: §A.7's crystal table has every live crystal hook short-circuiting on
+# `isBlockedOutpostWorld` (§A.8 — TRAINEE/VANILLA/HERO tiers), Phantom's `onPlayerAttackedBonus` included.
+# Interaction-layer world rule, OFF BY DEFAULT in this port exactly as on the set files; the authoring seam is
+# `disabled-worlds:` on the ability below.
+# The table's three exemptions are the hooks that do nothing at all — Phantom's own `onPlayerDamagedBonus` is
+# one, an unconditional `return false`, which is why no defensive crystal half exists here to gate.
 abilities:
   - { trigger: ATTACK, effects: [ { DAMAGE_MOD: { side: attack, mode: add, amount: 5 } } ] }

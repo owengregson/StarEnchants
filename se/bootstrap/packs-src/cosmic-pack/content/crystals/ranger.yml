@@ -1,10 +1,14 @@
 # Matrix: 10-armor-sets.md § Ranger (crystal route, family preamble §A.7/§C.1)
 # Ranger's crystal is the only one whose BOTH damage halves are projectile-conditioned: -5% incoming per
-# crystal-bearing piece against projectiles, +6% outgoing per piece on the bow. Four pieces fold to x0.80 in
-# and x1.24 out, the matrix's measured pair. The incoming half rides DEFENSE under the recorded
-# `[damagecause == PROJECTILE]` gate; the outgoing half rides BOW, which IS the projectile trigger on this
-# surface (see enchants/sniper.yml) — the gate is structural there rather than a repeated condition.
-display: "Ranger"
+# crystal-bearing piece against projectiles, +6% outgoing per piece. Four pieces fold to x0.80 in and x1.24
+# out, the matrix's measured pair. The jar gates BOTH on `event.getDamager() instanceof Projectile` — ANY
+# projectile, mob arrows and thrown potions included, not bows alone.
+# The incoming half reproduces that exactly, under the recorded `[damagecause == PROJECTILE]` gate. The
+# outgoing half rides BOW, which is NARROWER than the jar's gate, not equal to it: BOW routes arrow-family
+# hits only (`feature.compat.Projectiles.isArrowLike` — tipped/spectral/normal), so a snowball or fireball the
+# wearer throws misses the bump. ATTACK is the melee lane, so no trigger on this surface spells "any
+# projectile I loosed"; the narrowing is recorded here rather than faked with a condition that cannot widen it.
+display: "§a§lRanger"  # ArmorSet.RANGER.getDisplayName (codex §A.2); see phantom.yml
 # The source's own crystalDescription, verbatim (codex §A.2); see phantom.yml for the construction rule.
 description:
   - " §a§l§a§lRanger"
@@ -14,17 +18,22 @@ description:
 tier: legendary  # (port-chosen) see phantom.yml
 applies-to: [ARMOR]
 stackable: true
-# D-10-4: the crystal's advertised "20% Immune to Teleblock" is absent from the jar. Display strings never
-# deviate, so the advertised value is what ships — a 20% teleblock-immunity chance, rolled per incoming
-# teleblock rather than once at the arm (which is what SUPPRESS_INCOMING's own `chance` does).
-# Maintained-while-worn is a REPEATING re-arm, not PASSIVE: PASSIVE is a start/stop lifecycle (fired once on
-# equip), so a window armed there would simply expire mid-wear. `repeat: 20` under a `duration: 60` window
-# holds it open continuously and bounds the residual immunity after the crystal comes off at 3 s.
-# NOT expressible: the per-piece SCALING of this roll. Four crystal-bearing pieces should read 80%; a
-# suppression window is keyed per (holder, scope, key), so a second crystal re-arms the SAME window instead
-# of compounding it, and no fact counts a wearer's crystal-bearing pieces. Every crystal-bearing piece past
-# the first therefore adds nothing here (recorded in deferred-content.md; the damage halves are unaffected —
-# those fold additively and scale exactly).
+# THE TELEBLOCK IMMUNITY IS MEASURED, not inferred from the advert. 10-armor-sets.md § Ranger calls it "not
+# implemented anywhere" — that codex reads only the armour-sets plugin. The roll lives in the ENCHANTS
+# plugin's TeleblockListener (05-enchants-bows.md:1775-1781): `Math.random() < 0.2 * crystalCount`, 20 % PER
+# CRYSTAL-BEARING PIECE (20/40/60/80 at n = 1..4), answering with the verbatim line below and returning
+# before the block lands. D-10-4's premise ("absent from the jar") is that plugin-boundary blind spot; the
+# correction is owed on the ledger row, not here.
+# Rolled per incoming teleblock rather than once at the arm — which is exactly what SUPPRESS_INCOMING's own
+# `chance` does. Maintained-while-worn is a REPEATING re-arm, not PASSIVE: PASSIVE is a start/stop lifecycle
+# (fired once on equip), so a window armed there would simply expire mid-wear. `repeat: 20` under a
+# `duration: 60` window holds it open continuously and bounds the residual immunity after the crystal comes
+# off at 3 s.
+# PER-PIECE SCALING (R-QC52): `%actor.crystals.<stem>%` counts the wearer's crystal-bearing ARMOUR pieces, and
+# `SuppressionStore.strongerDefender` resolves two arms of one (holder, scope, key) to the STRONGER chance —
+# so the rungs below are a ladder, not four competing windows (at n = 3 the >= 1, >= 2 and >= 3 rungs all arm
+# and 60 governs). One ability per step because `chance` is `int[1..100]` and an expression cannot ride an
+# effect param, while a condition gates the whole ability.
 abilities:
   - condition: "%damagecause% == \"PROJECTILE\""
     trigger: DEFENSE
@@ -33,7 +42,27 @@ abilities:
   - trigger: BOW
     effects:
       - { DAMAGE_MOD: { side: attack, mode: add, amount: 6 } }
+  # n >= 1 — the base rung; a crystal that is running at all is worn on at least one piece.
   - trigger: REPEATING
     repeat: 20
     effects:
-      - { SUPPRESS_INCOMING: { scope: KIND, key: TELEBLOCK, chance: 20, duration: 60, who: "@Self" } }
+      - { SUPPRESS_INCOMING: { scope: KIND, key: TELEBLOCK, chance: 20, duration: 60, who: "@Self",
+                               consumed-message-actor: "§a§l* RANGER CRYSTAL [§7Immune to Teleblock§a§l] *" } }
+  - trigger: REPEATING
+    repeat: 20
+    condition: "%actor.crystals.ranger% >= 2"
+    effects:
+      - { SUPPRESS_INCOMING: { scope: KIND, key: TELEBLOCK, chance: 40, duration: 60, who: "@Self",
+                               consumed-message-actor: "§a§l* RANGER CRYSTAL [§7Immune to Teleblock§a§l] *" } }
+  - trigger: REPEATING
+    repeat: 20
+    condition: "%actor.crystals.ranger% >= 3"
+    effects:
+      - { SUPPRESS_INCOMING: { scope: KIND, key: TELEBLOCK, chance: 60, duration: 60, who: "@Self",
+                               consumed-message-actor: "§a§l* RANGER CRYSTAL [§7Immune to Teleblock§a§l] *" } }
+  - trigger: REPEATING
+    repeat: 20
+    condition: "%actor.crystals.ranger% >= 4"
+    effects:
+      - { SUPPRESS_INCOMING: { scope: KIND, key: TELEBLOCK, chance: 80, duration: 60, who: "@Self",
+                               consumed-message-actor: "§a§l* RANGER CRYSTAL [§7Immune to Teleblock§a§l] *" } }

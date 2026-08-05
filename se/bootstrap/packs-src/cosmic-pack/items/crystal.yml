@@ -1,8 +1,9 @@
 # Matrix: 13-support-items.md § Armor Crystal + § Crystal Extractor (codex 10-armor-sets.md §C.1/§C.8), family
-# preamble §A.7 — the ONE global crystal likeness (ADR-0034). Every crystal in content/crystals/ declares only
-# its styled display name, its bonus block and its effects; the material, name and lore here are shared by all
-# of them, single or merged. Tokens: {CRYSTAL} the component name(s), {DESCRIPTION} their authored bonus
-# blocks, {KINDS} the item kinds they apply to.
+# preamble §A.7 — the ONE global crystal likeness (ADR-0034). A crystal in content/crystals/ carries its own
+# STYLED display name (the name slot takes `getDisplayName()`, colour and bold included — matrix/13 § Armor
+# Crystal), its bonus block, its envelope (tier/applies-to/stackable) and its effects; the material, name and
+# lore here are shared by all of them, single or merged. Tokens: {CRYSTAL} the component name(s),
+# {DESCRIPTION} their authored bonus blocks, {KINDS} the item kinds they apply to.
 type: crystal
 # NETHER_STAR is the recorded material, exactly — an era-stable hit on both lanes.
 material: NETHER_STAR

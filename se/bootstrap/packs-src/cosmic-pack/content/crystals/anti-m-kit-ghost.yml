@@ -3,7 +3,15 @@
 # The counter-crystal to an ability set: on ANY ONE worn piece of the wearer it cancels that set's four
 # mastery-pool procs aimed at them OUTRIGHT — 100%, no roll. The percent a player sees on this crystal is its
 # APPLY chance (the family-wide 20% gamble on the likeness, items/crystal.yml), never a proc chance.
-display: "Anti-M-Kit (Ghost)"
+# THE COUNTER-CRYSTAL'S DISPLAY RULE, stated once here and cited by its two siblings. Its name slot takes the
+# ABILITY set's STYLED name, exactly as the armour crystals' takes the plain set's: the source's counter-
+# crystal is its OWN item, named `§6§lAnti M-Kit Crystal (§3§lGhost§6§l)` (codex §C.2), where `§3§lGhost` is
+# `AbilityArmorSet.GHOST.displayName` = `CC.DarkAquaB + "Ghost"` (§A.10). That second likeness has no home
+# here (matrix/13 gap SECOND_CRYSTAL_LIKENESS) — the pack folds the family onto the one crystal item, which
+# matrix/13 records reading `Armor Crystal (Anti-M-Kit (Ghost))`. So the set name is codex-verbatim and only
+# the `Anti-M-Kit (…)` wrapper is the port's; its trailing `§6§l` is the source's own `+ CC.GoldB + ")"`,
+# keeping the wrapper's closing paren gold inside the likeness's gold-bold template.
+display: "Anti-M-Kit (§3§lGhost§6§l)"
 # The counter-crystal's OWN recorded lore (matrix/13 § Anti-M-Kit Crystal; codex §C.2), which is a different
 # block from the armour crystals' set-line-and-bullets shape (phantom.yml): two header lines and one `§6§l * §4`
 # line per cancelled enchant, enumerated live from the registry at mint there and authored from the pool here.

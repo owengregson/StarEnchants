@@ -2,7 +2,9 @@
 # `### C.2` heading — source-side numbering drift, recorded by the matrix, not resolved here)
 # Same shape as anti-m-kit-ghost.yml, over the Necromancer pool: one worn copy cancels all four of that set's
 # mastery procs aimed at the wearer, 100%, no roll. The crystal's advertised percent is its APPLY chance.
-display: "Anti-M-Kit (Necromancer)"
+# `§2§lNecromancer` is AbilityArmorSet.NECROMANCER.getDisplayName (codex §A.10); see anti-m-kit-ghost.yml for
+# why the set name is styled and the wrapper is not.
+display: "Anti-M-Kit (§2§lNecromancer§6§l)"
 # The counter-crystal's own recorded lore (codex §C.2); see anti-m-kit-ghost.yml for the block's shape.
 description:
   - "§7to negate the following"
