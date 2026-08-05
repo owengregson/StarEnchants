@@ -10,7 +10,7 @@ import java.util.List;
  */
 public sealed interface NumExpr
         permits NumExpr.Var, NumExpr.Lit, NumExpr.Papi, NumExpr.Bin, NumExpr.Neg, NumExpr.Fn,
-                NumExpr.EntityVar, NumExpr.PotionLevel, NumExpr.EnchantLevel {
+                NumExpr.EntityVar, NumExpr.PotionLevel, NumExpr.EnchantLevel, NumExpr.CrystalCount {
 
     /** A numeric variable resolved to its dense {@code FactBuffer} number slot. */
     record Var(int slot) implements NumExpr {}
@@ -54,6 +54,9 @@ public sealed interface NumExpr
      * {@code key} is the lower-cased enchant stem, matching the runtime's canonically lower-cased worn map.
      */
     record EnchantLevel(Scope scope, String key) implements NumExpr {}
+
+    /** {@code %scope.crystals.<key>%} — worn ARMOUR pieces carrying that crystal, 0..4 (R-QC52). */
+    record CrystalCount(Scope scope, String key) implements NumExpr {}
 
     /** Which entity of the activation an entity-scoped operand reads from. */
     enum Scope { ACTOR, VICTIM }

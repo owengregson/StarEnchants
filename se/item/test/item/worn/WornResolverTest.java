@@ -427,6 +427,33 @@ class WornResolverTest {
     }
 
     @Test
+    void crystalPiecesCountWornArmourOnlyAndOncePerPiece() {
+        // R-QC52 is a PER-PIECE count ("+N% per socketed piece"), which the merged crystal ability list cannot
+        // give back once multiplicity is folded in. Three mistakes it has to avoid: counting a socketed SWORD,
+        // counting one piece twice for a multi-crystal that names the same key twice, and losing the second
+        // component of a merged "a+b" socket.
+        CombatState dark = new CombatState(Map.of(), List.of("crystals/dark"));
+        CombatState merged = new CombatState(Map.of(), List.of("crystals/dark+crystals/water"));
+        CombatState twice = new CombatState(Map.of(), List.of("crystals/dark", "crystals/dark"));
+
+        assertEquals(2, resolved(dark, merged, null, null, dark, dark).crystalCount("dark"),
+                "helmet + chest count; the socketed sword and off-hand do not");
+        assertEquals(0, resolved(dark, null, null, null, null, null).crystalCount("water"),
+                "a key nobody carries reads 0");
+        assertEquals(1, resolved(twice, null, null, null, null, null).crystalCount("dark"),
+                "one piece is one piece however many times it names the crystal");
+        assertEquals(1, resolved(merged, null, null, null, null, null).crystalCount("water"),
+                "the second component of a merged socket is not lost");
+    }
+
+    @Test
+    void theCrystalToggleZerosTheCount() {
+        CombatState dark = new CombatState(Map.of(), List.of("crystals/dark"));
+        assertEquals(0, resolved(new WornResolver.Features(true, true, false, true, true, true),
+                dark, dark, null, null, null, null).crystalCount("dark"));
+    }
+
+    @Test
     void theHeroicToggleZerosTheCountAsWellAsTheStat() {
         // One switch, both readings: a server that turned heroic off must not leave a gate that still fires.
         CombatState heroic = new CombatState(Map.of(), List.of(), null, false, new HeroicStat(0.5, 0.5, 0.5));

@@ -47,6 +47,12 @@ public final class NumExprEval {
                     ? f.victimEnchantLevel(l.key())
                     : f.actorEnchantLevel(l.key());
         }
+        if (e instanceof NumExpr.CrystalCount c) {
+            // Pieces, not levels — `> 0` reads "socketed somewhere", `== 4` reads "the whole set".
+            return c.scope() == NumExpr.Scope.VICTIM
+                    ? f.victimCrystalCount(c.key())
+                    : f.actorCrystalCount(c.key());
+        }
         if (e instanceof NumExpr.Fn fn) {
             return function(fn, f);
         }

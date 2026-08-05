@@ -110,9 +110,10 @@ public final class FactMasks {
                 }
             } else if (node instanceof NumExpr.Lit || node instanceof NumExpr.Papi
                     || node instanceof NumExpr.EntityVar || node instanceof NumExpr.PotionLevel
-                    || node instanceof NumExpr.EnchantLevel) {
-                // Reference no fact slot (PAPI tokens, entity vars, potion levels and worn enchant levels all
-                // resolve through lazy readers, so they cost nothing until the node is actually reached).
+                    || node instanceof NumExpr.EnchantLevel || node instanceof NumExpr.CrystalCount) {
+                // Reference no fact slot (PAPI tokens, entity vars, potion levels, worn enchant levels and worn
+                // crystal counts all resolve through lazy readers, so they cost nothing until the node is
+                // actually reached).
             } else {
                 throw new IllegalStateException("unhandled node: " + node.getClass());
             }

@@ -119,6 +119,9 @@ public final class WornResolver {
         // %victim.heroicpieces% counts WORN ARMOUR only, so it is tallied HERE — `combats` keeps no slot
         // provenance, and a heroic sword in hand must not read as a worn armour piece.
         int heroicPieces = 0;
+        // %scope.crystals.<key>% counts WORN ARMOUR only, for the same reason: `combats` keeps no slot
+        // provenance, and a socketed sword in hand must not read as a worn armour piece.
+        Map<String, Integer> crystalCounts = new java.util.HashMap<>();
         for (int slot = 0; slot < gear.length; slot++) { // 0-3 armour, 4 main hand, 5 off-hand (EquipSource contract)
             if (slot == ARMOR_SLOTS + 1 && offhandFrom < 0) {
                 offhandFrom = combats.size(); // the off-hand slot begins here, whether or not it holds anything
@@ -132,8 +135,21 @@ public final class WornResolver {
             }
             int before = combats.size();
             addCombat(piece, combats);
-            if (slot < ARMOR_SLOTS && combats.size() > before && !combats.get(before).heroic().isZero()) {
-                heroicPieces++;
+            if (slot < ARMOR_SLOTS && combats.size() > before) {
+                CombatState armour = combats.get(before);
+                if (!armour.heroic().isZero()) {
+                    heroicPieces++;
+                }
+                // One piece counts ONCE per crystal however many times it names it: the fact answers
+                // "how many pieces are socketed with X", which is the per-piece scaling authors reach for.
+                java.util.Set<String> onThisPiece = new java.util.HashSet<>();
+                for (String entry : armour.crystals()) {
+                    for (String crystalKey : item.codec.CrystalItemData.componentsOf(entry)) {
+                        if (onThisPiece.add(stemOf(crystalKey))) {
+                            crystalCounts.merge(stemOf(crystalKey), 1, Integer::sum);
+                        }
+                    }
+                }
             }
         }
         if (offhandFrom < 0) {
@@ -142,7 +158,7 @@ public final class WornResolver {
         // ADR-0052: the hotbar-pet keys, decided wholly by the pets feature (bracket + armed gate + toggle).
         List<String> petKeys = petSource.liveKeys(entity);
         return resolveFrom(combats, offhandFrom, petKeys, snapshot.stableKeys(), snapshot.abilities(),
-                snapshot.generation(), heroicPieces);
+                snapshot.generation(), heroicPieces, crystalCounts);
     }
 
     /** Equipment-array index where the hand slots begin; indices below this are the four armour slots. */
@@ -197,6 +213,13 @@ public final class WornResolver {
     /** As above, with the caller's count of WORN ARMOUR pieces carrying a heroic upgrade (slot provenance). */
     WornState resolveFrom(List<CombatState> combats, int offhandFrom, List<String> petKeys, StableKeyIndex keys,
                           Ability[] abilities, int generation, int heroicPieces) {
+        return resolveFrom(combats, offhandFrom, petKeys, keys, abilities, generation, heroicPieces, Map.of());
+    }
+
+    /** As above, with the caller's per-armour-piece crystal tally (slot provenance, same as heroicPieces). */
+    WornState resolveFrom(List<CombatState> combats, int offhandFrom, List<String> petKeys, StableKeyIndex keys,
+                          Ability[] abilities, int generation, int heroicPieces,
+                          Map<String, Integer> crystalCounts) {
         List<Integer> mergedIds = new ArrayList<>();   // armour + main-hand sourced ids
         List<Integer> offhandIds = new ArrayList<>();  // off-hand sourced ids (attack-direction dropped by flatten)
         List<Integer> crystalIds = new ArrayList<>();
@@ -384,7 +407,8 @@ public final class WornResolver {
         return WornFlattener.flatten(generation, toIntArray(mergedIds), toIntArray(offhandIds), abilities,
                 triggerCount, activeSets, toIntArray(crystalIds), heroic, attackTrigger, defenseTrigger,
                 enchantLevels, f.heroic() ? heroicPieces : 0, // one toggle gates the stat and the count alike
-                f.sets() && holdsSetWeapon); // and the sets toggle gates the fact with the bonuses it mirrors
+                f.sets() && holdsSetWeapon, // and the sets toggle gates the fact with the bonuses it mirrors
+                f.crystals() ? crystalCounts : Map.of()); // ...and crystals gates its own count
     }
 
     /** The {@code <stem>} of a {@code <source>/<stem>} base key, lower-cased — the enchlevel lookup's key. */

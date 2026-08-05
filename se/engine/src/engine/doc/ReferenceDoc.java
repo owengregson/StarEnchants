@@ -203,7 +203,13 @@ public final class ReferenceDoc {
         out.append("- `%actor.enchlevel.<key>%` / `%victim.enchlevel.<key>%` — that side's worn level of one "
                 + "custom enchant, so `> 0` means \"has it\" and `>= 3` means \"at least III\"; `0` when not "
                 + "worn. `<key>` is the enchant's file name (its stable-key stem), and an enchant absent from "
-                + "the pack simply reads `0` rather than failing the load.\n\n");
+                + "the pack simply reads `0` rather than failing the load.\n");
+        out.append("- `%actor.crystals.<key>%` / `%victim.crystals.<key>%` — how many of that side's four worn "
+                + "ARMOUR pieces carry one crystal, so `> 0` means \"socketed somewhere\" and `== 4` means "
+                + "\"the whole set\"; `0` when none. `<key>` is the crystal's file name (its stable-key stem). "
+                + "A piece counts ONCE however many times it names the crystal, a merged `a+b` socket counts "
+                + "for both components, and a socketed weapon is never counted — it is a count of worn pieces, "
+                + "which is what per-piece scaling needs.\n\n");
     }
 
     private static void appendParams(StringBuilder out, ParamSpec spec) {
