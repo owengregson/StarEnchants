@@ -8,8 +8,10 @@ trigger: ATTACK
 applies-to: [SWORD]
 group: "rare"
 tier: rare
-# The DAMAGE row is a SECOND, separate hit — the jar never folded it into the melee event, so it is authored
-# as its own flat damage rather than a DAMAGE_MOD contribution.
+# The DAMAGE row was a SECOND, separate hit in the jar, so it is authored as flat damage rather than a
+# DAMAGE_MOD contribution. A zero-WAIT DAMAGE aimed at the event's own victim FOLDS into the triggering hit
+# here (ADR-0054), so all of 2/3/4/5 lands where the jar's same-tick rider was largely eaten by the victim's
+# immunity window — D-03-14.
 # No cooldown, as measured: each proc stacks another 5 s slow and another flat hit on top of the last.
 # D-03-9: the measured bolt struck at the ATTACKER's location (verified bytecode); the as-intended strike on
 # the victim is what ships here, so LIGHTNING rides @Victim.

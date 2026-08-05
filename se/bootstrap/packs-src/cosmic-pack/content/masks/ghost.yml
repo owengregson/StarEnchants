@@ -1,7 +1,8 @@
 # Matrix: 11-masks.md § Ghost Mask
 # Cosmetic only — no effect anywhere in the source suite. Authored as a ROSTER MARKER on an empty PASSIVE
-# (headless.yml precedent): a mask file must declare one ability with a trigger, so the identity ships and the
-# loader's "declares no effects" warning states exactly what this mask does.
+# (headless.yml precedent): a mask file must declare one ability with a trigger, so the identity ships on an
+# empty PASSIVE. The explicit `effects: []` below is deliberate — the loader warns only on a MISSING
+# `effects:` key (R-QC59), so this loads silently.
 #
 # NOT the signature-pack `masks/ghost`, which is a live /invsee WARD. Same stem, different pack, and packs are
 # separate namespaces (matrix § interactions) — nothing is shared or overridden between the two files.

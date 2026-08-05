@@ -12,9 +12,9 @@ trigger: MINE
 applies-to: [TOOL, FISHING_ROD]
 group: "epic"
 tier: epic
-# Matrix-06 records no tier for the tool enchants — only the enchant-table weight (6 here) — so the rung
-# comes from the codex's own tier table (`detonate` 4 = `epic`), the same source doc 05's files used for
-# their unrecorded acquisition rows. Fuse shares the rung. Max 9; base 10.0, interval 10.0.
+# Tier 4 = `epic`: matrix-06's own numbers row and the codex tier table (`detonate` 4) agree, and Fuse shares
+# the rung. Table weight (6) is a separate axis with no field in this schema.
+# Max 9; base 10.0, interval 10.0.
 # THE ORIGIN-BLOCK DENY, the jar's own pre-check: mining a comparator or a sponge runs no explosion at all.
 # `contains` covers the comparator in one clause on BOTH lanes — 1.8 splits the block into
 # REDSTONE_COMPARATOR_ON / _OFF and the flattening collapses both to COMPARATOR, and `%block.type%` is the

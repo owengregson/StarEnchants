@@ -10,9 +10,9 @@ trigger: MINE
 applies-to: [TOOL, FISHING_ROD]
 group: "common"
 tier: common
-# Matrix-06 records no tier for the tool enchants — only the enchant-table weight (6 here) — so the rung
-# comes from the codex's own tier table (`oxygenate` 1 = the ladder's first rung, lore colour `§7`), the same
-# source doc 05's files used for their unrecorded acquisition rows. Max 1 is the numbers ladder's one rung.
+# Tier 1 = `common`: matrix-06's own numbers row and the codex tier table (`oxygenate` 1, lore colour `§7`)
+# agree. Table weight (6) is a separate axis with no field in this schema.
+# Max 1 is the numbers ladder's one rung.
 # THE GAP IS CLOSED. The matrix files `AIR_TICKS_RESTORE` (restore N air ticks, clamped to max) as a gap
 # because `FILL_OXYGEN` was a full refill; the shipped effect now takes `amount`, "air ticks to add, clamped
 # to the target's maximum air" — the recorded primitive exactly. The gap block's optional `skip-if-overflow`

@@ -18,8 +18,9 @@ condition: "%victim.type% == \"PLAYER\" && %victim.health% <= 10.0"
 # outright (kept). Sticky itself stays the effect-less roster marker; its whole payload is this clause.
 # D-03-3 (as-intended): the jar rolled 0-3 against branches numbered 1-4, so a quarter of its procs stripped
 # NOTHING (sound and messages still fired) and boots were unreachable. REMOVE_ARMOR draws uniformly over all
-# four worn slots, which is the intent. It drops the stripped piece; the jar tried the victim's inventory
-# first and only dropped on overflow — a cosmetic placement delta, noted for the primitive's param review.
+# four worn slots, which is the intent. It always drops the stripped piece; the jar tried the victim's
+# inventory first and only dropped on overflow — D-03-17, a placement delta the primitive carries no param
+# for.
 # The jar's three stacked world-effect 2001 bursts at y+0/+1/+2 collapse into the single body-centred burst
 # below, spread-y 1.5 covering the same column.
 # {ATTACKER} and {VICTIM} are the engine's bound MESSAGE combat-party tokens, not unfilled placeholders.

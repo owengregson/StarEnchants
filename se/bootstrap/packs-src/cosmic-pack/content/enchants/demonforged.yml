@@ -11,8 +11,9 @@ tier: rare
 condition: "%victim.type% == \"PLAYER\""
 # D-03-2 (as-intended): the jar damaged the ATTACKER's own armor (verified in bytecode); the victim's set is
 # the intent and is what ships. `select: random-piece` is the uniform 25 %-per-slot draw the jar rolled, and
-# `skip-undamaged` mirrors its guard — a piece already at full durability is never scratched, and is out of
-# the pick entirely. 1 durability point, level-independent; chance 4/8/12/16 % (L3 measured
+# `skip-undamaged` keeps its "never scratch a fresh piece" guard — but the engine filters pristine and empty
+# pieces OUT OF THE CANDIDATE SET before the draw, where the jar drew first and then no-opped when the pick
+# landed on one (D-03-16). 1 durability point, level-independent; chance 4/8/12/16 % (L3 measured
 # 0.12000000000000001). The jar's non-player-wielder CCE is a crash bug, not behavior; the engine is
 # player-scoped, so nothing is authored for it.
 # era: none.

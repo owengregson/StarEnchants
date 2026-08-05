@@ -11,9 +11,9 @@ trigger: INTERACT_LEFT
 applies-to: [PICKAXE]
 group: "uncommon"
 tier: uncommon
-# Matrix-06 records no tier for the tool enchants — only the enchant-table weight (6 here) — so the rung
-# comes from the codex's own tier table (`obsidiandestroyer` 2 = `uncommon`, lore colour `§a`), the same
-# source doc 05's files used for their unrecorded acquisition rows. Max 5; base 10.0, interval 10.0.
+# Tier 2 = `uncommon`: matrix-06's own numbers row and the codex tier table (`obsidiandestroyer` 2, lore
+# colour `§a`) agree. Table weight (6) is a separate axis with no field in this schema.
+# Max 5; base 10.0, interval 10.0.
 # THE GATE IS WHAT MAKES THE ABILITY SAFE TO AUTHOR, and it only became writable in wave 2c. `onInteract`
 # now carries `PlayerInteractEvent#getClickedBlock` on all three interact triggers AND anchors the
 # activation LOCATION on that block, so `%block.type%` is the face the player hit and `@Here` resolves

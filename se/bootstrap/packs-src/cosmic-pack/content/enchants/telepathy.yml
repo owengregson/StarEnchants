@@ -12,9 +12,9 @@ trigger: MINE
 applies-to: [TOOL, FISHING_ROD]
 group: "uncommon"
 tier: uncommon
-# Matrix-06 records no tier for the tool enchants — only the enchant-table weight (6 here) — so the rung
-# comes from the codex's own tier table (`telepathy` 2 = `uncommon`, lore colour `§a`), the same source
-# doc 05's files used for their unrecorded acquisition rows. Max 4 is the chance ladder's four rungs.
+# Tier 2 = `uncommon`: matrix-06's own numbers row and the codex tier table (`telepathy` 2, lore colour `§a`)
+# agree. Table weight (6) is a separate axis with no field in this schema.
+# Max 4 is the chance ladder's four rungs.
 # TWO CONDITIONS, one gate. The sponge exclusion is the jar's own origin guard. The iron/gold clause is the
 # matrix's `auto-smelt-owns-those-two-ores` interaction rule, authored here because the wave-1f enchlevel
 # facts made it expressible: `%actor.enchlevel.auto-smelt%` reads the WIELDER's worn map, which is built

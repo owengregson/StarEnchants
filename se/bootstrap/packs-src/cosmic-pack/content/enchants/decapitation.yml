@@ -17,7 +17,8 @@ condition: "%victim.type% == \"PLAYER\""
 # carries the KILL date — D-04-10: the jar captured a date object at class load, so every skull it ever
 # dropped named the server's BOOT date. The display strings themselves are unchanged.
 # {X}/{Y}/{Z} are the KILLER's block coordinates, not the victim's — codex-verified, plausibly by design, kept.
-# {ITEM} is the killer's held-item display name, else its capitalized material name, else `Fists`.
+# {ITEM} is the killer's held-item display name, else the humanised material (`DIAMOND_SWORD` -> `Diamond
+# Sword`, where the jar's `WordUtils.capitalize` rendered `Diamond_sword` — D-03-15), else `Fists`.
 # Lore lines are separated by '|'; the trailing spaces closing the first three lines are verbatim from the jar.
 # The death handler is level-independent — only the chance ladders.
 # Twin of swords/Headless (doc 03): same templates, same 3/6/9 ladder, different weapon family and its own
@@ -25,7 +26,9 @@ condition: "%victim.type% == \"PLAYER\""
 # Not ported: the jar's CosmicContests console command and its once-per-victim contest marker (external plugin).
 # era: the head item is `SKULL_ITEM` durability 3 on 1.8.9 and `PLAYER_HEAD` on modern, and skull-owner-by-name
 # is 1.8-safe while modern profiles differ — the biggest era hazard in this doc, and all of it lives inside
-# HEAD_TROPHY's own resolver, not in this file. `{MONTH}` renders the full month name, locale-dependent.
+# HEAD_TROPHY's own resolver, not in this file. `{MONTH}` renders the full month name pinned to
+# `Locale.ENGLISH`, so the lore reads the same on any server default; the jar's bare `SimpleDateFormat("MMMM")`
+# took whatever the default locale was.
 levels:
   1:
     chance: 3

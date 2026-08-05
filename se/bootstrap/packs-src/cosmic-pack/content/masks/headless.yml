@@ -1,9 +1,9 @@
 # Matrix: 11-masks.md § Headless Mask
 # Cosmetic only — no listener in the source references this mask, so it has no ability of any kind. Authored as
 # a ROSTER MARKER (the enchants/metaphysical + enchants/sticky precedent): a mask file must declare at least one
-# ability with a trigger, so the identity ships on an empty PASSIVE and the loader's "declares no effects"
-# warning is the accurate statement of what this mask does. The mask is real, mintable, attachable and
-# repaints a helmet; it just does nothing else.
+# ability with a trigger, so the identity ships on an empty PASSIVE. The explicit `effects: []` below is
+# deliberate — the loader warns only on a MISSING `effects:` key (R-QC59), so this loads silently. The mask is
+# real, mintable, attachable and repaints a helmet; it just does nothing else.
 #
 # DISPLAY: `display` is the BARE name and carries the whole verbatim string "Headless Mask" — it is NOT
 # "Headless" plus a template suffix. SIX of the family's 27 verbatim NAMES carry no " Mask" at all — Pumpkin
