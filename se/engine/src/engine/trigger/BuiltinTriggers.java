@@ -36,7 +36,9 @@ public final class BuiltinTriggers {
                 // ADR-0049: neutral (not held) so WORN armor abilities also walk it — a durability loss can be on
                 // armor (itemdamage.armor) or the held item, distinguished by the fact, not the trigger direction.
                 .register(Trigger.neutral("ITEM_DAMAGE"))
-                .register(Trigger.held("EAT"))
+                // R-QC42: neutral (not held) for the ADR-0049 reason above — Nutrition lives on worn leggings
+                // and reacts to what the wearer eats, so the eaten item is the ACTIVATION, not the source.
+                .register(Trigger.neutral("EAT"))
                 .register(Trigger.held("FISHING"))
                 .register(Trigger.held("INTERACT"))
                 .register(Trigger.held("INTERACT_LEFT"))

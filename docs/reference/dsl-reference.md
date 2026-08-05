@@ -1696,7 +1696,7 @@ The event that fires an ability (an enchant/set/crystal's `trigger:`). Triggers 
 | `HELD` | NEUTRAL | true | false | false |
 | `BREAK` | NEUTRAL | true | false | false |
 | `ITEM_DAMAGE` | NEUTRAL | false | true | false |
-| `EAT` | NEUTRAL | true | false | false |
+| `EAT` | NEUTRAL | false | true | false |
 | `FISHING` | NEUTRAL | true | false | false |
 | `INTERACT` | NEUTRAL | true | false | false |
 | `INTERACT_LEFT` | NEUTRAL | true | false | false |

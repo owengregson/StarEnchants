@@ -8166,8 +8166,8 @@
   {
     "name": "EAT",
     "direction": "NEUTRAL",
-    "usesHeld": true,
-    "scansEquipment": false,
+    "usesHeld": false,
+    "scansEquipment": true,
     "needsTarget": false
     },
   {
