@@ -53,6 +53,14 @@ class FlagAndSoulEffectTest {
                 flag("TELEPORT_DROPS → teleportDrops", new TeleportDropsEffect(), c -> { },
                         s -> verify(s).teleportDrops()),
                 flag("SEEK → seek", new SeekEffect(), c -> { }, s -> verify(s).seek()),
+                // R-QC15: the refund carries the ability's OWN reservation, never an authored key — the ctx
+                // defaults (-1 / 0) are what a cooldown-less ability hands it, and the sink treats them as inert.
+                flag("REFUND_COOLDOWN → refundCooldown(actor, own scope, own duration)", new RefundCooldownEffect(),
+                        c -> c.with("unless", 0.0).cooldownScope(12).cooldownTicks(6000),
+                        s -> verify(s).refundCooldown(null, 12, 6000)),
+                flag("REFUND_COOLDOWN with a non-zero `unless` emits nothing", new RefundCooldownEffect(),
+                        c -> c.with("unless", 3.0).cooldownScope(12).cooldownTicks(6000),
+                        s -> { }),
                 flag("ECHO_STRIKE → requestEchoStrike", new EchoStrikeEffect(), c -> { },
                         s -> verify(s).requestEchoStrike()),
                 // 'as' is a compiler-defaulted param (console); FakeEffectCtx synthesizes no defaults, so feed it.

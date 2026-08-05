@@ -156,6 +156,8 @@ public final class BuiltinEffects {
                 .register(new VanishEffect())            // Feign Death: hide from all, broken by your own landed hits
                 .register(new SpawnerYieldEffect())      // Bunny mask: worn channel read at each spawner spawn
                 .register(new PotionAmpReduceEffect())   // Mortal Coil: sap LEVELS off a live buff, give them back
+                // Cosmic-port wave 3a. APPENDED, never inserted (ADR-0039 dense kind ids).
+                .register(new RefundCooldownEffect())    // elemental pets: give back a window whose payload did nothing
                 .build();
     }
 }

@@ -4614,6 +4614,28 @@
       ]
     },
   {
+    "head": "REFUND_COOLDOWN",
+    "doc": "Hand back the cooldown this ability's own gate-6 reservation armed, unless `unless` evaluates non-zero. Author it AFTER the payload whose outcome decides the refusal — a condition cannot, because the fact it would read does not exist until the payload has run. It can only ever release THIS ability's window, and only in the tick the gate reserved it, so a WAIT tier between the payload and the refund silently forfeits it.",
+    "affinity": "CONTEXT_LOCAL",
+    "usage": "{ REFUND_COOLDOWN: { unless: <double=0> } }",
+    "example": "{ REFUND_COOLDOWN: { unless: \"%lavapet.filled%\" } }",
+    "params": [
+      {
+        "name": "unless",
+        "kind": "DOUBLE",
+        "label": "double",
+        "required": false,
+        "default": "0",
+        "min": null,
+        "max": null,
+        "enum": [],
+        "handle": null,
+        "doc": "skip the refund when this evaluates non-zero; the default (0) always refunds"
+        }
+      ],
+    "targets": []
+    },
+  {
     "head": "REMOVE_ARMOR",
     "doc": "Strip one random worn armour piece from the target(s) and drop it.",
     "affinity": "TARGET_ENTITY",
