@@ -1859,14 +1859,11 @@ public abstract class DispatchSinkBase implements SinkReadback {
         if (target == null) {
             return;
         }
-        // Cap value fixed AT ARM time from the wearer's last-taken damage (no history → value 0 → arms nothing).
-        double value = damageCap.lastTaken(target.getUniqueId()) * factor;
-        damageCap.arm(target.getUniqueId(), value, reflectOverflow, nowTicks.getAsLong(), durationTicks);
-        if (value > 0 && durationTicks > 0 && feedback != null && !feedback.isEmpty()) {
-            // Announced only on an arm that actually took (the store's own guard), so the line can never claim
-            // a cap the next hit will not honour.
-            message(target, Tokens.sub(feedback, "damage", Numbers.chat(value)));
-        }
+        // R-QC19: the ceiling is factor x the ARMING hit's committed damage, which is still being folded here —
+        // this walk runs inside the event. So the arm records the factor and the combat dispatch prices it at
+        // the fold commit, where it also announces the `feedback` line at the figure the cap really carries.
+        damageCap.armPending(target.getUniqueId(), factor, reflectOverflow, nowTicks.getAsLong(), durationTicks,
+                feedback);
     }
 
     // ── ADR-0071 reforge combat-state intents (Plan C) ──

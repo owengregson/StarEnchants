@@ -2,6 +2,7 @@ package engine.sink;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
@@ -300,60 +301,33 @@ class DispatchSinkTest {
                 fresh.soulExempt(), fresh.bookRate(), fresh.vanish());
     }
 
+    /**
+     * R-QC19: the arm is a PENDING price, not a cap. {@code armDamageCap} runs inside the defence walk, where
+     * the arming hit's damage is still being folded, so the sink can only record the factor and the line —
+     * {@code CombatDispatch} prices both at the fold commit ({@code CombatDispatchDamageCapTest} owns the
+     * value and the announcement, which only the seam can prove). What must hold HERE is that the sink
+     * commits nothing on its own: no cap, and no line claiming a number that does not exist yet.
+     */
     @Test
-    void armDamageCapComputesCapFromLastTakenTimesFactor() {
-        DamageCapStore store = new DamageCapStore();
-        Player p = mock(Player.class);
-        UUID id = UUID.randomUUID();
-        when(p.getUniqueId()).thenReturn(id);
-        store.recordLastTaken(id, 10.0);
-        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().damageCap(store).nowTicks(() -> 0L).build());
-        sink.armDamageCap(p, 0.5, true, 100, "");
-        DamageCapStore.Cap cap = store.consumeArmed(id, 0L);
-        assertEquals(5.0, cap.value(), "the cap is fixed at last-taken × factor at arm time");
-        assertTrue(cap.reflectOverflow());
-    }
-
-    @Test
-    void armDamageCapWithNoLastTakenHistoryArmsNothing() {
+    void armDamageCapRecordsAPendingPriceAndAnnouncesNothing() {
         DamageCapStore store = new DamageCapStore();
         Player p = mock(Player.class);
         UUID id = UUID.randomUUID();
         when(p.getUniqueId()).thenReturn(id);
         ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().damageCap(store).nowTicks(() -> 0L).build());
-        sink.armDamageCap(p, 0.5, false, 100, ""); // no recorded hit → value 0 → nothing armed
-        assertNull(store.consumeArmed(id, 0L));
-    }
 
-    @Test
-    void armDamageCapFeedbackReportsTheValueItJustArmed() {
-        DamageCapStore store = new DamageCapStore();
-        UUID id = UUID.randomUUID();
-        Player p = mock(Player.class);
-        when(p.getUniqueId()).thenReturn(id);
-        store.recordLastTaken(id, 10.0);
-        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().damageCap(store).nowTicks(() -> 0L).build());
-
-        sink.armDamageCap(p, 0.5, false, 100, "DMG: {damage}");
-        sink.flush(); // the notice is an ordinary entity-routed message intent, delivered at flush
-
-        // Reported at ARMING, carrying the fixed cap (last-taken × factor), not the factor and not a later hit:
-        // the line is the player's only view of the number the cap actually committed to.
-        verify(p).sendMessage("DMG: " + Numbers.chat(5.0));
-    }
-
-    @Test
-    void armDamageCapThatArmsNothingStaysSilent() {
-        DamageCapStore store = new DamageCapStore();
-        Player p = mock(Player.class);
-        when(p.getUniqueId()).thenReturn(UUID.randomUUID());
-        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().damageCap(store).nowTicks(() -> 0L).build());
-
-        sink.armDamageCap(p, 0.5, false, 100, "DMG: {damage}"); // no last-taken history → nothing armed
+        sink.armDamageCap(p, 0.5, true, 100, "DMG: {damage}");
         sink.flush();
 
-        // No cap, no claim: announcing a cap that was never armed is worse than silence.
+        assertNull(store.consumeArmed(id, 0L), "nothing is capped until the arming hit commits");
         verify(p, never()).sendMessage(anyString());
+        DamageCapStore.Priced priced = store.price(id, 10.0, 0L);
+        assertNotNull(priced, "the factor, duration and reflect flag survived as a pending arm");
+        assertEquals(5.0, priced.value(), 1e-9);
+        assertEquals("DMG: {damage}", priced.feedback());
+        DamageCapStore.Cap cap = store.consumeArmed(id, 0L);
+        assertNotNull(cap);
+        assertTrue(cap.reflectOverflow());
     }
 
     @Test

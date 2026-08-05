@@ -487,9 +487,17 @@ public final class CombatDispatch {
                     sink.damage(attacker, folded - committed, capped); // §5 Vengeful Diminish: the excess back to the attacker
                 }
             }
-            // ALWAYS record the committed value (post-cap). Written AFTER the walks, so a cap this hit armed is
-            // priced off the PREVIOUS hit — a deliberate one-hit lag left standing until the basis is ruled on.
-            damageCap.recordLastTaken(capped.getUniqueId(), committed);
+            // R-QC19: price whatever this event's walks armed against the value THIS hit committed (post-cap).
+            // The readback belongs here and nowhere else — DAMAGE_CAP runs mid-walk, where the number does not
+            // exist yet, and pricing at the arm was the one-hit lag that made "half the hit that armed it" name
+            // an earlier, unrelated swing. The arming hit itself is untouched: `armedCap` was claimed above the
+            // walks, so this window opens for the NEXT hit.
+            DamageCapStore.Priced capArmed = damageCap.price(capped.getUniqueId(), committed, now);
+            if (capArmed != null && !capArmed.feedback().isEmpty()) {
+                // Announced at the commit, at the ceiling the cap actually carries — the same rule VULNERABILITY's
+                // and REFLECT's lines follow, and the only point where {damage} can be filled with a true figure.
+                sink.message(capped, HitFeedback.fill(capArmed.feedback(), capArmed.value()));
+            }
         }
         event.setDamage(committed);
         if (vuln != null && !vuln.hitMessage().isEmpty() && victimEntity instanceof Player marked) {

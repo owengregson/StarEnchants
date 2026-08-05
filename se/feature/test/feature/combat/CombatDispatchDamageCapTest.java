@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -45,6 +46,7 @@ import org.junit.jupiter.api.Test;
 import platform.resolve.RegistryResolvers;
 import platform.resolve.RuntimeHandles;
 import platform.sched.Scheduling;
+import platform.text.Numbers;
 import schema.spec.Args;
 import testfx.Abilities;
 import testfx.Envs;
@@ -94,6 +96,10 @@ class CombatDispatchDamageCapTest {
      * production kind arms it. {@code armed = false} leaves the victim bare, isolating the consume side.
      */
     private CombatDispatch dispatch(boolean armed, boolean reflect) {
+        return dispatch(armed, reflect, "");
+    }
+
+    private CombatDispatch dispatch(boolean armed, boolean reflect, String feedback) {
         RuntimeHandles handles = new RuntimeHandles(new RegistryResolvers());
         env = Envs.sink().nowTicks(() -> tick[0]).build();
         ModernDispatchSink sink = new ModernDispatchSink(handles, env);
@@ -102,7 +108,7 @@ class CombatDispatchDamageCapTest {
 
         CompiledEffect cap = new CompiledEffect("DAMAGE_CAP",
                 Args.empty().with("factor", FACTOR).with("reflect", reflect)
-                        .with("duration", WINDOW_TICKS).with("feedback", ""),
+                        .with("duration", WINDOW_TICKS).with("feedback", feedback),
                 CompiledSelector.SELF, 0, Affinity.CONTEXT_LOCAL);
         Ability capAbility = Abilities.ability().id(0).level(1).trigger(DEFENSE_TRIGGER).effects(cap).build();
         Snapshot snapshot = Snapshots.snapshot()
@@ -160,7 +166,6 @@ class CombatDispatchDamageCapTest {
     @Test
     void theArmingHitDoesNotSpendItsOwnWindow() {
         CombatDispatch dispatch = dispatch(true, false);
-        env.stores().damageCap().recordLastTaken(victimId, 10.0); // a hit of history, so the arm has a basis
 
         double committed = strike(dispatch, player(attackerId), victim(), 10.0);
 
@@ -174,7 +179,6 @@ class CombatDispatchDamageCapTest {
     @Test
     void theNextHitInsideTheWindowIsCapped() {
         CombatDispatch dispatch = dispatch(true, false);
-        env.stores().damageCap().recordLastTaken(victimId, 10.0);
         Player attacker = player(attackerId);
         Player victim = victim();
 
@@ -203,7 +207,6 @@ class CombatDispatchDamageCapTest {
     @Test
     void aWindowThatElapsesBeforeTheNextHitDoesNotBite() {
         CombatDispatch dispatch = dispatch(true, false);
-        env.stores().damageCap().recordLastTaken(victimId, 10.0);
         Player attacker = player(attackerId);
         Player victim = victim();
 
@@ -242,25 +245,54 @@ class CombatDispatchDamageCapTest {
     }
 
     /**
-     * KNOWN QUIRK, pinned deliberately: the cap is priced off the hit BEFORE the one that armed it. The arm reads
-     * {@code lastTaken} inside the defence walk, and {@code recordLastTaken} runs below it at the fold commit, so
-     * a cap armed on hit N carries {@code factor ×} the committed damage of hit N−1. The consume-order fix left
-     * this untouched on purpose — it is a plain one-hit lag with no compounding hazard, and the arm-basis is a
-     * separate ruling (see the DAMAGE_CAP row of docs/dev/cosmic-port/deferred-content.md). Change this
-     * expectation only when that ruling lands.
+     * R-QC19: a cap armed on hit N is priced off hit N's OWN committed damage. The arm is recorded pending
+     * inside the defence walk and priced at the fold commit below it, so "cap your next hit at half the hit
+     * that armed it" names the swing the player just felt — not, as this pinned test used to document, the
+     * unrelated one before it. That one-hit lag was what made Vengeful Diminish's advertised double halving
+     * (−50 % on the arming hit, then half of it again) untrue in play.
      */
     @Test
-    void theArmedCapIsPricedOffThePreviousHitNotTheArmingOne() {
+    void theArmedCapIsPricedOffTheArmingHit() {
         CombatDispatch dispatch = dispatch(true, false);
         Player attacker = player(attackerId);
         Player victim = victim();
 
+        // Deliberately different magnitudes: under the old lagged basis hit 3 would be capped at 0.5 × 8.0.
         assertEquals(8.0, strike(dispatch, attacker, victim, 8.0), 1e-9,
-                "no history yet: the proc arms nothing (value 0) and the hit lands in full");
-        assertEquals(20.0, strike(dispatch, attacker, victim, 20.0), 1e-9,
-                "nothing was armed to spend; this walk arms 0.5 × 8.0, the PREVIOUS hit");
-
+                "hit 1 arms 0.5 × 8.0 and lands in full — an arm never spends its own window");
+        tick[0] = WINDOW_TICKS - 1;
         assertEquals(FACTOR * 8.0, strike(dispatch, attacker, victim, 20.0), 1e-9,
-                "4.0 — half of hit 1, not the 10.0 that half of hit 2 would give");
+                "hit 2 takes hit 1's cap, 4.0 — and re-arms off its OWN committed 4.0");
+        tick[0] = WINDOW_TICKS;
+
+        assertEquals(FACTOR * FACTOR * 8.0, strike(dispatch, attacker, victim, 20.0), 1e-9,
+                "2.0 — half of what hit 2 actually committed, which is the hit that armed this");
+    }
+
+    /**
+     * The arming line is announced at the COMMIT, not the arm, because that is the first moment its {damage}
+     * token has a true value to carry (R-QC19). Nothing below the dispatch can prove it: the sink records a
+     * factor, and only the fold knows what the hit cost.
+     */
+    @Test
+    void theArmingLineReportsThePricedCap() {
+        CombatDispatch dispatch = dispatch(true, false, "DIMINISH {damage}");
+        Player victim = victim();
+
+        strike(dispatch, player(attackerId), victim, 9.0);
+
+        verify(victim).sendMessage("DIMINISH " + Numbers.chat(FACTOR * 9.0));
+    }
+
+    /** A proc that arms nothing claims nothing: a 0-damage hit prices a 0 cap, and no line goes out for it. */
+    @Test
+    void anArmThatPricesNothingStaysSilent() {
+        CombatDispatch dispatch = dispatch(true, false, "DIMINISH {damage}");
+        Player victim = victim();
+
+        strike(dispatch, player(attackerId), victim, 0.0);
+
+        assertNull(env.stores().damageCap().consumeArmed(victimId, tick[0]));
+        verify(victim, never()).sendMessage(anyString());
     }
 }
