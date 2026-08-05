@@ -49,10 +49,15 @@ class EntitySelectorsTest {
     }
 
     private static SelectorCtx areaCtx(Player actor, double r, List<LivingEntity> nearby) {
+        return areaCtx(actor, r, nearby, false);
+    }
+
+    private static SelectorCtx areaCtx(Player actor, double r, List<LivingEntity> nearby, boolean allies) {
         SelectorCtx ctx = mock(SelectorCtx.class);
         when(ctx.location()).thenReturn(CENTER);
         lenient().when(ctx.actor()).thenReturn(actor);
         lenient().when(ctx.dbl("r")).thenReturn(r);
+        lenient().when(ctx.args()).thenReturn(Args.empty().with("allies", allies));
         when(ctx.nearbyLiving(CENTER, r)).thenReturn(nearby);
         return ctx;
     }
@@ -81,6 +86,66 @@ class EntitySelectorsTest {
     void nearestPlayerEmptyWhenNoPlayerInRange() {
         SelectorCtx ctx = areaCtx(null, 16.0, List.of(at(1.0), at(2.0)));
         assertTrue(new NearestPlayerSelector().resolve(ctx).isEmpty());
+    }
+
+    // R-QC17: the last targeting paths that were blind to the ONE installed alliance predicate. The default
+    // skips a party-mate the damage gate already spares; `allies: true` is the audience escape hatch.
+    @Test
+    void allPlayersSkipsAlliesByDefaultAndTakesThemBackOnRequest() {
+        Player actor = mock(Player.class);
+        Player ally = mock(Player.class);
+        Player foe = mock(Player.class);
+        Allies.resolver((a, b) -> a == actor && b == ally);
+        try {
+            assertEquals(List.of(foe), new AllPlayersSelector().resolve(areaCtx(actor, 32.0, List.of(ally, foe))));
+            assertEquals(List.of(ally, foe),
+                    new AllPlayersSelector().resolve(areaCtx(actor, 32.0, List.of(ally, foe), true)));
+        } finally {
+            Allies.resolver(null); // restore the no-alliance default so other tests are unaffected
+        }
+    }
+
+    @Test
+    void nearestPlayerWalksPastACloserAllyToTheNearestEnemy() {
+        // The closer body wins on distance alone, so an ally at 2 and a foe at 100 is the case that catches a
+        // filter applied after the min() instead of inside it.
+        Player actor = mock(Player.class);
+        Player ally = playerAt(2.0);
+        Player foe = playerAt(100.0);
+        Allies.resolver((a, b) -> a == actor && b == ally);
+        try {
+            assertEquals(List.of(foe),
+                    new NearestPlayerSelector().resolve(areaCtx(actor, 16.0, List.of(ally, foe))));
+            assertEquals(List.of(ally),
+                    new NearestPlayerSelector().resolve(areaCtx(actor, 16.0, List.of(ally, foe), true)));
+        } finally {
+            Allies.resolver(null);
+        }
+    }
+
+    @Test
+    void entityInSightSkipsAnAlliedPlayerButNeverAMob() {
+        Player actor = mock(Player.class);
+        Player ally = mock(Player.class);
+        LivingEntity mob = mock(LivingEntity.class);
+        Allies.resolver((a, b) -> a == actor && b == ally);
+        try {
+            assertTrue(new EntityInSightSelector().resolve(sightCtx(actor, ally, false)).isEmpty());
+            assertEquals(List.of(ally), new EntityInSightSelector().resolve(sightCtx(actor, ally, true)));
+            // A mob is nobody's ally: filtering by hostility instead would have stopped Smite working on a cow.
+            assertEquals(List.of(mob), new EntityInSightSelector().resolve(sightCtx(actor, mob, false)));
+        } finally {
+            Allies.resolver(null);
+        }
+    }
+
+    private static SelectorCtx sightCtx(Player actor, LivingEntity hit, boolean allies) {
+        SelectorCtx ctx = mock(SelectorCtx.class);
+        lenient().when(ctx.actor()).thenReturn(actor);
+        lenient().when(ctx.args()).thenReturn(Args.empty().with("allies", allies));
+        when(ctx.dbl("r")).thenReturn(16.0);
+        when(ctx.entityInSight(16.0)).thenReturn(hit);
+        return ctx;
     }
 
     @Test
@@ -123,16 +188,7 @@ class EntitySelectorsTest {
     void entityInSightReturnsTheRaytraceHitOrEmpty() {
         Player actor = mock(Player.class);
         LivingEntity hit = mock(LivingEntity.class);
-        SelectorCtx ctx = mock(SelectorCtx.class);
-        lenient().when(ctx.actor()).thenReturn(actor);
-        when(ctx.dbl("r")).thenReturn(16.0);
-        when(ctx.entityInSight(16.0)).thenReturn(hit);
-        assertEquals(List.of(hit), new EntityInSightSelector().resolve(ctx));
-
-        SelectorCtx nothing = mock(SelectorCtx.class);
-        lenient().when(nothing.actor()).thenReturn(actor);
-        when(nothing.dbl("r")).thenReturn(16.0);
-        when(nothing.entityInSight(16.0)).thenReturn(null);
-        assertTrue(new EntityInSightSelector().resolve(nothing).isEmpty());
+        assertEquals(List.of(hit), new EntityInSightSelector().resolve(sightCtx(actor, hit, false)));
+        assertTrue(new EntityInSightSelector().resolve(sightCtx(actor, null, false)).isEmpty());
     }
 }

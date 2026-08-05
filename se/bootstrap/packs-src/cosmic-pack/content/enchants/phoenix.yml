@@ -40,7 +40,9 @@ no-souls-message: "§c§l** OUT OF SOULS **"  # the engine's 300 t throttle IS t
 # pre-spend total under a line that says "left".
 # {ATTACKER} is the engine's bound name token for the ACTIVATING player, which on a DEFENSE pass is the
 # wearer — the matrix's {owner}. @AllPlayers excludes the activator, so the broadcast never doubles the
-# wearer's own lines.
+# wearer's own lines. `allies=true` is required because this line is an AUDIENCE, not a target list: since
+# R-QC17 the selector skips allied players by default, and a save announcement that a wearer's own team
+# cannot see is not the recorded behaviour.
 # Interactions carried by the OTHER side, nothing authored here: a Death Knight mask on the attacker blocks
 # the save 50 % of the time (masks doc 11) and the jar still burns the full cooldown on a blocked save
 # (measured, kept) — with it go `§c§l* PHOENIX BLOCKED [§7{attacker}§c§l] *` to the owner and
@@ -64,7 +66,7 @@ levels:
       - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: "%soulcost%" } } }
       - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - %soulcost%" } } }
       - { MESSAGE: { text: "" } }
-      - { MESSAGE: { text: "§c§l*** PHOENIX SOUL (§7{ATTACKER}, -{cost} souls§c§l) ***", who: "@AllPlayers{r=48}", tokens: { cost: "%soulcost%" } } }
+      - { MESSAGE: { text: "§c§l*** PHOENIX SOUL (§7{ATTACKER}, -{cost} souls§c§l) ***", who: "@AllPlayers{r=48,allies=true}", tokens: { cost: "%soulcost%" } } }
   2:
     cooldown: 2400
     effects:
@@ -78,7 +80,7 @@ levels:
       - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: "%soulcost%" } } }
       - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - %soulcost%" } } }
       - { MESSAGE: { text: "" } }
-      - { MESSAGE: { text: "§c§l*** PHOENIX SOUL (§7{ATTACKER}, -{cost} souls§c§l) ***", who: "@AllPlayers{r=48}", tokens: { cost: "%soulcost%" } } }
+      - { MESSAGE: { text: "§c§l*** PHOENIX SOUL (§7{ATTACKER}, -{cost} souls§c§l) ***", who: "@AllPlayers{r=48,allies=true}", tokens: { cost: "%soulcost%" } } }
   3:
     cooldown: 1200
     effects:
@@ -92,4 +94,4 @@ levels:
       - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: "%soulcost%" } } }
       - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - %soulcost%" } } }
       - { MESSAGE: { text: "" } }
-      - { MESSAGE: { text: "§c§l*** PHOENIX SOUL (§7{ATTACKER}, -{cost} souls§c§l) ***", who: "@AllPlayers{r=48}", tokens: { cost: "%soulcost%" } } }
+      - { MESSAGE: { text: "§c§l*** PHOENIX SOUL (§7{ATTACKER}, -{cost} souls§c§l) ***", who: "@AllPlayers{r=48,allies=true}", tokens: { cost: "%soulcost%" } } }

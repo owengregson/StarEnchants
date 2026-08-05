@@ -589,6 +589,7 @@ selector ADD
   param z DOUBLE optional min=- max=- enum=- handle=- default=0
 selector ALLPLAYERS
   param r DOUBLE optional min=0 max=- enum=- handle=- default=32
+  param allies BOOL optional min=- max=- enum=- handle=- default=false
 selector AOE
   param r DOUBLE optional min=0 max=- enum=- handle=- default=4
   param filter ENUM optional min=- max=- enum=ALL,ALLIES,ENEMIES,MOBS,MONSTERS,PLAYERS handle=- default=ALL
@@ -611,6 +612,7 @@ selector BORE
   param exclude-materials HANDLE optional min=- max=- enum=- handle=MATERIAL default=
 selector ENTITYINSIGHT
   param r DOUBLE optional min=0 max=- enum=- handle=- default=16
+  param allies BOOL optional min=- max=- enum=- handle=- default=false
 selector EYEHEIGHT
 selector HERE
 selector MARKED
@@ -620,6 +622,7 @@ selector NEAREST
   param filter ENUM optional min=- max=- enum=ALL,ALLIES,ENEMIES,MOBS,MONSTERS,PLAYERS handle=- default=ALL
 selector NEARESTPLAYER
   param r DOUBLE optional min=0 max=- enum=- handle=- default=16
+  param allies BOOL optional min=- max=- enum=- handle=- default=false
 selector PLAYERFROMNAME
   param name STRING required min=- max=- enum=- handle=- default=-
 selector SELF
