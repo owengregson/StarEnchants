@@ -581,6 +581,12 @@ public final class BootCore {
                 item.worn.WornState state = worn.get(entity);
                 return state != null && state.holdsSetWeapon();
             }
+
+            @Override
+            public int crystalPieces(java.util.UUID entity, String key) {
+                item.worn.WornState state = worn.get(entity);
+                return state == null ? 0 : state.crystalCount(key);
+            }
         });
         // %actor.ownedground% off the per-boot temp-block ledger: the fact layer holds no sink env, and the
         // ledger is the only place a placement's claimant is recorded (wave 2d.2's owner concept).

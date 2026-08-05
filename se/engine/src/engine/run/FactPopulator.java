@@ -133,9 +133,31 @@ public final class FactPopulator {
         }
     }
 
+    /** The {@code %scope.crystals.<key>%} reader — the {@link EnchantBinding} shape, off the same source. */
+    private static final class CrystalBinding implements engine.condition.CrystalCounts {
+        private UUID actor;
+        private UUID victim;
+
+        void bind(UUID actor, UUID victim) {
+            this.actor = actor;
+            this.victim = victim;
+        }
+
+        @Override
+        public int actorCount(String key) {
+            return actor == null ? 0 : wornFactSource.crystalPieces(actor, key);
+        }
+
+        @Override
+        public int victimCount(String key) {
+            return victim == null ? 0 : wornFactSource.crystalPieces(victim, key);
+        }
+    }
+
     private final ThreadLocal<FactBuffer> buffer;
     private final ThreadLocal<PotionBinding> potionBinding = ThreadLocal.withInitial(PotionBinding::new);
     private final ThreadLocal<EnchantBinding> enchantBinding = ThreadLocal.withInitial(EnchantBinding::new);
+    private final ThreadLocal<CrystalBinding> crystalBinding = ThreadLocal.withInitial(CrystalBinding::new);
     private final VarStore vars;
     private final RageStackStore rageStacks; // §3 %ragestacks% source — an actor-scoped read (mask-gated)
     private final HeldSlotStore heldSlots;   // %heldticks% source — an actor-scoped read (mask-gated)
@@ -416,6 +438,9 @@ public final class FactPopulator {
             EnchantBinding enchants = enchantBinding.get();
             enchants.bind(uuidOf(context.actor()), uuidOf(context.victim()));
             facts.enchantLevels(enchants);
+            CrystalBinding crystals = crystalBinding.get();
+            crystals.bind(uuidOf(context.actor()), uuidOf(context.victim()));
+            facts.crystalCounts(crystals);
             populateActor(facts, context.actor(), mask);
             populateVictim(facts, context.victim(), mask);
             populateContext(facts, context, mask);

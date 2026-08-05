@@ -39,4 +39,13 @@ public interface WornFactSource {
     default boolean holdsSetWeapon(UUID entity) {
         return false;
     }
+
+    /**
+     * How many of {@code entity}'s worn ARMOUR pieces carry the crystal {@code key} (lower-cased stem), 0..4 —
+     * {@code %scope.crystals.<key>%}. A per-piece count, which the flattened crystal ability list cannot give
+     * back once multiplicity is folded into it. Defaults to 0 for the same reason the hook above does.
+     */
+    default int crystalPieces(UUID entity, String key) {
+        return 0;
+    }
 }

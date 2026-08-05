@@ -186,6 +186,8 @@ public final class ConditionCompiler {
 
     private static final String ENCHLEVEL_PREFIX = "enchlevel.";
 
+    private static final String CRYSTALS_PREFIX = "crystals.";
+
     /** The activation entity a {@code scope} names, or {@code null} if it names neither side. */
     private static NumExpr.Scope entityScope(String scope) {
         if ("victim".equalsIgnoreCase(scope)) {
@@ -241,6 +243,23 @@ public final class ConditionCompiler {
         return new NumExpr.EnchantLevel(entityScope(v.scope()), key);
     }
 
+    /**
+     * Whether this token is a keyed worn-crystal read — {@code %actor.crystals.<key>%} /
+     * {@code %victim.crystals.<key>%}. Prefix-recognised for the same reason the {@code enchlevel.} family is:
+     * the crystal vocabulary is the pack's, not the var vocabulary's.
+     */
+    private static boolean isCrystalCountRef(Expr.VarRef v) {
+        return entityScope(v.scope()) != null && v.name() != null
+                && v.name().length() > CRYSTALS_PREFIX.length()
+                && v.name().regionMatches(true, 0, CRYSTALS_PREFIX, 0, CRYSTALS_PREFIX.length());
+    }
+
+    /** The key crosses as a lower-cased STRING, exactly like {@code enchlevel.}; an unknown one reads 0. */
+    private static NumExpr.CrystalCount crystalCount(Expr.VarRef v) {
+        String key = v.name().substring(CRYSTALS_PREFIX.length()).toLowerCase(Locale.ROOT);
+        return new NumExpr.CrystalCount(entityScope(v.scope()), key);
+    }
+
     private Optional<NumExpr> numVar(Expr.VarRef v, Diagnostics diags) {
         NumExpr.EntityVar entity = entityVar(v);
         if (entity != null) {
@@ -251,6 +270,9 @@ public final class ConditionCompiler {
         }
         if (isEnchantLevelRef(v)) {
             return Optional.of(enchantLevel(v));
+        }
+        if (isCrystalCountRef(v)) {
+            return Optional.of(crystalCount(v));
         }
         Optional<VarBinding> b = vars.resolve(v.scope(), v.name());
         if (b.isEmpty()) {
@@ -446,6 +468,9 @@ public final class ConditionCompiler {
         }
         if (isEnchantLevelRef(v)) {
             return Operand.num(enchantLevel(v)); // a level is numeric: %victim.enchlevel.metaphysical% >= 3
+        }
+        if (isCrystalCountRef(v)) {
+            return Operand.num(crystalCount(v)); // a piece count is numeric: %actor.crystals.ranger% >= 2
         }
         Optional<VarBinding> b = vars.resolve(v.scope(), v.name());
         if (b.isEmpty()) {

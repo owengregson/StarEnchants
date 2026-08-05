@@ -24,6 +24,7 @@ public final class FactBuffer {
     private UnaryOperator<String> victimVars = t -> null;
     private PotionLevels potions = PotionLevels.NONE;
     private EnchantLevels enchants = EnchantLevels.NONE;
+    private CrystalCounts crystals = CrystalCounts.NONE;
     // rand()'s draw. Defaults to 0 (never an inline ThreadLocalRandom) exactly like Activation's chanceRoll:
     // production installs the real source, so an unwired evaluation is reproducible instead of secretly random.
     private DoubleSupplier random = () -> 0.0;
@@ -125,6 +126,21 @@ public final class FactBuffer {
         return enchants.victimLevel(key);
     }
 
+    /** Install the per-activation worn-crystal reader ({@code %scope.crystals.<key>%}); {@code null} = none. */
+    public void crystalCounts(CrystalCounts counts) {
+        this.crystals = counts == null ? CrystalCounts.NONE : counts;
+    }
+
+    /** How many of the actor's worn armour pieces carry the crystal {@code key}; {@code 0} when none. */
+    public int actorCrystalCount(String key) {
+        return crystals.actorCount(key);
+    }
+
+    /** How many of the victim's worn armour pieces carry the crystal {@code key}; {@code 0} when none. */
+    public int victimCrystalCount(String key) {
+        return crystals.victimCount(key);
+    }
+
     /** Install the random source {@code rand(lo,hi)} draws from; {@code null} (the default) draws {@code 0}. */
     public void randomSource(DoubleSupplier source) {
         this.random = source == null ? () -> 0.0 : source;
@@ -145,6 +161,7 @@ public final class FactBuffer {
         victimVars = t -> null;
         potions = PotionLevels.NONE;
         enchants = EnchantLevels.NONE;
+        crystals = CrystalCounts.NONE;
         random = () -> 0.0;
     }
 }

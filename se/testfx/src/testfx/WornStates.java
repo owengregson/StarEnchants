@@ -33,6 +33,7 @@ public final class WornStates {
         private int[] combatDefense = new int[0];
         private FactMask[] triggerFactMask = null;
         private final Map<String, Integer> enchantLevels = new LinkedHashMap<>();
+        private final Map<String, Integer> crystalCounts = new LinkedHashMap<>();
         private int heroicPieces;
         private boolean holdsSetWeapon;
 
@@ -97,6 +98,12 @@ public final class WornStates {
             return this;
         }
 
+        /** The {@code %scope.crystals.<key>%} lookup entry; {@code key} is the lower-cased crystal stem. */
+        public Builder crystalCount(String key, int pieces) {
+            this.crystalCounts.put(key, pieces);
+            return this;
+        }
+
         /** The {@code %scope.enchlevel.<key>%} lookup entry; {@code key} is the lower-cased enchant stem. */
         public Builder enchantLevel(String key, int level) {
             this.enchantLevels.put(key, level);
@@ -117,7 +124,8 @@ public final class WornStates {
 
         public WornState build() {
             return new WornState(gen, activeSets, crystalAbilityIds, heroic, byTrigger, combatAttack,
-                    combatDefense, triggerFactMask, Map.copyOf(enchantLevels), heroicPieces, holdsSetWeapon);
+                    combatDefense, triggerFactMask, Map.copyOf(enchantLevels), heroicPieces, holdsSetWeapon,
+                    Map.copyOf(crystalCounts));
         }
     }
 }

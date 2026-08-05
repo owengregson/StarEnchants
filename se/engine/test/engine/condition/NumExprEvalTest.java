@@ -56,6 +56,30 @@ class NumExprEvalTest {
     }
 
     @Test
+    void crystalCountReadsWornPiecesPerScopeAndZeroWhenAbsent() {
+        // R-QC52: PIECES, not levels — `>= 2` reads "socketed on at least two pieces", which is the per-piece
+        // scaling authors reach for and which the merged crystal ability list can no longer answer.
+        FactBuffer facts = new FactBuffer(0, 0, 0);
+        facts.crystalCounts(new engine.condition.CrystalCounts() {
+            @Override
+            public int actorCount(String key) {
+                return "ranger".equals(key) ? 3 : 0;
+            }
+
+            @Override
+            public int victimCount(String key) {
+                return 0;
+            }
+        });
+        assertEquals(3.0, NumExprEval.eval(new NumExpr.CrystalCount(NumExpr.Scope.ACTOR, "ranger"), facts));
+        assertEquals(0.0, NumExprEval.eval(new NumExpr.CrystalCount(NumExpr.Scope.ACTOR, "dragon"), facts));
+        // The scope is not decorative: the victim's pieces are not the actor's.
+        assertEquals(0.0, NumExprEval.eval(new NumExpr.CrystalCount(NumExpr.Scope.VICTIM, "ranger"), facts));
+        facts.clear();
+        assertEquals(0.0, NumExprEval.eval(new NumExpr.CrystalCount(NumExpr.Scope.ACTOR, "ranger"), facts));
+    }
+
+    @Test
     void enchantLevelReadsTheWornLevelPerScopeAndZeroWhenAbsent() {
         FactBuffer facts = new FactBuffer(0, 0, 0);
         facts.enchantLevels(new EnchantLevels() {

@@ -28,6 +28,10 @@ import java.util.Map;
  * @param heroicPieces            how many WORN ARMOUR pieces carry a heroic upgrade (0..4), counted once here
  *                                for {@code %victim.heroicpieces%}. A count, not the {@link #heroic} sum: two
  *                                pieces at 10 % and one at 20 % are the same stat and a different gate
+ * @param crystalCounts           lower-cased crystal stem &rarr; how many WORN ARMOUR pieces carry it (0..4),
+ *                                counted once here for {@code %scope.crystals.<key>%}. A per-piece COUNT, not
+ *                                the merged ability list: "two pieces socketed" is a gate the flattened
+ *                                {@link #activeCrystalAbilityIds} cannot answer once multiplicity is folded
  * @param holdsSetWeapon          whether the main hand holds the WEAPON of a set this wearer has COMPLETED —
  *                                the same truth that gates an {@code on: weapon} bonus, resolved once here
  *                                where slot provenance still exists, for {@code %actor.setweapon%}
@@ -43,9 +47,18 @@ public record WornState(
         FactMask[] triggerFactMask,
         Map<String, Integer> enchantLevels,
         int heroicPieces,
-        boolean holdsSetWeapon) {
+        boolean holdsSetWeapon,
+        Map<String, Integer> crystalCounts) {
 
     private static final int[] NO_IDS = new int[0];
+
+    /** No flattened crystal counts — {@link #crystalCount} then reports 0 for every key. */
+    public WornState(int gen, BitSet activeSets, int[] activeCrystalAbilityIds, HeroicStat heroic,
+                     int[][] byTrigger, int[] combatAttack, int[] combatDefense, FactMask[] triggerFactMask,
+                     Map<String, Integer> enchantLevels, int heroicPieces, boolean holdsSetWeapon) {
+        this(gen, activeSets, activeCrystalAbilityIds, heroic, byTrigger, combatAttack, combatDefense,
+                triggerFactMask, enchantLevels, heroicPieces, holdsSetWeapon, Map.of());
+    }
 
     /** No held set weapon — {@link #holdsSetWeapon} then reports {@code false}. */
     public WornState(int gen, BitSet activeSets, int[] activeCrystalAbilityIds, HeroicStat heroic,
@@ -78,6 +91,12 @@ public record WornState(
 
     public static WornState empty(int gen) {
         return new WornState(gen, new BitSet(), NO_IDS, HeroicStat.NONE, new int[0][], NO_IDS, NO_IDS);
+    }
+
+    /** How many WORN ARMOUR pieces carry the crystal {@code key} (lower-cased stem); {@code 0} when none. */
+    public int crystalCount(String key) {
+        Integer count = crystalCounts == null ? null : crystalCounts.get(key);
+        return count == null ? 0 : count;
     }
 
     /** The highest level of the enchant {@code key} (lower-cased stem) worn; {@code 0} when absent. */

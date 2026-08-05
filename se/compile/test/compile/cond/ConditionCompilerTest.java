@@ -334,6 +334,22 @@ class ConditionCompilerTest {
         return new ConditionCompiler(VARS).numeric(ast, d).orElseThrow();
     }
 
+    // The worn-CRYSTAL family (R-QC52) rides the same lazy-lookup template, and must be wired into BOTH entry
+    // points for the same reason: a family in only one silently becomes a PAPI passthrough on the other.
+    @ValueSource(strings = {"%actor.crystals.ranger%", "%victim.crystals.ranger%"})
+    @ParameterizedTest
+    void bothCrystalCountScopesLowerThroughBothEntryPoints(String token) {
+        Diagnostics d = new Diagnostics();
+        NumExpr.CrystalCount read = assertInstanceOf(NumExpr.CrystalCount.class, numericOf(token, d));
+        assertEquals("ranger", read.key());
+        assertEquals(token.startsWith("%victim") ? NumExpr.Scope.VICTIM : NumExpr.Scope.ACTOR, read.scope());
+
+        Cond compared = lower(token + " >= 2", d);
+        Cond.NumCmp cmp = assertInstanceOf(Cond.NumCmp.class, compared);
+        assertInstanceOf(NumExpr.CrystalCount.class, cmp.left());
+        assertFalse(d.hasErrors(), () -> d.all().toString());
+    }
+
     @ValueSource(strings = {"%actor.enchlevel.solitude%", "%victim.enchlevel.solitude%"})
     @ParameterizedTest
     void bothEnchantLevelScopesLowerThroughTheNumericEntryPoint(String token) {
