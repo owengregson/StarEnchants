@@ -31,11 +31,4 @@ public final class LegacyFallbacks {
     public static Map<String, String> forCategory(HandleCategory category) {
         return BY_CATEGORY.getOrDefault(category, Map.of());
     }
-
-    /** {@link Aliases} for {@code category} with the 1.8 degradations layered on — the legacy resolve table. */
-    public static Map<String, String> withAliases(HandleCategory category) {
-        Map<String, String> merged = new java.util.HashMap<>(Aliases.forCategory(category));
-        merged.putAll(forCategory(category));
-        return Map.copyOf(merged);
-    }
 }
