@@ -215,7 +215,10 @@ final class SetDefReader {
      * band of one is not a needless draw). {@code chance} gates whether the entry mints at all.
      */
     private static EnchantRoll readRoll(YamlNode value, String setKey, String ref, Diagnostics diags) {
-        int chance = rollInt(value, "chance", 100, diags);
+        // Fractional (R-QC51): parsed as a double, so an authored 17.5 rolls at 17.5 instead of failing to
+        // parse as an int and falling back to 100 — an entry meant to be rare minting on every single piece.
+        double chance = ContentParse.doubleOr(value.string("chance"), 100.0, "chance",
+                schema.diag.Severity.WARNING, DiagCode.W_SET_ENCHANT, value.sourceOf("chance"), diags);
         Integer nearlyMaxed = value.has("nearly-maxed")
                 ? ContentParse.parseInt(value.string("nearly-maxed")) : null;
         if (value.has("nearly-maxed")) {

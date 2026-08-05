@@ -57,7 +57,7 @@ takes either a bare level or a roll map:
 | `PROTECTION: 5` | fixed, always minted, **consumes no draw** |
 | `{ min: 2, max: 5 }` | uniform over the band |
 | `{ nearly-maxed: M }` | `min(M, max(1, M - 2) + rand(3))` |
-| `{ chance: 25, min: 1, max: 4 }` | a probability gate over either shape |
+| `{ chance: 17.5, min: 1, max: 4 }` | a probability gate over either shape; fractional (R-QC51), drawn in basis points |
 
 `nearly-maxed` is reproduced **literally**, not as a uniform band over the same bounds: the outer
 `min` collapses two of the three rungs once `M < 3`, and that skew is the measured distribution.

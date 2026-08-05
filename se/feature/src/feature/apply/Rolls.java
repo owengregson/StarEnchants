@@ -18,4 +18,14 @@ public final class Rolls {
     public static boolean passes(Random random, int percent) {
         return random.nextInt(100) < percent;
     }
+
+    /**
+     * The FRACTIONAL form (R-QC51), drawn in basis points: {@code nextInt(10_000) < round(percent * 100)}, so
+     * an authored 17.5 rolls at 17.5 rather than at whichever integer it rounded to. Separate from the int
+     * overload rather than replacing it — the other economies author whole percents, and widening their draw
+     * would re-shape every seeded fixture they own for no gain.
+     */
+    public static boolean passes(Random random, double percent) {
+        return random.nextInt(10_000) < Math.round(percent * 100.0);
+    }
 }
