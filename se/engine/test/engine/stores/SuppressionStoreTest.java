@@ -431,7 +431,7 @@ class SuppressionStoreTest {
         // one wearing the set alone — 100% freeze immunity degraded to 10% — decided purely by arm order.
         Ability incoming = scoped(4, -1, -1);
         SuppressionStore.Feedback setLine =
-                new SuppressionStore.Feedback(p, "actor", "victim", SuppressionStore.Feedback.NO_SOUND);
+                new SuppressionStore.Feedback(p, "Armer", "actor", "victim", SuppressionStore.Feedback.NO_SOUND);
         long key = CooldownStore.key(ScopeKinds.ENCHANT, 4);
 
         store.defend(p, key, 0L, 60, 100, 11, setLine);

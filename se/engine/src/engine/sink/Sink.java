@@ -730,14 +730,15 @@ public interface Sink {
     }
 
     /**
-     * As above, carrying the window's consume-time feedback (SUPPRESS's {@code consumed-*} params): the lines
-     * and cue emitted when this window actually BLOCKS an activation at gate 5, by whoever armed it
-     * ({@code by}). Timed windows only — a one-shot is burned blind and cannot name what it spent itself on.
+     * As above, carrying the suppression's consume-time feedback (SUPPRESS's {@code consumed-*} params): the
+     * lines and cue emitted when it actually BLOCKS an activation at gate 5, by whoever armed it ({@code by},
+     * named {@code byName} so the block can fill {@code {ATTACKER}} without a UUID lookup). Timed windows and
+     * one-shot charges alike (R-QC41) — the burn is blind, but the block names the key it stopped.
      * A {@code soundId} of {@code -1} is no cue. The default drops the feedback for sinks that do not carry it.
      */
     default void suppress(Player target, int scopeKind, int scopeId, int durationTicks, int byDefId,
-                          boolean nextHit, int charges, UUID by, String actorMessage, String victimMessage,
-                          int soundId) {
+                          boolean nextHit, int charges, UUID by, String byName, String actorMessage,
+                          String victimMessage, int soundId) {
         suppress(target, scopeKind, scopeId, durationTicks, byDefId, nextHit, charges);
     }
 
@@ -1150,7 +1151,7 @@ public interface Sink {
      * skipped). {@code chance} is rolled at each incoming target application.
      */
     void suppressIncoming(Player target, int scopeKind, int scopeId, int durationTicks, int chance, int byDefId,
-                          UUID by, String actorMessage, String victimMessage, int soundId);
+                          UUID by, String byName, String actorMessage, String victimMessage, int soundId);
 
     /**
      * Lift the engine status window named by {@code statusOrdinal} off {@code target} — {@code STATUS_CLEAR}

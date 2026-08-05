@@ -312,7 +312,7 @@ class AbilityExecutorTest {
         UUID suppressor = UUID.randomUUID();
         SuppressionStore suppression = new SuppressionStore();
         suppression.suppress(ACTOR, CooldownStore.key(ScopeKinds.ENCHANT, 5), 0L, 100, 88,
-                new SuppressionStore.Feedback(suppressor, "you blocked it", "you are silenced", -1));
+                new SuppressionStore.Feedback(suppressor, "Armer", "you blocked it", "you are silenced", -1));
         AbilityExecutor gated = executorWith(suppression, SoulSpender.NONE);
 
         Player actor = mock(Player.class);
@@ -325,6 +325,34 @@ class AbilityExecutorTest {
 
         verify(sink).messageTo(suppressor, "you blocked it");
         verify(sink).message(actor, "you are silenced");
+    }
+
+    /**
+     * R-QC41, both halves at the one seam that joins them: a {@code mode: next-hit} CHARGE carries a Feedback
+     * record (it used to carry none, which is half of why the Death Knight mask's two lines had no home), and
+     * the emit fills MESSAGE's name tokens — {@code {ATTACKER}} = whoever armed it, {@code {VICTIM}} = the
+     * player it just silenced. The two lines are DELIBERATELY crossed (each names the OTHER party) so a
+     * swapped substitution cannot pass.
+     */
+    @Test
+    void aBlockingOneShotChargeEmitsItsFeedbackWithBothNamesFilled() {
+        UUID suppressor = UUID.randomUUID();
+        SuppressionStore suppression = new SuppressionStore();
+        suppression.armOneShot(ACTOR, CooldownStore.key(ScopeKinds.ENCHANT, 5), 1, 88,
+                new SuppressionStore.Feedback(suppressor, "Armer", "{VICTIM} blocked", "by {ATTACKER}", -1));
+        AbilityExecutor gated = executorWith(suppression, SoulSpender.NONE);
+
+        Player actor = mock(Player.class);
+        when(actor.getName()).thenReturn("Silenced");
+        SinkReadback sink = mock(SinkReadback.class);
+        Ability suppressed = Abilities.ability().trigger(TRIGGER).cooldownScope(5, -1, -1)
+                .effects(igniteEffect("SELF", 60, Affinity.TARGET_ENTITY)).build();
+
+        assertEquals(0, gated.run(new Ability[] {suppressed}, new int[] {0}, activation(),
+                context(actor, null), sink, KEYS));
+
+        verify(sink).messageTo(suppressor, "Silenced blocked");
+        verify(sink).message(actor, "by Armer");
     }
 
     @Test
