@@ -126,6 +126,12 @@ reading the fact and an author writing `on: weapon` are asking one question.
 
 ## Recorded, not built
 
+> **All four shipped in [ADR-0074](0074-multi-mask-composites-and-impact-scoping.md)** — `IMPACT` scoped to
+> the authored `group:`, the per-recipient `{RELATION_COLOR}` on `MESSAGE`, the `dy` cue anchor on
+> `SOUND`/`PARTICLE`, and `%status.freeze%`. This section is kept as the reasoning that produced them, not
+> as an open list. ADR-0074's §4 was itself amended by **R-QC40** (per-`ABILITY` `group:` override on the
+> enchant reader; no mask/crystal stem derivation).
+
 - **`IMPACT` source scoping.** A landing block fires EVERY `IMPACT` ability its owner wears, so a
   Dimensional Traveler wearer also carrying Tombstone fires Tombstone's whole-set armour damage on
   each of ~142 landing blocks. The obvious filter — carry the arming `ctx.sourceDefId()` in the cast
@@ -145,6 +151,8 @@ reading the fact and an author writing `on: weapon` are asking one question.
 - **A Y offset (or location anchor) on `SOUND`.** `SOUND` reads only the entity channel of `who`, so
   a cue authored at "the target +4 Y" plays at the target. Cosmetic; the knob would have to resolve
   inside the sink, where the entity's region is already held.
-- **`%status.freeze%`,** the guard fact paired with the new `FREEZE` rung — every other `STATUS_CLEAR`
-  rung has one, on the reasoning that "you must be affected by X" is otherwise inexpressible.
-  `FrozenTargets.isFrozen` is already `public static` and UUID-keyed, so it is a drop-in.
+- **`%status.freeze%`,** the guard fact paired with the new `FREEZE` rung. Of the four `STATUS_CLEAR`
+  rungs (`DISARM`, `FREEZE`, `POTION_LOCK`, `TELEBLOCK`) only `TELEBLOCK` had a guard fact — the case for
+  this one is that "you must be affected by X" is otherwise inexpressible, not that the others already
+  have it. `FrozenTargets.isFrozen` is already `public static` and UUID-keyed, so it is a drop-in.
+  (`DISARM` and `POTION_LOCK` still have no guard fact; neither has asked for one.)

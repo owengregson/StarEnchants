@@ -124,3 +124,23 @@ outrun it rather than un-corrupting it back to a middle stage.
   `HolyProtectionCodec` constructor parameter. Both are breaking for direct callers inside the repo only.
 - Existing items carry no `holyprotections` key and read 0 — uncorrupted, no line, no migration needed.
   Items that were saved by holy scrolls before this change do not retroactively count those saves.
+
+## Amendment (2026-08-05): `/bless` is the first-debuff cleanse, not the unified one
+
+`/bless` (and its `/se bless [player]` mirror) is no longer "one application of the set effect". Commit
+`284680be` gave the command its own body, `feature.bless.BlessEffect`: play the splash cue, then remove the
+FIRST non-permanent active effect whose name is in a fixed **13-name** debuff family (blindness, nausea,
+instant damage, hunger, poison, slowness, mining fatigue, weakness and wither, with both the old and new
+Bukkit spellings paired), and report success only when a debuff was actually removed. Everything above that
+line is unchanged: the permission pair, the cooldown and cost gates, the charge-last ordering, and the
+boot-time `features.bless` switch.
+
+This is deliberate (owner ruling **R-QC28a**), not drift, and it narrows the § Decision text above. "There
+is ONE cleanse in the plugin … `/bless` is defined as *one application of the set effect*, so it holds no
+cleanse logic of its own" still describes the `CURE` effect and its CONTENT callers; it no longer describes
+the command. A single-debuff, single-cue cleanse is the felt behaviour the command is expected to have —
+`CURE { category: HARMFUL }` on demand is a far stronger button than that.
+
+The set passive and the Cow Pet are untouched and still run the unified `CURE`. The Consequences note
+below — a full Clarity set re-running the cleanse ~4×/sec, so a wearer effectively cannot burn — is
+**owner-confirmed** (**R-QC28b**) as intended, not a bug to be trimmed back.
