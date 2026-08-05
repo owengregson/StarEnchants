@@ -142,6 +142,28 @@ gate 9 for add-on interception. Suppression can also be *timed* (a
 `SuppressionStore` per-player TTL across the three cooldown scopes), checked in the
 same gate.
 
+### What an ability's TYPE scope is (ADR-0075)
+
+The three scopes are only useful if abilities carry them, and the TYPE one is
+**not authored**: the erase stage stamps every ability with its trigger's combat
+DIRECTION (`DEFENSE` for `DEFENSE`/`HURT`/`FALL`/`FIRE`, `ATTACK` for the
+attacker-side family, none for a neutral trigger), from
+`TriggerRegistry.suppressionTypes()`. That is what makes
+`SUPPRESS { scope: TYPE, key: DEFENSE }` mean "silence this victim's whole
+defensive kit" across every source without a word written on any of them, and
+what keeps a worn `PASSIVE` out of reach of it. TYPE keys case-fold at erase
+(the vocabulary is compiler-stamped, so `defense` and `DEFENSE` are one scope);
+ENCHANT and GROUP keep their authored spelling. An ability may override the
+stamp with `suppress-type:`, which **replaces** it — one interned slot, one type.
+
+Consume-time cues (`consumed-message-actor` / `consumed-message-victim` /
+`consumed-sound`) are emitted where a suppression BLOCKS an activation, on timed
+windows and one-shot `next-hit` charges alike: the burn is blind, but gate 5 asks
+about one ability's own scope, so the key that stopped it can name itself. The
+lines fill `{ATTACKER}` with whoever armed the suppression and `{VICTIM}` with the
+player it silenced — the armer's name is captured at the arm, so the block never
+resolves a UUID on a foreign region thread.
+
 ## Souls
 
 `SoulLedger` (`se/engine/src/engine/interact/SoulLedger.java`) is the **only code

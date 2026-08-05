@@ -62,6 +62,23 @@ public final class TriggerRegistry {
         return id >= 0 && id < byId.size() && byId.get(id).direction() == TriggerKind.Direction.DEFENSE;
     }
 
+    /**
+     * Trigger name &rarr; the suppression TYPE scope its abilities carry implicitly (R-QC3, ADR-0075): the
+     * trigger's combat DIRECTION, so {@code SUPPRESS { scope: TYPE, key: DEFENSE }} names the whole defender
+     * side (the source's {@code noDefenseProcs}) rather than one event family. Neutral triggers are absent —
+     * they belong to no combat side, so nothing implicit types them. This is the compiler's only input for the
+     * implicit stamp, so the direction declared here stays the single source of truth for it.
+     */
+    public Map<String, String> suppressionTypes() {
+        Map<String, String> out = new LinkedHashMap<>();
+        for (TriggerKind t : byId) {
+            if (t.direction() != TriggerKind.Direction.NEUTRAL) {
+                out.put(canonical(t.name()), t.direction().name());
+            }
+        }
+        return Map.copyOf(out);
+    }
+
     /** Attacker-side classifier for {@code WornFlattener} (interned id &rarr; is-attack). */
     public IntPredicate attackTriggers() {
         return this::isAttack;

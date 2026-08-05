@@ -323,6 +323,8 @@ final class ContentParse {
 
     private static final String COOLDOWN_PER_VICTIM = "cooldown-per-victim";
 
+    private static final String SUPPRESS_TYPE = "suppress-type";
+
     /** The one accepted {@code cooldown-scope} value; anything else is an {@code E_ENUM}. */
     private static final String COOLDOWN_SCOPE_NONE = "none";
 
@@ -344,6 +346,18 @@ final class ContentParse {
                         + raw + "'", node.sourceOf(COOLDOWN_SCOPE),
                 "drop the key to keep the shared cooldown bucket");
         return defaultScope;
+    }
+
+    /**
+     * The ability's TYPE suppression scope — the key a {@code SUPPRESS { scope: TYPE }} window matches it by
+     * (R-QC3, ADR-0075). Absent is the normal case and returns {@code null}: the erase stage then stamps the
+     * ability's combat direction ({@code DEFENSE}/{@code ATTACK}), which is what every defensive file in a
+     * library wants without authoring a word. Author it only to put an ability in a type NOTHING about its
+     * trigger implies — and note it REPLACES the implicit stamp rather than adding to it, since one interned
+     * slot names one type.
+     */
+    static String resolveSuppressType(YamlNode node, Diagnostics diags) {
+        return blankToNull(resolveString(node, SUPPRESS_TYPE, diags));
     }
 
     /**
@@ -391,13 +405,14 @@ final class ContentParse {
     }
 
     /**
-     * {@code keys} plus the cooldown-envelope knobs ({@code cooldown-scope}, {@code cooldown-per-victim}) —
-     * accepted by every reader, soul envelope or not.
+     * {@code keys} plus the scope-envelope knobs ({@code cooldown-scope}, {@code cooldown-per-victim},
+     * {@code suppress-type}) — accepted by every reader, soul envelope or not.
      */
     static Set<String> withCooldownScope(String... keys) {
         List<String> all = new ArrayList<>(List.of(keys));
         all.add(COOLDOWN_SCOPE);
         all.add(COOLDOWN_PER_VICTIM);
+        all.add(SUPPRESS_TYPE);
         return Set.copyOf(all);
     }
 }

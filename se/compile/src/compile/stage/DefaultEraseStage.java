@@ -45,6 +45,9 @@ public final class DefaultEraseStage implements EraseStage {
      *  = no registry wired (lower-level tests) — a KIND key then erases to {@code -1} silently, mirroring the
      *  un-stamped {@code kindId} path. */
     private final ToIntFunction<String> effectIdOf;
+    /** Canonical trigger name &rarr; the TYPE scope its abilities carry implicitly (R-QC3, ADR-0075), from
+     *  {@code TriggerRegistry.suppressionTypes()}. Empty = no implicit stamp (lower-level tests). */
+    private final Map<String, String> triggerTypes;
 
     /** Ad-hoc mode: trigger names are interned as encountered, with no vocabulary check. */
     public DefaultEraseStage() {
@@ -58,8 +61,15 @@ public final class DefaultEraseStage implements EraseStage {
 
     /** Canonical mode with {@code SUPPRESS scope: KIND} key resolution against the effect registry (ADR-0053). */
     public DefaultEraseStage(List<String> canonicalTriggers, ToIntFunction<String> effectIdOf) {
+        this(canonicalTriggers, effectIdOf, Map.of());
+    }
+
+    /** As above, plus the trigger&rarr;TYPE vocabulary backing the implicit type stamp (R-QC3, ADR-0075). */
+    public DefaultEraseStage(List<String> canonicalTriggers, ToIntFunction<String> effectIdOf,
+                             Map<String, String> triggerTypes) {
         this.canonicalTriggers = List.copyOf(canonicalTriggers);
         this.effectIdOf = effectIdOf;
+        this.triggerTypes = Map.copyOf(triggerTypes);
     }
 
     @Override
@@ -134,7 +144,9 @@ public final class DefaultEraseStage implements EraseStage {
             int suppressKey = la.suppressKey() == null ? -1 : suppress.intern(la.suppressKey());
             int cdScopeEnchant = la.cdScopeEnchant() == null ? -1 : cooldownScopes.intern(la.cdScopeEnchant());
             int cdScopeGroup = la.cdScopeGroup() == null ? -1 : cooldownScopes.intern(la.cdScopeGroup());
-            int cdScopeType = la.cdScopeType() == null ? -1 : cooldownScopes.intern(la.cdScopeType());
+            // R-QC3: an ability that declared no type takes the one its trigger's combat direction implies.
+            String typeScope = la.cdScopeType() == null ? impliedType(la.triggers()) : la.cdScopeType();
+            int cdScopeType = typeScope == null ? -1 : cooldownScopes.intern(typeScope.toUpperCase(Locale.ROOT));
             // R-QC40: the IMPACT source scope is the family group unless the ability narrowed it. The SAME
             // interner, so a payload's own group and a family match key can never collide on an id — and so
             // an unauthored override lands on exactly the id the match key already has.
@@ -189,6 +201,34 @@ public final class DefaultEraseStage implements EraseStage {
     }
 
     /**
+     * The TYPE scope an ability carries when it declares none (R-QC3, ADR-0075): its combat DIRECTION, so a
+     * defender-side ability is type {@code DEFENSE} and an attacker-side one {@code ATTACK}. Nothing is
+     * authored for it — hand-writing {@code type: DEFENSE} onto every defensive file in a library is a
+     * transcription job that only reproduces what the trigger already says, and a missed file would be an
+     * enchant that silently survives Silence.
+     *
+     * <p>DEFENSE wins a mixed-direction ability, because the ruled semantics is silencing what a victim DOES:
+     * an ability that can fire on the defence walk has to be reachable there, and a single interned slot can
+     * only name one side.
+     */
+    private String impliedType(List<String> triggers) {
+        if (triggerTypes.isEmpty()) {
+            return null;
+        }
+        String implied = null;
+        for (String trigger : triggers) {
+            String type = triggerTypes.get(trigger.trim().toUpperCase(Locale.ROOT));
+            if ("DEFENSE".equals(type)) {
+                return type;
+            }
+            if (type != null) {
+                implied = type;
+            }
+        }
+        return implied;
+    }
+
+    /**
      * Lowers each {@code SUPPRESS}/{@code SUPPRESS_INCOMING} effect's args to ints so {@code run} does zero
      * string work — both directions share the one keying, so they must share the one lowering: scope
      * ENCHANT/GROUP/TYPE interns {@code key} into the SAME {@code cooldownScopes} interner the abilities'
@@ -221,6 +261,12 @@ public final class DefaultEraseStage implements EraseStage {
                             "use a registered effect head, e.g. MODIFY_FOOD (run /se docs to list kinds)");
                     continue; // drop this op; the ERROR above blocks the publish (the E_UNKNOWN_HANDLE policy)
                 }
+            } else if (scopeKind == ScopeKinds.TYPE) {
+                // TYPE alone is case-folded, because its vocabulary is the trigger direction the compiler
+                // stamps (R-QC3) rather than an authored identifier: `key: defense` and `key: DEFENSE` name
+                // the same side. ENCHANT/GROUP keep their authored spelling — they key stable keys and
+                // authored `group:` values, where folding would merge two distinct names.
+                keyId = cooldownScopes.intern(args.str("key").toUpperCase(Locale.ROOT));
             } else {
                 keyId = cooldownScopes.intern(args.str("key"));
             }

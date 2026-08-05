@@ -302,7 +302,11 @@ class CompilerFuzzTest {
             }
             assertScopeName(def.cdScopeEnchant(), a.cdScopeEnchant(), s);
             assertScopeName(def.cdScopeGroup(), a.cdScopeGroup(), s);
-            assertScopeName(def.cdScopeType(), a.cdScopeType(), s);
+            // TYPE alone case-folds at erase (R-QC3): its vocabulary is the combat direction the compiler
+            // stamps, so `key: defense` and `key: DEFENSE` must reach one scope. ENCHANT/GROUP keep their
+            // authored spelling, since they key stable keys and authored group names.
+            assertScopeName(def.cdScopeType() == null ? null : def.cdScopeType().toUpperCase(Locale.ROOT),
+                    a.cdScopeType(), s);
         }
     }
 

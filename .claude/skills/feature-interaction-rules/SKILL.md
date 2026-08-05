@@ -72,6 +72,16 @@ divergence. The three-scope check is `SuppressionStore.suppressesAny` (shared by
 crystal-`DISABLE_ENCHANT` works (dead in a Cosmic Enchants-style design). A cancellable `PreActivate` event
 remains for add-on interception.
 
+- **TYPE is stamped, never authored** (ADR-0075): the erase stage gives each ability its
+  trigger's combat DIRECTION (`DEFENSE` covers DEFENSE/HURT/FALL/FIRE; `ATTACK` the
+  attacker side; a neutral trigger gets none), from `TriggerRegistry.suppressionTypes()`.
+  `SUPPRESS { scope: TYPE, key: DEFENSE }` therefore silences a victim's whole defensive
+  kit and structurally cannot reach a worn `PASSIVE`. TYPE keys case-fold; ENCHANT/GROUP do
+  not. `suppress-type:` overrides — and REPLACES — the stamp; one slot, one type (which is
+  why the mastery re-key was declined).
+- **Consume cues fire on one-shot charges too** — the burn is blind, the block is not — and
+  fill `{ATTACKER}` (the armer) / `{VICTIM}` (the silenced).
+
 ## Example: an effect contributes, never commits
 
 ```java

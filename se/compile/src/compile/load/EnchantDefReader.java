@@ -190,6 +190,7 @@ final class EnchantDefReader {
                 knobNode(block, lvl, root, "cooldown-scope"), baseKey, diags);
         boolean cooldownPerVictim = ContentParse.resolveCooldownPerVictim(
                 knobNode(block, lvl, root, "cooldown-per-victim"), diags);
+        String cdScopeType = ContentParse.resolveSuppressType(knobNode(block, lvl, root, "suppress-type"), diags);
         String condition = ContentParse.blankToNull(
                 ContentParse.resolveString(knobNode(block, lvl, root, "condition"), "condition", diags));
         // A block may retarget itself (an ATTACK enchant whose second block rides DEFENSE); absent → the enchant's.
@@ -223,7 +224,7 @@ final class EnchantDefReader {
                 baseKey,   // one suppression key: DISABLE_ENCHANT silences every block of the enchant
                 cdScopeEnchant, // blocks share the enchant's cooldown bucket unless one opts out
                 group,
-                null,
+                cdScopeType, // null = the erase stage stamps the trigger's combat direction (R-QC3)
                 repeatTicks,
                 effectsNode.source(),
                 0,

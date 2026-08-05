@@ -8,9 +8,11 @@ trigger: [PASSIVE, HURT]
 applies-to: [HELMET]
 group: "legendary"
 tier: legendary
-# The matrix's shared suppression ruling maps the corpus's noDefenseProcs to SUPPRESS(scope=TYPE, key=defense),
-# which cannot reach a PASSIVE ability — cosmic silence never dropped worn passives, so the maintained trio is
-# unsilenceable. The flag is per-enchant, so the HURT nausea block rides along; recorded, not a separate ruling.
+# The matrix's shared suppression ruling maps the corpus's noDefenseProcs to SUPPRESS(scope=TYPE, key=DEFENSE),
+# which is live since R-QC3 (ADR-0075) and keys the DEFENDER SIDE, so it structurally cannot reach the
+# maintained PASSIVE trio — cosmic silence never dropped worn passives. The flag stays for the broader
+# guarantee (ENCHANT- and GROUP-scoped windows too), and being per-enchant it also carries the HURT nausea
+# block, which IS defender-side and would otherwise park; recorded, not a separate ruling.
 suppress-immune: true
 # strings: besides the nausea line below, the shared potion-registry equip feedback, verbatim
 # (roman-numeral levels) — emitted by the registry for every maintained potion, so three lines per
