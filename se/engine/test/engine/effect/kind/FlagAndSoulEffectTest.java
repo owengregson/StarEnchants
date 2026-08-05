@@ -215,6 +215,39 @@ class FlagAndSoulEffectTest {
                         verifyNoInteractions(sink); // neither the console nor the player arm dispatches
                     }
                 }),
+                // R-QC43: a per-hit bridge command has no other way to name who was struck — the effect takes no
+                // `who` target, so before the token the command ran on the literal string "{VICTIM}".
+                dynamicTest("RUN_COMMAND fills {VICTIM} from the other combat party", () -> {
+                    Player actor = mock(Player.class);
+                    when(actor.getName()).thenReturn("Steve");
+                    when(actor.getUniqueId()).thenReturn(UUID.randomUUID());
+                    Player victim = mock(Player.class);
+                    when(victim.getName()).thenReturn("Alex");
+                    FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor).victim(victim)
+                            .with("command", "f focus {VICTIM} for {PLAYER}").with("as", "console");
+                    Sink sink = mock(Sink.class);
+                    new RunCommandEffect().run(ctx, sink);
+                    verify(sink).consoleCommand("f focus Alex for Steve"); // distinct names: no transposition
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("RUN_COMMAND fills {VICTIM} empty on a victimless activation", () -> {
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("command", "f focus {VICTIM}").with("as", "console");
+                    Sink sink = mock(Sink.class);
+                    new RunCommandEffect().run(ctx, sink);
+                    verify(sink).consoleCommand("f focus "); // empty, not a refusal — the trigger simply has none
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("RUN_COMMAND refuses a {VICTIM} template naming a non-username body", () -> {
+                    // A mob carries an authored custom name, so the same charset guard {PLAYER} gets applies.
+                    LivingEntity mob = mock(LivingEntity.class);
+                    when(mob.getName()).thenReturn("§cAngry Zombie; op x");
+                    FakeEffectCtx ctx = FakeEffectCtx.create().victim(mob)
+                            .with("command", "f focus {VICTIM}").with("as", "console");
+                    Sink sink = mock(Sink.class);
+                    new RunCommandEffect().run(ctx, sink);
+                    verifyNoInteractions(sink);
+                }),
                 dynamicTest("RUN_COMMAND with no token dispatches even for a hostile name (short-circuit stays actor-free)", () -> {
                     Player actor = mock(Player.class);
                     when(actor.getName()).thenReturn("bad name!");
