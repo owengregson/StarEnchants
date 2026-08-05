@@ -366,18 +366,37 @@ class FanOutEffectTest {
                     FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
                             .with("type", 42).with("ttl", 600).with("name", "&bGuardian")
                             .with("health", 90.0).with("speed", 1.2).with("effects", List.of(7))
-                            .with("rise", 2.0).targets("who", a, b);
+                            .with("rise", 2.0).with("steal", false).targets("who", a, b);
                     Sink sink = mock(Sink.class);
                     new SummonRebindEffect().run(ctx, sink);
-                    verify(sink).rebindSummon(a, actor, 42, 600, "&bGuardian", 90.0, 1.2, List.of(7), 2.0);
-                    verify(sink).rebindSummon(b, actor, 42, 600, "&bGuardian", 90.0, 1.2, List.of(7), 2.0);
+                    verify(sink).rebindSummon(a, actor, 42, 600, "&bGuardian", 90.0, 1.2, List.of(7), 2.0,
+                            false, "", 0.0);
+                    verify(sink).rebindSummon(b, actor, 42, 600, "&bGuardian", 90.0, 1.2, List.of(7), 2.0,
+                            false, "", 0.0);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("SUMMON_REBIND steal carries the broadcast the sink alone can fill in", () -> {
+                    Player actor = mock(Player.class);
+                    LivingEntity a = mock(LivingEntity.class);
+                    LivingEntity b = mock(LivingEntity.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
+                            .with("type", 42).with("ttl", 600).with("name", "&bGuardian")
+                            .with("health", 130.0).with("speed", 0.0).with("effects", List.of(7, 9))
+                            .with("rise", 2.0).with("steal", true).with("steal-message", "{FROM} -> {OWNER}")
+                            .with("steal-radius", 24.0).targets("who", a, b);
+                    Sink sink = mock(Sink.class);
+                    new SummonRebindEffect().run(ctx, sink);
+                    verify(sink).rebindSummon(a, actor, 42, 600, "&bGuardian", 130.0, 0.0, List.of(7, 9), 2.0,
+                            true, "{FROM} -> {OWNER}", 24.0);
+                    verify(sink).rebindSummon(b, actor, 42, 600, "&bGuardian", 130.0, 0.0, List.of(7, 9), 2.0,
+                            true, "{FROM} -> {OWNER}", 24.0);
                     verifyNoMoreInteractions(sink);
                 }),
                 dynamicTest("SUMMON_REBIND with no activator emits nothing (ownership is the whole gate)", () -> {
                     FakeEffectCtx ctx = FakeEffectCtx.create()
                             .with("type", 42).with("ttl", 600).with("name", "").with("health", 0.0)
                             .with("speed", 0.0).with("effects", List.of()).with("rise", 2.0)
-                            .targets("who", mock(LivingEntity.class));
+                            .with("steal", false).targets("who", mock(LivingEntity.class));
                     Sink sink = mock(Sink.class);
                     new SummonRebindEffect().run(ctx, sink);
                     verifyNoMoreInteractions(sink);

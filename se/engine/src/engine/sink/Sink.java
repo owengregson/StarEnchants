@@ -1130,13 +1130,26 @@ public interface Sink {
     void attachProjectileRider(Entity projectile, ProjectileDressing dressing);
 
     /**
-     * Replace {@code summon} — which must be one {@code owner} owns — with a fresh one of {@code entityTypeId}
+     * Replace {@code summon} — which must be a TRACKED summon — with a fresh one of {@code entityTypeId}
      * {@code rise} blocks above it (SUMMON_REBIND): the old body is removed silently (no death event, no
      * drops) and the replacement spawns at full configured health with its self-destruct window restarted.
      * The loadout params are {@link #guard}'s, so an upgraded summon and a summoned one are styled the same way.
+     *
+     * <p>Without {@code steal} the summon must be {@code owner}'s own — the upgrade reading. With it the
+     * precondition widens from "mine" to "somebody's": ownership transfers, and a broadcast naming both
+     * parties carries {@code stealRadius} blocks. What never widens is the requirement that the target BE a
+     * summon — a wild mob has no owner to rob, and letting one through would mint a free top-tier guardian
+     * off a farmed spawn.
      */
     void rebindSummon(LivingEntity summon, Player owner, int entityTypeId, int ttlTicks, String name,
-                      double health, double speed, java.util.List<Integer> effects, double rise);
+                      double health, double speed, java.util.List<Integer> effects, double rise,
+                      boolean steal, String stealMessage, double stealRadius);
+
+    /** {@link #rebindSummon} with no theft — the upgrade-only form (the add-on SPI shape). */
+    default void rebindSummon(LivingEntity summon, Player owner, int entityTypeId, int ttlTicks, String name,
+                              double health, double speed, java.util.List<Integer> effects, double rise) {
+        rebindSummon(summon, owner, entityTypeId, ttlTicks, name, health, speed, effects, rise, false, "", 0);
+    }
 
     /**
      * Turn {@code target} to look at {@code reference} (or, with {@code away}, directly opposite it) WITHOUT
