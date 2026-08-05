@@ -49,8 +49,13 @@ public final class ItemFactory {
             Map.entry("FIRE_CHARGE", "FIREBALL"), // 1.13 rename: the SoulTrak gem's material on the 1.8 lane
             Map.entry("WRITABLE_BOOK", "BOOK_AND_QUILL"), // 1.13 rename: the Godly Transmog scroll on the 1.8 lane
             Map.entry("DRIED_KELP", "INK_SACK"), // 1.13+ item: the Black Scroll's material → the 1.8 ink sac
-            // 1.8's real red dye was INK_SACK+data (unexpressible by name here); REDSTONE is the closest red item.
+            // The 1.13 flattening split the dyes out of INK_SACK+data. INK_SAC is a plain rename, so the
+            // cosmic Black Scroll's recorded material lands on both lanes; the coloured dyes are not (a data
+            // value is unexpressible by name here), so each degrades to the closest 1.8 item of that colour —
+            // REDSTONE for red, GOLD_INGOT for the cosmic Heroic Upgrade's Dandelion Yellow.
+            Map.entry("INK_SAC", "INK_SACK"),
             Map.entry("RED_DYE", "REDSTONE"),
+            Map.entry("YELLOW_DYE", "GOLD_INGOT"),
             Map.entry("ENDER_EYE", "EYE_OF_ENDER"),   // 1.13 rename: the Singularity reforge icon on the 1.8 lane
             Map.entry("STONE_BRICKS", "SMOOTH_BRICK"),// 1.13 rename: the Castling reforge icon on the 1.8 lane
             Map.entry("CHORUS_FRUIT", "ENDER_PEARL"), // 1.9+ item: the Blink reforge icon → the 1.8 pearl
