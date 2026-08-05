@@ -16,28 +16,31 @@
 # and `items/heroic.yml` carries ONE flat percent for every heroic piece, not a per-slot ladder), and set
 # completion is all-or-nothing, so at the only wear state this set exists in, one 45 % row IS the four rows.
 # The delta is partial wear: in the jar 2 Ghost pieces + 2 other heroic pieces still pay their 16/13, here
-# they pay nothing until the fourth lands. Recorded in deferred-content.md, with the standing note that the
-# day the M-Kit's own heroic tier lands, this row must go and the members take `heroic: true` instead —
-# `DamageFold` sums the heroic reduction into the same channel as this row, so running both bills it twice.
-# The per-piece rolls the codex NAMES are authored on the members below, at their recorded probabilities and
-# at the family's nearly-maxed draw min(M, max(1, M-2) + rand(3)) over each enchant's own max.
+# they pay nothing until the fourth lands. Recorded in deferred-content.md. R-QC50 rejected the second
+# (M-Kit) heroic tier PERMANENTLY, so this row is the set's FINAL form, not a stand-in: the members never take
+# `heroic: true` — `DamageFold` sums that stamp into the same channel as this row and would bill it twice.
+# Every roll the codex names is authored on the members below: the guaranteed `N base` roster first (the codex
+# enumerates it in full for all four M-Kits), then Gears on the boots, then the probability rolls in measured
+# order. `chance` is a double (R-QC51), so the half-point rungs author as written. `nearly-maxed: M` is the
+# port's ONE draw, min(M, max(1, M-2) + rand(3)); the ability sets' own helper (codex §A.11) draws M-3..M with
+# a further 25 % shave — a rung wider at the bottom, deliberately not ported.
 # STILL NOT AUTHORABLE — recorded here: the halved M-Kit armour values (2/4/3/2 vs the 20 a non-M-Kit set
-# carries), the 810/1000/935/686 durabilities, the `N base` roster each roll sits beside (the codex gives its
-# SIZE and never an entry), the HALF-POINT probabilities (a roster entry's `chance` is an integer percent),
-# and the boots' Phoenix RE-ROLL, which overwrites the base roll it lands on rather than adding an entry.
+# carries), the 810/1000/935/686 durabilities, and the boots' Phoenix RE-ROLL, which overwrites the base roll
+# it lands on rather than adding an entry — a roster is keyed by ref, so a second draw over an already-certain
+# entry has no spelling.
 #   per-piece rolls, authored except where marked:
-#     helmet  8 base + 60 % Valor/Angelic/Tank + 17.5 % Paladin Armored [half-point] + 17.5 % Alien Implants [half-point]
-#     chest   9 base + 60 %x3 + 20 % Paladin Armored + 17.5 % Godly Overload [half-point] + 20 % Planetary
+#     helmet  8 base + 60 % Valor/Angelic/Tank + 17.5 % Paladin Armored + 17.5 % Alien Implants
+#     chest   9 base + 60 %x3 + 20 % Paladin Armored + 17.5 % Godly Overload + 20 % Planetary
 #             Deathbringer + 20 % Divine Enlighted + 15 % Vengeful Diminish
-#     legs    7 base + 60 %x3 + 15 % Paladin Armored + 12.5 % Infinite Luck [half-point]
+#     legs    7 base + 60 %x3 + 15 % Paladin Armored + 12.5 % Infinite Luck
 #     boots   8 base + Gears max (guaranteed) + 60 %x3 + 25 % Paladin Armored + 30 % Ethereal Dodge
 #             + 45 % Phoenix re-roll [re-roll, not an entry] (OVERWRITES the base roll it lands on — measured)
 #   heroic appended block per piece: (blank) / §7+{2|4|3|2} Armor Value / §7{810|1000|935|686} Durability /
 #   §4This armor is stronger than diamond.
 # THE MASTERY POOL: 2 enchants drawn WITHOUT replacement, 50 % each, from `Horrify`, `Feign Death`,
 # `Poltergeist`, `Mark of the Beast`. Only `enchants/poltergeist` exists in this pack today — the other three
-# are batch-07 stops. The draw itself is a mint-time roll with no surface (the same gap the nearly-maxed roll
-# formula sits behind).
+# are batch-07 stops. The draw itself has no surface: `enchants:` is keyed by ref, so "2 of these 4" is not
+# something a roster can say.
 # SUPPORT-ITEM RULES the item layers own, recorded once here: pieces refuse ordinary enchant books unless the
 # book carries a matching Mastery Shard (§C.9 — the shard applies at 100 %, one of each set per book; the
 # jar's whole-cursor-stack-loss bug is not replicated); an Anti-M-Kit Crystal (Ghost) on ANY single worn piece
@@ -63,11 +66,11 @@ armor:
   lore:
     - ""
     - "§4This armor is stronger than diamond."
-  # Every piece is #808080 leather (Bukkit GRAY). `heroic: true` is DELIBERATELY NOT set, though the pieces
-  # do mint heroic: the stamp routes items/heroic.yml's per-piece reduction into the same additive channel
-  # `DamageFold` gives the 45 % completion row below, and that row already IS this set's heroic wall folded —
-  # stamping the members would bill it twice (45 + 27). Blocked on the M-Kit's own steeper heroic tier, which
-  # is a second grade of items/heroic.yml and not a gap in this surface.
+  # Every piece is #808080 leather (Bukkit GRAY). `heroic: true` is DELIBERATELY NOT set, though the jar's
+  # pieces carry the heroic stamp: it would route items/heroic.yml's per-piece reduction into the same
+  # additive channel `DamageFold` gives the 45 % completion row below, and that row already IS this set's
+  # heroic wall folded — stamping the members would bill it twice (45 + 27). R-QC50 rejected the M-Kit's own
+  # steeper heroic tier PERMANENTLY, so this is the final shape rather than a wait for a second grade.
   pieces:
     helmet:
       material: LEATHER_HELMET
@@ -77,9 +80,20 @@ armor:
         - "§7§oA tattered hood haunted by"
         - "§7§othe echoes of all lost souls."
       enchants:
+        # The 8-entry base roster: no chance gate, so every minted helmet carries all eight.
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/implants: { nearly-maxed: 3 }
+        enchants/drunk: { nearly-maxed: 4 }
+        enchants/arrow-deflect: { nearly-maxed: 4 }
+        enchants/death-god: { nearly-maxed: 3 }
+        enchants/resilience: { nearly-maxed: 4 }
+        enchants/protection: { nearly-maxed: 5 }   # the pack's CUSTOM Protection, not the vanilla PROTECTION 4 above
+        enchants/frozen: { nearly-maxed: 3 }
         enchants/valor: { chance: 60, nearly-maxed: 5 }
         enchants/angelic: { chance: 60, nearly-maxed: 5 }
         enchants/tank: { chance: 60, nearly-maxed: 4 }
+        enchants/paladin-armored: { chance: 17.5, nearly-maxed: 4 }
+        enchants/alien-implants: { chance: 17.5, nearly-maxed: 3 }
     chestplate:
       material: LEATHER_CHESTPLATE
       name: "§3§lGhostly Shroud"
@@ -88,10 +102,23 @@ armor:
         - "§7§oA thin, sheer shroud that seems"
         - "§7§oto defy gravity in its movements."
       enchants:
+        # The 9-entry base roster. Its 8th, `Blood Lust`, is the one member absent from this pack — it lands
+        # with R-QC46 (wave 3b-3), and a set's `enchants:` ref is validated library-wide, so naming it before
+        # the file exists is a compile ERROR, not an inert key.
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/overload: { nearly-maxed: 3 }
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/diminish: { nearly-maxed: 6 }
+        enchants/aegis: { nearly-maxed: 6 }
+        enchants/leadership: { nearly-maxed: 5 }
+        # enchants/blood-lust: { nearly-maxed: M }   # 8th base entry — blocked on R-QC46
+        enchants/shockwave: { nearly-maxed: 5 }
         enchants/valor: { chance: 60, nearly-maxed: 5 }
         enchants/angelic: { chance: 60, nearly-maxed: 5 }
         enchants/tank: { chance: 60, nearly-maxed: 4 }
         enchants/paladin-armored: { chance: 20, nearly-maxed: 4 }
+        enchants/godly-overload: { chance: 17.5, nearly-maxed: 3 }
         enchants/planetary-deathbringer: { chance: 20, nearly-maxed: 3 }
         enchants/divine-enlighted: { chance: 20, nearly-maxed: 3 }
         enchants/vengeful-diminish: { chance: 15, nearly-maxed: 6 }
@@ -103,23 +130,41 @@ armor:
         - "§7§oA darkly woven silk robe imbued"
         - "§7§owith onyx gemstones that"
         - "§7§oemanate evil power."
-      # 12.5 % Infinite Luck is the roll that makes these legs the only ability-set piece that can carry the
-      # enchant at all — and the one this surface cannot spell, `chance` being an integer percent.
+      # 12.5 % Infinite Luck makes these legs the only ability-set piece that can carry the enchant at all.
       enchants:
+        # The 7-entry base roster — one short of the other three sets' legs, which also carry `Spirits`.
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/nature-wrath: { nearly-maxed: 4 }
+        enchants/clarity: { nearly-maxed: 3 }
+        enchants/obsidianshield: { nearly-maxed: 1 }
+        enchants/cactus: { nearly-maxed: 2 }
+        enchants/lucky: { nearly-maxed: 10 }
+        enchants/voodoo: { nearly-maxed: 6 }
         enchants/valor: { chance: 60, nearly-maxed: 5 }
         enchants/angelic: { chance: 60, nearly-maxed: 5 }
         enchants/tank: { chance: 60, nearly-maxed: 4 }
         enchants/paladin-armored: { chance: 15, nearly-maxed: 4 }
+        enchants/infinite-luck: { chance: 12.5, nearly-maxed: 5 }
     boots:
       material: LEATHER_BOOTS
       name: "§3§lGhostly Whisp"
       color: "#808080"
       lore:
         - "§7§oGhost don't have feet."   # verbatim, missing plural and all
-      # `enchants/gears` is the one custom enchant this set GUARANTEES, at Gears' own max
+      # `enchants/gears` is the one entry this set stamps at MAX rather than at the nearly-maxed draw
       # (content/enchants/gears.yml tops out at 3). It is boots-only — the permanent Speed passive can never
       # stack across pieces — which is exactly why it cannot go in `armor.enchants`, shared by all four.
       enchants:
+        # The 8-entry base roster. `Phoenix` sits here as a certain entry; the boots' 45 % second draw
+        # OVERWRITES it rather than adding a row, which is why that re-roll stays recorded above, not authored.
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/metaphysical: { nearly-maxed: 4 }
+        enchants/ender-walker: { nearly-maxed: 5 }
+        enchants/springs: { nearly-maxed: 3 }
+        enchants/rocket-escape: { nearly-maxed: 3 }
+        enchants/dodge: { nearly-maxed: 5 }
+        enchants/phoenix: { nearly-maxed: 3 }
+        enchants/undead-ruse: { nearly-maxed: 10 }
         enchants/gears: 3
         enchants/valor: { chance: 60, nearly-maxed: 5 }
         enchants/angelic: { chance: 60, nearly-maxed: 5 }

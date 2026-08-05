@@ -20,9 +20,14 @@ armor:
   enchants:
     UNBREAKING: 3
     PROTECTION: 4
-  # The dye and the named roster rolls are authored on the `pieces:` members below. NO member carries `lore:`,
-  # and that absence is the measured fact: these pieces were built with no flavour at all, so the whole lore
-  # block is the heroic append and `lore:` here carries only its piece-independent tail.
+  # The dye, the guaranteed base rosters (9/9/8/8) and the named probability rolls are all authored on the
+  # `pieces:` members below. NO member carries `lore:`, and that absence is the measured fact: these pieces
+  # were built with no flavour at all, so the whole lore block is the heroic append and `lore:` here carries
+  # only its piece-independent tail. `chance` is a double (R-QC51), so the half-point rungs — 17.5 % Alien
+  # Implants (helmet), 17.5 % Godly Overload / 22.5 % Planetary Deathbringer / 22.5 % Divine Enlighted
+  # (chest), 22.5 % Ethereal Dodge / 12.5 % Guided Rocket Escape (boots) — author as written.
+  # `nearly-maxed: M` is the port's ONE draw, min(M, max(1, M-2) + rand(3)); the ability sets' own helper
+  # (codex §A.11) draws M-3..M with a further 25 % shave, deliberately not ported.
   # What STILL has no home is recorded here:
   #   per-piece heroic append — a member's `lore:` prints ABOVE the shared block, and this pair belongs
   #     between its blank and its last line:
@@ -32,12 +37,6 @@ armor:
   #   the per-slot durabilities 810/1000/935/686
   #   per-piece M-Kit incoming reduction: chest 16 %, legs 13 %, boots 8 %, helm 8 % — folded into the single
   #     completion bonus below, at the measured full-set total
-  #   the `N base` roster each piece draws from at the family's nearly-maxed draw min(M, max(1, M-2) + rand(3)):
-  #     the codex gives only its SIZE (9/9/8/8) and never enumerates an entry, so there is nothing for the roll
-  #     form to name
-  #   the HALF-POINT probabilities: a roster entry's `chance` is an integer percent, so 17.5 % Alien Implants
-  #     (helmet), 17.5 % Godly Overload / 22.5 % Planetary Deathbringer / 22.5 % Divine Enlighted (chest) and
-  #     22.5 % Ethereal Dodge / 12.5 % Guided Rocket Escape (boots) have no spelling
   # Two measured quirks that DO ship, on the members: the boots roll Valor and Angelic at 60 % but NOT Tank —
   # the only such omission anywhere in the family — and this is the only ability set that can roll Immortal on
   # two pieces (35 % helm, 30 % legs). The boots also take no Phoenix re-roll.
@@ -45,11 +44,11 @@ armor:
     - ""
     - "§4This armor is stronger than diamond."
   # Every piece is #2239B9 leather (decimal 2243001, deep royal blue) — Architect ships the same dye.
-  # `heroic: true` is DELIBERATELY NOT set, though the pieces do mint heroic: the stamp routes
+  # `heroic: true` is DELIBERATELY NOT set, though the jar's pieces carry the heroic stamp: it would route
   # items/heroic.yml's per-piece reduction into the same additive channel `DamageFold` gives the 45 %
   # completion row below, and that row already IS this set's heroic wall folded — stamping the members would
-  # bill it twice (45 + 27). Blocked on the M-Kit's own steeper heroic tier, which is a second grade of
-  # items/heroic.yml and not a gap in this surface (ADR-0073).
+  # bill it twice (45 + 27). R-QC50 rejected the M-Kit's own steeper heroic tier PERMANENTLY, so this is the
+  # final shape rather than a wait for a second grade of items/heroic.yml (ADR-0073).
   # `Gears` at MAX is guaranteed on the boots and boots only — armor.enchants above is set-wide and would
   # stamp all four.
   pieces:
@@ -58,26 +57,63 @@ armor:
       name: "§9§lCrown of the Lich King"
       color: "#2239B9"
       enchants:
+        # The 9-entry base roster: no chance gate, so every minted helmet carries all nine. It drops
+        # Ghost/Necromancer's `Resilience` and adds `Ender Shift`, `Aquatic` and `Repair Guard`.
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/implants: { nearly-maxed: 3 }
+        enchants/drunk: { nearly-maxed: 4 }
+        enchants/arrow-deflect: { nearly-maxed: 4 }
+        enchants/death-god: { nearly-maxed: 3 }
+        enchants/protection: { nearly-maxed: 5 }   # the pack's CUSTOM Protection, not the vanilla PROTECTION 4 above
+        enchants/ender-shift: { nearly-maxed: 3 }
+        enchants/aquatic: { nearly-maxed: 1 }
+        enchants/repair-guard: { nearly-maxed: 3 }
         enchants/valor: { chance: 60, nearly-maxed: 5 }
         enchants/angelic: { chance: 60, nearly-maxed: 5 }
         enchants/tank: { chance: 60, nearly-maxed: 4 }
         enchants/paladin-armored: { chance: 20, nearly-maxed: 4 }
+        enchants/alien-implants: { chance: 17.5, nearly-maxed: 3 }
         enchants/immortal: { chance: 35, nearly-maxed: 4 }
     chestplate:
       material: LEATHER_CHESTPLATE
       name: "§9§lDeath Knight Platebody"
       color: "#2239B9"
       enchants:
+        # The 9-entry base roster: Ghost/Necromancer's chest list with `Blood Link` for `Shockwave`. Its 8th,
+        # `Blood Lust`, is the one member absent from this pack — it lands with R-QC46 (wave 3b-3), and a set's
+        # `enchants:` ref is validated library-wide, so naming it early is a compile ERROR, not an inert key.
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/overload: { nearly-maxed: 3 }
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/diminish: { nearly-maxed: 6 }
+        enchants/aegis: { nearly-maxed: 6 }
+        enchants/leadership: { nearly-maxed: 5 }
+        # enchants/blood-lust: { nearly-maxed: M }   # 8th base entry — blocked on R-QC46
+        enchants/blood-link: { nearly-maxed: 5 }
         enchants/valor: { chance: 60, nearly-maxed: 5 }
         enchants/angelic: { chance: 60, nearly-maxed: 5 }
         enchants/tank: { chance: 60, nearly-maxed: 4 }
         enchants/paladin-armored: { chance: 20, nearly-maxed: 4 }
+        enchants/godly-overload: { chance: 17.5, nearly-maxed: 3 }
+        enchants/planetary-deathbringer: { chance: 22.5, nearly-maxed: 3 }
+        enchants/divine-enlighted: { chance: 22.5, nearly-maxed: 3 }
         enchants/vengeful-diminish: { chance: 15, nearly-maxed: 6 }
     leggings:
       material: LEATHER_LEGGINGS
       name: "§9§lDeath Knight Leggings"
       color: "#2239B9"
       enchants:
+        # The 8-entry base roster: Necromancer's legs list with `Dodge` where that set takes `Clarity` —
+        # the two swap slots here, `Clarity` moving to the boots.
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/nature-wrath: { nearly-maxed: 4 }
+        enchants/dodge: { nearly-maxed: 5 }
+        enchants/obsidianshield: { nearly-maxed: 1 }
+        enchants/cactus: { nearly-maxed: 2 }
+        enchants/lucky: { nearly-maxed: 10 }
+        enchants/voodoo: { nearly-maxed: 6 }
+        enchants/spirits: { nearly-maxed: 10 }
         enchants/valor: { chance: 60, nearly-maxed: 5 }
         enchants/angelic: { chance: 60, nearly-maxed: 5 }
         enchants/tank: { chance: 60, nearly-maxed: 4 }
@@ -88,16 +124,28 @@ armor:
       name: "§9§lBoots of the Scourge"
       color: "#2239B9"
       enchants:
+        # The 8-entry base roster: no `Dodge` (it moved to the legs) and `Clarity` in its place. `Phoenix` is
+        # certain here and takes NO second draw on this set, unlike Ghost's 45 % and Necromancer's 35 %.
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/metaphysical: { nearly-maxed: 4 }
+        enchants/ender-walker: { nearly-maxed: 5 }
+        enchants/springs: { nearly-maxed: 3 }
+        enchants/rocket-escape: { nearly-maxed: 3 }
+        enchants/phoenix: { nearly-maxed: 3 }
+        enchants/guardians: { nearly-maxed: 10 }
+        enchants/clarity: { nearly-maxed: 3 }
         enchants/gears: 3   # guaranteed, at Gears' own max
         enchants/valor: { chance: 60, nearly-maxed: 5 }
         enchants/angelic: { chance: 60, nearly-maxed: 5 }   # no Tank roll here — measured, reproduced
         enchants/paladin-armored: { chance: 20, nearly-maxed: 4 }
+        enchants/ethereal-dodge: { chance: 22.5, nearly-maxed: 5 }
+        enchants/guided-rocket-escape: { chance: 12.5, nearly-maxed: 3 }
 # Behaviours. The jar grants the M-Kit reduction PER WORN PIECE (§C.3-C.5); the engine gates a set bonus on
 # completion, so the four component stats fold into this one 4/4 bonus at their measured full-set 45 %.
 # Additive here, multiplicative in the jar (project-wide damage model, a global ADR — not a per-item deviation).
 # The only delta is partial wear: two worn pieces pay 16+13 in the jar and nothing here until the fourth lands.
-# `items/heroic.yml` carries ONE flat percent for every heroic piece, not a per-slot ladder — the day such a
-# ladder lands this row must go, or the two channels double-count.
+# `items/heroic.yml` carries ONE flat percent for every heroic piece; R-QC50 rejected a per-slot ladder and the
+# M-Kit's own heroic tier PERMANENTLY, so this row is final and nothing will arrive to double-count against it.
 bonuses:
   - on: armor
     trigger: DEFENSE
