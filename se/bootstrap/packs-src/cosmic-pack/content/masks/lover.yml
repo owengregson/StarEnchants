@@ -32,11 +32,12 @@ description:
   - "§7Make love, not Minecraft..."
   - "§7or maybe its the other way around?"
   - "§6§l * §6Valentine's Day 2019"
-# THE KEY IS INERT TODAY, deliberately. `enchants/mortal-coil` is a batch-07 deferral, so nothing in this pack
-# carries that stable key yet; a SUPPRESS_INCOMING key is an interned string, so naming an unshipped enchant
-# costs nothing and completes itself the day the file lands — exactly how crystals/anti-m-kit-necromancer.yml
-# already ships this same key, and the spelling matches it (this pack files every grade, mastery included,
-# under content/enchants/, so the matrix's `mastery/mortal-coil` is `enchants/mortal-coil` here).
+# THE KEY IS LIVE: `enchants/mortal-coil` ships (R-QC1), so the lore line's "Immune to Mortal Coil" is a real
+# window rather than a promise. The spelling matches crystals/anti-m-kit-necromancer.yml's copy of the same
+# key — this pack files every grade, mastery included, under content/enchants/, so the matrix's
+# `mastery/mortal-coil` is `enchants/mortal-coil` here.
+# The jar's immunity was SILENT (no feedback to either side, and it still consumed the proc roll); a
+# defender-keyed SUPPRESS_INCOMING with no consumed-message is exactly that.
 # THE SANTA SYNERGY IS EMERGENT, nothing to author: Mortal Coil also suppresses the Santa mask's max-health
 # bonus, so a Santa + Lover compound keeps its +2 hearts purely because this window stops the Coil that would
 # have taken them. Two rules, one outcome — no third rule to write.

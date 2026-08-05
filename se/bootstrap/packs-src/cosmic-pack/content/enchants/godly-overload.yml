@@ -32,7 +32,9 @@ removes-required: true  # the heroic supersedes its non-heroic partner (net-zero
 # The jar's swap-without-unequip lingering-effect hazard is structural in the engine's WornState (equip arms,
 # unequip lifts), so there is nothing to port.
 # The mastery drain reduces the expressed HEALTH_BOOST amplifier by its own level + 1 and skips the effect at
-# <= 0 — an interaction rule, not authored here (same as on the base).
+# <= 0 — an interaction rule, not authored here (same as on the base). Its counterparty now EXISTS:
+# `enchants/mortal-coil` ships (R-QC1) as a PARTIAL `POTION_AMP_REDUCE`, so a Mortal Coil I proc takes 2
+# amplifier steps off this grade's IV-VI rather than the whole 24 HP a full strip would have taken.
 # Equip/removal feedback is the shared potion-registry [+]/[-] pair (see Obsidianshield).
 # era: HEALTH_BOOST exists on 1.8.9; the max-health attribute interplay is the item-data layer's.
 levels:

@@ -1,0 +1,79 @@
+# Matrix: 07-enchants-mastery-soul.md § Mortal Coil
+display: "Mortal Coil"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eYour hits can sap the bonus hearts an"
+  - "&eenemy's own gear is holding up, for a"
+  - "&efew seconds at the worst possible time."
+trigger: ATTACK
+applies-to: [ARMOR]
+group: "mastery"
+tier: mastery
+cooldown-per-victim: true  # the measured re-proc block is "while THIS victim is affected", not a wearer-wide pace
+# THE MASTERY FAMILY CONTRACT (matrix 07 § family-wide rules) — the full reading lives in poltergeist.yml.
+# tier 8, `group: "mastery"`, `applies-to: [ARMOR]`, no `suppress-immune:`. This is one of the two masteries
+# that proc on the wearer's OWN hit rather than on being hit, so `{ATTACKER}` here is the wearer.
+# ── WHY POTION_AMP_REDUCE AND NOT POTION_LOCK ──────────────────────────────────────────────────────────────
+# The drain is PARTIAL: it takes `L + 1` amplifier steps off the victim's enchantment-sourced Health Boost and
+# denies the effect entirely only when that leaves nothing. `POTION_LOCK` would strip the whole buff, and this
+# pack ships three HEALTH_BOOST sources above the line where the two agree — `godly-overload.yml` IV-VI,
+# `protection.yml` V-VII and `overload.yml` I-III — so a Mortal Coil I proc (-2) against a Godly Overload III
+# wearer would take all 24 bonus HP where the matrix takes 8. Both Overload files have recorded this drain as
+# an interaction rule waiting for its counterparty since batch 02; this is that counterparty.
+# ── D-07-12: THE WINDOW IS EXACT ───────────────────────────────────────────────────────────────────────────
+# In the jar nothing re-evaluated the reduction at expiry — the shrunken Health Boost persisted until some
+# unrelated event refreshed the player's potions, making the recorded duration a MINIMUM. The effect bounds it
+# at `duration`, which is the intended reading.
+# The health clamp stays downward-only: max health drops immediately and current health is clamped to it, and
+# when the buff returns vanilla restores the MAX, never the current health the clamp took. Measured, kept.
+# ── STRINGS AND TOKENS ─────────────────────────────────────────────────────────────────────────────────────
+# One line, to the victim: `§c§l* MORTAL COIL <N> (§7{ATTACKER} [<s>s]§c§l) *`. `{level-roman}` has no MESSAGE
+# token (`tokens:` binds numbers only), so the numeral is literal per-rung text; `{seconds}` is inlined for the
+# same reason, which keeps each rendered line byte-identical to the matrix's. No expiry cue, no sound, no
+# particle — measured, kept.
+# ── INTERACTIONS ───────────────────────────────────────────────────────────────────────────────────────────
+# `masks/lover.yml` already ships the silent total immunity as a `SUPPRESS_INCOMING` keyed to this enchant,
+# and `crystals/anti-m-kit-necromancer.yml` carries the same key in its four-key pool; both were authored
+# ahead of this file and complete themselves with it. The Santa mask's read of the affected state is emergent:
+# Mortal Coil suppresses the Santa bonus for the same reason it suppresses any other worn Health Boost.
+# era: HEALTH_BOOST exists on 1.8.9 and the recorded interception hazard dissolved on inspection —
+# `EntityPotionEffectEvent` is cancel-only on the modern lane too, so a per-tick re-assert is the sole
+# enforcer on BOTH lanes and there is no era seam here.
+levels:
+  # Per level 1-5 — chance `2.5 + 1.5 x L`; window `(2 + 0.4 x L)` s = 2.4/2.8/3.2/3.6/4.0 (48-80 t);
+  # amplifier reduction `-(L + 1)` = -2..-6, i.e. up to 24 max HP at L5 (4 HP a step).
+  1:
+    chance: 4.0
+    cooldown: 48
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { POTION_AMP_REDUCE: { effect: "HEALTH_BOOST", amount: 2, duration: 48, who: "@Victim" } }
+      - { MESSAGE: { text: "§c§l* MORTAL COIL I (§7{ATTACKER} [2.4s]§c§l) *", who: "@Victim" } }
+  2:
+    chance: 5.5
+    cooldown: 56
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { POTION_AMP_REDUCE: { effect: "HEALTH_BOOST", amount: 3, duration: 56, who: "@Victim" } }
+      - { MESSAGE: { text: "§c§l* MORTAL COIL II (§7{ATTACKER} [2.8s]§c§l) *", who: "@Victim" } }
+  3:
+    chance: 7.0
+    cooldown: 64
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { POTION_AMP_REDUCE: { effect: "HEALTH_BOOST", amount: 4, duration: 64, who: "@Victim" } }
+      - { MESSAGE: { text: "§c§l* MORTAL COIL III (§7{ATTACKER} [3.2s]§c§l) *", who: "@Victim" } }
+  4:
+    chance: 8.5
+    cooldown: 72
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { POTION_AMP_REDUCE: { effect: "HEALTH_BOOST", amount: 5, duration: 72, who: "@Victim" } }
+      - { MESSAGE: { text: "§c§l* MORTAL COIL IV (§7{ATTACKER} [3.6s]§c§l) *", who: "@Victim" } }
+  5:
+    chance: 10.0
+    cooldown: 80
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { POTION_AMP_REDUCE: { effect: "HEALTH_BOOST", amount: 6, duration: 80, who: "@Victim" } }
+      - { MESSAGE: { text: "§c§l* MORTAL COIL V (§7{ATTACKER} [4.0s]§c§l) *", who: "@Victim" } }
