@@ -1003,13 +1003,13 @@ Debit souls from a soul gem: @Self (default) charges the activator's active gem,
 
 ### RUN_COMMAND
 
-Run a command as the console (default) or as the activating player. The `{PLAYER}`/`{UUID}`/`{WORLD}` tokens expand to the actor's name, uuid, and world. Affinity GLOBAL — the console path runs on the global thread; the player path runs on the actor's own thread. The `{PLAYER}` token refuses to run the command when the actor's name falls outside the standard `[A-Za-z0-9_]` (1-16) username charset.
+Run a command as the console (default) or as the activating player. The `{PLAYER}`/`{UUID}`/`{WORLD}` tokens expand to the actor's name, uuid, and world, and `{VICTIM}` to the other combat party's name (empty on a victimless activation). Affinity GLOBAL — the console path runs on the global thread; the player path runs on the actor's own thread. `{PLAYER}` and `{VICTIM}` both refuse to run the command when the name they would embed falls outside the standard `[A-Za-z0-9_]` (1-16) username charset.
 
 - _affinity_: `GLOBAL`
 - _usage_: `{ RUN_COMMAND: { command: <string>, as: <enum{console|player}=console> } }`
 - _param_ `command` `string`
 - _param_ `as` `enum{console|player}` — who runs it: console (default) or the player
-- _example_: `{ RUN_COMMAND: { command: "eco give {PLAYER} 100" } }`
+- _example_: `{ RUN_COMMAND: { command: "f focus {VICTIM}", as: player } }`
 
 ### SEEK
 
