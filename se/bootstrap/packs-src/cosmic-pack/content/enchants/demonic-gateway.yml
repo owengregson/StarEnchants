@@ -32,22 +32,20 @@ tier: mastery
 # ── THE SKULL PAYLOAD, AND WHAT THE IMPACT WALK CAN AND CANNOT SEE ─────────────────────────────────────────
 # Three IMPACT abilities, not one: the surface has no per-effect chance or condition, so the recorded "then
 # roll the trap, then check the distance" tail is three independently-gated abilities against one skull hit.
-# The hit itself is `IGNORE_ARMOR` + `DAMAGE(percent-of-max: 5)` — the recorded decomposition — but the flag
-# is INERT on this walk and the bite therefore lands ARMOUR-REDUCED where the jar's was a raw health write:
-# only the combat dispatcher reads `armorIgnored`, and an IMPACT activation is not a folded combat event, so
-# `DAMAGE` fires its own attributed hit for vanilla to reduce. The row stays authored so that the day an
-# IMPACT dispatch honours the flag costs no edit; recorded in deferred-content.md, shared with rot-and-decay.
+# The hit itself is `IGNORE_ARMOR` + `DAMAGE(percent-of-max: 5)` — the recorded decomposition — and the flag
+# is LIVE on this walk: an IMPACT activation is not a folded combat event, so the bite fires its own
+# attributed hit and the flag rides THAT, with the dispatcher zeroing its armour + protection modifiers. The
+# skull takes the recorded 5 % of max through any armour, which is what the jar's raw health write did.
 # `%distance%` and `VELOCITY(mode: away)` both anchor on the ACTIVATOR, and on an IMPACT walk the activator is
 # the WEARER, not the crystal that fired. The jar measured the 4-block gate and the 1.1 push from the firing
 # crystal. Nothing addresses a turret from the payload, so both read the wearer instead: the knockback still
 # throws the struck player off the fight, but off the wrong body. Recorded.
-# IMPACT SCOPING (ADR-0074 §4) collides here, and this file is one of the three that makes tombstone.yml's
-# warning LIVE rather than latent: the scope filter matches on the authored `group:`, and every mastery's is
-# the family word `mastery`, so a skull strike also runs Tombstone's and Rot and Decay's IMPACT abilities on
-# the same victim (and their carriers run these). `group:` is one root key per enchant and the same interned
-# string is the suppression match key `sets/dragon-slayer` and `masks/rift` both negate against, so narrowing
-# it here would cut this enchant out of them. R-QC40 is the approved fix (a per-ABILITY `group:` override on
-# the enchant reader); until it lands the cross-fire is recorded, not worked around.
+# IMPACT SCOPING (ADR-0074 §4, amended) is declared per ability: all four blocks carry
+# `group: "demonic-gateway"`, so a skull strike runs these three payloads and NOT Tombstone's or Rot and
+# Decay's (and their carriers no longer run these). R-QC40 built the per-ABILITY override for exactly this
+# collision — all three masteries were sourcing IMPACT under the one family word. The ROOT `group: "mastery"`
+# above is untouched and stays the suppression match key, so `sets/dragon-slayer` and `masks/rift` still
+# negate this enchant.
 # ── STRINGS ────────────────────────────────────────────────────────────────────────────────────────────────
 # Broadcast `§2§l** DEMONIC GATEWAY <N> (§a{ATTACKER}§2§l) **` at 24 blocks, `filter=ENEMIES` for the jar's
 # non-truce test; `{ATTACKER}` on a DEFENSE walk is the WEARER, which is the name the jar printed. The roman
@@ -72,6 +70,7 @@ levels:
   1:
     abilities:
       - chance: 2.0
+        group: "demonic-gateway"
         cooldown: 200
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -79,6 +78,7 @@ levels:
           - { MESSAGE: { text: "§2§l** DEMONIC GATEWAY I (§a{ATTACKER}§2§l) **", who: "@Aoe{r=24, filter=ENEMIES}" } }
       # The skull strike itself — armour-bypassing, the jar's raw 5 %-of-max health write.
       - trigger: IMPACT
+        group: "demonic-gateway"
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -86,6 +86,7 @@ levels:
           - { DAMAGE: { percent-of-max: 5, who: "@Victim" } }
       # The trap, its own roll off the same strike.
       - trigger: IMPACT
+        group: "demonic-gateway"
         chance: 9
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -93,6 +94,7 @@ levels:
           - { MESSAGE: { text: "§c§l* DEMONIC GATEWAY TRAP [by: §7{ATTACKER} (1.15s)§c§l] *", who: "@Victim" } }
       # The close-range shove; the distance is wearer-to-victim, not crystal-to-victim (see the header).
       - trigger: IMPACT
+        group: "demonic-gateway"
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %distance% < 4"
         effects:
@@ -101,6 +103,7 @@ levels:
   2:
     abilities:
       - chance: 2.5
+        group: "demonic-gateway"
         cooldown: 200
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -108,6 +111,7 @@ levels:
           - { MESSAGE: { text: "§2§l** DEMONIC GATEWAY II (§a{ATTACKER}§2§l) **", who: "@Aoe{r=24, filter=ENEMIES}" } }
       # The skull strike itself — armour-bypassing, the jar's raw 5 %-of-max health write.
       - trigger: IMPACT
+        group: "demonic-gateway"
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -115,6 +119,7 @@ levels:
           - { DAMAGE: { percent-of-max: 5, who: "@Victim" } }
       # The trap, its own roll off the same strike.
       - trigger: IMPACT
+        group: "demonic-gateway"
         chance: 12
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -122,6 +127,7 @@ levels:
           - { MESSAGE: { text: "§c§l* DEMONIC GATEWAY TRAP [by: §7{ATTACKER} (1.25s)§c§l] *", who: "@Victim" } }
       # The close-range shove; the distance is wearer-to-victim, not crystal-to-victim (see the header).
       - trigger: IMPACT
+        group: "demonic-gateway"
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %distance% < 4"
         effects:
@@ -130,6 +136,7 @@ levels:
   3:
     abilities:
       - chance: 3.0
+        group: "demonic-gateway"
         cooldown: 200
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -137,6 +144,7 @@ levels:
           - { MESSAGE: { text: "§2§l** DEMONIC GATEWAY III (§a{ATTACKER}§2§l) **", who: "@Aoe{r=24, filter=ENEMIES}" } }
       # The skull strike itself — armour-bypassing, the jar's raw 5 %-of-max health write.
       - trigger: IMPACT
+        group: "demonic-gateway"
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -144,6 +152,7 @@ levels:
           - { DAMAGE: { percent-of-max: 5, who: "@Victim" } }
       # The trap, its own roll off the same strike.
       - trigger: IMPACT
+        group: "demonic-gateway"
         chance: 15
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -151,6 +160,7 @@ levels:
           - { MESSAGE: { text: "§c§l* DEMONIC GATEWAY TRAP [by: §7{ATTACKER} (1.4s)§c§l] *", who: "@Victim" } }
       # The close-range shove; the distance is wearer-to-victim, not crystal-to-victim (see the header).
       - trigger: IMPACT
+        group: "demonic-gateway"
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %distance% < 4"
         effects:
@@ -159,6 +169,7 @@ levels:
   4:
     abilities:
       - chance: 3.5
+        group: "demonic-gateway"
         cooldown: 200
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -166,6 +177,7 @@ levels:
           - { MESSAGE: { text: "§2§l** DEMONIC GATEWAY IV (§a{ATTACKER}§2§l) **", who: "@Aoe{r=24, filter=ENEMIES}" } }
       # The skull strike itself — armour-bypassing, the jar's raw 5 %-of-max health write.
       - trigger: IMPACT
+        group: "demonic-gateway"
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -173,6 +185,7 @@ levels:
           - { DAMAGE: { percent-of-max: 5, who: "@Victim" } }
       # The trap, its own roll off the same strike.
       - trigger: IMPACT
+        group: "demonic-gateway"
         chance: 18
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -180,6 +193,7 @@ levels:
           - { MESSAGE: { text: "§c§l* DEMONIC GATEWAY TRAP [by: §7{ATTACKER} (1.5s)§c§l] *", who: "@Victim" } }
       # The close-range shove; the distance is wearer-to-victim, not crystal-to-victim (see the header).
       - trigger: IMPACT
+        group: "demonic-gateway"
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %distance% < 4"
         effects:
@@ -188,6 +202,7 @@ levels:
   5:
     abilities:
       - chance: 4.0
+        group: "demonic-gateway"
         cooldown: 200
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -195,6 +210,7 @@ levels:
           - { MESSAGE: { text: "§2§l** DEMONIC GATEWAY V (§a{ATTACKER}§2§l) **", who: "@Aoe{r=24, filter=ENEMIES}" } }
       # The skull strike itself — armour-bypassing, the jar's raw 5 %-of-max health write.
       - trigger: IMPACT
+        group: "demonic-gateway"
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -202,6 +218,7 @@ levels:
           - { DAMAGE: { percent-of-max: 5, who: "@Victim" } }
       # The trap, its own roll off the same strike.
       - trigger: IMPACT
+        group: "demonic-gateway"
         chance: 21
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -209,6 +226,7 @@ levels:
           - { MESSAGE: { text: "§c§l* DEMONIC GATEWAY TRAP [by: §7{ATTACKER} (1.65s)§c§l] *", who: "@Victim" } }
       # The close-range shove; the distance is wearer-to-victim, not crystal-to-victim (see the header).
       - trigger: IMPACT
+        group: "demonic-gateway"
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %distance% < 4"
         effects:
@@ -217,6 +235,7 @@ levels:
   6:
     abilities:
       - chance: 4.5
+        group: "demonic-gateway"
         cooldown: 200
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -224,6 +243,7 @@ levels:
           - { MESSAGE: { text: "§2§l** DEMONIC GATEWAY VI (§a{ATTACKER}§2§l) **", who: "@Aoe{r=24, filter=ENEMIES}" } }
       # The skull strike itself — armour-bypassing, the jar's raw 5 %-of-max health write.
       - trigger: IMPACT
+        group: "demonic-gateway"
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -231,6 +251,7 @@ levels:
           - { DAMAGE: { percent-of-max: 5, who: "@Victim" } }
       # The trap, its own roll off the same strike.
       - trigger: IMPACT
+        group: "demonic-gateway"
         chance: 24
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -238,6 +259,7 @@ levels:
           - { MESSAGE: { text: "§c§l* DEMONIC GATEWAY TRAP [by: §7{ATTACKER} (1.75s)§c§l] *", who: "@Victim" } }
       # The close-range shove; the distance is wearer-to-victim, not crystal-to-victim (see the header).
       - trigger: IMPACT
+        group: "demonic-gateway"
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %distance% < 4"
         effects:
