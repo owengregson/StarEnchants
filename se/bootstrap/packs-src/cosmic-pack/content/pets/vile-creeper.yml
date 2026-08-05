@@ -15,15 +15,16 @@
 # own `exp-curve` + `max-level`. The jar's always-empty/overflowing 50-segment EXP bar is D-12-2 — the engine
 # renders a proportional bar clamped at full.
 # ── THIS PET ───────────────────────────────────────────────────────────────────────────────────────────────
-# The Raid Creeper's twin, skeleton for skeleton: one creeper, the same two cues, the same XP grant, the same
-# cooldown ladder — including its spawn ANCHOR, which the matrix writes as `@Block{distance=5}` and which
-# ships as `@Self` for the reason raid-creeper.yml spells out (`SPAWN_ENTITY` reads entity targets only, so a
-# block selector resolves to nothing and falls back to the user's own location anyway). What differs is
-# entirely inside the EXTERNAL
-# custom-creeper system (CODEX-UNRESOLVED, same deferred stop): a "Vile" creeper is supposed to corrupt the
-# area it explodes in, applying Rot and Decay V for 5 s. Both figures are LORE LITERALS on this pet — they are
-# not read from the enchant, they do not scale with pet level, and this file never touches the Rot and Decay
-# mastery (matrix/07) directly; it only advertises it.
+# The Raid Creeper's twin, bracket for bracket: the same charged, invincible, damage-fused sentry (R-QC54 —
+# the signature-pack creeper shape, read there), the same two cues, the same XP grant, the same cooldown
+# ladder — including its spawn ANCHOR, which the matrix writes as `@Block{distance=5}` and which ships as
+# `@Self` for the reason raid-creeper.yml spells out (`SPAWN_ENTITY` reads entity targets only, so a block
+# selector resolves to nothing and falls back to the user's own location anyway).
+# WHAT STILL DIFFERS ONLY IN THE LORE: a "Vile" creeper was supposed to corrupt the area it explodes in,
+# applying Rot and Decay V for 5 s, and that half lived in the same CODEX-UNRESOLVED external system. Both
+# figures are LORE LITERALS on this pet — they are not read from the enchant, they do not scale with pet
+# level, and this file never touches the Rot and Decay mastery (matrix/07) directly; it only advertises it.
+# So the two creepers are behaviourally identical today and the descriptor is what tells them apart.
 # NOT PORTED, no surface: the jar's spawn-failure branch (`§c§lPET: §cUnable to spawn Vile Creeper!`, then
 # stop). An activation cannot see whether its selector or spawn found anything, so a failed spawn here is
 # silent and still burns the cooldown (the as-intended "no cooldown burned on failure" ordering needs that
@@ -67,7 +68,7 @@ levels:
     abilities:
       - condition: '%actor.gamemode% != "SPECTATOR"'
         effects:
-          - { SPAWN_ENTITY: { type: "CREEPER", count: 1, who: "@Self" } }
+          - { SPAWN_ENTITY: { type: CREEPER, ttl: 600, invincible: true, powered: true, targeting: false, detonate: PLAYER_HIT, who: "@Self" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
           - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
           - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
@@ -80,7 +81,7 @@ levels:
     abilities:
       - condition: '%actor.gamemode% != "SPECTATOR"'
         effects:
-          - { SPAWN_ENTITY: { type: "CREEPER", count: 1, who: "@Self" } }
+          - { SPAWN_ENTITY: { type: CREEPER, ttl: 600, invincible: true, powered: true, targeting: false, detonate: PLAYER_HIT, who: "@Self" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
           - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
           - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
@@ -93,7 +94,7 @@ levels:
     abilities:
       - condition: '%actor.gamemode% != "SPECTATOR"'
         effects:
-          - { SPAWN_ENTITY: { type: "CREEPER", count: 1, who: "@Self" } }
+          - { SPAWN_ENTITY: { type: CREEPER, ttl: 600, invincible: true, powered: true, targeting: false, detonate: PLAYER_HIT, who: "@Self" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
           - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
           - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
@@ -106,7 +107,7 @@ levels:
     abilities:
       - condition: '%actor.gamemode% != "SPECTATOR"'
         effects:
-          - { SPAWN_ENTITY: { type: "CREEPER", count: 1, who: "@Self" } }
+          - { SPAWN_ENTITY: { type: CREEPER, ttl: 600, invincible: true, powered: true, targeting: false, detonate: PLAYER_HIT, who: "@Self" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
           - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
           - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
@@ -119,7 +120,7 @@ levels:
     abilities:
       - condition: '%actor.gamemode% != "SPECTATOR"'
         effects:
-          - { SPAWN_ENTITY: { type: "CREEPER", count: 1, who: "@Self" } }
+          - { SPAWN_ENTITY: { type: CREEPER, ttl: 600, invincible: true, powered: true, targeting: false, detonate: PLAYER_HIT, who: "@Self" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
           - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 1.1, pitch: 3.0 } }
           - { ITEM_XP_TRACK: { amount: 10, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item} §a has increased to level §a§n{level}§a§l ***" } }
