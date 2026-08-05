@@ -137,7 +137,8 @@ final class UseItemDefReader {
                 // no-souls-message and the rest of the soul envelope are deliberately absent: a use-item's soul
                 // cost is hard-zero, so gate 10 can never charge or abort one and the keys would be dead knobs.
                 chance.expr(), null, false, null, null, 1.0, 0, 0,
-                ContentParse.resolveCooldownPerVictim(node, diags));
+                ContentParse.resolveCooldownPerVictim(node, diags),
+                -1); // a use-item never repeats, so it carries no initial delay
     }
 
     /**

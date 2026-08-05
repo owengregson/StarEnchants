@@ -65,7 +65,7 @@ public final class DefaultResolveStage implements ResolveStage {
                 ability.setPieces(), ability.suppressImmune(), ability.chanceExpr(), ability.noSoulsMessage(),
                 ability.soulCostCarried(), ability.noSoulsSound(), ability.noSoulsParticle(),
                 ability.soulCostGrowth(), ability.soulCostCap(), ability.soulCostDecayPeriod(),
-                ability.cooldownPerVictim());
+                ability.cooldownPerVictim(), ability.repeatDelayTicks());
     }
 
     /** @return the effect (and its selector) with handle args resolved, or {@code null} if a handle was unknown. */

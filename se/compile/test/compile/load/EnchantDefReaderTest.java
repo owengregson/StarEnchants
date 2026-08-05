@@ -472,6 +472,46 @@ class EnchantDefReaderTest {
     }
 
     @Test
+    void repeatDelayIsReadAtTheRootAndOverriddenPerBlockLikeTheRepeatPeriodItself() {
+        // R-QC35b. `repeat-delay` follows `repeat`'s own inheritance exactly: a block that names neither takes
+        // both from the root, and one that names only the delay keeps the root's period.
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            trigger: PASSIVE
+            repeat: 40
+            repeat-delay: 5
+            levels:
+              1:
+                abilities:
+                  - { effects: [{ HEAL: { amount: 1 } }] }
+                  - { repeat-delay: 0, effects: [{ HEAL: { amount: 1 } }] }
+            """;
+        List<AbilityDef> abilities =
+                EnchantDefReader.read("enchants/x", root(yaml, diags), counter(), diags).abilities();
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        assertEquals(5, abilities.get(0).repeatDelayTicks(), "inherited from the root");
+        assertEquals(40, abilities.get(0).repeatTicks());
+        assertEquals(0, abilities.get(1).repeatDelayTicks(), "the block's own value wins");
+        assertEquals(40, abilities.get(1).repeatTicks(), "and the period is untouched by it");
+    }
+
+    @Test
+    void anUnauthoredRepeatDelayIsMinusOneSoTheDriverKeepsThePeriodAsTheFirstRun() {
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            trigger: PASSIVE
+            repeat: 40
+            levels:
+              1:
+                effects: [{ HEAL: { amount: 1 } }]
+            """;
+        List<AbilityDef> abilities =
+                EnchantDefReader.read("enchants/x", root(yaml, diags), counter(), diags).abilities();
+        assertEquals(-1, abilities.get(0).repeatDelayTicks());
+    }
+
+    @Test
     void eachBlockCarriesItsOwnKnobsAndInheritsTheRest() {
         Diagnostics diags = new Diagnostics();
         List<AbilityDef> abilities =
@@ -541,7 +581,8 @@ class EnchantDefReaderTest {
                 d.cdScopeEnchant(), d.cdScopeGroup(), d.cdScopeType(), d.repeatTicks(),
                 Source.ofFile("normalised.yml"), d.setPieces(), d.suppressImmune(), d.chanceExpr(),
                 d.noSoulsMessage(), d.soulCostCarried(), d.noSoulsSound(), d.noSoulsParticle(),
-                d.soulCostGrowth(), d.soulCostCap(), d.soulCostDecayPeriod(), d.cooldownPerVictim());
+                d.soulCostGrowth(), d.soulCostCap(), d.soulCostDecayPeriod(), d.cooldownPerVictim(),
+                d.repeatDelayTicks());
     }
 
     /** Effect lines by head + named args; their embedded Source tracks the line they were written on. */

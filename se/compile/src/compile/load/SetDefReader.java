@@ -30,7 +30,7 @@ final class SetDefReader {
     private static final Set<String> ARMOR_KEYS = Set.of("lore", "enchants", "pieces");
     private static final Set<String> WEAPON_KEYS = Set.of("material", "name", "lore", "enchants");
     private static final Set<String> BONUS_KEYS = ContentParse.withEnvelopeKnobs(
-            "on", "trigger", "disabled-worlds", "group", "repeat", "chance", "cooldown", "soul-cost",
+            "on", "trigger", "disabled-worlds", "group", "repeat", "repeat-delay", "chance", "cooldown", "soul-cost",
             "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
             "no-souls-message", "condition", "effects");
     private static final Set<String> MEMBER_KEYS = Set.of("material", "name", "lore", "enchants", "color", "heroic");
@@ -255,6 +255,8 @@ final class SetDefReader {
         List<String> disabledWorlds = node.stringList("disabled-worlds");
         String group = ContentParse.blankToNull(node.string("group"));
         int repeatTicks = ContentParse.optInt(node, "repeat", 0, diags);
+        // R-QC35b: ticks before the FIRST run; -1 keeps the historical shape (one full period out).
+        int repeatDelayTicks = ContentParse.optInt(node, "repeat-delay", -1, diags);
         ContentParse.Chance chance = ContentParse.resolveChanceValue(node, "chance", diags);
         int cooldown = ContentParse.resolveInt(node, "cooldown", 0, diags);
         int soulCost = ContentParse.resolveInt(node, "soul-cost", 0, diags);
@@ -277,6 +279,7 @@ final class SetDefReader {
                 group, null, repeatTicks, fileSource,
                 Math.max(0, setPieces), false, chance.expr(), noSoulsMessage, soulKnobs.carried(), soulKnobs.sound(),
                 soulKnobs.particle(), soulCostGrowth, soulCostCap, soulCostDecayPeriod,
-                ContentParse.resolveCooldownPerVictim(node, diags));
+                ContentParse.resolveCooldownPerVictim(node, diags),
+                repeatDelayTicks);
     }
 }

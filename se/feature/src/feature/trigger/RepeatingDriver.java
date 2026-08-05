@@ -54,7 +54,11 @@ public final class RepeatingDriver {
             if (period <= 0) {
                 continue; // no period, nothing to schedule
             }
-            TaskHandle handle = Scheduling.repeatingEntity(player, period, period,
+            // R-QC35b: `repeat-delay` moves the FIRST run off the period. Unset (-1) keeps the historical
+            // shape, one full period out; 0 is clamped to 1, the earliest tick the scheduler can hold.
+            int declared = abilities[abilityId].repeatDelayTicks();
+            long firstRun = declared < 0 ? period : Math.max(1, declared);
+            TaskHandle handle = Scheduling.repeatingEntity(player, firstRun, period,
                     () -> dispatch.fireRepeating(player, abilityId));
             store.put(id, abilityId, handle).ifPresent(TaskHandle::cancel);
         }
