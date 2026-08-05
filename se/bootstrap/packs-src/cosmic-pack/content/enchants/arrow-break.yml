@@ -19,8 +19,10 @@ condition: "%damagecause% == \"PROJECTILE\""
 # — cosmetic only, and the same residual arrow-deflect.yml already carries.
 # The particle is @Self, not the matrix's @Victim: on a DEFENSE context the engine's victim IS the attacker
 # (ActivationContext(defender, attacker, attacker, …)), so "CRIT ×16 on the defender" is @Self here — the
-# whole defensive corpus reaches the other party through @Attacker. SOUND takes no `who`; it plays at the
-# activation location, which is the defender-local rendering the matrix records.
+# whole defensive corpus reaches the other party through @Attacker.
+# R-QC55: SOUND does take `who`, and the break cue needs it no more than the burst does — the jar played
+# it at the DEFENDER's own location, which is where a DEFENSE pass activates. Residue: it was a private
+# play to the defender; `who` moves where a cue plays, never who hears it, so it ships world-audible.
 # era: ITEM_BREAK is the 1.8-era spelling (`random.break`) and reaches ENTITY_ITEM_BREAK through the
 # boot-time sound resolver's existing alias; CRIT is safe on both lanes.
 levels:

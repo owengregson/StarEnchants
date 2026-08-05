@@ -39,8 +39,11 @@ levels:
   1:
     chance: "10 + 2.5 / max(0.25, %actor.healthpercent% / 100)"
     effects:
-      # Recorded at +1y on the attacker; PARTICLE centres on the body and no attacker-scoped offset selector
-      # exists (cosmetic delta, the same one rage.yml records for its eye-height burst).
+      # R-QC55: recorded at the attacker's feet +1 y, and no `dy` is authored — an entity-anchored burst
+      # already centres on the body (feet + height/2, 0.9 on a standing player; a flat +1.0 on the 1.8
+      # lane), so the record is met within ~0.1 blocks and a flat correction would only trade the modern
+      # lane's 0.1 for the legacy lane's. Residue: none worth an offset. A mob attacker's own centre
+      # differs, which no flat `dy` could follow either.
       - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 3, who: "@Attacker" } }
       - { VELOCITY: { mode: "away", strength: 2.3, who: "@Attacker" } }
   2:

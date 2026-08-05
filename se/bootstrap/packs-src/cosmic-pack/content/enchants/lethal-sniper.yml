@@ -50,21 +50,24 @@ levels:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 220 } }  # x3.2 outgoing
       - { MESSAGE: { text: "§c§l*** HEADSHOT [+3.2x DMG] ***", who: "@Victim" } }
       - { SOUND: { sound: "ENTITY_PLAYER_HURT", volume: 2.0, pitch: 0.3 } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }  # recorded at eye height; PARTICLE centres on the body (cosmetic delta)
+      # R-QC55: `dy: 0.7` lifts the recorded eye-height burst off the engine's body centre (feet +
+      # height/2, 0.9 on a standing player; a flat +1.0 on the 1.8 lane). Flat offset, and the headshot
+      # gate admits mobs, so a non-player victim takes a player-sized approximation of its own eyes.
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim", dy: 0.7 } }
   2:
     chance: 77.5
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 240 } }  # x3.4 outgoing
       - { MESSAGE: { text: "§c§l*** HEADSHOT [+3.4x DMG] ***", who: "@Victim" } }
       - { SOUND: { sound: "ENTITY_PLAYER_HURT", volume: 2.0, pitch: 0.3 } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim", dy: 0.7 } }
   3:
     chance: 85
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 260 } }  # x3.6 outgoing
       - { MESSAGE: { text: "§c§l*** HEADSHOT [+3.6x DMG] ***", who: "@Victim" } }
       - { SOUND: { sound: "ENTITY_PLAYER_HURT", volume: 2.0, pitch: 0.3 } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim", dy: 0.7 } }
   4:
     chance: 92.5
     effects:
@@ -72,13 +75,13 @@ levels:
       - { MESSAGE: { text: "§c§l*** HEADSHOT [+3.8x DMG] ***", who: "@Victim" } }
       - { SOUND: { sound: "ENTITY_PLAYER_HURT", volume: 2.0, pitch: 0.3 } }
       # Two bursts from level 4: the jar's `max(1, level/2)` repeat count, copied literally.
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim", dy: 0.7 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim", dy: 0.7 } }
   5:
     chance: 100
     effects:
       - { DAMAGE_MOD: { side: "attack", mode: "add", amount: 300 } }  # x4.0 outgoing
       - { MESSAGE: { text: "§c§l*** HEADSHOT [+4.0x DMG] ***", who: "@Victim" } }
       - { SOUND: { sound: "ENTITY_PLAYER_HURT", volume: 2.0, pitch: 0.3 } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim", dy: 0.7 } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", who: "@Victim", dy: 0.7 } }

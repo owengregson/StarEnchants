@@ -30,63 +30,69 @@ no-souls-message: "§c§l** OUT OF SOULS **"
 # environment gates and are not ported.
 # The jar printed the two soul lines only when the balance was a multiple of 100 or below 10; that throttle
 # is a lang-layer choice, so the lines ship unconditionally with the activation.
-# Message tokens ({owner}, {heal}, {total}, {cost}, {souls}) are recorded verbatim and left unbound —
-# token binding lands with wave 1e.
+# R-QC2 binds the five tokens. `{owner}` is the wearer, and on a DEFENSE pass the wearer IS the activating
+# player, so it is MESSAGE's native `{ATTACKER}` — never `{SELF}`, which would render each ally's own name on
+# a line addressed to the whole ally set. `{heal}` repeats the expression of the MODIFY_HEALTH beside it and
+# `{total}` multiplies that by the ally count; `%nearbyallies%` counts at the engine's fixed 8-block radius
+# where the jar counted at the level radius (12-28) — the same approximation the gate above already makes.
+# `{cost}` is the flat 5 and `{souls}` subtracts it: facts are populated before the gate-10 debit, so a bare
+# `%actor.souls%` under a line that says "left" would print the pre-spend balance.
 levels:
   1:
     chance: 10
     effects:
       - { MODIFY_HEALTH: { amount: "%damage% * 0.1", mode: "give", who: "@Aoe{r=12, filter=ALLIES}" } }
       - { PARTICLE: { particle: "HAPPY_VILLAGER", count: 20, who: "@Aoe{r=12, filter=ALLIES}" } }
-      # SOUND has no per-target form, so the recorded per-ally cue rides one world-audible copy at the wearer,
-      # as does the wearer's own @Self cue.
-      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 1.0, pitch: 2.0 } }
+      # R-QC55: the eat cue was the jar's PER-ALLY one, so it takes the heal's own ally set. Residue: the jar
+      # played it to each ally privately; `who` moves where a cue plays, never who hears it, so each copy is
+      # world-audible where it lands. The level-up cue below is the wearer's and stays at the activation point.
+      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 1.0, pitch: 2.0, who: "@Aoe{r=12, filter=ALLIES}" } }
       - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
-      - { MESSAGE: { text: "§a§l** PARADOX [{owner}] (+{heal}HP) **", who: "@Aoe{r=12, filter=ALLIES}" } }
-      - { MESSAGE: { text: "§2§l** PARADOX [{total} -> HP]  **", who: "@Self" } }
-      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", who: "@Self" } }
-      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", who: "@Self" } }
+      - { MESSAGE: { text: "§a§l** PARADOX [{ATTACKER}] (+{heal}HP) **", who: "@Aoe{r=12, filter=ALLIES}", tokens: { heal: "%damage% * 0.1" } } }
+      - { MESSAGE: { text: "§2§l** PARADOX [{total} -> HP]  **", who: "@Self", tokens: { total: "%nearbyallies% * (%damage% * 0.1)" } } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", who: "@Self", tokens: { cost: 5 } } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", who: "@Self", tokens: { souls: "%actor.souls% - 5" } } }
   2:
     chance: 20
     effects:
       - { MODIFY_HEALTH: { amount: "%damage% * 0.2", mode: "give", who: "@Aoe{r=16, filter=ALLIES}" } }
       - { PARTICLE: { particle: "HAPPY_VILLAGER", count: 20, who: "@Aoe{r=16, filter=ALLIES}" } }
-      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 1.0, pitch: 2.0 } }
+      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 1.0, pitch: 2.0, who: "@Aoe{r=16, filter=ALLIES}" } }
       - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
-      - { MESSAGE: { text: "§a§l** PARADOX [{owner}] (+{heal}HP) **", who: "@Aoe{r=16, filter=ALLIES}" } }
-      - { MESSAGE: { text: "§2§l** PARADOX [{total} -> HP]  **", who: "@Self" } }
-      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", who: "@Self" } }
-      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", who: "@Self" } }
+      - { MESSAGE: { text: "§a§l** PARADOX [{ATTACKER}] (+{heal}HP) **", who: "@Aoe{r=16, filter=ALLIES}", tokens: { heal: "%damage% * 0.2" } } }
+      - { MESSAGE: { text: "§2§l** PARADOX [{total} -> HP]  **", who: "@Self", tokens: { total: "%nearbyallies% * (%damage% * 0.2)" } } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", who: "@Self", tokens: { cost: 5 } } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", who: "@Self", tokens: { souls: "%actor.souls% - 5" } } }
   3:
     chance: 30
     effects:
       - { MODIFY_HEALTH: { amount: "%damage% * 0.3", mode: "give", who: "@Aoe{r=20, filter=ALLIES}" } }
       - { PARTICLE: { particle: "HAPPY_VILLAGER", count: 20, who: "@Aoe{r=20, filter=ALLIES}" } }
-      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 1.0, pitch: 2.0 } }
+      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 1.0, pitch: 2.0, who: "@Aoe{r=20, filter=ALLIES}" } }
       - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
-      - { MESSAGE: { text: "§a§l** PARADOX [{owner}] (+{heal}HP) **", who: "@Aoe{r=20, filter=ALLIES}" } }
-      - { MESSAGE: { text: "§2§l** PARADOX [{total} -> HP]  **", who: "@Self" } }
-      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", who: "@Self" } }
-      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", who: "@Self" } }
+      - { MESSAGE: { text: "§a§l** PARADOX [{ATTACKER}] (+{heal}HP) **", who: "@Aoe{r=20, filter=ALLIES}", tokens: { heal: "%damage% * 0.3" } } }
+      - { MESSAGE: { text: "§2§l** PARADOX [{total} -> HP]  **", who: "@Self", tokens: { total: "%nearbyallies% * (%damage% * 0.3)" } } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", who: "@Self", tokens: { cost: 5 } } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", who: "@Self", tokens: { souls: "%actor.souls% - 5" } } }
   4:
     chance: 40
     effects:
       - { MODIFY_HEALTH: { amount: "%damage% * 0.4", mode: "give", who: "@Aoe{r=24, filter=ALLIES}" } }
       - { PARTICLE: { particle: "HAPPY_VILLAGER", count: 20, who: "@Aoe{r=24, filter=ALLIES}" } }
-      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 1.0, pitch: 2.0 } }
+      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 1.0, pitch: 2.0, who: "@Aoe{r=24, filter=ALLIES}" } }
       - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
-      - { MESSAGE: { text: "§a§l** PARADOX [{owner}] (+{heal}HP) **", who: "@Aoe{r=24, filter=ALLIES}" } }
-      - { MESSAGE: { text: "§2§l** PARADOX [{total} -> HP]  **", who: "@Self" } }
-      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", who: "@Self" } }
-      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", who: "@Self" } }
+      - { MESSAGE: { text: "§a§l** PARADOX [{ATTACKER}] (+{heal}HP) **", who: "@Aoe{r=24, filter=ALLIES}", tokens: { heal: "%damage% * 0.4" } } }
+      - { MESSAGE: { text: "§2§l** PARADOX [{total} -> HP]  **", who: "@Self", tokens: { total: "%nearbyallies% * (%damage% * 0.4)" } } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", who: "@Self", tokens: { cost: 5 } } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", who: "@Self", tokens: { souls: "%actor.souls% - 5" } } }
   5:
     chance: 50
     effects:
       - { MODIFY_HEALTH: { amount: "%damage% * 0.5", mode: "give", who: "@Aoe{r=28, filter=ALLIES}" } }
       - { PARTICLE: { particle: "HAPPY_VILLAGER", count: 20, who: "@Aoe{r=28, filter=ALLIES}" } }
-      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 1.0, pitch: 2.0 } }
+      - { SOUND: { sound: "ENTITY_GENERIC_EAT", volume: 1.0, pitch: 2.0, who: "@Aoe{r=28, filter=ALLIES}" } }
       - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
-      - { MESSAGE: { text: "§a§l** PARADOX [{owner}] (+{heal}HP) **", who: "@Aoe{r=28, filter=ALLIES}" } }
-      - { MESSAGE: { text: "§2§l** PARADOX [{total} -> HP]  **", who: "@Self" } }
-      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", who: "@Self" } }
-      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", who: "@Self" } }
+      - { MESSAGE: { text: "§a§l** PARADOX [{ATTACKER}] (+{heal}HP) **", who: "@Aoe{r=28, filter=ALLIES}", tokens: { heal: "%damage% * 0.5" } } }
+      - { MESSAGE: { text: "§2§l** PARADOX [{total} -> HP]  **", who: "@Self", tokens: { total: "%nearbyallies% * (%damage% * 0.5)" } } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", who: "@Self", tokens: { cost: 5 } } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", who: "@Self", tokens: { souls: "%actor.souls% - 5" } } }

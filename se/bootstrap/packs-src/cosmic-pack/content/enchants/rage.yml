@@ -44,7 +44,10 @@ levels:
       - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\" && %counter.rage.pvp% >= 1"
         effects:
           - { SET_VAR: { name: "raged", value: "1", ttl: 4, who: "@Victim" } }  # the 200 ms Execute-exclusion window
-          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim" } }  # recorded at eye height; PARTICLE centres on the body and no victim-scoped offset selector exists (cosmetic delta)
+          # R-QC55: `dy: 0.7` lifts the recorded eye-height burst off the engine's body centre (feet +
+          # height/2, 0.9 on a standing player; a flat +1.0 on the 1.8 lane). This block is player-gated,
+          # so the arithmetic is exact on the modern lane.
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim", dy: 0.7 } }
       # 3. increment, last
       - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\""
         effects:
@@ -77,7 +80,10 @@ levels:
       - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\" && %counter.rage.pvp% >= 1"
         effects:
           - { SET_VAR: { name: "raged", value: "1", ttl: 4, who: "@Victim" } }  # the 200 ms Execute-exclusion window
-          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim" } }  # recorded at eye height; PARTICLE centres on the body and no victim-scoped offset selector exists (cosmetic delta)
+          # R-QC55: `dy: 0.7` lifts the recorded eye-height burst off the engine's body centre (feet +
+          # height/2, 0.9 on a standing player; a flat +1.0 on the 1.8 lane). This block is player-gated,
+          # so the arithmetic is exact on the modern lane.
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim", dy: 0.7 } }
       # 3. increment, last
       - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\""
         effects:
@@ -110,7 +116,10 @@ levels:
       - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\" && %counter.rage.pvp% >= 1"
         effects:
           - { SET_VAR: { name: "raged", value: "1", ttl: 4, who: "@Victim" } }  # the 200 ms Execute-exclusion window
-          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim" } }  # recorded at eye height; PARTICLE centres on the body and no victim-scoped offset selector exists (cosmetic delta)
+          # R-QC55: `dy: 0.7` lifts the recorded eye-height burst off the engine's body centre (feet +
+          # height/2, 0.9 on a standing player; a flat +1.0 on the 1.8 lane). This block is player-gated,
+          # so the arithmetic is exact on the modern lane.
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim", dy: 0.7 } }
       # 3. increment, last
       - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\""
         effects:
@@ -143,7 +152,10 @@ levels:
       - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\" && %counter.rage.pvp% >= 1"
         effects:
           - { SET_VAR: { name: "raged", value: "1", ttl: 4, who: "@Victim" } }  # the 200 ms Execute-exclusion window
-          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim" } }  # recorded at eye height; PARTICLE centres on the body and no victim-scoped offset selector exists (cosmetic delta)
+          # R-QC55: `dy: 0.7` lifts the recorded eye-height burst off the engine's body centre (feet +
+          # height/2, 0.9 on a standing player; a flat +1.0 on the 1.8 lane). This block is player-gated,
+          # so the arithmetic is exact on the modern lane.
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim", dy: 0.7 } }
       # 3. increment, last
       - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\""
         effects:
@@ -176,7 +188,10 @@ levels:
       - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\" && %counter.rage.pvp% >= 1"
         effects:
           - { SET_VAR: { name: "raged", value: "1", ttl: 4, who: "@Victim" } }  # the 200 ms Execute-exclusion window
-          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim" } }  # recorded at eye height; PARTICLE centres on the body and no victim-scoped offset selector exists (cosmetic delta)
+          # R-QC55: `dy: 0.7` lifts the recorded eye-height burst off the engine's body centre (feet +
+          # height/2, 0.9 on a standing player; a flat +1.0 on the 1.8 lane). This block is player-gated,
+          # so the arithmetic is exact on the modern lane.
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim", dy: 0.7 } }
       # 3. increment, last
       - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\""
         effects:
@@ -209,7 +224,10 @@ levels:
       - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\" && %counter.rage.pvp% >= 1"
         effects:
           - { SET_VAR: { name: "raged", value: "1", ttl: 4, who: "@Victim" } }  # the 200 ms Execute-exclusion window
-          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim" } }  # recorded at eye height; PARTICLE centres on the body and no victim-scoped offset selector exists (cosmetic delta)
+          # R-QC55: `dy: 0.7` lifts the recorded eye-height burst off the engine's body centre (feet +
+          # height/2, 0.9 on a standing player; a flat +1.0 on the 1.8 lane). This block is player-gated,
+          # so the arithmetic is exact on the modern lane.
+          - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_BLOCK", count: 8, who: "@Victim", dy: 0.7 } }
       # 3. increment, last
       - condition: "%actor.helditem% contains \"_SWORD\" && %damage% > 0 && %victim.type% == \"PLAYER\""
         effects:

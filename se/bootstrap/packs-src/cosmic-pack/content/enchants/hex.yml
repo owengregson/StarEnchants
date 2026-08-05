@@ -33,7 +33,10 @@ levels:
     effects:
       - { SET_VAR: { name: "hexed", value: "1", ttl: 40, who: "@Victim" } }
       - { REFLECT: { percent: 100, duration: 40, cap: 5, feedback: "§5* HEX [§c{damage}§5 DMG] *", who: "@Victim" } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim" } }  # recorded at eye height; PARTICLE centres on the body (cosmetic delta)
+      # R-QC55: `dy: 0.7` lifts the recorded eye-height burst off the engine's body centre (feet +
+      # height/2, 0.9 on a standing player). Player-gated, so the arithmetic is exact on the modern lane;
+      # the 1.8 lane's flat +1.0 centre leaves it ~0.1 blocks high.
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim", dy: 0.7 } }
       - { MESSAGE: { text: "§5§l* HEX DEBUFF [§d§l2s§5§l] *", channel: "chat", who: "@Victim" } }
       # Authored last because `wait:` accumulates down the list: everything above sits at t=0, so the
       # fire-and-forget expiry notice lands on the tick the marker and the reflect window both lapse.
@@ -43,7 +46,7 @@ levels:
     effects:
       - { SET_VAR: { name: "hexed", value: "1", ttl: 60, who: "@Victim" } }
       - { REFLECT: { percent: 100, duration: 60, cap: 5, feedback: "§5* HEX [§c{damage}§5 DMG] *", who: "@Victim" } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim", dy: 0.7 } }
       - { MESSAGE: { text: "§5§l* HEX DEBUFF [§d§l3s§5§l] *", channel: "chat", who: "@Victim" } }
       - { MESSAGE: { text: "§d§l* HEX OFF *", channel: "chat", who: "@Victim", wait: 60 } }
   3:
@@ -51,7 +54,7 @@ levels:
     effects:
       - { SET_VAR: { name: "hexed", value: "1", ttl: 60, who: "@Victim" } }
       - { REFLECT: { percent: 100, duration: 60, cap: 6, feedback: "§5* HEX [§c{damage}§5 DMG] *", who: "@Victim" } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim", dy: 0.7 } }
       - { MESSAGE: { text: "§5§l* HEX DEBUFF [§d§l3s§5§l] *", channel: "chat", who: "@Victim" } }
       - { MESSAGE: { text: "§d§l* HEX OFF *", channel: "chat", who: "@Victim", wait: 60 } }
   4:
@@ -59,7 +62,7 @@ levels:
     effects:
       - { SET_VAR: { name: "hexed", value: "1", ttl: 80, who: "@Victim" } }
       - { REFLECT: { percent: 100, duration: 80, cap: 7, feedback: "§5* HEX [§c{damage}§5 DMG] *", who: "@Victim" } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim", dy: 0.7 } }
       - { MESSAGE: { text: "§5§l* HEX DEBUFF [§d§l4s§5§l] *", channel: "chat", who: "@Victim" } }
       - { MESSAGE: { text: "§d§l* HEX OFF *", channel: "chat", who: "@Victim", wait: 80 } }
   5:
@@ -67,6 +70,6 @@ levels:
     effects:
       - { SET_VAR: { name: "hexed", value: "1", ttl: 80, who: "@Victim" } }
       - { REFLECT: { percent: 100, duration: 80, cap: 8, feedback: "§5* HEX [§c{damage}§5 DMG] *", who: "@Victim" } }
-      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim", dy: 0.7 } }
       - { MESSAGE: { text: "§5§l* HEX DEBUFF [§d§l4s§5§l] *", channel: "chat", who: "@Victim" } }
       - { MESSAGE: { text: "§d§l* HEX OFF *", channel: "chat", who: "@Victim", wait: 80 } }

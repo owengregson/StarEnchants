@@ -60,10 +60,12 @@ removes-required: true
 # the legacy sweep), so the cue lands on the 1.8 lane — which this entry needed more than most, since it
 # authors exactly one sound and was otherwise silent there. Volume 10.0 is the jar's own
 # number, kept verbatim — audible far beyond the fight.
-# PARTICLE placement: both bursts name an ENTITY, so each centres on that party's BODY — the recorded +1 y at
-# the wearer and at the attacker alike (the hex.yml reading). A location selector is NOT the spelling for it:
-# PARTICLE reads only the entity channel of `who` and falls back to the bare activation location, so `@Add{y=1}`
-# would silently drop the offset it names and burst at the wearer's feet.
+# PARTICLE placement: both bursts name an ENTITY, so each centres on that party's BODY. R-QC55: PARTICLE
+# does take a `dy`, and neither burst is given one — the body centre (feet + height/2, 0.9 on a standing
+# player; a flat +1.0 on the 1.8 lane) already meets the recorded +1 y within ~0.1 blocks, and a flat
+# correction would only trade the modern lane's 0.1 for the legacy lane's. A location selector is still NOT
+# the spelling for a height: PARTICLE reads only the entity channel of `who` and falls back to the bare
+# activation location, so `@Add{y=1}` would silently drop the offset it names and burst at the wearer's feet.
 levels:
   # Reduction and reflected share are both `0.25 x level` = 25 / 50 / 75 %.
   1:

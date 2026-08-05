@@ -524,7 +524,8 @@ batch recorded as a comment inside those files.
     set has no `IMPACT` ability in the group and keeps the recorded gap the crystal file
     names, unchanged.
 
-- **Found by the 2e.3 claims sweep — the `SOUND has no who` class, TWELVE files.** Twelve
+- **Found by the 2e.3 claims sweep — the `SOUND has no who` class, TWELVE files.
+  EXECUTED under R-QC55 (QC batch 2a).** Twelve
   cosmic-pack entries drop a recorded PER-TARGET cue on the premise that `SOUND` cannot
   address one, and coarsen it to a single copy at the activation location:
   `enchants/teleblock`, `enchants/unfocus`, `enchants/healing`, `enchants/virus`,
@@ -545,9 +546,22 @@ batch recorded as a comment inside those files.
   lift to rule on, not a comment to fix. Two of the twelve also carry a per-listener VOLUME
   the anchor cannot express (`lifebloom` 1.5, `smoke-bomb` 1.6): `who` moves where a cue
   plays, never who hears it, so those two stay coarsened whatever is ruled.
+  **The per-file rulings, all twelve:** three cues MOVED — `paradox`'s eat cue onto the
+  heal's own ally set, `healing`'s chime and `piercing`'s arrow cue back onto the shooter
+  (both jar-recorded at the shooter's own location, where a bow impact activates at the
+  victim). Two stay coarsened as predicted, `lifebloom` and `smoke-bomb`, and for a reason
+  stronger than the volume: each jar cue is a SECOND copy of a sound id the entry already
+  plays, and ADR-0066 emits an id at most once per event sink, so an authored second copy
+  would never play at all. The remaining seven — `teleblock`, `unfocus`, `virus`,
+  `cowification`, `eagle-eye`, `arrow-break`, `longbow` — needed no `who`: the jar's
+  position was already the activation point in every case (`victimEntity.getLocation()` on
+  both combat sides, the shooter on a launch ability), so only the false premise and the
+  residue were wrong in writing. The residue on all twelve is the same and is now stated
+  per file: every one of these was a private `player.playSound`, and `who` moves where a
+  cue plays, never who hears it, so each ships world-audible.
 
 - **Found by the 2e.3 VERIFICATION — the same shape again, on `PARTICLE`: the "cannot be
-  raised" class, SEVENTEEN files.** The sweep above caught the premise on `SOUND` and
+  raised" class, SEVENTEEN files. EXECUTED under R-QC55 (QC batch 2a).** The sweep above caught the premise on `SOUND` and
   stopped there. It sits on `PARTICLE` too, in seventeen entries, each dropping a recorded
   anchor — victim/attacker EYE height, `+1 y`, `+0.5 y`, or Devour's victim FEET — on the
   reading that a per-target burst "centres on the body" and nothing can move it:
@@ -562,6 +576,20 @@ batch recorded as a comment inside those files.
   class, plus one extra fidelity caveat: `dy` TRANSLATES by a flat distance while "eye
   height" is per-entity, so an entry whose burst can land on mobs as well as players is
   picking a player-sized approximation — a per-entry call to rule on, not a comment to fix.
+  **The arithmetic the rulings turn on, and the reason six of the seventeen took no number.**
+  The entity branch does NOT anchor at the feet: `ModernDispatchSink.midBody` is
+  `getLocation() + height/2` — 0.9 on a standing player — and the legacy sink uses a flat
+  `+1.0` (1.8 has no `getHeight`). So a recorded anchor becomes `dy = anchor − 0.9`, and the
+  eleven that moved are: eye height → `dy: 0.7` (`corrupt`, `epicness`, `hex`,
+  `lethal-sniper`, `rage`, `sniper`, and `bidirectional-teleportation`'s grapple arm),
+  feet `+0.5` → `dy: -0.4` (`teleportation`, `bidirectional-teleportation`'s ally arm,
+  `spirit-link`'s wearer heart), eye `+0.35` → `dy: 1.07` (`spirit-link`'s ally heart), eye
+  `+0.5` → `dy: 1.2` (`voodoo`), and victim FEET → `dy: -0.9` (`devour`). The six that took
+  NO number are the whole `+1 y` sub-class — `farcast`, `nature-wrath`, `reflective-block`,
+  `soul-trap`, `teleblock`, `virus` — where the body centre already meets the record within
+  ~0.1 blocks (0.9 modern, exactly 1.0 legacy), so a flat correction would only trade the
+  modern lane's 0.1 for the legacy lane's; `nature-wrath` additionally fires into a MOB set
+  whose per-entity heights no flat offset can follow. Each file states its own residue.
 
 - **What a 2d.3 carries.**
   - ~~`WORN_COMPOSITE`, once the reading above is ruled.~~ **SHIPPED in wave 2e.2** (ADR-0074).

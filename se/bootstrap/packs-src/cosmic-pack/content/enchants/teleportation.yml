@@ -34,8 +34,10 @@ tier: rare
 # `ORB_PICKUP`->`ENTITY_EXPERIENCE_ORB_PICKUP` carries its alias row (wave 2e.2, closing the legacy sweep).
 # The recorded `who=@Self` on the arrival cue IS authored: SOUND took a `who` slot in wave 1e (default
 # `@Here`), and it anchors the play on each resolved entity instead of the activation location — which here
-# is the ally's position, a block from where the shooter is about to stand. PARTICLE's recorded +0.5 y and
-# 0.5 speed have no param and the burst centres on the body.
+# is the ally's position, a block from where the shooter is about to stand. R-QC55: the arrival burst's
+# recorded +0.5 y over the ally's feet is authored as `dy: -0.4`, since an entity-anchored burst centres on
+# the body (feet + height/2, 0.9 on a standing player; a flat +1.0 on the 1.8 lane) and an ally is always a
+# player. The launch burst carries no recorded offset and takes none. The 0.5 speed still has no param.
 levels:
   # Range 6 x level blocks (the jar compares squared: 36/144/324/576/900); everything else is
   # level-independent, 100 % on every qualifying hit. The misspelling "Teleporation" is the source's and is
@@ -49,7 +51,7 @@ levels:
           - { CANCEL: {} }
           - { TELEPORT: { to: "VICTIM", who: "@Self" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
-          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim", dy: -0.4 } }
       - trigger: BOW
         chance: 100
         condition: "%victim.relation% == \"ALLY\" && %distance% > 6"
@@ -69,7 +71,7 @@ levels:
           - { CANCEL: {} }
           - { TELEPORT: { to: "VICTIM", who: "@Self" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
-          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim", dy: -0.4 } }
       - trigger: BOW
         chance: 100
         condition: "%victim.relation% == \"ALLY\" && %distance% > 12"
@@ -89,7 +91,7 @@ levels:
           - { CANCEL: {} }
           - { TELEPORT: { to: "VICTIM", who: "@Self" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
-          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim", dy: -0.4 } }
       - trigger: BOW
         chance: 100
         condition: "%victim.relation% == \"ALLY\" && %distance% > 18"
@@ -109,7 +111,7 @@ levels:
           - { CANCEL: {} }
           - { TELEPORT: { to: "VICTIM", who: "@Self" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
-          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim", dy: -0.4 } }
       - trigger: BOW
         chance: 100
         condition: "%victim.relation% == \"ALLY\" && %distance% > 24"
@@ -129,7 +131,7 @@ levels:
           - { CANCEL: {} }
           - { TELEPORT: { to: "VICTIM", who: "@Self" } }
           - { SOUND: { sound: "ENTITY_EXPERIENCE_ORB_PICKUP", volume: 0.75, pitch: 0.341, who: "@Self" } }
-          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim" } }
+          - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Victim", dy: -0.4 } }
       - trigger: BOW
         chance: 100
         condition: "%victim.relation% == \"ALLY\" && %distance% > 30"

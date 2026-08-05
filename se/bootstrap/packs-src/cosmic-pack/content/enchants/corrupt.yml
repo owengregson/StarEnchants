@@ -34,8 +34,10 @@ tier: epic
 # lengths, reproducing the jar's mismatch structurally: at L1 the flag outlives the DoT, at L2-L4 the DoT
 # outlives the flag, so a mid-DoT re-proc can re-flag without starting a second DoT. The jar's async
 # final-tick cancel race has no analogue here — wait chains are deterministic.
-# The PORTAL burst is recorded at the victim's eye height with jar speed 0.6F: PARTICLE centres on the body
-# and the surface's spread default stands, so both are cosmetic deltas (same reading as §Hex's burst).
+# R-QC55: the PORTAL burst's recorded victim EYE height is authored as `dy: 0.7` — an entity-anchored
+# burst centres on the body (feet + height/2, 0.9 on a standing player; a flat +1.0 on the 1.8 lane), and
+# this entry is player-gated, so the arithmetic is exact on the modern lane. The jar's 0.6F speed still
+# has no param and the surface's spread default stands (same reading as §Hex's burst).
 # era: PORTAL and the REDSTONE_WIRE crack material both resolve on 1.8.9 — no hazard.
 levels:
   # Chance 5 + 2 x level. Flag value = level, ttl = level x 40 t. DoT: first application at t=0, then one every
@@ -52,7 +54,7 @@ levels:
         chance: 7
         effects:
           - { SET_VAR: { name: "corrupt", value: "1", ttl: 40, who: "@Victim" } }
-          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim", dy: 0.7 } }
           - { DAMAGE: { amount: 1, who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
           - { DAMAGE: { amount: 1, who: "@Victim", wait: 20 } }
@@ -62,14 +64,14 @@ levels:
         chance: 7
         effects:
           - { SET_VAR: { name: "corrupt", value: "1", ttl: 40, who: "@Victim" } }
-          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim", dy: 0.7 } }
   2:
     abilities:
       - condition: "%victim.type% == \"PLAYER\" && %victim.var.corrupt% == 0 && %victim.enchlevel.inversion% == 0"
         chance: 9
         effects:
           - { SET_VAR: { name: "corrupt", value: "2", ttl: 80, who: "@Victim" } }
-          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim", dy: 0.7 } }
           - { DAMAGE: { amount: 1, who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
           - { DAMAGE: { amount: 1, who: "@Victim", wait: 40 } }
@@ -80,14 +82,14 @@ levels:
         chance: 9
         effects:
           - { SET_VAR: { name: "corrupt", value: "2", ttl: 80, who: "@Victim" } }
-          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim", dy: 0.7 } }
   3:
     abilities:
       - condition: "%victim.type% == \"PLAYER\" && %victim.var.corrupt% == 0 && %victim.enchlevel.inversion% == 0"
         chance: 11
         effects:
           - { SET_VAR: { name: "corrupt", value: "3", ttl: 120, who: "@Victim" } }
-          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim", dy: 0.7 } }
           - { DAMAGE: { amount: 2, who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
           - { DAMAGE: { amount: 2, who: "@Victim", wait: 60 } }
@@ -100,14 +102,14 @@ levels:
         chance: 11
         effects:
           - { SET_VAR: { name: "corrupt", value: "3", ttl: 120, who: "@Victim" } }
-          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim", dy: 0.7 } }
   4:
     abilities:
       - condition: "%victim.type% == \"PLAYER\" && %victim.var.corrupt% == 0 && %victim.enchlevel.inversion% == 0"
         chance: 13
         effects:
           - { SET_VAR: { name: "corrupt", value: "4", ttl: 160, who: "@Victim" } }
-          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim", dy: 0.7 } }
           - { DAMAGE: { amount: 2, who: "@Victim" } }
           - { PARTICLE: { particle: "BLOCK_CRACK", block: "REDSTONE_WIRE", count: 8, who: "@Victim" } }
           - { DAMAGE: { amount: 2, who: "@Victim", wait: 80 } }
@@ -122,4 +124,4 @@ levels:
         chance: 13
         effects:
           - { SET_VAR: { name: "corrupt", value: "4", ttl: 160, who: "@Victim" } }
-          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Victim", dy: 0.7 } }

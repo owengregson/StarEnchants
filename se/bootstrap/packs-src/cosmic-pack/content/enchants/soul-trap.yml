@@ -56,8 +56,11 @@ soul-cost: 5  # flat at every level, charge-or-abort — the D-04-14 as-intended
 # than on most files: this entry authors exactly ONE sound, so until the row landed the whole proc fired in
 # silence on 1.8. The particles need nothing: `SPELL_WITCH` (the jar's `WITCH_MAGIC`) and `SPELL` (modern
 # `EFFECT`) both ride existing `Aliases.PARTICLE` rows, and the resolver's reverse scan makes them
-# bidirectional. The recorded +1 y offsets and 0.7/0.4 particle speeds have no param — PARTICLE centres on the
-# body — and the fallback hit is plain armour-reduced DAMAGE, as in the jar.
+# bidirectional. R-QC55: the recorded +1 y offsets take no `dy` — an entity-anchored burst already centres
+# on the body (feet + height/2, 0.9 on a standing player; a flat +1.0 on the 1.8 lane), which meets the
+# record within ~0.1 blocks on a player-gated entry like this one, and a flat correction would only trade
+# the modern lane's 0.1 for the legacy lane's. The 0.7/0.4 particle speeds still have no param, and the
+# fallback hit is plain armour-reduced DAMAGE, as in the jar.
 levels:
   # Chance 7 x level; drain 10 x level; fallback damage 1 + level; window 80 x level t.
   1:

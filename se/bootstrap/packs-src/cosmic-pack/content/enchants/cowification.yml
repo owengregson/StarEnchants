@@ -53,8 +53,9 @@ levels:
         chance: 10
         effects:
           - { POTION: { effect: "CONFUSION", level: 2, duration: 20, who: "@Victim" } }
-          # Recorded victim-only; SOUND has no `who` and plays at the activation location, so the cue is
-          # audible to everyone in earshot. Delivery delta, not a volume one.
+          # R-QC55: SOUND does take `who`, and the anchor is already right — the jar played this at the
+          # victim, which is where a hit activates. Residue: it was a private play to the victim, and
+          # `who` moves where a cue plays, never who hears it, so it ships audible to everyone in earshot.
           - { SOUND: { sound: "ENTITY_COW_AMBIENT", volume: 1.0, pitch: 0.75 } }
       # Outside the roll in the jar: the burst plays on every hit, procced or not.
       - trigger: [BOW, ATTACK]
