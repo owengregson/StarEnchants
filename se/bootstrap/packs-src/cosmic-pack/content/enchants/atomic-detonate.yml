@@ -23,25 +23,27 @@ removes-required: true
 # Origin-block deny as Detonate: mining a comparator or a sponge runs no explosion at all, and `contains`
 # spans the 1.8 REDSTONE_COMPARATOR_ON / _OFF split and the flattened COMPARATOR in one clause.
 condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\")"
-# TWO OF THE FOUR RUNGS HAVE NO VOLUME, AND SHIP WITHOUT ONE. The recorded cube is a face-oriented box with
-# ASYMMETRIC half-extents — L1 `(1,2,1,2)` is a 4x4 cross-section and L3 `(2,3,2,3)` a 6x6 — while `@Bore`'s
-# cross-section is symmetric (`half-width`/`half-height` give the odd 3x3, 5x5, 7x7 only). L2 `(2,2,2,2)` and
-# L4 `(3,3,3,3)` therefore spell EXACTLY (5x5x5 = 125 and 7x7x7 = 343, block for block); L1 and L3 have no
-# spelling at all — the nearest symmetric cross-sections are 3x3 = 9 and 5x5 = 25 against L1's recorded 16,
-# and 5x5 = 25 and 7x7 = 49 against L3's recorded 36 — so nothing is approximated there — the levels carry the metadata and no effects until `@Bore` takes per-axis
-# extents (deferred-content.md). Consequence stated plainly: the enchant is INERT at L1 and L3, so an upgrade
-# from II to III is a downgrade until that lands.
+# ALL FOUR RUNGS CARRY THEIR RECORDED CUBE (R-QC5). The cube is a face-oriented box with ASYMMETRIC
+# half-extents — L1 `(1,2,1,2)` is a 4x4 cross-section and L3 `(2,3,2,3)` a 6x6 — and a `-half..+half` loop
+# spans an ODD number of blocks at any half value, so `half-width`/`half-height` alone reach 3x3, 5x5 and 7x7
+# and nothing else. L2 `(2,2,2,2)` and L4 `(3,3,3,3)` are those odd sections and stay on the half params
+# (5x5x5 = 125 and 7x7x7 = 343, block for block); L1 and L3 author `@Bore`'s per-side `left/right/up/down`
+# extents (wave 2d), the only spelling of an even cross-section — 4x4x4 = 64 and 6x6x6 = 216, the recorded
+# volumes exactly. A per-side extent overrides its axis's `half-*`, so the two params are not authored
+# together on those rungs.
 # THE PER-BLOCK DENY LIST is the jar's 21-entry blacklist — Detonate's 22 minus its duplicated BEDROCK —
 # and it is authored identically to `detonate.yml`, including the era fallback chains (`1.8|modern`; the
 # compiler takes the first name that exists on the running version) and the same three dead 1.8 ITEM ids
 # dropped for cause (SIGN, WOOD_DOOR, REDSTONE_COMPARATOR). The reading lives in `detonate.yml`; it is
 # repeated here rather than shared because a selector body is a literal.
-# What this grade owes ON TOP of the counterpart's riders, recorded rather than approximated:
-#   - the VOID-DROPS list. Seven bulk materials (COBBLESTONE, STONE, GRAVEL, DIRT, GRASS, SANDSTONE,
-#     NETHERRACK) were destroyed WITHOUT drops inside the cube while everything else dropped normally;
-#     `BREAK_BLOCK.drops` is all-or-nothing, so the cube drops everything and a 343-block blast buries the
-#     miner in cobble the jar would have voided. The only lever that would have paid for it — selling the
-#     bulk instead — is out by owner ruling R9.
+# THE VOID-DROPS LIST (R-QC7). Seven bulk materials are destroyed WITHOUT drops inside the cube while
+# everything else drops normally — `BREAK_BLOCK.void-materials` (wave 2d) is that per-block exception to
+# `drops`, so a 343-block blast no longer buries the miner in cobble. The jar voided them only when they did
+# NOT sell, and Auto Sell is out by owner ruling R9, so the unsellable arm is the only one that ever runs and
+# the list is unconditional here. `GRASS_BLOCK|GRASS` is written modern-first, against this file's usual
+# `1.8|modern` order: 1.8's `GRASS` IS the grass block, but the modern `GRASS` is the plant (aliased to
+# SHORT_GRASS), so a 1.8-first chain would void tall grass on every modern server.
+# What this grade still owes ON TOP of the counterpart's riders, recorded rather than approximated:
 #   - the EXPLOSIVES EXPERT clause. Wearing that mastery dropped this entry's tool-class gating so pickaxe
 #     AND spade ground broke from either tool. Moot here: the tool-class sublists are not authored on either
 #     grade (Detonate's own reading), so every tool already breaks everything the deny list allows and the
@@ -61,21 +63,27 @@ condition: "%block.type% != \"SPONGE\" && !(%block.type% contains \"COMPARATOR\"
 levels:
   # No roll at any rung: the cube is always full size (the counterpart's depth lottery is exactly what the
   # heroic grade buys out). Depth is `min(9, 3 + level)` = 4 / 5 / 6 / 7, and `@Bore`'s `depth` counts the
-  # activation block's own layer, so the shipped rungs are 5 and 7 layers deep.
+  # activation block's own layer, so the four rungs are 4 / 5 / 6 / 7 layers deep.
   # One EXPLOSION_LARGE burst and one durability point per explosion, the counterpart's reading verbatim
   # (per-block particles have no spelling; the pickaxe-only and dropless-block gates on the charge are not
   # ported).
   1:
-    effects: []
+    effects:
+      - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", who: "@Bore{left=1, right=2, up=1, down=2, depth=4, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+      - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
   2:
     effects:
-      - { BREAK_BLOCK: { drops: true, who: "@Bore{half-width=2, half-height=2, depth=5, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+      - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", who: "@Bore{half-width=2, half-height=2, depth=5, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
       - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
       - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
   3:
-    effects: []
+    effects:
+      - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", who: "@Bore{left=2, right=3, up=2, down=3, depth=6, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
+      - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
   4:
     effects:
-      - { BREAK_BLOCK: { drops: true, who: "@Bore{half-width=3, half-height=3, depth=7, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
+      - { BREAK_BLOCK: { drops: true, void-materials: "COBBLESTONE,STONE,GRAVEL,DIRT,GRASS_BLOCK|GRASS,SANDSTONE,NETHERRACK", who: "@Bore{half-width=3, half-height=3, depth=7, exclude-materials=[LADDER,GLOWSTONE,BEDROCK,WATER,STATIONARY_WATER|WATER,LAVA,STATIONARY_LAVA|LAVA,SIGN_POST|OAK_SIGN,AIR,OBSIDIAN,SPONGE,IRON_DOOR_BLOCK|IRON_DOOR,WOODEN_DOOR|OAK_DOOR,HOPPER,ANVIL,REDSTONE_COMPARATOR_OFF|COMPARATOR,REDSTONE_COMPARATOR_ON|COMPARATOR]}" } }
       - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1 } }
       - { DURABILITY: { amount: 1, mode: "damage", target: "item" } }
