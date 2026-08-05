@@ -5,8 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -154,6 +157,51 @@ class DispatchSinkTest {
         assertFalse(sink.armorIgnored(), "a fresh sink must not ignore armor");
         sink.ignoreArmor();
         assertTrue(sink.armorIgnored(), "ignoreArmor must set the read-back flag");
+    }
+
+    @Test
+    void aPayloadWalksDamageCarriesTheIgnoreArmorFlagOntoTheHurtItIssues() {
+        // The batch-2B bug: only CombatDispatch read armorIgnored, so an IMPACT payload's bite — which has no
+        // folded combat event at all and fires its own attributed hurt — landed ARMOUR-REDUCED against a
+        // recorded armour-bypassing value. The flag now rides the hurt, which is the only place an event
+        // exists to give the reduction back. Read at EXECUTION, so authoring IGNORE_ARMOR after its DAMAGE
+        // line (or an effect ordering change) cannot silently drop the bypass.
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
+        LivingEntity victim = mock(LivingEntity.class);
+        LivingEntity attacker = mock(LivingEntity.class);
+        when(victim.getUniqueId()).thenReturn(UUID.randomUUID());
+        List<Boolean> bypassedDuringHurt = new ArrayList<>();
+        doAnswer(call -> {
+            bypassedDuringHurt.add(EngineDamage.armorBypassed());
+            return null;
+        }).when(victim).damage(anyDouble(), any(Entity.class));
+
+        sink.damage(victim, 4.0, attacker);
+        sink.ignoreArmor();
+        sink.flush();
+
+        assertEquals(List.of(true), bypassedDuringHurt, "the bite must bypass armour on the event it fires");
+        assertFalse(EngineDamage.armorBypassed(), "and the frame must unwind — no bypass leaks to the next hurt");
+    }
+
+    @Test
+    void anOrdinaryDamageIntentNeverBypassesArmour() {
+        // The other half: the flag is opt-in per activation, so an ordinary DAMAGE must issue a normally
+        // priced hurt. A frame that always set the bypass would silently make every engine hit armour-piercing.
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
+        LivingEntity victim = mock(LivingEntity.class);
+        LivingEntity attacker = mock(LivingEntity.class);
+        when(victim.getUniqueId()).thenReturn(UUID.randomUUID());
+        List<Boolean> bypassedDuringHurt = new ArrayList<>();
+        doAnswer(call -> {
+            bypassedDuringHurt.add(EngineDamage.armorBypassed());
+            return null;
+        }).when(victim).damage(anyDouble(), any(Entity.class));
+
+        sink.damage(victim, 4.0, attacker);
+        sink.flush();
+
+        assertEquals(List.of(false), bypassedDuringHurt);
     }
 
     @Test
