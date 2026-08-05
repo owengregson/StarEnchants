@@ -39,11 +39,11 @@ soul-cost: 5  # flat at every level, charge-or-abort — the D-04-14 as-intended
 # theft, which that verb cannot express, so `SOUL_TRANSFER` ships in its place — it reads the gems themselves,
 # is gated on neither end's soul mode, and takes `min(the victim's souls, cap)` with `cap` the recorded
 # `10 x level` ladder.
-# `ratio: 0` is the whole difference from §Soul Siphon, which banks half of what it takes: here the take is
-# DESTROYED, because the decomposition never says the attacker keeps a soul. The actor-credit question is
-# MATRIX-SILENT — the jar's console steal log (with its `form` typo) is not ported and nothing else records
-# where the souls went — so the ratio flips to 1 at the polish review if that log proves credit. `overflow`
-# stays at its default: with nothing credited, the gemless-actor branch it picks is unreachable.
+# `ratio: 1` is what separates this from §Soul Siphon, which banks HALF of what it takes: a trap banks the
+# whole stolen amount on the attacker. The actor-credit question was MATRIX-SILENT — the jar's console steal
+# log (with its `form` typo) is not ported and nothing else records where the souls went — and owner ruling
+# R-QC36 settles it: the attacker keeps them. `overflow` stays at its default, which now matters, since a
+# gemless attacker has a credit to place.
 # Trap window `level * 80` t (4/8/12 s) and immunity `window + 100` t — the advertised seconds are the WINDOW,
 # and the real re-trap floor is 5 s longer (9/13/17 s effective), which is jar behaviour and is kept.
 # The `soultrap` mark is what §Hero Killer's self-gate reads back, so its name is load-bearing across files.
@@ -65,7 +65,7 @@ levels:
       - chance: 7
         condition: "%victim.type% == \"PLAYER\" && (%heldticks% > 5 || %heldticks% == 0) && %soultrap% != 1 && %victim.var.soultrapimmune% != 1 && %victim.souls% > 0"
         effects:
-          - { SOUL_TRANSFER: { cap: 10, ratio: 0, who: "@Victim" } }
+          - { SOUL_TRANSFER: { cap: 10, ratio: 1, who: "@Victim" } }
           - { SOUL_MODE_DISABLE: { who: "@Victim" } }
           - { SET_VAR: { name: "soultrap", value: "1", ttl: 80, who: "@Victim" } }
           - { SET_VAR: { name: "soultrapimmune", value: "1", ttl: 180, who: "@Victim" } }
@@ -90,7 +90,7 @@ levels:
       - chance: 14
         condition: "%victim.type% == \"PLAYER\" && (%heldticks% > 5 || %heldticks% == 0) && %soultrap% != 1 && %victim.var.soultrapimmune% != 1 && %victim.souls% > 0"
         effects:
-          - { SOUL_TRANSFER: { cap: 20, ratio: 0, who: "@Victim" } }
+          - { SOUL_TRANSFER: { cap: 20, ratio: 1, who: "@Victim" } }
           - { SOUL_MODE_DISABLE: { who: "@Victim" } }
           - { SET_VAR: { name: "soultrap", value: "1", ttl: 160, who: "@Victim" } }
           - { SET_VAR: { name: "soultrapimmune", value: "1", ttl: 260, who: "@Victim" } }
@@ -114,7 +114,7 @@ levels:
       - chance: 21
         condition: "%victim.type% == \"PLAYER\" && (%heldticks% > 5 || %heldticks% == 0) && %soultrap% != 1 && %victim.var.soultrapimmune% != 1 && %victim.souls% > 0"
         effects:
-          - { SOUL_TRANSFER: { cap: 30, ratio: 0, who: "@Victim" } }
+          - { SOUL_TRANSFER: { cap: 30, ratio: 1, who: "@Victim" } }
           - { SOUL_MODE_DISABLE: { who: "@Victim" } }
           - { SET_VAR: { name: "soultrap", value: "1", ttl: 240, who: "@Victim" } }
           - { SET_VAR: { name: "soultrapimmune", value: "1", ttl: 340, who: "@Victim" } }
