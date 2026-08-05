@@ -35,8 +35,9 @@ description:
 # the wearer test is asked PER SPAWN against live worn state, so walking away stops it on the next spawn.
 # THREE ENGINE RULES that ride this effect and are not authored knobs: grants do NOT stack (two wearers at one
 # spawner get the stronger one's yield, never both — the strongest `chance x extra` wins); the added copies
-# spawn as CUSTOM, so they never re-trigger the roll and never count against the spawner's own budget; and a
-# suppression window on the wearer parks the channel, since the listener skips a suppressed source (the
+# spawn as CUSTOM, so they never re-trigger the roll, but they DO count toward the spawner's nearby-entity cap
+# (verified against real Paper), so a wearer fills that cap sooner and the spawner idles until the area clears;
+# and a suppression window on the wearer parks the channel, since the listener skips a suppressed source (the
 # Chef-mask idiom, ADR-0053 §7 — an interaction the jar could not have).
 # `scope: chunk` is the matrix's own wording ("Mobs from Spawners in Chunk") and the jar's own scan, which
 # walked the spawn chunk's entities. `radius` is left at its default and ignored under chunk scope.

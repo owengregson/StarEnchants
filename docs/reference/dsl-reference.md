@@ -1100,7 +1100,7 @@ Play a sound at the activation location, or at each entity in `who` when given �
 
 ### SPAWNER_YIELD
 
-While worn (PASSIVE): every spawner spawn near the wearer rolls `chance`% to add `extra` copies of the same mob at the same spot. `scope: chunk` counts a wearer standing in the spawn's own chunk; `scope: radius` counts one within `radius` blocks of it. The wearer test is asked PER SPAWN against live worn state, so walking away stops it immediately. Grants do NOT stack — two wearers at one spawner get the stronger one's yield, not both. The added copies spawn as CUSTOM, so they never re-trigger this and never count against the spawner's own budget.
+While worn (PASSIVE): every spawner spawn near the wearer rolls `chance`% to add `extra` copies of the same mob at the same spot. `scope: chunk` counts a wearer standing in the spawn's own chunk; `scope: radius` counts one within `radius` blocks of it. The wearer test is asked PER SPAWN against live worn state, so walking away stops it immediately. Grants do NOT stack — two wearers at one spawner get the stronger one's yield, not both. The added copies spawn as CUSTOM, so they never re-trigger this, but they DO count toward the spawner's nearby-entity cap: a wearer fills that cap sooner and the spawner then idles until the area clears.
 
 - _affinity_: `CONTEXT_LOCAL`
 - _usage_: `{ SPAWNER_YIELD: { chance: <double[0..100]=65>, extra: <int[1..8]=1>, scope: <enum{chunk|radius}=chunk>, radius: <double[0..]=16> } }`

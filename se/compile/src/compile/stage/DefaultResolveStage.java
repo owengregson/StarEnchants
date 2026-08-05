@@ -26,8 +26,9 @@ import java.util.OptionalInt;
  * <p>A handle token may be a {@code A|B|C} FALLBACK CHAIN (any category): the candidates are resolved in
  * order and the FIRST that resolves on this version wins, so {@code ENTITY_BREEZE_WIND_BURST|ENTITY_POLAR_BEAR_HURT}
  * loads the modern sound on 1.21+ and the fallback on the floor — per-version selection at compile time, zero
- * runtime cost. If NONE of the chain resolves the effect is warn-and-skipped ({@link DiagCode#E_UNKNOWN_HANDLE},
- * message carrying the full chain).
+ * runtime cost. If NONE of the chain resolves, the op is dropped from the erased content AND an
+ * {@link DiagCode#E_UNKNOWN_HANDLE} error (message carrying the full chain) BLOCKS the whole publish — the
+ * old content stays live, so a typo can never ship as a silently shorter loadout.
  */
 public final class DefaultResolveStage implements ResolveStage {
 
@@ -112,7 +113,7 @@ public final class DefaultResolveStage implements ResolveStage {
             if (type.isList()) {
                 List<Integer> ids = resolveList(type.handleCategory(), token, p, head, owner, diags);
                 if (ids == null) {
-                    return null; // an unknown entry warn-and-skips the whole op, as a single handle does
+                    return null; // an unknown entry drops the whole op, as a single handle does — and blocks the publish
                 }
                 args = args.with(p.name(), ids);
                 continue;
@@ -124,7 +125,7 @@ public final class DefaultResolveStage implements ResolveStage {
                                 + "' for argument '" + p.name() + "' of '" + head + "'",
                         owner.source(),
                         "use a name valid on the target version, or remove the effect");
-                return null; // warn-and-skip this one op (§9)
+                return null; // drop this op; the ERROR above blocks the publish outright (§9, §10)
             }
             args = args.with(p.name(), id.getAsInt());
         }
@@ -135,7 +136,7 @@ public final class DefaultResolveStage implements ResolveStage {
      * Resolve a COMMA-separated handle set to its interned ids, in authored order. Each entry is an ordinary
      * token, so a {@code A|B} fallback chain still works per entry; an empty token list (the usual default) is an
      * empty result, not a fault. Returns {@code null} when an entry resolves on no version — the same
-     * warn-and-skip an unknown single handle triggers, so a typo cannot silently ship a shorter loadout.
+     * publish-blocking error an unknown single handle raises, so a typo cannot silently ship a shorter loadout.
      *
      * <p>A POTION_EFFECT entry may carry a {@code NAME*LEVEL} suffix; the level is stripped here and packed
      * into the id ({@link PotionLoadout}). The suffix is potion-loadout grammar ONLY — on any other category

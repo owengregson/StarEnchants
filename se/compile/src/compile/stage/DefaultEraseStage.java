@@ -187,8 +187,8 @@ public final class DefaultEraseStage implements EraseStage {
      * string work — both directions share the one keying, so they must share the one lowering: scope
      * ENCHANT/GROUP/TYPE interns {@code key} into the SAME {@code cooldownScopes} interner the abilities'
      * {@code cdScope*} use (the gate-5 bridge invariant); scope KIND (ADR-0053) resolves {@code key} as an
-     * effect head to its dense kindId — an unknown head is an {@code E_UNKNOWN_KIND} and the op is dropped
-     * (the {@code E_UNKNOWN_HANDLE} warn-and-skip policy). {@code mode} erases to its ordinal
+     * effect head to its dense kindId — an unknown head is an {@code E_UNKNOWN_KIND}: the op is dropped here
+     * and the error blocks the publish, exactly as {@code E_UNKNOWN_HANDLE} does. {@code mode} erases to its ordinal
      * (0=timed, 1=next-hit). A malformed SUPPRESS is left as-is.
      */
     private CompiledEffect[] eraseSuppressArgs(List<CompiledEffect> effects, Interner cooldownScopes,
@@ -213,7 +213,7 @@ public final class DefaultEraseStage implements EraseStage {
                                     + " scope KIND — this effect is skipped",
                             source,
                             "use a registered effect head, e.g. MODIFY_FOOD (run /se docs to list kinds)");
-                    continue; // warn-and-skip this one op (the E_UNKNOWN_HANDLE policy)
+                    continue; // drop this op; the ERROR above blocks the publish (the E_UNKNOWN_HANDLE policy)
                 }
             } else {
                 keyId = cooldownScopes.intern(args.str("key"));
