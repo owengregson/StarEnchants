@@ -1,0 +1,28 @@
+# Matrix: 13-support-items.md § Pet Food ← Rare Candy (codex 12-pets.md §C.2)
+# Drag onto a pet head to raise its level, at 100% with no roll. The pet's banked EXP is NOT reset.
+# Token: {AMOUNT} = the levels granted, baked onto each minted candy at mint.
+type: pet-food
+# era: RED_MUSHROOM is spelled the same on both lanes.
+material: RED_MUSHROOM
+name: "§c§lRare Candy"
+lore:
+  - "§7Magical candy imbued with"
+  - "§7powerful growth hormones"
+  - "§7for inventory pets."
+  - ""
+  - "§c§lAbility"
+  - "§7Apply to any inventory pet to instantly"
+  - "§7increase its level by +{AMOUNT} and trigger its"
+  - "§7ability cooldown."
+# ONE level, verbatim — the source's candy is a +1 (signature-pack's ten-level food is its own economy).
+levels: 1
+# No glint: the source builds the candy plain.
+shiny: false
+# The source's own success cue (its LEVEL_UP at 3.0/1.1). era: an item cue resolves as a Sound CONSTANT by
+# exact name (no alias table on this path), so the modern spelling plays on modern and is skipped on 1.8.9.
+sound: { sound: ENTITY_PLAYER_LEVELUP, volume: 3.0, pitch: 1.1 }
+particles: []
+# NOT EXPRESSED (both declared in matrix/13 § Gap declarations): the 24 h per-PET rate limit the source stores
+# on the target pet — its only working guard — is ITEM_USE_RATE_LIMIT; the cooldown stamp the lore promises
+# ("trigger its ability cooldown") is APPLY_SIDE_EFFECT. The source's third guard, "not on a pet on cooldown",
+# is dead code there (the same inverted cooldown arithmetic every pet carries, D-13-12) and is not owed.

@@ -1,0 +1,27 @@
+# Matrix: 13-support-items.md § Randomization Scroll (codex 08-enchant-economy-items.md §10.1)
+# Drag onto an enchant book to REROLL its rates. The source rerolls success and destroy as two fresh,
+# independent uniform [1, 100] draws — no floor, no ceiling, no keep-the-better rule, so a 99%/1% book can come
+# back 1%/100%. Here failure is 100 - success, so rerolling success rerolls both and the lore below is true.
+type: randomizer-scroll
+material: PAPER
+# The source mints one scroll PER RARITY RUNG and refuses a book of any other rarity — except on its WILDCARD
+# rung, which takes any book. This engine has one scroll with no rarity match, so it IS the wildcard rung, and
+# the rung's colour and name word fold away with the dimension: the codex leaves that rung's colour and its
+# name string UNRESOLVED (both live in an external plugin), so nothing stands in for them — the recorded `§l`
+# is the whole styling. ITEM_RARITY_VARIANTS (matrix/13 § Gap declarations) is what would carry the rungs.
+name: "§lRandomization Scroll"
+lore:
+  # Line 1 is blank in the source, deliberately.
+  - ""
+  # The wildcard rung's own line: the literal reads "ANY" where every other rung prints its rarity, coloured
+  # with a code the codex does not resolve — so the line carries the §7 it opens with.
+  - "§7Apply to a(n) ANY§7 enchantment book"
+  - "§7to reroll the success and destroy rates."
+  - ""
+  # 44 visible characters against the universal config.yml lore.item-wrap, so this one line renders wrapped;
+  # the text is the source's, the break is this pack's one wrap width.
+  - "§7Drag n' Drop onto §nenchantment book§7 to apply."
+# Both bounds as recorded.
+min-percent: 1
+max-percent: 100
+# NOT EXPRESSED: the refusals — a stacked book, a heroic book, a rarity mismatch (ITEM_REFUSAL_PREDICATE).

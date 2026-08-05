@@ -1,0 +1,26 @@
+# Matrix: 13-support-items.md § Black Scroll (codex 08-enchant-economy-items.md §6.2, §6.4)
+# Drag onto enchanted gear to EXTRACT one random enchant back into a book; the extraction always succeeds and
+# the drawn book's CONVERSION success rate is rolled in [min-convert, max-convert] at mint and stamped here.
+# Token: {SUCCESS} that rate ({KINDS} is available too, but the source's lore names no kinds).
+type: black-scroll
+# The source's INK_SACK data 0 — the black ink sac. era: the 1.13 flattening renamed it INK_SAC, which is the
+# modern spelling authored here; ItemFactory's legacy table degrades INK_SAC → INK_SACK for the 1.8.9 lane, so
+# both eras mint the recorded item. (signature-pack's DRIED_KELP is a port choice that lands the same 1.8 item
+# from the other direction.)
+material: INK_SAC
+name: "§f§lBlack Scroll"
+lore:
+  - "§7Removes a random enchantment"
+  - "§7from an item and converts"
+  - "§7it into a §f{SUCCESS}%§7 success book."
+  - "§fPlace scroll on item to extract."
+# The source's zero-arg mint draws uniformly in [51, 100] — one rung above the [50, 100] signature-pack ships.
+# config.yml books.max-success ceilings the result, as it does every randomised mint.
+min-convert: 51
+max-convert: 100
+# applies-to is left at the engine default (ARMOR/WEAPON/TOOL): the source restricts by REFUSAL, not by kind —
+# it declines equipped armour ("Please remove your armor before attempting to Black Scroll it!") and never
+# draws a mastery enchant, neither of which is a kind list (ITEM_REFUSAL_PREDICATE, matrix/13).
+# NOT EXPRESSED: the HEROIC grade of this scroll — a glowing `§d§lHeroic Black Scroll` on the same material,
+# with a per-item rolled [min, max] band and the right to draw heroic enchants. One black-scroll likeness per
+# pack, one band; ITEM_GRADES + EXTRACTION_ELIGIBILITY are declared in matrix/13 § Gap declarations.

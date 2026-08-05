@@ -1,0 +1,27 @@
+# Matrix: 13-support-items.md § Mystery (unopened) Enchantment Book (codex 08-enchant-economy-items.md §1.12)
+# Right-click to reveal a random enchant book of this tier, at a random level and a random success rate in
+# [min-success, max-success]. Tokens: {TIER} the raw tier key (lower-case), {TIER_NAME} it capitalised,
+# {TIER_COLOR} its colour (content/tiers.yml).
+type: unopened-book
+# The same PLAIN book the enchant book is minted on (see items/enchant-book.yml) — verbatim, and era-stable.
+material: BOOK
+# Verbatim shape, with two recorded splits ONE template cannot hold:
+#   * the source bolds the NAME on its top three rungs (Legendary/Soul/Heroic) and leaves the lower four
+#     plain. One template, one answer: plain — the majority form, and {TIER_COLOR} is then the only styling.
+#   * its rungs are named Simple/Unique/Elite/Ultimate/Legendary/Soul/Heroic; this pack's ladder
+#     (content/tiers.yml) spells the same seven rungs common…heroic, so {TIER_NAME}/{TIER} read this corpus's
+#     own names. The tier ladder is the pack's, not this file's, to rename.
+name: "{TIER_COLOR}{TIER_NAME} Enchantment Book§7 (Right Click)"
+lore:
+  # "recieve" is the source's own misspelling, reproduced (display strings never deviate) — there it was
+  # load-bearing, the recognition test matching that exact string; here identity is PDC and only the look is.
+  - "§7Examine to recieve a random"
+  - "{TIER_COLOR}{TIER}§7 enchantment book."
+# The revealed book's success is a uniform draw in [1, 100] (the source rolls success and destroy as two
+# independent uniform [1, 100] draws at mint; this engine's failure is the complement — see enchant-book.yml).
+# config.yml books.max-success ceilings this, as it does every randomised mint.
+min-success: 1
+max-success: 100
+# NOT EXPRESSED: the source's tier→book mapping is off by one label at the top (the Godly rung mints the Soul
+# book and the Soul rung the Heroic one, leaving Heroic and Soul indistinguishable to every consumer). That is
+# a bug in a ladder this pack does not carry, recorded in matrix/13 rather than reproduced.
