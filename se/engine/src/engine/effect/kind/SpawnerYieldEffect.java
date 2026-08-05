@@ -30,8 +30,9 @@ public final class SpawnerYieldEffect implements EffectKind {
                     + "spawn's own chunk; `scope: radius` counts one within `radius` blocks of it. The wearer "
                     + "test is asked PER SPAWN against live worn state, so walking away stops it immediately. "
                     + "Grants do NOT stack — two wearers at one spawner get the stronger one's yield, not both. "
-                    + "The added copies spawn as CUSTOM, so they never re-trigger this and never count against "
-                    + "the spawner's own budget.")
+                    + "The added copies spawn as CUSTOM, so they never re-trigger this, but they DO count "
+                    + "toward the spawner's nearby-entity cap: a wearer fills that cap sooner and the spawner "
+                    + "then idles until the area clears.")
             .example("{ SPAWNER_YIELD: { chance: 65, extra: 1, scope: chunk } }")
             .build();
 
