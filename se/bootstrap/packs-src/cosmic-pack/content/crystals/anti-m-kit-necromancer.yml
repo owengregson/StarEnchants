@@ -12,8 +12,8 @@ tier: mastery  # (port-chosen) see anti-m-kit-ghost.yml
 applies-to: [ARMOR]
 stackable: false
 # Construction, the re-arm cadence and the residual-window bound: see anti-m-kit-ghost.yml.
-# POOL (matrix § Necromancer): Mortal Coil, Soul Siphon, Rot and Decay, Demonic Gateway. Three of the four
-# are still deferred (deferred-content.md, batch 07) — inert keys until those files land.
+# POOL (matrix § Necromancer): Mortal Coil, Soul Siphon, Rot and Decay, Demonic Gateway — all four now SHIP
+# (R-QC1 closed the last three), so every key below is live and the crystal is complete.
 # Cross-ref: Rot and Decay is also the enchant Yijki's World Ender claims immunity to; that suppression is a
 # held-weapon rule recorded on the Mother of Yijki set entry and is a separate mechanism from this crystal.
 abilities:
