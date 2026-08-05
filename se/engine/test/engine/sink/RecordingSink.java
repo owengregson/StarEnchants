@@ -205,8 +205,12 @@ final class RecordingSink extends DispatchSinkBase {
     protected void setItemDamage(ItemStack item, int damage) {
     }
 
+    /** Whom each summon was pointed at, so a targeting-filter test can read the decision the base made. */
+    final Map<Entity, LivingEntity> guardTargets = new HashMap<>();
+
     @Override
     protected void setGuardTarget(Entity spawned, LivingEntity target) {
+        guardTargets.put(spawned, target);
     }
 
     @Override

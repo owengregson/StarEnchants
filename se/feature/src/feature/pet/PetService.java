@@ -13,6 +13,7 @@ import compile.model.Snapshot;
 import engine.effect.kind.CageEffect;
 import engine.effect.kind.DigHomeEffect;
 import engine.run.UseAttempt;
+import engine.selector.kind.Allies;
 import engine.sink.CageGeometry;
 import engine.stores.TeleblockStore;
 import feature.apply.Rolls;
@@ -701,13 +702,18 @@ public final class PetService {
         }, false); // unreadable region → fall through (fire normally)
     }
 
-    /** The nearest OTHER player within a cube of half-extent {@code radius} of {@code player} — the {@code @NearestPlayer} scan. */
-    private static Player nearestOtherPlayer(Player player, double radius) {
+    /**
+     * The nearest other UNALLIED player within a cube of half-extent {@code radius} of {@code player} — the
+     * {@code @NearestPlayer} scan, and it must agree with it: this is the pre-check that decides whether a cage
+     * use is refused BEFORE the cooldown arms, so a party-mate the selector would skip must not keep the
+     * gesture alive here (R-QC17).
+     */
+    static Player nearestOtherPlayer(Player player, double radius) { // package-private: unit-tested directly
         Location center = player.getLocation();
         Player nearest = null;
         double best = Double.MAX_VALUE;
         for (Entity entity : player.getNearbyEntities(radius, radius, radius)) {
-            if (!(entity instanceof Player other) || other.equals(player)) {
+            if (!(entity instanceof Player other) || other.equals(player) || Allies.allied(player, other)) {
                 continue;
             }
             double d = other.getLocation().distanceSquared(center);

@@ -1893,7 +1893,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
             // ringer) — then just drop its aggro on the ringer.
             LivingEntity target = owner != null ? formerOwner(owner, nearby) : null; // in-ring first, else online
             if (target == null) {
-                target = firstOtherPlayer(ringerId, nearby);
+                target = firstOtherPlayer(ringer, nearby);
             }
             SummonFlags flags = PetSummons.flags(id);
             LivingEntity fightTarget = (target != null && (flags == null || !flags.noTarget())) ? target : null;
@@ -2026,13 +2026,15 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     /**
-     * The first OTHER player in the ring — the "enemy" a wild (unowned) convert is turned on when it has no
-     * former owner to fight. Region-safe: an identity/type scan of the {@code getNearbyEntities} snapshot only,
-     * no location read. {@code null} when the ringer stands alone (then the convert's target is simply cleared).
+     * The first other UNALLIED player in the ring — the "enemy" a wild (unowned) convert is turned on when it
+     * has no former owner to fight. Region-safe: an identity/type scan of the {@code getNearbyEntities} snapshot
+     * only, no location read. {@code null} when the ringer stands alone (then the convert's target is simply
+     * cleared), and now also when every other body in the ring is a party-mate — R-QC17: this was the last
+     * place a bell could turn a converted mob onto the ringer's own team.
      */
-    private static LivingEntity firstOtherPlayer(UUID ringerId, List<Entity> nearby) {
+    private static LivingEntity firstOtherPlayer(Player ringer, List<Entity> nearby) {
         for (Entity near : nearby) {
-            if (near instanceof Player other && !other.getUniqueId().equals(ringerId)) {
+            if (near instanceof Player other && !other.equals(ringer) && !Allies.allied(ringer, other)) {
                 return other;
             }
         }

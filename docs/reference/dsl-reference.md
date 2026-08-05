@@ -1506,10 +1506,11 @@ The activation location offset by (x, y, z).
 
 ### ALLPLAYERS
 
-Every player within r blocks of the target, except the activator.
+Every player within r blocks of the target, except the activator and except allies. allies: true takes allied players back, for a broadcast audience rather than a target list.
 
-- _usage_: `{ ALLPLAYERS: { r: <double[0..]=32> } }`
+- _usage_: `{ ALLPLAYERS: { r: <double[0..]=32>, allies: <bool=false> } }`
 - _param_ `r` `double[0..]` — search radius in blocks
+- _param_ `allies` `bool` — include allied players — set it for a broadcast AUDIENCE; a target list wants the default
 - _example_: `@AllPlayers{r=32}`
 
 ### AOE
@@ -1564,10 +1565,11 @@ A half-width x half-height cross-section centred on the activation block, repeat
 
 ### ENTITYINSIGHT
 
-The living entity the activator is looking at within r blocks, or nothing.
+The living entity the activator is looking at within r blocks, or nothing. An allied player is skipped unless allies: true; mobs are never filtered.
 
-- _usage_: `{ ENTITYINSIGHT: { r: <double[0..]=16> } }`
+- _usage_: `{ ENTITYINSIGHT: { r: <double[0..]=16>, allies: <bool=false> } }`
 - _param_ `r` `double[0..]` — maximum line-of-sight distance in blocks
+- _param_ `allies` `bool` — include an allied player in the crosshair; the default skips one
 - _example_: `@EntityInSight{r=16}`
 
 ### EYEHEIGHT
@@ -1603,10 +1605,11 @@ The single nearest living entity within r blocks (optionally filtered), except t
 
 ### NEARESTPLAYER
 
-The single nearest player within r blocks, except the activator.
+The single nearest player within r blocks, except the activator and except allies.
 
-- _usage_: `{ NEARESTPLAYER: { r: <double[0..]=16> } }`
+- _usage_: `{ NEARESTPLAYER: { r: <double[0..]=16>, allies: <bool=false> } }`
 - _param_ `r` `double[0..]` — search radius in blocks
+- _param_ `allies` `bool` — include allied players; the default skips them
 - _example_: `@NearestPlayer{r=16}`
 
 ### PLAYERFROMNAME
