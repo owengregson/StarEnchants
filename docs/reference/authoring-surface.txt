@@ -477,6 +477,9 @@ effect SUMMON_REBIND
   param speed DOUBLE optional min=0 max=- enum=- handle=- default=0
   param effects HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=
   param rise DOUBLE optional min=0 max=8 enum=- handle=- default=2
+  param steal BOOL optional min=- max=- enum=- handle=- default=false
+  param steal-message STRING optional min=- max=- enum=- handle=- default=
+  param steal-radius DOUBLE optional min=0 max=64 enum=- handle=- default=24
 effect SUPPRESS
   param scope ENUM required min=- max=- enum=ENCHANT,GROUP,KIND,TYPE handle=- default=-
   param key STRING required min=- max=- enum=- handle=- default=-

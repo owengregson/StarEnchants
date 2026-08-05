@@ -1,0 +1,89 @@
+# Matrix: 05-enchants-bows.md § Hijack
+display: "Hijack"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eAn arrow into someone else's guardian"
+  - "&emakes it yours — reborn stronger, at"
+  - "&efull health, on a fresh timer."
+trigger: BOW
+applies-to: [BOW]
+group: "rare"
+tier: rare
+# ACQUISITION IS NOT MATRIX-RECORDED for doc 05 (no `max/base/interval/weight/tier` line on any entry), so
+# the rung comes from the codex tier appendix: `hijack` is tier 3 = the `rare` rung (&b, "Elite"). Max 4;
+# base 10.0, interval 8.0; enchant-table weight 2.
+# PROJECTILE ONLY. `trigger: BOW` is the engine's bow-impact side, which is exactly the jar's
+# `event.getCause() == DamageCause.PROJECTILE` gate — a melee swing with the bow in hand never reaches it.
+# THE TARGET GATE is `%victim.type% == "IRON_GOLEM"` and NOT `%victim.mobtype%`: the latter is the MythicMobs
+# hook (the Boss Slayer ruling), and this test is the server's own entity type.
+# WHAT MAKES IT A THEFT AND NOT A GIFT. The jar's second gate is `target.hasMetadata("guardianSummoner")` —
+# the golem must be somebody's Guardians summon, never a natural one. `SUMMON_REBIND` carries that
+# precondition in the engine's own vocabulary: it only ever addresses a TRACKED summon, and R-QC45's `steal`
+# widens the owner test from "mine" to "somebody's" without touching the summon test. A wild iron golem is
+# still skipped, so a farmed spawn can never be turned into a free tier-8 guardian — which is the exact
+# outcome the considered-and-rejected `DESPAWN(@Victim)` + `GUARD` fake would have shipped.
+# THE UPGRADE. `Guardians.spawnGuardianEntity(loc, player, level * 2)` is the jar's own respawn at DOUBLE the
+# Hijack level, so the four rungs hand out guardian levels 2/4/6/8 — health `50 + 10 x guardianLevel` =
+# 70/90/110/130 and the Guardians buff ladder read at that level (FIRE_RESISTANCE always, REGENERATION from
+# 4, INCREASE_DAMAGE from 6, SPEED from 8). DAMAGE_RESISTANCE needs guardian level 10 and is unreachable
+# here, exactly as the codex records. `rise: 2` is the jar's `add(0.0, 2.0, 0.0)`, `ttl: 600` its restarted
+# 30-second self-destruct (a hijack EXTENDS the golem's life — measured, kept), and the fresh body is the
+# quirk that hands the thief a full-health golem however nearly dead the one they shot was.
+# NO COOLDOWN — the jar has none, and the chance ladder is the whole pacing.
+# THE ROLL. `Math.random() < level * 0.08` = 8/16/24/32 %. The jar rolls BEFORE checking the target type, so
+# it burns RNG on every arrow; here the ability's chance gate and its condition are one walk and the roll is
+# only reached by a hit that could actually proc. Distribution-identical for the player.
+# THE BROADCAST rides `SUMMON_REBIND` itself rather than a MESSAGE line, because it is the only point where
+# both names exist at once: the robbed owner is a registry entry the effect layer never sees, and it is gone
+# from the registry a line later. `{FROM}` is that owner, `{OWNER}` the thief — the same token the nameplate
+# uses for a summon's owner. 24 blocks, no ally/enemy filter, exactly as measured.
+# THE NAMEPLATE is Guardians' own `§b§l{OWNER}'s Guardian`, which now reads the THIEF's name — the visible
+# half of the theft, and the reason the token matters here.
+# CUES. The particle and the pull-away cue are authored BEFORE the rebind so they resolve against the golem
+# that is about to be replaced; the rebind removes that body. `SPELL` is the engine's spelling of the jar's
+# `WITCH_MAGIC` (guardians.yml uses the same row) and `dy: 1` is its `add(0.0, 1.0, 0.0)` anchor. The jar
+# plays IRONGOLEM_DEATH twice — once per nearby player at 0.8/1.2 and once world-audible from the spawner at
+# 1.0/0.55 — and ADR-0066 emits a sound id at most once per event sink, so the second copy would never play.
+# The per-listener one is dropped and the spawner's kept, which is the copy guardians.yml already authors.
+# era: `IRONGOLEM_DEATH → ENTITY_IRON_GOLEM_DEATH` is carried by `Aliases.SOUND` on both lanes (the same row
+# guardians.yml and spirits.yml ride), and 1.8 iron golems keep the NoAI/targeting quirks the GUARD shim
+# absorbs — the replacement is a GUARD, so it inherits that handling for free.
+# NOT PORTED: the jar's `no_loot` / `mcMMO: Spawned Entity` metadata and its 20-tick re-target task all live
+# inside `Guardians.spawnGuardianEntity`, which the engine expresses as GUARD's own summon contract.
+levels:
+  1:
+    chance: 8
+    condition: "%victim.type% == \"IRON_GOLEM\""
+    effects:
+      - { PARTICLE: { particle: "SPELL", count: 60, spread: 1.2, dy: 1, who: "@Victim" } }
+      - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+      - { SUMMON_REBIND: { type: "IRON_GOLEM", ttl: 600, rise: 2, health: 70, name: "§b§l{OWNER}'s Guardian",
+                           effects: "FIRE_RESISTANCE", steal: true, steal-radius: 24,
+                           steal-message: "§5§l*** HIJACK (§7§m{FROM}§5§l -> §f{OWNER}§5§l) ***", who: "@Victim" } }
+  2:
+    chance: 16
+    condition: "%victim.type% == \"IRON_GOLEM\""
+    effects:
+      - { PARTICLE: { particle: "SPELL", count: 60, spread: 1.2, dy: 1, who: "@Victim" } }
+      - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+      - { SUMMON_REBIND: { type: "IRON_GOLEM", ttl: 600, rise: 2, health: 90, name: "§b§l{OWNER}'s Guardian",
+                           effects: "FIRE_RESISTANCE,REGENERATION", steal: true, steal-radius: 24,
+                           steal-message: "§5§l*** HIJACK (§7§m{FROM}§5§l -> §f{OWNER}§5§l) ***", who: "@Victim" } }
+  3:
+    chance: 24
+    condition: "%victim.type% == \"IRON_GOLEM\""
+    effects:
+      - { PARTICLE: { particle: "SPELL", count: 60, spread: 1.2, dy: 1, who: "@Victim" } }
+      - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+      - { SUMMON_REBIND: { type: "IRON_GOLEM", ttl: 600, rise: 2, health: 110, name: "§b§l{OWNER}'s Guardian",
+                           effects: "FIRE_RESISTANCE,REGENERATION,INCREASE_DAMAGE", steal: true, steal-radius: 24,
+                           steal-message: "§5§l*** HIJACK (§7§m{FROM}§5§l -> §f{OWNER}§5§l) ***", who: "@Victim" } }
+  4:
+    chance: 32
+    condition: "%victim.type% == \"IRON_GOLEM\""
+    effects:
+      - { PARTICLE: { particle: "SPELL", count: 60, spread: 1.2, dy: 1, who: "@Victim" } }
+      - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
+      - { SUMMON_REBIND: { type: "IRON_GOLEM", ttl: 600, rise: 2, health: 130, name: "§b§l{OWNER}'s Guardian",
+                           effects: "FIRE_RESISTANCE,REGENERATION,INCREASE_DAMAGE,SPEED", steal: true, steal-radius: 24,
+                           steal-message: "§5§l*** HIJACK (§7§m{FROM}§5§l -> §f{OWNER}§5§l) ***", who: "@Victim" } }

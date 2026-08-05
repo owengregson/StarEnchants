@@ -1043,14 +1043,20 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void rebindSummon(LivingEntity summon, Player owner, int entityTypeId, int ttlTicks, String name,
-                             double health, double speed, List<Integer> effects, double rise) {
+                             double health, double speed, List<Integer> effects, double rise,
+                             boolean steal, String stealMessage, double stealRadius) {
         if (summon == null || owner == null) {
             return;
         }
         UUID ownerId = owner.getUniqueId();
         UUID summonId = summon.getUniqueId();
-        if (!ownerId.equals(GuardianCasts.owner(summonId))) {
-            return; // only the actor's OWN summon upgrades — an unowned mob is CONVERT_SUMMON's business
+        UUID priorOwner = GuardianCasts.owner(summonId);
+        if (priorOwner == null) {
+            return; // never a wild mob, whichever reading is authored — an unowned mob is CONVERT_SUMMON's business
+        }
+        boolean theft = !ownerId.equals(priorOwner);
+        if (theft && !steal) {
+            return; // the upgrade reading: only the actor's OWN summon
         }
         Location at = summon.getLocation().add(0.0, rise, 0.0);
         entityOp(summon, () -> {
@@ -1061,7 +1067,35 @@ public abstract class DispatchSinkBase implements SinkReadback {
             summon.remove();
             // The replacement is a GUARD with no target: same loadout surface, fresh health, restarted TTL.
             guard(null, at, entityTypeId, 1, ttlTicks, name, ownerId, health, speed, effects);
+            if (theft) {
+                announceTheft(at, priorOwner, owner, stealMessage, stealRadius);
+            }
         });
+    }
+
+    /**
+     * Broadcast a completed theft to everyone within {@code radius} of the replacement. Rides the sink because
+     * this is the only point where BOTH names exist: the robbed owner is a registry entry the effect layer
+     * never sees, and it is gone from the registry a line later.
+     */
+    private void announceTheft(Location at, UUID priorOwner, Player thief, String message, double radius) {
+        World world = at.getWorld();
+        if (message == null || message.isBlank() || world == null || radius <= 0) {
+            return;
+        }
+        Player robbed = Bukkit.getPlayer(priorOwner);
+        String from = robbed != null ? robbed.getName() : Bukkit.getOfflinePlayer(priorOwner).getName();
+        if (from == null) {
+            return; // a name we cannot resolve would print as "null"; silence reads better than a lie
+        }
+        String line = Colors.translate(Tokens.sub(message, "FROM", from, "OWNER", thief.getName()));
+        for (Entity nearby : world.getNearbyEntities(at, radius, radius, radius)) {
+            if (nearby instanceof Player watcher) {
+                // Inline on each watcher's own thread: the per-event plan is already flushed by the time a
+                // rebind's entity hop runs, so this cannot ride message().
+                Scheduling.onEntity(watcher, () -> watcher.sendMessage(line));
+            }
+        }
     }
 
     @Override

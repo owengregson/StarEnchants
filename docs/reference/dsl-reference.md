@@ -1229,10 +1229,10 @@ Despawn every summon within `radius` blocks of the wearer whose owner the `filte
 
 ### SUMMON_REBIND
 
-Replace each target summon the activator OWNS with a fresh one of type, rise blocks above it: the old body is removed silently (no death, no drops, no kill credit) and the replacement spawns at full health with a restarted ttl. health, speed, name and effects are GUARD's loadout params. A summon the activator does not own is skipped — pair with CONVERT_SUMMON to take ownership first.
+Replace each target summon the activator OWNS with a fresh one of type, rise blocks above it: the old body is removed silently (no death, no drops, no kill credit) and the replacement spawns at full health with a restarted ttl. health, speed, name and effects are GUARD's loadout params. A summon the activator does not own is skipped unless steal is set, which widens the precondition from 'mine' to 'somebody's' — the target must still be a tracked summon, so a farmed wild mob can never be turned into a free top-tier guardian. steal-message is the only place both names exist at once, which is why the broadcast rides the effect instead of a MESSAGE line. CONVERT_SUMMON rebinds ownership in place; this replaces the body.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ SUMMON_REBIND: { type: <entity_type>, ttl: <ticks[0..]=600>, name: <string=>, health: <double[0..]=0>, speed: <double[0..]=0>, effects: <potion_effect list=>, rise: <double[0..8]=2> } }`
+- _usage_: `{ SUMMON_REBIND: { type: <entity_type>, ttl: <ticks[0..]=600>, name: <string=>, health: <double[0..]=0>, speed: <double[0..]=0>, effects: <potion_effect list=>, rise: <double[0..8]=2>, steal: <bool=false>, steal-message: <string=>, steal-radius: <double[0..64]=24> } }`
 - _param_ `type` `entity_type`
 - _param_ `ttl` `ticks[0..]`
 - _param_ `name` `string` — custom name shown above the replacement; {OWNER} fills in the summoner
@@ -1240,6 +1240,9 @@ Replace each target summon the activator OWNS with a fresh one of type, rise blo
 - _param_ `speed` `double[0..]` — movement-speed multiplier; 0 keeps the vanilla one
 - _param_ `effects` `potion_effect list` — potion effects held for the replacement's whole life
 - _param_ `rise` `double[0..8]` — blocks above the old body to place the replacement
+- _param_ `steal` `bool` — also take summons owned by SOMEONE ELSE (a summon it must still be — never a wild mob)
+- _param_ `steal-message` `string` — steal only: broadcast near the replacement; {FROM} is the robbed owner, {OWNER} the thief
+- _param_ `steal-radius` `double[0..64]` — how far the steal-message carries
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ SUMMON_REBIND: { type: IRON_GOLEM, ttl: 600, health: 90, name: "&b&l{OWNER}'s Guardian" } }`
 
