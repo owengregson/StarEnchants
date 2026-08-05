@@ -532,6 +532,30 @@ public final class TriggerDispatch {
                 new ActivationContext(owner, target, null, summon.getLocation()), null);
     }
 
+    /**
+     * {@link #fireSummonPayload} against an ability list PINNED when the summon spawned, rather than the
+     * owner's live worn state. Routed through the COLD detached entry point for the reason that path exists:
+     * these ids have already left the worn state (the owner died and dropped the armour), so a lookup would
+     * reject them and a fact mask built from the post-death state would read every authored fact as its
+     * default. No heroic fold either — a payload folds onto no damage event of the owner's.
+     */
+    public void fireSummonPayloadPinned(Player owner, Entity summon, LivingEntity target, int[] candidates) {
+        if (summonPayload < 0 || owner == null || summon == null || target == null || candidates == null) {
+            return;
+        }
+        Snapshot snapshot = content.snapshot();
+        ActivationContext context = new ActivationContext(owner, target, null, summon.getLocation());
+        SinkReadback sink = newSink();
+        runner.runDetached(snapshot.abilities(), worldId(snapshot, context), summonPayload, owner, context,
+                sink, snapshot.stableKeys(), candidates);
+        sink.flush();
+    }
+
+    /** The ids {@code owner}'s SUMMON_PAYLOAD walk resolves to now — what a spawning summon pins (R-QC57). */
+    public int[] payloadCandidatesNow(java.util.UUID owner) {
+        return summonPayload < 0 ? null : runner.candidatesNow(owner, summonPayload);
+    }
+
     /** Fire EXP_GAIN, then scale the gained XP by the accumulated EXP_MULTIPLY factor (recursion-safe: no new XP granted). */
     public void fireExp(Player actor, ActivationContext context, org.bukkit.event.player.PlayerExpChangeEvent event) {
         if (expGain < 0) {

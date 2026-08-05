@@ -107,11 +107,33 @@ class SummonPayloadTargetsTest {
         LivingEntity a = mock(LivingEntity.class);
         LivingEntity b = mock(LivingEntity.class);
 
-        new SummonPayloadService(dispatch).dispatch(owner, summon, List.of(a, b));
+        new SummonPayloadService(dispatch).dispatch(owner, summon, List.of(a, b), null);
 
         verify(dispatch).fireSummonPayload(owner, summon, a);
         verify(dispatch).fireSummonPayload(owner, summon, b);
         verifyNoMoreInteractions(dispatch);
+    }
+
+    /**
+     * The dead-owner pin: a summon that captured its owner's payload abilities at spawn runs THOSE, through
+     * the detached entry point, instead of re-reading a worn state their death has already emptied. Without
+     * this, Self Destruct and Plague Carrier's charges land as duds — their vanilla explosion is cancelled by
+     * the detonate phase and the payload that was meant to replace it resolves nothing.
+     */
+    @Test
+    void aPinnedPayloadRunsTheSpawnTimeAbilitiesAndNotTheLiveWalk() {
+        TriggerDispatch dispatch = mock(TriggerDispatch.class);
+        Entity summon = mock(Entity.class);
+        Player owner = mock(Player.class);
+        LivingEntity a = mock(LivingEntity.class);
+        LivingEntity b = mock(LivingEntity.class);
+        int[] pinned = {4, 9};
+
+        new SummonPayloadService(dispatch).dispatch(owner, summon, List.of(a, b), pinned);
+
+        verify(dispatch).fireSummonPayloadPinned(owner, summon, a, pinned);
+        verify(dispatch).fireSummonPayloadPinned(owner, summon, b, pinned);
+        verifyNoMoreInteractions(dispatch); // and never the live-walk entry point
     }
 
     @Test

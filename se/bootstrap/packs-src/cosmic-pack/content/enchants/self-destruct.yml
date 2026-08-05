@@ -20,12 +20,13 @@ tier: uncommon
 # knob deliberately separate from `ttl`: `ttl` DESPAWNS, so any ttl at or under vanilla's 80 t fuse would
 # remove the charge before it could explode and an authored 60 t would have left L3 spawning duds. `fuse`
 # sets the countdown instead, so the charge always leaves by exploding. `ttl` stays omitted for that reason.
-# ENGINE SEAM (reported, not authorable around): a summon payload runs the OWNER's abilities out of their
-# LIVE WornState, and this wearer is usually dead before the 4 s fuse burns out. Death drops the armour, the
-# armour-change feeder (modern) / gear poll (1.8) refreshes off that drop and respawn refreshes again — so
-# the charge most likely goes off for an owner who no longer carries Self Destruct, the payload resolves
-# nothing, and the cancelled vanilla explosion leaves a dud. Same seam as plague-carrier.yml; the fix is
-# engine-side (pin the payload's abilities to the SPAWNING activation).
+# THE DEAD-OWNER SEAM IS CLOSED (R-QC57). A summon payload used to run the OWNER's abilities out of their
+# LIVE WornState, and this wearer is usually dead before the fuse burns out: death drops the armour, the
+# armour-change feeder (modern) / gear poll (1.8) refreshes off that drop and respawn refreshes again, so the
+# charge went off for an owner who no longer carried Self Destruct and the payload resolved nothing — a dud,
+# because the detonate phase had already cancelled the vanilla explosion. The payload's ability ids are now
+# PINNED onto the summon at spawn and run through the engine's cold detached path, so the blast is the one
+# the wearer armed with the gear they were wearing when they armed it. Same fix serves plague-carrier.yml.
 # Interactions carried by the OTHER side, nothing authored here: PvP-region and per-victim relation checks
 # (truce+ skipped) are the relation layer, spectators are already skipped by the payload's own target scan,
 # and the TNT is tagged no-loot by the engine summon rule. The jar resolved its owner BY NAME, so a logged-off
