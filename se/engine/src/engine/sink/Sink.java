@@ -339,10 +339,24 @@ public interface Sink {
      * summons orbit the most-recent nearby attacker's facing pillar within {@code cloudRange} blocks);
      * null = plain ADR-0060 behaviour. {@code name} and {@code effects} are the same naming/loadout styling
      * {@link #spawnSummon} and {@link #guard} apply, so all three spawners differ only in placement.
+     *
+     * <p>{@code ownerId} binds every summon to its summoner exactly as {@link #spawnEntity} does — the
+     * {@link GuardianCasts} row the summon-target guard reads, so vanilla AI cannot turn the ring on the
+     * player standing inside it, plus the {@link org.bukkit.entity.Tameable} tagging. It is also what fills
+     * the {@code {OWNER}} name token, which before this could only fill on a clouding swarm.
      */
     void spawnSwarm(Location origin, int entityTypeId, int count, double radius, double rise,
                     int ttlTicks, double speedFraction, Player cloudOwner, double cloudRange,
-                    String name, java.util.List<Integer> effects);
+                    String name, java.util.List<Integer> effects, java.util.UUID ownerId);
+
+    /** {@link #spawnSwarm(Location, int, int, double, double, int, double, Player, double, String, java.util.List,
+     *  java.util.UUID)} with no owner — the summons keep unbound vanilla AI. */
+    default void spawnSwarm(Location origin, int entityTypeId, int count, double radius, double rise,
+                            int ttlTicks, double speedFraction, Player cloudOwner, double cloudRange,
+                            String name, java.util.List<Integer> effects) {
+        spawnSwarm(origin, entityTypeId, count, radius, rise, ttlTicks, speedFraction, cloudOwner, cloudRange,
+                name, effects, null);
+    }
 
     /**
      * Spawn ONE falling block of an interned material at {@code at} that never drops an item or hurts entities

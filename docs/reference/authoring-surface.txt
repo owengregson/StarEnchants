@@ -440,6 +440,7 @@ effect SPAWN_SWARM
   param speed DOUBLE optional min=0 max=1 enum=- handle=- default=1
   param cloud BOOL optional min=- max=- enum=- handle=- default=false
   param cloud-range DOUBLE optional min=1 max=- enum=- handle=- default=16
+  param owner ENUM optional min=- max=- enum=activator,none handle=- default=none
   param name STRING optional min=- max=- enum=- handle=- default=
   param effects HANDLE optional min=- max=- enum=- handle=POTION_EFFECT default=
 effect STACKING_DOT

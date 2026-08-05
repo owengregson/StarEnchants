@@ -2465,7 +2465,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
     @Override
     public void spawnSwarm(Location origin, int entityTypeId, int count, double radius, double rise,
                            int ttlTicks, double speedFraction, Player cloudOwner, double cloudRange,
-                           String name, List<Integer> effects) {
+                           String name, List<Integer> effects, UUID ownerId) {
         Location center = origin.clone(); // own the spawn point: a WAIT tier can defer this to a later tick
         regionOp(center, () -> {
             World world = center.getWorld();
@@ -2473,10 +2473,13 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 return;
             }
             boolean cloud = cloudOwner != null;
-            UUID ownerId = cloud ? cloudOwner.getUniqueId() : null;
+            UUID cloudId = cloud ? cloudOwner.getUniqueId() : null;
+            // The name token fills from the BOUND owner, falling back to the cloud's — an unowned clouding
+            // swarm kept filling {OWNER} before this param existed, and still does.
+            UUID nameOwner = ownerId != null ? ownerId : cloudId;
             if (cloud) {
                 SwarmClouds.arm(cloudOwner, cloudRange, ttlTicks, nowTicks,
-                        () -> recentAttackers.latest(ownerId, nowTicks.getAsLong()));
+                        () -> recentAttackers.latest(cloudId, nowTicks.getAsLong()));
             }
             double damping = SwarmRing.dampingFactor(speedFraction);
             for (int i = 0; i < count; i++) {
@@ -2505,13 +2508,22 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 if (spawned instanceof LivingEntity living) {
                     applySummonEffects(living, effects); // the same loadout helper GUARD/SPAWN_ENTITY use
                 }
-                applyGuardName(spawned, name, ownerId);
+                applyGuardName(spawned, name, nameOwner);
                 SwarmSpawns.bind(spawned);
+                if (ownerId != null) {
+                    // R-QC14: the same binding SPAWN_ENTITY/GUARD do — SummonTargetGuardListener reads this row
+                    // to cancel a summon acquiring its summoner, so a wearer can stand inside their own ring.
+                    GuardianCasts.bind(spawned.getUniqueId(), ownerId);
+                    if (spawned instanceof Tameable tame) {
+                        tame.setOwner(Bukkit.getOfflinePlayer(ownerId));
+                        tame.setTamed(true);
+                    }
+                }
                 if (cloud) {
-                    SwarmClouds.track(ownerId, spawned);
+                    SwarmClouds.track(cloudId, spawned);
                 }
                 if (damping < 1.0 || cloud) {
-                    armSwarmSteer(spawned, damping, ownerId,
+                    armSwarmSteer(spawned, damping, cloudId,
                             SwarmRing.orbitPhase(i, count), SwarmRing.bandHeight(i), nowTicks);
                 }
                 bindSwarmTtl(spawned, ttlTicks);
@@ -2519,12 +2531,13 @@ public abstract class DispatchSinkBase implements SinkReadback {
         });
     }
 
-    /** Auto-remove a swarm summon after {@code ttlTicks}, forgetting its registry entry first. */
+    /** Auto-remove a swarm summon after {@code ttlTicks}, forgetting its registry entries first. */
     private static void bindSwarmTtl(Entity spawned, int ttlTicks) {
         if (ttlTicks > 0) {
             UUID spawnedId = spawned.getUniqueId();
             Scheduling.onEntityLater(spawned, ttlTicks, () -> {
                 SwarmSpawns.forget(spawnedId);
+                GuardianCasts.forget(spawnedId); // an owned swarm binds one; unowned, this is a no-op
                 spawned.remove();
             });
         }
@@ -2547,7 +2560,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
         long[] t = new long[1];
         handle[0] = Scheduling.repeatingEntity(spawned, 1L, 1L, () -> {
             if (!spawned.isValid()) {
-                SwarmSpawns.forget(spawned.getUniqueId());
+                UUID goneId = spawned.getUniqueId();
+                SwarmSpawns.forget(goneId);
+                GuardianCasts.forget(goneId); // an owned swarm binds one; unowned, this is a no-op
                 if (handle[0] != null) {
                     handle[0].cancel();
                 }

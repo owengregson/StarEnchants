@@ -427,7 +427,7 @@ class LocationEffectTest {
                             .actor(self).actorOrigin(origin);
                     Sink sink = mock(Sink.class);
                     new SpawnSwarmEffect().run(ctx, sink);
-                    verify(sink).spawnSwarm(origin, 5, 12, 0.5, 1.2, 300, 0.5, self, 16.0, "", List.of());
+                    verify(sink).spawnSwarm(origin, 5, 12, 0.5, 1.2, 300, 0.5, self, 16.0, "", List.of(), null);
                     verify(self, never()).getLocation(); // the snapshot is the sole actor read (ADR-0043)
                     verifyNoMoreInteractions(sink);
                 }),
@@ -440,7 +440,7 @@ class LocationEffectTest {
                     Sink sink = mock(Sink.class);
                     new SpawnSwarmEffect().run(ctx, sink);
                     // cloud: false must pass a NULL owner even with an actor present
-                    verify(sink).spawnSwarm(fallback, 7, 3, 1.0, 1.2, 60, 1.0, null, 16.0, "", List.of());
+                    verify(sink).spawnSwarm(fallback, 7, 3, 1.0, 1.2, 60, 1.0, null, 16.0, "", List.of(), null);
                     verifyNoMoreInteractions(sink);
                 }),
                 dynamicTest("SPAWN_SWARM with no origin and no location → no intent", () -> {
@@ -456,7 +456,7 @@ class LocationEffectTest {
                             .actorOrigin(origin);
                     Sink sink = mock(Sink.class);
                     new SpawnSwarmEffect().run(ctx, sink);
-                    verify(sink).spawnSwarm(origin, 5, 12, 0.5, 1.2, 300, 0.5, null, 16.0, "", List.of());
+                    verify(sink).spawnSwarm(origin, 5, 12, 0.5, 1.2, 300, 0.5, null, 16.0, "", List.of(), null);
                     verifyNoMoreInteractions(sink);
                 }),
                 dynamicTest("SPAWN_SWARM name/effects reach the ring intent", () -> {
@@ -469,7 +469,33 @@ class LocationEffectTest {
                     Sink sink = mock(Sink.class);
                     new SpawnSwarmEffect().run(ctx, sink);
                     verify(sink).spawnSwarm(origin, 5, 4, 0.5, 1.2, 300, 1.0, null, 16.0,
-                            "&cRuse", List.of(11, 13));
+                            "&cRuse", List.of(11, 13), null);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("SPAWN_SWARM owner=activator → the ring is bound to the summoner", () -> {
+                    // R-QC14: without it Undead Ruse's minions take vanilla zombie AI on the wearer standing
+                    // inside their own ring, and {OWNER} in the name has nothing to fill from.
+                    Player self = mock(Player.class);
+                    UUID actorId = UUID.randomUUID();
+                    when(self.getUniqueId()).thenReturn(actorId);
+                    Location origin = mock(Location.class);
+                    FakeEffectCtx ctx = spawnDefaults(SpawnSwarmEffect.SPEC)
+                            .with("type", 5).with("count", 4).with("owner", "activator")
+                            .with("name", "{OWNER}'s Minion").actor(self).actorOrigin(origin);
+                    Sink sink = mock(Sink.class);
+                    new SpawnSwarmEffect().run(ctx, sink);
+                    // cloud stays false, so the owner reaches the intent through the new slot and not the cloud one
+                    verify(sink).spawnSwarm(origin, 5, 4, 0.5, 1.2, 300, 1.0, null, 16.0,
+                            "{OWNER}'s Minion", List.of(), actorId);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("SPAWN_SWARM owner=activator with no actor → unowned", () -> {
+                    Location origin = mock(Location.class);
+                    FakeEffectCtx ctx = spawnDefaults(SpawnSwarmEffect.SPEC)
+                            .with("type", 5).with("count", 4).with("owner", "activator").actorOrigin(origin);
+                    Sink sink = mock(Sink.class);
+                    new SpawnSwarmEffect().run(ctx, sink);
+                    verify(sink).spawnSwarm(origin, 5, 4, 0.5, 1.2, 300, 1.0, null, 16.0, "", List.of(), null);
                     verifyNoMoreInteractions(sink);
                 }));
     }

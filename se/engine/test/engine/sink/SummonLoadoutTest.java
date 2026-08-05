@@ -112,6 +112,36 @@ class SummonLoadoutTest {
     }
 
     @Test
+    void anOwnedSwarmBindsEverySummonToItsSummonerAndFillsTheNameToken() {
+        // R-QC14: the guard listener reads GuardianCasts to refuse a summon targeting its owner, so an unbound
+        // ring is one vanilla AI tick away from turning on the wearer standing inside it. Only the sink can see
+        // the binding — the effect emits an intent and nothing below observes the registry.
+        UUID ownerId = UUID.randomUUID();
+        Player owner = mock(Player.class);
+        when(owner.getName()).thenReturn("Notch");
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(() -> Bukkit.getPlayer(ownerId)).thenReturn(owner);
+
+            sink.spawnSwarm(at, 1, 1, 0.5, 1.2, 0, 1.0, null, 16.0, "&d&l{OWNER}'s Undead Minion",
+                    List.of(), ownerId);
+            sink.flush();
+        }
+
+        assertEquals(ownerId, GuardianCasts.owner(spawned.getUniqueId()), "the ring is bound to its summoner");
+        verify(spawned).setCustomName(Colors.translate("&d&lNotch's Undead Minion"));
+    }
+
+    @Test
+    void anUnownedSwarmBindsNothing() {
+        // The default has to stay byte-stable: a ring authored before owner: existed must not start refusing
+        // the vanilla targets it was written to take.
+        sink.spawnSwarm(at, 1, 1, 0.5, 1.2, 0, 1.0, null, 16.0, "", List.of());
+        sink.flush();
+
+        assertNull(GuardianCasts.owner(spawned.getUniqueId()));
+    }
+
+    @Test
     void aSummonNamesOwnerTokenIsFilledFromTheOwnerTheSpawnerThreads() {
         // The owner reaches the nameplate only if the spawner passes it down; dropping it anywhere silently
         // strips {OWNER} from every summon instead of failing, and no unit below the sink can see the name.

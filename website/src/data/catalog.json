@@ -5462,9 +5462,9 @@
     },
   {
     "head": "SPAWN_SWARM",
-    "doc": "Summon count entities of type evenly spaced on a radius-block ring around the activator, raised rise blocks (chest height), each facing directly outward, with VANILLA AI, auto-removed after ttl ticks. speed < 1 slows each to that fraction of its vanilla AI speed via a per-tick velocity damp (Bat-style AI ignores the speed attribute). cloud: true makes the summons orbit the 1x2x1 pillar directly in front of whoever attacked the activator most recently within cloud-range blocks (vision cloud); with no such attacker they keep vanilla AI. While clouding, the orbit's own pacing overrides speed. name is shown above each summon and effects is a comma-separated potion loadout held for its whole life, each entry optionally levelled with NAME*LEVEL (SPEED*3) — the same styling GUARD and SPAWN_ENTITY take.",
+    "doc": "Summon count entities of type evenly spaced on a radius-block ring around the activator, raised rise blocks (chest height), each facing directly outward, with VANILLA AI, auto-removed after ttl ticks. speed < 1 slows each to that fraction of its vanilla AI speed via a per-tick velocity damp (Bat-style AI ignores the speed attribute). cloud: true makes the summons orbit the 1x2x1 pillar directly in front of whoever attacked the activator most recently within cloud-range blocks (vision cloud); with no such attacker they keep vanilla AI. While clouding, the orbit's own pacing overrides speed. name is shown above each summon and effects is a comma-separated potion loadout held for its whole life, each entry optionally levelled with NAME*LEVEL (SPEED*3) — the same styling GUARD and SPAWN_ENTITY take. owner: activator binds every summon to the summoner, so vanilla AI never turns the ring on the player standing inside it, and {OWNER} in name fills with their name.",
     "affinity": "REGION",
-    "usage": "{ SPAWN_SWARM: { type: <entity_type>, count: <int[1..]=1>, radius: <double[0..]=0.5>, rise: <double[0..]=1.2>, ttl: <ticks[0..]=300>, speed: <double[0..1]=1>, cloud: <bool=false>, cloud-range: <double[1..]=16>, name: <string=>, effects: <potion_effect list=> } }",
+    "usage": "{ SPAWN_SWARM: { type: <entity_type>, count: <int[1..]=1>, radius: <double[0..]=0.5>, rise: <double[0..]=1.2>, ttl: <ticks[0..]=300>, speed: <double[0..1]=1>, cloud: <bool=false>, cloud-range: <double[1..]=16>, owner: <enum{none|activator}=none>, name: <string=>, effects: <potion_effect list=> } }",
     "example": "{ SPAWN_SWARM: { type: BAT, count: 10, radius: 0.5, ttl: 300, speed: 0.5 } }",
     "params": [
       {
@@ -5562,6 +5562,21 @@
         "enum": [],
         "handle": null,
         "doc": ""
+        },
+      {
+        "name": "owner",
+        "kind": "ENUM",
+        "label": "enum{none|activator}",
+        "required": false,
+        "default": "none",
+        "min": null,
+        "max": null,
+        "enum": [
+          "none",
+          "activator"
+          ],
+        "handle": null,
+        "doc": "activator binds each summon to the summoner: vanilla AI can no longer target them, and {OWNER} fills"
         },
       {
         "name": "name",
