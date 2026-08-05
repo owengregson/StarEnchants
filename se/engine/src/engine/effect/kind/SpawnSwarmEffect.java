@@ -5,7 +5,9 @@ import engine.effect.EffectCtx;
 import engine.effect.EffectKind;
 import engine.sink.Sink;
 import engine.spec.EffectSpec;
+import java.util.UUID;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import schema.spec.D;
 
 /**
@@ -29,6 +31,9 @@ public final class SpawnSwarmEffect implements EffectKind {
             .param("speed", D.DOUBLE.range(0, 1).def(1))
             .param("cloud", D.BOOL.def(false))
             .param("cloud-range", D.DOUBLE.min(1).def(16))
+            .param("owner", D.enumOf("none", "activator").def("none"),
+                    "activator binds each summon to the summoner: vanilla AI can no longer target them, and "
+                            + "{OWNER} fills")
             .param("name", D.STRING.def(""), "custom name shown above each summon; {OWNER} fills in the summoner")
             .param("effects", D.potionEffects().def(""), "potion effects held for each summon's whole life")
             .affinity(Affinity.REGION)
@@ -42,7 +47,9 @@ public final class SpawnSwarmEffect implements EffectKind {
                     + "such attacker they keep vanilla AI. While clouding, the orbit's own pacing overrides speed. "
                     + "name is shown above each summon and effects is a comma-separated potion loadout held "
                     + "for its whole life, each entry optionally levelled with NAME*LEVEL (SPEED*3) — the same "
-                    + "styling GUARD and SPAWN_ENTITY take.")
+                    + "styling GUARD and SPAWN_ENTITY take. owner: activator binds every summon to the "
+                    + "summoner, so vanilla AI never turns the ring on the player standing inside it, and "
+                    + "{OWNER} in name fills with their name.")
             .example("{ SPAWN_SWARM: { type: BAT, count: 10, radius: 0.5, ttl: 300, speed: 0.5 } }")
             .build();
 
@@ -60,9 +67,12 @@ public final class SpawnSwarmEffect implements EffectKind {
         if (origin == null) {
             return;
         }
+        Player actor = ctx.actor();
+        UUID owner = "activator".equalsIgnoreCase(ctx.str("owner")) && actor != null
+                ? actor.getUniqueId() : null;
         sink.spawnSwarm(origin, ctx.integer("type"), ctx.integer("count"), ctx.dbl("radius"),
                 ctx.dbl("rise"), ctx.integer("ttl"), ctx.dbl("speed"),
-                ctx.bool("cloud") ? ctx.actor() : null, ctx.dbl("cloud-range"),
-                ctx.str("name"), ctx.ids("effects"));
+                ctx.bool("cloud") ? actor : null, ctx.dbl("cloud-range"),
+                ctx.str("name"), ctx.ids("effects"), owner);
     }
 }
