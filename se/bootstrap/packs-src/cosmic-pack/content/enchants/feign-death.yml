@@ -1,0 +1,128 @@
+# Matrix: 07-enchants-mastery-soul.md § Feign Death
+display: "Feign Death"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA hit you can survive may drop you out of"
+  - "&esight entirely — the lower your health, the"
+  - "&elikelier it is, and your first swings still land."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "mastery"
+tier: mastery
+# THE MASTERY FAMILY CONTRACT (matrix 07 § family-wide rules) — the full reading lives in poltergeist.yml.
+# tier 8, `group: "mastery"`, `applies-to: [ARMOR]`, no `suppress-immune:`.
+# ── THE DECOY IS DEFERRED, AND THAT IS A RULING, NOT A GAP THIS FILE CAN CLOSE ─────────────────────────────
+# The jar spawned an unequipped copy of the player at their position, played the death animation on it and
+# destroyed it 30 t later — the illusion the enchant is NAMED for, and the reason a victim believes the kill.
+# `VANISH` ships HIDE-ONLY: it does not accept `decoy`/`decoy-ttl` at all, so nothing here has to be edited
+# when the corpse lands. R-QC30 rules the corpse a ROSTER MARKER for now — the `PlayerRender` era seam it
+# needs is a future project, not part of this pass — and this file ships the rest rather than waiting on it.
+# What that costs, stated plainly: the wearer disappears, but nobody sees them die.
+# ── THE LOCKOUT IS A SHARED VAR, NOT AN ABILITY COOLDOWN ───────────────────────────────────────────────────
+# `feignwindow` is one 200 t var written and read by BOTH this enchant and `pets/feign-death.yml`: using the
+# pet consumes this proc's lockout and vice-versa, which is what stops a pet click stacking on a natural proc.
+# That contract is the pet file's, authored ahead of this one and named there as binding — so the 10 s
+# lockout is `%feignwindow% != 1` plus a `SET_VAR{ttl: 200}`, NOT `cooldown:`, which would leave the two
+# independent. The vanish var is the other half: `mastery.feign.vanished` is the name the ghost-hit companion
+# below reads, and the pet writes it too, so a pet vanish gets the same ghost line.
+# ── THE ROLL ───────────────────────────────────────────────────────────────────────────────────────────────
+# Chance is health-scaled — `L + 5 x (1 - health%)` — which an expression chance spells directly; the engine
+# clamps to [0,100] and the ladder never approaches either bound. The survivable-hit gate `%damage% <
+# %actor.health%` is the jar's `getHealth() > getFinalDamage()`, and the two damage causes are its
+# `EntityDamageByEntityEvent` test narrowed to what actually reaches a DEFENSE walk.
+# ── THE BREAK, AND D-07-8 ──────────────────────────────────────────────────────────────────────────────────
+# `break-hits: L` is the as-intended count. The jar unvanished when `++hits >= level`, so level 1 got ZERO
+# free swings and the vanish ended on the first one — D-07-8 rules that a major off-by-one. Only the ATTACK
+# side counts a hit, so damage TAKEN while vanished cannot spend one; that is the measured rule and it is
+# structural in the effect rather than authored. A re-proc refreshes the window instead of the jar's
+# stale-timer early end.
+# ── STRINGS ────────────────────────────────────────────────────────────────────────────────────────────────
+# Four, all to the wearer: the title/subtitle pair on one `channel: title` MESSAGE, the VANISHED chat line,
+# and the UNVANISHED line. The seconds are inlined per rung — no MESSAGE token binds a duration, and the
+# source printed the raw one-decimal value (`1.5`, not `2`).
+# THE UNVANISHED LINE IS `wait:`-DELAYED at the vanish duration, and that is its one divergence: a vanish that
+# breaks EARLY on the L-th outgoing hit still prints it at the nominal end, seconds after the wearer is
+# already visible. R-QC30 approves an end-of-window feedback hook on VANISH; when it lands this line moves
+# onto it and the divergence closes. The alternative was to drop the string, which loses a line the matrix
+# records verbatim.
+# The ghost-hit companion is its own ATTACK ability behind the vanish var, and the line goes to whoever the
+# ghost hit. `{damage}` binds to `%damage%`; `{ATTACKER}` is the vanished player. The jar prefixed the name
+# with a faction-relation colour, which has no engine analogue — plain `§f`, as the matrix records.
+# era: `WITHER_SHOOT` -> `ENTITY_WITHER_SHOOT` carries its alias row (wave 2c), titles are fine on 1.8.9, and
+# the hide itself is the `PlayerVisibility` seam — a connection-level hide on both lanes, so worn armour goes
+# with the body. The decoy's packet work is the deferred half's hazard, not this file's.
+levels:
+  # Per level 1-4 — base chance L pp plus up to +5 pp at zero health; vanish `1.5 x L` s = 30/60/90/120 t;
+  # free outgoing hits before the early break = L (D-07-8).
+  1:
+    abilities:
+      - chance: "1 + 5 * (1 - %actor.healthpercent% / 100)"
+        condition: "%victim.type% == \"PLAYER\" && (%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && %damage% < %actor.health% && %feignwindow% != 1"
+        effects:
+          - { SET_VAR: { name: "feignwindow", value: "1", ttl: 200, who: "@Self" } }
+          - { VANISH: { duration: 30, break-hits: 1, var: "mastery.feign.vanished", who: "@Self" } }
+          - { MESSAGE: { channel: title, text: "§c§lFeign Death", subtitle: "§c1.5" } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 3.0, pitch: 0.9 } }
+          - { MESSAGE: { text: "§4§l* Feign Death - VANISHED [1.5s] *" } }
+          # The only `wait:` in the file, so the tier is exactly the vanish window.
+          - { MESSAGE: { text: "§4§l* Feign Death - UNVANISHED *", wait: 30 } }
+      # The ghost hit: the vanished wearer's swings still land, and the victim is told who hit them.
+      - trigger: ATTACK
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\" && %mastery.feign.vanished% == 1"
+        effects:
+          - { MESSAGE: { text: "§c-{damage} HP (§f{ATTACKER}'s Ghost§c)", who: "@Victim", tokens: { damage: "%damage%" } } }
+  2:
+    abilities:
+      - chance: "2 + 5 * (1 - %actor.healthpercent% / 100)"
+        condition: "%victim.type% == \"PLAYER\" && (%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && %damage% < %actor.health% && %feignwindow% != 1"
+        effects:
+          - { SET_VAR: { name: "feignwindow", value: "1", ttl: 200, who: "@Self" } }
+          - { VANISH: { duration: 60, break-hits: 2, var: "mastery.feign.vanished", who: "@Self" } }
+          - { MESSAGE: { channel: title, text: "§c§lFeign Death", subtitle: "§c3.0" } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 3.0, pitch: 0.9 } }
+          - { MESSAGE: { text: "§4§l* Feign Death - VANISHED [3.0s] *" } }
+          # The only `wait:` in the file, so the tier is exactly the vanish window.
+          - { MESSAGE: { text: "§4§l* Feign Death - UNVANISHED *", wait: 60 } }
+      # The ghost hit: the vanished wearer's swings still land, and the victim is told who hit them.
+      - trigger: ATTACK
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\" && %mastery.feign.vanished% == 1"
+        effects:
+          - { MESSAGE: { text: "§c-{damage} HP (§f{ATTACKER}'s Ghost§c)", who: "@Victim", tokens: { damage: "%damage%" } } }
+  3:
+    abilities:
+      - chance: "3 + 5 * (1 - %actor.healthpercent% / 100)"
+        condition: "%victim.type% == \"PLAYER\" && (%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && %damage% < %actor.health% && %feignwindow% != 1"
+        effects:
+          - { SET_VAR: { name: "feignwindow", value: "1", ttl: 200, who: "@Self" } }
+          - { VANISH: { duration: 90, break-hits: 3, var: "mastery.feign.vanished", who: "@Self" } }
+          - { MESSAGE: { channel: title, text: "§c§lFeign Death", subtitle: "§c4.5" } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 3.0, pitch: 0.9 } }
+          - { MESSAGE: { text: "§4§l* Feign Death - VANISHED [4.5s] *" } }
+          # The only `wait:` in the file, so the tier is exactly the vanish window.
+          - { MESSAGE: { text: "§4§l* Feign Death - UNVANISHED *", wait: 90 } }
+      # The ghost hit: the vanished wearer's swings still land, and the victim is told who hit them.
+      - trigger: ATTACK
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\" && %mastery.feign.vanished% == 1"
+        effects:
+          - { MESSAGE: { text: "§c-{damage} HP (§f{ATTACKER}'s Ghost§c)", who: "@Victim", tokens: { damage: "%damage%" } } }
+  4:
+    abilities:
+      - chance: "4 + 5 * (1 - %actor.healthpercent% / 100)"
+        condition: "%victim.type% == \"PLAYER\" && (%damagecause% == \"ENTITY_ATTACK\" || %damagecause% == \"PROJECTILE\") && %damage% < %actor.health% && %feignwindow% != 1"
+        effects:
+          - { SET_VAR: { name: "feignwindow", value: "1", ttl: 200, who: "@Self" } }
+          - { VANISH: { duration: 120, break-hits: 4, var: "mastery.feign.vanished", who: "@Self" } }
+          - { MESSAGE: { channel: title, text: "§c§lFeign Death", subtitle: "§c6.0" } }
+          - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 3.0, pitch: 0.9 } }
+          - { MESSAGE: { text: "§4§l* Feign Death - VANISHED [6.0s] *" } }
+          # The only `wait:` in the file, so the tier is exactly the vanish window.
+          - { MESSAGE: { text: "§4§l* Feign Death - UNVANISHED *", wait: 120 } }
+      # The ghost hit: the vanished wearer's swings still land, and the victim is told who hit them.
+      - trigger: ATTACK
+        chance: 100
+        condition: "%victim.type% == \"PLAYER\" && %mastery.feign.vanished% == 1"
+        effects:
+          - { MESSAGE: { text: "§c-{damage} HP (§f{ATTACKER}'s Ghost§c)", who: "@Victim", tokens: { damage: "%damage%" } } }

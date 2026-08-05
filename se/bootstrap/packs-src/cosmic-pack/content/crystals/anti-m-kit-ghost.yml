@@ -21,10 +21,9 @@ stackable: false
 # Maintained-while-worn is a REPEATING re-arm rather than PASSIVE — PASSIVE is a start/stop lifecycle fired
 # once at equip, so a window armed there would expire mid-wear. `repeat: 20` under a `duration: 60` window
 # holds it open continuously and bounds the residual immunity after the crystal comes off at 3 s.
-# POOL (matrix § Ghost): Horrify, Feign Death, Poltergeist, Mark of the Beast. Three of the four are still
-# deferred (deferred-content.md, batch 07) — their keys are authored now and are inert strings until those
-# files land, at which point this crystal is complete without being touched. The key is the enchant's file
-# STEM under `enchants/`, the same spelling every SUPPRESS in this pack uses.
+# POOL (matrix § Ghost): Horrify, Feign Death, Poltergeist, Mark of the Beast — all four now SHIP (R-QC1 and
+# R-QC30 closed the last three), so every key below is live and the crystal is complete. The key is the
+# enchant's file STEM under `enchants/`, the same spelling every SUPPRESS in this pack uses.
 abilities:
   - trigger: REPEATING
     repeat: 20
