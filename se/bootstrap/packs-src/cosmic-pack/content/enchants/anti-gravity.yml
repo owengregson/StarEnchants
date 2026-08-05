@@ -7,9 +7,12 @@ trigger: PASSIVE
 applies-to: [BOOTS]
 group: "rare"
 tier: rare
-# The matrix's shared suppression ruling maps the corpus's noDefenseProcs to SUPPRESS(scope=TYPE, key=defense),
-# which cannot reach a PASSIVE ability — cosmic silence never dropped worn passives, so this permanent worn
-# buff is unsilenceable (the wearer's other enchants still are).
+# The matrix's shared suppression ruling maps the corpus's noDefenseProcs to SUPPRESS(scope=TYPE, key=DEFENSE),
+# which is live since R-QC3 (ADR-0075) and keys the DEFENDER SIDE — so it structurally cannot reach a PASSIVE
+# ability, which belongs to no combat direction and is stamped with no type at all. That is the jar's own
+# behaviour: cosmic silence never dropped worn passives. The flag stays anyway, because it is the broader
+# guarantee — it also holds against the ENCHANT- and GROUP-scoped windows a TYPE stamp says nothing about, so
+# this permanent worn buff is unsilenceable outright (the wearer's other enchants still are not).
 suppress-immune: true
 # strings: the shared potion-registry equip feedback, verbatim (roman-numeral levels) — emitted by the
 # registry for every maintained potion, not authored per enchant:

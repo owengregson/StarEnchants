@@ -243,7 +243,8 @@ final class PetDefReader {
                 use && useKeys.size() == 1 ? "pet:" + key : stableKey, diags);
         AbilityDef ability = new AbilityDef(
                 SourceKind.PET, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, soulCost,
-                List.of(trigger), disabledWorlds, condition, effects, "pet:" + key, cdScope, null, null,
+                List.of(trigger), disabledWorlds, condition, effects, "pet:" + key, cdScope, null,
+                ContentParse.resolveSuppressType(node, diags),
                 repeatTicks, node.source(), 0, false, chance.expr(), noSoulsMessage, soulKnobs.carried(),
                 soulKnobs.sound(), soulKnobs.particle(), soulCostGrowth, soulCostCap, soulCostDecayPeriod,
                 ContentParse.resolveCooldownPerVictim(node, diags),

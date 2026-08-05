@@ -155,7 +155,10 @@ bonuses:
       # "Negate 75% of Enemy Silence" — 75 % rolled per incoming Silence proc.
       - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/silence", duration: 60, chance: 75, who: "@Self" } }
       # "25% Mastery Enchant Negation" — `mastery` is this pack's tier-mirroring group name (tiers.yml rung 8;
-      # every mastery-grade content/enchants file carries `group: "mastery"`).
+      # every mastery-grade content/enchants file carries `group: "mastery"`). Stays on GROUP now that TYPE
+      # scoping is real (R-QC3): a TYPE named `mastery` would name the identical ten files while costing each
+      # of them the implicit DEFENSE stamp that keeps them silenceable — masks/rift.yml carries the full
+      # reading, and R-QC34's re-key was declined on it (ADR-0075).
       - { SUPPRESS_INCOMING: { scope: GROUP, key: mastery, duration: 60, chance: 25, who: "@Self" } }
   # 6. "Mastery Enchant Reflect X" — the set contributes level 10 to the mastery rung of the enchant-reflect
   # ladder: 5 % per enchant proc (the integer-division table 0.02 + 0.01 x (level/3), rung 10). The band is

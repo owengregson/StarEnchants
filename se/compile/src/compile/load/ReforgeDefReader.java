@@ -169,7 +169,7 @@ final class ReforgeDefReader {
                 SourceKind.REFORGE, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, soulCost, triggers,
                 disabledWorlds, condition, effects, stableKey,
                 ContentParse.resolveCooldownScope(node, stableKey, diags),
-                group, null, repeatTicks, fileSource, 0, false,
+                group, ContentParse.resolveSuppressType(node, diags), repeatTicks, fileSource, 0, false,
                 chance.expr(), noSoulsMessage, soulKnobs.carried(), soulKnobs.sound(), soulKnobs.particle(),
                 soulCostGrowth, soulCostCap, soulCostDecayPeriod,
                 ContentParse.resolveCooldownPerVictim(node, diags),

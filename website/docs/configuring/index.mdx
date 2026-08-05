@@ -151,6 +151,7 @@ levels:
 | `repeat` | period in ticks for a `REPEATING` enchant (e.g. `100` = pulse every 5s) |
 | `disabled-worlds` | a list of world names the enchant never fires in |
 | `suppress-immune` | `true` = this enchant can never be silenced (`DISABLE_ENCHANT`/`GROUP`/`TYPE`/`KIND` no-op against it), so a permanent buff survives while the wearer's other enchants are suppressed. Default `false` |
+| `suppress-type` | the key a `SUPPRESS { scope: TYPE }` window matches this by. Leave it out — by default an ability's type is its trigger's combat side (`DEFENSE` for `DEFENSE`/`HURT`/`FALL`/`FIRE`, `ATTACK` for `ATTACK`/`BOW`/`TRIDENT`/`KILL`, none for a neutral trigger like `PASSIVE`), which is what makes a Silence-style `key: DEFENSE` window park a victim's whole defensive kit. Setting it **replaces** that, since one ability carries one type |
 | `requires` / `blacklist` / `removes-required` | apply-relationship rules between enchants |
 
 ### Per-level keys

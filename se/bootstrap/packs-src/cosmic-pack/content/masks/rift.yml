@@ -7,14 +7,21 @@
 # what "negate 50 % of mastery enchants" means — a roll at each proc, not one roll when the window is armed.
 # The matrix records this as the DEFENDER_KEYED_SUPPRESSION gap; it shipped as SUPPRESS_INCOMING (wave 2d).
 #
-# WHY `scope: GROUP` AND NOT THE MATRIX'S `scope: TYPE`. The matrix asks for `scope=TYPE, key=mastery` and
-# adds the condition "the pack must lower mastery-tier enchants with cooldown-scope type `mastery` for the
-# TYPE key to bind". That condition cannot be met from a pack: no reader on the authoring surface writes an
-# ability's TYPE scope — every content reader passes `cdScopeType = null` — so a TYPE-scoped window interns a
-# key nothing carries and would silently never fire. GROUP binds to the authored `group:`, every mastery-grade
-# file in this pack carries `group: "mastery"` (all ten of them, 1:1 with `tier: mastery`), and the defender
-# consult walks ENCHANT → GROUP → TYPE → KIND, so GROUP names exactly the set the matrix meant. Precedent:
-# sets/dragon-slayer.yml ships the same row at its own 25 %.
+# WHY `scope: GROUP` AND NOT THE MATRIX'S `scope: TYPE` — SETTLED, R-QC34 declined (ADR-0075).
+# The matrix asks for `scope=TYPE, key=mastery` and adds the condition "the pack must lower mastery-tier
+# enchants with cooldown-scope type `mastery` for the TYPE key to bind". TYPE scoping is now real (R-QC3) and
+# that condition IS expressible — `suppress-type: mastery` on the ten mastery files would do it — but taking
+# it would be a net loss, so the re-key was measured and refused rather than performed.
+# The reason is that ONE interned slot names ONE type. The engine's TYPE vocabulary is the ability's combat
+# DIRECTION (`DEFENSE`/`ATTACK`), which is what makes Silence and Mastery Tombstone reach a victim's whole
+# defensive side. Declaring `suppress-type: mastery` REPLACES that stamp, so every defender-side mastery
+# ability would quietly become silence-proof — breaking the END-SUPPRESS contract rule, which exists precisely
+# to keep tier > 5 enchants reachable. The mask would gain nothing for it: `mastery` as a TYPE and `mastery`
+# as a GROUP would name the identical ten files, since every mastery-grade file in this pack carries
+# `group: "mastery"` 1:1 with `tier: mastery`, and the defender consult walks ENCHANT → GROUP → TYPE → KIND,
+# so GROUP already names exactly the set the matrix meant. Carrying BOTH would mean widening `cdScopeType`
+# past one slot — a hot-path change for no behavioural difference here.
+# Precedent: sets/dragon-slayer.yml ships the same row at its own 25 %, and stays on GROUP for the same reason.
 #
 # WHY REPEATING AND NOT PASSIVE: the window has no teardown half and the PASSIVE lifecycle fires once at
 # equip, so a PASSIVE arm would lapse mid-wear. `repeat: 20` under `duration: 60` holds it open continuously

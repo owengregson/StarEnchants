@@ -133,7 +133,7 @@ final class UseItemDefReader {
                 SourceKind.USE_ITEM, stableKey, nextDefId.getAsInt(), 0, chance.constant(), cooldown, 0, List.of("USE"),
                 List.of(), condition, effects, stableKey,
                 ContentParse.resolveCooldownScope(node, stableKey, diags),
-                null, null, 0, fileSource, 0, false,
+                null, ContentParse.resolveSuppressType(node, diags), 0, fileSource, 0, false,
                 // no-souls-message and the rest of the soul envelope are deliberately absent: a use-item's soul
                 // cost is hard-zero, so gate 10 can never charge or abort one and the keys would be dead knobs.
                 chance.expr(), null, false, null, null, 1.0, 0, 0,

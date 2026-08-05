@@ -31,9 +31,10 @@ tier: mastery
 # `consumed-message-*` fire when a LIVE window blocks a proc, never when SUPPRESS_IMMUNE refuses the arm, and
 # the refusing side is the armour set's. silence.yml records the same line against the same immunity side;
 # it lands with whichever entry gains a feedback hook first.
-# ENGINE SEAM (reported by silence.yml, restated because this file rides it): `scope=TYPE` arms a window keyed
-# "DEFENSE", but no content ability carries a type scope today (`cdScopeType` is null everywhere, ADR-0016
-# deferred), so gate 5 cannot yet match it. The window is authored for when it can.
+# ENGINE SEAM, CLOSED (R-QC3 / ADR-0075; reported by silence.yml, restated because this file rides it):
+# `scope=TYPE` arms a window keyed "DEFENSE" and every ability now carries the TYPE its trigger's combat
+# direction implies, so these ten windows silence each caught target's whole defender side. Authored for when
+# it could; it can.
 # ── THE ANVIL AND ITS IMPACT PAYLOAD ───────────────────────────────────────────────────────────────────────
 # `FALLING_BLOCK` at `radius: 0` is ONE anvil per target, five blocks up; a landing block fires the actor's
 # IMPACT abilities on whatever it hit, which is the engine's own contract and matches the jar hitting any

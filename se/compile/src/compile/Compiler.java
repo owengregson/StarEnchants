@@ -18,6 +18,7 @@ import compile.stage.SnapshotStage;
 import schema.diag.Diagnostics;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
@@ -106,12 +107,27 @@ public final class Compiler {
                               VarResolver vars, List<String> canonicalTriggers,
                               PlatformResolvers resolvers, ToIntFunction<String> effectIdOf,
                               ToIntFunction<String> selectorIdOf) {
+        return of(registry, affinityOf, selectors, defaultSelectorOf, vars, canonicalTriggers, resolvers,
+                effectIdOf, selectorIdOf, Map.of());
+    }
+
+    /**
+     * As above, plus {@code triggerTypes} — the trigger&rarr;combat-direction vocabulary the erase stage stamps
+     * unauthored abilities' TYPE suppression scope from (R-QC3, ADR-0075), so
+     * {@code SUPPRESS { scope: TYPE, key: DEFENSE }} reaches the whole defender side with nothing authored per
+     * file. Empty leaves every TYPE scope unstamped, which is what every lower-level wiring below wants.
+     */
+    public static Compiler of(SpecRegistry registry, Function<String, Affinity> affinityOf,
+                              SpecRegistry selectors, Function<String, String> defaultSelectorOf,
+                              VarResolver vars, List<String> canonicalTriggers,
+                              PlatformResolvers resolvers, ToIntFunction<String> effectIdOf,
+                              ToIntFunction<String> selectorIdOf, Map<String, String> triggerTypes) {
         return new Compiler(
                 new DefaultLowerStage(registry, affinityOf, selectors, defaultSelectorOf, vars,
                         effectIdOf, selectorIdOf, resolvers),
                 new DefaultResolveStage(registry, selectors, resolvers),
                 // effectIdOf threaded to erase too: SUPPRESS scope KIND keys resolve to dense kindIds (ADR-0053).
-                new DefaultEraseStage(canonicalTriggers, effectIdOf),
+                new DefaultEraseStage(canonicalTriggers, effectIdOf, triggerTypes),
                 new DefaultSnapshotStage());
     }
 

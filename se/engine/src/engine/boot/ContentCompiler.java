@@ -58,6 +58,10 @@ public final class ContentCompiler {
                 triggers.names(),
                 resolvers,
                 effects::idOf,
-                selectors::idOf);
+                selectors::idOf,
+                // R-QC3: the trigger vocabulary also decides each ability's implicit TYPE suppression scope,
+                // so a defensive ability is silenceable by `SUPPRESS { scope: TYPE, key: DEFENSE }` with
+                // nothing authored on it (ADR-0075).
+                triggers.suppressionTypes());
     }
 }

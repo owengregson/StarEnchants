@@ -30,10 +30,12 @@ tier: legendary
 # immune_silence is SUPPRESS_IMMUNE(chance=75) — the measured 25% leak IS that primitive's per-suppression
 # roll. On such a block the ATTACKER sees `§c§l* SILENCE BLOCKED [§7{VICTIM}§c§l] *`; SUPPRESS_IMMUNE carries
 # no feedback hook on the frozen surface, so that line is recorded here and authored with the immunity side.
-# ENGINE SEAM (report, not a stop): scope=TYPE arms a window keyed on "DEFENSE", but no content ability
-# carries a type scope today (`cdScopeType` is null for every enchant/set/crystal — ADR-0016 deferred), so
-# gate 5 cannot match it yet. The corpus already commits to this shape: the eight maintained passives that
-# shipped in batches 1-2 carry `suppress-immune: true` precisely to survive it.
+# ENGINE SEAM, CLOSED (R-QC3 / ADR-0075): scope=TYPE arms a window keyed on "DEFENSE" and every ability
+# now carries the TYPE its trigger's combat DIRECTION implies, so this window matches the whole defender side
+# of whoever it lands on — enchant, set, crystal, mask, pet or reforge alike, without a word authored on any of
+# them. It reaches the HURT walk too, which is the all-cause half of the same side. What it does NOT reach is a
+# worn PASSIVE (no combat direction, so no type), which is exactly the jar's behaviour and why the eight
+# maintained passives that shipped in batches 1-2 carry `suppress-immune: true` — belt and braces, kept.
 # Ledger D-03-10: the jar ALSO gave a silenced victim x0.75 incoming damage — a reward for being silenced,
 # almost certainly an inverted sign. Suppression only ships; no damage modifier.
 # Single-pass per D-001: the jar's pass-2 50% environmental leak through a live Silence is a double-fire
