@@ -1,0 +1,56 @@
+# Matrix: 02-enchants-armor-m-z.md § Nutrition
+display: "Nutrition"
+# description: not matrix-recorded (factual paraphrase). The jar's own config line advertises "1.2-2x normal
+# hunger replenishment" and the code produces 1.4 / 1.7 / 2.0 — the low end is wrong by 0.2 in the jar's own
+# advertising copy, so the description below describes the CODE. The second half of that line ("allows you to
+# eat more golden apples before contracting Golden Apple Sickness") is the external sickness system reading
+# the jar's `nutritionEnchantment` metadata, which the codex records as having NO reader in the corpus; the
+# port ships no such system, so nothing here claims it.
+description:
+  - "&eA meal goes much further — the bar fills"
+  - "&efaster with every rung."
+# EAT, and this file is the reason that trigger was re-declared (R-QC42). Its `usesHeld` flag was
+# documentation only — the worn-state flattener routes by trigger mask and combat direction alone — but the
+# declaration said "held item only", which is what the deferral row read and stopped on. The flag now says
+# what the code does. The jar hangs off `FoodLevelChangeEvent` directly, which is where the engine's window
+# read-back lands too; EAT is the arming half.
+trigger: EAT
+# Leggings only, exactly as the jar's `GeneralUtil.leggings` item set (5 materials). Enchant-table weight 9,
+# the highest in the whole M-Z set — a book-roll number the content surface does not carry.
+applies-to: [LEGGINGS]
+group: "uncommon"
+tier: uncommon
+# Tier 2 = the `uncommon` rung (&a, "Unique" in the jar's own colour table), from the codex tier appendix
+# (`nutrition` sits with ravenous and telepathy). Max 3; base 15.0, interval 5.0.
+# ABSOLUTE, NOT A DELTA — the jar multiplies `e.getFoodLevel()`, the RESULTING hunger value, not the gain,
+# so the benefit grows with how full you already are (the codex flags this as a quirk of the jar's, and it
+# is the measured behaviour, so it ships). `MODIFY_FOOD mode: absolute` is that reading exactly: it restates
+# the whole resulting level rather than scaling the delta. The clamp to 20 is the engine's, as it was the
+# server's in the jar — at L2 and L3 any meal taken from 10 hunger or above simply fills the bar.
+# ONLY GAINS. The jar guards on `e.getFoodLevel() > player.getFoodLevel()`; the engine's own read-back has
+# the same guard one layer down (a decrease is a drain and only `cancel-drain` may speak to it), so no
+# condition is authored for it here.
+# THE WINDOW. `MODIFY_FOOD`'s absolute mode arms a per-player window rather than rewriting a number on the
+# spot, because the hunger actually lands on a separate `FoodLevelChangeEvent` after the consume returns.
+# 3 ticks is deliberately the smallest span that certainly spans that hand-off: the enchant should describe
+# the meal it was armed by and nothing else, and a long window would also catch the NEXT one.
+# NOT PORTED, recorded: the `nutritionEnchantment` metadata. It is an equip-time marker for an external
+# golden-apple-sickness plugin, the codex confirms nothing in the corpus reads it, and R-QC38 is the
+# standing ruling on markers with no consumer anywhere.
+# The jar's two parallel state stores (a UUID-string map AND the metadata) and its unequip clearing by UUID
+# regardless of level are both lifecycle bugs that the worn-state model cannot reproduce: the level is read
+# off the worn piece per activation, so there is nothing to leak and nothing to clear.
+# interactions: the Chef mask's `SUPPRESS{scope: KIND, key: MODIFY_FOOD}` window silences this like every
+# other hunger effect (ADR-0053 §7); nothing else in the corpus touches it.
+# strings: none (the jar sends no message and plays no cue). era: none.
+levels:
+  # `1.1 + 0.3 x L` verbatim: 1.4 / 1.7 / 2.0. No chance roll — the jar amplifies every qualifying gain.
+  1:
+    effects:
+      - { MODIFY_FOOD: { mode: "absolute", factor: 1.4, duration: 3, who: "@Self" } }
+  2:
+    effects:
+      - { MODIFY_FOOD: { mode: "absolute", factor: 1.7, duration: 3, who: "@Self" } }
+  3:
+    effects:
+      - { MODIFY_FOOD: { mode: "absolute", factor: 2.0, duration: 3, who: "@Self" } }
