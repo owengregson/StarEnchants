@@ -286,11 +286,11 @@ public final class AbilityExecutor {
             }
             Ability ability = abilities[id];
             try {
-                // No active gem: this run spends nothing, so a soul-reading effect must not see one. No
-                // activation either: this run walked no gates, so its Activation carries no random-backed
-                // chance supplier (TriggerRunner.runForced deliberately builds none) and a partial defender
-                // window consulted with it would block deterministically rather than roll.
-                if (runEffects(ability, context, sink, null, activation.facts(), quarantine, null)) {
+                // No active gem: this run spends nothing, so a soul-reading effect must not see one. The
+                // activation IS threaded (R-QC25c): a defender-keyed window protects its holder from what
+                // OTHERS aim at them, and a reflected hop is aimed at them like any other. Its roll supplier
+                // is random-backed, so a partial window rolls at its authored rate here as it does at gate 5.
+                if (runEffects(ability, context, sink, null, activation.facts(), quarantine, activation)) {
                     quarantine.recordFailure(id, ability.defId());
                 }
                 notifyActivation(ability, context, stableKeys);
@@ -352,9 +352,9 @@ public final class AbilityExecutor {
      * Returns true if any effect KIND threw (a genuine fault the quarantine counts). An unregistered head is
      * warn-and-skip, NOT a fault — the ability still activates and its sibling effects run (§9).
      *
-     * <p>{@code gated} is the activation whose gate walk let this ability through, or {@code null} on the
-     * gateless re-execution path — the only thing it is read for here is the per-target-application defender
-     * consult, which belongs to a real gate walk.
+     * <p>{@code gated} is the activation this run belongs to, or {@code null} when there is none (the lifecycle
+     * paths) — the only thing it is read for here is the per-target defender consult, which needs an actor, a
+     * primary victim to exempt, and a roll supplier.
      */
     private boolean runEffects(Ability ability, ActivationContext context, SinkReadback sink, UUID activeGem,
                                engine.condition.FactBuffer facts, AbilityQuarantine quarantine, Activation gated) {
