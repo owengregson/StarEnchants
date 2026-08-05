@@ -46,9 +46,10 @@ tier: soul
 # the shooter, the impact cue at the victim, which is where the jar put them anyway.
 levels:
   # Souls 6 x level, pearls 3 x level. The duration is the AS-INTENDED `5000 + level*3000` ms = 8/11/14/17/20 s
-  # (D-05-6; the jar's operator precedence measured 3.005-15.005 s). The message keeps the jar's SEPARATE
-  # string-concat bug verbatim (`"[" + 5 + i*3 + "s]"` prints [53s]…[515s]) — the intended [8s]…[20s]
-  # rendering needs an owner ruling. Its `[-0ep]` slot is the remaining-pearl SHORTFALL, `0` whenever the
+  # (D-05-6; the jar's operator precedence measured 3.005-15.005 s). The message renders that SAME window
+  # (R-QC4): the jar's line carried its own separate string-concat bug (`"[" + 5 + i*3 + "s]"` printed
+  # [53s]…[515s]), so the format stays byte-verbatim and only the number stops lying — a block that lasts 8 s
+  # may not advertise 53. Its `[-0ep]` slot is the remaining-pearl SHORTFALL, `0` whenever the
   # victim carried enough, which is the only value MESSAGE can render: {ATTACKER}/{VICTIM} are its whole
   # token set. The measured `interval = 0.0` is enchant-table plumbing (the table only ever rolled level 5)
   # and has no expression here.
@@ -67,7 +68,7 @@ levels:
         effects:
           - { TELEBLOCK: { duration: 160, who: "@Victim" } }
           - { REMOVE_ITEM: { material: "ENDER_PEARL", count: 3, who: "@Victim" } }
-          - { MESSAGE: { text: "§5** TELEBLOCK [53s] [-0ep] **", who: "@Victim" } }
+          - { MESSAGE: { text: "§5** TELEBLOCK [8s] [-0ep] **", who: "@Victim" } }
           - { SOUND: { sound: "ENTITY_ENDERMAN_HURT", volume: 0.75, pitch: 0.6 } }
   2:
     abilities:
@@ -84,7 +85,7 @@ levels:
         effects:
           - { TELEBLOCK: { duration: 220, who: "@Victim" } }
           - { REMOVE_ITEM: { material: "ENDER_PEARL", count: 6, who: "@Victim" } }
-          - { MESSAGE: { text: "§5** TELEBLOCK [56s] [-0ep] **", who: "@Victim" } }
+          - { MESSAGE: { text: "§5** TELEBLOCK [11s] [-0ep] **", who: "@Victim" } }
           - { SOUND: { sound: "ENTITY_ENDERMAN_HURT", volume: 0.75, pitch: 0.6 } }
   3:
     abilities:
@@ -101,7 +102,7 @@ levels:
         effects:
           - { TELEBLOCK: { duration: 280, who: "@Victim" } }
           - { REMOVE_ITEM: { material: "ENDER_PEARL", count: 9, who: "@Victim" } }
-          - { MESSAGE: { text: "§5** TELEBLOCK [59s] [-0ep] **", who: "@Victim" } }
+          - { MESSAGE: { text: "§5** TELEBLOCK [14s] [-0ep] **", who: "@Victim" } }
           - { SOUND: { sound: "ENTITY_ENDERMAN_HURT", volume: 0.75, pitch: 0.6 } }
   4:
     abilities:
@@ -118,7 +119,7 @@ levels:
         effects:
           - { TELEBLOCK: { duration: 340, who: "@Victim" } }
           - { REMOVE_ITEM: { material: "ENDER_PEARL", count: 12, who: "@Victim" } }
-          - { MESSAGE: { text: "§5** TELEBLOCK [512s] [-0ep] **", who: "@Victim" } }
+          - { MESSAGE: { text: "§5** TELEBLOCK [17s] [-0ep] **", who: "@Victim" } }
           - { SOUND: { sound: "ENTITY_ENDERMAN_HURT", volume: 0.75, pitch: 0.6 } }
   5:
     abilities:
@@ -135,5 +136,5 @@ levels:
         effects:
           - { TELEBLOCK: { duration: 400, who: "@Victim" } }
           - { REMOVE_ITEM: { material: "ENDER_PEARL", count: 15, who: "@Victim" } }
-          - { MESSAGE: { text: "§5** TELEBLOCK [515s] [-0ep] **", who: "@Victim" } }
+          - { MESSAGE: { text: "§5** TELEBLOCK [20s] [-0ep] **", who: "@Victim" } }
           - { SOUND: { sound: "ENTITY_ENDERMAN_HURT", volume: 0.75, pitch: 0.6 } }
