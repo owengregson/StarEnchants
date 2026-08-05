@@ -272,13 +272,13 @@ public final class AbilityExecutor {
      * under a key they do not own, and debit their souls.
      *
      * <p>Unlike {@link #runLifecycle} this is a real activation: it carries the caller's populated
-     * {@link engine.condition.FactBuffer} and honours each effect's {@code cumulativeWaitTicks}. It does NOT
-     * notify the {@link ActivationListener} — the public event and the {@code /se why} record already name
-     * the attacker's activation, and announcing it again as the reflector's would credit them an enchant
-     * they do not carry. Does NOT flush; the caller flushes once.
+     * {@link engine.condition.FactBuffer} and honours each effect's {@code cumulativeWaitTicks}. It DOES
+     * notify the {@link ActivationListener} (R-QC25b), with the REFLECTOR as the context's actor: an addon
+     * that only sees gate-walked activations cannot observe a reflected proc at all, and the swapped context
+     * already names who ran it. Does NOT flush; the caller flushes once.
      */
     public void runForced(Ability[] abilities, int[] candidateIds, Activation activation,
-                          ActivationContext context, SinkReadback sink) {
+                          ActivationContext context, SinkReadback sink, StableKeyIndex stableKeys) {
         AbilityQuarantine quarantine = this.quarantine;
         for (int id : candidateIds) {
             if (id < 0 || id >= abilities.length || quarantine.isDisabled(id)) {
@@ -293,6 +293,7 @@ public final class AbilityExecutor {
                 if (runEffects(ability, context, sink, null, activation.facts(), quarantine, null)) {
                     quarantine.recordFailure(id, ability.defId());
                 }
+                notifyActivation(ability, context, stableKeys);
             } catch (Throwable failed) {
                 LOG.log(Level.WARNING, "forced ability " + quarantine.describe(ability.defId())
                         + " failed during execution", failed);
