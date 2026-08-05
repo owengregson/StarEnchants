@@ -54,6 +54,9 @@ class MineExpMultiplierTest {
 
     private AbilityExecutor executor;
     private TriggerDispatch dispatch;
+    // Held as a FIELD, not an inline argument: Location keeps only a WeakReference to its world, so a mock
+    // reachable from nowhere else is collectible mid-test and getWorld() then throws "World unloaded".
+    private World world;
 
     @BeforeEach
     void setUp() {
@@ -83,7 +86,8 @@ class MineExpMultiplierTest {
             return null;
         }).when(executor).run(any(), any(), any(), any(), any(), any());
 
-        Location at = new Location(mock(World.class), 1, 2, 3);
+        world = mock(World.class);
+        Location at = new Location(world, 1, 2, 3);
         Block block = mock(Block.class);
         when(block.getLocation()).thenReturn(at);
         Player player = mock(Player.class);
