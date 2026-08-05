@@ -41,17 +41,14 @@ tier: mastery
 # kept, so no dedup cooldown here — an enchant's cooldown is one shared bucket and any value would also pace
 # the proc above). `ttl: 40` is the engine default and a port choice: the jar's anvil dies on landing and the
 # codex records no ttl. The block never places and drops nothing — engine FALLING_BLOCK semantics.
-# IMPACT SCOPING (ADR-0074 §4) IS DELIBERATELY NOT DECLARED HERE, and this file is the recorded reason. The
-# filter matches on the authored `group:`, and this file's is `mastery` — a FAMILY word rather than this
-# enchant's own — so an anvil landing still fires every other mastery enchant's IMPACT abilities. No other
-# mastery declares one today, so the collision is latent, not live. Narrowing it to `tombstone` is NOT
-# available: `group:` is one ROOT key per enchant (no per-ability override in `EnchantDefReader`), and the
-# same interned string is a SUPPRESSION match key — `sets/dragon-slayer` arms
-# `SUPPRESS_INCOMING{scope: GROUP, key: mastery, chance: 25}` for its recorded "25% Mastery Enchant Negation",
-# and `masks/rift` arms the same head at `chance: 50` for its own mastery negation. BOTH are authored and
-# live in this pack, and both name this exact string; renaming would cut this enchant out of them to sharpen
-# a filter that costs nothing today. It needs an owner ruling — a per-ability group override on the enchant
-# reader, or a second identity for IMPACT scoping that is not also the suppression match key.
+# IMPACT SCOPING (ADR-0074 §4, amended) IS DECLARED PER ABILITY: both blocks carry `group: "tombstone"`, so
+# an anvil landing fires THIS enchant's payload and nothing else. Rot and Decay's corpses and Demonic
+# Gateway's skulls made the family-word collision live rather than latent — three masteries authoring IMPACT
+# payloads under one `mastery` group means each one's carrier fires all three. R-QC40 is the fix, and it is
+# the second identity this file asked for: the per-ability `group:` moves ONLY the IMPACT source scope, while
+# the ROOT `group: "mastery"` above stays this enchant's suppression match key. So `sets/dragon-slayer`'s
+# `SUPPRESS_INCOMING{scope: GROUP, key: mastery, chance: 25}` and `masks/rift`'s 50 % twin still negate every
+# rung here — narrowing the payload filter costs the family negations nothing.
 # The payload's `percent-damage` at 10 on the `whole-set` is the recorded 10 % of max off EACH of the four
 # slots. D-07-15 (the jar's `(int)` truncation zeroing the hit on items with max durability under 10, intended
 # minimum 1) needs nothing authored: the engine ROUNDS (`(int) Math.round(max x percent / 100)`), which is
@@ -95,6 +92,7 @@ levels:
   1:
     abilities:
       - chance: 0.66667
+        group: "tombstone"
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
@@ -111,6 +109,7 @@ levels:
           - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=7, filter=ENEMIES, limit=4}", wait: 80 } }
           - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
       - trigger: IMPACT
+        group: "tombstone"
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -121,6 +120,7 @@ levels:
   2:
     abilities:
       - chance: 1.33333
+        group: "tombstone"
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
@@ -137,6 +137,7 @@ levels:
           - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=8, filter=ENEMIES, limit=5}", wait: 80 } }
           - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
       - trigger: IMPACT
+        group: "tombstone"
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -147,6 +148,7 @@ levels:
   3:
     abilities:
       - chance: 2.0
+        group: "tombstone"
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
@@ -163,6 +165,7 @@ levels:
           - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=9, filter=ENEMIES, limit=5}", wait: 80 } }
           - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
       - trigger: IMPACT
+        group: "tombstone"
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -173,6 +176,7 @@ levels:
   4:
     abilities:
       - chance: 2.66667
+        group: "tombstone"
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
@@ -189,6 +193,7 @@ levels:
           - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=10, filter=ENEMIES, limit=6}", wait: 80 } }
           - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
       - trigger: IMPACT
+        group: "tombstone"
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -199,6 +204,7 @@ levels:
   5:
     abilities:
       - chance: 3.33333
+        group: "tombstone"
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
@@ -215,6 +221,7 @@ levels:
           - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=11, filter=ENEMIES, limit=6}", wait: 80 } }
           - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
       - trigger: IMPACT
+        group: "tombstone"
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -225,6 +232,7 @@ levels:
   6:
     abilities:
       - chance: 4.0
+        group: "tombstone"
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
@@ -241,6 +249,7 @@ levels:
           - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=12, filter=ENEMIES, limit=7}", wait: 80 } }
           - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
       - trigger: IMPACT
+        group: "tombstone"
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -251,6 +260,7 @@ levels:
   7:
     abilities:
       - chance: 4.66667
+        group: "tombstone"
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
@@ -267,6 +277,7 @@ levels:
           - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=13, filter=ENEMIES, limit=7}", wait: 80 } }
           - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
       - trigger: IMPACT
+        group: "tombstone"
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -277,6 +288,7 @@ levels:
   8:
     abilities:
       - chance: 5.33333
+        group: "tombstone"
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
@@ -293,6 +305,7 @@ levels:
           - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=14, filter=ENEMIES, limit=8}", wait: 80 } }
           - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
       - trigger: IMPACT
+        group: "tombstone"
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -303,6 +316,7 @@ levels:
   9:
     abilities:
       - chance: 6.0
+        group: "tombstone"
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
@@ -319,6 +333,7 @@ levels:
           - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=15, filter=ENEMIES, limit=8}", wait: 80 } }
           - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
       - trigger: IMPACT
+        group: "tombstone"
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -329,6 +344,7 @@ levels:
   10:
     abilities:
       - chance: 6.66667
+        group: "tombstone"
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
@@ -345,6 +361,7 @@ levels:
           - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=16, filter=ENEMIES, limit=9}", wait: 80 } }
           - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
       - trigger: IMPACT
+        group: "tombstone"
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:

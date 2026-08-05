@@ -30,18 +30,18 @@ tier: mastery
 # the zombies to the payload at all — `periodic` would make them a walking aura with no hit to cancel.
 # The zombies drop nothing; that is the effect's own summon contract, not an authored row. The jar's 50-entity
 # chunk cap is an engine internal.
-# ── THE FIELD, AND THE ONE SEAM THIS FILE REPORTS ──────────────────────────────────────────────────────────
+# ── THE FIELD ──────────────────────────────────────────────────────────────────────────────────────────────
 # `PHANTOM_BLOCKS` is the field's only tell and it is CLIENT-ONLY: the wearer and anyone allied see glowstone,
 # everyone else sees end stone, and nothing is written to the world (which is exactly why `TEMP_BLOCK` /
 # `WALKER` are not the near-miss — they would rewrite up to a 13x13 patch of somebody's build and lose the
 # per-viewer colouring that IS the read).
-# `STACKING_DOT` is the damage half, and its ground test asks `TempBlockLedger` who PLACED the block under
-# each victim's feet. `PHANTOM_BLOCKS` places nothing and stamps no owner, so the two do not meet: the ramp
-# arms, re-reads the ground every pulse, and finds no owner — the DECAYING ladder is INERT until either the
-# overlay claims its patch or the ladder learns to read a phantom one. Recorded here and in
-# deferred-content.md rather than worked around: laying real ground to satisfy the test would be the world
-# rewrite the overlay exists to avoid, and picking a different DoT would lose the field. Everything else in
-# the entry — the purge, the corpses, the payload and the visible ground — is live.
+# `STACKING_DOT` is the damage half, and its ground test asks who OWNS the block under each victim's feet.
+# The overlay places nothing, so it used to claim nothing and the two halves never met — the ramp armed,
+# re-read the ground every pulse, found no owner, and the DECAYING ladder was inert for its whole window.
+# The overlay now CLAIMS its patch (a packet-layer ownership registry beside the real-block ledger, and one
+# composed read behind both `%actor.ownedground%` and the DoT's pulse), so standing in the field is standing
+# on this wearer's ground and the ladder climbs. Still no real block is laid — claiming a patch is not
+# writing one, which is the whole reason the overlay exists.
 # The DoT's targets are resolved at arm time (`@Aoe` over the field radius), so the recorded "anyone who walks
 # in" half is bounded to the enemies already inside the patch when it is laid. Its ladder is per-VICTIM and
 # shared across attackers, which is the measured pooling quirk — now structural in the effect rather than
@@ -51,22 +51,22 @@ tier: mastery
 # ability B runs only when the stamp is absent. SET_VAR writes straight through to the var store, so B reads
 # what A just wrote inside the same activation (the pets/feign-death.yml idiom). Disjoint branches keep it to
 # ONE coin flip per strike rather than two independent rolls.
-# Branch A carries `IGNORE_ARMOR` beside its 10 %-of-max bite because the decomposition records it, but the
-# flag is INERT on an IMPACT walk — only the combat dispatcher reads it, and this is not a folded combat event
-# — so the bite lands ARMOUR-REDUCED where the jar's was a raw health write. The row stays so that an IMPACT
-# dispatch honouring the flag costs no edit; recorded in deferred-content.md, shared with demonic-gateway.
+# Branch A carries `IGNORE_ARMOR` beside its 10 %-of-max bite, as the decomposition records, and the flag is
+# LIVE on an IMPACT walk: the payload has no folded combat event to hand it to, so it rides the attributed
+# hurt the bite fires and the dispatcher zeroes that event's armour + protection modifiers — the same two the
+# folded path zeroes. The bite lands at the recorded 10 % of max against any armour, which is what the jar's
+# raw health write did.
 # Branch B takes `ceil(2.5 % of max
 # durability)` off the FIRST worn piece, which `getArmorContents()` order makes the boots — authored as
 # `select: slot:boots` so the measured order is explicit rather than emergent. The decay is level-independent.
 # `§c§l* DECAYED [§7- {durability} Durability§c§l] *` is NOT authored: `{durability}` is the number of points
 # actually taken, no fact reports a piece's max durability and nothing binds the token, and this pack does not
 # ship unbound `{token}` lines (R-QC2). Recorded in deferred-content.md; the sound still marks the branch.
-# IMPACT SCOPING (ADR-0074 §4) collides with the rest of the family, and this file is one of the three that
-# makes tombstone.yml's warning LIVE: the filter matches on the authored `group:` and every mastery's is the
-# family word `mastery`, so a corpse's strike also runs Tombstone's and Demonic Gateway's IMPACT abilities on
-# the same victim. Narrowing `group:` here would cut this enchant out of the Dragon Slayer and Rift mastery
-# negations, which key the same interned string. R-QC40 is the approved fix (a per-ABILITY `group:` override);
-# until it lands the cross-fire is recorded, not worked around.
+# IMPACT SCOPING (ADR-0074 §4, amended) is declared per ability: all three blocks carry
+# `group: "rot-and-decay"`, so a corpse's strike runs this file's two branches and NOT Tombstone's or Demonic
+# Gateway's. R-QC40 built the per-ABILITY override for exactly this collision. The ROOT `group: "mastery"`
+# above is untouched and stays the suppression match key, so the Dragon Slayer and Rift mastery negations
+# still catch every rung here.
 # ── STRINGS ────────────────────────────────────────────────────────────────────────────────────────────────
 # `§2§l{OWNER}'s Rotting Corpse` on the nameplate; `§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *` on
 # each field pulse (both tokens are STACKING_DOT's own); `§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *` on
@@ -87,6 +87,7 @@ levels:
   1:
     abilities:
       - chance: 6
+        group: "rot-and-decay"
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SUMMON_PURGE: { radius: 15, filter: "not-own-or-ally-or-offline", particle: "LARGE_SMOKE", particle-count: 10, particle-spread: 0.3, extra-particle: "SPELL_WITCH", extra-particle-count: 12, who: "@Self" } }
@@ -95,6 +96,7 @@ levels:
           - { STACKING_DOT: { step: 2, period: 10, cap: 1, stack-ttl: 60, lead-in: 20, duration: 20, message: "§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *", who: "@Aoe{r=3, filter=ENEMIES}" } }
       # The corpse's strike, branch A — the coin flip and the armour-bypassing bite.
       - trigger: IMPACT
+        group: "rot-and-decay"
         chance: 50
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -104,6 +106,7 @@ levels:
           - { MESSAGE: { text: "§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *", who: "@Victim", tokens: { damage: "%victim.maxhealth% * 0.1" } } }
       # Branch B — the other half of the same flip, never both.
       - trigger: IMPACT
+        group: "rot-and-decay"
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %rot.branch% != 1"
         effects:
@@ -112,6 +115,7 @@ levels:
   2:
     abilities:
       - chance: 7
+        group: "rot-and-decay"
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SUMMON_PURGE: { radius: 15, filter: "not-own-or-ally-or-offline", particle: "LARGE_SMOKE", particle-count: 10, particle-spread: 0.3, extra-particle: "SPELL_WITCH", extra-particle-count: 12, who: "@Self" } }
@@ -120,6 +124,7 @@ levels:
           - { STACKING_DOT: { step: 2, period: 10, cap: 2, stack-ttl: 60, lead-in: 20, duration: 40, message: "§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *", who: "@Aoe{r=3, filter=ENEMIES}" } }
       # The corpse's strike, branch A — the coin flip and the armour-bypassing bite.
       - trigger: IMPACT
+        group: "rot-and-decay"
         chance: 50
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -129,6 +134,7 @@ levels:
           - { MESSAGE: { text: "§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *", who: "@Victim", tokens: { damage: "%victim.maxhealth% * 0.1" } } }
       # Branch B — the other half of the same flip, never both.
       - trigger: IMPACT
+        group: "rot-and-decay"
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %rot.branch% != 1"
         effects:
@@ -137,6 +143,7 @@ levels:
   3:
     abilities:
       - chance: 8
+        group: "rot-and-decay"
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SUMMON_PURGE: { radius: 15, filter: "not-own-or-ally-or-offline", particle: "LARGE_SMOKE", particle-count: 10, particle-spread: 0.3, extra-particle: "SPELL_WITCH", extra-particle-count: 12, who: "@Self" } }
@@ -145,6 +152,7 @@ levels:
           - { STACKING_DOT: { step: 2, period: 10, cap: 3, stack-ttl: 60, lead-in: 20, duration: 60, message: "§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *", who: "@Aoe{r=4, filter=ENEMIES}" } }
       # The corpse's strike, branch A — the coin flip and the armour-bypassing bite.
       - trigger: IMPACT
+        group: "rot-and-decay"
         chance: 50
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -154,6 +162,7 @@ levels:
           - { MESSAGE: { text: "§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *", who: "@Victim", tokens: { damage: "%victim.maxhealth% * 0.1" } } }
       # Branch B — the other half of the same flip, never both.
       - trigger: IMPACT
+        group: "rot-and-decay"
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %rot.branch% != 1"
         effects:
@@ -162,6 +171,7 @@ levels:
   4:
     abilities:
       - chance: 9
+        group: "rot-and-decay"
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SUMMON_PURGE: { radius: 15, filter: "not-own-or-ally-or-offline", particle: "LARGE_SMOKE", particle-count: 10, particle-spread: 0.3, extra-particle: "SPELL_WITCH", extra-particle-count: 12, who: "@Self" } }
@@ -170,6 +180,7 @@ levels:
           - { STACKING_DOT: { step: 2, period: 10, cap: 4, stack-ttl: 60, lead-in: 20, duration: 80, message: "§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *", who: "@Aoe{r=4, filter=ENEMIES}" } }
       # The corpse's strike, branch A — the coin flip and the armour-bypassing bite.
       - trigger: IMPACT
+        group: "rot-and-decay"
         chance: 50
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -179,6 +190,7 @@ levels:
           - { MESSAGE: { text: "§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *", who: "@Victim", tokens: { damage: "%victim.maxhealth% * 0.1" } } }
       # Branch B — the other half of the same flip, never both.
       - trigger: IMPACT
+        group: "rot-and-decay"
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %rot.branch% != 1"
         effects:
@@ -187,6 +199,7 @@ levels:
   5:
     abilities:
       - chance: 10
+        group: "rot-and-decay"
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SUMMON_PURGE: { radius: 15, filter: "not-own-or-ally-or-offline", particle: "LARGE_SMOKE", particle-count: 10, particle-spread: 0.3, extra-particle: "SPELL_WITCH", extra-particle-count: 12, who: "@Self" } }
@@ -195,6 +208,7 @@ levels:
           - { STACKING_DOT: { step: 2, period: 10, cap: 5, stack-ttl: 60, lead-in: 20, duration: 100, message: "§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *", who: "@Aoe{r=4, filter=ENEMIES}" } }
       # The corpse's strike, branch A — the coin flip and the armour-bypassing bite.
       - trigger: IMPACT
+        group: "rot-and-decay"
         chance: 50
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -204,6 +218,7 @@ levels:
           - { MESSAGE: { text: "§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *", who: "@Victim", tokens: { damage: "%victim.maxhealth% * 0.1" } } }
       # Branch B — the other half of the same flip, never both.
       - trigger: IMPACT
+        group: "rot-and-decay"
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %rot.branch% != 1"
         effects:
@@ -212,6 +227,7 @@ levels:
   6:
     abilities:
       - chance: 11
+        group: "rot-and-decay"
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SUMMON_PURGE: { radius: 15, filter: "not-own-or-ally-or-offline", particle: "LARGE_SMOKE", particle-count: 10, particle-spread: 0.3, extra-particle: "SPELL_WITCH", extra-particle-count: 12, who: "@Self" } }
@@ -220,6 +236,7 @@ levels:
           - { STACKING_DOT: { step: 2, period: 10, cap: 6, stack-ttl: 60, lead-in: 20, duration: 120, message: "§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *", who: "@Aoe{r=5, filter=ENEMIES}" } }
       # The corpse's strike, branch A — the coin flip and the armour-bypassing bite.
       - trigger: IMPACT
+        group: "rot-and-decay"
         chance: 50
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -229,6 +246,7 @@ levels:
           - { MESSAGE: { text: "§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *", who: "@Victim", tokens: { damage: "%victim.maxhealth% * 0.1" } } }
       # Branch B — the other half of the same flip, never both.
       - trigger: IMPACT
+        group: "rot-and-decay"
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %rot.branch% != 1"
         effects:
@@ -237,6 +255,7 @@ levels:
   7:
     abilities:
       - chance: 12
+        group: "rot-and-decay"
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SUMMON_PURGE: { radius: 15, filter: "not-own-or-ally-or-offline", particle: "LARGE_SMOKE", particle-count: 10, particle-spread: 0.3, extra-particle: "SPELL_WITCH", extra-particle-count: 12, who: "@Self" } }
@@ -245,6 +264,7 @@ levels:
           - { STACKING_DOT: { step: 2, period: 10, cap: 6, stack-ttl: 60, lead-in: 20, duration: 140, message: "§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *", who: "@Aoe{r=5, filter=ENEMIES}" } }
       # The corpse's strike, branch A — the coin flip and the armour-bypassing bite.
       - trigger: IMPACT
+        group: "rot-and-decay"
         chance: 50
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -254,6 +274,7 @@ levels:
           - { MESSAGE: { text: "§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *", who: "@Victim", tokens: { damage: "%victim.maxhealth% * 0.1" } } }
       # Branch B — the other half of the same flip, never both.
       - trigger: IMPACT
+        group: "rot-and-decay"
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %rot.branch% != 1"
         effects:
@@ -262,6 +283,7 @@ levels:
   8:
     abilities:
       - chance: 13
+        group: "rot-and-decay"
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SUMMON_PURGE: { radius: 15, filter: "not-own-or-ally-or-offline", particle: "LARGE_SMOKE", particle-count: 10, particle-spread: 0.3, extra-particle: "SPELL_WITCH", extra-particle-count: 12, who: "@Self" } }
@@ -270,6 +292,7 @@ levels:
           - { STACKING_DOT: { step: 2, period: 10, cap: 6, stack-ttl: 60, lead-in: 20, duration: 160, message: "§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *", who: "@Aoe{r=5, filter=ENEMIES}" } }
       # The corpse's strike, branch A — the coin flip and the armour-bypassing bite.
       - trigger: IMPACT
+        group: "rot-and-decay"
         chance: 50
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -279,6 +302,7 @@ levels:
           - { MESSAGE: { text: "§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *", who: "@Victim", tokens: { damage: "%victim.maxhealth% * 0.1" } } }
       # Branch B — the other half of the same flip, never both.
       - trigger: IMPACT
+        group: "rot-and-decay"
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %rot.branch% != 1"
         effects:
@@ -287,6 +311,7 @@ levels:
   9:
     abilities:
       - chance: 14
+        group: "rot-and-decay"
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SUMMON_PURGE: { radius: 15, filter: "not-own-or-ally-or-offline", particle: "LARGE_SMOKE", particle-count: 10, particle-spread: 0.3, extra-particle: "SPELL_WITCH", extra-particle-count: 12, who: "@Self" } }
@@ -295,6 +320,7 @@ levels:
           - { STACKING_DOT: { step: 2, period: 10, cap: 6, stack-ttl: 60, lead-in: 20, duration: 180, message: "§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *", who: "@Aoe{r=6, filter=ENEMIES}" } }
       # The corpse's strike, branch A — the coin flip and the armour-bypassing bite.
       - trigger: IMPACT
+        group: "rot-and-decay"
         chance: 50
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -304,6 +330,7 @@ levels:
           - { MESSAGE: { text: "§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *", who: "@Victim", tokens: { damage: "%victim.maxhealth% * 0.1" } } }
       # Branch B — the other half of the same flip, never both.
       - trigger: IMPACT
+        group: "rot-and-decay"
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %rot.branch% != 1"
         effects:
@@ -312,6 +339,7 @@ levels:
   10:
     abilities:
       - chance: 15
+        group: "rot-and-decay"
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SUMMON_PURGE: { radius: 15, filter: "not-own-or-ally-or-offline", particle: "LARGE_SMOKE", particle-count: 10, particle-spread: 0.3, extra-particle: "SPELL_WITCH", extra-particle-count: 12, who: "@Self" } }
@@ -320,6 +348,7 @@ levels:
           - { STACKING_DOT: { step: 2, period: 10, cap: 6, stack-ttl: 60, lead-in: 20, duration: 200, message: "§c§l* DECAYING [§7-{damage}HP ({stacks} stacks)§c§l] *", who: "@Aoe{r=6, filter=ENEMIES}" } }
       # The corpse's strike, branch A — the coin flip and the armour-bypassing bite.
       - trigger: IMPACT
+        group: "rot-and-decay"
         chance: 50
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -329,6 +358,7 @@ levels:
           - { MESSAGE: { text: "§c§l* ROTTED [§7-{damage}HP ({ATTACKER})§c§l] *", who: "@Victim", tokens: { damage: "%victim.maxhealth% * 0.1" } } }
       # Branch B — the other half of the same flip, never both.
       - trigger: IMPACT
+        group: "rot-and-decay"
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %rot.branch% != 1"
         effects:
