@@ -590,10 +590,11 @@ public final class BootCore {
                 return state == null ? 0 : state.crystalCount(key);
             }
         });
-        // %actor.ownedground% off the per-boot temp-block ledger: the fact layer holds no sink env, and the
-        // ledger is the only place a placement's claimant is recorded (wave 2d.2's owner concept).
-        engine.run.FactPopulator.groundOwnership((owner, world, x, y, z) ->
-                owner != null && owner.equals(sinkEnv.tempBlocks().ownerAt(world, x, y, z)));
+        // %actor.ownedground% off the per-boot field registries: the fact layer holds no sink env, and those
+        // two are the only places a claimant is recorded — a placed temp block (wave 2d.2's owner concept) or
+        // a packet-only PHANTOM_BLOCKS patch. Composed by the env so this and STACKING_DOT's per-pulse test
+        // can never read ownership differently.
+        engine.run.FactPopulator.groundOwnership(sinkEnv.groundOwnership());
         // %victim.mobtype% from MythicMobs' internal name,
         engine.run.FactPopulator.entityTypeResolver(
                 bindings.mythicMobType(plugin, master.config().integrations()::enabled));

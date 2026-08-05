@@ -23,6 +23,11 @@ import schema.spec.D;
  * <p>The revert re-sends what the ground REALLY holds when the window closes, not an arm-time snapshot, so a
  * block mined during the overlay converges to truth rather than being stranded as a ghost. A client that
  * relogs is served the true chunk by the server, which is why there is no rejoin hook here.
+ *
+ * <p>Placing nothing does not mean claiming nothing: the patch is registered with {@code PhantomFields} for the
+ * window, so {@code OWNED_GROUND} answers for it exactly as it does for a placed floor. Without that a field
+ * had a look and no claimant, and the ramping {@code STACKING_DOT} half of the one enchant that lays one never
+ * found anybody standing in it.
  */
 public final class PhantomBlocksEffect implements EffectKind {
 
@@ -43,7 +48,8 @@ public final class PhantomBlocksEffect implements EffectKind {
                     + "below are skipped. NOTHING is written to the world: the patch blocks no movement, breaks "
                     + "nothing and survives no reload, and the window's close re-sends the ground as it really "
                     + "is then (so a block mined meanwhile is not stranded). A viewer who relogs is served the "
-                    + "true chunk by the server.")
+                    + "true chunk by the server. The patch IS the actor's owned ground for the window, so "
+                    + "%actor.ownedground% and a STACKING_DOT laid over it both see who is standing in it.")
             .example("{ PHANTOM_BLOCKS: { radius: 4, material-ally: GLOWSTONE, material-enemy: END_STONE, "
                     + "duration: 100, who: \"@Self\" } }")
             .build();
