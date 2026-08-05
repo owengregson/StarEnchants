@@ -525,3 +525,19 @@ and `/se pack apply <name>` to swap one in transactionally. Two packs ship in th
 `signature-pack`, and `cosmic-pack` — the classic Cosmic experience, ported number-exact — which you
 apply with `/se pack apply cosmic-pack`. Applying replaces the whole surface above, backing up your
 current one first. See the [commands](../commands/index.mdx) page.
+
+:::caution Two things to know before you apply a pack
+
+**`signature-pack` is modern-only.** Its `pack.yml` declares `min-server: "1.17.1"`. On the 1.8.9
+build, `/se pack apply signature-pack` is refused with one clear message instead of a wall of
+unknown-sound errors, and a server that boots with it already applied logs the same message. The
+bundled defaults and `cosmic-pack` are legacy-capable and run on the whole supported range, 1.8.9
+included.
+
+**`cosmic-pack` does not carry every item yet.** It ships `content/` in full plus four item
+likenesses (crystal, heroic, mask, pet). Applying it therefore leaves 18 item likenesses and all
+menus at the engine defaults — nothing breaks, but those items still look like stock StarEnchants
+rather than the ported originals. Those identities are being decomposed from source and land as
+their own batch; none of them is guessed at.
+
+:::

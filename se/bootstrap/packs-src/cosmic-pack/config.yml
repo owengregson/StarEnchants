@@ -3,6 +3,15 @@
 # Every value here is the engine default: the cosmic port tunes a knob only when the batch that needs it
 # lands (combat ceilings with the damage families, set cues with the sets batch, …).
 #
+# WHAT THIS PACK DOES NOT CARRY YET (R-QC12). The pack ships content/ in full plus four item likenesses
+# (crystal, heroic, mask, pet). Applying it therefore leaves 18 item likenesses and ALL menus at the engine
+# defaults — they are not overwritten, and nothing breaks, but they still look like stock StarEnchants rather
+# than the ported originals. The missing identities are being decomposed from source in
+# docs/dev/cosmic-port/matrix/13-support-items.md and land as their own batch; none of them is invented here.
+#
+# Era: cosmic-pack is legacy-capable — it applies on the whole supported range, 1.8.9 included (its sound and
+# particle tokens are gated on every era by the handle-era tests). The signature pack is modern-only.
+#
 # This file holds the CROSS-CUTTING knobs: ceilings and switches that are not a single item's "physical
 # likeness" (those live in items/*.yml) and not player-facing text (that lives in lang.yml). Edit here, then
 # run /se reload — the master config, items/, menus/, lang.yml and content/ all reload together in one
@@ -105,8 +114,9 @@ sets:
   equip-particle:   { particle: REDSTONE, count: 20, spread: 1.25, y-offset: 1.0 }
   unequip-particle: { particle: REDSTONE, count: 20, color: { r: 170, g: 170, b: 170 }, spread: 1.25, y-offset: 1.0 }
 
-# Enchant books (§I). The book likeness (name/lore/material/destroy-on-fail) lives in items/enchant-book.yml;
-# its {DESCRIPTION} wraps at the universal lore.item-wrap. Only this global success ceiling is cross-cutting.
+# Enchant books (§I). The book likeness (name/lore/material/destroy-on-fail) is the ENGINE DEFAULT here — this
+# pack ships no items/enchant-book.yml (matrix/13-support-items.md). Its {DESCRIPTION} wraps at the universal
+# lore.item-wrap. Only this global success ceiling is cross-cutting.
 books:
   # Global maximum success rate (%) a book may reach via RANDOMISED minting (unopened book / randomizer
   # scroll), the black scroll's conversion roll, or Magic Dust. A dust that would push a book past this snaps
@@ -129,8 +139,9 @@ apply-cues:
     particles:
       - SMOKE_NORMAL
 
-# Enchant slots (§H). The hard cap on TOTAL slots (base + purchased) lives in the expander's own config
-# (items/slots.yml -> hard-cap), per §H; only the base every item starts with is cross-cutting.
+# Enchant slots (§H). The hard cap on TOTAL slots (base + purchased) lives in the expander's own likeness
+# (slots -> hard-cap), which stays at the ENGINE DEFAULT — this pack ships no items/slots.yml
+# (matrix/13-support-items.md). Only the base every item starts with is cross-cutting.
 slots:
   base: 9
   # The gear lore line shown once a slot-expander orb has ADDED slots (rendered below the enchant/set lines,
@@ -138,7 +149,8 @@ slots:
   lore-line: "&a&l{TOTAL} Enchantment Slots &r&7(Orb [&a+{ADDED}&7])"
 
 # Souls (§D). The full soul economy — per-kill amount, per-mob overrides, colour tiers, sounds, particles,
-# messages — is the gem's likeness in items/soul-gem.yml. Only the master deposit switch lives here.
+# messages — is the gem's likeness, which stays at the ENGINE DEFAULT: this pack ships no items/soul-gem.yml
+# (matrix/13-support-items.md). Only the master deposit switch lives here.
 souls:
   # Whether souls deposit into a carried gem on ANY kill. false disables the deposit-on-kill mechanic entirely
   # (the give/combine/split commands and soul-cost spending still work).
@@ -217,8 +229,9 @@ masks:
 
 # Weapon Reforges (ADR-0070). A reforge drag-applies onto a WEAPON (one socket per weapon — the ONLY knob
 # here decides what counts as a weapon) and its signature ability fires on SHIFT + Right Click while that
-# weapon is held. The reforge ITEM's likeness lives in items/reforge.yml; each reforge's identity + ability
-# in content/reforges/<key>.yml. Removal is the Item Extractor (items/crystal.yml `extractor:`). weapon-groups
+# weapon is held. The reforge ITEM's likeness stays at the ENGINE DEFAULT — this pack ships neither
+# items/reforge.yml nor a content/reforges/ tree (the cosmic corpus has no reforge family; see
+# matrix/13-support-items.md). Removal is the Item Extractor (items/crystal.yml `extractor:`). weapon-groups
 # takes ItemGroups tokens (SWORD, AXE, TRIDENT, MACE, or the WEAPON composite); a token's materials that don't
 # exist on this server version are simply skipped. Read live on /se reload.
 reforges:
