@@ -120,7 +120,7 @@ fields. **Bar:** BOW fires at hit-entity; nothing observes ground impact.
 | `FLY` + `speed` | `FLY_SPEED_PARAM` (06) | Rocket Escape flight |
 | `MODIFY_FOOD` + `mode=scale-gain` (EAT events) and `mode=cancel-drain` (armed flag) | `FOOD_GAIN_SCALE` (02), `FOOD_DRAIN_CANCEL` (06) | hunger amplifiers, sustain wearables |
 | `GUARD`/`SPAWN_ENTITY` param unification: `health`, `effects`, `name`, `speed` on both | `GUARD_STAT_PARAMS` (01), `SUMMON_STYLE` (07) | Guardians, Spirits, named styled summons |
-| `SUPPRESS`/`MARK` + consume-time feedback (actor/victim messages, sound) | `MARK_CONSUME_FEEDBACK` (05), `SUPPRESS_CONSUME_CUE` (11) | Unfocus spam (measured), death-knight, zeus |
+| `SUPPRESS`/`MARK` + consume-time feedback (actor/victim messages, sound) | `MARK_CONSUME_FEEDBACK` (05), `SUPPRESS_CONSUME_CUE` (11) | Unfocus spam (measured), death-knight, zeus. **R-QC41** builds the SUPPRESS half (`consumed-message-*`) and the one-shot-charge feedback records; the plain-`MARK` half is **dropped, ratified R-QC24** |
 | `TEMP_BLOCK` + `fill-chance` (per-column %) and a revert hook carrying an effect list | `TEMP_BLOCK_FILL_CHANCE`, `TEMP_BLOCK_REVERT_HOOK` (05) | web fields (05), floor fields (07) |
 | `TEMP_BLOCK` FOOTPRINT radius cap 4 → 5 | `TEMP_BLOCK_EXTENT` (07) | Permafrost L3+ (config cap bump; no semantics) |
 
@@ -260,8 +260,9 @@ unaffected and remains available).
 ## Provisional / dropped
 
 - `LETHAL_CANCEL` (07) — chain-kill cancels the source hit. Single consumer,
-  author-flagged as a drop candidate; **provisional**: the doc 07 batch decides,
-  and dropping it takes a deviation-ledger row (felt-unit review).
+  author-flagged as a drop candidate. **DROPPED; ratified by owner ruling
+  R-QC23** (`qc-rulings.md § Permanent rejections`). The deviation-ledger row is
+  `D-07-16`, which cites R-QC23 as its authority — do not re-propose.
 
 ## Self-review against the §4 bar
 
