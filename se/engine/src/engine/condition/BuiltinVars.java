@@ -139,6 +139,14 @@ public final class BuiltinVars {
                 // The victim reading needs no fact — STATUS_CLEAR on a target is already idempotent
                 // (FrozenTargets.breakNow answers false when there is nothing to thaw).
                 .flag("status.freeze")
+                // Wave 3a fact (R-QC2) — appended (slots are append-only per §3.4). The soul price gate 10
+                // resolved for THIS activation, escalation included, published from inside the gate walk rather
+                // than by the populator: the escalated rung lives only in the per-player ladder, and the
+                // populator runs long before the gate that prices it. 0 on every soul-free ability. Pairs with
+                // %actor.souls% (the PRE-debit balance) so "you have N left" is authorable as their difference.
+                // An EFFECT-side fact only: gates 7 and 8 run BEFORE gate 10, so a condition or chance
+                // expression reading it would see the previous ability's price, never its own.
+                .number("soulcost")
                 .build();
     }
 }

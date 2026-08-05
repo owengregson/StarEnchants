@@ -8,6 +8,7 @@ import compile.model.Ability;
 import compile.model.CompiledCondition;
 import compile.model.cond.Cond;
 import compile.model.cond.NumExpr;
+import engine.condition.BuiltinVars;
 import engine.condition.FactBuffer;
 import engine.interact.SoulSpender;
 import engine.interact.SuppressionSet;
@@ -382,6 +383,29 @@ class ActivationPipelineTest {
         assertEquals(0, p.soulCostWaived(a.build(), atExpiry), "half-open: the expiry tick is already free");
         assertEquals(GateOutcome.ACTIVATED, p.evaluate(a.build(), atExpiry));
         assertEquals(0, spender.balance, "past the window the cost is charged for real");
+    }
+
+    @Test
+    void gateTenPublishesTheEscalatedPriceAsSoulcostAndResetsItForASoulFreeAbility() {
+        // R-QC2: %soulcost% is the one fact written from INSIDE the gate walk, because the escalated rung only
+        // exists once gate 10 prices it. One buffer serves every ability in the pass, so a soul-free ability
+        // that skipped the write would print the previous ability's price.
+        int slot = BuiltinVars.vocabulary().lookup(null, "soulcost").orElseThrow().slot();
+        FactBuffer facts = BuiltinVars.vocabulary().newFactBuffer();
+        Ab a = new Ab();
+        a.soulCost = 4;
+        a.soulCostGrowth = 2.0;
+        spender.balance = 100;
+
+        assertEquals(GateOutcome.ACTIVATED,
+                pipeline.evaluate(a.build(), act().facts(facts).soulMode(ACTOR).build()));
+        assertEquals(4.0, facts.number(slot), "the first proc is priced at the authored base");
+        assertEquals(GateOutcome.ACTIVATED,
+                pipeline.evaluate(a.build(), act().facts(facts).soulMode(ACTOR).build()));
+        assertEquals(8.0, facts.number(slot), "the second reads the ESCALATED price, not the authored base");
+
+        assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(new Ab().build(), act().facts(facts).build()));
+        assertEquals(0.0, facts.number(slot), "a soul-free ability in the same walk reads 0, not the last price");
     }
 
     @Test

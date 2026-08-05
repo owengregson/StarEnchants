@@ -725,6 +725,7 @@ var projectilekind STR
 var ragestacks NUM
 var recentattackers NUM
 var sneaking BOOL
+var soulcost NUM
 var sprinting BOOL
 var status.freeze BOOL
 var status.teleblock BOOL

@@ -1795,6 +1795,7 @@ The `%scope.name%` facts a condition (or a `MESSAGE`/`SET_VAR`) can read.
 | `%ragestacks%` | NUM |
 | `%recentattackers%` | NUM |
 | `%sneaking%` | BOOL |
+| `%soulcost%` | NUM |
 | `%sprinting%` | BOOL |
 | `%status.freeze%` | BOOL |
 | `%status.teleblock%` | BOOL |
