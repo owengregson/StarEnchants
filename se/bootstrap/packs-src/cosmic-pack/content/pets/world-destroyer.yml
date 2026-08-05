@@ -15,6 +15,7 @@
 # grant, remainder banked, unbounded banking at the cap); the ladder is this pet's own `exp-curve` +
 # `max-level`. The jar's always-empty/overflowing 50-segment EXP bar is D-12-2 — the engine renders a
 # proportional bar clamped at full.
+# FAMILY-WIDE, AUTHORED ONCE FOR THE FOLDER: items/pet.yml + config.yml — full reading in anti-teleblock.yml.
 # ── THIS PET ───────────────────────────────────────────────────────────────────────────────────────────────
 # Buries every enemy player around you in a 3×3 obsidian cage and rots them inside it — the rot ships, the
 # cage is stopped (below). NOTHING scales with pet level: level is purely cosmetic here, which is why one

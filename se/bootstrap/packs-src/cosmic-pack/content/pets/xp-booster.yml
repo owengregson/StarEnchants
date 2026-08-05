@@ -1,9 +1,9 @@
 # Matrix: 12-pets.md § XP Booster Pet
 # THE PET FAMILY SHAPE (12-pets.md § Family-level facts) — the full reading lives in `anti-teleblock.yml` and
 # is not repeated: ACTIVE pet = right-click = the implicit USE trigger (ledger D-12-1, the jar had no action
-# filter); the jar's 1 Hz hotbar ticker is a no-op, so nothing passive is ported; the shared spectator guard,
-# the verbatim XP-gain / level-up lines and the family-wide `items/pet.yml` + `config.yml` likeness authored
-# once for the folder are all recorded there.
+# filter); the jar's 1 Hz hotbar ticker is a no-op, so nothing passive is ported; the shared spectator guard
+# and the verbatim XP-gain / level-up lines are all recorded there.
+# FAMILY-WIDE, AUTHORED ONCE FOR THE FOLDER: items/pet.yml + config.yml — full reading in anti-teleblock.yml.
 # COOLDOWN: measured 0 s everywhere (§A.6's inverted arithmetic — the on-cooldown branch is dead code); this
 # file ships the AS-INTENDED 3600 s = 72 000 t, flat at every level (ledger D-12-15).
 # TWO ABILITIES, ONE PET. The right-click ARMS the buff; a second, non-USE ability on `EXP_GAIN` is what

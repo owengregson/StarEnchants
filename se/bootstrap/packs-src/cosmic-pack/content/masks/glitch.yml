@@ -15,11 +15,11 @@
 display: "Glitch Mask"
 color: "§f"
 # `display` carries the FULL matrix name and the likeness renders `{COLOR}&l{NAME}` — the cosmic family's
-# names are irregular (Santa, Reindeer, Party Hat, Death Knight and Multi-Mask carry no " Mask" suffix), so a
-# suffixing template cannot spell the family and the whole name lives in the def. Together with `color` this
-# reproduces `§f§lGlitch Mask` exactly. The shared trailing lore block and the ATTACHED stamp are
-# likeness-level and are not repeated here (family preamble); the ability line the stamp showed is lore line 1
-# verbatim on this entry, so nothing diverges.
+# names are irregular (Party Hat, Death Knight, Santa, Reindeer, Pumpkin Monster and Multi-Mask carry no
+# " Mask" suffix), so a suffixing template cannot spell the family and the whole name lives in the def.
+# Together with `color` this reproduces `§f§lGlitch Mask` exactly. The shared trailing lore block and the
+# ATTACHED stamp are likeness-level and are not repeated here (family preamble); the ability line the stamp
+# showed is lore line 1 verbatim on this entry, so nothing diverges.
 # HEAD TEXTURE: the matrix decomposition carries no base64, and the entry's texture is codex-recorded as the
 # hash `92647ca5...fdbd5fbc` (profile MysteryMerchant, model `slim`, timestamp 1552487402991). Re-encoded here
 # into the standard profile blob the pack uses everywhere — the Rift entry's "the port uses a valid re-encoded

@@ -8,8 +8,9 @@
 display: "Dungeon Mask"
 color: "§6"
 # `display` carries the FULL matrix name and the likeness renders `{COLOR}&l{NAME}` (the cosmic family's names
-# are irregular — Santa, Party Hat and Multi-Mask carry no " Mask" suffix — so the whole name lives in the
-# def), reproducing `§6§lDungeon Mask`. The shared trailing lore block is likeness-level (family preamble);
+# are irregular — Party Hat, Death Knight, Santa, Reindeer, Pumpkin Monster and Multi-Mask carry no " Mask"
+# suffix — so the whole name lives in the def), reproducing `§6§lDungeon Mask`. The shared trailing lore block
+# is likeness-level (family preamble);
 # the ATTACHED stamp's ability text is lore line 1 verbatim on this entry, so nothing diverges (unlike Joker).
 # HEAD TEXTURE: not carried by the matrix decomposition; the codex records the texture hash
 # `7eda3643...48710d1b` (profile `BasicBAE`, timestamp 1559834347205), re-encoded here into the pack's

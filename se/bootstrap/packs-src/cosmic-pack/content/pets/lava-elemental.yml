@@ -2,8 +2,8 @@
 # THE PET FAMILY SHAPE (12-pets.md § Family-level facts) is read once in `anti-teleblock.yml` and not repeated
 # here: ACTIVE pet = right-click = the implicit USE trigger (D-12-1), nothing passive is ported, the
 # as-intended cooldown ships as the bracket `cooldown:` (§A.6's inverted arithmetic meant no jar pet cooldown
-# ever blocked), progression is this pet's own `exp-curve` + `max-level` through ITEM_XP_TRACK, and the
-# `items/pet.yml` + `config.yml` likeness is authored once for the folder.
+# ever blocked), and progression is this pet's own `exp-curve` + `max-level` through ITEM_XP_TRACK.
+# FAMILY-WIDE, AUTHORED ONCE FOR THE FOLDER: items/pet.yml + config.yml — full reading in anti-teleblock.yml.
 # COOLDOWN: 6000 t = the as-intended 300 s, flat at every level (ledger D-12-3).
 # FOUR ABILITIES PER BRACKET, and the order is load-bearing. INVENTORY_CONVERT settles its count INLINE
 # (before any inventory write is scheduled) and SET_VAR writes straight through, so the payload at index 0 can

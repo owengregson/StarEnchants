@@ -41,12 +41,11 @@ removes-required: true
 # still owed are the consumer's, recorded here so whoever writes it does not re-derive them:
 #  - the codex leaves the accumulator's semantics UNRESOLVED past the +12.5, so the weighting is an owner /
 #    matrix-10 ruling, not a translation;
-#  - the piece COUNT half is CLOSED (a rebase-time correction: at drain time only the victim-scope
-#    `%victim.heroicpieces%` existed, and this consumer counts the WEARER'S OWN pieces). `%actor.heroicpieces%`
-#    shipped in wave 2d on the same flattened-WornState read, and wave 2e's minted-heroic set pieces made
-#    both counts real. Both are UNWEIGHTED, where the recorded accumulator pays only for leather — but the
-#    three M-Kit sets whose pieces mint heroic are all LEATHER, precisely the case where weighted and
-#    unweighted agree; whether the weighting survives the port stays part of the same ruling.
+#  - the piece COUNT half is CLOSED. This consumer counts the WEARER'S OWN pieces, so it reads
+#    `%actor.heroicpieces%` (the same flattened-WornState read as the victim-scope twin), and minted-heroic
+#    set pieces make the count real. Both scopes are UNWEIGHTED, where the recorded accumulator pays only for
+#    leather — but the three M-Kit sets whose pieces mint heroic are all LEATHER, precisely the case where
+#    weighted and unweighted agree; whether the weighting survives the port stays part of the same ruling.
 # strings: none. era: none.
 levels:
   # The ladder exists so the marker carries a readable level — the stored value IS the level, and every

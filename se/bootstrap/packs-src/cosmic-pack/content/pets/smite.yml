@@ -14,6 +14,7 @@
 # grant, remainder banked, unbounded banking at the cap) and the two verbatim lines; the ladder is this pet's
 # own `exp-curve` + `max-level`. The jar's always-empty/overflowing 50-segment EXP bar is D-12-2 — the engine
 # renders a proportional bar clamped at full.
+# FAMILY-WIDE, AUTHORED ONCE FOR THE FOLDER: items/pet.yml + config.yml — full reading in anti-teleblock.yml.
 # ── THIS PET ───────────────────────────────────────────────────────────────────────────────────────────────
 # One real, damaging lightning strike (5.0 + fire, level-independent) on the entity you are looking at, plus a
 # short walk-lock when that entity is a player. Targeting: the jar took the block you are looking at within 8

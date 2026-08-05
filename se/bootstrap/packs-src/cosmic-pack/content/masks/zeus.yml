@@ -13,8 +13,9 @@
 display: "Zeus Mask"
 color: "§b"
 # `display` carries the FULL matrix name and the likeness renders `{COLOR}&l{NAME}` (the cosmic family's names
-# are irregular — Santa, Party Hat and Multi-Mask carry no " Mask" suffix — so the whole name lives in the
-# def), reproducing `§b§lZeus Mask`. The shared trailing lore block and the ATTACHED stamp are likeness-level
+# are irregular — Party Hat, Death Knight, Santa, Reindeer, Pumpkin Monster and Multi-Mask carry no " Mask"
+# suffix — so the whole name lives in the def), reproducing `§b§lZeus Mask`. The shared trailing lore block
+# and the ATTACHED stamp are likeness-level
 # (family preamble); the stamp's ability text is lore line 1 verbatim here, so nothing diverges.
 # HEAD TEXTURE: not carried by the matrix decomposition; the codex records the texture hash
 # `48cc4164...131d9e48` (profile `Merchant`, timestamp 1554889636538), re-encoded here into the pack's

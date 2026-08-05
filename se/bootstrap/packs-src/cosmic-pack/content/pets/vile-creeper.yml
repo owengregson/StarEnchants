@@ -14,6 +14,7 @@
 # grant, remainder banked, unbounded banking at the cap) and the two verbatim lines; the ladder is this pet's
 # own `exp-curve` + `max-level`. The jar's always-empty/overflowing 50-segment EXP bar is D-12-2 — the engine
 # renders a proportional bar clamped at full.
+# FAMILY-WIDE, AUTHORED ONCE FOR THE FOLDER: items/pet.yml + config.yml — full reading in anti-teleblock.yml.
 # ── THIS PET ───────────────────────────────────────────────────────────────────────────────────────────────
 # The Raid Creeper's twin, bracket for bracket: the same charged, invincible, damage-fused sentry (R-QC54 —
 # the signature-pack creeper shape, read there), the same two cues, the same XP grant, the same cooldown

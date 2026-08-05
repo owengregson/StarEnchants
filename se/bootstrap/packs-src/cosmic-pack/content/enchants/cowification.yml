@@ -18,12 +18,13 @@ tier: uncommon
 # unrolled particle, mirrored onto ATTACK per the corpus melee-mirror note) and the landing AoE.
 # POTION level is 1-based, so the recorded Nausea II is `level: 2` (confusion.yml ships the same reading).
 # Rider slot: ONE rider per shot, and a second PROJECTILE_DRESSING on the same shot replaces the first. The
-# jar's priority IS authored now (batch 06 drop-in): Explosive's wither skull wins, so the cow stands down
-# when the bow carries both. `%actor.enchlevel.explosive%` reads the SHOOTER's own worn map, which spans
-# armour plus the held hands, so the bow in their hand reports its Explosive level on the BOW_FIRE ability
-# below — the key is the file STEM, never the `enchants/explosive` stable key. One-directional, exactly like
-# the jar: Explosive makes no reciprocal check and needs none. Cosmetic either way, since a dressing rider is
-# scenery, but the dispatch order no longer decides it.
+# jar's stand-down priority is authored HERE, the only file that carries it: Explosive's wither skull wins, so
+# the cow stands down when the bow carries both. `%actor.enchlevel.explosive%` reads the SHOOTER's own worn
+# map, which spans armour plus the held hands, so the bow in their hand reports its Explosive level on the
+# BOW_FIRE ability below — the key is the file STEM, never the `enchants/explosive` stable key.
+# One-directional, exactly like the jar: Explosive makes no reciprocal check and needs none. Cosmetic either
+# way, since a dressing rider is scenery, but for THIS pairing the dispatch order no longer decides it
+# (`venom.yml` records why its own orb rider is left ungated).
 # Rider hit semantics: the jar cancelled + zeroed damage dealt TO the cow and played ENTITY_COW_HURT 1.0/0.7
 # to whoever struck it. The `invulnerable` window below is the cancel half; the striker cue has no expression
 # (rider lifecycle is engine-owned) — cosmetic, recorded here rather than ledgered.
