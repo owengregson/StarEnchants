@@ -16,10 +16,12 @@ import schema.spec.D;
 public final class ProjectileDressingEffect implements EffectKind {
 
     public static final EffectSpec SPEC = EffectSpec.of("PROJECTILE_DRESSING")
-            .param("type", D.entityType())
+            .param("type", D.entityType().optional(), "rider to seat on the shot; omit to dress the arrow only")
             .param("ttl", D.TICKS.def(200), "hard cap on the rider's life; the backstop when nothing reports a landing")
             .param("invulnerable", D.TICKS.def(200), "how long the rider ignores damage (0 = never)")
             .param("no-pickup", D.BOOL.def(true))
+            .param("fire-ticks", D.TICKS.def(0),
+                    "set the ARROW alight for this long (0 = as loosed); no rider needed")
             // AUTO_LOCK's affinity: run() only records a read-back. The rider's own spawn is a REGION op inside
             // the sink, so declaring REGION here would upgrade the whole ability and buy a hop for nothing.
             .affinity(Affinity.CONTEXT_LOCAL)
@@ -27,7 +29,10 @@ public final class ProjectileDressingEffect implements EffectKind {
                     + "is removed the moment the arrow lands, dies or unloads, and unconditionally after ttl "
                     + "ticks. invulnerable spares it from damage for that many ticks so its own flight cannot "
                     + "kill it; no-pickup stops it hoovering up items in mid-air. One rider per shot: a "
-                    + "second PROJECTILE_DRESSING on the same shot replaces the first. Inert outside a bow shot.")
+                    + "second PROJECTILE_DRESSING on the same shot replaces the first. fire-ticks lights "
+                    + "the ARROW itself, which nothing else can reach — IGNITE takes its targets from a "
+                    + "selector and no selector names a shot in flight — and needs no rider, so a flaming "
+                    + "arrow is this effect with type omitted. Inert outside a bow shot.")
             .example("{ PROJECTILE_DRESSING: { type: COW, ttl: 200, invulnerable: 200 } }")
             .build();
 
@@ -38,7 +43,8 @@ public final class ProjectileDressingEffect implements EffectKind {
 
     @Override
     public void run(EffectCtx ctx, Sink sink) {
-        sink.dressProjectile(ctx.integer("type"), ctx.integer("ttl"), ctx.integer("invulnerable"),
-                ctx.bool("no-pickup"));
+        int type = ctx.args().has("type") ? ctx.integer("type") : -1;
+        sink.dressProjectile(type, ctx.integer("ttl"), ctx.integer("invulnerable"),
+                ctx.bool("no-pickup"), ctx.integer("fire-ticks"));
     }
 }

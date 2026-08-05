@@ -35,6 +35,9 @@ public final class PeriodicDamageEffect implements EffectKind {
             .param("tick-pitch", D.DOUBLE.min(0).def(1))
             .param("tick-particle", D.particle().optional(), "burst spawned on the target every pulse; omit for none")
             .param("tick-particle-count", D.INT.min(0).def(1))
+            .param("tick-particle-2", D.particle().optional(),
+                    "a SECOND burst on the same pulse, for a cue built from two particle types")
+            .param("tick-particle-2-count", D.INT.min(0).def(1))
             .target("who", T.VICTIM)
             .affinity(Affinity.TARGET_ENTITY)
             .doc("Burn the target for amount raw half-hearts every period ticks over duration ticks, "
@@ -67,10 +70,13 @@ public final class PeriodicDamageEffect implements EffectKind {
         float tickPitch = tickSoundId < 0 ? 0f : (float) ctx.dbl("tick-pitch");
         int tickParticleId = ctx.args().has("tick-particle") ? ctx.integer("tick-particle") : -1;
         int tickParticleCount = tickParticleId < 0 ? 0 : ctx.integer("tick-particle-count");
+        int tickParticle2Id = ctx.args().has("tick-particle-2") ? ctx.integer("tick-particle-2") : -1;
+        int tickParticle2Count = tickParticle2Id < 0 ? 0 : ctx.integer("tick-particle-2-count");
         for (LivingEntity target : ctx.targets("who")) {
             // The activator attributes every pulse (ADR-0054), exactly as FREEZE's DoT does.
             sink.periodicDamage(target, amount, period, duration, replaced, feedback, ctx.actor(),
-                    tickSoundId, tickVolume, tickPitch, tickParticleId, tickParticleCount);
+                    tickSoundId, tickVolume, tickPitch, tickParticleId, tickParticleCount,
+                    tickParticle2Id, tickParticle2Count);
         }
     }
 }

@@ -325,9 +325,9 @@ class FanOutEffectTest {
                     // No tick-sound/tick-particle authored: the cue ids are the "none" sentinel and the
                     // volume/pitch/count are never read, so an unauthored burn stays byte-identical.
                     verify(sink).periodicDamage(a, 6.0, 20, 120, List.of(9), "burning", actor,
-                            -1, 0f, 0f, -1, 0);
+                            -1, 0f, 0f, -1, 0, -1, 0);
                     verify(sink).periodicDamage(b, 6.0, 20, 120, List.of(9), "burning", actor,
-                            -1, 0f, 0f, -1, 0);
+                            -1, 0f, 0f, -1, 0, -1, 0);
                     verifyNoMoreInteractions(sink);
                 }),
                 dynamicTest("PERIODIC_DAMAGE carries each authored tick cue to every target", () -> {
@@ -344,8 +344,25 @@ class FanOutEffectTest {
                             .targets("who", a, b);
                     Sink sink = mock(Sink.class);
                     new PeriodicDamageEffect().run(ctx, sink);
-                    verify(sink).periodicDamage(a, 3.0, 5, 60, List.of(), "", actor, 11, 0.6f, 0.8f, 4, 20);
-                    verify(sink).periodicDamage(b, 3.0, 5, 60, List.of(), "", actor, 11, 0.6f, 0.8f, 4, 20);
+                    verify(sink).periodicDamage(a, 3.0, 5, 60, List.of(), "", actor, 11, 0.6f, 0.8f, 4, 20, -1, 0);
+                    verify(sink).periodicDamage(b, 3.0, 5, 60, List.of(), "", actor, 11, 0.6f, 0.8f, 4, 20, -1, 0);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("PERIODIC_DAMAGE's SECOND particle slot is its own id and count, not a copy", () -> {
+                    // Distinct ids AND distinct counts: a slot that echoed the first would pass with equal ones.
+                    Player actor = mock(Player.class);
+                    LivingEntity a = mock(LivingEntity.class);
+                    LivingEntity b = mock(LivingEntity.class);
+                    FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
+                            .with("amount", 3.0).with("period", 5).with("duration", 60)
+                            .with("replace", List.of()).with("feedback", "")
+                            .with("tick-particle", 4).with("tick-particle-count", 20)
+                            .with("tick-particle-2", 7).with("tick-particle-2-count", 15)
+                            .targets("who", a, b);
+                    Sink sink = mock(Sink.class);
+                    new PeriodicDamageEffect().run(ctx, sink);
+                    verify(sink).periodicDamage(a, 3.0, 5, 60, List.of(), "", actor, -1, 0f, 0f, 4, 20, 7, 15);
+                    verify(sink).periodicDamage(b, 3.0, 5, 60, List.of(), "", actor, -1, 0f, 0f, 4, 20, 7, 15);
                     verifyNoMoreInteractions(sink);
                 }),
                 dynamicTest("DESPAWN removes mobs and NEVER a player in the same target list", () -> {
@@ -431,10 +448,21 @@ class FanOutEffectTest {
                         }),
                 dynamicTest("PROJECTILE_DRESSING → dressProjectile(type, ttl, invulnerable, no-pickup)", () -> {
                     FakeEffectCtx ctx = FakeEffectCtx.create()
-                            .with("type", 42).with("ttl", 150).with("invulnerable", 40).with("no-pickup", true);
+                            .with("type", 42).with("ttl", 150).with("invulnerable", 40).with("no-pickup", true)
+                            .with("fire-ticks", 0);
                     Sink sink = mock(Sink.class);
                     new ProjectileDressingEffect().run(ctx, sink);
-                    verify(sink).dressProjectile(42, 150, 40, true);
+                    verify(sink).dressProjectile(42, 150, 40, true, 0);
+                    verifyNoMoreInteractions(sink);
+                }),
+                dynamicTest("PROJECTILE_DRESSING with no type is a FIRE-only dressing (-1 = no rider)", () -> {
+                    // The flaming-arrow shape: nothing rides the shot, the shot itself burns.
+                    FakeEffectCtx ctx = FakeEffectCtx.create()
+                            .with("ttl", 150).with("invulnerable", 40).with("no-pickup", true)
+                            .with("fire-ticks", 2147483647);
+                    Sink sink = mock(Sink.class);
+                    new ProjectileDressingEffect().run(ctx, sink);
+                    verify(sink).dressProjectile(-1, 150, 40, true, 2147483647);
                     verifyNoMoreInteractions(sink);
                 }));
     }

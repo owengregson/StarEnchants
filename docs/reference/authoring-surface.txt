@@ -331,6 +331,8 @@ effect PERIODIC_DAMAGE
   param tick-pitch DOUBLE optional min=0 max=- enum=- handle=- default=1
   param tick-particle HANDLE optional min=- max=- enum=- handle=PARTICLE default=-
   param tick-particle-count INT optional min=0 max=- enum=- handle=- default=1
+  param tick-particle-2 HANDLE optional min=- max=- enum=- handle=PARTICLE default=-
+  param tick-particle-2-count INT optional min=0 max=- enum=- handle=- default=1
 effect PHANTOM_BLOCKS
   param radius INT optional min=0 max=8 enum=- handle=- default=3
   param material-ally HANDLE optional min=- max=- enum=- handle=MATERIAL default=GLOWSTONE
@@ -358,10 +360,11 @@ effect PROJECTILE
   param yield DOUBLE optional min=- max=- enum=- handle=- default=-1
   param incendiary BOOL optional min=- max=- enum=- handle=- default=false
 effect PROJECTILE_DRESSING
-  param type HANDLE required min=- max=- enum=- handle=ENTITY_TYPE default=-
+  param type HANDLE optional min=- max=- enum=- handle=ENTITY_TYPE default=-
   param ttl TICKS optional min=0 max=- enum=- handle=- default=200
   param invulnerable TICKS optional min=0 max=- enum=- handle=- default=200
   param no-pickup BOOL optional min=- max=- enum=- handle=- default=true
+  param fire-ticks TICKS optional min=0 max=- enum=- handle=- default=0
 effect REFLECT
   param percent DOUBLE required min=0 max=- enum=- handle=- default=-
   param duration TICKS optional min=0 max=- enum=- handle=- default=80
@@ -435,6 +438,7 @@ effect SPAWN_ENTITY
   param payload-consume BOOL optional min=- max=- enum=- handle=- default=true
   param payload-cancel BOOL optional min=- max=- enum=- handle=- default=true
   param scatter INT optional min=0 max=8 enum=- handle=- default=0
+  param fuse TICKS optional min=0 max=- enum=- handle=- default=0
 effect SPAWN_SWARM
   param type HANDLE required min=- max=- enum=- handle=ENTITY_TYPE default=-
   param count INT optional min=1 max=- enum=- handle=- default=1

@@ -4,16 +4,17 @@ display: "Infernal"
 description:
   - "&eYour arrows scorch what they hit and"
   - "&elight a small ring where they land."
-trigger: [BOW, ATTACK, PROJECTILE_LAND]
+trigger: [BOW_FIRE, BOW, ATTACK, PROJECTILE_LAND]
 applies-to: [BOW]
 group: "rare"
 tier: rare
 # ACQUISITION IS NOT MATRIX-RECORDED for doc 05 (no `max/base/interval/weight/tier` line on any entry here).
 # The rung is the source registration's own tier 3 of the 1-8 ladder (codex registration appendix) and max 3
 # is the numbers ladder's three rungs. Reconcile at the matrix backfill.
-# PENDING PRIMITIVE — the burning-arrow half (`<level>*60` fire ticks on the loosed shot) is NOT authored: the
-# shipped PROJECTILE_DRESSING rides an ENTITY on the arrow and carries no fire param. Same stop as §Hellfire,
-# recorded once in deferred-content.md (partial entries). The direct hit and the landing ring are whole.
+# THE BURNING ARROW IS AUTHORED (R-QC57) on `PROJECTILE_DRESSING`'s new `fire-ticks`, with `type` omitted so
+# nothing rides the shot — the arrow itself burns. Unlike §Hellfire's permanent value this one scales,
+# `<level>*60` = 60/120/180 t, so each rung authors its own. It rides BOW_FIRE, the launch trigger, because
+# that is where a shot still exists to be dressed.
 # Melee mirror: yes, with zero guards (codex explicit) — the direct-hit ability is authored once per trigger.
 # 100 % everywhere; no rolls, no cooldown.
 # IGNITE is absolute on BOTH halves here, which is exactly the jar: unlike §Hellfire's landing pool, Infernal's
@@ -29,6 +30,10 @@ tier: rare
 levels:
   1:
     abilities:
+      - trigger: BOW_FIRE
+        chance: 100
+        effects:
+          - { PROJECTILE_DRESSING: { fire-ticks: 60 } }
       - trigger: BOW
         chance: 100
         effects:
@@ -46,6 +51,10 @@ levels:
           - { IGNITE: { duration: 20, who: "@Aoe{r=1, filter=ENEMIES}" } }
   2:
     abilities:
+      - trigger: BOW_FIRE
+        chance: 100
+        effects:
+          - { PROJECTILE_DRESSING: { fire-ticks: 120 } }
       - trigger: BOW
         chance: 100
         effects:
@@ -63,6 +72,10 @@ levels:
           - { IGNITE: { duration: 40, who: "@Aoe{r=2, filter=ENEMIES}" } }
   3:
     abilities:
+      - trigger: BOW_FIRE
+        chance: 100
+        effects:
+          - { PROJECTILE_DRESSING: { fire-ticks: 180 } }
       - trigger: BOW
         chance: 100
         effects:

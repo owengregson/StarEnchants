@@ -4,7 +4,7 @@ display: "Hellfire"
 description:
   - "&eYour arrows set what they hit ablaze and"
   - "&eburst into a pool of fire where they land."
-trigger: [BOW, ATTACK, PROJECTILE_LAND]
+trigger: [BOW_FIRE, BOW, ATTACK, PROJECTILE_LAND]
 applies-to: [BOW]
 group: "epic"
 tier: epic
@@ -13,11 +13,12 @@ tier: epic
 # (`| 95 | Hellfire | … | 4 | 5 | 15.0 | 5.0 |`). Rung 4 is the jar's "ultra-rare", which this pack spells
 # `epic`. The pack shipped `uncommon` — TWO rungs low, and it read low for a five-level enchant that lights a
 # 10-block pool. This is the correction.
-# PENDING PRIMITIVE — the flaming-arrow half is NOT authored here. The matrix's BOW_FIRE row dresses the loosed
-# arrow with `2147483647` fire ticks (a permanently burning arrow, level-independent); the shipped
-# PROJECTILE_DRESSING rides an ENTITY on the shot and carries no fire, and IGNITE cannot address a projectile.
-# Recorded in deferred-content.md (partial entries) with §Infernal, which waits on the same param. Everything
-# else below is whole — the direct-hit burn and the landing pool never depended on it.
+# THE FLAMING ARROW IS AUTHORED (R-QC57). `PROJECTILE_DRESSING` gained a `fire-ticks` param, and with `type`
+# now optional the effect with no rider is exactly a dressing: it lights the ARROW itself, which nothing else
+# on the surface can reach — IGNITE takes its targets from a selector and no selector names a shot in flight.
+# `2147483647` is the matrix's own value verbatim (a permanently burning arrow) and is level-independent, so
+# all five rungs author the same line. It rides BOW_FIRE, the launch trigger, because that is where a shot
+# still exists to be dressed.
 # Melee mirror: yes — the jar's impact pipeline accepts ENTITY_ATTACK, so the direct-hit ability is authored
 # twice, once per trigger (the Deathbringer/Blind shape). Player victims were additionally gated on can-see +
 # survival gamemode; those are the engine's global vanish/gamemode gates, not enchant behavior.
@@ -42,6 +43,10 @@ tier: epic
 levels:
   1:
     abilities:
+      - trigger: BOW_FIRE
+        chance: 100
+        effects:
+          - { PROJECTILE_DRESSING: { fire-ticks: 2147483647 } }
       - trigger: BOW
         chance: 100
         effects:
@@ -65,6 +70,10 @@ levels:
           - { PARTICLE: { particle: "LAVA", count: 16, who: "@Aoe{r=2, filter=ENEMIES+PLAYERS}" } }
   2:
     abilities:
+      - trigger: BOW_FIRE
+        chance: 100
+        effects:
+          - { PROJECTILE_DRESSING: { fire-ticks: 2147483647 } }
       - trigger: BOW
         chance: 100
         effects:
@@ -88,6 +97,10 @@ levels:
           - { PARTICLE: { particle: "LAVA", count: 16, who: "@Aoe{r=4, filter=ENEMIES+PLAYERS}" } }
   3:
     abilities:
+      - trigger: BOW_FIRE
+        chance: 100
+        effects:
+          - { PROJECTILE_DRESSING: { fire-ticks: 2147483647 } }
       - trigger: BOW
         chance: 100
         effects:
@@ -111,6 +124,10 @@ levels:
           - { PARTICLE: { particle: "LAVA", count: 16, who: "@Aoe{r=6, filter=ENEMIES+PLAYERS}" } }
   4:
     abilities:
+      - trigger: BOW_FIRE
+        chance: 100
+        effects:
+          - { PROJECTILE_DRESSING: { fire-ticks: 2147483647 } }
       - trigger: BOW
         chance: 100
         effects:
@@ -134,6 +151,10 @@ levels:
           - { PARTICLE: { particle: "LAVA", count: 16, who: "@Aoe{r=8, filter=ENEMIES+PLAYERS}" } }
   5:
     abilities:
+      - trigger: BOW_FIRE
+        chance: 100
+        effects:
+          - { PROJECTILE_DRESSING: { fire-ticks: 2147483647 } }
       - trigger: BOW
         chance: 100
         effects:

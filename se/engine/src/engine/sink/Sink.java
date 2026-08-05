@@ -1064,7 +1064,17 @@ public interface Sink {
     void periodicDamage(LivingEntity target, double amount, int periodTicks, int durationTicks,
                         java.util.List<Integer> replaced, String feedback, LivingEntity attacker,
                         int tickSoundId, float tickVolume, float tickPitch,
-                        int tickParticleId, int tickParticleCount);
+                        int tickParticleId, int tickParticleCount,
+                        int tickParticle2Id, int tickParticle2Count);
+
+    /** {@link #periodicDamage} with a single per-pulse burst (the add-on SPI shape). */
+    default void periodicDamage(LivingEntity target, double amount, int periodTicks, int durationTicks,
+                                java.util.List<Integer> replaced, String feedback, LivingEntity attacker,
+                                int tickSoundId, float tickVolume, float tickPitch,
+                                int tickParticleId, int tickParticleCount) {
+        periodicDamage(target, amount, periodTicks, durationTicks, replaced, feedback, attacker,
+                tickSoundId, tickVolume, tickPitch, tickParticleId, tickParticleCount, -1, 0);
+    }
 
     /**
      * {@code STACKING_DOT} — watch {@code target} for {@code durationTicks} and, on every {@code periodTicks}
@@ -1120,7 +1130,13 @@ public interface Sink {
      * projectile exists only on the event. Inert outside a bow shot; one rider per shot (a second request
      * replaces the first — the rider-priority rule is authored, not engine policy).
      */
-    void dressProjectile(int entityTypeId, int ttlTicks, int invulnerableTicks, boolean noPickup);
+    void dressProjectile(int entityTypeId, int ttlTicks, int invulnerableTicks, boolean noPickup,
+                         int fireTicks);
+
+    /** {@link #dressProjectile} with no fire — the rider-only form (the add-on SPI shape). */
+    default void dressProjectile(int entityTypeId, int ttlTicks, int invulnerableTicks, boolean noPickup) {
+        dressProjectile(entityTypeId, ttlTicks, invulnerableTicks, noPickup, 0);
+    }
 
     /**
      * Seat a fresh {@code dressing} rider on {@code projectile} — the bow dispatcher's half of

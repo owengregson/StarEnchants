@@ -49,6 +49,8 @@ public final class SpawnEntityEffect implements EffectKind {
             .param("payload-cancel", D.BOOL.def(true), "strike phase only: the summon's own melee damage is dropped")
             .param("scatter", D.INT.range(0, 8).def(0),
                     "spread each summon over a random ±N XZ offset, air-scanned (0 = the exact point)")
+            .param("fuse", D.TICKS.def(0),
+                    "primed TNT only: ticks until it detonates (0 = vanilla's 80). NOT ttl, which despawns")
             .target("who", T.SELF)
             .affinity(Affinity.REGION)
             .actorOrigin()
@@ -78,7 +80,9 @@ public final class SpawnEntityEffect implements EffectKind {
                     + "summon on that hit, which makes it a one-shot courier: exactly one strike per summon, "
                     + "never a second. Visuals for the strike belong on those IMPACT abilities, where they "
                     + "are fully authored. scatter spreads the summons over a random offset, air-scanned so "
-                    + "none spawns inside terrain. Replaces SPAWN/TNT.")
+                    + "none spawns inside terrain. fuse shortens (or lengthens) a primed TNT's countdown; it "
+                    + "is a separate knob from ttl because ttl DESPAWNS, so any ttl at or under the fuse "
+                    + "would remove the charge before it could ever explode. Replaces SPAWN/TNT.")
             .example("{ SPAWN_ENTITY: { type: WOLF, count: 1, ttl: 0, health: 0, owner: activator } }")
             .build();
 
@@ -118,7 +122,8 @@ public final class SpawnEntityEffect implements EffectKind {
                 ctx.integer("scatter"),
                 // ADR-0074: the arming ability's group travels with the summon, so a `strike` courier fires only
                 // this feature's IMPACT abilities and not every one its owner happens to wear.
-                ctx.sourceGroup());
+                ctx.sourceGroup(),
+                ctx.integer("fuse"));
         Location origin = ctx.actorOrigin(); // hoisted: fresh instance per call (ADR-0043)
         boolean any = false;
         for (LivingEntity who : ctx.targets("who")) {

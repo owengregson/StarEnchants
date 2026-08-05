@@ -61,6 +61,7 @@ import org.bukkit.entity.Firework;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.entity.TNTPrimed;
 import org.bukkit.entity.Tameable;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
@@ -982,10 +983,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void dressProjectile(int entityTypeId, int ttlTicks, int invulnerableTicks, boolean noPickup) {
+    public void dressProjectile(int entityTypeId, int ttlTicks, int invulnerableTicks, boolean noPickup,
+                                int fireTicks) {
         // One rider per shot: a second request replaces the first, so rider priority is authored
         // (condition/chance) rather than fought out by two entities riding one arrow.
-        this.projectileDressing = new ProjectileDressing(entityTypeId, ttlTicks, invulnerableTicks, noPickup);
+        this.projectileDressing =
+                new ProjectileDressing(entityTypeId, ttlTicks, invulnerableTicks, noPickup, fireTicks);
     }
 
     @Override
@@ -995,6 +998,13 @@ public abstract class DispatchSinkBase implements SinkReadback {
         }
         Location at = projectile.getLocation();
         regionOp(at, () -> {
+            if (dressing.fireTicks() > 0) {
+                // The arrow itself, not a rider: a flaming shot is the dressing with no entity at all.
+                projectile.setFireTicks(dressing.fireTicks());
+            }
+            if (!dressing.hasRider()) {
+                return;
+            }
             Entity rider = spawnTyped(at.getWorld(), at, dressing.entityTypeId());
             if (rider == null) {
                 return;
@@ -1654,7 +1664,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
     public void periodicDamage(LivingEntity target, double amount, int periodTicks, int durationTicks,
                                List<Integer> replaced, String feedback, LivingEntity attacker,
                                int tickSoundId, float tickVolume, float tickPitch,
-                               int tickParticleId, int tickParticleCount) {
+                               int tickParticleId, int tickParticleCount,
+                               int tickParticle2Id, int tickParticle2Count) {
         if (target == null || durationTicks <= 0) {
             return;
         }
@@ -1691,6 +1702,11 @@ public abstract class DispatchSinkBase implements SinkReadback {
                 playCueInline(target.getLocation(), tickSoundId, tickVolume, tickPitch);
                 if (tickParticleId >= 0 && tickParticleCount > 0) {
                     particleDirect(target, tickParticleId, tickParticleCount, TICK_CUE_SPREAD);
+                }
+                if (tickParticle2Id >= 0 && tickParticle2Count > 0) {
+                    // A second TYPE, not a second copy: ADR-0066's once-per-sink rule is about one id, and a
+                    // cue built from two particles is two ids.
+                    particleDirect(target, tickParticle2Id, tickParticle2Count, TICK_CUE_SPREAD);
                 }
                 if (--left[0] <= 0 && task[0] != null) {
                     task[0].cancel();
@@ -2471,6 +2487,9 @@ public abstract class DispatchSinkBase implements SinkReadback {
         }
         if (flags.powered() && spawned instanceof Creeper creeper) {
             creeper.setPowered(true); // stable Bukkit API across the whole range incl. 1.8
+        }
+        if (flags.fuseTicks() > 0 && spawned instanceof TNTPrimed tnt) {
+            tnt.setFuseTicks(flags.fuseTicks()); // stable across the whole range; vanilla's own default is 80
         }
         if (flags.noAi() && spawned instanceof LivingEntity living) {
             applyNoAi(living);
