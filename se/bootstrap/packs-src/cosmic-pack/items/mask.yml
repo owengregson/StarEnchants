@@ -26,10 +26,11 @@ lore:
 # comment instead.
 lore-while-on-item: "&6&lMask Equipped ({NAME}&r&6&l)"
 lore-while-on-item-multi: "&6&lMulti-Mask Equipped ({NAME}&r&6&l)"
-# (port-chosen) The matrix records no apply/remove cues, so the engine's amethyst gesture cues stand —
-# the same pair the crystal likeness carries, since masks share the crystal drag-apply gesture family.
+# (port-chosen) The matrix records no apply/remove cues for a mask, so the engine's amethyst gesture cues
+# stand here — where the crystal likeness, whose gesture family masks share, now carries the source's own
+# recorded pair instead (items/crystal.yml).
 # Era: 1.17+ handles; on 1.8.9 they resolve to no constant and the legacy key fallback is a no-op, so the
-# cue is dropped silently and the gesture still completes — see crystal.yml for the same pair's reading.
+# cue is dropped silently and the gesture still completes.
 sounds:
   enabled: true
   apply: "block.amethyst_block.chime"

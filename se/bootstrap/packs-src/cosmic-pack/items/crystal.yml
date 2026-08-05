@@ -1,49 +1,73 @@
-# Matrix: 10-armor-sets.md, family preamble (§A.7 / §C.1) — the ONE global crystal likeness (ADR-0034).
-# Every crystal in content/crystals/ declares only its display name, its bonus block and its effects; the
-# material, name and lore here are shared by all of them, single or merged. Tokens: {CRYSTAL} the component
-# name(s), {DESCRIPTION} their authored bonus blocks, {KINDS} the item kinds they apply to.
+# Matrix: 13-support-items.md § Armor Crystal + § Crystal Extractor (codex 10-armor-sets.md §C.1/§C.8), family
+# preamble §A.7 — the ONE global crystal likeness (ADR-0034). Every crystal in content/crystals/ declares only
+# its styled display name, its bonus block and its effects; the material, name and lore here are shared by all
+# of them, single or merged. Tokens: {CRYSTAL} the component name(s), {DESCRIPTION} their authored bonus
+# blocks, {KINDS} the item kinds they apply to.
 type: crystal
-# (port-chosen) The matrix records the item's NAME — "Armor Crystal" — and nothing about its material or its
-# colour codes. AMETHYST_SHARD, the engine default, is a 1.17+ material and does not exist on the 1.8.9 lane;
-# NETHER_STAR renders on both eras. The `&6&l` styling is this corpus's own crystal rendering, carried over.
+# NETHER_STAR is the recorded material, exactly — an era-stable hit on both lanes.
 material: NETHER_STAR
+# Verbatim. The `&` spellings are deliberate here and not cosmetic: a merged name's separator is the template's
+# LEADING format run plus ", " (StyledNames), and that run is read off `&` codes.
 name: "&6&lArmor Crystal ({CRYSTAL}&6&l)"
-name-multi: "&6&lMulti Crystal ({CRYSTAL}&6&l)"
+# The recorded multi name. Its component list is a run of first LETTERS in each set's colour
+# (`(§c§lP§6, §b§lY§6§6§l)`); {CRYSTAL} renders full display names, so the abbreviation has no surface and the
+# separator carries this template's `&6&l` rather than the source's bare `§6`.
+name-multi: "&6&lMulti Armor Set Crystal ({CRYSTAL}&6&l)"
+# The recorded lore, verbatim, minus its first line — which read "§a20% Success Rate". This engine applies a
+# crystal with NO roll at all (ADR-0034, confirmed R-QC53), so that line would advertise a gamble that cannot
+# happen; there is no success knob on this likeness to make it true, and a display string that lies is worse
+# than one that is absent (the R-QC4 precedent: format stays verbatim, values stop lying). The gamble itself is
+# ledgered as D-13-1.
 lore:
-  - "&eImbues a single piece of gear with magic crystal abilities. Merge with other crystals to combine their effects."
+  - "§7Can be applied to any non"
+  - "§7armor set that is not"
+  - "§7already equipped with a"
+  - "§7bonus crystal to gain"
+  - "§7a passive advantage!"
   - ""
+  - "§6§lCrystal Bonus:"
+  # Each component's authored block, spliced verbatim: a set line (leading space, the set's colour + bold, then
+  # its display name, which carries its OWN colour + bold — the doubled codes are the source's) and one
+  # two-space bullet per recorded bonus. See content/crystals/phantom.yml.
   - "{DESCRIPTION}"
-  - ""
-  - "&eApplies to: &f&n{KINDS}"
-  - "&7Drag n' Drop on an item to apply."
-lore-while-on-item: "&6&lArmor Crystal ({CRYSTAL}&6&l)"
-lore-while-on-item-multi: "&6&lMulti Crystal ({CRYSTAL}&6&l)"
+# The gear line, verbatim — note the separator here is `§7`, not the name's `§6`, and the trailing one survives
+# the source's trim: `§6§lArmor Crystal (§c§lPhantom§7§6§l)`. A merge separates on this template's leading run.
+lore-while-on-item: "&6&lArmor Crystal ({CRYSTAL}&7&6&l)"
+lore-while-on-item-multi: "&6&lMulti Armor Set Crystal ({CRYSTAL}&7&6&l)"
 # THE FAMILY-WIDE APPLY CONTRACT (matrix §A.7/§C.1), as far as this surface carries it.
 #
 # EXPRESSED: one crystal (single or multi) per piece, max four per wearer — `crystals.slots: 1` in config.yml
 # times the four armour slots. The per-piece FRACTION each crystal grants is the crystals' own additive fold:
 # see content/crystals/phantom.yml for why `stackable: true` IS the linear-in-n scaling the matrix records.
 #
-# NOT EXPRESSED, recorded in deferred-content.md rather than improvised (each would be a new knob):
-#   * The APPLY GAMBLE. The jar consumes the crystal BEFORE rolling a default 20% apply chance — four
-#     crystals burnt per piece landed, on average. This engine applies a crystal with no roll at all
-#     (ADR-0034), which is a deliberate, project-wide gesture rule, not an oversight: there is no
-#     success/failure knob on the crystal likeness to carry the gamble.
-#   * The REFUSAL RULES. The jar refuses a crystal on a SET piece outright, and on gear carrying a mastery
-#     enchant unless that enchant is one of the three whitelisted (Discombobulate, Explosives Expert, Lava
-#     Strider); an M-Kit piece with no blocked mastery enchant DOES accept one (§A.15). Nothing on the
-#     crystal likeness or on a crystal def states which gear a crystal REFUSES — `applies-to` names the item
-#     kinds it fits, which is a different question. Shipped as written: any ARMOR piece takes one.
-#   * A SECOND LIKENESS. The Anti-M-Kit Crystals are a distinct item in the jar, named for what they cancel;
-#     here they are crystals like any other and so read "Armor Crystal (Anti-M-Kit (Ghost))" off this one
-#     template. One crystal likeness per pack is the ADR-0034 shape.
-#
-# The apply/extract cues are NOT matrix-recorded, so the engine defaults stand unauthored (era: those are the
-# 1.17+ amethyst handles. On 1.8.9 `feature.compat.Sounds` finds no constant of that name and the legacy
-# key fallback is a no-op, so the cue is dropped SILENTLY — no warning at load or use. The gesture is
-# unaffected: the cue plays after the commit, so a 1.8.9 apply is simply mute. Kept modern rather than
-# degraded, because a 1.8 stand-in would change the cue everywhere the pack actually plays it).
-# The Item Extractor is this engine's own gesture (ADR-0035), not a cosmic item; only its material is set,
-# because the default AMETHYST_CLUSTER cannot be minted on 1.8.9.
+# NOT EXPRESSED, recorded in matrix/13 rather than improvised (each would be a new knob):
+#   * The APPLY GAMBLE (D-13-1, APPLY_GAMBLE). The source consumes the crystal BEFORE rolling a default 20%
+#     apply chance — four crystals burnt per piece landed, on average. This engine applies with no roll at all
+#     (ADR-0034), a deliberate project-wide gesture rule confirmed by R-QC53, not an oversight.
+#   * The REFUSAL RULES (ITEM_REFUSAL_PREDICATE). The source refuses a crystal on a SET piece outright, and on
+#     gear carrying a mastery enchant unless that enchant is one of the three whitelisted (Discombobulate,
+#     Explosives Expert, Lava Strider); an M-Kit piece with no blocked mastery enchant DOES accept one (§A.15).
+#     `applies-to` names the item kinds a crystal fits, which is a different question. Shipped as written: any
+#     ARMOR piece takes one.
+#   * A SECOND LIKENESS (ITEM_GRADES). The Anti-M-Kit Crystals are their own item in the source — INK_SACK data
+#     11 (YELLOW_DYE), named "Anti M-Kit Crystal (<set>)", with their own lore and their own amount-weighted
+#     combine arithmetic — and here they are crystals like any other, reading "Armor Crystal (Anti-M-Kit
+#     (Ghost))" off this one template. One crystal likeness per pack is the ADR-0034 shape (R-QC53).
+# The apply cue is the source's own (its LEVEL_UP at 1.0/1.1); `remove` carries the extractor's first cue at its
+# recorded volume — the second, a WITHER_IDLE at a pitch outside the valid band, has no slot here. The source's
+# FAILURE cue (GLASS) has no home either: nothing fails. era: an item cue resolves as a Sound CONSTANT by exact
+# name (feature.compat.Sounds — no alias table on this path), so this modern spelling plays on modern and is
+# skipped on 1.8.9; the engine default it replaces is an amethyst handle, 1.17+ and skipped there as well.
+sounds:
+  enabled: true
+  apply: { sound: ENTITY_PLAYER_LEVELUP, volume: 1.0, pitch: 1.1 }
+  remove: { sound: ENTITY_PLAYER_LEVELUP, volume: 10.0, pitch: 1.1 }
+# THE EXTRACTOR. GHAST_TEAR is the source's own Crystal Extractor material (era-stable, and the engine default
+# AMETHYST_CLUSTER cannot be minted on 1.8.9). The NAME and LORE stay this engine's: our extractor is a
+# superset — it pops a weapon reforge first, then the gear's last crystal ENTRY intact (a multi comes back as
+# one multi), then a folded mask (ADR-0035/0070/0074) — where the source's pops ONE RANDOM crystal and stamps
+# a fresh apply chance onto what comes out ("§f§l * §6§lArmor Crystal (§f25% Success§6§l)"). Its lore
+# advertises exactly that stamp, which this engine does not roll, so reproducing the wording would describe an
+# item nobody has. Both extract at 100%.
 extractor:
-  material: BUCKET
+  material: GHAST_TEAR
