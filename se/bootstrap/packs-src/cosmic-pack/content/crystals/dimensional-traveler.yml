@@ -1,7 +1,7 @@
 # Matrix: 10-armor-sets.md § Dimensional Traveler (crystal route, family preamble §A.7/§C.1)
 # The steepest damage crystal in the family: +7.5% outgoing per crystal-bearing piece, four pieces to x1.30 —
 # the full set's own multiplier, reproduced by crystals alone.
-display: "Dimensional Traveler"
+display: "§5§lDimensional Traveler"  # ArmorSet.DIMENSIONAL_TRAVELER.getDisplayName (codex §A.2); see phantom.yml
 # The source's own crystalDescription, verbatim (codex §A.2); see phantom.yml for the construction rule. The
 # "20%" it advertises for the Dimensional Shift roll is the source's own advert against a measured 0.2% per
 # piece — its mismatch (recorded on sets/dimensional-traveler.yml) — and it ships because the roll ships.

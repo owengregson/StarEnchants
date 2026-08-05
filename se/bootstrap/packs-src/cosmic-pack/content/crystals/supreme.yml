@@ -2,11 +2,16 @@
 # +3% outgoing per crystal-bearing piece, four pieces to x1.12. No defensive half (measured) — and none of
 # the set's drawbacks either: the crystal route sells the bonus without the +10% incoming arrow damage the
 # full set carries.
-display: "Supreme"
-# The source's own crystalDescription, verbatim (codex §A.2); see phantom.yml for the construction rule.
-# Supreme is the family's colour SPLIT: its enum colour is DARK_GREEN `§2` — which is what the set line's
-# prefix and every bullet carry — while its display name is `§4§lSupreme`, so the set line's doubled codes
-# disagree and render dark red. The source's quirk, reproduced rather than tidied.
+# DARK RED, NOT DARK GREEN — DO NOT "FIX" THIS. Supreme is the family's colour SPLIT (codex §A.2 quirk):
+# `ArmorSet.SUPREME`'s enum `color` is DARK_GREEN `§2`, but its `displayName` is `CC.DarkRedB + "Supreme"` =
+# `§4§lSupreme`. The two are read by different call sites — `getColor()` drives the set line's prefix, the
+# lore bullets and the multi-crystal letter (`§2§lS`), while `getDisplayName()` drives the item NAME. The name
+# slot takes the DISPLAY (matrix/13 § Armor Crystal), so this crystal reads dark red on the item and dark
+# green in the bullets below. Both are correct, on different strings.
+display: "§4§lSupreme"
+# The source's own crystalDescription, verbatim (codex §A.2); see phantom.yml for the construction rule. The
+# set line's doubled codes are where the split shows: `§2§l` (colour) then `§4§l` (display), rendering dark
+# red. The source's quirk, reproduced rather than tidied.
 description:
   - " §2§l§4§lSupreme"
   - "  §2§l* §2+3% Outgoing DMG"

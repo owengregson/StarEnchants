@@ -2,7 +2,9 @@
 # `### C.2` heading — source-side numbering drift, recorded by the matrix, not resolved here)
 # Same shape as anti-m-kit-ghost.yml, over the Death Knight pool — the one pool whose four members are all
 # authored, so this crystal is complete on the day it lands.
-display: "Anti-M-Kit (Death Knight)"
+# `§9§lDeath Knight` is AbilityArmorSet.DEATH_KNIGHT.getDisplayName (codex §A.10 — BLUE, not the Architect
+# twin's AQUA); see anti-m-kit-ghost.yml for why the set name is styled and the wrapper is not.
+display: "Anti-M-Kit (§9§lDeath Knight§6§l)"
 # The counter-crystal's own recorded lore (codex §C.2); see anti-m-kit-ghost.yml for the block's shape.
 description:
   - "§7to negate the following"

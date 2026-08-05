@@ -1,7 +1,7 @@
 # Matrix: 10-armor-sets.md § Mother of Yijki (crystal route, family preamble §A.7/§C.1)
 # The defensive sixth of the set's -30% incoming, per crystal-bearing piece; four pieces fold to -20% in,
 # plus the set's own Revenge of Yijki at a hundredth of its rate per piece.
-display: "Mother of Yijki"
+display: "§f§lMother of Yijki"  # ArmorSet.MOTHER_OF_YIJKI.getDisplayName (codex §A.2); see phantom.yml
 # The source's own crystalDescription, verbatim (codex §A.2); see phantom.yml for the construction rule. The
 # "20%" it advertises for the revenge roll is the source's own advert against a measured 0.010000000000000002
 # per piece — its mismatch, not this port's (recorded on sets/mother-of-yijki.yml) — and it ships because the
