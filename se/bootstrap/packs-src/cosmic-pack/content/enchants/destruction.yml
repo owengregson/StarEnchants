@@ -4,7 +4,7 @@ display: "Destruction"
 description:
   - "&ePeriodically burns nearby enemies, and may slow, exhaust or wither them."
 trigger: REPEATING
-applies-to: [ARMOR]
+applies-to: [HELMET]  # helmets-only in the source registration; the matrix records no item set
 group: "legendary"
 tier: legendary
 # Periods are the as-intended ladder 300/150/100/75/60t (D-01-05); the measured 300/120/60/60/60t came from
