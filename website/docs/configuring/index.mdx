@@ -162,7 +162,7 @@ Inside each `levels:` entry:
 | `chance` | percentage activation roll (0–100) |
 | `cooldown` | ticks before it can fire again (20 ticks = 1 second) |
 | `cooldown-scope` | `none` = this ability gets no cooldown bucket at all, so it neither waits on nor spends the one its sibling levels and abilities share. Leave the key out to keep that shared bucket |
-| `cooldown-per-victim` | `true` = the `cooldown` is tracked **per target** rather than once for mobs and once for players, so throttling a repeat strike on one enemy never blocks the next one. Default `false` |
+| `cooldown-per-victim` | `true` = the `cooldown` is tracked **per target** rather than once for mobs and once for players, so throttling a repeat strike on one enemy never blocks the next one. Set it beside `cooldown` at the top level to cover every rung. A trigger with no victim falls back to the shared bucket, so the cooldown still holds. Default `false` |
 | `soul-cost` | souls spent per activation (requires the player be in soul mode) |
 | `soul-cost-carried` | charge `soul-cost` against the player's carried gems even with no gem active — the gem becomes a wallet rather than a switch |
 | `soul-cost-growth` | multiplier the price compounds by on each successful charge — `2` doubles it every proc. Default `1` (a flat price) |

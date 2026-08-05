@@ -18,7 +18,8 @@ tier: heroic
 requires: ["enchants/cleave"]
 removes-required: true
 condition: "%damage% > 0"
-cooldown: 30  # the jar's 1500 ms attacker throttle, one bucket for the whole ability (the counterpart's shape)
+cooldown: 30  # the jar's 1500 ms attacker throttle (the counterpart's shape)
+cooldown-per-victim: true  # R-QC8, as cleave.yml — the bucket keys on the struck entity
 # The splash is centred on the VICTIM and never touches them: the jar searched from the victim and skipped
 # them, which `exclude=victim` reproduces, and AOE excludes the activator natively. Allies and spectators ride
 # the ENEMIES filter. Shape delta, values kept: the jar's `3.0 + 0.25L` is a bounding-box half-extent and
@@ -27,9 +28,9 @@ cooldown: 30  # the jar's 1500 ms attacker throttle, one bucket for the whole ab
 # D-04-8, inherited: the jar's splash was attacker-less generic damage — armour-reduced, NO kill credit, and
 # it only re-entered the defensive pass. Engine DAMAGE is activator-attributed, so a splash kill now credits
 # the swinger and the splashed player's own defence enchants see a damager.
-# PENDING PER-VICTIM COOLDOWN — the recorded 20 t (1000 ms) per-splash-victim stamp is NOT authored, for the
-# reason cleave.yml carries: the engine's cooldown bucket is per-player, so the 30 t above paces the whole
-# ability and a per-target window has nowhere to live (deferred-content, shared with thundering-blow).
+# PER-VICTIM PACING (R-QC8), with the same caveat cleave.yml spells out: `cooldown-per-victim` keys on the
+# activation's own victim, not on each splash bystander, so the throttle follows the struck player where the
+# jar stamped every body the splash touched.
 # THE SHARED BUCKET IS authored, from this side, exactly as cleave.yml assigns it: the jar keyed the heroic's
 # per-victim stamp under the SAME bucket name as the counterpart's, so a heroic splash locks the plain one
 # out for 20 t. `SUPPRESS(scope=ENCHANT, key=enchants/cleave, who=@Self)` is that half, coarsened to the
