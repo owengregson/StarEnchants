@@ -1,0 +1,105 @@
+# Matrix: 07-enchants-mastery-soul.md § Mark of the Beast
+display: "Mark of the Beast"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA hit can brand whoever landed it. While the"
+  - "&emark burns they take double damage from"
+  - "&eeverything, and the whole area is told."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "mastery"
+tier: mastery
+cooldown-per-victim: true  # D-07-10: the re-mark guard keys on the MARKED player, and it EXPIRES
+# THE MASTERY FAMILY CONTRACT (matrix 07 § family-wide rules) — the full reading lives in poltergeist.yml.
+# tier 8, `group: "mastery"`, `applies-to: [ARMOR]`, no `suppress-immune:`.
+# ── THE MARK RIDES THE ATTACKER, WHICH IS WHY EVERY TARGET SLOT IS THE COMBAT VICTIM ───────────────────────
+# On a DEFENSE activation the engine's "victim" IS the party who hit the wearer (the guardians.yml idiom since
+# batch 01), so `%victim.type% == "PLAYER"` is the jar's attacker-is-a-player gate and `@Victim` is the body
+# the mark goes on. `{VICTIM}` is that same player's name — the jar printed `player1.getName()`, the marked
+# attacker, in the broadcast; `{ATTACKER}` would be the wearer and would name the wrong person.
+# ── D-07-10: cooldown-per-victim IS THE RE-MARK GUARD ──────────────────────────────────────────────────────
+# The jar tested `markedPlayers.containsKey(uuid)` — presence, never expiry — and cleared the key from a
+# delayed task, so a dropped task wedged that player un-markable forever while the mark itself was already
+# inert (its own listener checked expiry). `cooldown-per-victim: true` keys gate 6's bucket on the struck
+# entity and the bucket expires on its own, which is the intended guard exactly; the per-rung `cooldown:` is
+# set to the mark duration so the two windows open and close together.
+# ── D-07-11: THE PARTICLE MOVES TO THE MARKED PLAYER ───────────────────────────────────────────────────────
+# The jar played `WITCH_MAGIC` at the DEFENDER's eyes — bytecode-confirmed, and it visually marked the wrong
+# body. Authored at `@Victim`, where the mark actually is.
+# ── VULNERABILITY, AND WHY THE TOTALITY IS KEPT ────────────────────────────────────────────────────────────
+# `percent: 100` is the fixed x2.0 at every level, and it applies to EVERY damage source — fall, fire, void
+# included. Measured and kept: that totality is the point of a mark, not an oversight. The effect folds it as
+# a negated reduction consulted on both damage paths, so nothing here has to name the sources.
+# Its own two feedback lines ride the effect rather than a MESSAGE: `hit-message` fires per amplified hit with
+# `{damage}` bound to the hit, and `expiry-message` fires when the mark lapses (a mark that ends quietly ends
+# while nobody is being hit, so a `wait:`-delayed MESSAGE could not carry it). The per-hit line reports the
+# APPLIED damage where the jar printed the pre-doubling half — a display-value correction, string unchanged.
+# ── THE BROADCAST IS DELIBERATELY UNFILTERED ───────────────────────────────────────────────────────────────
+# `filter=PLAYERS` and no ally, vanish, spectator or PvP-region test: the jar told every player in the cube,
+# the marked player's own allies included. Measured, kept. The radius is `20 + 2 x L` as a symmetric sphere
+# for the jar's cube (the D-07-1 family geometry note).
+# The proc's own ally gate is the jar's `isAlly` (ALLY/MEMBER both directions) — TRUCE-level relations were
+# still markable. The engine's alliance model folds truce INTO allies, so a truced attacker is not marked
+# here; recorded, pending the spec's faction-mapping ruling.
+# strings: broadcast `§e§l* MARK OF THE BEAST [§7{VICTIM}: <s>s§e§l] *`; to the marked player
+# `§c§l* MARK OF THE BEAST [§7<s>s§c§l] *`; expiry `§c§l* MARK OFF §c§l*`; per amplified hit
+# `§c* MARK OF THE BEAST [-§c{damage}§c HP] *`. The seconds are inlined per rung (no token binds a duration),
+# which keeps each rendered line byte-identical to the matrix's.
+# era: `SPELL_WITCH` is 1.8.9's `witchMagic` and the resolver already carries the row. No other hazard.
+levels:
+  # Per level 1-6 — chance `1.5 x L`; mark `d0 = floor(L/3) + 2` s = 2/2/3/3/3/4 (40/40/60/60/60/80 t);
+  # broadcast radius `20 + 2 x L` = 22-32; the multiplier is a flat x2.0 at every rung.
+  1:
+    chance: 1.5
+    cooldown: 40
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { VULNERABILITY: { percent: 100, duration: 40, hit-message: "§c* MARK OF THE BEAST [-§c{damage}§c HP] *", expiry-message: "§c§l* MARK OFF §c§l*", who: "@Victim" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim" } }
+      - { MESSAGE: { text: "§e§l* MARK OF THE BEAST [§7{VICTIM}: 2s§e§l] *", who: "@Aoe{r=22, filter=PLAYERS}" } }
+      - { MESSAGE: { text: "§c§l* MARK OF THE BEAST [§72s§c§l] *", who: "@Victim" } }
+  2:
+    chance: 3.0
+    cooldown: 40
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { VULNERABILITY: { percent: 100, duration: 40, hit-message: "§c* MARK OF THE BEAST [-§c{damage}§c HP] *", expiry-message: "§c§l* MARK OFF §c§l*", who: "@Victim" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim" } }
+      - { MESSAGE: { text: "§e§l* MARK OF THE BEAST [§7{VICTIM}: 2s§e§l] *", who: "@Aoe{r=24, filter=PLAYERS}" } }
+      - { MESSAGE: { text: "§c§l* MARK OF THE BEAST [§72s§c§l] *", who: "@Victim" } }
+  3:
+    chance: 4.5
+    cooldown: 60
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { VULNERABILITY: { percent: 100, duration: 60, hit-message: "§c* MARK OF THE BEAST [-§c{damage}§c HP] *", expiry-message: "§c§l* MARK OFF §c§l*", who: "@Victim" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim" } }
+      - { MESSAGE: { text: "§e§l* MARK OF THE BEAST [§7{VICTIM}: 3s§e§l] *", who: "@Aoe{r=26, filter=PLAYERS}" } }
+      - { MESSAGE: { text: "§c§l* MARK OF THE BEAST [§73s§c§l] *", who: "@Victim" } }
+  4:
+    chance: 6.0
+    cooldown: 60
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { VULNERABILITY: { percent: 100, duration: 60, hit-message: "§c* MARK OF THE BEAST [-§c{damage}§c HP] *", expiry-message: "§c§l* MARK OFF §c§l*", who: "@Victim" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim" } }
+      - { MESSAGE: { text: "§e§l* MARK OF THE BEAST [§7{VICTIM}: 3s§e§l] *", who: "@Aoe{r=28, filter=PLAYERS}" } }
+      - { MESSAGE: { text: "§c§l* MARK OF THE BEAST [§73s§c§l] *", who: "@Victim" } }
+  5:
+    chance: 7.5
+    cooldown: 60
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { VULNERABILITY: { percent: 100, duration: 60, hit-message: "§c* MARK OF THE BEAST [-§c{damage}§c HP] *", expiry-message: "§c§l* MARK OFF §c§l*", who: "@Victim" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim" } }
+      - { MESSAGE: { text: "§e§l* MARK OF THE BEAST [§7{VICTIM}: 3s§e§l] *", who: "@Aoe{r=30, filter=PLAYERS}" } }
+      - { MESSAGE: { text: "§c§l* MARK OF THE BEAST [§73s§c§l] *", who: "@Victim" } }
+  6:
+    chance: 9.0
+    cooldown: 80
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { VULNERABILITY: { percent: 100, duration: 80, hit-message: "§c* MARK OF THE BEAST [-§c{damage}§c HP] *", expiry-message: "§c§l* MARK OFF §c§l*", who: "@Victim" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Victim" } }
+      - { MESSAGE: { text: "§e§l* MARK OF THE BEAST [§7{VICTIM}: 4s§e§l] *", who: "@Aoe{r=32, filter=PLAYERS}" } }
+      - { MESSAGE: { text: "§c§l* MARK OF THE BEAST [§74s§c§l] *", who: "@Victim" } }
