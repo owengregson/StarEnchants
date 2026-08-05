@@ -25,6 +25,7 @@ import platform.caps.Capabilities;
 import platform.resolve.Aliases;
 import platform.resolve.HandleResolver;
 import platform.resolve.LegacyFallbacks;
+import schema.diag.DiagCode;
 import schema.diag.Diagnostic;
 import schema.spec.HandleCategory;
 
@@ -48,20 +49,30 @@ class LegacyHandleEraTest {
     @CsvSource({"cosmic-pack, 1000", "signature-pack, 400"})
     void shippedPackEitherResolvesOnLegacyOrDeclaresItselfModernOnly(String pack, int minAbilities) {
         PackManifest manifest = manifest(pack);
+        Path content = Path.of("packs-src", pack, "content");
         if (!PackGate.meetsFloor(manifest, LEGACY)) {
-            // The 1.8.9 lane never loads it, and PackGate refuses the apply with one E_PACK_ERA instead of a
-            // handle storm — so its unresolvable tokens are an acknowledged fact, not undetected rot.
-            assertFalse(manifest.minServer().isBlank(),
-                    () -> pack + " is excluded from the legacy sweep but declares no min-server floor");
+            // Declared modern-only, so the 1.8.9 lane never loads it and PackGate refuses the apply with one
+            // E_PACK_ERA. The declaration still has to EARN itself: a pack that resolves clean here should drop
+            // its floor, not keep an exclusion nobody re-checks.
+            assertTrue(unresolvableHandles(content) > 0,
+                    () -> pack + " declares min-server " + manifest.minServer()
+                            + " but resolves clean on 1.8.8 — drop the floor instead of excluding it");
             return;
         }
-        compileClean(Path.of("packs-src", pack, "content"), minAbilities);
+        compileClean(content, minAbilities);
     }
 
     /** The claim cosmic-pack's config header makes on the engine's behalf: the bundled defaults are legacy-capable. */
     @Test
     void defaultCatalogResolvesOnTheLegacyEra() {
         compileClean(Path.of("resources/content"), 60);
+    }
+
+    private static long unresolvableHandles(Path content) {
+        return LibraryLoader.load(content, ContentCompiler.production(legacyResolvers()), 0)
+                .diagnostics().stream()
+                .filter(d -> d.is(DiagCode.E_UNKNOWN_HANDLE))
+                .count();
     }
 
     private static void compileClean(Path content, int minAbilities) {
