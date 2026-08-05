@@ -29,11 +29,13 @@ public final class SuppressionStore implements RetainedStore {
 
     /** One timed suppression window: expiry tick + the DISABLE_* ability that armed it ({@code -1} unattributed). */
     /**
-     * The consume-time feedback a TIMED window carries (SUPPRESS's {@code consumed-*} params), emitted at the
+     * The consume-time feedback a suppression carries (SUPPRESS's {@code consumed-*} params), emitted at the
      * gate-5 block by the DISPATCH layer — the pipeline itself is Bukkit-free and holds no player handle.
-     * {@code by} is the player who armed it, so "actor"/"victim" mean what they meant on the SUPPRESS line.
+     * {@code by} is the player who armed it, so "actor"/"victim" mean what they meant on the SUPPRESS line;
+     * {@code byName} carries that player's name so the emit can fill {@code {ATTACKER}} without a UUID lookup
+     * on a foreign region thread (R-QC41).
      */
-    public record Feedback(UUID by, String actorMessage, String victimMessage, int soundId) {
+    public record Feedback(UUID by, String byName, String actorMessage, String victimMessage, int soundId) {
 
         /** {@code soundId} sentinel for "no cue" — an absent HANDLE arg never interns to a real id. */
         public static final int NO_SOUND = -1;
@@ -46,8 +48,16 @@ public final class SuppressionStore implements RetainedStore {
     private record Defender(long expiry, int chance, int byDefId, Feedback feedback) {
     }
 
-    /** One armed one-shot (Neutralize, ADR-0049): remaining charges + the ability that armed it. Event-scoped, never timed. */
-    private record Charge(int charges, int byDefId) {
+    /**
+     * One armed one-shot (Neutralize, ADR-0049): remaining charges, the ability that armed it, and its
+     * consume-time cue. Event-scoped, never timed.
+     *
+     * <p>The cue rides the charge because the BLOCK is attributable even though the BURN is not (R-QC41): gate
+     * 5 asks whether THIS ability's scope is armed and gets a yes about one key, so the window that stopped it
+     * can name itself; {@link #consumeEventScoped} then burns every armed key at once and can name nothing.
+     * Only the first was ever needed — a cue reports what was blocked, not what was spent.
+     */
+    private record Charge(int charges, int byDefId, Feedback feedback) {
     }
 
     /** Defensive cap on how many distinct one-shot scope keys a single player can hold armed (drop oldest beyond this). */
@@ -188,28 +198,40 @@ public final class SuppressionStore implements RetainedStore {
      * map is capped at {@value #MAX_ARMED} keys, dropping the oldest.
      */
     public void armOneShot(UUID player, long id, int charges, int byDefId) {
+        armOneShot(player, id, charges, byDefId, null);
+    }
+
+    /** As above, carrying the charge's consume-time {@link Feedback} ({@code null} = silent, the usual case). */
+    public void armOneShot(UUID player, long id, int charges, int byDefId, Feedback feedback) {
         if (charges <= 0) {
             return;
         }
-        arm(armedByPlayer, player, id, charges, byDefId);
+        arm(armedByPlayer, player, id, charges, byDefId, feedback);
         onSuppress.onSuppress(player, 0); // instant drop of maintained buffs; the restore is event-scoped, not timed
     }
 
     /** As {@link #armOneShot} but KIND-scoped (ADR-0053): {@code kindId} is the dense effect kindId, kept in its
      *  own map so gate 5's KIND fast-path stays an emptiness test. Burned by the same {@link #consumeEventScoped}. */
     public void armOneShotKind(UUID player, int kindId, int charges, int byDefId) {
+        armOneShotKind(player, kindId, charges, byDefId, null);
+    }
+
+    /** As above, carrying the charge's consume-time {@link Feedback} ({@code null} = silent, the usual case). */
+    public void armOneShotKind(UUID player, int kindId, int charges, int byDefId, Feedback feedback) {
         if (kindId < 0 || charges <= 0) {
             return;
         }
-        arm(kindArmedByPlayer, player, kindId, charges, byDefId);
+        arm(kindArmedByPlayer, player, kindId, charges, byDefId, feedback);
         onSuppress.onSuppress(player, 0);
     }
 
     /** The shared arm: extend-to-larger-charges merge + the {@value #MAX_ARMED} oldest-out cap. */
-    private static <K> void arm(Map<UUID, Map<K, Charge>> byPlayer, UUID player, K key, int charges, int byDefId) {
+    private static <K> void arm(Map<UUID, Map<K, Charge>> byPlayer, UUID player, K key, int charges, int byDefId,
+                                Feedback feedback) {
         Map<K, Charge> armed = byPlayer.computeIfAbsent(player, k -> new LinkedHashMap<>());
         synchronized (armed) {
-            armed.merge(key, new Charge(charges, byDefId), (a, b) -> new Charge(Math.max(a.charges(), b.charges()), b.byDefId()));
+            armed.merge(key, new Charge(charges, byDefId, feedback),
+                    (a, b) -> new Charge(Math.max(a.charges(), b.charges()), b.byDefId(), b.feedback()));
             if (armed.size() > MAX_ARMED) {
                 Iterator<K> it = armed.keySet().iterator();
                 it.next(); // the eldest (LinkedHashMap insertion order)
@@ -240,7 +262,7 @@ public final class SuppressionStore implements RetainedStore {
                 if (c.charges() <= 1) {
                     it.remove();
                 } else {
-                    e.setValue(new Charge(c.charges() - 1, c.byDefId()));
+                    e.setValue(new Charge(c.charges() - 1, c.byDefId(), c.feedback()));
                 }
             }
             if (armed.isEmpty()) {
@@ -406,12 +428,12 @@ public final class SuppressionStore implements RetainedStore {
     }
 
     /**
-     * The {@link Feedback} of the TIMED window blocking {@code ability}, or {@code null} — the dispatch layer's
+     * The {@link Feedback} of the suppression blocking {@code ability}, or {@code null} — the dispatch layer's
      * read-back after a {@code SUPPRESSED} verdict, the shape {@code remainingCooldownTicks} already sets for
      * {@code ON_COOLDOWN}. Walks {@link #blockedDetail}'s exact order so the emitted line names the same
-     * suppressor {@code /se why} does. ONE-SHOTS ARE EXCLUDED: a one-shot is burned blind after the hit, by
-     * every armed key at once, so it cannot say which ability it actually spent itself on. Allocation-free
-     * when nothing is armed, and on the ordinary silent window it returns the stored {@code null}.
+     * suppressor {@code /se why} does — timed window first, then the armed one-shot on the same key, exactly
+     * as gate 5 reads them. Allocation-free when nothing is armed, and on the ordinary silent window it
+     * returns the stored {@code null}.
      */
     public Feedback blockedFeedback(Ability ability, UUID player, long nowTicks) {
         Feedback f;
@@ -425,7 +447,8 @@ public final class SuppressionStore implements RetainedStore {
             return f;
         }
         Map<Integer, Window> windows = kindExpiryByPlayer.get(player);
-        if (windows == null) {
+        boolean anyArmed = kindArmedByPlayer.containsKey(player);
+        if (windows == null && !anyArmed) {
             return null;
         }
         for (CompiledEffect effect : ability.effects()) {
@@ -433,9 +456,13 @@ public final class SuppressionStore implements RetainedStore {
             if (kid < 0) {
                 continue;
             }
-            Window w = kindWindow(windows, kid, nowTicks);
+            Window w = windows == null ? null : kindWindow(windows, kid, nowTicks);
             if (w != null && w.feedback() != null) {
                 return w.feedback();
+            }
+            Charge c = anyArmed ? armed(kindArmedByPlayer, player, kid) : null;
+            if (c != null && c.feedback() != null) {
+                return c.feedback();
             }
         }
         return null;
@@ -445,8 +472,13 @@ public final class SuppressionStore implements RetainedStore {
         if (scopeId < 0) {
             return null;
         }
-        Window w = window(player, CooldownStore.key(scopeKind, scopeId), nowTicks);
-        return w == null ? null : w.feedback();
+        long key = CooldownStore.key(scopeKind, scopeId);
+        Window w = window(player, key, nowTicks);
+        if (w != null) {
+            return w.feedback();
+        }
+        Charge c = armed(player, key);
+        return c == null ? null : c.feedback();
     }
 
     /** Sentinel "no blocking window/one-shot" (a real byDefId can be {@code -1}, so {@code NONE} must differ). */

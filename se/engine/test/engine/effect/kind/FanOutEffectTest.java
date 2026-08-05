@@ -246,20 +246,20 @@ class FanOutEffectTest {
                         c -> c.with("scope", 1).with("key", 7).with("duration", 200).with("mode", 0).with("charges", 1)
                                 .with("consumed-message-actor", "").with("consumed-message-victim", "")
                                 .sourceDefId(88),
-                        (s, p) -> verify(s).suppress(p, 1, 7, 200, 88, false, 1, null, "", "", -1)),
+                        (s, p) -> verify(s).suppress(p, 1, 7, 200, 88, false, 1, null, "", "", "", -1)),
                 playerOnly("SUPPRESS next-hit → suppress(..., nextHit=true, charges) — Neutralize one-shot",
                         new SuppressEffect(),
                         c -> c.with("scope", 1).with("key", 7).with("duration", 200).with("mode", 1).with("charges", 2)
                                 .with("consumed-message-actor", "").with("consumed-message-victim", "")
                                 .sourceDefId(88),
-                        (s, p) -> verify(s).suppress(p, 1, 7, 200, 88, true, 2, null, "", "", -1)),
+                        (s, p) -> verify(s).suppress(p, 1, 7, 200, 88, true, 2, null, "", "", "", -1)),
                 playerOnly("SUPPRESS carries its consume-time lines to the window",
                         new SuppressEffect(),
                         c -> c.with("scope", 1).with("key", 7).with("duration", 200).with("mode", 0).with("charges", 1)
                                 .with("consumed-message-actor", "blocked them")
                                 .with("consumed-message-victim", "you are silenced")
                                 .sourceDefId(88),
-                        (s, p) -> verify(s).suppress(p, 1, 7, 200, 88, false, 1, null,
+                        (s, p) -> verify(s).suppress(p, 1, 7, 200, 88, false, 1, null, "",
                                 "blocked them", "you are silenced", -1)),
                 playerOnly("REFLECT → reflectMark(percent, duration) — Hex, player-only", new ReflectEffect(),
                         c -> c.with("percent", 20.0).with("duration", 80).with("cap", 0.0).with("feedback", ""),
@@ -295,7 +295,7 @@ class FanOutEffectTest {
                         c -> c.with("scope", 1).with("key", 7).with("duration", 100).with("chance", 50)
                                 .with("consumed-message-actor", "dodged")
                                 .with("consumed-message-victim", "fizzled"),
-                        (s, p) -> verify(s).suppressIncoming(p, 1, 7, 100, 50, -1, null, "dodged", "fizzled", -1)),
+                        (s, p) -> verify(s).suppressIncoming(p, 1, 7, 100, 50, -1, null, "", "dodged", "fizzled", -1)),
                 // Not TELEBLOCK: it is the fallback rung, so a row on it would pass even with the mapping gone.
                 playerOnly("STATUS_CLEAR → clearStatus carries the named window's wire code",
                         new StatusClearEffect(),

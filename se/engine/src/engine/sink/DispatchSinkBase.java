@@ -3900,20 +3900,20 @@ public abstract class DispatchSinkBase implements SinkReadback {
     @Override
     public void suppress(Player target, int scopeKind, int scopeId, int durationTicks, int byDefId,
                          boolean nextHit, int charges) {
-        suppress(target, scopeKind, scopeId, durationTicks, byDefId, nextHit, charges, null, "", "", -1);
+        suppress(target, scopeKind, scopeId, durationTicks, byDefId, nextHit, charges, null, "", "", "", -1);
     }
 
     @Override
     public void suppress(Player target, int scopeKind, int scopeId, int durationTicks, int byDefId,
-                         boolean nextHit, int charges, UUID by, String actorMessage, String victimMessage,
-                         int soundId) {
+                         boolean nextHit, int charges, UUID by, String byName, String actorMessage,
+                         String victimMessage, int soundId) {
         if (target == null || scopeId < 0) {
             return;
         }
-        // Only a TIMED window can carry feedback; a one-shot is burned blind by every armed key at once, so it
-        // cannot name the activation it actually spent itself on.
-        SuppressionStore.Feedback feedback = nextHit ? null
-                : suppressionFeedback(by, actorMessage, victimMessage, soundId);
+        // R-QC41: a one-shot carries its cue too. The burn is blind — every armed key at once — but the BLOCK
+        // is not: gate 5 asks about one ability's own scope, so the charge that stopped it can name itself,
+        // which is the only moment a consume cue ever described.
+        SuppressionStore.Feedback feedback = suppressionFeedback(by, byName, actorMessage, victimMessage, soundId);
         // Per-player in-memory state, so writing it on the firing thread is Folia-safe (only the target's
         // UUID is captured; no cross-region entity read). byDefId attributes the window to the emitting
         // DISABLE_* ability (ADR-0045: /se why names it).
@@ -3921,7 +3921,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
             // ADR-0053: scopeId is a dense effect kindId, matched at gate 5 against the ability's compiled
             // effect kind ids — its own store maps, never packed into the cooldown-scope namespace.
             if (nextHit) {
-                suppression.armOneShotKind(target.getUniqueId(), scopeId, charges, byDefId);
+                suppression.armOneShotKind(target.getUniqueId(), scopeId, charges, byDefId, feedback);
             } else {
                 suppression.suppressKind(target.getUniqueId(), scopeId, nowTicks.getAsLong(), durationTicks,
                         byDefId, feedback);
@@ -3932,7 +3932,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
         long key = CooldownStore.key(scopeKind, scopeId);
         if (nextHit) {
             // ADR-0049 Neutralize: an event-scoped one-shot the combat dispatcher burns after each hit, not by time.
-            suppression.armOneShot(target.getUniqueId(), key, charges, byDefId);
+            suppression.armOneShot(target.getUniqueId(), key, charges, byDefId, feedback);
         } else {
             suppression.suppress(target.getUniqueId(), key, nowTicks.getAsLong(), durationTicks, byDefId, feedback);
         }
@@ -3940,11 +3940,12 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     @Override
     public void suppressIncoming(Player target, int scopeKind, int scopeId, int durationTicks, int chance,
-                                 int byDefId, UUID by, String actorMessage, String victimMessage, int soundId) {
+                                 int byDefId, UUID by, String byName, String actorMessage, String victimMessage,
+                                 int soundId) {
         if (target == null || scopeId < 0) {
             return;
         }
-        SuppressionStore.Feedback feedback = suppressionFeedback(by, actorMessage, victimMessage, soundId);
+        SuppressionStore.Feedback feedback = suppressionFeedback(by, byName, actorMessage, victimMessage, soundId);
         long now = nowTicks.getAsLong();
         // Same UUID-only, same-thread write as suppress(): per-player in-memory state, no entity read.
         if (scopeKind == ScopeKinds.KIND) {
@@ -3977,13 +3978,14 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     /** {@code null} unless the author wrote at least one cue — the ordinary window stores nothing to read back. */
-    private static SuppressionStore.Feedback suppressionFeedback(UUID by, String actorMessage,
+    private static SuppressionStore.Feedback suppressionFeedback(UUID by, String byName, String actorMessage,
                                                                  String victimMessage, int soundId) {
         boolean silent = (actorMessage == null || actorMessage.isEmpty())
                 && (victimMessage == null || victimMessage.isEmpty())
                 && soundId < 0;
         return silent ? null
-                : new SuppressionStore.Feedback(by, actorMessage == null ? "" : actorMessage,
+                : new SuppressionStore.Feedback(by, byName == null ? "" : byName,
+                        actorMessage == null ? "" : actorMessage,
                         victimMessage == null ? "" : victimMessage, soundId);
     }
 

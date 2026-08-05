@@ -23,6 +23,7 @@ import java.util.Objects;
 import java.util.UUID;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import platform.text.Tokens;
 
 /**
  * The runtime execution path — gate 12 (docs/architecture.md §3.3): runs each candidate ability through
@@ -38,6 +39,10 @@ import org.bukkit.entity.Player;
 public final class AbilityExecutor {
 
     private static final Logger LOG = System.getLogger("StarEnchants.Executor");
+
+    /** The consume-cue name tokens — MESSAGE's spelling, so one vocabulary serves every authored line. */
+    private static final String ATTACKER = "ATTACKER";
+    private static final String VICTIM = "VICTIM";
 
     // The effect + selector kind arrays, bound as ONE reference (ADR-0039) so a reload never exposes a torn
     // mix; rebound per reload so add-on effect kinds registered after boot become runnable (ADR-0038). An
@@ -146,11 +151,20 @@ public final class AbilityExecutor {
             if (feedback == null) {
                 return;
             }
+            // R-QC41: MESSAGE's naming vocabulary, read against the SUPPRESSION's two parties rather than the
+            // blocked activation's — {ATTACKER} is whoever armed the window, {VICTIM} whoever it just silenced.
+            // That is the same pairing `consumed-message-actor`/`-victim` already name, so a line and its
+            // recipient cannot disagree; on a defender-keyed window the armer is the one being attacked, which
+            // is what the SUPPRESS_INCOMING doc says the two sides mean there.
+            String armer = feedback.byName();
+            String silenced = actor.getName();
             if (!feedback.actorMessage().isEmpty()) {
-                sink.messageTo(feedback.by(), feedback.actorMessage()); // whoever armed it; offline is a no-op
+                // whoever armed it; offline is a no-op
+                sink.messageTo(feedback.by(), Tokens.sub(feedback.actorMessage(), ATTACKER, armer, VICTIM, silenced));
             }
             if (!feedback.victimMessage().isEmpty()) {
-                sink.message(actor, feedback.victimMessage()); // the SUPPRESS's victim IS the blocked activator
+                // the SUPPRESS's victim IS the blocked activator
+                sink.message(actor, Tokens.sub(feedback.victimMessage(), ATTACKER, armer, VICTIM, silenced));
             }
             if (feedback.soundId() >= 0) {
                 sink.sound(actor.getLocation(), feedback.soundId(), 1.0f, 1.0f);

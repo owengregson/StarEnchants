@@ -53,7 +53,9 @@ public final class SuppressIncomingEffect implements EffectKind {
                     + "are skipped and the rest still take it. `chance` rolls per incoming target application. "
                     + "The mirror of SUPPRESS, which silences what its target DOES; this silences what is done "
                     + "TO them, including the opening proc a defensive SUPPRESS can never reach. Re-arming "
-                    + "extends the window, so a PASSIVE may hold it open.")
+                    + "extends the window, so a PASSIVE may hold it open. The consumed-* lines fill {ATTACKER} "
+                    + "with whoever armed the window — here, the protected holder — and {VICTIM} with the "
+                    + "activator it blocked.")
             .example("{ SUPPRESS_INCOMING: { scope: GROUP, key: lifesteal, duration: 100, who: \"@Self\" } }")
             .build();
 
@@ -72,11 +74,13 @@ public final class SuppressIncomingEffect implements EffectKind {
         String victimMessage = ctx.str("consumed-message-victim");
         // An absent HANDLE never interns, so -1 is unambiguously "no cue" — no id can collide with it.
         int soundId = ctx.args().has("consumed-sound") ? ctx.integer("consumed-sound") : -1;
-        UUID by = ctx.actor() == null ? null : ctx.actor().getUniqueId();
+        Player actor = ctx.actor();
+        UUID by = actor == null ? null : actor.getUniqueId();
+        String byName = actor == null ? "" : actor.getName(); // named at the arm, read back at the block
         for (LivingEntity target : ctx.targets("who")) {
             if (target instanceof Player p) {
                 sink.suppressIncoming(p, scopeKind, keyId, duration, chance, ctx.sourceDefId(),
-                        by, actorMessage, victimMessage, soundId);
+                        by, byName, actorMessage, victimMessage, soundId);
             }
         }
     }

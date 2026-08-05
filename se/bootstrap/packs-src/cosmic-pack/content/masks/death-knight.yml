@@ -50,17 +50,17 @@ description:
 # victim's `last_phoenix` cooldown, so the victim lost the proc AND the window. Gate 5 releases the whole
 # activation, so a suppressed Phoenix here spends neither its cooldown nor its escalating soul price — the
 # as-intended reading, at no authoring cost.
-# THE BLOCK LINES HAVE NO HOME YET, and they are recorded rather than dropped (verbatim, §A.8):
-#   victim   "§c§l* PHOENIX BLOCKED [§7{damager}§c§l] *"
-#   wearer   "§c§l* DEATH KNIGHT MASK [§7{victim}'s Phoenix Blocked§c§l] *"
-# Two separate reasons block them, either of which alone is enough. (a) `consumed-message-actor` /
-# `consumed-message-victim` are TIMED-window only — a `mode: next-hit` one-shot is burned blind and carries no
-# Feedback record at all (SuppressEffect: "a one-shot is burned blind and names nothing"). (b) Even on a timed
-# window the consume path sends the authored string raw (colour translation only, no token substitution), so
-# the damager/victim NAMES these two lines are built around cannot be bound; MESSAGE's {ATTACKER}/{VICTIM}
-# tokens exist only on MESSAGE, which fires at the ARM (i.e. on ~50 % of ALL hits, most of them nowhere near a
-# Phoenix) rather than at the block. Trading the exact one-shot for a lingering timed window would buy nothing
-# while (b) stands. Recorded in deferred-content.md, batch 11.
+# THE BLOCK LINES SHIP, verbatim (§A.8), on the SUPPRESS below — R-QC41 built the two halves they waited on:
+# a `mode: next-hit` charge now carries a Feedback record like a timed window, and the consume path substitutes
+# MESSAGE's name tokens. The only edit to either string is the placeholder spelling the engine answers to
+# ({damager} -> {ATTACKER}, {victim} -> {VICTIM}), which is the standing rule for a verbatim likeness.
+# WHO GETS WHICH: on the consume path {ATTACKER} is whoever ARMED the window — this mask's wearer — and
+# {VICTIM} the player it just silenced, so `consumed-message-victim` (to the blocked Phoenix owner) names the
+# damager and `consumed-message-actor` (back to the wearer) names their target. That is the same pairing the
+# two source strings assume, so neither needed rewording.
+# EMITTED AT THE BLOCK, not the arm: the lines go out only when a Phoenix actually tries to save its owner and
+# gate 5 stops it — never on the ~50 % of ordinary hits that arm a charge nothing spends. That timing is
+# precisely what MESSAGE could not express and why they were held back rather than approximated.
 # ACQUISITION: RARE generator pool, 10 %/9 = 1.1111 % per roll; active in the mask help menu. A mask def
 # carries no tier/weight/pool field and this pack has no mask-generator surface, so the percentage is ledgered
 # here rather than authored (family preamble).
@@ -73,4 +73,11 @@ abilities:
     effects:
       # Player-only by construction: SUPPRESS writes nothing for a non-player target, so a mob victim costs a
       # roll and nothing else — no condition needed to keep the veto off mobs that own no Phoenix.
-      - { SUPPRESS: { scope: ENCHANT, key: "enchants/phoenix", mode: next-hit, charges: 1, who: "@Victim" } }
+      - SUPPRESS:
+          scope: ENCHANT
+          key: "enchants/phoenix"
+          mode: next-hit
+          charges: 1
+          who: "@Victim"
+          consumed-message-victim: "§c§l* PHOENIX BLOCKED [§7{ATTACKER}§c§l] *"
+          consumed-message-actor: "§c§l* DEATH KNIGHT MASK [§7{VICTIM}'s Phoenix Blocked§c§l] *"
