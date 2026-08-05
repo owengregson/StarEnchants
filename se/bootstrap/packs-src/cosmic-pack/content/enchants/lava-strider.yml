@@ -1,29 +1,31 @@
 # Matrix: 07-enchants-mastery-soul.md § Lava Strider
-# Roster marker (metaphysical.yml / sticky.yml / infinite-luck.yml precedent): the enchant rolls, applies and
-# renders, and its whole measured payload is ONE flag write — `SET_VAR(name=mastery.lava-strider, value=1,
-# ttl=0)` on a PASSIVE walk. It ships effect-less rather than as that SET_VAR for the reason the Solitude row
-# settled pack-wide: a ttl-0 marker written on a PASSIVE walk has no teardown, so a single equip would leave
-# it standing forever. The level publishes as worn state instead, read back as `%actor.enchlevel.lava-strider%`
-# (the key is the file STEM; an `enchants/lava-strider` stable-key spelling reads 0 in silence), so unequipping
-# clears it — which is also the better half of the jar's own metadata lifecycle.
-# THE CONSUMER IS CODEX-UNRESOLVED AND LIVES OUTSIDE THE CORPUS — an external plugin, presumably lava
-# traversal. Nothing in this pack reads the flag today and nothing in the port's remaining batches will. The
-# matrix's own suggestion, `WALKER(material=…, replace=…)` over lava, is DESIGN pending an owner ruling and is
-# deliberately NOT authored here: realizing a lava-walker would invent behavior the measured item never had on
-# its own, which is the one thing a translation may not do. Tracked in deferred-content as a pending clause.
-# WHY THIS SHIPS WHERE `enchants/ghost` (batch 01) DID NOT, since the two look alike: Ghost's decomposition is
-# literally "none (inert in corpus)" — the matrix declines to decompose it at all and hands the whole entry to
-# an owner decision. This entry's decomposition IS a publisher (the SET_VAR row above), with a slot
-# restriction of its own, and the matrix says in as many words that it "records the measured flag only". So
-# the marker here is what the matrix decomposes, not a stand-in for a decision nobody has taken. If the owner
-# rules the other way, the file is one deletion and a moved row.
+# The jar's whole measured payload is ONE flag write — `SET_VAR(name=mastery.lava-strider, value=1, ttl=0)` on
+# a PASSIVE walk — and its consumer is CODEX-UNRESOLVED, in an external plugin nothing in this corpus reads.
+# OWNER RULING R-QC38 resolves that: the entry ships with the behaviour the matrix's own note names, a
+# `WALKER` lava-walk, rather than as a marker for a reader that does not exist. The flag itself still
+# publishes as worn state (`%actor.enchlevel.lava-strider%`, keyed on the file STEM) because worn state has
+# the teardown a ttl-0 SET_VAR does not — the Solitude row's pack-wide reading.
+# THE WALK, and every number in it is a port choice, not a measurement — the jar held none:
+#  * REPEATING at 10 t rather than a move hook. The surface has no per-step trigger, and 10 t is the coarsest
+#    period a sprinter (~5.6 blocks/s) cannot outrun with the radius below.
+#  * The ground test is a `contains` on the server's own block name, which spans 1.8's LAVA / STATIONARY_LAVA
+#    split and the flattened modern LAVA in one clause — the `detonate.yml` idiom. Without it a radius-2
+#    REPLACEABLE stamp would pave AIR under a jumping wearer, which is a flight enchant, not this one.
+#  * `replace: REPLACEABLE` (air/liquid only) is what keeps it off terrain: the pad can never eat a floor,
+#    and the temp-block ledger restores the lava it took.
+#  * OBSIDIAN is the crust a lava strider walks on, exists unrenamed on both eras, and needs no alias row.
+#  * radius 2 (a 5x5 pad) and 60 t of life: two blocks of margin ahead of a sprinter, and a trail that closes
+#    behind them rather than a bridge anyone can follow.
 display: "Lava Strider"
-# description: not matrix-recorded (factual paraphrase). It promises nothing, because nothing is authored —
-# a description naming lava traversal would advertise the unrealized half.
+# description: not matrix-recorded (factual paraphrase); it names the walk now that the walk is authored.
 description:
-  - "&eA mastery of the molten. Boots that carry it"
-  - "&eare marked as a lava strider's."
-trigger: PASSIVE
+  - "&eA mastery of the molten. Lava crusts over"
+  - "&eunder your boots for as long as you walk it."
+trigger: REPEATING
+repeat: 10  # the stamp cadence; level-independent
+# Only over lava — see the ground test above. `%actor.groundblock%` is the block one below the feet, which is
+# what a wearer sinking into a lava lake stands on for the tick before the pad forms.
+condition: "%actor.groundblock% contains \"LAVA\""
 # BOOTS, not ARMOR: the matrix records this as the only mastery whose natural items are restricted to one
 # slot. The rest of the family takes all four pieces. Handing a mastery onto locked kit armour is the Mastery
 # Shard flow, an economy/config concern the effect matrix leaves out.
@@ -36,15 +38,16 @@ tier: mastery
 # NO `suppress-immune`, and none of the family carries one: the flag exempts an ability from ALL suppression
 # (`SuppressionStore.suppressesAny` returns false before it reads a scope), and END-SUPPRESS — the world rule
 # that has to reach every tier above 5 — cannot then reach a tier-8 file. Same ruling the heroic contract
-# settled in batch 06. Moot here anyway: an effect-less marker has no ability to silence.
+# settled in batch 06. It bites now that there is a walk to silence: a silenced Lava Strider stops paving.
 # Family rules that do not bite this entry: the offence-dispatch rule (ATTACK-side masteries only, and the
-# lowest worn level procing where the engine keeps the highest) has no PASSIVE half; the RIFT-mask negation and
-# the Dragon Slayer reflect/negate both key on offensive procs; D-07-1's asymmetric scan geometry has no shape
-# to correct. No deviation row is owed — the flag is measured exactly as written.
-# strings: none. numbers: level-independent, max 1. era: none for the flag itself; a realized lava-walker
-# would inherit WALKER's era handling (its own material resolution), which is one more reason to leave that
-# decision to the ruling rather than pre-empt it here.
+# lowest worn level procing where the engine keeps the highest) has no REPEATING half; the RIFT-mask negation
+# and the Dragon Slayer reflect/negate both key on offensive procs; D-07-1's asymmetric scan geometry has no
+# shape to correct.
+# strings: none. numbers: level-independent, max 1. era: OBSIDIAN and the LAVA name test both cross eras
+# unchanged, so `Aliases.MATERIAL` owes this entry nothing.
 levels:
-  # One rung, because the flag is level-independent — the stored value IS the level and the measured value is
-  # always 1.
-  1: { effects: [] }
+  # One rung, because the measured flag is level-independent — max 1 in the jar, so the radius expression has
+  # exactly one value to take.
+  1:
+    effects:
+      - { WALKER: { material: "OBSIDIAN", ticks: 60, radius: 2, replace: REPLACEABLE } }
