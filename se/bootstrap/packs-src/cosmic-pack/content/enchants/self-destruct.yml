@@ -16,10 +16,10 @@ tier: uncommon
 # outright — the fuse is 4 s — and, since a detonate phase has already cancelled the vanilla blast, the
 # charges would land as duds. The marker gates the same 10 s without touching that bucket. It is reachable:
 # a save on the same set (Phoenix, Smoke Bomb) can leave the wearer alive past a hit this gate called lethal.
-# STOP, recorded in deferred-content.md: the per-level FUSE ladder (100/80/60 t) is not authorable. The
-# summon surface has no fuse param, and `ttl` is a DESPAWN — any ttl at or under vanilla's 80 t fuse removes
-# the TNT before it can explode, so an authored 60 t would make L3 inert. All three levels ship on the
-# vanilla 4 s fuse (ttl omitted = never force-removed; a primed TNT always leaves by exploding).
+# THE PER-LEVEL FUSE LADDER (100/80/60 t = 5/4/3 s) IS AUTHORED (R-QC57). It rides `SPAWN_ENTITY.fuse`, a
+# knob deliberately separate from `ttl`: `ttl` DESPAWNS, so any ttl at or under vanilla's 80 t fuse would
+# remove the charge before it could explode and an authored 60 t would have left L3 spawning duds. `fuse`
+# sets the countdown instead, so the charge always leaves by exploding. `ttl` stays omitted for that reason.
 # ENGINE SEAM (reported, not authorable around): a summon payload runs the OWNER's abilities out of their
 # LIVE WornState, and this wearer is usually dead before the 4 s fuse burns out. Death drops the armour, the
 # armour-change feeder (modern) / gear poll (1.8) refreshes off that drop and respawn refreshes again — so
@@ -47,7 +47,7 @@ levels:
           # owner: activator is what makes the payload runnable at all — the owner is who runs it. scatter
           # spreads each charge over a random ±3 XZ offset with an air scan, so none materialises inside
           # terrain (the jar drew 1..3 per axis; the engine's draw includes 0).
-          - { SPAWN_ENTITY: { type: "PRIMED_TNT", count: 2, scatter: 3, owner: "activator", payload-phase: "detonate", payload-radius: 2, payload-height: 2, payload-filter: "ENEMIES", who: "@Self" } }
+          - { SPAWN_ENTITY: { type: "PRIMED_TNT", count: 2, fuse: 100, scatter: 3, owner: "activator", payload-phase: "detonate", payload-radius: 2, payload-height: 2, payload-filter: "ENEMIES", who: "@Self" } }
           - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 2.0, pitch: 0.75 } }
       - trigger: SUMMON_PAYLOAD
         # One activation per entity in the box, actor = the wearer, victim = that entity, anchored at the
@@ -66,7 +66,7 @@ levels:
         effects:
           - { SET_VAR: { name: "selfdestruct.armed", value: "1", ttl: 200, who: "@Self" } }
           - { MESSAGE: { text: "§c§l(!) §c{ATTACKER}'s Self-Destruct was activated, RUN!", who: "@Aoe{r=5, filter=ENEMIES}" } }
-          - { SPAWN_ENTITY: { type: "PRIMED_TNT", count: 5, scatter: 3, owner: "activator", payload-phase: "detonate", payload-radius: 2, payload-height: 2, payload-filter: "ENEMIES", who: "@Self" } }
+          - { SPAWN_ENTITY: { type: "PRIMED_TNT", count: 5, fuse: 80, scatter: 3, owner: "activator", payload-phase: "detonate", payload-radius: 2, payload-height: 2, payload-filter: "ENEMIES", who: "@Self" } }
           - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 2.0, pitch: 0.75 } }
       - trigger: SUMMON_PAYLOAD
         effects:
@@ -81,7 +81,7 @@ levels:
         effects:
           - { SET_VAR: { name: "selfdestruct.armed", value: "1", ttl: 200, who: "@Self" } }
           - { MESSAGE: { text: "§c§l(!) §c{ATTACKER}'s Self-Destruct was activated, RUN!", who: "@Aoe{r=7, filter=ENEMIES}" } }
-          - { SPAWN_ENTITY: { type: "PRIMED_TNT", count: 7, scatter: 3, owner: "activator", payload-phase: "detonate", payload-radius: 2, payload-height: 2, payload-filter: "ENEMIES", who: "@Self" } }
+          - { SPAWN_ENTITY: { type: "PRIMED_TNT", count: 7, fuse: 60, scatter: 3, owner: "activator", payload-phase: "detonate", payload-radius: 2, payload-height: 2, payload-filter: "ENEMIES", who: "@Self" } }
           - { SOUND: { sound: "ENTITY_GENERIC_EXPLODE", volume: 2.0, pitch: 0.75 } }
       - trigger: SUMMON_PAYLOAD
         effects:

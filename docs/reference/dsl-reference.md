@@ -851,7 +851,7 @@ Draw a horizontal ring of `count` coloured-dust motes of radius `radius` at `hei
 Burn the target for amount raw half-hearts every period ticks over duration ticks, attributed to the activator (kill credit, era-combat delivery). replace is a comma-separated set of potion effects the burn converts — each named DoT's DAMAGE is cancelled for the whole window while the effect itself is left on the target, icon and particles intact; only WITHER and POISON tick damage, so any other name converts nothing. feedback is sent to a player target on every pulse, and tick-sound / tick-particle play there too (once per pulse, never deduped against the hit's other cues). Two burns on one victim both run: unlike FREEZE, this is not a refreshed window.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ PERIODIC_DAMAGE: { amount: <double[0..]>, period: <ticks[0..]=20>, duration: <ticks[0..]=100>, replace: <potion_effect list=>, feedback: <string=>, tick-sound: <sound>, tick-volume: <double[0..]=1>, tick-pitch: <double[0..]=1>, tick-particle: <particle>, tick-particle-count: <int[0..]=1> } }`
+- _usage_: `{ PERIODIC_DAMAGE: { amount: <double[0..]>, period: <ticks[0..]=20>, duration: <ticks[0..]=100>, replace: <potion_effect list=>, feedback: <string=>, tick-sound: <sound>, tick-volume: <double[0..]=1>, tick-pitch: <double[0..]=1>, tick-particle: <particle>, tick-particle-count: <int[0..]=1>, tick-particle-2: <particle>, tick-particle-2-count: <int[0..]=1> } }`
 - _param_ `amount` `double[0..]` — raw pre-armor half-hearts per pulse (never attack-scaled)
 - _param_ `period` `ticks[0..]`
 - _param_ `duration` `ticks[0..]`
@@ -862,6 +862,8 @@ Burn the target for amount raw half-hearts every period ticks over duration tick
 - _param_ `tick-pitch` `double[0..]`
 - _param_ `tick-particle` `particle` — burst spawned on the target every pulse; omit for none
 - _param_ `tick-particle-count` `int[0..]`
+- _param_ `tick-particle-2` `particle` — a SECOND burst on the same pulse, for a cue built from two particle types
+- _param_ `tick-particle-2-count` `int[0..]`
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ PERIODIC_DAMAGE: { amount: 6, period: 20, duration: 120, replace: WITHER, tick-particle: FLAME, tick-particle-count: 20 } }`
 
@@ -940,14 +942,15 @@ Launch count projectiles of a type from the activator's eye (covers SPAWN_ARROWS
 
 ### PROJECTILE_DRESSING
 
-Ride an entity of type on the projectile this BOW_FIRE activation is loosing — the rider is removed the moment the arrow lands, dies or unloads, and unconditionally after ttl ticks. invulnerable spares it from damage for that many ticks so its own flight cannot kill it; no-pickup stops it hoovering up items in mid-air. One rider per shot: a second PROJECTILE_DRESSING on the same shot replaces the first. Inert outside a bow shot.
+Ride an entity of type on the projectile this BOW_FIRE activation is loosing — the rider is removed the moment the arrow lands, dies or unloads, and unconditionally after ttl ticks. invulnerable spares it from damage for that many ticks so its own flight cannot kill it; no-pickup stops it hoovering up items in mid-air. One rider per shot: a second PROJECTILE_DRESSING on the same shot replaces the first. fire-ticks lights the ARROW itself, which nothing else can reach — IGNITE takes its targets from a selector and no selector names a shot in flight — and needs no rider, so a flaming arrow is this effect with type omitted. Inert outside a bow shot.
 
 - _affinity_: `CONTEXT_LOCAL`
-- _usage_: `{ PROJECTILE_DRESSING: { type: <entity_type>, ttl: <ticks[0..]=200>, invulnerable: <ticks[0..]=200>, no-pickup: <bool=true> } }`
-- _param_ `type` `entity_type`
+- _usage_: `{ PROJECTILE_DRESSING: { type: <entity_type>, ttl: <ticks[0..]=200>, invulnerable: <ticks[0..]=200>, no-pickup: <bool=true>, fire-ticks: <ticks[0..]=0> } }`
+- _param_ `type` `entity_type` — rider to seat on the shot; omit to dress the arrow only
 - _param_ `ttl` `ticks[0..]` — hard cap on the rider's life; the backstop when nothing reports a landing
 - _param_ `invulnerable` `ticks[0..]` — how long the rider ignores damage (0 = never)
 - _param_ `no-pickup` `bool`
+- _param_ `fire-ticks` `ticks[0..]` — set the ARROW alight for this long (0 = as loosed); no rider needed
 - _example_: `{ PROJECTILE_DRESSING: { type: COW, ttl: 200, invulnerable: 200 } }`
 
 ### REFLECT
@@ -1123,10 +1126,10 @@ While worn (PASSIVE): every spawner spawn near the wearer rolls `chance`% to add
 
 ### SPAWN_ENTITY
 
-Spawn count entities of type at the target's (or activation) location; ttl ticks until removal (0 = permanent), optional starting health, and owner=activator to tame an owned summon to the activator. ADR-0052 summon flags: powered charges a creeper; ai=false disables mob AI; targeting=false stops the summon acquiring targets; saddled + mount=activator make a horse-type rideable and seat the activator; detonate=PLAYER_HIT makes a creeper explode ONLY when a player hits it (it never self-detonates); invincible=true zeroes all damage to the summon (it cannot die but still takes hits and knockback); speed is a multiplier on the spawned entity's vanilla movement-speed base (0 = untouched); name is shown above each summon and effects is a comma-separated potion loadout held for its whole life, each entry optionally levelled with NAME*LEVEL (SPEED*3) — the same styling GUARD takes, so the choice between the two is only about targeting. payload-phase attaches the owner's SUMMON_PAYLOAD abilities to a point in the summon's life: detonate REPLACES the vanilla explosion (no terrain damage, no vanilla entity damage), death fires as it dies, and periodic pulses every payload-period ticks. The payload runs once per entity in a payload-radius x payload-height box around the summon (height 0 reuses the radius), filtered by payload-filter and capped nearest-first by payload-max-targets; a payload needs owner=activator, since the owner is who runs it. payload-phase=strike is the odd rung out: it fires when the summon lands a MELEE hit on a player (its projectiles never count) and runs the owner's IMPACT abilities on the player struck, NOT their SUMMON_PAYLOAD ones — so the box params above do not apply and the target is always the one player hit. payload-cancel drops the summon's own melee damage so only the authored IMPACT lands, and payload-consume despawns the summon on that hit, which makes it a one-shot courier: exactly one strike per summon, never a second. Visuals for the strike belong on those IMPACT abilities, where they are fully authored. scatter spreads the summons over a random offset, air-scanned so none spawns inside terrain. Replaces SPAWN/TNT.
+Spawn count entities of type at the target's (or activation) location; ttl ticks until removal (0 = permanent), optional starting health, and owner=activator to tame an owned summon to the activator. ADR-0052 summon flags: powered charges a creeper; ai=false disables mob AI; targeting=false stops the summon acquiring targets; saddled + mount=activator make a horse-type rideable and seat the activator; detonate=PLAYER_HIT makes a creeper explode ONLY when a player hits it (it never self-detonates); invincible=true zeroes all damage to the summon (it cannot die but still takes hits and knockback); speed is a multiplier on the spawned entity's vanilla movement-speed base (0 = untouched); name is shown above each summon and effects is a comma-separated potion loadout held for its whole life, each entry optionally levelled with NAME*LEVEL (SPEED*3) — the same styling GUARD takes, so the choice between the two is only about targeting. payload-phase attaches the owner's SUMMON_PAYLOAD abilities to a point in the summon's life: detonate REPLACES the vanilla explosion (no terrain damage, no vanilla entity damage), death fires as it dies, and periodic pulses every payload-period ticks. The payload runs once per entity in a payload-radius x payload-height box around the summon (height 0 reuses the radius), filtered by payload-filter and capped nearest-first by payload-max-targets; a payload needs owner=activator, since the owner is who runs it. payload-phase=strike is the odd rung out: it fires when the summon lands a MELEE hit on a player (its projectiles never count) and runs the owner's IMPACT abilities on the player struck, NOT their SUMMON_PAYLOAD ones — so the box params above do not apply and the target is always the one player hit. payload-cancel drops the summon's own melee damage so only the authored IMPACT lands, and payload-consume despawns the summon on that hit, which makes it a one-shot courier: exactly one strike per summon, never a second. Visuals for the strike belong on those IMPACT abilities, where they are fully authored. scatter spreads the summons over a random offset, air-scanned so none spawns inside terrain. fuse shortens (or lengthens) a primed TNT's countdown; it is a separate knob from ttl because ttl DESPAWNS, so any ttl at or under the fuse would remove the charge before it could ever explode. Replaces SPAWN/TNT.
 
 - _affinity_: `REGION`
-- _usage_: `{ SPAWN_ENTITY: { type: <entity_type>, count: <int[1..]=1>, ttl: <ticks[0..]=0>, health: <double[0..]=0>, owner: <enum{none|activator}=none>, powered: <bool=false>, ai: <bool=true>, targeting: <bool=true>, saddled: <bool=false>, mount: <enum{none|activator}=none>, detonate: <enum{NONE|PLAYER_HIT}=NONE>, invincible: <bool=false>, speed: <double[0..]=0>, name: <string=>, effects: <potion_effect list=>, payload-phase: <enum{none|detonate|death|periodic|strike}=none>, payload-period: <ticks[0..]=40>, payload-radius: <double[0..]=4>, payload-height: <double[0..]=0>, payload-filter: <enum set{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}=ALL>, payload-max-targets: <int[0..]=0>, payload-consume: <bool=true>, payload-cancel: <bool=true>, scatter: <int[0..8]=0> } }`
+- _usage_: `{ SPAWN_ENTITY: { type: <entity_type>, count: <int[1..]=1>, ttl: <ticks[0..]=0>, health: <double[0..]=0>, owner: <enum{none|activator}=none>, powered: <bool=false>, ai: <bool=true>, targeting: <bool=true>, saddled: <bool=false>, mount: <enum{none|activator}=none>, detonate: <enum{NONE|PLAYER_HIT}=NONE>, invincible: <bool=false>, speed: <double[0..]=0>, name: <string=>, effects: <potion_effect list=>, payload-phase: <enum{none|detonate|death|periodic|strike}=none>, payload-period: <ticks[0..]=40>, payload-radius: <double[0..]=4>, payload-height: <double[0..]=0>, payload-filter: <enum set{ALL|PLAYERS|MONSTERS|MOBS|ENEMIES|ALLIES}=ALL>, payload-max-targets: <int[0..]=0>, payload-consume: <bool=true>, payload-cancel: <bool=true>, scatter: <int[0..8]=0>, fuse: <ticks[0..]=0> } }`
 - _param_ `type` `entity_type`
 - _param_ `count` `int[1..]`
 - _param_ `ttl` `ticks[0..]`
@@ -1151,6 +1154,7 @@ Spawn count entities of type at the target's (or activation) location; ttl ticks
 - _param_ `payload-consume` `bool` — strike phase only: the hit also despawns the summon
 - _param_ `payload-cancel` `bool` — strike phase only: the summon's own melee damage is dropped
 - _param_ `scatter` `int[0..8]` — spread each summon over a random ±N XZ offset, air-scanned (0 = the exact point)
+- _param_ `fuse` `ticks[0..]` — primed TNT only: ticks until it detonates (0 = vanilla's 80). NOT ttl, which despawns
 - _target_ `who`: selector `SELF`
 - _example_: `{ SPAWN_ENTITY: { type: WOLF, count: 1, ttl: 0, health: 0, owner: activator } }`
 
