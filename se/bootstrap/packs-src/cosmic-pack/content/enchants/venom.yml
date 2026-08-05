@@ -9,8 +9,12 @@ applies-to: [BOW]
 group: "rare"
 tier: rare
 # ACQUISITION IS NOT MATRIX-RECORDED for doc 05 (no `max/base/interval/weight/tier` line on any entry here).
-# The rung is the source registration's own tier 3 of the 1-8 ladder (codex registration appendix) and max 3
-# is the numbers ladder's three rungs. Reconcile at the matrix backfill.
+# Tier 3 of the 1-8 ladder; max 3 is the numbers ladder's three rungs. Two records agree: codex 09
+# §"Appendix A — the full registration array" row 35 (the `tier` column), and the shipped `TieredEnchantments`
+# enum, whose venom constant is constructed with enchantTier 3. Doc 05's prose "Tier assignments" block is the
+# lone dissenter (it lists venom under `= 2`); every other bow entry in that block matches Appendix A, so the
+# block has one transcription slip and this is it. NOTE the `2` on venom's registration line is the
+# enchant-table WEIGHT, a separate field — Avenging Angel is weight 10 at tier 4. Reconcile at the backfill.
 # Three abilities: the launch rider, the direct hit, and the landing AoE. The direct hit carries BOTH damage
 # triggers — the jar guards it with nothing at all (no roll, no player check, no cause gate), so a melee
 # swing with the bow in hand poisons exactly as an arrow does.

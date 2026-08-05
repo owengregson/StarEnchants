@@ -6,7 +6,7 @@ display: "Ender Walker"
 description:
   - "&eWither and poison never land, and may instead heal you for the tick they would have dealt."
 trigger: [HURT, PASSIVE]
-applies-to: [ARMOR]
+applies-to: [BOOTS]  # boots-only in the source registration; the matrix records no item set
 group: "epic"
 tier: epic
 # The immunity rides HURT, not DEFENSE: wither/poison ticks carry no damager, so only the all-cause

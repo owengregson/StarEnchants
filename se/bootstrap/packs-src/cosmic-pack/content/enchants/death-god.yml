@@ -4,7 +4,7 @@ display: "Death God"
 description:
   - "&eA chance to cancel a hit that would leave you at low health, and heal you."
 trigger: DEFENSE
-applies-to: [ARMOR]
+applies-to: [HELMET]  # helmets-only in the source registration; the matrix records no item set
 group: "legendary"
 tier: legendary
 levels:

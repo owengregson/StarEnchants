@@ -4,7 +4,7 @@ display: "Curse"
 description:
   - "&eWhen hit, may grant Strength II and Resistance II — with Slowness II as the price."
 trigger: DEFENSE
-applies-to: [ARMOR]
+applies-to: [CHESTPLATE]  # chestplates-only in the source registration; the matrix records no item set
 group: "uncommon"
 tier: uncommon
 condition: "%damagecause% == \"ENTITY_ATTACK\""

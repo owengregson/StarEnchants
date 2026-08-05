@@ -5,7 +5,9 @@ description:
   - "&eA killing blow is refused and your souls"
   - "&ebuy back full health — at double the price each time."
 trigger: DEFENSE
-applies-to: [ARMOR]
+applies-to: [BOOTS]  # boots-only in the source registration; the matrix records no item set
+# `supreme.yml` still mints Phoenix onto the HELMET, exactly as the source's set builder does — the gate is on
+# the APPLY path only, so a minted copy fires from any slot.
 group: "soul"
 tier: soul
 # Every damage cause qualifies — the lethal-hit gate IS the whole activation. Same spelling resilience.yml

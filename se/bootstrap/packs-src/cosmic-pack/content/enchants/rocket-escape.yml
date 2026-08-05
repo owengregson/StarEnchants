@@ -5,11 +5,10 @@ description:
   - "&eA killing blow is voided and launches you straight up,"
   - "&eregenerating, with the landing on the house."
 trigger: DEFENSE
-applies-to: [ARMOR]
+applies-to: [BOOTS]  # boots-only in the source registration; the matrix records no item set, but the proc line's "boots" is literal
 group: "rare"
 tier: rare
 chance: 100
-# The matrix records no slot gate — the proc line's "boots" is the jar's flavour, not a restriction.
 # Two abilities on one enchant (the matrix's MULTI_ABILITY_ENCHANT): the DEFENSE save writes the escape
 # window, the FALL block spends it. The window replaces the jar's external, never-cleared fall exemption, so
 # it closes with the SET_VAR ttl instead of following the player forever.
