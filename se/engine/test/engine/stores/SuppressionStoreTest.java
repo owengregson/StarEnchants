@@ -2,6 +2,8 @@ package engine.stores;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -445,6 +447,25 @@ class SuppressionStoreTest {
         SuppressionStore.Matched other = reversed.defenderBlocks(incoming, p, 20L, neverFails());
         assertEquals(11, other.byDefId());
         assertEquals(setLine, other.feedback());
+    }
+
+    @Test
+    void aFamilyGroupWindowStillBlocksAPayloadThatNarrowedItsOwnImpactScope() {
+        // R-QC40 (ADR-0074 amendment). The three mastery enchants now source IMPACT under their OWN group so a
+        // turret skull stops firing a sibling's payload — and Dragon Slayer's / Rift's
+        // SUPPRESS_INCOMING{scope: GROUP, key: mastery} must still catch every one of those abilities. A REAL
+        // Ability (not the mock) is the point: it proves the store reads the FAMILY field and never the
+        // narrowed one, which is the only reason the payload filter could be sharpened at all.
+        int mastery = 5;
+        int tombstone = 9;
+        Ability payload = Abilities.ability().cooldownScope(-1, mastery, -1).sourceGroup(tombstone).build();
+        store.defend(p, CooldownStore.key(ScopeKinds.GROUP, mastery), 0L, 60, 100, 42, null);
+
+        assertNotNull(store.defenderBlocks(payload, p, 20L, neverFails()),
+                "the mastery negation still names this ability");
+        assertNull(store.defenderBlocks(
+                        Abilities.ability().cooldownScope(-1, tombstone, -1).build(), p, 20L, neverFails()),
+                "and the narrowed word is NOT a match key — nothing was armed against it");
     }
 
     @Test

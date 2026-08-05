@@ -49,6 +49,21 @@ class ImpactGroupScopeTest {
     }
 
     @Test
+    void aNarrowedPayloadFollowsItsOwnGroupAndNotTheFamilyMatchKey() {
+        // R-QC40 (ADR-0074 amendment). Ability 4 sits in family `3` — the key a family-wide
+        // SUPPRESS_INCOMING{scope: GROUP} names — but sources IMPACT under its own `11`. A group-3 cast must
+        // NOT claim it (that is the mastery cross-fire: three enchants' payloads under one family word), and a
+        // group-11 cast must. The two identities are read from two fields, so neither can move the other.
+        Ability[] roster = new Ability[] {
+            Abilities.ability().id(0).cooldownScope(-1, 3, -1).build(),
+            Abilities.ability().id(1).cooldownScope(-1, 3, -1).sourceGroup(11).build(),
+        };
+        assertArrayEquals(new int[] {0}, TriggerRunner.withGroup(roster, new int[] {0, 1}, 3));
+        assertArrayEquals(new int[] {1}, TriggerRunner.withGroup(roster, new int[] {0, 1}, 11));
+        assertEquals(3, roster[1].cdScopeGroup(), "the narrowed payload keeps the family match key");
+    }
+
+    @Test
     void anAllMatchingWalkHandsBackTheWornStatesOwnArray() {
         // The hot path: a field that lands ~142 blocks must not allocate a copy per landing when the filter
         // changes nothing.

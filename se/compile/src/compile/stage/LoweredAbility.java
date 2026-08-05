@@ -33,6 +33,8 @@ import java.util.List;
  * @param soulCostDecayPeriod ticks per escalation step shed since the last charge; {@code 0} = never decays
  * @param cooldownPerVictim whether the cooldown keys on the VICTIM rather than the coarse player/mob target
  *                        bucket; {@code false} = today's shared bucket
+ * @param sourceGroup    this ability's OWN IMPACT source group, overriding {@link #cdScopeGroup} for the
+ *                       ADR-0074 payload filter only; {@code null} = no override
  */
 public record LoweredAbility(
         SourceKind sourceKind,
@@ -64,12 +66,29 @@ public record LoweredAbility(
         int soulCostCap,
         int soulCostDecayPeriod,
         boolean cooldownPerVictim,
-        int repeatDelayTicks) {
+        int repeatDelayTicks,
+        String sourceGroup) {
 
     public LoweredAbility {
         triggers = List.copyOf(triggers);
         worldBlacklist = List.copyOf(worldBlacklist);
         effects = List.copyOf(effects);
+    }
+
+    /** Construction with NO per-ability IMPACT group override (R-QC40) — every source but the enchant reader. */
+    public LoweredAbility(SourceKind sourceKind, String stableKey, int defId, int level, double baseChance,
+                          int cooldownTicks, int soulCost, List<String> triggers, List<String> worldBlacklist,
+                          CompiledCondition condition, List<CompiledEffect> effects, String suppressKey,
+                          String cdScopeEnchant, String cdScopeGroup, String cdScopeType, int repeatTicks,
+                          Affinity affinity, Source source, int setPieces, boolean suppressImmune,
+                          NumExpr chanceExpr, String noSoulsMessage, boolean soulCostCarried, int noSoulsSound,
+                          int noSoulsParticle, double soulCostGrowth, int soulCostCap, int soulCostDecayPeriod,
+                          boolean cooldownPerVictim, int repeatDelayTicks) {
+        this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
+                condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks, affinity,
+                source, setPieces, suppressImmune, chanceExpr, noSoulsMessage, soulCostCarried, noSoulsSound,
+                noSoulsParticle, soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim,
+                repeatDelayTicks, null);
     }
 
     /** Back-compat construction for a constant {@code chance:} — the overwhelmingly common case. */
@@ -80,7 +99,7 @@ public record LoweredAbility(
                           Affinity affinity, Source source, int setPieces, boolean suppressImmune) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks, affinity,
-                source, setPieces, suppressImmune, null, null, false, -1, -1, 1.0, 0, 0, false, -1);
+                source, setPieces, suppressImmune, null, null, false, -1, -1, 1.0, 0, 0, false, -1, null);
     }
 
     /** Back-compat construction defaulting {@code suppressImmune=false} — most callers never set it. */
@@ -91,6 +110,6 @@ public record LoweredAbility(
                           Affinity affinity, Source source, int setPieces) {
         this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
                 condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks, affinity,
-                source, setPieces, false, null, null, false, -1, -1, 1.0, 0, 0, false, -1);
+                source, setPieces, false, null, null, false, -1, -1, 1.0, 0, 0, false, -1, null);
     }
 }

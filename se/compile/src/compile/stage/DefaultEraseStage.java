@@ -135,6 +135,10 @@ public final class DefaultEraseStage implements EraseStage {
             int cdScopeEnchant = la.cdScopeEnchant() == null ? -1 : cooldownScopes.intern(la.cdScopeEnchant());
             int cdScopeGroup = la.cdScopeGroup() == null ? -1 : cooldownScopes.intern(la.cdScopeGroup());
             int cdScopeType = la.cdScopeType() == null ? -1 : cooldownScopes.intern(la.cdScopeType());
+            // R-QC40: the IMPACT source scope is the family group unless the ability narrowed it. The SAME
+            // interner, so a payload's own group and a family match key can never collide on an id — and so
+            // an unauthored override lands on exactly the id the match key already has.
+            int sourceGroup = la.sourceGroup() == null ? cdScopeGroup : cooldownScopes.intern(la.sourceGroup());
 
             CompiledEffect[] effects = eraseSuppressArgs(la.effects(), cooldownScopes, la.source(), diags);
             Ability ability = new Ability(
@@ -169,7 +173,8 @@ public final class DefaultEraseStage implements EraseStage {
                     la.soulCostCap(),
                     la.soulCostDecayPeriod(),
                     la.cooldownPerVictim(),
-                    la.repeatDelayTicks());
+                    la.repeatDelayTicks(),
+                    sourceGroup);
 
             abilities.add(ability);
             keysByDenseId.add(la.stableKey());

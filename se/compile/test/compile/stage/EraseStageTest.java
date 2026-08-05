@@ -2,6 +2,7 @@ package compile.stage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -11,6 +12,7 @@ import compile.model.Ability;
 import compile.model.Affinity;
 import compile.model.CompiledEffect;
 import compile.model.CompiledSelector;
+import compile.model.Interner;
 import compile.model.Interners;
 import compile.model.SourceKind;
 import compile.model.SourceMap;
@@ -131,6 +133,29 @@ class EraseStageTest {
         Interners interners = erased.interners();
         assertEquals(a.suppressKey(), interners.suppress().idOf("DISABLE_FOO"));
         assertEquals(a.cdScopeGroup(), interners.cooldownScopes().idOf("GROUP_A"));
+    }
+
+    @Test
+    void aNarrowedSourceGroupGetsItsOwnIdWhileTheFamilyMatchKeyKeepsErasingToTheSuppressionOne() {
+        // R-QC40 (ADR-0074 amendment). The bridge invariant above must survive the split: a payload that
+        // narrows its IMPACT source scope still erases its FAMILY group to the id a SUPPRESS_INCOMING
+        // {scope: GROUP, key: mastery} window keys on, or narrowing a filter would silently un-negate an enchant.
+        LoweredAbility scoped = Defs.lowered().stableKey("payload")
+                .cooldownScope(null, "mastery", null).sourceGroup("tombstone").build();
+        LoweredAbility plain = Defs.lowered().stableKey("sibling").cooldownScope(null, "mastery", null).build();
+
+        Diagnostics d = new Diagnostics();
+        ErasedContent erased = STAGE.erase(List.of(scoped, plain), d);
+        assertFalse(d.hasErrors());
+        Ability payload = erased.abilities()[0];
+        Ability sibling = erased.abilities()[1];
+        Interner scopes = erased.interners().cooldownScopes();
+
+        assertEquals(scopes.idOf("mastery"), payload.cdScopeGroup());
+        assertEquals(scopes.idOf("tombstone"), payload.sourceGroup());
+        assertNotEquals(payload.cdScopeGroup(), payload.sourceGroup());
+        // No override: the two identities are the SAME id, so an ungrouped pack behaves exactly as before.
+        assertEquals(sibling.cdScopeGroup(), sibling.sourceGroup());
     }
 
     @Test

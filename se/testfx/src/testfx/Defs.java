@@ -51,6 +51,7 @@ public final class Defs {
         private String cdScopeEnchant = null;
         private String cdScopeGroup = null;
         private String cdScopeType = null;
+        private String sourceGroup = null; // null = the family group scopes IMPACT (R-QC40)
         private int repeatTicks = 0;
         private int repeatDelayTicks = -1;
         private Source source = Source.UNKNOWN;
@@ -163,6 +164,12 @@ public final class Defs {
             return this;
         }
 
+        /** Narrow this ability's IMPACT source scope away from its family group (the R-QC40 per-ability override). */
+        public AbilityBuilder sourceGroup(String sourceGroup) {
+            this.sourceGroup = sourceGroup;
+            return this;
+        }
+
         public AbilityBuilder repeatTicks(int repeatTicks) {
             this.repeatTicks = repeatTicks;
             return this;
@@ -238,7 +245,8 @@ public final class Defs {
                     triggers, worldBlacklist, conditionExpr, lines, suppressKey, cdScopeEnchant, cdScopeGroup,
                     cdScopeType, repeatTicks, source, setPieces, suppressImmune, chanceExpr, noSoulsMessage,
                     soulCostCarried, noSoulsSound, noSoulsParticle,
-                    soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim, repeatDelayTicks);
+                    soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim, repeatDelayTicks,
+                    sourceGroup);
         }
     }
 
@@ -260,6 +268,7 @@ public final class Defs {
         private String cdScopeEnchant = null;
         private String cdScopeGroup = null;
         private String cdScopeType = null;
+        private String sourceGroup = null; // null = the family group scopes IMPACT (R-QC40)
         private int repeatTicks = 0;
         private int repeatDelayTicks = -1;
         private Affinity affinity = Affinity.CONTEXT_LOCAL;
@@ -363,6 +372,12 @@ public final class Defs {
             return this;
         }
 
+        /** Narrow this ability's IMPACT source scope away from its family group (the R-QC40 per-ability override). */
+        public LoweredBuilder sourceGroup(String sourceGroup) {
+            this.sourceGroup = sourceGroup;
+            return this;
+        }
+
         public LoweredBuilder repeatTicks(int repeatTicks) {
             this.repeatTicks = repeatTicks;
             return this;
@@ -436,7 +451,8 @@ public final class Defs {
                     triggers, worldBlacklist, condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup,
                     cdScopeType, repeatTicks, affinity, source, setPieces, suppressImmune, loweredChanceExpr,
                     noSoulsMessage, soulCostCarried, noSoulsSound, noSoulsParticle,
-                    soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim, repeatDelayTicks);
+                    soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim, repeatDelayTicks,
+                    sourceGroup);
         }
     }
 }

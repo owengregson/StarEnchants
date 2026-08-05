@@ -172,7 +172,8 @@ public final class DefaultLowerStage implements LowerStage {
                 def.soulCostCap(),
                 def.soulCostDecayPeriod(),
                 def.cooldownPerVictim(),
-                def.repeatDelayTicks());
+                def.repeatDelayTicks(),
+                def.sourceGroup());
     }
 
     /**

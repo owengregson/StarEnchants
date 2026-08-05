@@ -117,10 +117,12 @@ public final class TriggerRunner {
     }
 
     /**
-     * Run {@code triggerId}'s worn abilities RESTRICTED to those declaring the interned cooldown-scope GROUP
-     * {@code scopeGroup} — IMPACT source scoping (ADR-0074). The identity is the authored {@code group:} because
-     * it is the only one an ARM and its PAYLOAD share: they are two separate authored bonuses, so a per-ability
-     * id would match neither.
+     * Run {@code triggerId}'s worn abilities RESTRICTED to those whose interned IMPACT source group is
+     * {@code scopeGroup} — IMPACT source scoping (ADR-0074 §4, amended by R-QC40). The identity is the authored
+     * {@code group:} because it is the only one an ARM and its PAYLOAD share: they are two separate authored
+     * bonuses, so a per-ability id would match neither. An enchant that narrows a pair's {@code group:} per
+     * ability scopes only this filter — its family match key is untouched, so a family-wide negation still
+     * catches it.
      *
      * <p>A sibling of {@link #runCandidates} rather than a caller of it: the candidate list is derived FROM the
      * worn state, and routing through that method would take a second lookup whose staleness check could
@@ -141,11 +143,11 @@ public final class TriggerRunner {
                 wornState, candidates, true, null);
     }
 
-    /** The subset of {@code candidates} whose ability declares {@code scopeGroup}; the shared empty array for none. */
+    /** The subset of {@code candidates} whose ability sources {@code scopeGroup}; the shared empty array for none. */
     static int[] withGroup(Ability[] abilities, int[] candidates, int scopeGroup) {
         int kept = 0;
         for (int id : candidates) {
-            if (abilities[id].cdScopeGroup() == scopeGroup) {
+            if (abilities[id].sourceGroup() == scopeGroup) {
                 kept++;
             }
         }
@@ -158,7 +160,7 @@ public final class TriggerRunner {
         int[] filtered = new int[kept];
         int at = 0;
         for (int id : candidates) {
-            if (abilities[id].cdScopeGroup() == scopeGroup) {
+            if (abilities[id].sourceGroup() == scopeGroup) {
                 filtered[at++] = id;
             }
         }
