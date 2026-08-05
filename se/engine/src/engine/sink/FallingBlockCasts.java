@@ -31,7 +31,8 @@ public final class FallingBlockCasts {
      * because the ceiling is authored on the field but only spendable at the landing; {@code rehitMax <= 0} is
      * uncapped (every pre-profile FALLING_BLOCK).
      */
-    public record Cast(UUID owner, UUID target, double damage, int rehitMax, int rehitWindowTicks, int sourceGroup) {
+    public record Cast(UUID owner, UUID target, double damage, int rehitMax, int rehitWindowTicks,
+                       int sourceGroup, int gen) {
     }
 
     /** One victim's fixed re-hit bucket: the tick its window was anchored at, and how many hits it has taken. */
@@ -58,7 +59,9 @@ public final class FallingBlockCasts {
     public static void bind(UUID entity, UUID owner, UUID target, double damage, int rehitMax,
                             int rehitWindowTicks, int sourceGroup) {
         if (entity != null) {
-            BY_ENTITY.put(entity, new Cast(owner, target, damage, rehitMax, rehitWindowTicks, sourceGroup));
+            // R-QC58: the group id is snapshot-relative, so the snapshot it was interned against rides with it.
+            BY_ENTITY.put(entity, new Cast(owner, target, damage, rehitMax, rehitWindowTicks, sourceGroup,
+                    CastGeneration.current()));
         }
     }
 
@@ -105,7 +108,10 @@ public final class FallingBlockCasts {
 
     /** Claim and unbind the cast for a landed block (the IMPACT cooldown dedups a grid's many landings). */
     public static Cast onLand(UUID entity) {
-        return BY_ENTITY.remove(entity);
+        Cast cast = BY_ENTITY.remove(entity);
+        // R-QC58: a reload re-interned the group table, so this row's int now names something else.
+        // DROPPED rather than unscoped — an unscoped payload fires the owner's whole IMPACT roster.
+        return cast == null || CastGeneration.stale(cast.gen()) ? null : cast;
     }
 
     /** Drop all tracking (call on disable). */

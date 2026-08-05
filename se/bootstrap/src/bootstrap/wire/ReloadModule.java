@@ -51,6 +51,9 @@ final class ReloadModule {
             core.itemViews().reload(published.snapshot().generation());
             core.executor().bindQuarantine(BootCore.quarantineFor(published.snapshot())); // §10 fresh per snapshot
             core.stores().why().generation(published.snapshot().generation()); // ADR-0045: rebind gen post-reload
+            // R-QC58: the same moment, for the same reason — the four IMPACT-scope carriers stamp this, and a
+            // cast armed against the OLD interner is dropped at consume rather than firing an unscoped payload.
+            engine.sink.CastGeneration.generation(published.snapshot().generation());
             core.executor().bindContent(core.effectRegistry().get()); // ADR-0038/0039: atomic effect+selector pair
             core.dispatch().bindTiers(BootCore.tierWeightsFor(published)); // PROC_REBOUND tier index, per snapshot
             core.plugin().getServer().getPluginManager().callEvent(new StarEnchantsReloadEvent(

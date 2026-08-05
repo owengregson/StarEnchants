@@ -487,6 +487,8 @@ public final class BootCore {
         // §10 runtime quarantine, bound to the live snapshot and rebound per reload (see the reload module).
         executor.bindQuarantine(quarantineFor(content.snapshot()));
         stores.why().generation(content.snapshot().generation()); // ADR-0045: stamp records so /se why resolves
+        // R-QC58: the same generation the four IMPACT-scope carriers stamp beside their interned group id.
+        engine.sink.CastGeneration.generation(content.snapshot().generation());
         // The effect-head → ParamSpec lookup the migrators use to write verbose v2 effects (ADR-0016).
         this.migrateSpecs = effects.specRegistry();
         // Economy bridge for MODIFY_MONEY (global thread): bundled Vault (§N, ADR-0027) → ServicesManager → no-ops.
