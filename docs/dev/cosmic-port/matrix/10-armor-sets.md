@@ -57,7 +57,8 @@ Family-wide facts, recorded once (codex `10-armor-sets.md §A`):
      an item tag that survives Heroic Sword conversion (retype to gold sword keeps the
      bonus); port: item identity survives reforge
 - **interactions:** victim Infinite Luck `>= 3` suppresses the outgoing bonus
-  (interaction-layer rule; highest threshold of any set); crystal grants
+  (interaction-layer rule — NOT the highest threshold: Dimensional Traveler records
+  `>= 5` and Mother of Yijki `>= 4`); crystal grants
   `DAMAGE_MOD(side=attack, amount=5)` per crystal-bearing piece (n=1..4 → ×1.05..×1.20),
   no defensive crystal half; world-blocked in outpost tiers (attack side only);
   stacks with victim heroic reduction and faction upgrade multiplicatively in the jar
@@ -370,8 +371,10 @@ Family-wide facts, recorded once (codex `10-armor-sets.md §A`):
 - **activation:** set-complete gate; triggers `ATTACK`, `DEFENSE` (proc source)
 - **decomposition:**
   1. `ATTACK` → `DAMAGE_MOD(side=attack, mode=add, amount=30)` — highest unconditional
-     multiplier in the family; NO Infinite Luck check (unique among damage sets,
-     measured)
+     multiplier in the family; this hook carries NO Infinite Luck check (measured).
+     No exclusivity is claimed: § Dragon Slayer and § KOTH are the two sets recorded
+     as exempt, and `sets/koth.yml`, `sets/dragon-slayer.yml` and `crystals/koth.yml`
+     all ship that reading
   2. `DEFENSE` `[actor.world contains "dungeon"]` → `CANCEL`-of-proc (flow `stop` on
      this set's defensive rules; world-substring gate, measured case-sensitive)
   3. `DEFENSE` → `REMOVE_POTION(effect=DAMAGE_RESISTANCE)`
@@ -538,7 +541,8 @@ Family-wide facts, recorded once (codex `10-armor-sets.md §A`):
   upgrade silently mints Ranger — measured, support-item rule); crystal:
   `DAMAGE_MOD(side=attack, amount=5)` per piece vs players, `amount=12.5` per piece vs
   non-players (4 pieces reproduce the full set's own multipliers); no Infinite Luck
-  check
+  check (shared with Dragon Slayer — the only two damage-modifying sets without one;
+  § Dimensional Traveler's hook also carries none but claims no exclusivity)
 - **strings:**
   - piece name pattern:
     `§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§n{Piece}§r` with

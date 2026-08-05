@@ -1047,12 +1047,14 @@ batch recorded as a comment inside those files.
 
 ## Matrix maintenance queue
 
-Corrections owed to the matrix docs themselves, which live on the
-`docs/cosmic-decomposition-matrix` branch and cannot be edited from a content
-branch. Recorded here so authoring never silently diverges from a doc nobody
-went back and fixed.
+**EXECUTED 2026-08-05 under QC ruling G5.** The matrix docs are on main at
+`docs/dev/cosmic-port/matrix/`; the branch-isolation this section used to cite is
+gone, so every correction below was applied to the named doc. Bullets are kept, not
+deleted — they are the record of WHY each matrix line reads the way it does. Each
+carries its outcome as a lead-in: `**APPLIED**`, `**PARTLY APPLIED**`, or
+`**NO-OP**`.
 
-- **`matrix/03` § Trap — two false engine claims.** The decomposition says the
+- **APPLIED** — **`matrix/03` § Trap — two false engine claims.** The decomposition says the
   engine's timed `MOVEMENT_SPEED` modifier "restores the PRIOR speed, fixing
   the jar's hard-coded 0.2F restore clobber": it does not. Engine policy hands
   back the vanilla 0.2 default precisely so a re-fire can never ratchet speed
@@ -1062,13 +1064,13 @@ went back and fixed.
   revert, so the first revert ends a freeze a later grant re-armed. Both claims
   need striking on the matrix branch; `trap.yml` already carries the corrected
   reading.
-- **`matrix/03` § Trap — the attacker-side entry guard.** Recorded as
+- **APPLIED** — **`matrix/03` § Trap — the attacker-side entry guard.** Recorded as
   `!%trap.frozen%` read on the attacker ("the attacker reads their own copy").
   Superseded by owner ruling for the reason `deviations.md D-06-17` already
   gives on Heroic Titan Trap: it is the same wrong-subject idiom, and the
   intent is anti-re-trap. Authored victim-side; the matrix line should point at
   D-06-17.
-- **`matrix/04` § Boss Slayer — the shipped boss list cannot be
+- **APPLIED** — **`matrix/04` § Boss Slayer — the shipped boss list cannot be
   `%victim.mobtype%`.** D-04-7 rules the jar's inert boss flag out and hands the
   designation to "a pack-configured boss mob-type list expressed as
   `%victim.mobtype%` conditions". That fact is the MythicMobs soft hook
@@ -1078,7 +1080,8 @@ went back and fixed.
   `%victim.type%` over the vanilla bosses (ENDER_DRAGON, WITHER — both resolve
   on 1.8.9) and documents the `%victim.mobtype%` widening for MythicMobs
   servers. The matrix line should name the fact it actually needs.
-- **`matrix/11` § Boss Mask (line 643) — the same unshippable boss condition.**
+- **APPLIED** — **`matrix/11` § Boss Mask (line 643) — the same unshippable boss
+  condition.**
   The entry decomposes the designation as `%victim.mobtype% == {boss-id}`, which
   is the MythicMobs soft hook (ADR-0027) and resolves to the empty string for
   every entity on a stack without the integration — so the mask would ship as
@@ -1089,7 +1092,8 @@ went back and fixed.
   identical so the pack carries ONE boss designation rather than two. Both matrix
   lines should be corrected together, and both files already document the
   `%victim.mobtype%` widening for servers that do run MythicMobs.
-- **`matrix/04` § Blessed — the `deepwounds` writer's subject contradicts itself.**
+- **APPLIED** — **`matrix/04` § Blessed — the `deepwounds` writer's subject
+  contradicts itself.**
   The activation line says Deep Wounds "writes on its attacker … read here from
   the actor's own store", but `matrix/03` § Deep Wounds decomposes the write as
   `SET_VAR(name=deepwounds, …) @Victim`. Both halves cannot hold: a write on the
@@ -1098,7 +1102,10 @@ went back and fixed.
   `deep-wounds.yml` writes `who: "@Victim"`, `blessed.yml` reads the bare
   actor-side `%deepwounds%`, and the wounded player IS the later Blessed actor.
   The matrix line should say "on its victim".
-- **`matrix/05` — the whole doc is missing its acquisition rows.** Docs 01–04
+- **PARTLY APPLIED** (the rungs below are now recorded in doc 05's corpus-wide
+  notes as a marked editorial note; the full 22-entry appendix backfill still wants
+  the appendix itself, which is not in-repo) — **`matrix/05` — the whole doc is
+  missing its acquisition rows.** Docs 01–04
   end every `numbers` block with `Acquisition: max N, base X, interval Y,
   weight W, tier T`, and shipped files take their `tier:` (and their max level)
   from it. Doc 05 carries none — the backfill commit covered 01 only — so the
@@ -1124,14 +1131,18 @@ went back and fixed.
   max 3), `infernal.yml` rare (tier 3, max 3) and `longbow.yml` epic (tier 4,
   max 4). Every one of those maxes is corroborated by the entry's own
   numbers ladder, so only the rungs are appendix-only.
-- **`matrix/05` § Sniper — the Rage-immunity key has no writer under that
+- **APPLIED** (renamed to `raged` on § Sniper and on § Pacify's do-not-conflate
+  note) — **`matrix/05` § Sniper — the Rage-immunity key has no writer under that
   name.** The entry gates on `effectedByRage` "written by the sword enchant
   Rage", but `matrix/03` § Rage decomposes exactly one victim-side stamp,
   `raged` (4 t / 200 ms), and that is what `rage.yml` publishes and
   `execute.yml` already reads. Same window, same subject, so `sniper.yml` reads
   `%victim.var.raged%`; the matrix line should either name `raged` or say which
   writer is owed for a second key.
-- **Batch-1 staleness pattern — closed gaps still marked open.** Gap blocks in
+- **APPLIED** (the doc-wide sweep this bullet commissions ran over docs 02, 03, 05
+  and 06: every gap block whose primitive has shipped now carries a **SHIPPED as
+  `X`** clause, and the two stale gap-index tables — 03 and 05 — are annotated
+  row-by-row) — **Batch-1 staleness pattern — closed gaps still marked open.** Gap blocks in
   `matrix/02` and `matrix/03` still read as open against a surface that has
   since shipped them: `VELOCITY_ANCHOR` (02 § Ragdoll) is the `anchor` param
   `VELOCITY` now carries; in 03, `VAR_SCALED_DAMAGE` was absorbed into
@@ -1142,7 +1153,8 @@ went back and fixed.
   `docs/reference/authoring-surface.txt` before deferring on it — a gap block
   is a batch-1 snapshot, not a live statement. The matrix sweep should re-run
   that check across every doc, not just the two named here.
-- **`matrix/05` § Hijack — two decomposition rows the surface cannot honour.**
+- **APPLIED** — **`matrix/05` § Hijack — two decomposition rows the surface cannot
+  honour.**
   The gate is written `%victim.mobtype% == "IRON_GOLEM"`, which is the
   MythicMobs soft hook (ADR-0027) and resolves to the empty string with no
   integration installed — the same fact the Boss Slayer row above corrects;
@@ -1151,20 +1163,22 @@ went back and fixed.
   the effect is the Grand Bell (ADR-0071), player-targeted and ringed around
   that player, so a golem target resolves to nothing. That second one is why
   the entry is deferred rather than shipped (row above), not a wording fix.
-- **`matrix/05` gap index — four gaps already closed.** `TARGET_RELATION_FACT`
+- **APPLIED** (folded into the sweep above) — **`matrix/05` gap index — four gaps
+  already closed.** `TARGET_RELATION_FACT`
   ships as `%victim.relation%` (ALLY/ENEMY/NEUTRAL), `RANDOM_RANGE_PARAM` as
   the `rand(lo, hi)` expression function (`floor(rand(L, 3L))` is Healing's
   integer roll), `DURABILITY_PIECE_SELECT` as `DURABILITY select:
   most-damaged`, and `SUMMON_REBIND_UPGRADE` as the `SUMMON_REBIND` effect —
   the batch-1 staleness pattern above, confirmed on doc 05.
-- **`matrix/02` §§ Spirits and Undead Ruse — "no attacker-type fact exists" is
-  wrong, and the widening it justifies is unnecessary.** Both entries drop the
+- **APPLIED** — **`matrix/02` §§ Spirits and Undead Ruse — "no attacker-type fact
+  exists" is wrong, and the widening it justifies is unnecessary.** Both entries drop the
   jar's player-damager requirement and note the widening to mob melee. On a
   DEFENSE pass the "victim" IS the attacker, so `%victim.type% == "PLAYER"` is
   exactly that fact — `guardians.yml` (batch 01, the same jar condition) has
   shipped it since the first content batch. Both files are authored with the
   gate; the matrix lines should drop the widening note.
-- **`matrix/06` § tool enchantments — the acquisition rows carry no tier.** The
+- **APPLIED** (all nine rungs copied onto the entries) — **`matrix/06` § tool
+  enchantments — the acquisition rows carry no tier.** The
   nine tool entries end on `max N; table weight W; item set …; base X, interval
   Y` and never state a rung, unlike docs 01–04 (and unlike the doc's own heroic
   entries, which all say tier 7). The rungs exist and the doc even prints them
@@ -1173,8 +1187,8 @@ went back and fixed.
   `autosmelt` 1, `experience` 1. Batch 06 authored off that table
   (`auto-smelt.yml` and `haste.yml` common, `fuse.yml` epic), noting it in-file.
   The backfill should copy those nine onto the entries themselves.
-- **`matrix/06` § Detonate — the `FACE_ORIENTED_BOX_SELECTOR` gap block is
-  stale for the symmetric half.** It reads "TRENCH is a single perpendicular
+- **APPLIED** — **`matrix/06` § Detonate — the `FACE_ORIENTED_BOX_SELECTOR` gap
+  block is stale for the symmetric half.** It reads "TRENCH is a single perpendicular
   layer and TUNNEL a 1×1 line — no combination yields a 3×3×depth slab", which
   was true when the block was written and is not now: `@Bore{half-width,
   half-height, depth, materials}` shipped, is oriented on the mined face, and
@@ -1183,8 +1197,9 @@ went back and fixed.
   per-block DENY filter are still open — the batch-1 staleness pattern above,
   now confirmed on doc 06. Both entries stay deferred on
   `BLOCK_MATERIAL_FILTER`, not on the selector.
-- **`matrix/04` § Reforged — the weapons-and-tools item set is missing the
-  spades.** The entry spells the set as "5 swords + 5 axes + bow + 5 pickaxes +
+- **APPLIED** (spades added; the ITEM-SET RULING now sits on the entry's
+  interactions line) — **`matrix/04` § Reforged — the weapons-and-tools item set is
+  missing the spades.** The entry spells the set as "5 swords + 5 axes + bow + 5 pickaxes +
   5 hoes", and `reforged.yml` faithfully ships `[SWORD, AXE, BOW, PICKAXE,
   HOE]`. The codex's own set table (doc 15) records `weapons_and_tools` as
   5 swords, 5 axes, bow, 5 pickaxes, 5 hoes **and 5 spades** (then the 5 axes
@@ -1202,7 +1217,8 @@ went back and fixed.
   when it lands). ENUMERATE only where no composite fits — the weapons cases,
   where `WEAPON` would drag in the crossbow, trident and mace the jar never
   listed (`obliterate.yml` `[SWORD, AXE, BOW]`, `reforged.yml` above).
-- **`matrix/06` § Master Inquisitive — the payout ability has no victim to read.**
+- **APPLIED** — **`matrix/06` § Master Inquisitive — the payout ability has no
+  victim to read.**
   The decomposition gates the `EXP_GAIN` ability on
   `%victim.inquisitive-mark% >= 1`, but an XP-gain activation carries no victim
   (the marked mob is already dead) and no such fact family exists — the victim
@@ -1213,7 +1229,8 @@ went back and fixed.
   `inquisitive.yml` already carries (the jar paid out on ANY killer's blow; the
   window is the holder's own kill), so the two grades stay uniform. The matrix
   line should decompose the payout as a KILL → window → EXP_GAIN chain.
-- **`matrix/06` gap index — three more gaps already closed.**
+- **APPLIED** (folded into the sweep) — **`matrix/06` gap index — three more gaps
+  already closed.**
   `ANY_DAMAGE_TRIGGER` (defined at Divine Enlighted, consumed by Guided Rocket
   Escape) ships as the `HURT` trigger — DEFENSE-direction, no target, every
   damage cause — which `enlighted.yml` has taken for the same jar behaviour
@@ -1223,7 +1240,8 @@ went back and fixed.
   already load-bearing on `sniper.yml`. `TARGET_SCOPED_VAR` was closed in
   wave 1 (`SET_VAR who=@Victim` + `%victim.var.<name>%`). The batch-1 staleness
   pattern, confirmed a second time on doc 06.
-- **`matrix/06` gap index — three MORE closed, on the tools/heroic batch.**
+- **APPLIED** (folded into the sweep) — **`matrix/06` gap index — three MORE
+  closed, on the tools/heroic batch.**
   `AIR_TICKS_RESTORE` (Oxygenate) ships as `FILL_OXYGEN`'s own `amount` param —
   "air ticks to add, clamped to the target's maximum air" is the gap block
   verbatim; its optional `skip-if-overflow` is not wanted, since D-06-6 rules
@@ -1238,8 +1256,8 @@ went back and fixed.
   magnitude curve. `RELATION_VAR`, defined on the same entry, was already closed
   in wave 1b as `%victim.relation%`. Four more instances of the batch-1
   staleness pattern.
-- **`matrix/06` § Bidirectional Teleportation — the ally branch cancels BEFORE
-  it range-checks.** The decomposition orders the ally arm as "1. condition
+- **APPLIED** — **`matrix/06` § Bidirectional Teleportation — the ally branch
+  cancels BEFORE it range-checks.** The decomposition orders the ally arm as "1. condition
   `%distance% <= 30` … else too-far string; 2. `CANCEL()`", which would let a
   too-far allied arrow deal its damage. The source cancels the event and removes
   the arrow first and only then compares `distanceSquared`, so a too-far allied
@@ -1247,7 +1265,8 @@ went back and fixed.
   shape `teleportation.yml` already ships for the non-heroic (both arms open
   with CANCEL), and `bidirectional-teleportation.yml` follows it. The matrix
   line should move the cancel above the range test.
-- **`matrix/06` § Vengeful Diminish — the armed-cap state is NOT per-enchant.**
+- **APPLIED** — **`matrix/06` § Vengeful Diminish — the armed-cap state is NOT
+  per-enchant.**
   The interactions line records the jar's shared armed-cap key as a structural
   change ("engine state is per-enchant"). It is not: `DamageCapStore` holds ONE
   armed cap keyed by player UUID, and a re-arm replaces it wholesale (factor and
@@ -1255,7 +1274,9 @@ went back and fixed.
   the co-occurrence caveat the entry raises is the jar's own. The matrix line
   should drop the structural-change note and record the last-arm-wins wrinkle
   instead; `vengeful-diminish.yml` carries the corrected reading.
-- **The support-item codex (§C) — CLOSED by `matrix/13-support-items.md`.** The
+- **NO-OP for the matrix docs** (already replaced by the `matrix/13` pointer this
+  bullet carries) — **The support-item codex (§C) — CLOSED by
+  `matrix/13-support-items.md`.** The
   §C decomposition pass commissioned by R-QC12 + R-QC47 has landed: 27 entries
   over the crystals, the heroic tiers, the extractor, the shard and the whole
   economy-item roster, decomposed onto the 22 item-likeness `type:` keys. It
@@ -1265,7 +1286,8 @@ went back and fixed.
   `packs-src/cosmic-pack/items/crystal.yml` and `items/heroic.yml` are
   settleable from source and should be replaced with the strings that doc
   carries. Its own § Corrections this pass owes other documents lists the rest.
-- **`matrix/10` — the Infinite Luck exemption is awarded twice, to three sets.**
+- **APPLIED** — **`matrix/10` — the Infinite Luck exemption is awarded twice, to
+  three sets.**
   § Dimensional Traveler calls its `+30 %` hook "NO Infinite Luck check (unique
   among damage sets, measured)" while § Dragon Slayer calls the same exemption
   "shared with KOTH — the only two damage-modifying sets without one", and
@@ -1280,7 +1302,14 @@ went back and fixed.
   carries "uniquely in the family" and should follow whichever way the matrix
   lands. Nothing behavioural: no Infinite Luck condition is authored on any of
   the three, so the shipped folds are already correct either way.
-- **`matrix/10` § Ghost — the Anti-M-Kit section number.** The entry already
+  RESOLVED in favour of Dragon Slayer + KOTH — the majority reading and what
+  `sets/koth.yml`, `sets/dragon-slayer.yml` and `crystals/koth.yml` all ship.
+  § Dimensional Traveler now states only the uncontested fact and claims no
+  exclusivity; § KOTH names the pair explicitly, so all three sections agree.
+  § Phantom's `>= 3` lost its "highest of any set" superlative in the same pass
+  (Dimensional Traveler records `>= 5`, Mother of Yijki `>= 4`).
+- **NO-OP** (the bullet says so itself: nothing is owed to the doc) — **`matrix/10`
+  § Ghost — the Anti-M-Kit section number.** The entry already
   flags it (`§C.6` in the codex's prose, `### C.2` as the heading), so nothing
   is owed to the doc; repeated here only because the crystal files cite the
   drift and a reader meeting `§C.2` in the codex should not think they have the

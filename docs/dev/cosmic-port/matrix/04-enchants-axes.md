@@ -224,8 +224,9 @@ Family-wide notes:
 - **codex:** `04-enchants-axes.md § Blessed`
 - **activation:** trigger `ATTACK`; condition
   `%victim.type% == "PLAYER" && !(%deepwounds%)` — `deepwounds` is a SET_VAR the
-  swords/Deep Wounds entry writes on its attacker with ttl `level * 30` t
-  (1500 ms/level), read here from the actor's own store; envelope
+  swords/Deep Wounds entry writes on its VICTIM (`SET_VAR … @Victim`, `matrix/03`
+  § Deep Wounds) with ttl `level * 30` t (1500 ms/level), read here from the actor's
+  own store because the wounded player IS the later Blessed actor; envelope
   `chance: <3 * level>`.
 - **decomposition:** (everything downstream of the roll is level-independent)
   1. `STACK_COUNTER`-reset: zero the actor's own `bleedstacks` counter and restore
@@ -261,11 +262,17 @@ Family-wide notes:
 
 - **codex:** `04-enchants-axes.md § Boss Slayer`
 - **activation:** trigger `ATTACK`; condition
-  `%victim.type% != "PLAYER" && %victim.mobtype% == "<boss type>" &&
+  `%victim.type% != "PLAYER" && <boss designation> &&
   %actor.helditem% matchesregex ".*_AXE$" && <held-swap gate>`; no chance roll.
   Boss designation: the jar reads an externally-written `"boss"` flag that **nothing
-  in the corpus ever writes** (measured: inert); shipped: a pack-configured boss
-  mob-type list expressed as `%victim.mobtype%` conditions.
+  in the corpus ever writes** (measured: inert); shipped: a `%victim.type%` list over
+  the vanilla bosses — `%victim.type% == "ENDER_DRAGON" || %victim.type% ==
+  "WITHER"` (both resolve on 1.8.9). NOT `%victim.mobtype%`, which is the MythicMobs
+  soft hook (ADR-0027): with no integration installed it resolves to the empty string
+  for every entity, so a `%victim.mobtype%` list would ship the enchant exactly as
+  inert as the flag it replaces. Servers running MythicMobs widen the list with
+  `%victim.mobtype%` entries — `boss-slayer.yml` documents that. `matrix/11` § Boss
+  Mask carries the same designation, deliberately identical so the pack has ONE.
 - **decomposition:**
   1. `DAMAGE_MOD(side=attack, mode=add, amount=<7.5 * level>)`.
 - **gaps:** `HELD_SWAP_GATE — a fact for ticks since the actor's held hotbar slot
@@ -588,15 +595,27 @@ Family-wide notes:
 - **codex:** `04-enchants-axes.md § Reforged`
 - **activation:** triggers `[ATTACK, MINE]` (jar: melee hits and block breaks — the
   jar's BlockDamageEvent path is discarded dead work, not ported); applies-to the
-  weapons-and-tools group (5 swords + 5 axes + bow + 5 pickaxes + 5 hoes — **not**
-  axes only, despite the source folder); envelope `chance: <8 * level>`; condition:
+  weapons-and-tools group (5 swords + 5 axes + bow + 5 pickaxes + 5 hoes + **5
+  spades** — **not** axes only, despite the source folder). The spades come from the
+  codex's own set table (doc 15), which records `weapons_and_tools` with them (then
+  the 5 axes a second time — 31 entries, 26 distinct); without them Reforged never
+  lands on a shovel, so `reforged.yml` gains `SHOVEL`. Envelope
+  `chance: <8 * level>`; condition:
   held item damaged and damageable (engine DURABILITY restore is a natural no-op on
   pristine/non-damageable items — jar's `getDurability() != 0 &&
   getMaxStackSize() == 1` guards).
 - **decomposition:**
   1. `DURABILITY(amount=1, target=item, mode=restore, who=@Self)`.
 - **gaps:** none.
-- **interactions:** none.
+- **interactions:** **ITEM-SET RULING (owner)**, refining the batch-3 spell-it-out
+  convention `obliterate.yml` records: take a COMPOSITE whenever it is an EXACT match
+  for the jar's set — `ItemGroups` defines `TOOL` as pickaxe + axe + shovel + hoe and
+  nothing else, so `[TOOL, FISHING_ROD]` is the canonical spelling of the 21-tool set
+  (`haste.yml`, `oxygenate.yml`, `telepathy.yml`, and `atomic-detonate.yml` when it
+  lands). ENUMERATE only where no composite fits — the weapons cases, where `WEAPON`
+  would drag in the crossbow, trident and mace the jar never listed
+  (`obliterate.yml` `[SWORD, AXE, BOW]`; this entry
+  `[SWORD, AXE, BOW, PICKAXE, HOE, SHOVEL]`).
 - **strings:** none.
 - **numbers:** max 10; base 20.0, interval 5.0 (L1=20 … L10=65); weight 7; tier 3.
   Chance 8/16/24/32/40/48/56/64/72/80% — highest max and proc rate in the package;
