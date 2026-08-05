@@ -427,7 +427,8 @@ public final class CombatDispatch {
                         null, 0, causeName, false, reflectorRecent, reflectorAttackerIndex, Double.NaN,
                         impactHeight, projectileKind);
                 sink.beginRebound();
-                runner.runForced(abilities, worldId, attackId, reflector, swapped, sink, rebound.claimed());
+                runner.runForced(abilities, worldId, attackId, reflector, swapped, sink, snapshot.stableKeys(),
+                        rebound.claimed());
                 sink.endRebound();
             }
         }

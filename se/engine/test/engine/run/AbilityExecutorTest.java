@@ -165,6 +165,24 @@ class AbilityExecutorTest {
         assertEquals(java.util.Collections.singletonList(null), seen);
     }
 
+    /** R-QC25b: a rebounded proc IS an activation an addon can observe — the gateless path must not swallow it. */
+    @Test
+    void runForcedNotifiesTheActivationListenerToo() {
+        Player reflector = mock(Player.class);
+        java.util.List<String> seen = new java.util.ArrayList<>();
+        ActivationListener listener = (key, ability, ctx) -> seen.add(key);
+        AbilityExecutor observed = new AbilityExecutor(
+                EffectRegistry.builder().register(new IgniteEffect()).build(),
+                SelectorRegistry.builder().register(new SelfSelector()).register(new VictimSelector()).build(),
+                new ActivationPipeline(new CooldownStore(), SoulSpender.NONE), AreaScan.NONE, listener);
+        Ability[] abilities = {ignite("SELF", 80, Affinity.TARGET_ENTITY)};
+        ModernDispatchSink sink = new ModernDispatchSink(handles, Envs.sink().build());
+
+        observed.runForced(abilities, new int[] {0}, activation(), context(reflector, null), sink, KEYS);
+
+        assertEquals(java.util.List.of("enchants/test"), seen, "the same base key the gated path reports");
+    }
+
     /** Per-effect isolation: an unresolvable effect head is skipped, not propagated to abort its siblings. */
     @Test
     void aFailingEffectDoesNotAbortTheOthers() {

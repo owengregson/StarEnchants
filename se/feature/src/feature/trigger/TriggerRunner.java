@@ -222,7 +222,8 @@ public final class TriggerRunner {
      * built for a walk this run is not part of. The CALLER owns the sink lifecycle and the rebound window.
      */
     public void runForced(Ability[] abilities, int worldId, int triggerId, Player actor,
-                          ActivationContext context, SinkReadback sink, int[] candidates) {
+                          ActivationContext context, SinkReadback sink, StableKeyIndex stableKeys,
+                          int[] candidates) {
         if (candidates.length == 0) {
             return;
         }
@@ -233,7 +234,7 @@ public final class TriggerRunner {
                 .targetBucket(context.victim() instanceof Player ? 1 : 0)
                 .victimId(context.victim() == null ? null : context.victim().getUniqueId())
                 .build();
-        executor.runForced(abilities, candidates, activation, context, sink);
+        executor.runForced(abilities, candidates, activation, context, sink, stableKeys);
     }
 
     private void runResolved(Ability[] abilities, int generation, int worldId, int triggerId, boolean attackSide,
