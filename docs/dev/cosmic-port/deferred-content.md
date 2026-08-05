@@ -618,6 +618,20 @@ batch recorded as a comment inside those files.
     `platform.item.SmeltTable`, shared with `feature.combat.MineDrops`, so the two drop-transform
     paths cannot disagree about what an ore becomes. `smelt-materials` exists because the shared
     table knows sand and cobble, which the jar never smelted in a blast.
+  - **FREEZE's no-jump knob — DESIGNED in wave 3b-3, NOT BUILT (R-QC57).** The mechanism question is
+    settled and the answer is era-split, so recording it is worth more than half-shipping it. The
+    amplifier-128 JUMP trick is ruled out pack-wide. On the MODERN lane there is a clean, exact,
+    zero-cost mechanism: Paper's `PlayerJumpEvent` is cancellable and has existed since well before
+    the 1.17.1 floor, so a listener that cancels it while `FrozenTargets.isFrozen(id)` is the whole
+    feature. On the 1.8.8 LEGACY lane no such event exists (the overlay builds against CraftBukkit,
+    not Paper), and every substitute is felt-wrong: a `PlayerMoveEvent` velocity test rubber-bands
+    the victim and pays for itself on the hot movement path, and a per-tick velocity write jitters.
+    So the shape is modern-only with a documented legacy degradation, which is exactly what FREEZE
+    already does for its powder-snow visual. What it needs to land: a `no-jump` flag on `FREEZE`
+    threaded onto `FrozenTargets.Window` (an unconditional change would silently re-tune every
+    existing FREEZE consumer — ice-aspect, the Dimensional Traveler field — not just the two that
+    want it), plus an overlay-only listener wired through the modern binding seam. `tombstone.yml`
+    and `titan-trap.yml` take the flag the day it lands; nothing is authored for it yet.
   - `PROC_REBOUND`'s gateless `runForced` path still bypasses defender-keyed
     suppression: its `Activation` carries no random-backed roll supplier, so a
     partial window there would block deterministically rather than roll. Recorded in
