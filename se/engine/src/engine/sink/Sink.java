@@ -1214,6 +1214,12 @@ public interface Sink {
      * once {@code breakHits} of the subject's OWN hits land ({@code <= 0} = only the timer ends it); damage
      * they TAKE never spends one. {@code varName} (empty = none) reads {@code 1} while the window is live. A
      * re-proc REPLACES the window rather than extending it.
+     *
+     * <p>{@code endMessage} (empty = silent) is sent to the subject when the window ENDS, whichever of the four
+     * routes ends it — the timer, the exhausting hit, a re-proc superseding it, or the quit sweep. It rides the
+     * window's single restore closure, which {@code VanishStore} runs at most once, so the line prints exactly
+     * once and never on a route that forgot it. This is NOT the universal refusal line: that one fires when an
+     * activation is REFUSED, which is the opposite event.
      */
-    void vanish(Player subject, int durationTicks, int breakHits, String varName);
+    void vanish(Player subject, int durationTicks, int breakHits, String varName, String endMessage);
 }

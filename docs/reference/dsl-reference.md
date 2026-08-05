@@ -1396,15 +1396,16 @@ Stand `count` invulnerable `type` emplacements on open ground, evenly spaced on 
 
 ### VANISH
 
-Hide the target from EVERY online player for `duration` ticks — a packet-level hide, so worn armour vanishes with the body. The window breaks early once `break-hits` of the target's own hits LAND (0 = never); damage they take never spends one, so hiding survives being hit but not hitting back. A player who joins mid-window is re-synced, so a vanish cannot be beaten by relogging. While it is live `var` reads 1, and it drops to 0 the moment it ends by any route (timer, hit, quit). A re-proc REPLACES the window: fresh duration, fresh hit allowance.
+Hide the target from EVERY online player for `duration` ticks — a packet-level hide, so worn armour vanishes with the body. The window breaks early once `break-hits` of the target's own hits LAND (0 = never); damage they take never spends one, so hiding survives being hit but not hitting back. A player who joins mid-window is re-synced, so a vanish cannot be beaten by relogging. While it is live `var` reads 1, and it drops to 0 the moment it ends by any route (timer, hit, quit). A re-proc REPLACES the window: fresh duration, fresh hit allowance. `end-message` is sent to the target once the window ends, whichever route ended it — exactly once, never on the refusal path.
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ VANISH: { duration: <ticks[1..]=30>, break-hits: <int[0..]=1>, var: <string=> } }`
+- _usage_: `{ VANISH: { duration: <ticks[1..]=30>, break-hits: <int[0..]=1>, var: <string=>, end-message: <string=> } }`
 - _param_ `duration` `ticks[1..]` — ticks the target stays hidden from every player
 - _param_ `break-hits` `int[0..]` — landed outgoing hits the window absorbs before it breaks; 0 = only the timer ends it
 - _param_ `var` `string` — player variable reading 1 while the window is live; empty = none
+- _param_ `end-message` `string` — line sent to the target when the window ends, by ANY route; empty = silent
 - _target_ `who`: selector `SELF`
-- _example_: `{ VANISH: { duration: 60, break-hits: 2, var: feign.active, who: "@Self" } }`
+- _example_: `{ VANISH: { duration: 60, break-hits: 2, end-message: "&4&l* Feign Death - UNVANISHED *", who: "@Self" } }`
 
 ### VELOCITY
 

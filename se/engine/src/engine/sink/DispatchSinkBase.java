@@ -877,19 +877,29 @@ public abstract class DispatchSinkBase implements SinkReadback {
     }
 
     @Override
-    public void vanish(Player subject, int durationTicks, int breakHits, String varName) {
+    public void vanish(Player subject, int durationTicks, int breakHits, String varName, String endMessage) {
         if (subject == null || durationTicks <= 0) {
             return;
         }
         UUID subjectId = subject.getUniqueId();
         String var = varName == null ? "" : varName.trim();
+        String ending = endMessage == null ? "" : endMessage;
         // Built ONCE and stored with the window, so the timer, the exhausting hit, the quit sweep and a lapsed
-        // reader all end a vanish identically — there is no path that un-hides half the server.
+        // reader all end a vanish identically — there is no path that un-hides half the server. The end line
+        // (R-QC30r) rides the SAME closure for the same reason: VanishStore.close runs it at most once, so all
+        // four end routes print exactly one line and no route can print none.
         Runnable restore = () -> {
             showToEveryone(subjectId);
             if (!var.isEmpty()) {
                 // No per-name clear exists on VarStore; a 1-tick "0" both reads false and evicts itself.
                 vars.set(subjectId, var, "0", nowTicks.getAsLong(), 1);
+            }
+            if (!ending.isEmpty()) {
+                Player live = Bukkit.getPlayer(subjectId);
+                if (live != null) {
+                    // The subject's own thread: a quit-sweep restore runs wherever the sweep runs.
+                    Scheduling.onEntity(live, () -> live.sendMessage(Colors.translate(ending)));
+                }
             }
         };
         entityOp(subject, () -> {

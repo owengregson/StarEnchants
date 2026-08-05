@@ -553,6 +553,7 @@ effect VANISH
   param duration TICKS optional min=1 max=- enum=- handle=- default=30
   param break-hits INT optional min=0 max=- enum=- handle=- default=1
   param var STRING optional min=- max=- enum=- handle=- default=
+  param end-message STRING optional min=- max=- enum=- handle=- default=
 effect VELOCITY
   param mode ENUM optional min=- max=- enum=add,away,toward handle=- default=add
   param x DOUBLE optional min=- max=- enum=- handle=- default=0
