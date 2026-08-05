@@ -34,8 +34,9 @@ tier: rare
 # reading needs a fact addressing the AoE member under test — still owed, ledgered.
 # The blocked line `§8§l** METAPHYSICAL (§8Pummel blocked!§l) **` stays out for the reason trap.yml and
 # snare.yml record — the "would-be proc" it fires on does not exist under a pre-roll subtraction.
-# era: legacy `SLOW` potion name (modern `SLOWNESS`) — resolver alias, the spelling every shipped file uses;
-# BLOCK_CRACK and STONE are both safe on 1.8.9.
+# era: legacy `SLOW` potion name — the resolver aliases it to the modern `SLOWNESS` in BOTH directions, so
+# either spelling loads on either lane; this pack authors both (`SLOW` here, `SLOWNESS` on bleed, deep-bleed
+# and plague-carrier). BLOCK_CRACK and STONE are both safe on 1.8.9.
 levels:
   # chance 6 pp per level; radius = level; SLOW at engine level = enchant level (the jar's amplifier level-1
   # IS the I/II/III tier). Duration is the AS-INTENDED 1.5 s x level = 30/60/90 t (D-04-12); the jar's
@@ -44,17 +45,19 @@ levels:
     chance: "6 - 4 * %victim.enchlevel.metaphysical% - 4 * %victim.enchlevel.polymorphic-metaphysical%"
     effects:
       - { POTION: { effect: "SLOW", level: 1, duration: 30, who: "@Aoe{r=1,filter=ENEMIES,exclude=victim}" } }
-      # The jar plays the block-break world effect with the victim's STANDING block (STONE when that is air);
-      # a dynamic block param is not expressible, so STONE ships flat — cosmetic only. The matrix records no
-      # count for this row (the world effect carries none), so the surface default of 1 stands.
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "STONE", who: "@Aoe{r=1,filter=ENEMIES,exclude=victim}" } }
+      # The jar plays the block-break world effect at the VICTIM's feet + 0.5 (block id = whatever they stand
+      # in, STONE when that is air) once per affected bystander: `dy: -0.4` is that point off the engine's
+      # body-centre anchor (feet + 0.9 standing). RESIDUE — one `who` both picks the targets and anchors the
+      # burst, so the per-bystander REPEAT is unspellable: one burst ships, and it plays even when the splash
+      # caught nobody. A dynamic block param is not expressible either, so STONE ships flat — cosmetic only.
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "STONE", who: "@Victim", dy: -0.4 } }
   2:
     chance: "12 - 4 * %victim.enchlevel.metaphysical% - 4 * %victim.enchlevel.polymorphic-metaphysical%"
     effects:
       - { POTION: { effect: "SLOW", level: 2, duration: 60, who: "@Aoe{r=2,filter=ENEMIES,exclude=victim}" } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "STONE", who: "@Aoe{r=2,filter=ENEMIES,exclude=victim}" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "STONE", who: "@Victim", dy: -0.4 } }
   3:
     chance: "18 - 4 * %victim.enchlevel.metaphysical% - 4 * %victim.enchlevel.polymorphic-metaphysical%"
     effects:
       - { POTION: { effect: "SLOW", level: 3, duration: 90, who: "@Aoe{r=3,filter=ENEMIES,exclude=victim}" } }
-      - { PARTICLE: { particle: "BLOCK_CRACK", block: "STONE", who: "@Aoe{r=3,filter=ENEMIES,exclude=victim}" } }
+      - { PARTICLE: { particle: "BLOCK_CRACK", block: "STONE", who: "@Victim", dy: -0.4 } }

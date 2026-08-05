@@ -4,9 +4,9 @@ default-tier: common
 # heroic upgrades and 8 the masteries. Weight drives roll rarity and the least-weight-first menu sort; a rung
 # also names an optional content/enchants/<tier>/ subfolder, so a file's tier can come from its folder.
 #
-# Colours: tier 7 `&d` and tier 8 `&4` are the matrix-recorded lore colours (matrix/06 § heroic application
-# rules, matrix/07 § presentation); 1–6 carry the ladder this corpus already shipped under — the matrix does
-# not record their colours.
+# Colours: ALL EIGHT are codex-recorded (13-enchantment-api-mechanics.md §3.1, `TieredEnchantments.getTierColor`)
+# — GRAY, GREEN, AQUA, YELLOW, GOLD, RED, LIGHT_PURPLE, DARK_RED ascending. An unknown tier renders GRAY there,
+# which is rung 1's colour here, so `default-tier: common` reproduces the fallback.
 #
 # No `cost:` rung: the Enchanter's per-book XP price derives from weight (max(1, weight/5)) until the
 # economy batch sets real prices.

@@ -39,6 +39,10 @@ tier: uncommon
 # interactions: VIRUS multiplies every Wither tick this applies (the DOT_AMPLIFY_MARK consumer side lives on
 # virus.yml, nothing authored here).
 # strings: none.
+# R-QC55: the direct hit's burst is recorded at the victim's EYE location, so it carries `dy: 0.7` — an
+# entity-anchored burst centres on the body (feet + height/2, 0.9 on a standing player; a flat +1.0 on the 1.8
+# lane), and this ability is player-gated, so the arithmetic is exact on the modern lane. The jar's 0.25F speed
+# has no param. The landing burst rides the activation location, which is where the jar played it.
 # era: a WITHER_SKULL rider exists on 1.8.9 and mounts through the single-passenger API (engine-owned, same
 # hazard as Cowification's cow); WITHER is fine on 1.8; `EXPLOSION_LARGE` renames at 1.20.5 (resolver).
 # PROJECTILE_LAND is LIVE on 1.8.9 for arrows — the era's hit event fires before the arrow branches or moves,
@@ -53,7 +57,7 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { POTION: { effect: "WITHER", level: 2, duration: 20, who: "@Victim" } }
-          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1, spread: 0, who: "@Victim" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1, spread: 0, who: "@Victim", dy: 0.7 } }
       - trigger: PROJECTILE_LAND
         chance: 100
         effects:
@@ -67,7 +71,7 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { POTION: { effect: "WITHER", level: 2, duration: 40, who: "@Victim" } }
-          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1, spread: 0, who: "@Victim" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1, spread: 0, who: "@Victim", dy: 0.7 } }
       - trigger: PROJECTILE_LAND
         chance: 100
         effects:
@@ -81,7 +85,7 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { POTION: { effect: "WITHER", level: 2, duration: 60, who: "@Victim" } }
-          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1, spread: 0, who: "@Victim" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1, spread: 0, who: "@Victim", dy: 0.7 } }
       - trigger: PROJECTILE_LAND
         chance: 100
         effects:
@@ -95,7 +99,7 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { POTION: { effect: "WITHER", level: 2, duration: 80, who: "@Victim" } }
-          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1, spread: 0, who: "@Victim" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1, spread: 0, who: "@Victim", dy: 0.7 } }
       - trigger: PROJECTILE_LAND
         chance: 100
         effects:
@@ -109,7 +113,7 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { POTION: { effect: "WITHER", level: 2, duration: 100, who: "@Victim" } }
-          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1, spread: 0, who: "@Victim" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 1, spread: 0, who: "@Victim", dy: 0.7 } }
       - trigger: PROJECTILE_LAND
         chance: 100
         effects:

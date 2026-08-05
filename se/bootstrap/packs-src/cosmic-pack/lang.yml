@@ -5,6 +5,21 @@
 # diff — rather than a full mirror — means a newly-shipped default message (a new command, a new item) is
 # inherited automatically instead of being silently dropped by a stale copy.
 #
-# The cosmic port re-themes nothing yet: each verbatim string arrives with the batch that ports the feature
-# it belongs to (souls with the soul/mastery batch, use-items with theirs). Every key added here must exist
-# in the default catalogue, or it renders nowhere.
+# Each verbatim string arrives with the batch that ports the feature it belongs to. Every key added here must
+# exist in the default catalogue, or it renders nowhere.
+
+# ── Soul mode (verbatim, codex 07 §S.3 / §S.4) ─────────────────────────────────────────────────────────
+# Blank spacer lines are the catalogue's " " spelling, not the source's ""; they render identically.
+soul.activate:
+  - " "
+  - "&a&l** SOUL MODE: &nON&a&l **"
+  - "&7Active soul enchantments will now drain soul gems."
+  - " "
+soul.deactivate:
+  - " "
+  - "&c&l** SOUL MODE: &nOFF&c&l **"
+  - "&7Soul enchantments will no longer drain soul gems."
+  - " "
+# The jar printed this only when the running total crossed a multiple of 100; SE prints it on every spend —
+# the cadence is engine-owned, the string is the jar's.
+soul.soul-use: "&e&l** SOULS: &n{AMOUNT}&e&l **"
