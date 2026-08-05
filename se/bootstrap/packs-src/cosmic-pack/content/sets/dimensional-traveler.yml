@@ -17,8 +17,21 @@ armor:
     UNBREAKING: 3
     PROTECTION: 4
   # The shared bonus block, verbatim. Per-piece flavour is authored on the `pieces:` members below — the
-  # source's own `barer` typo included, which ships as written. The entry records no per-piece enchant roster
-  # and no set weapon, so nothing else is owed on the item side.
+  # source's own `barer` typo included, which ships as written. So are the per-piece rosters (14 entries a
+  # piece), entry-for-entry in codex order through §A.16's `applyCustomEnchantments`, which has no heroic
+  # gate — every entry lands. A plain entry takes the family's nearly-maxed draw
+  # min(M, max(1, M-2) + rand(3)) over that enchant's own max M, which `{ nearly-maxed: M }` reproduces
+  # literally (the outer min() skew and all); `enchants/obsidianshield` tops out at 1, where the draw is
+  # degenerate, so it takes the bare level instead and consumes no draw. A HEROIC entry is TWO stamps in the
+  # jar — the heroic at uniform 1..M and its non-heroic partner at that partner's max — and this set carries
+  # more of them than any other in the family (seven across the four pieces).
+  # WHERE A PARTNER STAMP HAS NO ENTRY OF ITS OWN it authors as a bare max level; where the roster ALSO lists
+  # that partner further down (helmet Implants, chest/legs Armored, boots Dodge), the later plain roll
+  # overwrites the max stamp in the jar, so the entry sits at its codex position carrying the draw. A map is
+  # keyed by ref, so one entry is exactly what "the later roll wins" means.
+  # ONE ENTRY IS NOT AUTHORED: the chestplate's `Blood Lust`, not in this pack yet — a set's `enchants:` ref
+  # is validated library-wide, so naming it would be a compile error rather than an inert key. It lands with
+  # the enchant. There is still no set weapon, so nothing else is owed on the item side.
   lore:
     - "§5§lTRAVELER SET BONUS"
     - "§5§l* §5You deal 30% more damage."
@@ -31,6 +44,22 @@ armor:
       lore:
         - "§7A hood that fades in and out of"
         - "§7existence inside the dimension of the owner."
+      enchants:
+        enchants/alien-implants: { min: 1, max: 3 }          # its Implants partner is the roster entry below
+        enchants/deathbringer: 3                             # the heroic's partner stamp — at max, no draw
+        enchants/planetary-deathbringer: { min: 1, max: 3 }
+        enchants/drunk: { nearly-maxed: 4 }
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/angelic: { nearly-maxed: 5 }
+        enchants/hardened: { nearly-maxed: 3 }
+        enchants/valor: { nearly-maxed: 5 }
+        enchants/dodge: { nearly-maxed: 5 }
+        enchants/guardians: { nearly-maxed: 10 }
+        enchants/sticky: { nearly-maxed: 8 }
+        enchants/implants: { nearly-maxed: 3 }
+        enchants/repair-guard: { nearly-maxed: 3 }
     chestplate:
       material: DIAMOND_CHESTPLATE
       name: "§5§lChestplate of Ad Infinitum"
@@ -38,6 +67,22 @@ armor:
         - "§7A cross-dimensional chestplate"
         - "§7with impossibly infinite density"
         - "§7and defensive properties."
+      enchants:
+        enchants/overload: 3                           # the heroic's partner stamp — at max, no draw
+        enchants/godly-overload: { min: 1, max: 3 }
+        enchants/paladin-armored: { min: 1, max: 4 }   # its Armored partner is the roster entry below
+        # `Blood Lust` sits here in the codex order — not in this pack yet, see the header.
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/angelic: { nearly-maxed: 5 }
+        enchants/arrow-deflect: { nearly-maxed: 4 }
+        enchants/dodge: { nearly-maxed: 5 }
+        enchants/valor: { nearly-maxed: 5 }
+        enchants/aegis: { nearly-maxed: 6 }
+        enchants/spirit-link: { nearly-maxed: 5 }
+        enchants/leadership: { nearly-maxed: 5 }
     leggings:
       material: DIAMOND_LEGGINGS
       name: "§5§lTimeless Robes"
@@ -45,6 +90,21 @@ armor:
         - "§7Robes that evade the 4th dimension and"
         - "§7are in a state of constant existence"
         - "§7across all planets of reality."
+      enchants:
+        enchants/paladin-armored: { min: 1, max: 4 }   # its Armored partner is the roster entry below
+        enchants/enlighted: { nearly-maxed: 3 }
+        enchants/clarity: { nearly-maxed: 3 }
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/nature-wrath: { nearly-maxed: 4 }
+        enchants/lucky: { nearly-maxed: 10 }
+        enchants/armored: { nearly-maxed: 4 }
+        enchants/angelic: { nearly-maxed: 5 }
+        enchants/obsidianshield: 1   # max 1 — a nearly-maxed draw here can only ever return 1
+        enchants/cactus: { nearly-maxed: 2 }
+        enchants/valor: { nearly-maxed: 5 }
+        enchants/metaphysical: { nearly-maxed: 4 }
+        enchants/death-god: { nearly-maxed: 3 }
+        enchants/dodge: { nearly-maxed: 5 }
     boots:
       material: DIAMOND_BOOTS
       name: "§5§lWarp Speed Sandals"
@@ -52,6 +112,22 @@ armor:
         - "§7Sandals capable of breaking through"
         - "§7dimensional barriers to allow the barer"   # verbatim, `barer` and all
         - "§7to perform impossible feats."
+      enchants:
+        enchants/ethereal-dodge: { min: 1, max: 5 }    # its Dodge partner is the roster entry below
+        enchants/enlighted: 3                          # the heroic's partner stamp — at max, no draw
+        enchants/divine-enlighted: { min: 1, max: 3 }
+        enchants/gears: { nearly-maxed: 3 }
+        enchants/deathbringer: { nearly-maxed: 3 }
+        enchants/tank: { nearly-maxed: 4 }
+        enchants/angelic: { nearly-maxed: 5 }
+        enchants/ender-walker: { nearly-maxed: 5 }
+        enchants/hardened: { nearly-maxed: 3 }
+        enchants/rocket-escape: { nearly-maxed: 3 }
+        enchants/springs: { nearly-maxed: 3 }
+        enchants/valor: { nearly-maxed: 5 }
+        enchants/dodge: { nearly-maxed: 5 }
+        enchants/sticky: { nearly-maxed: 8 }
+        enchants/diminish: { nearly-maxed: 6 }
 # Behaviours: on:armor fires while the set is complete. There is no set weapon, so no on:weapon rung exists.
 # The set's OWN world gate (a substring test on the wearer's world, part of the decomposition) rides every
 # defensive rung; the family's outpost world gates are a different, interaction-layer rule and stay off.
