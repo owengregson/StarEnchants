@@ -1,0 +1,27 @@
+# Matrix: 13-support-items.md § White Scroll (codex 08-enchant-economy-items.md §6.1, §1.8)
+# Drag onto gear to stamp a one-shot guard: the next FAILED enchant-book apply spares the item instead of
+# shattering it. Applies at 100%, no roll, and one guard per item.
+type: white-scroll
+# era, the one material in this batch whose NAME changed MEANING: the source's EMPTY_MAP is the blank map, and
+# the 1.13 flattening renamed EMPTY_MAP → MAP (and the old MAP → FILLED_MAP). MAP is therefore the modern
+# spelling of the recorded item; on the 1.8.9 lane the same token resolves to THAT era's constant, the filled
+# map. Recorded rather than worked around — this surface carries no data value, and no single token names the
+# blank map on both eras.
+material: MAP
+# NOT bold, unlike the Black Scroll's `§f§l` — the pair is deliberately asymmetric in the source.
+name: "§eWhite Scroll"
+lore:
+  - "§7Prevents an item from being destroyed"
+  - "§7due to a failed Enchantment Book."
+  - "§ePlace scroll on item to apply."
+# 100/100 = the source's no-roll apply.
+min-success: 100
+max-success: 100
+# The line rendered from state on guarded gear, verbatim.
+protected-line: "§f§lPROTECTED"
+# MEASURED-FIDELITY KEEP (D-13-9): the scroll burns on ANY failed apply, not only on one that would have
+# destroyed the gear — it is failure insurance, not destruction insurance. This engine already behaves that
+# way; the row exists so the reading is deliberate rather than accidental.
+# NOT EXPRESSED: the source's right-click help line (ITEM_HELP_HINT), and its slot guard's hole — worn armour
+# CAN be white-scrolled there, because the guard blocks raw slots 0-3 while the armour slots are 5-8 in that
+# view. This engine's apply gate is kind-based, so the hole cannot be reproduced and is not owed.

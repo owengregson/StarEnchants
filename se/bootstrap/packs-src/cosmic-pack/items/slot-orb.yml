@@ -1,0 +1,38 @@
+# Matrix: 13-support-items.md § Enchantment Orb (codex 08-enchant-economy-items.md §4)
+# Drag onto gear to raise its enchant-slot count by orb-amount, up to hard-cap TOTAL slots (base + added; the
+# base is config.yml slots.base). Tokens: {AMOUNT} the orb's +N, {MAX} the total-slots cap, {SUCCESS}/{FAILURE}
+# its apply odds, {KINDS} the kinds it fits. The line stamped on expanded gear is config.yml slots.lore-line.
+type: slot-orb
+# era: the source's EYE_OF_ENDER is spelled ENDER_EYE from 1.13 on; ItemFactory's legacy table degrades the
+# modern token back for the 1.8.9 lane, so both eras mint the recorded item.
+orb-material: ENDER_EYE
+# The source mints TWO orbs — an Armor one and a Weapon one, each printing its own word in the name and in two
+# lore lines, each refusing the other's targets. One likeness here, so the word folds out and `applies-to`
+# below carries what is left of the split. The bracketed number is the orb's ceiling, which the source stamps
+# PER ORB; here {MAX} is the pack-wide cap (see hard-cap).
+orb-name: "§6§lEnchantment Orb [§a§n{MAX}§6§l]"
+orb-lore:
+  - "§a{SUCCESS}% Success Rate"
+  - ""
+  - "§6+{AMOUNT} Enchantment Slots"
+  - "§6{MAX} Max Enchantment Slots"
+  - ""
+  - "§eIncreases the # of enchantment"
+  # The source reads "on a piece of armor" / "on a piece of weapon" here — the second ungrammatical, and both
+  # gone with the variant that produced them.
+  - "§eslots on a piece of gear by {AMOUNT},"
+  - "§eup to a maximum of {MAX}."
+  - "§7Drag n' Drop onto gear to apply."
+# ARMOR and WEAPON only: a TOOL can never take either orb in the source, which is a kind rule this surface
+# does carry (the engine default would add TOOL).
+applies-to: [ARMOR, WEAPON]
+# +1 per orb, verbatim (signature-pack's +3 is its own economy).
+orb-amount: 1
+# hard-cap is LEFT at the engine default on purpose: the source carries its ceiling on each ORB (an orb that
+# raises an item only TO N), and records no pack-wide maximum, so a number here would be invented.
+# PER_ITEM_SLOT_CEILING (matrix/13 § Gap declarations) is the capability that would hold the real rule.
+# min-success/max-success are left at the engine default (100/100) for the same reason: the source rolls a
+# per-orb stamped rate and no mint band for it is recorded.
+# D-13-10: the source's stamp counts from a baseline of 9 while its stored-enchant cap ladder tops out at 8 —
+# two ladders one apart, so a default player could buy one slot past the cap. This engine has ONE ladder
+# (config.yml slots.base + hard-cap, inclusive), which is that bug's fix rather than its reproduction.

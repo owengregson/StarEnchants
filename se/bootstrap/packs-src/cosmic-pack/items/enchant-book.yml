@@ -1,0 +1,43 @@
+# Matrix: 13-support-items.md § Enchantment Book (codex 08-enchant-economy-items.md §1.1-§1.11) — the ONE
+# likeness EVERY enchant book is minted from. There is no per-enchant book file: a concrete book (a drop, an
+# unopened book's reveal, a black scroll's extraction, /se give book) fills the tokens below.
+# Tokens: {TIER_COLOR} the enchant's rarity colour (content/tiers.yml), {ENCHANT} its display name, {LEVEL} the
+# granted level (Roman per config.yml lore.roman), {SUCCESS} the apply chance, {FAILURE} = 100 - {SUCCESS},
+# {KINDS} the item kinds it fits, {DESCRIPTION} the enchant's description word-wrapped at config.yml
+# lore.item-wrap.
+type: enchant-book
+# A PLAIN book, verbatim: the source mints its custom books on Material.BOOK and leaves ENCHANTED_BOOK to
+# vanilla — the mystery book (items/unopened-book.yml) is the same plain book, which is why the two are told
+# apart by their PDC identity and never by material. era: BOOK is spelled the same on both lanes.
+material: BOOK
+name: "{TIER_COLOR}§l§n{ENCHANT} {LEVEL}"
+# The five recorded lore parts, verbatim and in order. The {DESCRIPTION} line expands to ONE lore line per
+# wrapped line, each keeping this line's `§e` — which is exactly how the source prefixes its wrapped
+# description. It wraps greedily at 38 visible characters (37 on its second branch — the two disagree); this
+# pack wraps everything at the ONE universal width, config.yml lore.item-wrap.
+lore:
+  - "§a{SUCCESS}% Success Rate"
+  # "Destroy Rate", not "Failure Rate", is the source's wording — because its destroy chance is a SECOND,
+  # independent roll (a book can read 90% success and 40% destroy). This engine's failure is 100 - success and
+  # `destroy-on-fail` decides what a failure costs, so {FAILURE} IS the destroy chance here: the line keeps its
+  # wording and the number stops describing a roll nobody can see (D-13-6/7/8 — the source also shaves 10 off
+  # success and multiplies destroy by 1.15 for everyone except two hard-coded accounts, with a third forced to
+  # 100%; per-account special cases are never replicated. INDEPENDENT_DESTROY_RATE is declared in matrix/13
+  # § Gap declarations and recommended for rejection, the engine's binary pair being the deliberate
+  # simplification).
+  - "§c{FAILURE}% Destroy Rate"
+  - "§e{DESCRIPTION}"
+  # The source prints the enchant's TYPE here; {KINDS} is this engine's nearest fact — the item kinds the
+  # enchant fits — and reads the same way ("Sword Enchantment", "Armor Enchantment").
+  - "§7{KINDS} Enchantment"
+  - "§7Drag n' Drop onto item to enchant."
+# The rates are in the main block above, exactly as the source prints them on every book, so nothing is
+# appended for an explicit-success mint.
+success-lore: []
+# A failed apply shatters the gear unless a White Scroll guards it (items/white-scroll.yml) — the source's own
+# destroy branch, and what gives the scroll its purpose.
+destroy-on-fail: true
+# NOT EXPRESSED (recorded in matrix/13, not improvised): the slot-count gate's "not skilled enough" lock notice
+# (USABLE_ENCHANT_CAP — a cap on how many of an item's enchants FUNCTION, distinct from how many may be
+# stored), the outpost/rank/pet success adders (BOOK_RATE_MODIFIER), and the mastery-shard gate that lets a
+# book apply to ability-set gear at all (BOOK_RESTRICTION_PAIR — neither half of that pair exists here).

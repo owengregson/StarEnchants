@@ -1,0 +1,17 @@
+# Matrix: 13-support-items.md § Transmog Scroll (codex 08-enchant-economy-items.md §9.1-§9.3)
+# Drag onto enchanted gear to sort its enchant lines by rarity and stamp the enchant count into the name.
+# Pure display: no enchant, level, durability or data changes, and every non-enchant line (a PROTECTED tag, an
+# orb stamp) survives, relocated below the sorted block. Re-applicable — a second apply re-sorts and REPLACES
+# the count suffix rather than stacking it.
+type: transmog-scroll
+material: PAPER
+name: "§e§lTransmog Scroll"
+lore:
+  - "§7Organizes enchants by §e§nrarity§7 on item"
+  - "§7and adds the §dlore §bcount§7 to name."
+  - ""
+  # Italic here and plain yellow on the White Scroll: three scrolls, three formattings of the same sentence.
+  - "§e§oPlace scroll on item to apply."
+# Appended to the gear's display name; {COUNT} = the item's enchant count. Verbatim, including the plain space
+# that separates it from the name (no reset code — the source emits none).
+name-suffix: " §d[§b§l§n{COUNT}§d]"

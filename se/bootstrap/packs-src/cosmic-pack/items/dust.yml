@@ -1,0 +1,40 @@
+# Matrix: 13-support-items.md § Magic Dust (codex 08-enchant-economy-items.md §5.3/§5.6/§5.7)
+# Drag onto an enchant book to RAISE its success rate, additive across repeated applications and hard-capped
+# at config.yml books.max-success. Tokens: {BONUS} the conferred bonus ("10-25" for a random dust, the exact
+# number for a fixed one), {MIN}/{MAX} its bounds, {MAXSUCCESS} the live global ceiling.
+type: dust
+# SUGAR is MAGIC dust's material, verbatim. GLOWSTONE_DUST — what signature-pack ships and what this engine
+# defaults to — is the source's PRIMAL dust, a second grade of the same mechanic with no home here (see the
+# fold note below). era: SUGAR is spelled the same on both lanes.
+material: SUGAR
+# The source mints one dust PER RARITY RUNG (six of them, Simple…Soul), and both its name and its lore carry
+# that rung's colour and word: `{rarityColor}{Rarity} Magic Dust`, "Apply to a {rarityColor}{Rarity}§7
+# Enchantment Book", "…by {rarityColor}{n}%". A dust only applies to a book of its OWN rarity, cross-checked
+# against the book name's colour prefix. This engine has ONE dust likeness, no rarity token and no rarity
+# match, so the rung folds out of all three lines and `§f` — the lowest rung's colour, and the white an
+# uncoloured name renders as anyway — carries the name. ITEM_RARITY_VARIANTS (matrix/13 § Gap declarations)
+# is the capability four items want; nothing here invents a rung.
+name: "§fMagic Dust"
+lore:
+  - "§a+{BONUS}% Success"
+  - "§7Apply to an Enchantment Book"
+  - "§7to increase its success rate by §f{BONUS}%"
+  - ""
+  - "§7Place dust on enchantment book."
+# min-bonus/max-bonus are LEFT at the engine defaults on purpose: the source stamps each dust with its own
+# bonus and the corpus records no mint band for it, so a number here would be invented. What IS recorded is the
+# clamp — the book's new rate is min(100, current + bonus) — which config.yml books.max-success already is.
+# The apply cue is the source's own shared economy-success template (its LEVEL_UP at 1.0/0.75 plus a
+# happy-villager burst); the two further particle layers it fires have no second slot here. era: an item cue is
+# resolved as a Sound CONSTANT by exact name (feature.compat.Sounds — no alias table on this path, unlike
+# content SOUND effects), so this modern spelling plays on the modern lane and is skipped on 1.8.9, whose own
+# constant is the source's LEVEL_UP. Modern-only either way, and the engine default (an amethyst chime) is
+# 1.17+ on top of that.
+sound: { sound: ENTITY_PLAYER_LEVELUP, volume: 1.0, pitch: 0.75 }
+particles:
+  - HAPPY_VILLAGER
+# NOT EXPRESSED: the rarity match above (ITEM_REFUSAL_PREDICATE also covers the source's refusals — dust on a
+# heroic book, on a book already at 100%, on a stacked book); PRIMAL dust (GLOWSTONE_DUST, the same mechanic
+# one grade up), SECRET dust (FIREBALL → FIRE_CHARGE, a right-click satchel that reveals one of the three) and
+# MYSTERY dust (SULPHUR → GUNPOWDER, the 75% junk outcome with no apply path at all) — a likeness grade
+# (ITEM_GRADES) and a weighted right-click container (UNOPENED_ITEM), both declared in matrix/13.
