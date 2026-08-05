@@ -145,11 +145,11 @@ bonuses:
           consumed-message-actor: "§8§l* DRAGON SLAYER [§7Trap blocked!§8§l] *" } }
       - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/ice-aspect", duration: 60, who: "@Self",
           consumed-message-actor: "§8§l* DRAGON SLAYER [§7Ice Aspect blocked!§8§l] *" } }
-      # `enchants/horrify` is a batch-07 stop, so this row is INERT today — a SUPPRESS_INCOMING key is an
-      # interned string, so a key naming an unshipped enchant costs nothing and completes itself the day the
-      # enchant lands, exactly as crystals/anti-m-kit-ghost.yml already ships six such keys. Authored now
-      # because the message is matrix-recorded (matrix/07 § Horrify) and this is its only home; the 100 %
-      # block is the freeze immunity, NOT the 25 % mastery negation below, which is a separate mechanic.
+      # `enchants/horrify` SHIPS (R-QC1), so this row is live and its message — matrix-recorded (matrix/07
+      # § Horrify), and this is its only home — now really fires. The 100 % block is the freeze immunity, NOT
+      # the 25 % mastery negation below, which is a separate mechanic. Being defender-keyed is also what
+      # delivers D-07-9: the protected wearer skips itself, where the jar's own early-return aborted the whole
+      # proc for everyone in the 32-block radius.
       - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/horrify", duration: 60, who: "@Self",
           consumed-message-actor: "§8§l* DRAGON SLAYER [§7Horrify blocked!§8§l] *" } }
       # "Negate 75% of Enemy Silence" — 75 % rolled per incoming Silence proc.

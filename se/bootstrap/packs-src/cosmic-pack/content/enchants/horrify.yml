@@ -1,0 +1,95 @@
+# Matrix: 07-enchants-mastery-soul.md § Horrify
+display: "Horrify"
+# description: not matrix-recorded (factual paraphrase)
+description:
+  - "&eA hit sends terror out for thirty-two blocks:"
+  - "&eeveryone hostile is rooted, spun away from you,"
+  - "&eand caught by the ground they fall to."
+trigger: DEFENSE
+applies-to: [ARMOR]
+group: "mastery"
+tier: mastery
+# THE MASTERY FAMILY CONTRACT (matrix 07 § family-wide rules) — the full reading lives in poltergeist.yml.
+# tier 8 = the `mastery` rung and its `§4<Name> <Roman>` lore line; `group: "mastery"` is the matrix's
+# "Default"; `applies-to: [ARMOR]` is the whole item rule. No `suppress-immune:`.
+# ── SIX RECORDED STEPS, FIVE AUTHORED ──────────────────────────────────────────────────────────────────────
+# Step 2 — `POTION(JUMP, level: 129)` — is NOT shipped, on either lane, by the pack-wide `titan-trap.yml`
+# ruling: amplifier 128 is a 1.8-only integer overflow that reads as "cannot jump", and on the modern lane the
+# same amplifier is a real and enormous jump that would fling the very targets this proc exists to pin, then
+# kill them on the landing. FREEZE at `slow: 100` is the hold that replaces it, so the entry loses only the
+# jump half: a rooted target can still hop on the spot. `tombstone.yml` records the same drop for the same
+# reason, and a jump knob on FREEZE stays owed engine-side.
+# Losing the jump lock is exactly what makes step 4 load-bearing rather than decorative — the jar's 10 s
+# no-fall window exists to refund the landing its own root causes, and `FALL_SHIELD` is spent AHEAD of the
+# FALL walk, so the landing is erased rather than reduced. The `horrify.nofall` marker ships beside it as a
+# plain `SET_VAR{ttl: 200}`: the matrix records the metadata as its own row, and nothing else reads it today.
+# `FACING_SET` takes an `anchor` rather than the matrix's `of=` selector slot (the DSL carries exactly one
+# target slot per effect), so the recorded `of=@Self` is `anchor: activator` — every target is spun to face
+# away from the wearer, in place, exactly as the jar's direction-only teleport did.
+# ── THE WEARER'S SUMMARY DOES NOT SHIP ─────────────────────────────────────────────────────────────────────
+# `§a§l* HORRIFIED {count} player(s) [§7{seconds}s§a§l] *` is the wearer's line and its entire content is the
+# RESOLVED SELECTOR COUNT, which no fact reports: `%nearbyenemies%` is a fixed 8-block scan of living
+# entities, neither this 32-block radius nor this filter, so it would print a wrong number at every level.
+# Same stop, same reasoning, as `tombstone.yml`'s summary; recorded in deferred-content.md. The wearer keeps
+# the per-target ghast scream as the proc's feedback.
+# ── D-07-9 AND THE DRAGON SLAYER IMMUNITY ──────────────────────────────────────────────────────────────────
+# The jar's `immune_freeze` branch `return`s out of the whole per-target loop, so ONE protected player inside
+# the radius cancelled Horrify for everyone — and whether they did depended on iteration order. D-07-9 rules
+# that a bug: the immune target skips itself. Nothing is authored here for it. The immunity and its
+# `§8§l* DRAGON SLAYER [§7Horrify blocked!§8§l] *` line are set-side and already ship on
+# `sets/dragon-slayer.yml` as a `SUPPRESS_INCOMING` keyed to `enchants/horrify` — a defender-keyed window,
+# which by construction blocks only the holder's own share of the proc.
+# The jar's ally-protection cancel/un-cancel listener pair nets to a no-op and is not ported; its only residue
+# (cancels sticking on zero-damage or PvP-off hits) is engine-native gating.
+# ── GEOMETRY AND STRINGS ───────────────────────────────────────────────────────────────────────────────────
+# `@Aoe{r=32}` is a symmetric sphere for the jar's asymmetric cube, the D-07-1 family geometry note. The
+# codex's candidate filters — not-truce, PvP-enabled, not vanished, not god-mode, not spectator, not creative
+# — are the engine's own targeting gates plus `filter=ENEMIES`; none is authored per-file.
+# The per-target line's `{seconds}` is inlined per rung (no MESSAGE token binds a duration), which also makes
+# each rendered line byte-identical to the matrix's. Levels 2 and 3 print the same 3 s because `2 + floor(L/2)`
+# gives the same value — measured, kept.
+# era: `GHAST_SCREAM` -> `ENTITY_GHAST_SCREAM` carries its alias row, so the cue plays on the legacy lane.
+# FREEZE's powder-snow visual is 1.17+; the legacy fork's fallback is the effect's own, not this file's.
+levels:
+  # Per level 1-4 — chance `2 x L`; hold `i = 2 + floor(L/2)` s = 2/3/3/4, so FREEZE 40/60/60/80 t; the
+  # no-fall window is a flat one-shot 200 t at every rung; radius a fixed 32.
+  1:
+    chance: 2
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { FREEZE: { duration: 40, dot: 0, slow: 100, who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { FACING_SET: { mode: "away", anchor: "activator", who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { SET_VAR: { name: "horrify.nofall", value: "1", ttl: 200, who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { FALL_SHIELD: { window: 200, who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { MESSAGE: { text: "§c§l* HORRIFIED §c[§c§l2s§c] §c§l*", who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { SOUND: { sound: "ENTITY_GHAST_SCREAM", volume: 1.0, pitch: 1.4, who: "@Aoe{r=32, filter=ENEMIES}" } }
+  2:
+    chance: 4
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { FACING_SET: { mode: "away", anchor: "activator", who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { SET_VAR: { name: "horrify.nofall", value: "1", ttl: 200, who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { FALL_SHIELD: { window: 200, who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { MESSAGE: { text: "§c§l* HORRIFIED §c[§c§l3s§c] §c§l*", who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { SOUND: { sound: "ENTITY_GHAST_SCREAM", volume: 1.0, pitch: 1.4, who: "@Aoe{r=32, filter=ENEMIES}" } }
+  3:
+    chance: 6
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { FACING_SET: { mode: "away", anchor: "activator", who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { SET_VAR: { name: "horrify.nofall", value: "1", ttl: 200, who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { FALL_SHIELD: { window: 200, who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { MESSAGE: { text: "§c§l* HORRIFIED §c[§c§l3s§c] §c§l*", who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { SOUND: { sound: "ENTITY_GHAST_SCREAM", volume: 1.0, pitch: 1.4, who: "@Aoe{r=32, filter=ENEMIES}" } }
+  4:
+    chance: 8
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { FREEZE: { duration: 80, dot: 0, slow: 100, who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { FACING_SET: { mode: "away", anchor: "activator", who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { SET_VAR: { name: "horrify.nofall", value: "1", ttl: 200, who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { FALL_SHIELD: { window: 200, who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { MESSAGE: { text: "§c§l* HORRIFIED §c[§c§l4s§c] §c§l*", who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { SOUND: { sound: "ENTITY_GHAST_SCREAM", volume: 1.0, pitch: 1.4, who: "@Aoe{r=32, filter=ENEMIES}" } }
