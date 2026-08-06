@@ -43,9 +43,11 @@ import org.bukkit.entity.Player;
 public final class ProcReboundEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("PROC_REBOUND")
-            .param("chance", D.DOUBLE.min(0).max(100))
-            .param("tier-max", D.INT.min(0))
-            .param("tier-min", D.INT.min(0).def(0))
+            // All three read INSIDE the target loop, so each armed holder prices their own window (ADR-0076);
+            // declared, because PerTargetParamTest counts the reads and a hoist would otherwise pass silently.
+            .param("chance", D.DOUBLE.min(0).max(100).perTarget())
+            .param("tier-max", D.INT.min(0).perTarget())
+            .param("tier-min", D.INT.min(0).def(0).perTarget())
             .target("who", T.SELF)
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("While worn, give incoming enchant activations a chance to be taken off you and re-run with "

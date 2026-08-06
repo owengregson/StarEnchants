@@ -131,6 +131,11 @@ public final class FactPopulator {
         public int victimLevel(String key) {
             return victim == null ? 0 : wornFactSource.levelOf(victim, key);
         }
+
+        @Override
+        public int levelOf(UUID id, String key) {
+            return id == null ? 0 : wornFactSource.levelOf(id, key); // the subject cursor's third scope
+        }
     }
 
     /** The {@code %scope.crystals.<key>%} reader — the {@link EnchantBinding} shape, off the same source. */
@@ -152,12 +157,46 @@ public final class FactPopulator {
         public int victimCount(String key) {
             return victim == null ? 0 : wornFactSource.crystalPieces(victim, key);
         }
+
+        @Override
+        public int countOf(UUID id, String key) {
+            return id == null ? 0 : wornFactSource.crystalPieces(id, key); // the subject cursor's third scope
+        }
+    }
+
+    /**
+     * The UUID-keyed subject reads ({@code %target.var.*%}, {@code %target.souls%},
+     * {@code %target.heroicpieces%}), rebound per activation like the bindings above. Holds the tick rather
+     * than a body: the cursor supplies the id, so one instance serves every target of every effect.
+     */
+    private final class SubjectBinding implements engine.condition.SubjectStores {
+        private long nowTicks;
+
+        void bind(long nowTicks) {
+            this.nowTicks = nowTicks;
+        }
+
+        @Override
+        public String var(UUID id, String name) {
+            return vars.get(id, name, nowTicks);
+        }
+
+        @Override
+        public double souls(UUID id) {
+            return soulTotals.current(id);
+        }
+
+        @Override
+        public int heroicPieces(UUID id) {
+            return wornFactSource.heroicPieces(id);
+        }
     }
 
     private final ThreadLocal<FactBuffer> buffer;
     private final ThreadLocal<PotionBinding> potionBinding = ThreadLocal.withInitial(PotionBinding::new);
     private final ThreadLocal<EnchantBinding> enchantBinding = ThreadLocal.withInitial(EnchantBinding::new);
     private final ThreadLocal<CrystalBinding> crystalBinding = ThreadLocal.withInitial(CrystalBinding::new);
+    private final ThreadLocal<SubjectBinding> subjectBinding = ThreadLocal.withInitial(SubjectBinding::new);
     private final VarStore vars;
     private final RageStackStore rageStacks; // §3 %ragestacks% source — an actor-scoped read (mask-gated)
     private final HeldSlotStore heldSlots;   // %heldticks% source — an actor-scoped read (mask-gated)
@@ -376,8 +415,11 @@ public final class FactPopulator {
      * {@code BiPredicate<Player,Player>} (mcMMO party membership), which cannot distinguish a guild member
      * from an ally. Inventing a second axis to fill the value would be exactly the fork this fact exists to
      * avoid — when a bridge that distinguishes them is installed, this is the one place to widen.
+     *
+     * <p>Shared with the subject cursor's {@code %target.relation%} (ADR-0076) so "ally" means exactly one
+     * thing whether the question is asked about the combat victim or about one body of an AoE.
      */
-    private static String relationOf(org.bukkit.entity.Player actor, LivingEntity victim) {
+    static String relationOf(org.bukkit.entity.Player actor, LivingEntity victim) {
         if (victim == null) {
             return "";
         }
@@ -443,6 +485,11 @@ public final class FactPopulator {
             CrystalBinding crystals = crystalBinding.get();
             crystals.bind(uuidOf(context.actor()), uuidOf(context.victim()));
             facts.crystalCounts(crystals);
+            // ADR-0076: the subject cursor's store reads. Installed unconditionally and unbound — a cursor is
+            // only ever pointed at a body inside gate 12, by an effect that opts in.
+            SubjectBinding subject = subjectBinding.get();
+            subject.bind(nowTicks);
+            facts.subjectStores(subject);
             populateActor(facts, context.actor(), mask);
             populateVictim(facts, context.victim(), mask);
             populateContext(facts, context, mask);

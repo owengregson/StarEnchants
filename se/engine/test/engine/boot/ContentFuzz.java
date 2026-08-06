@@ -62,7 +62,25 @@ final class ContentFuzz {
         return BASE_SEED * 1_000_003L + head.hashCode() * 31L + caseIndex;
     }
 
-    enum ValueKind { NUM_LITERAL, NUM_EXPR, BOOL, ENUM, STRING, HANDLE, EXPR_MAP }
+    enum ValueKind { NUM_LITERAL, NUM_EXPR, BOOL, ENUM, STRING, HANDLE, EXPR_MAP, CONDITION }
+
+    /**
+     * Test-OWNED condition literals for a {@code CONDITION} param (ADR-0076's {@code each-if}). A random
+     * string would be a syntax error, so the generator must draw real expressions; drawing them from the
+     * subject vocabulary also runs the whole {@code %target.*%} scope through the fuzz gate every build. The
+     * keys name nothing in any pack on purpose — an absent enchant/crystal/var reads 0, never a diagnostic.
+     */
+    private static final List<String> CONDITION_VOCAB = List.of(
+            "1 > 0",
+            "%target.roll% < 50",
+            "%target.enchlevel.fuzzench% > 0",
+            "%target.crystals.fuzzcrystal% >= 1",
+            "%target.var.fuzzvar% == 0",
+            "%target.souls% > 5",
+            "%target.heroicpieces% > 0",
+            "%target.type% == \"PLAYER\"",
+            "%target.relation% != \"ALLY\"",
+            "%target.roll% >= 12.5 && %target.enchlevel.fuzzench% == 0");
 
     /** One generated named-arg value plus how it should read back (drives {@code CompilerFuzzTest} round-trip checks). */
     record Authored(String raw, ValueKind kind) {
@@ -307,6 +325,7 @@ final class ContentFuzz {
         p.triggers = new ArrayList<>(List.of(vocab.triggerNames().get(0)));
         p.source = Source.of("fuzz.yml", caseIndex + 1, 1);
         p.lines.add(line);
+        teachEachCooldownScope(p);
         return new Case(assemble(p), (validArgs ? "sel-valid #" : "sel-adv #") + caseIndex, expected,
                 List.copyOf(p.lines));
     }
@@ -358,7 +377,26 @@ final class ContentFuzz {
             p.lines.add(new GeneratedLine(lk.head(),
                     validNamed(lk.spec().paramSpec(), rnd, i, vocab), selectorToken(rnd, i, vocab)));
         }
+        teachEachCooldownScope(p);
         return p;
+    }
+
+    /**
+     * ADR-0076: {@code each-cooldown} stamps its per-target window under the ability's ENCHANT cooldown scope,
+     * so declaring it without one is a blocking diagnostic — the valid family must therefore give the def a
+     * scope whenever a drawn line carries the knob. The {@code teachKindKey} shape: teach the generator the
+     * rule the compiler enforces, never loosen the no-blocking-diagnostics assertion.
+     */
+    private static void teachEachCooldownScope(Plan p) {
+        if (p.cdEnchant != null) {
+            return;
+        }
+        for (GeneratedLine line : p.lines) {
+            if (line.named().containsKey("each-cooldown")) {
+                p.cdEnchant = "fuzz/scope-each";
+                return;
+            }
+        }
     }
 
     /** For every required param emit a token; each optional param — with or without default — is included with probability ½, so an absent optional round-trips for both shapes. */
@@ -413,6 +451,8 @@ final class ContentFuzz {
             case HANDLE -> new Authored("FUZZ_TOKEN_" + rnd.nextInt(1_000_000), ValueKind.HANDLE);
             case EXPR_MAP -> new Authored("t" + rnd.nextInt(1_000) + "=" + fmt3(rnd.nextDouble() * 10),
                     ValueKind.EXPR_MAP);
+            case CONDITION -> new Authored(CONDITION_VOCAB.get(rnd.nextInt(CONDITION_VOCAB.size())),
+                    ValueKind.CONDITION);
         };
     }
 
@@ -427,6 +467,8 @@ final class ContentFuzz {
             case HANDLE -> "FUZZ_TOKEN_" + rnd.nextInt(1_000_000);
             // A selector body is comma-split, so a binding set inside one must be bracketed to survive whole.
             case EXPR_MAP -> "[t" + rnd.nextInt(1_000) + "=" + fmt3(rnd.nextDouble() * 10) + "]";
+            // No selector declares a CONDITION param; a bracketed comparison keeps the body comma-safe if one ever does.
+            case CONDITION -> "[1>0]";
         };
     }
 

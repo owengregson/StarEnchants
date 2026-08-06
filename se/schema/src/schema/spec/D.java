@@ -24,6 +24,9 @@ public final class D {
     /** Free-form text. */
     public static final ParamType STRING = ParamType.of(ParamType.Kind.STRING);
 
+    /** A boolean expression in the condition grammar — a gate, not a number (ADR-0076's {@code each-if}). */
+    public static final ParamType CONDITION = ParamType.of(ParamType.Kind.CONDITION);
+
     /** A closed, case-insensitive set of allowed values, normalized to the given spelling. */
     /**
      * A string-keyed set of numeric expressions, authored as a nested map ({@code tokens: { souls: "%actor.souls%" }})

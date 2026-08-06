@@ -22,9 +22,18 @@ public interface CrystalCounts {
         public int victimCount(String key) {
             return 0;
         }
+
+        @Override
+        public int countOf(java.util.UUID id, String key) {
+            return 0;
+        }
     };
 
     int actorCount(String key);
 
     int victimCount(String key);
+
+    /** The worn-piece count of {@code key} on ANY id — the {@link EnchantLevels#levelOf} seam, for the same
+     *  reason: the subject cursor re-points this reader instead of re-populating anything (ADR-0076). */
+    int countOf(java.util.UUID id, String key);
 }

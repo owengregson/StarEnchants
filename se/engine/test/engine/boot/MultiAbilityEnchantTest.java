@@ -270,6 +270,71 @@ class MultiAbilityEnchantTest {
         assertEquals("metaphysical", victimSide.key());
     }
 
+    @Test
+    void aDefsAbilitiesTakeASCENDINGDenseIdsInAUTHOREDOrder() throws Exception {
+        // ADR-0076: the empty-selection idiom is a SIBLING ability whose gate-7 condition reads %selected%
+        // from the payload ability that ran before it. That rests entirely on candidate order being authored
+        // order — believed true, never asserted, and invisible if it broke. The candidate list a wearer walks
+        // is built from the def's abilities in id order, so ascending-in-authored-order is the contract.
+        Snapshot snap = load("""
+                display: "Phoenix"
+                trigger: "ATTACK"
+                levels:
+                  1:
+                    abilities:
+                      - { effects: [{ IGNITE: { duration: 10, who: "@Victim" } }] }
+                      - { effects: [{ IGNITE: { duration: 20, who: "@Victim" } }] }
+                      - { effects: [{ IGNITE: { duration: 30, who: "@Victim" } }] }
+                """);
+        int first = snap.byStableKey("enchants/phoenix/1").id();
+        int second = snap.byStableKey("enchants/phoenix/1/a1").id();
+        int third = snap.byStableKey("enchants/phoenix/1/a2").id();
+        assertTrue(first < second && second < third,
+                "authored order must be id order: " + first + ", " + second + ", " + third);
+    }
+
+    @Test
+    void aPerTargetFilterSurvivesTheWholeCompileOntoTheEffectRecord() throws Exception {
+        // The hoist, end to end: each-chance desugars to a %target.roll% comparison and each-cooldown lands as
+        // a first-class field — neither survives in the arg bag the executor reads by name.
+        Snapshot snap = load("""
+                display: "Phoenix"
+                trigger: "ATTACK"
+                levels:
+                  1:
+                    cooldown: 40
+                    effects:
+                      - { IGNITE: { duration: 60, who: "@Victim", each-chance: 25, each-cooldown: 20 } }
+                """);
+        compile.model.CompiledEffect effect = snap.byStableKey("enchants/phoenix/1").effects()[0];
+        assertTrue(effect.hasPerTargetFilter());
+        assertEquals(NumExpr.SubjectFact.ROLL, assertInstanceOf(NumExpr.SubjectNum.class,
+                assertInstanceOf(Cond.NumCmp.class, effect.eachCondition()).left()).fact());
+        assertEquals(20.0, assertInstanceOf(NumExpr.Lit.class, effect.eachCooldown()).value());
+        assertFalse(effect.args().has("each-chance"), "the knob is hoisted, never left in the arg bag");
+        assertFalse(effect.args().has("each-cooldown"));
+    }
+
+    @Test
+    void eachCooldownWithoutACooldownScopeIsBlocking() throws Exception {
+        // `cooldown-scope: none` is the one authored shape that leaves nothing to key the per-target window
+        // on. Silently doing nothing is the failure mode this diagnostic exists to prevent.
+        Path enchants = Files.createDirectories(root.resolve("content/enchants"));
+        Files.writeString(enchants.resolve("phoenix.yml"), """
+                display: "Phoenix"
+                trigger: "ATTACK"
+                levels:
+                  1:
+                    cooldown-scope: "none"
+                    effects:
+                      - { IGNITE: { duration: 60, who: "@Victim", each-cooldown: 20 } }
+                """, StandardCharsets.UTF_8);
+        Library lib = LibraryLoader.load(root.resolve("content"), COMPILER, 0);
+        assertTrue(lib.hasErrors(), () -> lib.diagnostics().toString());
+        assertTrue(lib.diagnostics().stream().anyMatch(d -> d.is(schema.diag.DiagCode.E_EFFECT)),
+                () -> lib.diagnostics().toString());
+    }
+
     private GateOutcome gate(Ability ability, FactBuffer facts, double roll) {
         return new ActivationPipeline(new CooldownStore(), SoulSpender.NONE).evaluate(ability,
                 Activation.builder(ACTOR, 0, triggerId, 0L).facts(facts).chanceRoll(() -> roll).build());

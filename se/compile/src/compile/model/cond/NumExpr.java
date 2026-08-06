@@ -10,7 +10,8 @@ import java.util.List;
  */
 public sealed interface NumExpr
         permits NumExpr.Var, NumExpr.Lit, NumExpr.Papi, NumExpr.Bin, NumExpr.Neg, NumExpr.Fn,
-                NumExpr.EntityVar, NumExpr.PotionLevel, NumExpr.EnchantLevel, NumExpr.CrystalCount {
+                NumExpr.EntityVar, NumExpr.PotionLevel, NumExpr.EnchantLevel, NumExpr.CrystalCount,
+                NumExpr.SubjectNum {
 
     /** A numeric variable resolved to its dense {@code FactBuffer} number slot. */
     record Var(int slot) implements NumExpr {}
@@ -58,8 +59,30 @@ public sealed interface NumExpr
     /** {@code %scope.crystals.<key>%} — worn ARMOUR pieces carrying that crystal, 0..4 (R-QC52). */
     record CrystalCount(Scope scope, String key) implements NumExpr {}
 
-    /** Which entity of the activation an entity-scoped operand reads from. */
-    enum Scope { ACTOR, VICTIM }
+    /**
+     * A numeric fact of the SUBJECT CURSOR that owns no {@code FactBuffer} slot — {@code %target.souls%},
+     * {@code %target.heroicpieces%}, {@code %target.roll%} (ADR-0076). Their actor/victim twins are populated
+     * slots, but a per-body value cannot be: the cursor re-points N times inside one activation, so these read
+     * LAZILY off the bound subject exactly as the keyed families do.
+     */
+    record SubjectNum(SubjectFact fact) implements NumExpr {}
+
+    /** The slot-less numeric facts {@link SubjectNum} can name. */
+    enum SubjectFact {
+        /** The bound body's cached cross-gem soul total; {@code 0} for a mob. */
+        SOULS,
+        /** How many of the bound body's four worn armour pieces carry a heroic upgrade. */
+        HEROIC_PIECES,
+        /** The ONE uniform {@code [0,100)} draw taken when the cursor bound this body — {@code each-chance}'s. */
+        ROLL
+    }
+
+    /**
+     * Which entity of the activation an entity-scoped operand reads from. {@code TARGET} is the SUBJECT CURSOR
+     * (ADR-0076): the body an effect's selector resolved, re-bound per target inside gate 12 — legal only on an
+     * effect row, never in an ability's {@code condition:}/{@code chance:}, which run before any selector does.
+     */
+    enum Scope { ACTOR, VICTIM, TARGET }
 
     /** A function over nested operands; {@code args} arity is guaranteed by the parser's {@code ExprFn} check. */
     record Fn(FnKind kind, List<NumExpr> args) implements NumExpr {

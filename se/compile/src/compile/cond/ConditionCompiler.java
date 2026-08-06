@@ -48,6 +48,10 @@ public final class ConditionCompiler {
 
     private final VarResolver vars;
     private final PlatformResolvers resolvers;
+    // ADR-0076: whether the %target.*% SUBJECT scope may be read here. False for an ability's condition:/chance:
+    // (gates 7 and 8 run before any selector resolves, so there is no subject yet) and true on an effect row.
+    // A final field on two instances rather than a parameter threaded through the whole recursive walk.
+    private final boolean subjectScope;
 
     /** No handle resolution: a {@code %scope.potion.<effect>%} token cannot resolve and is diagnosed. */
     public ConditionCompiler(VarResolver vars) {
@@ -60,8 +64,18 @@ public final class ConditionCompiler {
      * id crosses into the runtime and this module stays Bukkit-free.
      */
     public ConditionCompiler(VarResolver vars, PlatformResolvers resolvers) {
+        this(vars, resolvers, false);
+    }
+
+    /**
+     * {@code subjectScope} admits the {@code %target.*%} subject cursor (ADR-0076) — the EFFECT-SIDE compiler.
+     * Reading it anywhere else is a blocking {@link DiagCode#E_VAR_SCOPE}, which is what makes the
+     * {@code %victim%}-vs-{@code %target%} confusion impossible to author rather than merely documented.
+     */
+    public ConditionCompiler(VarResolver vars, PlatformResolvers resolvers, boolean subjectScope) {
         this.vars = Objects.requireNonNull(vars, "vars");
         this.resolvers = Objects.requireNonNull(resolvers, "resolvers");
+        this.subjectScope = subjectScope;
     }
 
     /** Lower into a boolean {@link Cond}, or empty on a type error. */
@@ -188,6 +202,82 @@ public final class ConditionCompiler {
 
     private static final String CRYSTALS_PREFIX = "crystals.";
 
+    /** The scope word naming the subject cursor — one body of an effect's resolved target list (ADR-0076). */
+    private static final String TARGET_SCOPE = "target";
+
+    /** Whether this token names the {@code %target.*%} subject scope, legal or not. */
+    private static boolean isSubjectRef(Expr.VarRef v) {
+        return TARGET_SCOPE.equalsIgnoreCase(v.scope());
+    }
+
+    /**
+     * Guard every subject read: outside an effect row there IS no subject, so the token is a blocking
+     * diagnostic rather than a silent zero. Returns false having recorded it.
+     */
+    private boolean subjectLegal(Expr.VarRef v, Diagnostics diags) {
+        if (subjectScope) {
+            return true;
+        }
+        diags.error(DiagCode.E_VAR_SCOPE,
+                "'%" + token(v) + "%' reads the per-target subject, which only an effect row has", v.source(),
+                "the ability's condition:/chance: run before any selector resolves — use %victim.*% for the "
+                        + "combat victim, or move the test to the effect's each-if:");
+        return false;
+    }
+
+    /** The subject scope is a deliberate SUBSET; anything else (health, pose, geometry) is rejected by name. */
+    private static <T> Optional<T> subjectUnknown(Expr.VarRef v, Diagnostics diags) {
+        diags.error(DiagCode.E_VAR_SCOPE,
+                "the per-target subject has no fact '" + v.name() + "'", v.source(),
+                "it reads only enchlevel.<key>, crystals.<key>, var.<name>, souls, heroicpieces, type, "
+                        + "relation and roll — every live entity read is deliberately absent, because the "
+                        + "per-target pass decides ABOUT a body without ever touching it");
+        return Optional.empty();
+    }
+
+    /** A recognised {@code %target.*%} numeric fact; empty (with a diagnostic) for a string or unknown one. */
+    private Optional<NumExpr> subjectNumeric(Expr.VarRef v, Diagnostics diags) {
+        String name = v.name() == null ? "" : v.name();
+        if (hasPrefix(name, ENCHLEVEL_PREFIX)) {
+            return Optional.of(new NumExpr.EnchantLevel(NumExpr.Scope.TARGET, keyOf(name, ENCHLEVEL_PREFIX)));
+        }
+        if (hasPrefix(name, CRYSTALS_PREFIX)) {
+            return Optional.of(new NumExpr.CrystalCount(NumExpr.Scope.TARGET, keyOf(name, CRYSTALS_PREFIX)));
+        }
+        if (hasPrefix(name, VAR_PREFIX)) {
+            // The remainder whole, inner dots and all — %target.var.mark.beast% is one name (the victim rule).
+            return Optional.of(new NumExpr.EntityVar(NumExpr.Scope.TARGET, name.substring(VAR_PREFIX.length())));
+        }
+        return switch (name.toLowerCase(Locale.ROOT)) {
+            case "souls" -> Optional.of(new NumExpr.SubjectNum(NumExpr.SubjectFact.SOULS));
+            case "heroicpieces" -> Optional.of(new NumExpr.SubjectNum(NumExpr.SubjectFact.HEROIC_PIECES));
+            case "roll" -> Optional.of(new NumExpr.SubjectNum(NumExpr.SubjectFact.ROLL));
+            case "type", "relation" -> numError(diags, v.source(),
+                    "subject variable '" + token(v) + "' is a string, not a number");
+            default -> subjectUnknown(v, diags);
+        };
+    }
+
+    /** A {@code %target.*%} token as a comparison operand — string-typed for type/relation, else numeric. */
+    private Operand subjectOperand(Expr.VarRef v, Diagnostics diags) {
+        String name = v.name() == null ? "" : v.name().toLowerCase(Locale.ROOT);
+        if ("type".equals(name)) {
+            return Operand.str(new StrExpr.SubjectStr(StrExpr.SubjectText.TYPE));
+        }
+        if ("relation".equals(name)) {
+            return Operand.str(new StrExpr.SubjectStr(StrExpr.SubjectText.RELATION));
+        }
+        return subjectNumeric(v, diags).map(Operand::num).orElse(null);
+    }
+
+    private static boolean hasPrefix(String name, String prefix) {
+        return name.length() > prefix.length() && name.regionMatches(true, 0, prefix, 0, prefix.length());
+    }
+
+    private static String keyOf(String name, String prefix) {
+        return name.substring(prefix.length()).toLowerCase(Locale.ROOT);
+    }
+
     /** The activation entity a {@code scope} names, or {@code null} if it names neither side. */
     private static NumExpr.Scope entityScope(String scope) {
         if ("victim".equalsIgnoreCase(scope)) {
@@ -261,6 +351,11 @@ public final class ConditionCompiler {
     }
 
     private Optional<NumExpr> numVar(Expr.VarRef v, Diagnostics diags) {
+        if (isSubjectRef(v)) {
+            // Claimed BEFORE the PlaceholderAPI fallthrough: %target.*% is engine vocabulary now, so an
+            // unrecognised one must be a loud diagnostic rather than a passthrough that reads null forever.
+            return subjectLegal(v, diags) ? subjectNumeric(v, diags) : Optional.empty();
+        }
         NumExpr.EntityVar entity = entityVar(v);
         if (entity != null) {
             return Optional.of(entity);
@@ -333,6 +428,17 @@ public final class ConditionCompiler {
     }
 
     private Optional<Cond> boolVar(Expr.VarRef v, Diagnostics diags) {
+        if (isSubjectRef(v)) {
+            if (!subjectLegal(v, diags)) {
+                return Optional.empty();
+            }
+            // The subject scope declares no boolean fact, so a bare %target.x% is never a gate on its own —
+            // but an UNRECOGNISED one is the vocabulary fault, which subjectOperand reports more precisely.
+            return subjectOperand(v, diags) == null
+                    ? Optional.empty()
+                    : typeError(diags, v.source(), "subject variable '" + token(v) + "' is not a condition",
+                            "compare it, e.g. %" + token(v) + "% > 0");
+        }
         Optional<VarBinding> b = vars.resolve(v.scope(), v.name());
         if (b.isEmpty()) {
             diags.error(DiagCode.E_COND_TYPE, "placeholder '" + token(v) + "' must be compared", v.source(),
@@ -458,6 +564,9 @@ public final class ConditionCompiler {
     }
 
     private Operand varOperand(Expr.VarRef v, Diagnostics diags) {
+        if (isSubjectRef(v)) {
+            return subjectLegal(v, diags) ? subjectOperand(v, diags) : null;
+        }
         NumExpr.EntityVar entity = entityVar(v);
         if (entity != null) {
             return Operand.num(entity); // a counter is numeric: %victim.var.stacks% >= 3

@@ -2,6 +2,7 @@ package engine.spec;
 
 import compile.model.Affinity;
 import schema.spec.CrossRule;
+import schema.spec.D;
 import schema.spec.ParamSpec;
 import schema.spec.ParamType;
 import java.util.ArrayList;
@@ -75,6 +76,7 @@ public final class EffectSpec {
         private final List<TargetSpec> targets = new ArrayList<>();
         private Affinity affinity = Affinity.CONTEXT_LOCAL;
         private boolean needsActorOrigin;
+        private boolean perTargetKnobsDeclared;
 
         private Builder(String head) {
             this.paramSpec = ParamSpec.of(head);
@@ -124,7 +126,42 @@ public final class EffectSpec {
         }
 
         public EffectSpec build() {
+            declarePerTargetKnobs();
             return new EffectSpec(paramSpec.build(), affinity, targets, needsActorOrigin);
+        }
+
+        /**
+         * ADR-0076: declaring an ENTITY target slot implicitly declares the three per-target knobs, so all
+         * ~140 registered kinds gain them without one kind being edited — and the ParamSpec
+         * one-declaration-four-uses rule (validate / complete / {@code /se docs} / migrate) is satisfied by
+         * this single declaration.
+         *
+         * <p>Appended in {@link #build()} rather than in {@link #target}, so they always land LAST whatever
+         * order a kind declares its own params in — positional order is part of the authoring ABI.
+         *
+         * <p>{@link T#HERE} is the LOCATION analogue and is deliberately skipped: a block effect resolves
+         * coordinates, and a subject cursor has no body to bind.
+         */
+        private void declarePerTargetKnobs() {
+            boolean entitySlot = false;
+            for (TargetSpec slot : targets) {
+                entitySlot |= !T.HERE.equals(slot.selectorType());
+            }
+            if (!entitySlot || perTargetKnobsDeclared) {
+                return;
+            }
+            perTargetKnobsDeclared = true;
+            paramSpec.param("each-if", D.CONDITION.optional().hoisted(),
+                    "Per-target filter: each resolved target is tested with the %target.*% subject bound, and "
+                            + "a target that fails is dropped from THIS effect only. It cannot un-activate the "
+                            + "ability, release its cooldown or refund its souls.");
+            paramSpec.param("each-chance", D.DOUBLE.range(0, 100).optional().hoisted(),
+                    "Per-target chance, sugar for each-if: \"%target.roll% < <this>\" over the ONE draw each "
+                            + "body carries for the whole ability — so this row and its complement partition "
+                            + "instead of rolling twice. Declaring each-if too ANDs them.");
+            paramSpec.param("each-cooldown", D.TICKS.optional().hoisted(),
+                    "Per-target cooldown in ticks: a target hit within its own window is dropped. Keyed on the "
+                            + "ability's cooldown scope, so declaring it without one is a load error.");
         }
     }
 }

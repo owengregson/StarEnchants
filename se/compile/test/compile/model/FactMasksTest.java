@@ -108,6 +108,35 @@ class FactMasksTest {
     }
 
     @Test
+    void aPerTargetFilterContributesItsORDINARYSlotsButNoneForTheSubjectScope() {
+        // ADR-0076's cheapness claim, held as a test: the subject cursor is a RE-BIND of lazy readers, so a
+        // %target.*% operand must add no bits at all. If it forced a bit — or worse, ALL — every filtered AoE
+        // would drag the demand-driven populator back to computing facts nobody reads.
+        Cond subjectOnly = new Cond.NumCmp(
+                new NumExpr.EnchantLevel(NumExpr.Scope.TARGET, "poltergeist"), Cmp.GT, new NumExpr.Lit(0));
+        CompiledEffect filtered = new CompiledEffect("FREEZE", Args.empty(), CompiledSelector.SELF, 0,
+                Affinity.AOE, -1, subjectOnly, null);
+        assertEquals(FactMask.NONE, FactMasks.of(null, new CompiledEffect[] {filtered}));
+
+        // But an each-if reading an ORDINARY fact runs on the same buffer inside gate 12, so its slot must be
+        // populated — and so must an expression-valued each-cooldown's.
+        Cond mixed = new Cond.NumCmp(new NumExpr.Var(3), Cmp.GT,
+                new NumExpr.SubjectNum(NumExpr.SubjectFact.ROLL));
+        CompiledEffect both = new CompiledEffect("DAMAGE", Args.empty(), CompiledSelector.SELF, 0,
+                Affinity.AOE, -1, mixed, new NumExpr.Var(11));
+        FactMask mask = FactMasks.of(null, new CompiledEffect[] {both});
+        assertTrue(mask.readsNum(3));
+        assertTrue(mask.readsNum(11));
+    }
+
+    @Test
+    void theSubjectStringFactsReferenceNoSlotEither() {
+        Cond typed = new Cond.StrCmp(new StrExpr.SubjectStr(StrExpr.SubjectText.TYPE), true,
+                new StrExpr.Lit("PLAYER"));
+        assertEquals(FactMask.NONE, FactMasks.of(gate(typed), NO_EFFECTS));
+    }
+
+    @Test
     void literalAndPapiNodesReferenceNoSlot() {
         Cond papi = new Cond.NumCmp(new NumExpr.Papi("some_placeholder"), Cmp.GE, new NumExpr.Lit(1));
         assertEquals(FactMask.NONE, FactMasks.of(gate(papi), NO_EFFECTS));

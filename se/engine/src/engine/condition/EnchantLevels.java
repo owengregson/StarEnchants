@@ -22,9 +22,21 @@ public interface EnchantLevels {
         public int victimLevel(String key) {
             return 0;
         }
+
+        @Override
+        public int levelOf(java.util.UUID id, String key) {
+            return 0;
+        }
     };
 
     int actorLevel(String key);
 
     int victimLevel(String key);
+
+    /**
+     * The worn level of {@code key} on ANY id — the third scope the subject cursor reads through (ADR-0076).
+     * Re-pointing the lazy reader at a third body is one field compare, not a second populate pass, which is
+     * the whole reason {@code %target.enchlevel.<key>%} costs nothing until an expression reaches it.
+     */
+    int levelOf(java.util.UUID id, String key);
 }

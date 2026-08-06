@@ -34,6 +34,15 @@ public final class FactMasks {
             acc.num(chanceExpr); // gate 8 reads it from the same buffer, so its facts must be populated too
         }
         for (CompiledEffect effect : effects) {
+            if (effect.eachCondition() != null) {
+                // The per-target filter runs on the same buffer inside gate 12 (ADR-0076), so any ORDINARY slot
+                // it reads (%damage%, %actor.health%) must be populated too. Its %target.*% operands are lazy
+                // readers and contribute nothing — which is precisely why the cursor needs no mask bits.
+                acc.cond(effect.eachCondition());
+            }
+            if (effect.eachCooldown() != null) {
+                acc.num(effect.eachCooldown());
+            }
             for (Object value : effect.args().asMap().values()) {
                 if (value instanceof NumExpr expr) {
                     acc.num(expr); // e.g. DAMAGE_MOD:...:%combo% reads the combo number slot at run time
@@ -110,10 +119,11 @@ public final class FactMasks {
                 }
             } else if (node instanceof NumExpr.Lit || node instanceof NumExpr.Papi
                     || node instanceof NumExpr.EntityVar || node instanceof NumExpr.PotionLevel
-                    || node instanceof NumExpr.EnchantLevel || node instanceof NumExpr.CrystalCount) {
-                // Reference no fact slot (PAPI tokens, entity vars, potion levels, worn enchant levels and worn
-                // crystal counts all resolve through lazy readers, so they cost nothing until the node is
-                // actually reached).
+                    || node instanceof NumExpr.EnchantLevel || node instanceof NumExpr.CrystalCount
+                    || node instanceof NumExpr.SubjectNum) {
+                // Reference no fact slot (PAPI tokens, entity vars, potion levels, worn enchant levels, worn
+                // crystal counts and every subject-cursor fact all resolve through lazy readers, so they cost
+                // nothing until the node is actually reached).
             } else {
                 throw new IllegalStateException("unhandled node: " + node.getClass());
             }
@@ -122,8 +132,9 @@ public final class FactMasks {
         void str(StrExpr node) {
             if (node instanceof StrExpr.Var v) {
                 strBits |= bit(v.slot());
-            } else if (node instanceof StrExpr.Lit || node instanceof StrExpr.Papi) {
-                // Reference no fact slot.
+            } else if (node instanceof StrExpr.Lit || node instanceof StrExpr.Papi
+                    || node instanceof StrExpr.SubjectStr) {
+                // Reference no fact slot (a subject read comes off the bound cursor, not a populated slot).
             } else {
                 throw new IllegalStateException("unhandled node: " + node.getClass());
             }

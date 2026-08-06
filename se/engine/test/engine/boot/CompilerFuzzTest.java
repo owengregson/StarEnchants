@@ -347,6 +347,9 @@ class CompilerFuzzTest {
             if (suppress && (name.equals("scope") || name.equals("key") || name.equals("mode"))) {
                 continue; // erase-rewritten to longs (asserted by the SUPPRESS bridge)
             }
+            if (p.type().isHoisted()) {
+                continue; // promoted to a CompiledEffect field at lower time, so it never reaches Args (ADR-0076)
+            }
             ContentFuzz.Authored auth = line.named().get(name);
             if (auth == null) {
                 if (p.type().defaultRaw().isPresent()) {

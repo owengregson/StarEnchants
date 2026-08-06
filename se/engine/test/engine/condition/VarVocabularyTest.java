@@ -57,8 +57,10 @@ class VarVocabularyTest {
         // paired guard, the teleblock flag's sibling), and wave 3a (soulcost number — gate 10's resolved price,
         // the one fact written from inside the gate walk rather than by the populator, R-QC2), and wave 3b-3
         // (proximityevent string — WHICH nearby event fired a PROXIMITY_EVENT, so an ally-death watcher and an
-        // ally-bleeding watcher stop firing on each other's, R-QC46).
-        assertEquals(30, v.numberSlots());
+        // ally-bleeding watcher stop firing on each other's, R-QC46), and ADR-0076 (selected number — the
+        // post-filter count the most recent targeting effect bound, published by the executor at gate 12 and
+        // reading -1 for an ability that never activated, R-QC67).
+        assertEquals(31, v.numberSlots());
         assertEquals(27, v.flagSlots());
         assertEquals(14, v.stringSlots());
         assertEquals(VarKind.NUM, v.lookup("victim", "health").orElseThrow().kind());

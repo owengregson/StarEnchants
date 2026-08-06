@@ -95,6 +95,12 @@ public final class ConditionEvaluator {
         if (e instanceof StrExpr.Papi p) {
             return f.resolvePapi(p.raw());
         }
+        if (e instanceof StrExpr.SubjectStr s) {
+            return switch (s.fact()) {
+                case TYPE -> f.targetType();
+                case RELATION -> f.targetRelation();
+            };
+        }
         throw new IllegalStateException("unknown string operand: " + e);
     }
 

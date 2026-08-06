@@ -58,6 +58,9 @@ public final class ActivationPipeline {
     private static final int ESCALATION_BY_SUPPRESS_KEY = 8;
     private static final int ESCALATION_BY_DEF_ID = 9;
 
+    /** {@code each-cooldown}'s target bucket — 0 (mob) and 1 (player) are gate 6's, so 2 cannot collide. */
+    private static final int EACH_TARGET_BUCKET = 2;
+
     private final CooldownStore cooldowns;
     private final SoulSpender spender;
     private final SuppressionStore suppression;
@@ -273,6 +276,27 @@ public final class ActivationPipeline {
      */
     public boolean defenderBlocksTarget(Ability ability, Activation act, UUID target) {
         return suppression.defenderBlocks(ability, target, act.nowTicks(), act.chanceRoll()) != null;
+    }
+
+    /**
+     * ADR-0076's {@code each-cooldown}: atomically check-and-arm a per-SELECTOR-TARGET window for
+     * {@code ability}, returning {@code true} when {@code target} was free (and is now stamped) and
+     * {@code false} when a live window drops it from this effect's list.
+     *
+     * <p>No new store and no new key bits — the knob that already exists is simply asked about a different
+     * body: {@link CooldownStore}'s per-victim dimension, under this ability's ENCHANT scope. The bucket is
+     * {@link #EACH_TARGET_BUCKET}, a value gate 6 never produces, so a splash window can never collide with
+     * the activation's own cooldown nor with a {@code cooldown-per-victim} one on the same ability.
+     *
+     * <p>Like the defender consult this cannot un-activate anything: the ability keeps the cooldown it really
+     * did arm and the souls it really did spend, and {@code /se why} keeps saying ACTIVATED.
+     */
+    public boolean stampTargetCooldown(Ability ability, Activation act, UUID target, int ticks) {
+        if (ability.cdScopeEnchant() < 0 || target == null || ticks <= 0) {
+            return true; // nothing to key on (the compiler blocks this) — never silently drop a body
+        }
+        long key = CooldownStore.key(ScopeKinds.ENCHANT, ability.cdScopeEnchant(), EACH_TARGET_BUCKET);
+        return cooldowns.tryAcquire(act.actor(), target, key, act.nowTicks(), ticks) == 0L;
     }
 
     /**

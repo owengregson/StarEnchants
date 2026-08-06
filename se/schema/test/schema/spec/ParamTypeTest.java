@@ -280,4 +280,36 @@ class ParamTypeTest {
         assertInstanceOf(Expr.Call.class, D.INT.parse("floor(7)", SRC, d).orElseThrow());
         assertFalse(d.hasErrors());
     }
+
+    @Test
+    void conditionParsesToABooleanExpressionTreeAndIsNeverClamped() {
+        // ADR-0076: a CONDITION arg is a GATE, so it must reach the lower stage as the comparison the author
+        // wrote — never wrapped in the synthetic clamp a numeric argument gets, which would make it a number.
+        Diagnostics d = new Diagnostics();
+        assertInstanceOf(Expr.Compare.class, D.CONDITION.parse("%target.roll% < 25", SRC, d).orElseThrow());
+        assertFalse(d.hasErrors());
+        assertEquals("condition", D.CONDITION.label());
+    }
+
+    @Test
+    void conditionReportsASyntaxFaultInsteadOfSilentlyKeepingEverybody() {
+        // The parser recovers rather than returning empty, so what matters is that the fault BLOCKS: a
+        // silently-recovered each-if would keep every target and read as "the filter does nothing".
+        Diagnostics d = new Diagnostics();
+        D.CONDITION.parse("(%target.roll% < 25", SRC, d);
+        assertTrue(d.hasErrors(), () -> d.all().toString());
+        assertTrue(d.all().get(0).is(DiagCode.E_PARSE_UNCLOSED_GROUP), () -> d.all().toString());
+    }
+
+    @Test
+    void perTargetAndHoistedAreDeclarationsThatSurviveEveryWither() {
+        // Both are read by the executor (one picks the cursor-advancing iterable, the other keeps the knob out
+        // of Args), so a later .min()/.max()/.optional() must not quietly drop them.
+        ParamType declared = D.DOUBLE.perTarget().hoisted().min(0).max(100).optional();
+        assertTrue(declared.isPerTarget());
+        assertTrue(declared.isHoisted());
+        assertFalse(declared.isRequired());
+        assertFalse(D.DOUBLE.isPerTarget());
+        assertFalse(D.DOUBLE.isHoisted());
+    }
 }

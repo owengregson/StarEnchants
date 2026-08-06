@@ -21,8 +21,10 @@ public final class DisarmShuffleEffect implements EffectKind {
     public static final String HEAD = "DISARM_SHUFFLE";
 
     static final EffectSpec SPEC = EffectSpec.of(HEAD)
-            .param("duration", D.TICKS.def(80))
-            .param("damage-malus", D.DOUBLE.range(0, 100).def(20))
+            // Both read INSIDE the target loop, so each armed body prices itself (ADR-0076); declared, because
+            // PerTargetParamTest counts the reads and a hoist would otherwise pass silently.
+            .param("duration", D.TICKS.def(80).perTarget())
+            .param("damage-malus", D.DOUBLE.range(0, 100).def(20).perTarget())
             .target("who", T.SELF)
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Arm an unhanding window on the wearer for `duration` ticks: their next landed "

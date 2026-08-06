@@ -18,8 +18,10 @@ import schema.spec.D;
 public final class BatteryEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("BATTERY")
-            .param("bank-percent", D.DOUBLE.range(0, 100).def(20))
-            .param("hits", D.INT.range(1, 10).def(3))
+            // Both read INSIDE the target loop, so each armed body prices itself (ADR-0076). Declared rather
+            // than left implicit: PerTargetParamTest counts the reads, so a later hoist cannot pass silently.
+            .param("bank-percent", D.DOUBLE.range(0, 100).def(20).perTarget())
+            .param("hits", D.INT.range(1, 10).def(3).perTarget())
             .target("who", T.SELF)
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Arm a damage battery on the wearer: the next `hits` landed hits they take each "

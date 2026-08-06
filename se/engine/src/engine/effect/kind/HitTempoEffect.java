@@ -22,10 +22,12 @@ public final class HitTempoEffect implements EffectKind {
     public static final String HEAD = "HIT_TEMPO";
 
     static final EffectSpec SPEC = EffectSpec.of(HEAD)
-            .param("duration", D.TICKS.def(100))
+            // The three numbers are read INSIDE the target loop, so each armed body prices itself (ADR-0076);
+            // declared, because PerTargetParamTest counts the reads and a hoist would otherwise pass silently.
+            .param("duration", D.TICKS.def(100).perTarget())
             .param("model", D.enumOf("VANILLA", "MENTAL").def("VANILLA"))
-            .param("damage-percent", D.DOUBLE.range(0, 100).def(33.3))
-            .param("attack-speed", D.DOUBLE.min(0).def(1.0))
+            .param("damage-percent", D.DOUBLE.range(0, 100).def(33.3).perTarget())
+            .param("attack-speed", D.DOUBLE.min(0).def(1.0).perTarget())
             .target("who", T.SELF)
             .affinity(Affinity.CONTEXT_LOCAL)
             .doc("Arm a hit-tempo window on the wearer for `duration` ticks: their melee victims' "
