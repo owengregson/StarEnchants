@@ -333,20 +333,33 @@ class EnchantDefReaderTest {
     }
 
     @Test
-    void aCooldownScopeValueOtherThanNoneIsDiagnosedAndFallsBackToTheSharedBucket() {
-        // Never a silent accept: an unrecognised value would otherwise read as "opted out" or "ignored",
-        // and both are gameplay-visible cooldown bugs with nothing to grep for.
+    void aNamedCooldownScopeIsABucketTwoEnchantsCanShare() {
+        // R-QC57: the measured "one bucket across a grade pair, at asymmetric thresholds". A name other than
+        // `none` is the shared bucket's own key, so two FILES pointing at it pace each other; each ability
+        // keeps its own `cooldown:`, which is what lets the two thresholds differ inside one bucket.
         Diagnostics diags = new Diagnostics();
-        String yaml = """
-            trigger: ATTACK
+        String heroic = """
+            trigger: FALL
+            cooldown-scope: rocket-escape
             levels:
-              1: { cooldown-scope: shared, effects: [{ HEAL: { amount: 2 } }] }
+              1: { cooldown: 300, effects: [{ HEAL: { amount: 2 } }] }
             """;
-        AbilityDef def = EnchantDefReader.read("enchants/typo", root(yaml, diags), counter(), diags)
+        String base = """
+            trigger: FALL
+            cooldown-scope: rocket-escape
+            levels:
+              1: { cooldown: 600, effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        AbilityDef a = EnchantDefReader.read("enchants/guided-rocket-escape", root(heroic, diags), counter(), diags)
+                .abilities().get(0);
+        AbilityDef b = EnchantDefReader.read("enchants/rocket-escape", root(base, diags), counter(), diags)
                 .abilities().get(0);
 
-        assertCode(diags, DiagCode.E_ENUM);
-        assertEquals("enchants/typo", def.cdScopeEnchant(), "the default scope is kept, nothing is thrown");
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        assertEquals("rocket-escape", a.cdScopeEnchant());
+        assertEquals(a.cdScopeEnchant(), b.cdScopeEnchant(), "two enchants, one bucket");
+        assertEquals(300, a.cooldownTicks());
+        assertEquals(600, b.cooldownTicks(), "sharing the bucket must not align the thresholds");
     }
 
     @Test

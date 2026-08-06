@@ -37,9 +37,10 @@ disabled-worlds: ["world_koth"]
 # window is open"), so this companion also covers a window a co-worn base Rocket Escape opened (its own
 # companion is still cooldown-starved). The matrix's jar-side key `rocket-escape` is the jar's, not ours.
 # Cooldown bucket: the matrix records ONE bucket shared with the non-heroic at asymmetric thresholds (15 s
-# read here, 30 s there). Inexpressible — cooldown scope is per-enchant and the only opt-out is `none` — so
-# each grade paces itself. Only observable while both are worn on different pieces, which the contract's
-# REPLACE already makes an edge case.
+# read here, 30 s there). AUTHORED (R-QC57) — `cooldown-scope:` now takes a NAME as well as `none`, and both
+# grades' launch abilities point at `rocket-escape`, so they pace each other. Each keeps its OWN `cooldown:`,
+# which is what lets the two thresholds stay asymmetric inside one bucket. The FALL companions below keep
+# `cooldown-scope: none` and are unaffected.
 # SABOTAGE VETO (swords doc 03). Inside Sabotage's 1000 ms mark the escape is vetoed at 10 % x the mark
 # level; sabotage.yml writes that level onto its victim as `sabotage`, read here actor-side as a bare
 # `%sabotage%` (inversion.yml's idiom for the same seam). It rides the chance as a pre-roll subtraction —
@@ -64,6 +65,7 @@ levels:
   1:
     abilities:
       - cooldown: 300
+        cooldown-scope: rocket-escape
         chance: "100 - 10 * %sabotage%"
         condition: "%damage% >= %actor.health%"
         effects:
@@ -91,6 +93,7 @@ levels:
   2:
     abilities:
       - cooldown: 300
+        cooldown-scope: rocket-escape
         chance: "100 - 10 * %sabotage%"
         condition: "%damage% >= %actor.health%"
         effects:
@@ -115,6 +118,7 @@ levels:
   3:
     abilities:
       - cooldown: 300
+        cooldown-scope: rocket-escape
         chance: "100 - 10 * %sabotage%"
         condition: "%damage% >= %actor.health%"
         effects:
