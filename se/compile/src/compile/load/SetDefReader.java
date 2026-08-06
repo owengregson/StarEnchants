@@ -210,34 +210,55 @@ final class SetDefReader {
     }
 
     /**
-     * The roll form. {@code nearly-maxed: M} is the family's measured draw and fixes both bounds; otherwise
-     * {@code min}/{@code max} give a uniform band (equal bounds, or a lone {@code max}, degrade to FIXED so a
-     * band of one is not a needless draw). {@code chance} gates whether the entry mints at all.
+     * The roll form. {@code nearly-maxed: M} (the plain-set draw) and {@code ability-set: M} (the M-Kit draw,
+     * R-QC64) each fix both bounds from {@code M}; otherwise {@code min}/{@code max} give a uniform band (equal
+     * bounds, or a lone {@code max}, degrade to FIXED so a band of one is not a needless draw). {@code chance}
+     * gates whether the entry mints at all.
      */
     private static EnchantRoll readRoll(YamlNode value, String setKey, String ref, Diagnostics diags) {
         // Fractional (R-QC51): parsed as a double, so an authored 17.5 rolls at 17.5 instead of failing to
         // parse as an int and falling back to 100 — an entry meant to be rare minting on every single piece.
         double chance = ContentParse.doubleOr(value.string("chance"), 100.0, "chance",
                 schema.diag.Severity.WARNING, DiagCode.W_SET_ENCHANT, value.sourceOf("chance"), diags);
-        Integer nearlyMaxed = value.has("nearly-maxed")
-                ? ContentParse.parseInt(value.string("nearly-maxed")) : null;
-        if (value.has("nearly-maxed")) {
-            if (nearlyMaxed == null) {
-                diags.warning(DiagCode.W_SET_ENCHANT, "set '" + setKey + "' enchant '" + ref
-                        + "' nearly-maxed is not a number: " + value.string("nearly-maxed"), value.source());
-                return null;
-            }
-            return new EnchantRoll(Math.max(1, nearlyMaxed - 2), nearlyMaxed, chance, EnchantRoll.Mode.NEARLY_MAXED);
+        // The two band-from-M forms differ only in how wide the band opens; the floor each declares is the
+        // lowest its own draw can reach, so LibraryLoader's `min..max` diagnostic reports the truth.
+        EnchantRoll fromM = bandFromM(value, "nearly-maxed", 2, EnchantRoll.Mode.NEARLY_MAXED, chance,
+                setKey, ref, diags);
+        if (fromM != null || value.has("nearly-maxed")) {
+            return fromM;
+        }
+        fromM = bandFromM(value, "ability-set", 3, EnchantRoll.Mode.ABILITY_SET, chance, setKey, ref, diags);
+        if (fromM != null || value.has("ability-set")) {
+            return fromM;
         }
         if (!value.has("max")) {
             diags.warning(DiagCode.W_SET_ENCHANT, "set '" + setKey + "' enchant '" + ref
-                    + "' declares no level: a roll needs 'max' or 'nearly-maxed'", value.source());
+                    + "' declares no level: a roll needs 'max', 'nearly-maxed' or 'ability-set'", value.source());
             return null;
         }
         int max = rollInt(value, "max", 1, diags);
         int min = rollInt(value, "min", max, diags);
         return new EnchantRoll(min, max, chance,
                 min >= max ? EnchantRoll.Mode.FIXED : EnchantRoll.Mode.UNIFORM);
+    }
+
+    /**
+     * One of the two {@code M}-shaped roll forms: absent &rarr; {@code null} with nothing said, present but
+     * unreadable &rarr; {@code null} with a warning (the caller distinguishes the two by re-asking whether the
+     * key was there at all). {@code drop} is how far below {@code M} that form's own draw can reach.
+     */
+    private static EnchantRoll bandFromM(YamlNode value, String key, int drop, EnchantRoll.Mode mode,
+                                         double chance, String setKey, String ref, Diagnostics diags) {
+        if (!value.has(key)) {
+            return null;
+        }
+        Integer m = ContentParse.parseInt(value.string(key));
+        if (m == null) {
+            diags.warning(DiagCode.W_SET_ENCHANT, "set '" + setKey + "' enchant '" + ref + "' " + key
+                    + " is not a number: " + value.string(key), value.source());
+            return null;
+        }
+        return new EnchantRoll(Math.max(1, m - drop), m, chance, mode);
     }
 
     private static int rollInt(YamlNode value, String key, int fallback, Diagnostics diags) {

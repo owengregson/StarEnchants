@@ -407,6 +407,9 @@ class SetDefReaderTest {
               enchants:
                 enchants/band: { min: 2, max: 5 }
                 enchants/near: { nearly-maxed: 4 }
+                enchants/mkit: { ability-set: 4 }
+                enchants/mkitgated: { chance: 17.5, ability-set: 3 }
+                enchants/unreadable: { ability-set: wide }
                 enchants/gated: { chance: 25, min: 1, max: 4 }
                 enchants/half: { chance: 17.5, min: 1, max: 4 }
                 enchants/one: { max: 3 }
@@ -426,6 +429,13 @@ class SetDefReaderTest {
         assertEquals(new EnchantRoll(2, 5, 100, EnchantRoll.Mode.UNIFORM), roster.get("enchants/band"));
         // nearly-maxed fixes both bounds from M: max(1, M-2) .. M
         assertEquals(new EnchantRoll(2, 4, 100, EnchantRoll.Mode.NEARLY_MAXED), roster.get("enchants/near"));
+        // R-QC64: the M-Kit draw opens a rung wider at the bottom, so its declared floor is max(1, M-3) — the
+        // floor LibraryLoader prints, and the lowest level the draw can actually mint.
+        assertEquals(new EnchantRoll(1, 4, 100, EnchantRoll.Mode.ABILITY_SET), roster.get("enchants/mkit"));
+        assertEquals(new EnchantRoll(1, 3, 17.5, EnchantRoll.Mode.ABILITY_SET), roster.get("enchants/mkitgated"));
+        // an unreadable M is dropped with a warning, exactly as an unreadable nearly-maxed is — never guessed,
+        // and never silently falling through to the min/max branch that would read no level at all
+        assertFalse(roster.containsKey("enchants/unreadable"));
         assertEquals(new EnchantRoll(1, 4, 25, EnchantRoll.Mode.UNIFORM), roster.get("enchants/gated"));
         // R-QC51: a half-point survives the reader. It used to fail Integer.valueOf, warn, and fall back to
         // 100 — turning the rarest entry in a roster into one that minted on every single piece.

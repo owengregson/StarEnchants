@@ -50,6 +50,21 @@ public final class SetMint {
             // The measured family draw, reproduced literally: the outer min() is what skews the top rung once
             // M < 3, so a uniform band over the same bounds would be the wrong distribution, not a shortcut.
             case NEARLY_MAXED -> Math.min(roll.max(), Math.max(1, roll.max() - 2) + random.nextInt(3));
+            case ABILITY_SET -> abilitySet(roll.max(), random);
         };
+    }
+
+    /**
+     * The ABILITY-SET draw (codex §A.11, R-QC64) — the M-Kit sets' own helper, and a genuinely different
+     * distribution from {@code NEARLY_MAXED}: one rung wider at the bottom, then taxed at the top.
+     *
+     * <p>The codex spells the band as four branches on {@code M} (1, 2, 3, {@code >= 4}); {@code min(4, M)} is
+     * the same function over every {@code M}, so the band is written once. The shave is the second half and the
+     * reason the two helpers cannot be collapsed: a draw that lands on a natural max above 1 is knocked down a
+     * level a quarter of the time, which no band can express.
+     */
+    private static int abilitySet(int max, Random random) {
+        int level = max - random.nextInt(Math.min(4, Math.max(1, max)));
+        return level == max && level > 1 && Rolls.passes(random, 25) ? level - 1 : level;
     }
 }

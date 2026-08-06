@@ -75,6 +75,47 @@ final class SetMintTest {
     }
 
     @Test
+    void theAbilitySetDrawOpensAWiderBandThanNearlyMaxedAndThenTaxesItsTopRung() {
+        // R-QC64, codex A.11: `M - rand(min(4, M))`, then a 25 % shave off a natural max above 1. The first
+        // draw is the band, the second (only reached when the band landed on M) is the shave gate.
+        EnchantRoll five = new EnchantRoll(2, 5, 100, EnchantRoll.Mode.ABILITY_SET);
+        assertEquals(2, SetMint.level(five, new ScriptedRandom(3)), "M-3 is a rung NEARLY_MAXED cannot reach");
+        assertEquals(3, SetMint.level(five, new ScriptedRandom(2)));
+        assertEquals(4, SetMint.level(five, new ScriptedRandom(1)));
+        // The shave gate is Rolls.passes(random, 25) — nextInt(100) < 25 — so 24 shaves and 25 does not.
+        assertEquals(4, SetMint.level(five, new ScriptedRandom(0, 24)), "a natural max is shaved a quarter of the time");
+        assertEquals(5, SetMint.level(five, new ScriptedRandom(0, 25)));
+
+        // M < 4 narrows the band with it: M = 2 draws 1 or 2, and 1 cannot be shaved below itself.
+        EnchantRoll two = new EnchantRoll(1, 2, 100, EnchantRoll.Mode.ABILITY_SET);
+        assertEquals(1, SetMint.level(two, new ScriptedRandom(1)));
+        assertEquals(1, SetMint.level(two, new ScriptedRandom(0, 24)));
+        // M = 1: one rung, and the shave's `> 1` guard is what stops it emptying the entry.
+        EnchantRoll one = new EnchantRoll(1, 1, 100, EnchantRoll.Mode.ABILITY_SET);
+        assertEquals(1, SetMint.level(one, new ScriptedRandom(0, 0)));
+    }
+
+    @Test
+    void theTwoBandFromMDrawsAreGenuinelyDifferentDistributions() {
+        // The reason D-12-37's "one draw is enough" reading was reversed: at the M these rosters use, only the
+        // ability-set draw can produce M-3, and only it can shave a natural max down.
+        EnchantRoll nearly = new EnchantRoll(2, 4, 100, EnchantRoll.Mode.NEARLY_MAXED);
+        EnchantRoll ability = new EnchantRoll(1, 4, 100, EnchantRoll.Mode.ABILITY_SET);
+        Random random = new Random(20260805L);
+        TreeMap<Integer, Integer> nearlySeen = new TreeMap<>();
+        TreeMap<Integer, Integer> abilitySeen = new TreeMap<>();
+        for (int i = 0; i < 8000; i++) {
+            nearlySeen.merge(SetMint.level(nearly, random), 1, Integer::sum);
+            abilitySeen.merge(SetMint.level(ability, random), 1, Integer::sum);
+        }
+        assertEquals(List.of(2, 3, 4), List.copyOf(nearlySeen.keySet()));
+        assertEquals(List.of(1, 2, 3, 4), List.copyOf(abilitySeen.keySet()));
+        // The shave moves weight off the top: the ability-set draw lands on M less often than its 1-in-4 band
+        // alone would, where NEARLY_MAXED's 1-in-3 top rung is untaxed.
+        assertTrue(abilitySeen.get(4) < nearlySeen.get(4), "the top rung is taxed on one draw and not the other");
+    }
+
+    @Test
     void aFailedChanceGateYieldsNoLevelAndDropsTheEntryRatherThanMintingItAtZero() {
         EnchantRoll gated = new EnchantRoll(1, 4, 25, EnchantRoll.Mode.UNIFORM);
         // The fractional gate draws BASIS points: nextInt(10_000) < chance x 100, so 2499 passes a 25% gate
