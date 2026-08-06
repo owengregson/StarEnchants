@@ -16,6 +16,7 @@ import engine.selector.SelectorRegistry;
 import engine.selector.kind.BuiltinSelectors;
 import engine.sink.Sink;
 import engine.spec.EffectSpec;
+import engine.spec.T;
 import engine.trigger.BuiltinTriggers;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -158,8 +159,17 @@ class RegistryFingerprintTest {
         String routed = RegistryFingerprint.hash(single(EffectSpec.of("ZZ")
                 .param("a", D.DOUBLE.min(0))
                 .affinity(Affinity.AOE)
-                .target("t", "AOE").build()));
-        assertEquals(plain, routed, "affinity + target slots are runtime routing, not authorability");
+                .target("t", T.HERE).build()));
+        assertEquals(plain, routed, "affinity + a location slot are runtime routing, not authorability");
+
+        // An ENTITY slot is different since ADR-0076: declaring one DECLARES the three per-target knobs, which
+        // are genuinely authorable — so this one must move the hash, or a pack exported before the wave would
+        // compare equal to one exported after and the mismatch report would lie.
+        String perTarget = RegistryFingerprint.hash(single(EffectSpec.of("ZZ")
+                .param("a", D.DOUBLE.min(0))
+                .affinity(Affinity.AOE)
+                .target("t", T.AOE).build()));
+        assertNotEquals(plain, perTarget, "an entity slot declares each-if/each-chance/each-cooldown");
     }
 
     // ── Vocabulary sensitivity (package-private canonical seam) ──

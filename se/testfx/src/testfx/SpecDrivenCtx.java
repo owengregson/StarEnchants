@@ -40,6 +40,9 @@ public final class SpecDrivenCtx {
                 case ENUM -> ctx.with(p.name(), type.allowed().isEmpty() ? "x" : type.allowed().get(0));
                 case STRING -> ctx.with(p.name(), "x");
                 case EXPR_MAP -> ctx.with(p.name(), java.util.Map.<String, Double>of());
+                // A CONDITION arg is hoisted out of the bag at lower time (ADR-0076), so no kind ever reads
+                // one through the ctx — the stand-in exists only to keep this switch exhaustive.
+                case CONDITION -> ctx.with(p.name(), "1 > 0");
             }
         }
         return ctx;

@@ -17,7 +17,10 @@ import schema.spec.D;
 public final class HealthModEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("MODIFY_HEALTH")
-            .param("amount", D.DOUBLE.min(0))
+            // perTarget (ADR-0076): read INSIDE the target loop, so `rand(0.5, 5.5)` draws per body — a chain
+            // drains each victim its own amount, which is the recorded Chain Lifesteal behaviour, rather than
+            // one draw shared by the whole chain. A constant amount is unaffected.
+            .param("amount", D.DOUBLE.min(0).perTarget())
             .param("mode", D.enumOf("give", "take", "transfer", "set").def("give"))
             .target("who", T.SELF)
             .affinity(Affinity.TARGET_ENTITY)
@@ -34,27 +37,30 @@ public final class HealthModEffect implements EffectKind {
 
     @Override
     public void run(EffectCtx ctx, Sink sink) {
-        double amount = ctx.dbl("amount");
         String mode = ctx.str("mode");
         if ("set".equalsIgnoreCase(mode)) {
             for (LivingEntity target : ctx.targets("who")) {
-                sink.setHealth(target, amount);
+                sink.setHealth(target, ctx.dbl("amount"));
             }
             return;
         }
         boolean transfer = "transfer".equalsIgnoreCase(mode);
         boolean take = transfer || "take".equalsIgnoreCase(mode);
-        int hit = 0;
+        double drained = 0;
         for (LivingEntity target : ctx.targets("who")) {
+            // Read INSIDE the loop (ADR-0076, declared by amount's perTarget()): the cursor is on this body, so
+            // an expression argument prices each target for itself. Lifesteal therefore returns the SUM drained
+            // rather than one amount times the count — with a constant amount the two are identical.
+            double amount = ctx.dbl("amount");
             if (take) {
                 sink.damage(target, amount, ctx.actor()); // attributed / same-hit-folded like DAMAGE (ADR-0054)
-                hit++;
+                drained += amount;
             } else {
                 sink.heal(target, amount);
             }
         }
-        if (transfer && hit > 0 && ctx.actor() != null) {
-            sink.heal(ctx.actor(), amount * hit); // lifesteal: the activator gains what was drained
+        if (transfer && drained > 0 && ctx.actor() != null) {
+            sink.heal(ctx.actor(), drained); // lifesteal: the activator gains what was drained
         }
     }
 }

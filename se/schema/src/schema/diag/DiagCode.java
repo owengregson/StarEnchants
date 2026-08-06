@@ -48,6 +48,8 @@ public enum DiagCode {
 
     // Condition compiler.
     E_COND_TYPE,
+    E_VAR_SCOPE,           // a %scope.name% read from a place that scope cannot answer, or a fact that scope has no
+                           // entry for — today the %target.*% subject scope (ADR-0076), which is effect-side only
 
     // Effect / selector / handle / trigger resolution and lowering.
     E_EFFECT,

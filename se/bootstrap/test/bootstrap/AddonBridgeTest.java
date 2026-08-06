@@ -48,8 +48,11 @@ class AddonBridgeTest {
         assertEquals("a test bolt", spec.doc());
         assertEquals("{ ADDON_TEST_BOLT: { power: 5, count: 2 } }", spec.example());
 
+        // An addon's OWN params, in its declared order — the three per-target knobs an entity target slot
+        // implicitly appends (ADR-0076) are the engine's, and an addon gets them for free like every built-in.
         List<Param> params = spec.paramSpec().params();
-        assertEquals(List.of("power", "count"), params.stream().map(Param::name).toList(), "param names + order");
+        assertEquals(List.of("power", "count", "each-if", "each-chance", "each-cooldown"),
+                params.stream().map(Param::name).toList(), "param names + order");
         assertEquals(ParamType.Kind.DOUBLE, params.get(0).type().kind());
         assertEquals(ParamType.Kind.INT, params.get(1).type().kind());
         assertEquals("how hard", params.get(0).doc(), "per-param doc must carry across");

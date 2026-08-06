@@ -32,26 +32,42 @@ public final class NumExprEval {
         }
         if (e instanceof NumExpr.EntityVar v) {
             // Unset/no victim reads 0, not NaN: a counter that hasn't started is zero stacks, not "unknown".
-            double parsed = parseDouble(f.resolveVictimVar(v.name()));
+            double parsed = parseDouble(v.scope() == NumExpr.Scope.TARGET
+                    ? f.resolveTargetVar(v.name())
+                    : f.resolveVictimVar(v.name()));
             return Double.isNaN(parsed) ? 0.0 : parsed;
         }
         if (e instanceof NumExpr.PotionLevel p) {
-            // amplifier+1, 0 when absent — so `> 0` reads "active" and `> 1` reads "at least II".
+            // amplifier+1, 0 when absent — so `> 0` reads "active" and `> 1` reads "at least II". No TARGET arm:
+            // a potion read touches the LIVE entity, and R-QC68 cuts it from the subject vocabulary outright —
+            // the per-target pass reads no live entity, ever, so the compiler never lowers one.
             return p.scope() == NumExpr.Scope.VICTIM
                     ? f.victimPotionLevel(p.handleId())
                     : f.actorPotionLevel(p.handleId());
         }
         if (e instanceof NumExpr.EnchantLevel l) {
             // The worn level, 0 when absent — so `> 0` reads "has it" and `>= 3` reads "at least III".
-            return l.scope() == NumExpr.Scope.VICTIM
-                    ? f.victimEnchantLevel(l.key())
-                    : f.actorEnchantLevel(l.key());
+            return switch (l.scope()) {
+                case TARGET -> f.targetEnchantLevel(l.key());
+                case VICTIM -> f.victimEnchantLevel(l.key());
+                case ACTOR -> f.actorEnchantLevel(l.key());
+            };
         }
         if (e instanceof NumExpr.CrystalCount c) {
             // Pieces, not levels — `> 0` reads "socketed somewhere", `== 4` reads "the whole set".
-            return c.scope() == NumExpr.Scope.VICTIM
-                    ? f.victimCrystalCount(c.key())
-                    : f.actorCrystalCount(c.key());
+            return switch (c.scope()) {
+                case TARGET -> f.targetCrystalCount(c.key());
+                case VICTIM -> f.victimCrystalCount(c.key());
+                case ACTOR -> f.actorCrystalCount(c.key());
+            };
+        }
+        if (e instanceof NumExpr.SubjectNum s) {
+            // The slot-less subject facts: read off the bound cursor, 0 when nothing is bound.
+            return switch (s.fact()) {
+                case SOULS -> f.targetSouls();
+                case HEROIC_PIECES -> f.targetHeroicPieces();
+                case ROLL -> f.targetRoll();
+            };
         }
         if (e instanceof NumExpr.Fn fn) {
             return function(fn, f);

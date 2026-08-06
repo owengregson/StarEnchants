@@ -210,6 +210,35 @@ public final class ReferenceDoc {
                 + "A piece counts ONCE however many times it names the crystal, a merged `a+b` socket counts "
                 + "for both components, and a socketed weapon is never counted — it is a count of worn pieces, "
                 + "which is what per-piece scaling needs.\n\n");
+        subjectScope(out);
+    }
+
+    /**
+     * The subject cursor's own scope. It has no fixed slot to list in the table above (it re-points per body),
+     * and an author who cannot see it here has no way to discover it exists.
+     */
+    private static void subjectScope(StringBuilder out) {
+        out.append("### `%target.*%` — the per-target subject\n\n");
+        out.append("Inside an effect row, `%target.*%` names **one body of that effect's resolved target "
+                + "list**, re-bound as the list is walked. It is readable ONLY from an effect row — its "
+                + "`each-if:` / `each-chance:` or an expression-valued argument. Reading it from the ability's "
+                + "`condition:` or `chance:` is a load error, because those gates run before any selector "
+                + "resolves; use `%victim.*%` there for the combat victim.\n\n");
+        out.append("| Subject fact | Type | Reads |\n| --- | --- | --- |\n");
+        out.append("| `%target.enchlevel.<key>%` | NUM | that body's worn level of one custom enchant |\n");
+        out.append("| `%target.crystals.<key>%` | NUM | that body's worn armour pieces carrying one crystal |\n");
+        out.append("| `%target.var.<name>%` | NUM | a counter `SET_VAR` wrote on that body |\n");
+        out.append("| `%target.souls%` | NUM | that body's cross-gem soul total (`0` for a mob) |\n");
+        out.append("| `%target.heroicpieces%` | NUM | that body's worn heroic armour pieces |\n");
+        out.append("| `%target.type%` | STR | that body's entity type |\n");
+        out.append("| `%target.relation%` | STR | `ALLY` / `ENEMY` / `NEUTRAL` vs the activator |\n");
+        out.append("| `%target.roll%` | NUM | the ONE `[0,100)` draw this body carries |\n\n");
+        out.append("Health, pose and geometry are deliberately absent, and naming one is a load error rather "
+                + "than a silent zero: the per-target pass decides ABOUT a body without ever touching it, "
+                + "which is what keeps a 20-body sweep free of cross-region entity reads.\n\n");
+        out.append("`%target.roll%` is drawn once per body per ABILITY and shared by every `each-*` read of "
+                + "it — including on later effect rows — so a filter and its complement partition: one body "
+                + "cannot pass both rows, nor neither.\n\n");
     }
 
     private static void appendParams(StringBuilder out, ParamSpec spec) {

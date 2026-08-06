@@ -2,6 +2,7 @@ package schema.spec;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import schema.diag.DiagCode;
@@ -127,5 +128,30 @@ class ParamSpecTest {
         assertEquals(List.of("SQUARE"), spec.completions(0, "s"));
         assertTrue(spec.completions(1, "").isEmpty());
         assertTrue(spec.completions(5, "").isEmpty());
+    }
+
+    @Test
+    void anyPerTargetReportsWhetherAnyDeclaredParamIsReadPerTarget() {
+        // The executor's one opt-in test (ADR-0076): it reads this ONCE per effect, so it must look past the
+        // first param — a kind whose per-target argument is declared third still needs the cursor.
+        assertFalse(smite().anyPerTarget());
+        ParamSpec drain = ParamSpec.of("DRAIN")
+                .param("mode", D.enumOf("give", "take"))
+                .param("cooldown", D.TICKS.def(0))
+                .param("amount", D.DOUBLE.min(0).perTarget())
+                .build();
+        assertTrue(drain.anyPerTarget());
+    }
+
+    @Test
+    void argsWithoutDropsOnlyTheNamedKnobsAndKeepsIdentityWhenNoneMatch() {
+        // The hoist seam: a knob promoted to a CompiledEffect field must leave the bag, and an effect that
+        // declares none must not pay a copy for the privilege.
+        Args args = smite().parse(List.of("25", "4", "6", "40"), SRC, new Diagnostics());
+        Args trimmed = args.without("cooldown", "damage");
+        assertFalse(trimmed.has("cooldown"));
+        assertFalse(trimmed.has("damage"));
+        assertEquals(25.0, trimmed.dbl("chance"));
+        assertSame(args, args.without("each-if", "each-chance"));
     }
 }

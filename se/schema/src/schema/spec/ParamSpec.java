@@ -48,6 +48,17 @@ public final class ParamSpec {
         return params;
     }
 
+    /** Whether any declared param is {@link ParamType#perTarget()} — the executor's opt-in test for the
+     *  cursor-advancing target iterable, read once per effect rather than per param (ADR-0076). */
+    public boolean anyPerTarget() {
+        for (Param p : params) {
+            if (p.type().isPerTarget()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public String doc() {
         return doc;
     }

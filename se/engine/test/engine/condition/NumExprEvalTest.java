@@ -70,6 +70,11 @@ class NumExprEvalTest {
             public int victimCount(String key) {
                 return 0;
             }
+
+            @Override
+            public int countOf(java.util.UUID id, String key) {
+                return 0;
+            }
         });
         assertEquals(3.0, NumExprEval.eval(new NumExpr.CrystalCount(NumExpr.Scope.ACTOR, "ranger"), facts));
         assertEquals(0.0, NumExprEval.eval(new NumExpr.CrystalCount(NumExpr.Scope.ACTOR, "dragon"), facts));
@@ -90,6 +95,11 @@ class NumExprEvalTest {
 
             @Override
             public int victimLevel(String key) {
+                return 0;
+            }
+
+            @Override
+            public int levelOf(java.util.UUID id, String key) {
                 return 0;
             }
         });

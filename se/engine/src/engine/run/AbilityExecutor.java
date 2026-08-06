@@ -1,8 +1,13 @@
 package engine.run;
 
+import compile.cond.VarBinding;
 import compile.model.Ability;
 import compile.model.CompiledEffect;
 import compile.model.StableKeyIndex;
+import engine.condition.BuiltinVars;
+import engine.condition.ConditionEvaluator;
+import engine.condition.FactBuffer;
+import engine.condition.NumExprEval;
 import engine.effect.EffectCtx;
 import engine.effect.EffectKind;
 import engine.effect.EffectRegistry;
@@ -43,6 +48,21 @@ public final class AbilityExecutor {
     /** The consume-cue name tokens — MESSAGE's spelling, so one vocabulary serves every authored line. */
     private static final String ATTACKER = "ATTACKER";
     private static final String VICTIM = "VICTIM";
+
+    /** {@code %selected%}'s numeric slot, or {@code -1} when the vocabulary does not declare it (ADR-0076). */
+    private static final int SELECTED_SLOT =
+            BuiltinVars.vocabulary().lookup(null, "selected").map(VarBinding::slot).orElse(-1);
+
+    /**
+     * What {@code %selected%} reads for an ability that never activated (owner ruling R-QC67). Distinct from
+     * {@code 0}, which means "it ran and matched nobody" — the one distinction a bare count cannot make, and
+     * the whole reason a refusal line can be authored as a sibling ability's gate-7 condition.
+     */
+    private static final double NOT_ACTIVATED = -1.0;
+
+    // One cursor per worker thread, re-pointed per body. Not per executor instance state: the cursor is scratch
+    // the firing thread owns for the length of one effect walk, exactly like the FactBuffer it writes into.
+    private final ThreadLocal<SubjectCursor> subjectCursor = ThreadLocal.withInitial(SubjectCursor::new);
 
     // The effect + selector kind arrays, bound as ONE reference (ADR-0039) so a reload never exposes a torn
     // mix; rebound per reload so add-on effect kinds registered after boot become runnable (ADR-0038). An
@@ -123,6 +143,7 @@ public final class AbilityExecutor {
                         quarantine.recordFailure(id, ability.defId());
                     }
                 } else {
+                    publishSelected(activation, NOT_ACTIVATED); // R-QC67: "never activated", not "matched nobody"
                     emitVerdictFeedback(outcome, ability, activation, context, sink);
                 }
             } catch (Throwable failed) {
@@ -222,6 +243,9 @@ public final class AbilityExecutor {
                 // spendCooldownOnChanceFail=true: a use-item charges per ATTEMPT, so a failed roll arms the cooldown
                 // and right-click spam can't retry a sub-100% use-item for free (the hot #run path must NOT do this).
                 GateOutcome outcome = pipeline.evaluate(ability, activation, true);
+                if (!outcome.activated()) {
+                    publishSelected(activation, NOT_ACTIVATED); // R-QC67, on the cold path too
+                }
                 switch (outcome) {
                     case ACTIVATED -> {
                         boolean faulted = runEffects(ability, context, sink, activation.activeGem(),
@@ -350,7 +374,7 @@ public final class AbilityExecutor {
                 EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets),
                         locationSlotMap(kind, locations), ability.level(), ability.defId(), ability.sourceGroup(),
                         -1, 0, // a lifecycle transition walks no gates, so it reserved no cooldown to refund
-                        null, null, origin);
+                        null, null, origin, null);
                 sink.delay(0);
                 if (stopping) {
                     kind.stop(ctx, sink);
@@ -372,7 +396,7 @@ public final class AbilityExecutor {
      * primary victim to exempt, and a roll supplier.
      */
     private boolean runEffects(Ability ability, ActivationContext context, SinkReadback sink, UUID activeGem,
-                               engine.condition.FactBuffer facts, AbilityQuarantine quarantine, Activation gated) {
+                               FactBuffer facts, AbilityQuarantine quarantine, Activation gated) {
         LinkedContent linked = this.linked; // read the volatile once per activation (atomic effect+selector pair)
         boolean faulted = false;
         ActorOrigin origin = null;
@@ -380,6 +404,8 @@ public final class AbilityExecutor {
         // server this is the whole cost — two field reads for the activated ability, and the loop below is
         // never entered.
         boolean defenderWindows = gated != null && !ability.suppressImmune() && pipeline.anyDefenderWindows();
+        SubjectCursor cursor = null; // fetched only when an effect opts into per-target evaluation (ADR-0076)
+        publishSelected(gated, 0); // this ability activated; each targeting effect overwrites it in turn
         for (CompiledEffect effect : ability.effects()) {
             try {
                 EffectKind kind = linked.effectFor(effect); // ADR-0039: dense-id dispatch, head-fallback only for -1
@@ -402,21 +428,103 @@ public final class AbilityExecutor {
                 if (defenderWindows && !targets.isEmpty()) {
                     targets = withoutDefendedTargets(ability, gated, targets);
                 }
+                boolean perTarget = kind.spec().paramSpec().anyPerTarget();
+                if (gated != null && (perTarget || effect.hasPerTargetFilter())) {
+                    cursor = armCursor(cursor, facts, context, gated);
+                }
+                if (effect.hasPerTargetFilter() && !targets.isEmpty()) {
+                    targets = withoutFilteredTargets(effect, ability, gated, cursor, targets);
+                }
                 EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets),
                         locationSlotMap(kind, locations), ability.level(), ability.defId(), ability.sourceGroup(),
                         ability.cdScopeEnchant(), ability.cooldownTicks(),
-                        activeGem, facts, origin);
+                        activeGem, facts, origin, perTarget ? cursor : null);
                 // WAIT (§3.6): defer only this effect's world-mutation intents by its accumulated tick tier.
                 // Targets are resolved now on the firing thread; inline feedback (fold/cancel) stays instant.
                 sink.delay(effect.cumulativeWaitTicks());
                 kind.run(ctx, sink);
+                // %selected% AFTER the run, so a MESSAGE row reads the PAYLOAD row's count rather than its own.
+                if (!kind.spec().targets().isEmpty()) {
+                    publishSelected(gated, targets.isEmpty() ? locations.size() : targets.size());
+                }
             } catch (Throwable failed) {
                 faulted = true;
                 LOG.log(Level.WARNING, "effect " + effect.head() + " of " + quarantine.describe(ability.defId())
                         + " failed during execution", failed);
+            } finally {
+                if (cursor != null) {
+                    cursor.clear(); // staleness: no effect ever starts with the previous one's body bound
+                }
             }
         }
         return faulted;
+    }
+
+    /** Fetch and arm the thread's cursor once per effect walk; the buffer/actor/roll are the activation's. */
+    private SubjectCursor armCursor(SubjectCursor cursor, FactBuffer facts, ActivationContext context,
+                                    Activation gated) {
+        if (cursor != null) {
+            return cursor;
+        }
+        SubjectCursor fresh = subjectCursor.get();
+        fresh.arm(facts, context.actor(), gated.chanceRoll());
+        return fresh;
+    }
+
+    /**
+     * The per-target filter (ADR-0076), applied where the defender consult already is and in the same shape:
+     * a filter on a list, never a gate. It has no {@link GateOutcome}, releases no cooldown and records nothing
+     * to the {@code WhyRecorder} — the activation was adjudicated once, and a target verdict may only REMOVE A
+     * BODY (owner ruling R-v, generalised).
+     *
+     * <p>Order is fixed: {@code each-if} (into which {@code each-chance} desugared) first, {@code each-cooldown}
+     * LAST — a body a filter dropped must not be charged a window for a hit it never took. Keeps the defender
+     * consult's copy-on-first-drop idiom, so an unfiltered pass returns {@code targets} itself and allocates
+     * nothing, and a filtered one preserves authored target ORDER.
+     */
+    private List<LivingEntity> withoutFilteredTargets(CompiledEffect effect, Ability ability, Activation act,
+                                                      SubjectCursor cursor, List<LivingEntity> targets) {
+        List<LivingEntity> kept = null;
+        for (int i = 0; i < targets.size(); i++) {
+            LivingEntity target = targets.get(i);
+            cursor.bind(target); // one draw for this body, shared by every each-* read of it
+            boolean keep = effect.eachCondition() == null
+                    || ConditionEvaluator.test(effect.eachCondition(), act.facts());
+            if (keep && effect.eachCooldown() != null) {
+                int ticks = (int) Math.round(NumExprEval.eval(effect.eachCooldown(), act.facts()));
+                keep = pipeline.stampTargetCooldown(ability, act, target.getUniqueId(), ticks);
+            }
+            if (keep) {
+                if (kept != null) {
+                    kept.add(target);
+                }
+                continue;
+            }
+            if (kept == null) {
+                kept = new ArrayList<>(targets.size() - 1);
+                for (int before = 0; before < i; before++) {
+                    kept.add(targets.get(before));
+                }
+            }
+        }
+        cursor.clear();
+        return kept == null ? targets : kept;
+    }
+
+    /**
+     * Publish {@code %selected%} into the activation's buffer (ADR-0076) — the {@code %soulcost%} precedent:
+     * a value the populator cannot source, because it is only known once gate 12 has resolved and filtered a
+     * target list. Bounds-checked exactly as {@code publishSoulCost} is, since a synthetic activation's buffer
+     * is sized 0 while the vocabulary's slot ids are not.
+     */
+    private static void publishSelected(Activation act, double value) {
+        if (act == null || SELECTED_SLOT < 0) {
+            return;
+        }
+        FactBuffer facts = act.facts();
+        if (SELECTED_SLOT < facts.numberSlots()) {
+            facts.setNumber(SELECTED_SLOT, value);
+        }
     }
 
     /**

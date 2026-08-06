@@ -20,7 +20,9 @@ import schema.spec.D;
 public final class ConvertSummonEffect implements EffectKind {
 
     static final EffectSpec SPEC = EffectSpec.of("CONVERT_SUMMON")
-            .param("radius", D.DOUBLE.range(1, 32).def(12))
+            // Read INSIDE the target loop, so each body prices its own ring (ADR-0076); declared, because
+            // PerTargetParamTest counts the reads and a hoist would otherwise pass silently.
+            .param("radius", D.DOUBLE.range(1, 32).def(12).perTarget())
             .param("whiff-sound", D.sound().def("BLOCK_ANVIL_LAND"),
                     "played (low-pitched) when the ring converts nothing — the ring sound alone reads "
                             + "as success")

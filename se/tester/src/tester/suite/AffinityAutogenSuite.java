@@ -255,6 +255,9 @@ public final class AffinityAutogenSuite implements Harness.Scenario {
             // Bindings are optional by construction (D.exprMap defaults to none), so this arm is only ever
             // reached by a hypothetical required one — no bindings is the safe generic literal.
             case EXPR_MAP -> "";
+            // A condition arg is optional by construction too (ADR-0076's each-if); "always true" is the
+            // generic literal a hypothetical required one would want.
+            case CONDITION -> "1 > 0";
         };
     }
 

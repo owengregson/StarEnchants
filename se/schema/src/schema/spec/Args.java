@@ -68,6 +68,19 @@ public final class Args {
         return new Args(copy);
     }
 
+    /**
+     * A copy WITHOUT the named arguments — the lower stage's hoist seam (ADR-0076): a knob promoted to a
+     * first-class {@code CompiledEffect} field must leave the bag, or the executor would carry two copies and
+     * the generic expression-lowering walk would treat a condition as a number.
+     */
+    public Args without(String... names) {
+        Map<String, Object> copy = new LinkedHashMap<>(values);
+        for (String name : names) {
+            copy.remove(name);
+        }
+        return copy.size() == values.size() ? this : new Args(copy);
+    }
+
     /** Immutable view, in declaration order. */
     public Map<String, Object> asMap() {
         return Collections.unmodifiableMap(values);

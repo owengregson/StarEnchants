@@ -18,6 +18,7 @@ import compile.resolve.PlatformResolvers;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
 import schema.grammar.EffectLine;
+import schema.grammar.expr.Cmp;
 import schema.grammar.expr.Expr;
 import schema.grammar.expr.ExprParser;
 import schema.grammar.expr.FlowKind;
@@ -49,8 +50,17 @@ public final class DefaultLowerStage implements LowerStage {
     private final SelectorCompiler selectorCompiler;
     private final Function<String, String> defaultSelectorOf;
     private final ConditionCompiler conditionCompiler;
+    // The EFFECT-SIDE twin, the only one that admits the %target.*% subject cursor (ADR-0076). Two instances
+    // rather than a mode flag threaded through the walk: the legality of a scope is a property of WHERE an
+    // expression sits, and here that is decided once, by which compiler the caller reaches for.
+    private final ConditionCompiler effectCompiler;
     private final ToIntFunction<String> effectIdOf;
     private final PlatformResolvers resolvers;
+
+    /** The per-target knobs {@code EffectSpec} declares on every entity-targeting kind (ADR-0076). */
+    private static final String EACH_IF = "each-if";
+    private static final String EACH_CHANCE = "each-chance";
+    private static final String EACH_COOLDOWN = "each-cooldown";
 
     /** Convenience: no dense-id stamping — every effect/selector {@code kindId} is {@code -1} (the head-fallback path). */
     public DefaultLowerStage(SpecRegistry registry, Function<String, Affinity> affinityOf,
@@ -89,6 +99,7 @@ public final class DefaultLowerStage implements LowerStage {
         this.defaultSelectorOf = Objects.requireNonNull(defaultSelectorOf, "defaultSelectorOf");
         this.resolvers = Objects.requireNonNull(resolvers, "resolvers");
         this.conditionCompiler = new ConditionCompiler(Objects.requireNonNull(vars, "vars"), resolvers);
+        this.effectCompiler = new ConditionCompiler(vars, resolvers, true);
         this.lineCompiler = new LineCompiler(registry);
         this.effectIdOf = Objects.requireNonNull(effectIdOf, "effectIdOf");
     }
@@ -131,8 +142,16 @@ public final class DefaultLowerStage implements LowerStage {
             }
             compile.CompiledLine cl = compiled.get();
             CompiledSelector selector = resolveSelector(line, cl.head(), diags);
-            out.add(new CompiledEffect(cl.head(), lowerExprArgs(cl.args(), diags), selector,
-                    waitAccum, affinityOf(cl.head()), effectIdOf.applyAsInt(cl.head())));
+            Args args = cl.args();
+            // The per-target knobs are HOISTED out of the arg bag into CompiledEffect fields before the generic
+            // expression walk runs — otherwise each-if (a condition) would be lowered as a number, and the
+            // executor would pay a map lookup per hit for a knob almost no effect declares.
+            Cond eachCondition = lowerEachCondition(args, diags);
+            NumExpr eachCooldown = lowerEachCooldown(args, def, diags);
+            out.add(new CompiledEffect(cl.head(),
+                    lowerExprArgs(args.without(EACH_IF, EACH_CHANCE, EACH_COOLDOWN), diags), selector,
+                    waitAccum, affinityOf(cl.head()), effectIdOf.applyAsInt(cl.head()),
+                    eachCondition, eachCooldown));
         }
 
         CompiledCondition condition = lowerCondition(def, diags);
@@ -223,6 +242,53 @@ public final class DefaultLowerStage implements LowerStage {
     }
 
     /**
+     * The effect's per-target filter (ADR-0076), or {@code null} when it declares neither knob.
+     *
+     * <p>{@code each-chance: X} is DEFINED as sugar for {@code each-if: "%target.roll% < X"} — the same single
+     * uniform draw the cursor takes when it binds a body. That is what lets a filter and its complement
+     * partition: two rows reading one draw, instead of the two independent ability-level rolls the shipped
+     * corpus has to use, which can both land or both miss. Declaring both ANDs them, in that order.
+     */
+    private Cond lowerEachCondition(Args args, Diagnostics diags) {
+        Cond gate = args.opt(EACH_IF)
+                .filter(Expr.class::isInstance)
+                .flatMap(expr -> effectCompiler.compile((Expr) expr, diags))
+                .orElse(null);
+        Object chance = args.opt(EACH_CHANCE).orElse(null);
+        if (chance == null) {
+            return gate;
+        }
+        NumExpr rate = chance instanceof Expr expr
+                ? effectCompiler.numeric(expr, diags).orElse(null)
+                : new NumExpr.Lit(((Number) chance).doubleValue());
+        if (rate == null) {
+            return gate; // the expression was rejected; its diagnostic already rode out
+        }
+        Cond roll = new Cond.NumCmp(new NumExpr.SubjectNum(NumExpr.SubjectFact.ROLL), Cmp.LT, rate);
+        return gate == null ? roll : new Cond.And(gate, roll);
+    }
+
+    /**
+     * The per-target cooldown window in ticks, {@code null} for none. It stamps the SELECTOR TARGET in the
+     * cooldown store's existing per-victim dimension under this ability's ENCHANT scope, so an ability with no
+     * such scope has nothing to key on — a blocking diagnostic rather than a knob that silently does nothing.
+     */
+    private NumExpr lowerEachCooldown(Args args, AbilityDef def, Diagnostics diags) {
+        Object authored = args.opt(EACH_COOLDOWN).orElse(null);
+        if (authored == null) {
+            return null;
+        }
+        if (def.cdScopeEnchant() == null || def.cdScopeEnchant().isBlank()) {
+            diags.error(DiagCode.E_EFFECT, "each-cooldown needs a cooldown scope to key its per-target window on",
+                    def.source(), "give the ability a cooldown-scope:, or drop each-cooldown:");
+            return null;
+        }
+        return authored instanceof Expr expr
+                ? effectCompiler.numeric(expr, diags).orElse(null)
+                : new NumExpr.Lit(((Number) authored).doubleValue());
+    }
+
+    /**
      * Rewrites expression-valued numeric args to the slot-resolved {@link NumExpr} IR via the same
      * variable&rarr;slot resolution conditions use (§3.4); constant numeric args pass through.
      */
@@ -230,7 +296,8 @@ public final class DefaultLowerStage implements LowerStage {
         Args out = args;
         for (Map.Entry<String, Object> entry : args.asMap().entrySet()) {
             if (entry.getValue() instanceof Expr expr) {
-                Optional<NumExpr> lowered = conditionCompiler.numeric(expr, diags);
+                // The EFFECT-side compiler: an argument is read inside gate 12, where a subject can exist.
+                Optional<NumExpr> lowered = effectCompiler.numeric(expr, diags);
                 if (lowered.isPresent()) {
                     out = out.with(entry.getKey(), lowered.get());
                 }
@@ -252,7 +319,7 @@ public final class DefaultLowerStage implements LowerStage {
         }
         Map<String, NumExpr> lowered = new LinkedHashMap<>();
         for (Map.Entry<String, Expr> binding : map.entries().entrySet()) {
-            conditionCompiler.numeric(binding.getValue(), diags)
+            effectCompiler.numeric(binding.getValue(), diags)
                     .ifPresent(expr -> lowered.put(binding.getKey(), expr));
         }
         return new NumExprMap(lowered);

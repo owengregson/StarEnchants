@@ -36,12 +36,16 @@ final class RuntimeEffectCtx implements EffectCtx {
     private final UUID activeGem;
     private final FactBuffer facts;
     private final ActorOrigin origin;
+    // ADR-0076: non-null ONLY for a kind that declares a perTarget() argument, so every other effect's
+    // targets() is the plain list it always was and pays one null check.
+    private final SubjectCursor cursor;
 
     RuntimeEffectCtx(Args args, ActivationContext context,
                      Map<String, List<LivingEntity>> targetsBySlot,
                      Map<String, List<Location>> locationsBySlot, int level, int sourceDefId, int sourceGroup,
                      int cooldownScope, int cooldownTicks,
-                     UUID activeGem, FactBuffer facts, ActorOrigin origin) {
+                     UUID activeGem, FactBuffer facts, ActorOrigin origin, SubjectCursor cursor) {
+        this.cursor = cursor;
         this.cooldownScope = cooldownScope;
         this.cooldownTicks = cooldownTicks;
         this.args = args;
@@ -145,9 +149,15 @@ final class RuntimeEffectCtx implements EffectCtx {
         return origin == null || !origin.present() ? null : origin.eye();
     }
 
+    /**
+     * The resolved targets — cursor-advancing when the kind declares a {@code perTarget()} argument (ADR-0076),
+     * so a {@code ctx.dbl(...)} read INSIDE the loop re-evaluates its expression against the body in hand.
+     * That is what makes a chain's per-victim {@code rand(0.5, 5.5)} draw per victim, with no content edit.
+     */
     @Override
     public Iterable<LivingEntity> targets(String selectorName) {
-        return targetsBySlot.getOrDefault(selectorName, List.of());
+        List<LivingEntity> resolved = targetsBySlot.getOrDefault(selectorName, List.of());
+        return cursor == null ? resolved : cursor.over(resolved);
     }
 
     @Override

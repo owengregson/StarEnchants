@@ -33,7 +33,13 @@ public final class ParamType {
          * ({@code tokens: { souls: "%actor.souls%" }}) and equivalently as the flat scalar the loader encodes
          * it to ({@code tokens: "souls=%actor.souls%"}), the way an item sound field takes either form.
          */
-        EXPR_MAP
+        EXPR_MAP,
+        /**
+         * A BOOLEAN expression in the condition grammar, parsed here and lowered to a {@code Cond} by the
+         * compiler (the {@code each-if} per-target filter, ADR-0076). Distinct from a numeric expression: the
+         * value is a gate, never a number, so a range makes no sense on it and none is declarable.
+         */
+        CONDITION
     }
 
     /** Separates {@code name=expr} entries in an {@link Kind#EXPR_MAP} value; not a token in the expression grammar. */
@@ -51,9 +57,15 @@ public final class ParamType {
     private final HandleCategory handleCategory; // HANDLE only
     // HANDLE: a comma-separated set of tokens resolved to a list of ids. ENUM: a '+'-composed conjunction.
     private final boolean list;
+    // ADR-0076: the kind re-reads this argument once PER TARGET, with the subject cursor bound, instead of
+    // hoisting one read above its target loop. A declaration, not a hint — PerTargetParamTest counts the reads.
+    private final boolean perTarget;
+    // ADR-0076: the lower stage promotes this argument to a CompiledEffect field, so it never reaches Args.
+    private final boolean hoisted;
 
     private ParamType(Kind kind, boolean required, Double min, Double max, String defaultRaw,
-                      List<String> allowed, HandleCategory handleCategory, boolean list) {
+                      List<String> allowed, HandleCategory handleCategory, boolean list, boolean perTarget,
+                      boolean hoisted) {
         this.kind = kind;
         this.required = required;
         this.min = min;
@@ -62,21 +74,23 @@ public final class ParamType {
         this.allowed = allowed;
         this.handleCategory = handleCategory;
         this.list = list;
+        this.perTarget = perTarget;
+        this.hoisted = hoisted;
     }
 
     static ParamType of(Kind kind) {
         Double lo = kind == Kind.TICKS ? 0.0 : null; // TICKS implicitly floored at 0
-        return new ParamType(kind, true, lo, null, null, null, null, false);
+        return new ParamType(kind, true, lo, null, null, null, null, false, false, false);
     }
 
     /** A version-volatile {@code HANDLE} of the given category, resolved at compile time (§9). */
     static ParamType handle(HandleCategory category) {
-        return new ParamType(Kind.HANDLE, true, null, null, null, null, category, false);
+        return new ParamType(Kind.HANDLE, true, null, null, null, null, category, false, false, false);
     }
 
     /** A COMMA-SEPARATED set of {@code category} handles, each resolved at compile time (§9). */
     static ParamType handleList(HandleCategory category) {
-        return new ParamType(Kind.HANDLE, true, null, null, null, null, category, true);
+        return new ParamType(Kind.HANDLE, true, null, null, null, null, category, true, false, false);
     }
 
     /**
@@ -85,7 +99,7 @@ public final class ParamType {
      * would need bracketing the author cannot be expected to remember.
      */
     static ParamType enumSet() {
-        return new ParamType(Kind.ENUM, true, null, null, null, null, null, true);
+        return new ParamType(Kind.ENUM, true, null, null, null, null, null, true, false, false);
     }
 
     private ParamType with(Boolean req, Double mn, Double mx, String def, List<String> al) {
@@ -95,7 +109,38 @@ public final class ParamType {
                 mx != null ? mx : max,
                 def != null ? def : defaultRaw,
                 al != null ? al : allowed,
-                handleCategory, list);
+                handleCategory, list, perTarget, hoisted);
+    }
+
+    /**
+     * Declare that the owning kind re-evaluates this argument INSIDE its target loop, once per body, with the
+     * {@code %target.*%} subject cursor bound (ADR-0076) — so {@code rand(0.5, 5.5)} draws per victim in a
+     * chain instead of once for the whole chain. Load-bearing: {@code PerTargetParamTest} walks the registry
+     * and counts the evaluations, so this flag and the kind's read site cannot drift apart.
+     */
+    public ParamType perTarget() {
+        return new ParamType(kind, required, min, max, defaultRaw, allowed, handleCategory, list, true, hoisted);
+    }
+
+    /** Whether the owning kind reads this argument once per target rather than once per activation (ADR-0076). */
+    public boolean isPerTarget() {
+        return perTarget;
+    }
+
+    /**
+     * Declare that the lower stage HOISTS this argument out of {@link Args} into a first-class
+     * {@code CompiledEffect} field (ADR-0076's three per-target knobs), so the executor reads it without a map
+     * lookup on every hit. It is still fully authorable, validated, completed and documented from this one
+     * declaration — it simply does not survive into the runtime arg bag, which is a contract worth stating in
+     * the type rather than discovering from a missing key.
+     */
+    public ParamType hoisted() {
+        return new ParamType(kind, required, min, max, defaultRaw, allowed, handleCategory, list, perTarget, true);
+    }
+
+    /** Whether the lower stage promotes this argument to a {@code CompiledEffect} field (ADR-0076). */
+    public boolean isHoisted() {
+        return hoisted;
     }
 
     /** Lower bound (inclusive) for numeric kinds. */
@@ -176,7 +221,17 @@ public final class ParamType {
             case STRING -> Optional.of(raw);
             case HANDLE -> parseHandle(raw, source, diags);
             case EXPR_MAP -> parseExprMap(raw, source, diags);
+            case CONDITION -> parseCondition(raw, source, diags);
         };
+    }
+
+    /**
+     * Parse a boolean condition argument into the untyped {@link Expr} AST; the lower stage turns it into a
+     * {@code Cond}. A syntax fault is the parser's own blocking diagnostic, so a mistyped {@code each-if} is a
+     * {@code file:line:col} error at load rather than a filter that silently keeps everybody.
+     */
+    private static Optional<Object> parseCondition(String raw, Source source, Diagnostics diags) {
+        return ExprParser.parse(raw.trim(), source, diags).map(expr -> expr);
     }
 
     /**
@@ -433,6 +488,7 @@ public final class ParamType {
             case ENUM -> list ? "enum set" : "enum";
             case HANDLE -> list ? handleCategory.label() + " list" : handleCategory.label();
             case EXPR_MAP -> "expr map";
+            case CONDITION -> "condition";
         });
         if (kind == Kind.ENUM) {
             sb.append('{').append(String.join("|", allowed())).append('}');

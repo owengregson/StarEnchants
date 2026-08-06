@@ -152,6 +152,16 @@ public final class BuiltinVars {
                 // An EFFECT-side fact only: gates 7 and 8 run BEFORE gate 10, so a condition or chance
                 // expression reading it would see the previous ability's price, never its own.
                 .number("soulcost")
+                // ADR-0076 fact — appended (slots are append-only per §3.4). How many targets the most recently
+                // executed effect IN THIS ABILITY bound into its primary slot, AFTER every per-target filter
+                // (entities if the slot resolved entities, else locations). Published by the executor for the
+                // same reason %soulcost% is: gate 12 is the first moment the answer exists.
+                //
+                // -1 = the ability never activated; 0 = it ran and matched nobody (owner ruling R-QC67). Those
+                // are different questions, and one buffer serves the WHOLE trigger pass — so a sibling ability's
+                // gate-7 condition can read the payload ability's outcome, which is what makes an
+                // empty-selection refusal line a FACT rather than a new branching construct.
+                .number("selected")
                 .build();
     }
 }
