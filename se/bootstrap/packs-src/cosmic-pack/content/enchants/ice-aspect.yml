@@ -16,7 +16,19 @@ condition: "%victim.potion.SLOW% == 0 && %victim.type% == \"PLAYER\""
 # set-side line "§8§l* DRAGON SLAYER [§7Ice Aspect blocked!§8§l] *" (interaction rule
 # `dragon-slayer-blocks-freeze`, shared with §Trap). Authored on the armor-set side (10 doc): the jar's
 # cancellable proc event maps to the engine's native activation-veto pipeline, so nothing is authored here.
-# strings: none on this side.
+# THE POLYMORPHIC METAPHYSICAL VETO IS AUTHORED HERE (ADR-0076 part E), closing clause (b) of that entry.
+# The heroic Metaphysical boots cancel an incoming Ice Aspect proc at `0.2 x level` — 20/40/60/80 % OF THE
+# PROC, not 20 percentage points — so it rides `chance-rebate-scale:`, the fractional form, and NOT the
+# points form the Metaphysical family's other four consumers take. Gate 8 splits its single roll: a roll under
+# the rebated rate procs, a roll between that and the authored rate is REBATED and prints the veto's own
+# verbatim line to the wearer whose boots did it, and anything above is an ordinary silent miss. The
+# distribution is identical to a pre-roll multiplication; what it adds is the moment.
+# It lives HERE rather than on `polymorphic-metaphysical.yml` because a rebate belongs to the roll it rebates
+# (the same owner ruling `nature-wrath.yml` records for Poltergeist), and it is inline on the ATTACKER's walk,
+# which is what the ledger's rejected `SUPPRESS_INCOMING` stand-in could never be: a defensively armed window
+# resolves a hit late, for a fixed span, against every other victim too.
+# `blocked-message-who: victim` is the default, spelled out because it is load-bearing here — the party the
+# rebate protects is the party told, and the recorded line goes to the defender.
 # era: SLOW (legacy) resolves to the modern registry's SLOWNESS; the jar's raw block id 57 is authored as
 # the DIAMOND_BLOCK handle.
 levels:
@@ -25,16 +37,25 @@ levels:
   # stop rather than a slow — so only the duration scales.
   1:
     chance: 7.5
+    chance-rebate-scale: "0.2 * %victim.enchlevel.polymorphic-metaphysical%"
+    blocked-message: "§d§l** POLYMORPHIC METAPHYSICAL (§7Ice Aspect blocked!§d§l) **"
+    blocked-message-who: victim
     effects:
       - { POTION: { effect: "SLOW", level: 6, duration: 40, who: "@Victim" } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_BLOCK", count: 8, who: "@Victim" } }
   2:
     chance: 15
+    chance-rebate-scale: "0.2 * %victim.enchlevel.polymorphic-metaphysical%"
+    blocked-message: "§d§l** POLYMORPHIC METAPHYSICAL (§7Ice Aspect blocked!§d§l) **"
+    blocked-message-who: victim
     effects:
       - { POTION: { effect: "SLOW", level: 6, duration: 80, who: "@Victim" } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_BLOCK", count: 8, who: "@Victim" } }
   3:
     chance: 22.5
+    chance-rebate-scale: "0.2 * %victim.enchlevel.polymorphic-metaphysical%"
+    blocked-message: "§d§l** POLYMORPHIC METAPHYSICAL (§7Ice Aspect blocked!§d§l) **"
+    blocked-message-who: victim
     effects:
       - { POTION: { effect: "SLOW", level: 6, duration: 120, who: "@Victim" } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "DIAMOND_BLOCK", count: 8, who: "@Victim" } }

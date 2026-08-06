@@ -12,7 +12,12 @@ import engine.interact.SoulSpender;
 import engine.stores.CooldownStore;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
+import java.util.stream.DoubleStream;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import schema.diag.Source;
 import schema.grammar.expr.FlowKind;
 import testfx.Abilities;
@@ -100,6 +105,35 @@ class ChanceRebateTest {
     void aScaleOutsideZeroToOneClampsRatherThanInvertingOrOvershooting() {
         assertEquals(GateOutcome.REBATED, pipeline.evaluate(scaled(40.0, 3.0), act(0.0)));
         assertEquals(GateOutcome.ACTIVATED, pipeline.evaluate(scaled(40.0, -1.0), act(39.9)));
+    }
+
+    @TestFactory
+    Stream<DynamicTest> theFlooredShapeFiresOnExactlyTheRollsTheMaxSpellingDid() {
+        // The algebra S6's floored files migrate on, held as a spec over a test-owned fixture rather than a
+        // re-typed catalogue value: max(F, B - r) == B - min(B - F, r). Trap and Titan Trap keep a 1 % window
+        // under every rebate, and getting the cap wrong would either delete that floor or freeze the rate.
+        double base = 4.0;
+        double floor = 1.0;
+        return DoubleStream.of(0.0, 0.5, 2.5, 3.0, 5.0, 12.5).boxed()
+                .map(r -> DynamicTest.dynamicTest("rebate " + r, () -> {
+                    Ability declared = Abilities.ability().triggerMask(1).chance(base)
+                            .chanceRebate(new ChanceRebate(
+                                    new NumExpr.Fn(NumExpr.FnKind.MIN,
+                                            List.of(new NumExpr.Lit(base - floor), new NumExpr.Lit(r))),
+                                    null, null, false, -1, false))
+                            .build();
+                    Ability flooredSpelling = Abilities.ability().triggerMask(1)
+                            .chanceExpr(new NumExpr.Fn(NumExpr.FnKind.MAX,
+                                    List.of(new NumExpr.Lit(floor),
+                                            new NumExpr.Bin(new NumExpr.Lit(base), NumExpr.Op.SUBTRACT,
+                                                    new NumExpr.Lit(r)))))
+                            .build();
+                    for (int bp = 0; bp < 1_000; bp++) {
+                        double roll = bp / 100.0;
+                        assertEquals(pipeline.evaluate(flooredSpelling, act(roll)).activated(),
+                                pipeline.evaluate(declared, act(roll)).activated(), "roll " + roll);
+                    }
+                }));
     }
 
     @Test

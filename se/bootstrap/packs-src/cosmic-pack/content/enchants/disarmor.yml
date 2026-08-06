@@ -10,12 +10,17 @@ group: "legendary"
 tier: legendary
 condition: "%victim.type% == \"PLAYER\" && %victim.health% <= 10.0"
 # Chance is 0.25 pp per level, 0.25-2.0 % (L7 measured 0.017500000000000002), each rung carrying the Sticky
-# rebate in its own expression: -0.25 pp per level of Sticky the victim wears, read through
+# rebate as a DECLARED `chance-rebate:` (ADR-0076 part E) rather than inside its chance expression:
+# -0.25 pp per level of Sticky the victim wears, read through
 # `%victim.enchlevel.sticky%`. The key is the file STEM, never the `enchants/sticky` stable key — the worn
 # map is keyed by stem and an unknown key reads 0 in silence, so a stable-key spelling would rebate nothing
 # forever. NO floor is authored, and none is wanted: an expression chance clamps to [0,100], and that 0
 # bound IS the matrix's absolute immunity — Sticky at or above this enchant's level cancels the proc
 # outright (kept). Sticky itself stays the effect-less roster marker; its whole payload is this clause.
+# NO BLOCKED-PROC LINE, and this is not an omission: unlike the three Metaphysical consumers the codex quotes
+# no Sticky equivalent, so there is nothing verbatim to ship and none is invented. The declared term is
+# authored anyway because it is free and it is honest — `/se why` now answers REBATED on a Sticky-eaten proc
+# where it used to say only "chance failed", which is the operator half of the same event.
 # D-03-3 (as-intended): the jar rolled 0-3 against branches numbered 1-4, so a quarter of its procs stripped
 # NOTHING (sound and messages still fired) and boots were unreachable. REMOVE_ARMOR draws uniformly over all
 # four worn slots, which is the intent. It always drops the stripped piece; the jar tried the victim's
@@ -30,7 +35,8 @@ condition: "%victim.type% == \"PLAYER\" && %victim.health% <= 10.0"
 # maps to BLOCK_CRACK plus block data, present on 1.8.9.
 levels:
   1:
-    chance: "0.25 - 0.25 * %victim.enchlevel.sticky%"
+    chance: 0.25
+    chance-rebate: "0.25 * %victim.enchlevel.sticky%"
     effects:
       - { REMOVE_ARMOR: { who: "@Victim" } }
       - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 1.0, pitch: 0.6 } }
@@ -45,7 +51,8 @@ levels:
       - { MESSAGE: { text: "", who: "@Victim" } }
       - { MESSAGE: { text: "§a§l* DISARMED {VICTIM} *", who: "@Self" } }
   2:
-    chance: "0.5 - 0.25 * %victim.enchlevel.sticky%"
+    chance: 0.5
+    chance-rebate: "0.25 * %victim.enchlevel.sticky%"
     effects:
       - { REMOVE_ARMOR: { who: "@Victim" } }
       - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 1.0, pitch: 0.6 } }
@@ -60,7 +67,8 @@ levels:
       - { MESSAGE: { text: "", who: "@Victim" } }
       - { MESSAGE: { text: "§a§l* DISARMED {VICTIM} *", who: "@Self" } }
   3:
-    chance: "0.75 - 0.25 * %victim.enchlevel.sticky%"
+    chance: 0.75
+    chance-rebate: "0.25 * %victim.enchlevel.sticky%"
     effects:
       - { REMOVE_ARMOR: { who: "@Victim" } }
       - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 1.0, pitch: 0.6 } }
@@ -75,7 +83,8 @@ levels:
       - { MESSAGE: { text: "", who: "@Victim" } }
       - { MESSAGE: { text: "§a§l* DISARMED {VICTIM} *", who: "@Self" } }
   4:
-    chance: "1.0 - 0.25 * %victim.enchlevel.sticky%"
+    chance: 1.0
+    chance-rebate: "0.25 * %victim.enchlevel.sticky%"
     effects:
       - { REMOVE_ARMOR: { who: "@Victim" } }
       - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 1.0, pitch: 0.6 } }
@@ -90,7 +99,8 @@ levels:
       - { MESSAGE: { text: "", who: "@Victim" } }
       - { MESSAGE: { text: "§a§l* DISARMED {VICTIM} *", who: "@Self" } }
   5:
-    chance: "1.25 - 0.25 * %victim.enchlevel.sticky%"
+    chance: 1.25
+    chance-rebate: "0.25 * %victim.enchlevel.sticky%"
     effects:
       - { REMOVE_ARMOR: { who: "@Victim" } }
       - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 1.0, pitch: 0.6 } }
@@ -105,7 +115,8 @@ levels:
       - { MESSAGE: { text: "", who: "@Victim" } }
       - { MESSAGE: { text: "§a§l* DISARMED {VICTIM} *", who: "@Self" } }
   6:
-    chance: "1.5 - 0.25 * %victim.enchlevel.sticky%"
+    chance: 1.5
+    chance-rebate: "0.25 * %victim.enchlevel.sticky%"
     effects:
       - { REMOVE_ARMOR: { who: "@Victim" } }
       - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 1.0, pitch: 0.6 } }
@@ -120,7 +131,8 @@ levels:
       - { MESSAGE: { text: "", who: "@Victim" } }
       - { MESSAGE: { text: "§a§l* DISARMED {VICTIM} *", who: "@Self" } }
   7:
-    chance: "1.75 - 0.25 * %victim.enchlevel.sticky%"
+    chance: 1.75
+    chance-rebate: "0.25 * %victim.enchlevel.sticky%"
     effects:
       - { REMOVE_ARMOR: { who: "@Victim" } }
       - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 1.0, pitch: 0.6 } }
@@ -135,7 +147,8 @@ levels:
       - { MESSAGE: { text: "", who: "@Victim" } }
       - { MESSAGE: { text: "§a§l* DISARMED {VICTIM} *", who: "@Self" } }
   8:
-    chance: "2.0 - 0.25 * %victim.enchlevel.sticky%"
+    chance: 2.0
+    chance-rebate: "0.25 * %victim.enchlevel.sticky%"
     effects:
       - { REMOVE_ARMOR: { who: "@Victim" } }
       - { SOUND: { sound: "BLOCK_ANVIL_DESTROY", volume: 1.0, pitch: 0.6 } }
