@@ -158,6 +158,39 @@ functional interface defaulting to `Guard.ALLOW`. Protection (region/claim
 plugins) and the cancellable `PreActivate` event plug in here without the engine
 depending on them.
 
+### The per-target pass inside gate 12 (ADR-0076)
+
+**The activation is adjudicated once. A target is adjudicated many times, and a
+target verdict can only REMOVE A BODY** — it never un-activates the ability,
+releases a cooldown, un-spends souls, or records a different `/se why` verdict.
+The pass is a filter on a list at the `withoutDefendedTargets` site in
+`runEffects`, not a gate: no `GateOutcome`, no recorder entry, nothing above it
+moves. Its order is fixed:
+
+1. the defender consult (`SUPPRESS_INCOMING`, owner ruling R-v);
+2. `each-if` — a separate compiled condition over the `%target.*%` subject, into
+   which `each-chance` desugars as `%target.roll% < X`;
+3. `each-cooldown` — LAST, so a body a filter dropped is never charged a window
+   for a hit it never took.
+
+`%target.roll%` is **one draw per body per ability**, memoised on the cursor, so
+a row and its complement partition rather than double-rolling. The subject
+vocabulary is a deliberate subset — enchant levels, crystal counts, vars, souls,
+heroic pieces, type, relation, roll — because the pass decides *about* a body
+without ever touching one; every live entity read is a blocking `E_VAR_SCOPE`,
+and so is reading `%target.*%` from an ability's `condition:`/`chance:`, which
+run before any selector resolves.
+
+**Two authoring traps worth stating once**, both consequences of one dense slot
+being rewritten as the walk proceeds:
+
+- `%selected%` is republished by **every** targeting effect, so a row that reads
+  it must sit directly under the payload whose bodies it is reporting.
+- an ability that does **not** activate publishes `-1` over it (R-QC67), so only
+  the **immediately next** sibling ability can read it in a `condition:`. A
+  second reader captures the count into a var first — the marker idiom
+  `cosmic-pack`'s `lava-elemental.yml` and `gaia.yml` use.
+
 ## The `Activation` and the `FactBuffer`
 
 An `Activation` (`se/engine/src/engine/pipeline/Activation.java`) is the

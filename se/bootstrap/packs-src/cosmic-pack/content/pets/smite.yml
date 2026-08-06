@@ -25,13 +25,17 @@
 # claim is RETRACTED after bytecode verification and must not be re-introduced. `slow: 100` is the jar's full
 # walk-lock, `dot: 0` because this freeze does no damage, and `neutralize-frost-slow: false` keeps the engine
 # from compensating a vanilla frost slow the jar never had.
-# TWO refusals have no surface here, both recorded as stops:
-#   * `§c§lPET: §cNo target found!` — an activation cannot see that its selector matched nothing, so a whiff
-#     is silent and still burns the cooldown.
-#   * the freeze's `victim.type == PLAYER` gate — a USE activation carries no victim, so a condition cannot
-#     read the selected entity's type and `@EntityInSight` has no type filter. A smitten MOB is therefore
-#     walk-locked here where the jar left it alone (the paired chat line is player-only by construction, so
-#     nothing is said to it). Divergence, no message.
+# BOTH RECORDED STOPS CLOSE ON THE PER-TARGET SUBJECT (ADR-0076):
+#   * `§c§lPET: §cNo target found!` renders on `%selected%` — the count the strike's own selector bound — and
+#     `REFUND_COOLDOWN{unless:}` hands the window back with it, which is the as-intended "no cooldown burned
+#     on failure" ordering. The refusal is a sibling ability reading a captured var rather than the fact
+#     itself: only the immediately-next ability can read `%selected%` (a non-activating one publishes −1 over
+#     it, R-QC67), and this pet needs a hit arm too, so the payload copies the count into `smite.hit` beside a
+#     1-tick `smite.fired` marker — the `lava-elemental.yml` idiom. `smite.fired` keeps the refusal off a
+#     click the payload never ran at all (spectating, or on cooldown).
+#   * the freeze's `victim.type == PLAYER` gate is `each-if: %target.type% == "PLAYER"` on the FREEZE row. A
+#     USE activation still carries no victim, but the subject cursor names the SELECTED body, so a smitten mob
+#     takes the strike and keeps its legs exactly as the jar left it.
 # PvP: the jar consulted its region plugin for PLAYER targets only (mobs stayed smitable inside protected
 # regions) and granted XP before the check, discarding the write on the throw — net nothing. This port lets
 # the engine's own PvP gate answer first, with its own line, and grants XP only on an activation that ran.
@@ -74,10 +78,27 @@ levels:
     abilities:
       - condition: '%actor.gamemode% != "SPECTATOR"'
         effects:
+          - { SET_VAR: { name: "smite.fired", value: "1", ttl: 1, who: "@Self" } }
           - { LIGHTNING: { damage: 5, who: "@EntityInSight{r=8}" } }
-          - { FREEZE: { duration: 25, dot: 0, slow: 100, neutralize-frost-slow: false, who: "@EntityInSight{r=8}" } }
-          - { MESSAGE: { text: "§c§l(!) §cFrozen by {ATTACKER}'s Smite Pet [1.25s]!", who: "@EntityInSight{r=8}" } }
+          # Both read the strike's own count — whether the search found a body at all. SET_VAR declares a
+          # target slot, so it overwrites %selected% when it runs and the refund has to ask first.
+          - { REFUND_COOLDOWN: { unless: "%selected%" } }
+          - { SET_VAR: { name: "smite.hit", op: increment, step: "%selected%", ttl: 1, who: "@Self" } }
+          # The jar's `victim.type == PLAYER` gate, read against the SELECTED body rather than an activation
+          # victim a USE never has: a smitten mob now takes the strike and keeps its legs.
+          - { FREEZE: { duration: 25, dot: 0, slow: 100, neutralize-frost-slow: false, who: "@EntityInSight{r=8}",
+                each-if: "%target.type% == \"PLAYER\"" } }
+          - { MESSAGE: { text: "§c§l(!) §cFrozen by {ATTACKER}'s Smite Pet [1.25s]!", who: "@EntityInSight{r=8}",
+                each-if: "%target.type% == \"PLAYER\"" } }
+      - condition: '%smite.fired% == 1 && %smite.hit% >= 1'
+        cooldown: 0
+        effects:
           - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
+      # Nothing in sight: the verbatim refusal, and the window already handed back above.
+      - condition: '%smite.fired% == 1 && %smite.hit% < 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cNo target found!" } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -87,10 +108,27 @@ levels:
     abilities:
       - condition: '%actor.gamemode% != "SPECTATOR"'
         effects:
+          - { SET_VAR: { name: "smite.fired", value: "1", ttl: 1, who: "@Self" } }
           - { LIGHTNING: { damage: 5, who: "@EntityInSight{r=8}" } }
-          - { FREEZE: { duration: 30, dot: 0, slow: 100, neutralize-frost-slow: false, who: "@EntityInSight{r=8}" } }
-          - { MESSAGE: { text: "§c§l(!) §cFrozen by {ATTACKER}'s Smite Pet [1.5s]!", who: "@EntityInSight{r=8}" } }
+          # Both read the strike's own count — whether the search found a body at all. SET_VAR declares a
+          # target slot, so it overwrites %selected% when it runs and the refund has to ask first.
+          - { REFUND_COOLDOWN: { unless: "%selected%" } }
+          - { SET_VAR: { name: "smite.hit", op: increment, step: "%selected%", ttl: 1, who: "@Self" } }
+          # The jar's `victim.type == PLAYER` gate, read against the SELECTED body rather than an activation
+          # victim a USE never has: a smitten mob now takes the strike and keeps its legs.
+          - { FREEZE: { duration: 30, dot: 0, slow: 100, neutralize-frost-slow: false, who: "@EntityInSight{r=8}",
+                each-if: "%target.type% == \"PLAYER\"" } }
+          - { MESSAGE: { text: "§c§l(!) §cFrozen by {ATTACKER}'s Smite Pet [1.5s]!", who: "@EntityInSight{r=8}",
+                each-if: "%target.type% == \"PLAYER\"" } }
+      - condition: '%smite.fired% == 1 && %smite.hit% >= 1'
+        cooldown: 0
+        effects:
           - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
+      # Nothing in sight: the verbatim refusal, and the window already handed back above.
+      - condition: '%smite.fired% == 1 && %smite.hit% < 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cNo target found!" } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -100,10 +138,27 @@ levels:
     abilities:
       - condition: '%actor.gamemode% != "SPECTATOR"'
         effects:
+          - { SET_VAR: { name: "smite.fired", value: "1", ttl: 1, who: "@Self" } }
           - { LIGHTNING: { damage: 5, who: "@EntityInSight{r=8}" } }
-          - { FREEZE: { duration: 35, dot: 0, slow: 100, neutralize-frost-slow: false, who: "@EntityInSight{r=8}" } }
-          - { MESSAGE: { text: "§c§l(!) §cFrozen by {ATTACKER}'s Smite Pet [1.75s]!", who: "@EntityInSight{r=8}" } }
+          # Both read the strike's own count — whether the search found a body at all. SET_VAR declares a
+          # target slot, so it overwrites %selected% when it runs and the refund has to ask first.
+          - { REFUND_COOLDOWN: { unless: "%selected%" } }
+          - { SET_VAR: { name: "smite.hit", op: increment, step: "%selected%", ttl: 1, who: "@Self" } }
+          # The jar's `victim.type == PLAYER` gate, read against the SELECTED body rather than an activation
+          # victim a USE never has: a smitten mob now takes the strike and keeps its legs.
+          - { FREEZE: { duration: 35, dot: 0, slow: 100, neutralize-frost-slow: false, who: "@EntityInSight{r=8}",
+                each-if: "%target.type% == \"PLAYER\"" } }
+          - { MESSAGE: { text: "§c§l(!) §cFrozen by {ATTACKER}'s Smite Pet [1.75s]!", who: "@EntityInSight{r=8}",
+                each-if: "%target.type% == \"PLAYER\"" } }
+      - condition: '%smite.fired% == 1 && %smite.hit% >= 1'
+        cooldown: 0
+        effects:
           - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
+      # Nothing in sight: the verbatim refusal, and the window already handed back above.
+      - condition: '%smite.fired% == 1 && %smite.hit% < 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cNo target found!" } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -113,10 +168,27 @@ levels:
     abilities:
       - condition: '%actor.gamemode% != "SPECTATOR"'
         effects:
+          - { SET_VAR: { name: "smite.fired", value: "1", ttl: 1, who: "@Self" } }
           - { LIGHTNING: { damage: 5, who: "@EntityInSight{r=8}" } }
-          - { FREEZE: { duration: 40, dot: 0, slow: 100, neutralize-frost-slow: false, who: "@EntityInSight{r=8}" } }
-          - { MESSAGE: { text: "§c§l(!) §cFrozen by {ATTACKER}'s Smite Pet [2.0s]!", who: "@EntityInSight{r=8}" } }
+          # Both read the strike's own count — whether the search found a body at all. SET_VAR declares a
+          # target slot, so it overwrites %selected% when it runs and the refund has to ask first.
+          - { REFUND_COOLDOWN: { unless: "%selected%" } }
+          - { SET_VAR: { name: "smite.hit", op: increment, step: "%selected%", ttl: 1, who: "@Self" } }
+          # The jar's `victim.type == PLAYER` gate, read against the SELECTED body rather than an activation
+          # victim a USE never has: a smitten mob now takes the strike and keeps its legs.
+          - { FREEZE: { duration: 40, dot: 0, slow: 100, neutralize-frost-slow: false, who: "@EntityInSight{r=8}",
+                each-if: "%target.type% == \"PLAYER\"" } }
+          - { MESSAGE: { text: "§c§l(!) §cFrozen by {ATTACKER}'s Smite Pet [2.0s]!", who: "@EntityInSight{r=8}",
+                each-if: "%target.type% == \"PLAYER\"" } }
+      - condition: '%smite.fired% == 1 && %smite.hit% >= 1'
+        cooldown: 0
+        effects:
           - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
+      # Nothing in sight: the verbatim refusal, and the window already handed back above.
+      - condition: '%smite.fired% == 1 && %smite.hit% < 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cNo target found!" } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
@@ -126,10 +198,27 @@ levels:
     abilities:
       - condition: '%actor.gamemode% != "SPECTATOR"'
         effects:
+          - { SET_VAR: { name: "smite.fired", value: "1", ttl: 1, who: "@Self" } }
           - { LIGHTNING: { damage: 5, who: "@EntityInSight{r=8}" } }
-          - { FREEZE: { duration: 45, dot: 0, slow: 100, neutralize-frost-slow: false, who: "@EntityInSight{r=8}" } }
-          - { MESSAGE: { text: "§c§l(!) §cFrozen by {ATTACKER}'s Smite Pet [2.25s]!", who: "@EntityInSight{r=8}" } }
+          # Both read the strike's own count — whether the search found a body at all. SET_VAR declares a
+          # target slot, so it overwrites %selected% when it runs and the refund has to ask first.
+          - { REFUND_COOLDOWN: { unless: "%selected%" } }
+          - { SET_VAR: { name: "smite.hit", op: increment, step: "%selected%", ttl: 1, who: "@Self" } }
+          # The jar's `victim.type == PLAYER` gate, read against the SELECTED body rather than an activation
+          # victim a USE never has: a smitten mob now takes the strike and keeps its legs.
+          - { FREEZE: { duration: 45, dot: 0, slow: 100, neutralize-frost-slow: false, who: "@EntityInSight{r=8}",
+                each-if: "%target.type% == \"PLAYER\"" } }
+          - { MESSAGE: { text: "§c§l(!) §cFrozen by {ATTACKER}'s Smite Pet [2.25s]!", who: "@EntityInSight{r=8}",
+                each-if: "%target.type% == \"PLAYER\"" } }
+      - condition: '%smite.fired% == 1 && %smite.hit% >= 1'
+        cooldown: 0
+        effects:
           - { ITEM_XP_TRACK: { amount: 1, message: "§a§l+ §a{xp} Pet EXP §a§l[§7{exp}/{needed}§a§l]", level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
+      # Nothing in sight: the verbatim refusal, and the window already handed back above.
+      - condition: '%smite.fired% == 1 && %smite.hit% < 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§lPET: §cNo target found!" } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:

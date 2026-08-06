@@ -26,12 +26,13 @@ tier: mastery
 # `FACING_SET` takes an `anchor` rather than the matrix's `of=` selector slot (the DSL carries exactly one
 # target slot per effect), so the recorded `of=@Self` is `anchor: activator` — every target is spun to face
 # away from the wearer, in place, exactly as the jar's direction-only teleport did.
-# ── THE WEARER'S SUMMARY DOES NOT SHIP ─────────────────────────────────────────────────────────────────────
-# `§a§l* HORRIFIED {count} player(s) [§7{seconds}s§a§l] *` is the wearer's line and its entire content is the
-# RESOLVED SELECTOR COUNT, which no fact reports: `%nearbyenemies%` is a fixed 8-block scan of living
-# entities, neither this 32-block radius nor this filter, so it would print a wrong number at every level.
-# Same stop, same reasoning, as `tombstone.yml`'s summary; recorded in deferred-content.md. The wearer keeps
-# the per-target ghast scream as the proc's feedback.
+# ── THE WEARER'S SUMMARY ───────────────────────────────────────────────────────────────────────────────────
+# `§a§l* HORRIFIED {count} player(s) [§7{seconds}s§a§l] *` ships on `%selected%` (ADR-0076), the count the
+# effect above it bound after every per-target filter — this 32-block radius and this filter, where
+# `%nearbyenemies%`'s fixed 8-block living-entity scan would have printed a wrong number at every level. Its
+# `{seconds}` is inlined per rung like the target line's, so both render byte-identically to the matrix's.
+# `tombstone.yml` carries the same summary on the same fact, and the same rule with it: the count belongs to
+# the row directly above, because the executor publishes it after each effect runs.
 # ── D-07-9 AND THE DRAGON SLAYER IMMUNITY ──────────────────────────────────────────────────────────────────
 # The jar's `immune_freeze` branch `return`s out of the whole per-target loop, so ONE protected player inside
 # the radius cancelled Horrify for everyone — and whether they did depended on iteration order. D-07-9 rules
@@ -63,6 +64,7 @@ levels:
       - { FALL_SHIELD: { window: 200, who: "@Aoe{r=32, filter=ENEMIES}" } }
       - { MESSAGE: { text: "§c§l* HORRIFIED §c[§c§l2s§c] §c§l*", who: "@Aoe{r=32, filter=ENEMIES}" } }
       - { SOUND: { sound: "ENTITY_GHAST_SCREAM", volume: 1.0, pitch: 1.4, who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { MESSAGE: { text: "§a§l* HORRIFIED {count} player(s) [§72s§a§l] *", tokens: { count: "%selected%" } } }
   2:
     chance: 4
     condition: "%victim.type% == \"PLAYER\""
@@ -73,6 +75,7 @@ levels:
       - { FALL_SHIELD: { window: 200, who: "@Aoe{r=32, filter=ENEMIES}" } }
       - { MESSAGE: { text: "§c§l* HORRIFIED §c[§c§l3s§c] §c§l*", who: "@Aoe{r=32, filter=ENEMIES}" } }
       - { SOUND: { sound: "ENTITY_GHAST_SCREAM", volume: 1.0, pitch: 1.4, who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { MESSAGE: { text: "§a§l* HORRIFIED {count} player(s) [§73s§a§l] *", tokens: { count: "%selected%" } } }
   3:
     chance: 6
     condition: "%victim.type% == \"PLAYER\""
@@ -83,6 +86,7 @@ levels:
       - { FALL_SHIELD: { window: 200, who: "@Aoe{r=32, filter=ENEMIES}" } }
       - { MESSAGE: { text: "§c§l* HORRIFIED §c[§c§l3s§c] §c§l*", who: "@Aoe{r=32, filter=ENEMIES}" } }
       - { SOUND: { sound: "ENTITY_GHAST_SCREAM", volume: 1.0, pitch: 1.4, who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { MESSAGE: { text: "§a§l* HORRIFIED {count} player(s) [§73s§a§l] *", tokens: { count: "%selected%" } } }
   4:
     chance: 8
     condition: "%victim.type% == \"PLAYER\""
@@ -93,3 +97,4 @@ levels:
       - { FALL_SHIELD: { window: 200, who: "@Aoe{r=32, filter=ENEMIES}" } }
       - { MESSAGE: { text: "§c§l* HORRIFIED §c[§c§l4s§c] §c§l*", who: "@Aoe{r=32, filter=ENEMIES}" } }
       - { SOUND: { sound: "ENTITY_GHAST_SCREAM", volume: 1.0, pitch: 1.4, who: "@Aoe{r=32, filter=ENEMIES}" } }
+      - { MESSAGE: { text: "§a§l* HORRIFIED {count} player(s) [§74s§a§l] *", tokens: { count: "%selected%" } } }

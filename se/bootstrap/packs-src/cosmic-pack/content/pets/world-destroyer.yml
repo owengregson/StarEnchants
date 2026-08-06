@@ -50,13 +50,17 @@
 # (`level: 19`), then 11 DoT applications at a 5 t period over 2.75 s. The jar rolled a uniform 5–9 damage per
 # application (55 min / 99 max / 77 expected); random damage has no spelling, so the EXPECTED value ships flat
 # at 7 (D-12-32). `slow: 0` because the jar never slowed the victim — this FREEZE is a DoT carrier, not a pin.
-# NO REFUSAL BRANCH: the jar answered an empty box with `§c§nPET: No valid enemy players nearby! (30x30)` and
-# spent nothing. The string is UNSHIPPED and stays so — a refusal ability needs a pre-selection fact to hang
-# on, and the only one here is `%nearbyenemies%`, fixed at an 8-block radius, so gating on it would refuse the
-# uses whose real targets stand 9–30 blocks away, which is most of them. (`pets/gaia.yml` DOES render its
-# twin line, because that pet already pays for the 8-block gate and the refusal only says what the gate did.)
-# A whiff here is silent and burns the cooldown; the missing fact — an emptiness answer for the activation's
-# own selection — is a recorded stop, deferred with the per-target subject family (R-QC49).
+# THE REFUSAL BRANCH SHIPS (ADR-0076). The jar answered an empty box with
+# `§c§nPET: No valid enemy players nearby! (30x30)` and spent nothing; both halves now express off the
+# activation's OWN selection rather than off a pre-selection scan. `%selected%` is the count the rot's
+# `@Aoe{r=30}` really bound, so nothing here is coarsened to `%nearbyenemies%`'s fixed 8-block radius — which
+# is exactly why this pet could not take `pets/gaia.yml`'s old gate: most of its real targets stand 9–30
+# blocks out. `REFUND_COOLDOWN{unless:}` hands the window back on a whiff, and the XP moves to the hit arm so
+# a whiff banks nothing either. The refusal is a sibling reading a captured var rather than the fact itself:
+# only the immediately-next ability can read `%selected%` (a non-activating one publishes −1 over it,
+# R-QC67), and this pet needs a hit arm too — so the payload copies the count into `wdpet.hit` beside a
+# 1-tick `wdpet.fired` marker (the `lava-elemental.yml` idiom), and `wdpet.fired` keeps the refusal off a
+# click the payload never ran at all (spectating, or on cooldown).
 # The XP grant is SILENT — this is the one pet with no XP-gain chat line at all (verbatim). The level-up line
 # is the family's.
 # Named after the Mother-of-Yijki set's Dimensional Cage (matrix/10) but a standalone reimplementation: no
@@ -98,6 +102,7 @@ levels:
     abilities:
       - condition: '%actor.gamemode% != "SPECTATOR"'
         effects:
+          - { SET_VAR: { name: "wdpet.fired", value: "1", ttl: 1, who: "@Self" } }
           # The cage itself is owed a per-victim shell primitive (header): floor/roof OBSIDIAN, walls OBSIDIAN
           # (port pick, D-12-31), width 3, depth 3, height 3, rise 0, ticks 100.
           - { MESSAGE: { text: "§5§l** DIMENSIONAL CAGE §7[§c3s§7]§5§l **", who: "@Aoe{r=30, filter=ENEMIES}" } }
@@ -106,9 +111,23 @@ levels:
           - { POTION: { effect: "POISON", level: 19, duration: 100, who: "@Aoe{r=30, filter=ENEMIES}" } }
           - { POTION: { effect: "WITHER", level: 19, duration: 100, who: "@Aoe{r=30, filter=ENEMIES}" } }
           - { FREEZE: { duration: 55, dot: 7, dot-period: 5, slow: 0, neutralize-frost-slow: false, who: "@Aoe{r=30, filter=ENEMIES}" } }
+          # Both read the rot's own count. SET_VAR declares a target slot, so it overwrites %selected% when it
+          # runs and the refund has to ask first.
+          - { REFUND_COOLDOWN: { unless: "%selected%" } }
+          - { SET_VAR: { name: "wdpet.hit", op: increment, step: "%selected%", ttl: 1, who: "@Self" } }
+      # Caught somebody: the XP grant (SILENT — this is the one pet with no XP-gain chat line) and the
+      # wearer's own cue pair.
+      - condition: '%wdpet.fired% == 1 && %wdpet.hit% >= 1'
+        cooldown: 0
+        effects:
           - { ITEM_XP_TRACK: { amount: 5, level-up-message: "§a§l*** {item}§a has increased to level §a§n{level}§a§l ***" } }
           - { MESSAGE: { text: "§a§lPET: ** DIMENSIONAL CAGE **" } }
           - { SOUND: { sound: "ENTITY_WITHER_SHOOT", volume: 10.0, pitch: 2.0 } }
+      # Caught nobody: the verbatim refusal, and the window already handed back above.
+      - condition: '%wdpet.fired% == 1 && %wdpet.hit% < 1'
+        cooldown: 0
+        effects:
+          - { MESSAGE: { text: "§c§nPET: No valid enemy players nearby! (30x30)" } }
       - condition: '%actor.gamemode% == "SPECTATOR"'
         cooldown: 0
         effects:
