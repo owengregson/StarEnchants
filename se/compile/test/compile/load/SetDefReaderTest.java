@@ -440,6 +440,42 @@ class SetDefReaderTest {
     }
 
     @Test
+    void theClaimFooterParsesAsTwoFormsAndIsEmptyWhenUnauthored() {
+        // R-QC35c: the unclaimed line is a DIFFERENT sentence, not the claimed one with an empty token, so
+        // the pair is authored as a pair. A set that stakes nothing must read empty — every set but KOTH.
+        Diagnostics diags = new Diagnostics();
+        String staked = """
+            armor:
+              pieces:
+                helmet: { material: DIAMOND_HELMET }
+            claim-footer:
+              claimed: "Claimed by {CLAIMANT} on {DATE}"
+              unclaimed: "Claimed on {DATE}"
+            bonuses:
+              - on: armor
+                trigger: DEFEND
+                effects: [{ DAMAGE: { amount: 1 } }]
+            """;
+        String plain = """
+            armor:
+              pieces:
+                helmet: { material: DIAMOND_HELMET }
+            bonuses:
+              - on: armor
+                trigger: DEFEND
+                effects: [{ DAMAGE: { amount: 1 } }]
+            """;
+        SetDef koth = SetDefReader.read("sets/koth", root(staked, diags), counter(), diags).def();
+        SetDef yeti = SetDefReader.read("sets/yeti", root(plain, diags), counter(), diags).def();
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        assertEquals("Claimed by {CLAIMANT} on {DATE}", koth.claimFooter().claimed());
+        assertEquals("Claimed on {DATE}", koth.claimFooter().unclaimed());
+        assertFalse(koth.claimFooter().isEmpty());
+        assertTrue(yeti.claimFooter().isEmpty(), "a set that stakes nothing carries no footer");
+    }
+
+    @Test
     void theRollFormsParseToTheirBandsAndAnUnreadableOneWarnsAndIsSkipped() {
         Diagnostics diags = new Diagnostics();
         String yaml = """

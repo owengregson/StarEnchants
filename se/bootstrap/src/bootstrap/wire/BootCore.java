@@ -391,6 +391,23 @@ public final class BootCore {
                         compile.load.SetDef def = content.library().setDefOf(setKey);
                         return def != null ? def.weaponLoreFor(kindToken) : java.util.List.of();
                     }
+
+                    // R-QC35c: the claim footer. A piece with no DATE is unstaked and prints nothing — which
+                    // is a different state from staked-but-unheld, and the reason the two forms are separate
+                    // templates rather than one line with an empty token.
+                    @Override public java.util.List<String> claimFooter(String setKey, String claimant, String date) {
+                        compile.load.SetDef def = content.library().setDefOf(setKey);
+                        if (def == null || def.claimFooter().isEmpty() || date == null) {
+                            return java.util.List.of();
+                        }
+                        String template = claimant != null && !claimant.isBlank()
+                                ? def.claimFooter().claimed() : def.claimFooter().unclaimed();
+                        if (template == null || template.isBlank()) {
+                            return java.util.List.of();
+                        }
+                        return java.util.List.of(platform.text.Tokens.sub(template,
+                                "CLAIMANT", claimant == null ? "" : claimant, "DATE", date));
+                    }
                 })
                 .withProtectionLines(protectionLinesFn) // §I applied-scroll PROTECTED lines, from marker state
                 .withTrakLines(trakLinesFn)             // §I applied-trak count lines, from marker + counter state

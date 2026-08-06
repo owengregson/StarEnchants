@@ -26,13 +26,14 @@ import schema.grammar.EffectLine;
 final class SetDefReader {
 
     private static final Set<String> ROOT_KEYS = Set.of("display", "description", "complete", "armor", "weapon",
-            "weapons", "bonuses", "announce", "equip-message", "remove-message");
+            "weapons", "bonuses", "announce", "equip-message", "remove-message", "claim-footer");
     private static final Set<String> ARMOR_KEYS = Set.of("lore", "enchants", "pieces");
     private static final Set<String> WEAPON_KEYS = Set.of("material", "name", "lore", "enchants", "color");
     private static final Set<String> BONUS_KEYS = ContentParse.withEnvelopeKnobs(
             "on", "trigger", "disabled-worlds", "group", "repeat", "repeat-delay", "chance", "cooldown", "soul-cost",
             "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
             "no-souls-message", "condition", "effects");
+    private static final Set<String> CLAIM_FOOTER_KEYS = Set.of("claimed", "unclaimed");
     private static final Set<String> MEMBER_KEYS = Set.of("material", "name", "lore", "enchants", "color", "heroic");
 
     private SetDefReader() {
@@ -118,6 +119,15 @@ final class SetDefReader {
         }
         boolean hasWeaponItem = !weaponMembers.isEmpty();
 
+        // R-QC35c: the claim footer's two forms. Authored as a pair because the unclaimed line is a different
+        // sentence, not the claimed one with an empty token.
+        SetDef.ClaimFooter claimFooter = SetDef.ClaimFooter.NONE;
+        if (root.has("claim-footer")) {
+            YamlNode node = root.child("claim-footer");
+            ContentParse.warnUnknownKeys(node, CLAIM_FOOTER_KEYS, diags);
+            claimFooter = new SetDef.ClaimFooter(node.string("claimed"), node.string("unclaimed"));
+        }
+
         // Behaviours: the unified bonuses list. The first on:armor bonus is the completion ability
         // (stableKey == baseKey, setPieces = complete); further armour bonuses are baseKey/aN and weapon
         // bonuses baseKey/wN (setPieces 0), gated on set completion (and weapon-held) by the resolver.
@@ -156,7 +166,7 @@ final class SetDefReader {
         String removeMessage = root.string("remove-message");
 
         SetDef def = new SetDef(baseKey, display, description == null ? "" : description, null,
-                Math.max(0, complete), armorMembers, armorLore, weaponMembers, appliesTo,
+                Math.max(0, complete), armorMembers, armorLore, weaponMembers, claimFooter, appliesTo,
                 armorEnchants, announce, equipMessage, removeMessage, fileSource);
         return new Parsed(def, abilities);
     }

@@ -26,6 +26,7 @@ public final class LoreRenderer {
 
     private final Config config;
     private final LoreComposer composer;
+    private final item.codec.ClaimCodec claims;
     private final ComposerMark mark;
 
     /**
@@ -219,6 +220,17 @@ public final class LoreRenderer {
             return weapon(setKey);
         }
 
+        /**
+         * The CLAIM footer for a set piece (R-QC35c): the claimed line when {@code claimant} is present, the
+         * unclaimed line otherwise, with {@code {CLAIMANT}} / {@code {DATE}} filled. Empty when the set stakes
+         * nothing, or when the piece carries no {@code date} — an unstaked piece has no claim to report, which
+         * is a different thing from an unheld one. Defaults to no footer, so a lookup written before this
+         * keeps answering.
+         */
+        default List<String> claimFooter(String setKey, String claimant, String date) {
+            return List.of();
+        }
+
         /** A lookup that renders no member lore at all. */
         SetLore NONE = new SetLore() {
             @Override public List<String> armor(String setKey) {
@@ -234,7 +246,9 @@ public final class LoreRenderer {
     public LoreRenderer(Config config, ItemStateStore store) {
         this.config = Objects.requireNonNull(config, "config");
         this.composer = new LoreComposer(config);
-        this.mark = new ComposerMark(ItemKeys.of().loreComposer(), store);
+        ItemKeys keys = ItemKeys.of();
+        this.mark = new ComposerMark(keys.loreComposer(), store);
+        this.claims = new item.codec.ClaimCodec(keys.claimant(), keys.claimDate(), store);
     }
 
     /** Body lore lines: one per enchant ({@code name level}), set lore, the orb slots line, then one per crystal. */
@@ -262,8 +276,13 @@ public final class LoreRenderer {
         if (meta == null) {
             return false;
         }
+        // R-QC35c: the claim footer is rendered from claim STATE by this caller, never parsed back from the
+        // text — the same §4.2 rule the protection and trak sections follow.
+        String setKey = state.setKey() != null ? state.setKey() : state.setWeaponKey();
+        List<String> footer = setKey == null ? List.of()
+                : config.setLore().claimFooter(setKey, claims.claimant(stack), claims.date(stack));
         List<String> lore = composer.compose(state, kindOf(stack.getType()),
-                config.protectionLines().apply(stack), config.trakLines().apply(stack));
+                config.protectionLines().apply(stack), config.trakLines().apply(stack), footer);
         if (!mark.isCurrent(stack)) {
             lore = LegacyLoreShim.migrate(meta.hasLore() ? meta.getLore() : List.of(), lore, config.legacyLoreLine());
         }

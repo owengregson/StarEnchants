@@ -137,6 +137,12 @@ public final class LoreComposer {
      * classifier. Pure: no Bukkit, so byte-for-byte testable against hand-built inputs.
      */
     public List<String> compose(CombatState state, String kind, List<String> protection, List<String> traks) {
+        return compose(state, kind, protection, traks, List.of());
+    }
+
+    /** As above with the set-piece CLAIM footer (R-QC35c), rendered from claim state by the caller. */
+    public List<String> compose(CombatState state, String kind, List<String> protection, List<String> traks,
+                                List<String> claimFooter) {
         List<String> lore = body(state, kind);
         String heroic = heroicBodyLine(state.heroic(), kind, config.heroicLine().get());
         if (heroic != null) {
@@ -144,6 +150,7 @@ public final class LoreComposer {
         }
         lore.addAll(protection); // applied-scroll PROTECTED lines, from marker state (§4.2)
         lore.addAll(traks);      // applied-trak count lines, from marker + counter state (§I)
+        lore.addAll(claimFooter); // the set's claim footer, from claim state — LAST, it is a footer
         return lore;
     }
 

@@ -47,12 +47,9 @@ armor:
     PROTECTION: 5
     UNBREAKING: 3
   # The lore block verbatim, including its leading blank line and the missing full stop after "items".
-  # NOT AUTHORED, recorded here: the claim footer
-  #   (blank)
-  #   §b§l(!) §bClaimed by §d§l{player}§b on §d§n{date}
-  # (unclaimed reads `§b§l(!) §bClaimed on §d§n{date}`; date format `EEE MM/dd/yy`). Both tokens are fed by
-  # the external KOTH event system — the set-lore renderer binds neither, and a literal would print the brace
-  # text on every piece. Recorded in deferred-content.md rather than faked.
+  # The CLAIM FOOTER is AUTHORED (R-QC35c) — see `claim-footer:` below. Both lines are verbatim; only the
+  # brace tokens are re-spelled in the renderer's own vocabulary ({player} -> {CLAIMANT}, {date} -> {DATE}),
+  # which is the pack-wide token rule. It renders LAST, after the heroic block, which is where the footer sits.
   # The trailing blank opens the HEROIC APPENDED BLOCK. Its last line, `§4This armor is stronger than
   # diamond.`, is deliberately NOT authored: every member below carries `heroic: true`, and the mint stamps
   # `items/heroic.yml`'s `lore-line` through the same HeroicStamp the upgrade gesture uses, so writing it here
@@ -148,6 +145,15 @@ weapons:
   axe:
     material: DIAMOND_AXE
     name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nAxe§r"
+# THE CLAIM FOOTER (R-QC35c), both forms verbatim. A piece renders one of them only once a DATE has been
+# stamped on it: unstaked, staked-but-unheld and held are three states, and the first prints nothing at all.
+# The date is stored ALREADY FORMATTED — the recorded `EEE MM/dd/yy` belongs to whoever runs the event, and
+# re-formatting an instant here would need a locale and a zone contract the codex does not carry. This plugin
+# runs no KOTH event, so nothing in it writes the pair today; the state and the tokens exist so the external
+# system that does has somewhere to put them, which is what the ledger asked for.
+claim-footer:
+  claimed: "§b§l(!) §bClaimed by §d§l{CLAIMANT}§b on §d§n{DATE}"
+  unclaimed: "§b§l(!) §bClaimed on §d§n{DATE}"
 bonuses:
   # 1. +20% outgoing vs players.
   - on: armor
