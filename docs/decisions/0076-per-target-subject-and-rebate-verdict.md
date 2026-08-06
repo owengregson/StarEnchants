@@ -73,8 +73,17 @@ Parts A–D ship as stages S1–S3 (engine) and S4 (content); part E as S5–S6.
 - An effect that opts into nothing pays **one null check** and allocates exactly what it allocates today; an
   unfiltered pass returns the resolved list ITSELF (the defender consult's copy-on-first-drop idiom). The
   cursor is thread-local and re-pointed by field writes, so a 20-body sweep allocates nothing for it. The JMH
-  `ExecutorBenchmark` floor and its ~0 B/op assertion hold unchanged; a filtered-AoE bench row lands with the
-  content stage, where a real filtered AoE exists to measure.
+  `ExecutorBenchmark` floor and its ~0 B/op assertion hold unchanged.
+- **The filtered-AoE bench row is NOT built, and the reason is structural.** `:bench` has the Bukkit API on its
+  classpath and no server, and `SubjectCursor.bind` reads `getUniqueId()` off a real `LivingEntity`, so a
+  16-body row needs sixteen entity stand-ins. Every way to make one distorts exactly the number the row exists
+  to prove: a Mockito proxy or a `java.lang.reflect.Proxy` allocates per invocation, which swamps a 0 B/op
+  assertion; a hand-written `LivingEntity` implementation allocates nothing but pins ~200 no-op methods against
+  an interface that grows across the 1.17.1 → 26.1.x range, so a toolchain bump would break the build on a
+  benchmark. The per-body cost the row would measure is already gated from two sides — `PerTargetFilterTest`
+  asserts the copy-on-first-drop identity (an unfiltered pass returns the list itself) and the existing
+  `effectExecution` budget covers the executor path the filter sits in. Revisit if the engine ever grows a
+  UUID-keyed filter seam a bench could drive without an entity at all.
 - The authoring surface grows by three effect params, one variable scope, one variable (and, at S5, four
   ability knobs) — `RegistryFingerprint` and `docs/reference/authoring-surface.txt` churn in two stages, so
   two golden-regen reviews rather than one. Declaring an ENTITY target slot now moves the fingerprint, because
