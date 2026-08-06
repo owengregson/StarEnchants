@@ -43,6 +43,7 @@ import compile.model.cond.NumExpr;
  * @param soulCostDecayPeriod ticks per escalation step shed since the actor's last charge of THIS ability; {@code 0} = never decays
  * @param cooldownPerVictim when {@code true} gate 6 keys the cooldown on the activation's victim rather than the coarse player/mob target bucket, so one target's window never throttles a strike on another ({@code cooldown-per-victim: true}); {@code false} = today's shared bucket
  * @param stacks           whether this enchant contributes ONCE PER WORN PIECE (R-QC63, {@code stacks: true}). The default {@code false} is the highest-worn-piece-only rule: the {@code WornResolver} keeps the highest-level copy and drops the rest, so one event rolls the chance once, arms one cooldown and plays one cue however many pieces carry it. Read at RESOLVE time only — the hot path sees a shorter array and pays nothing
+ * @param chanceRebate   the declared term gate 8 subtracts before rolling, and the feedback the roll it eats may produce (ADR-0076 part E); {@code null} on all but a handful of abilities, so the gate pays one null check. Splitting the SAME roll — activate / REBATED / ordinary miss — keeps the distribution identical to the subtraction it replaces while giving the blocked band a name
  */
 public record Ability(
         int id,
@@ -76,7 +77,24 @@ public record Ability(
         boolean cooldownPerVictim,
         int repeatDelayTicks,
         int sourceGroup,
-        boolean stacks) {
+        boolean stacks,
+        ChanceRebate chanceRebate) {
+
+    /** Construction with no chance rebate (ADR-0076) — every caller but the erase stage. */
+    public Ability(int id, int defId, SourceKind sourceKind, int triggerMask, int level, double baseChance,
+                   int cooldownTicks, int soulCost, long worldBlacklist, CompiledCondition condition,
+                   CompiledEffect[] effects, int repeatTicks, Affinity affinity, int cdScopeEnchant,
+                   int cdScopeGroup, int cdScopeType, int suppressKey, int setPieces, boolean suppressImmune,
+                   FactMask factMask, NumExpr chanceExpr, String noSoulsMessage, boolean soulCostCarried,
+                   int noSoulsSound, int noSoulsParticle, double soulCostGrowth, int soulCostCap,
+                   int soulCostDecayPeriod, boolean cooldownPerVictim, int repeatDelayTicks, int sourceGroup,
+                   boolean stacks) {
+        this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
+                condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
+                suppressKey, setPieces, suppressImmune, factMask, chanceExpr, noSoulsMessage, soulCostCarried,
+                noSoulsSound, noSoulsParticle, soulCostGrowth, soulCostCap, soulCostDecayPeriod,
+                cooldownPerVictim, repeatDelayTicks, sourceGroup, stacks, null);
+    }
 
     /** Construction with the R-QC63 default: this source does NOT stack across pieces (highest-worn wins). */
     public Ability(int id, int defId, SourceKind sourceKind, int triggerMask, int level, double baseChance,

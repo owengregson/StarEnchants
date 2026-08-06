@@ -1,6 +1,7 @@
 package compile.stage;
 
 import compile.model.Affinity;
+import compile.model.ChanceRebate;
 import compile.model.CompiledCondition;
 import compile.model.CompiledEffect;
 import compile.model.SourceKind;
@@ -37,6 +38,7 @@ import java.util.List;
  *                       ADR-0074 payload filter only; {@code null} = no override
  * @param stacks         whether the enchant contributes once per worn PIECE (R-QC63); {@code false} = the
  *                       highest-worn-piece-only default
+ * @param chanceRebate   the lowered chance rebate gate 8 splits its roll on (ADR-0076); {@code null} = none
  */
 public record LoweredAbility(
         SourceKind sourceKind,
@@ -70,12 +72,29 @@ public record LoweredAbility(
         boolean cooldownPerVictim,
         int repeatDelayTicks,
         String sourceGroup,
-        boolean stacks) {
+        boolean stacks,
+        ChanceRebate chanceRebate) {
 
     public LoweredAbility {
         triggers = List.copyOf(triggers);
         worldBlacklist = List.copyOf(worldBlacklist);
         effects = List.copyOf(effects);
+    }
+
+    /** Construction with no chance rebate (ADR-0076) — every caller but the lower stage itself. */
+    public LoweredAbility(SourceKind sourceKind, String stableKey, int defId, int level, double baseChance,
+                          int cooldownTicks, int soulCost, List<String> triggers, List<String> worldBlacklist,
+                          CompiledCondition condition, List<CompiledEffect> effects, String suppressKey,
+                          String cdScopeEnchant, String cdScopeGroup, String cdScopeType, int repeatTicks,
+                          Affinity affinity, Source source, int setPieces, boolean suppressImmune,
+                          NumExpr chanceExpr, String noSoulsMessage, boolean soulCostCarried, int noSoulsSound,
+                          int noSoulsParticle, double soulCostGrowth, int soulCostCap, int soulCostDecayPeriod,
+                          boolean cooldownPerVictim, int repeatDelayTicks, String sourceGroup, boolean stacks) {
+        this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
+                condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks, affinity,
+                source, setPieces, suppressImmune, chanceExpr, noSoulsMessage, soulCostCarried, noSoulsSound,
+                noSoulsParticle, soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim,
+                repeatDelayTicks, sourceGroup, stacks, null);
     }
 
     /** Construction with the R-QC63 default: this source does NOT stack across pieces (highest-worn wins). */

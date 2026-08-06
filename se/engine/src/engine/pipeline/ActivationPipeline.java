@@ -1,6 +1,7 @@
 package engine.pipeline;
 
 import compile.model.Ability;
+import compile.model.ChanceRebate;
 import compile.model.ScopeKinds;
 import compile.cond.VarBinding;
 import compile.model.cond.NumExpr;
@@ -191,20 +192,31 @@ public final class ActivationPipeline {
             releaseCooldowns(ability, act); // a condition fail must NOT arm the cooldown
             return record(GateOutcome.CONDITION_FAILED, ability, act, 0, 0);
         }
-        // 8. chance roll — roll [0,100) < (base + Δ); FORCE/ALLOW skip the roll. Basis points are captured for
-        //    both the fail path and ACTIVATED (rollBp -1 = no roll: forced/allowed).
+        // 8. chance roll — ONE roll [0,100), split three ways against the UNREBATED chance and the rebated one
+        //    (ADR-0076): under the effective chance activates, between it and the base is a proc a declared
+        //    rebate ate, above both is an ordinary miss. Identical distribution to burying the subtraction in
+        //    the chance expression, which is why the migrated files' live rates do not move. FORCE/ALLOW skip
+        //    the roll entirely, rebate and all. Basis points are captured for the fail paths and ACTIVATED
+        //    (rollBp -1 = no roll: forced/allowed); chanceBp is the UNREBATED chance, so /se why can print both.
         int rollBp = -1;
         double chance = chanceOf(ability, act) + cond.chanceDelta();
         int chanceBp = (int) Math.round(chance * 100.0);
         if (cond.flow() != Flow.FORCE && cond.flow() != Flow.ALLOW) {
+            ChanceRebate rebate = ability.chanceRebate();
+            double rebated = rebate == null ? 0.0 : rebateOf(rebate, chance, act);
+            double effective = rebated <= 0.0 ? chance : Math.min(Math.max(chance - rebated, 0.0), 100.0);
             double roll = act.chanceRoll().getAsDouble();
             rollBp = (int) Math.round(roll * 100.0);
-            if (!(roll < chance)) {
-                if (!spendCooldownOnChanceFail) {
+            if (!(roll < effective)) {
+                // The rebated band is [effective, chance): a roll the ability would have won unrebated.
+                boolean eaten = rebated > 0.0 && roll < chance;
+                if (!spendCooldownOnChanceFail && !(eaten && rebate.spendsCooldown())) {
                     releaseCooldowns(ability, act); // hot path: a chance fail must NOT arm the cooldown
                 }
-                // use path: keep the gate-6 reservation so the failed attempt spends the cooldown (charge-per-attempt).
-                return record(GateOutcome.CHANCE_FAILED, ability, act, rollBp, chanceBp);
+                // use path (and rebate-spends-cooldown): keep the gate-6 reservation so the failed attempt
+                // spends the cooldown — charge-per-attempt, and the jar's burnt window on a sabotaged escape.
+                return record(eaten ? GateOutcome.REBATED : GateOutcome.CHANCE_FAILED, ability, act,
+                        rollBp, chanceBp);
             }
         }
         // 9. PreActivate — injected; cancellable
@@ -343,6 +355,28 @@ public final class ActivationPipeline {
             return 0.0; // a missing variable degrades to "never", never to a NaN comparison
         }
         return Math.min(Math.max(value, 0.0), 100.0);
+    }
+
+    /**
+     * The percentage points this activation's rebate takes off {@code base}, never negative and never more
+     * than {@code base} (a rebate can zero a chance; it can never invert one). The two forms are mutually
+     * exclusive by construction — {@code chance-rebate:} is points, {@code chance-rebate-scale:} a fraction of
+     * base, which is what Polymorphic Metaphysical's "20 % of the proc per level" needs and points cannot say.
+     */
+    private static double rebateOf(ChanceRebate rebate, double base, Activation act) {
+        double points;
+        if (rebate.points() != null) {
+            points = NumExprEval.eval(rebate.points(), act.facts());
+        } else if (rebate.scale() != null) {
+            double fraction = NumExprEval.eval(rebate.scale(), act.facts());
+            points = Math.min(Math.max(fraction, 0.0), 1.0) * base;
+        } else {
+            return 0.0;
+        }
+        if (!Double.isFinite(points) || points <= 0.0) {
+            return 0.0; // a missing variable degrades to "no rebate", never to a NaN comparison
+        }
+        return Math.min(points, Math.max(base, 0.0));
     }
 
     private GateOutcome record(GateOutcome out, Ability ability, Activation act, int pA, int pB) {

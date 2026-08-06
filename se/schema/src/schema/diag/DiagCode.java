@@ -111,6 +111,7 @@ public enum DiagCode {
     E_LOAD_SET_TRIGGER,    // a set bonus declares no trigger
     W_LOAD_SET_WEAPON_UNREACHABLE, // an on:weapon bonus with no weapon: item to hold — it can never fire (split from W_LOAD_EFFECTS)
     W_LOAD_EFFECTS,        // an ability declares no effects — warned, kept
+    E_LOAD_REBATE,         // a chance-rebate envelope declares both terms, feedback with no term, or an unknown recipient (ADR-0076)
 
     // Items loader (per-item config + soul-gem maps).
     E_ITEM_IO,

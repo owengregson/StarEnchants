@@ -21,17 +21,33 @@ public final class FactMasks {
         return of(condition, null, effects);
     }
 
-    /**
-     * The union of {@code condition}'s slots, the chance expression's, and every effect arg's expression
-     * slots; {@link FactMask#ALL} if a slot overflows a 64-bit space.
-     */
+    /** As {@link #of(CompiledCondition, NumExpr, ChanceRebate, CompiledEffect[])} for an ability with no rebate. */
     public static FactMask of(CompiledCondition condition, NumExpr chanceExpr, CompiledEffect[] effects) {
+        return of(condition, chanceExpr, null, effects);
+    }
+
+    /**
+     * The union of {@code condition}'s slots, the chance expression's, the chance REBATE's, and every effect
+     * arg's expression slots; {@link FactMask#ALL} if a slot overflows a 64-bit space.
+     */
+    public static FactMask of(CompiledCondition condition, NumExpr chanceExpr, ChanceRebate rebate,
+                              CompiledEffect[] effects) {
         Acc acc = new Acc();
         if (condition != null) {
             acc.cond(condition.root());
         }
         if (chanceExpr != null) {
             acc.num(chanceExpr); // gate 8 reads it from the same buffer, so its facts must be populated too
+        }
+        if (rebate != null) {
+            // Gate 8 evaluates the rebate on the same buffer, one line below the chance (ADR-0076). Omitting it
+            // would price every rebate off never-populated zeroes — the rebate would silently stop rebating.
+            if (rebate.points() != null) {
+                acc.num(rebate.points());
+            }
+            if (rebate.scale() != null) {
+                acc.num(rebate.scale());
+            }
         }
         for (CompiledEffect effect : effects) {
             if (effect.eachCondition() != null) {

@@ -120,6 +120,7 @@ command.why.suppressed-transient: "&cstopped at gate 5: suppressed this activati
 command.why.on-cooldown: "&cstopped at gate 6: cooldown — &f{TICKS} ticks&c remaining ({SCOPE} scope: {KEY})"
 command.why.condition: "&cstopped at gate 7: condition evaluated false"
 command.why.chance: "&cstopped at gate 8: chance — rolled {ROLL} ≥ {CHANCE}%"
+command.why.rebated: "&cstopped at gate 8: a chance rebate ate this proc — rolled {ROLL}, under the unrebated {CHANCE}%"
 command.why.cancelled: "&cstopped at gate 9: a PreActivate hook cancelled it"
 command.why.no-souls-gem: "&cstopped at gate 10: soul cost {COST} but no active soul gem"
 command.why.no-souls-pool: "&cstopped at gate 10: soul cost {COST} — the soul pool could not pay"

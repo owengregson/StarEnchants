@@ -14,10 +14,12 @@ import static org.mockito.Mockito.when;
 
 import compile.model.Ability;
 import compile.model.Affinity;
+import compile.model.ChanceRebate;
 import compile.model.CompiledEffect;
 import compile.model.CompiledSelector;
 import compile.model.ScopeKinds;
 import compile.model.StableKeyIndex;
+import compile.model.cond.NumExpr;
 import engine.effect.EffectRegistry;
 import engine.effect.kind.IgniteEffect;
 import engine.interact.SoulSpender;
@@ -371,6 +373,63 @@ class AbilityExecutorTest {
                 sink, KEYS);
 
         verifyNoInteractions(sink);
+    }
+
+    @Test
+    void aRebatedRollTellsTheVICTIMWhoseGearAteIt() {
+        // ADR-0076 part E on the #314 surface: the pipeline names the verdict, the DISPATCH layer decides who
+        // hears it. The default recipient is the VICTIM because the rebate is THEIR defence.
+        AbilityExecutor gated = executorWith(new SuppressionStore(), SoulSpender.NONE);
+        Player actor = mock(Player.class);
+        when(actor.getName()).thenReturn("Swinger");
+        Player victim = mock(Player.class);
+        SinkReadback sink = mock(SinkReadback.class);
+        Ability blocked = Abilities.ability().trigger(TRIGGER).chance(40.0)
+                .chanceRebate(new ChanceRebate(new NumExpr.Lit(12.5), null, "blocked by {ATTACKER}", false, -1,
+                        false))
+                .effects(igniteEffect("SELF", 60, Affinity.TARGET_ENTITY)).build();
+        Activation rebatedRoll = Activation.builder(ACTOR, 0, TRIGGER, 0L).chanceRoll(() -> 30.0).build();
+
+        assertEquals(0, gated.run(new Ability[] {blocked}, new int[] {0}, rebatedRoll,
+                context(actor, victim), sink, KEYS));
+
+        verify(sink).message(victim, "blocked by Swinger");
+        verifyNoMoreInteractions(sink);
+    }
+
+    @Test
+    void anOrdinaryChanceMissOnARebatedAbilityStaysSilent() {
+        // The band is the whole point: only a roll the ability would have WON unrebated may print a line, or
+        // every miss on a Metaphysical-facing enchant would spam the victim.
+        AbilityExecutor gated = executorWith(new SuppressionStore(), SoulSpender.NONE);
+        SinkReadback sink = mock(SinkReadback.class);
+        Ability blocked = Abilities.ability().trigger(TRIGGER).chance(40.0)
+                .chanceRebate(new ChanceRebate(new NumExpr.Lit(12.5), null, "blocked", false, -1, false))
+                .effects(igniteEffect("SELF", 60, Affinity.TARGET_ENTITY)).build();
+        Activation ordinaryMiss = Activation.builder(ACTOR, 0, TRIGGER, 0L).chanceRoll(() -> 90.0).build();
+
+        gated.run(new Ability[] {blocked}, new int[] {0}, ordinaryMiss,
+                context(mock(Player.class), mock(Player.class)), sink, KEYS);
+
+        verifyNoInteractions(sink);
+    }
+
+    @Test
+    void blockedMessageWhoActorSendsToTheSwingerInstead() {
+        AbilityExecutor gated = executorWith(new SuppressionStore(), SoulSpender.NONE);
+        Player actor = mock(Player.class);
+        when(actor.getName()).thenReturn("Swinger");
+        SinkReadback sink = mock(SinkReadback.class);
+        Ability blocked = Abilities.ability().trigger(TRIGGER).chance(40.0)
+                .chanceRebate(new ChanceRebate(new NumExpr.Lit(12.5), null, "your gear was vetoed", true, -1,
+                        false))
+                .effects(igniteEffect("SELF", 60, Affinity.TARGET_ENTITY)).build();
+        Activation rebatedRoll = Activation.builder(ACTOR, 0, TRIGGER, 0L).chanceRoll(() -> 30.0).build();
+
+        gated.run(new Ability[] {blocked}, new int[] {0}, rebatedRoll, context(actor, null), sink, KEYS);
+
+        verify(sink).message(actor, "your gear was vetoed");
+        verifyNoMoreInteractions(sink);
     }
 
     @Test

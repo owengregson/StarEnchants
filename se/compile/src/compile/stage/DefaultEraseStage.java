@@ -173,9 +173,10 @@ public final class DefaultEraseStage implements EraseStage {
                     suppressKey,
                     la.setPieces(),
                     la.suppressImmune(),
-                    // ADR-0039: only these slots get populated per hit — the chance expression reads the same
-                    // buffer at gate 8, so its facts join the union or it would roll against a stale 0.
-                    FactMasks.of(la.condition(), la.chanceExpr(), effects),
+                    // ADR-0039: only these slots get populated per hit — the chance expression and its rebate
+                    // read the same buffer at gate 8, so their facts join the union or both roll against a
+                    // stale 0.
+                    FactMasks.of(la.condition(), la.chanceExpr(), la.chanceRebate(), effects),
                     la.chanceExpr(),
                     la.noSoulsMessage(),
                     la.soulCostCarried(),
@@ -187,7 +188,8 @@ public final class DefaultEraseStage implements EraseStage {
                     la.cooldownPerVictim(),
                     la.repeatDelayTicks(),
                     sourceGroup,
-                    la.stacks());
+                    la.stacks(),
+                    la.chanceRebate());
 
             abilities.add(ability);
             keysByDenseId.add(la.stableKey());

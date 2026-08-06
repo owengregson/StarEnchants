@@ -85,7 +85,28 @@ Parts A–D ship as stages S1–S3 (engine) and S4 (content); part E as S5–S6.
   from their arguments too.
 - `%victim%` vs `%target%` is a real authoring hazard, closed by the scope-legality diagnostic rather than by
   documentation.
-- At S5: `GateOutcome` gains one constant and `/se why` gains one verdict with a richer payload.
+- `%selected%` is ONE dense slot, rewritten by every targeting effect and overwritten with `-1` by every
+  ability that fails to activate. So exactly one effect row and one sibling ability may read it directly;
+  anything beyond that captures the count into a var first (the `lava-elemental.yml` marker idiom). Found by
+  the S4 content, and now stated in `docs/dev/internals/effect-engine.md` and on the `BuiltinVars` entry.
+- `GateOutcome` gains one constant and `/se why` gains one verdict rendering both the roll and the UNREBATED
+  chance — "you would have procced at 40 %, and a rebate took it" is an answer a bare `CHANCE_FAILED` cannot
+  give. `REBATED` is inserted next to `CHANCE_FAILED` to keep the enum in gate order; the ordinal is a
+  per-run `WhyRing` encoding and is not persisted, so the insert costs nothing.
+
+### As built, where part E's shape differs from the design
+
+Two adjustments, both made during S5 and neither changing what the decision above says:
+
+- The six rebate knobs land as ONE nullable record component (`ChanceRebate` on `Ability`, `RebateKnobs` on
+  `AbilityDef`) rather than six flat fields in the `noSouls*` shape. They are absent together on all but a
+  handful of abilities, so one null check at gate 8 replaces two, three records with 30+ components each grow
+  by one instead of six, and the seven def readers attach the envelope through one `withRebate(...)` seam
+  instead of each growing a positional argument list.
+- The mutual exclusion is a reader diagnostic (`E_LOAD_REBATE`), not a `ParamSpec` `CrossRule`. `CrossRule`
+  governs EFFECT params; these are ability-level knobs the `ContentParse` envelope reads, so `ContentFuzz`
+  (which generates effect lines) is untouched and needs no new rule. The same code covers the second shape
+  worth rejecting — feedback declared with no term at all, which would ship as a line that can never fire.
 
 ## Alternatives considered
 
