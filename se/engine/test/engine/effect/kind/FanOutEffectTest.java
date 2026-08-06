@@ -131,14 +131,22 @@ class FanOutEffectTest {
                         new FreezeEffect(),
                         c -> c.with("duration", 80).with("dot", 3.0).with("dot-period", 30)
                                 .with("slow", 7.0).with("neutralize-frost-slow", false)
-                                .with("breakout-chance", 0.0),
-                        (s, t) -> verify(s).freeze(t, 80, 3.0, 30, 7.0, false, 0.0, null)),
+                                .with("breakout-chance", 0.0).with("no-jump", false),
+                        (s, t) -> verify(s).freeze(t, 80, 3.0, 30, 7.0, false, 0.0, false, null)),
+                // R-QC57: the ground-pin is a FLAG that must reach the window on its own wire — an ordinary
+                // freeze and a no-jump freeze differ in exactly this argument.
+                entity("FREEZE no-jump rides to the window as its own flag",
+                        new FreezeEffect(),
+                        c -> c.with("duration", 80).with("dot", 3.0).with("dot-period", 30)
+                                .with("slow", 7.0).with("neutralize-frost-slow", false)
+                                .with("breakout-chance", 0.0).with("no-jump", true),
+                        (s, t) -> verify(s).freeze(t, 80, 3.0, 30, 7.0, false, 0.0, true, null)),
                 entity("FREEZE breakout-chance rides to the window (a root the victim can struggle out of)",
                         new FreezeEffect(),
                         c -> c.with("duration", 80).with("dot", 3.0).with("dot-period", 30)
                                 .with("slow", 7.0).with("neutralize-frost-slow", false)
-                                .with("breakout-chance", 22.5),
-                        (s, t) -> verify(s).freeze(t, 80, 3.0, 30, 7.0, false, 22.5, null)),
+                                .with("breakout-chance", 22.5).with("no-jump", false),
+                        (s, t) -> verify(s).freeze(t, 80, 3.0, 30, 7.0, false, 22.5, false, null)),
                 // §C: the authored 1-based level reaches the Sink as the 0-based Bukkit amplifier (level − 1).
                 entity("POTION → potion(effect, level−1, duration)", new PotionEffect(),
                         c -> c.with("effect", 7).with("level", 2).with("duration", 100),
@@ -172,11 +180,11 @@ class FanOutEffectTest {
                     FakeEffectCtx ctx = FakeEffectCtx.create().actor(actor)
                             .with("duration", 80).with("dot", 3.0).with("dot-period", 30)
                             .with("slow", 7.0).with("neutralize-frost-slow", false)
-                            .with("breakout-chance", 0.0).targets("who", a, b);
+                            .with("breakout-chance", 0.0).with("no-jump", false).targets("who", a, b);
                     Sink sink = mock(Sink.class);
                     new FreezeEffect().run(ctx, sink);
-                    verify(sink).freeze(a, 80, 3.0, 30, 7.0, false, 0.0, actor);
-                    verify(sink).freeze(b, 80, 3.0, 30, 7.0, false, 0.0, actor);
+                    verify(sink).freeze(a, 80, 3.0, 30, 7.0, false, 0.0, false, actor);
+                    verify(sink).freeze(b, 80, 3.0, 30, 7.0, false, 0.0, false, actor);
                     verifyNoMoreInteractions(sink);
                 }));
     }

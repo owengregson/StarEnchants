@@ -618,7 +618,16 @@ batch recorded as a comment inside those files.
     `platform.item.SmeltTable`, shared with `feature.combat.MineDrops`, so the two drop-transform
     paths cannot disagree about what an ore becomes. `smelt-materials` exists because the shared
     table knows sand and cobble, which the jar never smelted in a blast.
-  - **FREEZE's no-jump knob — DESIGNED in wave 3b-3, NOT BUILT (R-QC57).** The mechanism question is
+  - **FREEZE's no-jump knob — BUILT in QC wave 3c (R-QC57).** Exactly the shape designed below and for the
+    reasons given: a `no-jump` FLAG on `FREEZE` threaded onto `FrozenTargets.Window` (an unconditional change
+    would silently re-tune ice-aspect and the Dimensional Traveler field), read back by
+    `FrozenTargets.blocksJump` — a SECOND read, never a widening of `isFrozen`, because frozen and
+    ground-pinned are different states. The flag LATCHES on refresh, so a second consumer's plain FREEZE
+    landing mid-window cannot release a pin the window already had. The listener is
+    `FreezeJumpGuardListener` on the modern binding seam (`EraServices.freezeJumpGuard`, real on modern,
+    `NoopListener` on legacy), one cancel on Paper's own event. `tombstone.yml` and `titan-trap.yml` author
+    it and both files' "not shipped on either lane" notes are rewritten to the era split. The design record
+    follows, unchanged: the mechanism question is
     settled and the answer is era-split, so recording it is worth more than half-shipping it. The
     amplifier-128 JUMP trick is ruled out pack-wide. On the MODERN lane there is a clean, exact,
     zero-cost mechanism: Paper's `PlayerJumpEvent` is cancellable and has existed since well before
@@ -627,11 +636,10 @@ batch recorded as a comment inside those files.
     not Paper), and every substitute is felt-wrong: a `PlayerMoveEvent` velocity test rubber-bands
     the victim and pays for itself on the hot movement path, and a per-tick velocity write jitters.
     So the shape is modern-only with a documented legacy degradation, which is exactly what FREEZE
-    already does for its powder-snow visual. What it needs to land: a `no-jump` flag on `FREEZE`
+    already does for its powder-snow visual. What it needed to land: a `no-jump` flag on `FREEZE`
     threaded onto `FrozenTargets.Window` (an unconditional change would silently re-tune every
     existing FREEZE consumer — ice-aspect, the Dimensional Traveler field — not just the two that
-    want it), plus an overlay-only listener wired through the modern binding seam. `tombstone.yml`
-    and `titan-trap.yml` take the flag the day it lands; nothing is authored for it yet.
+    want it), plus an overlay-only listener wired through the modern binding seam. Both landed.
   - `PROC_REBOUND`'s gateless `runForced` path still bypasses defender-keyed
     suppression: its `Activation` carries no random-backed roll supplier, so a
     partial window there would block deterministically rather than roll. Recorded in

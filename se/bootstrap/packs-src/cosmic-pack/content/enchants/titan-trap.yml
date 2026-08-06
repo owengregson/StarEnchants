@@ -49,11 +49,12 @@ condition: "%victim.type% == \"PLAYER\" && %victim.var.trap.frozen% != 1"
 # key it to the counterpart alone. The owner may align the two with a single interaction rule later.
 # Counterpart Trap (flat 35 t, no jump lock, no water cue, -2.5 pp unfloored resistance) is REPLACED by the
 # contract, never summed.
-# THE JUMP LOCK IS NOT SHIPPED, on either lane. The jar's Jump-amplifier-128 trick is a 1.8-only integer
-# overflow and FREEZE is the root that replaces it, but FREEZE is visual + `slow` + `dot` only — nothing in
-# it touches jumping (the only jump suppressor in the engine is the reforge control lock's negative Jump
-# Boost, which no effect exposes). A trapped player can still hop; at 99.5 % slow they hop on the spot, which
-# is why this ships anyway. A jump knob on FREEZE is owed engine-side.
+# THE JUMP LOCK SHIPS ON THE MODERN LANE (R-QC57), as `FREEZE no-jump`. The jar's Jump-amplifier-128 trick
+# stays ruled out pack-wide (a 1.8-only integer overflow; on the modern lane that amplifier is a real and
+# enormous jump). The knob is a cancel on Paper's own `PlayerJumpEvent`, so it is exact and costs nothing
+# per tick — and it is a FLAG, so every other FREEZE consumer keeps the feel it was tuned at. The 1.8.9
+# overlay has no cancellable jump event and every substitute is felt-wrong, so the LEGACY lane keeps the
+# recorded degrade: a trapped player can still hop, and at 99.5 % slow they hop on the spot.
 # era: `STATIONARY_WATER` is 1.8's still-water spelling of `WATER` and `Sound.WATER` is 1.8's
 # `BLOCK_WATER_AMBIENT` — the modern spellings ship here (the pack-wide convention), and both rows landed in
 # wave 2e.2 (closing the legacy sweep): `Aliases.MATERIAL` carries `STATIONARY_WATER` and `Aliases.SOUND`
@@ -71,7 +72,7 @@ levels:
       # damage-free — the jar's freeze only holds, it never bleeds. `neutralize-frost-slow` defaults true, so
       # the authored 99.5 is the real number rather than vanilla's own fully-frozen slow stacked on top, and
       # `breakout-chance` stays 0: the jar's sentence is fixed, never a struggle the victim can win early.
-      - { FREEZE: { duration: 45, dot: 0, slow: 99.5, who: "@Victim" } }
+      - { FREEZE: { duration: 45, dot: 0, slow: 99.5, no-jump: true, who: "@Victim" } }
       - { SET_VAR: { name: "trap.frozen", value: "1", ttl: 45, who: "@Victim" } }
       # The head-height "water" cue. The jar broadcast a client-only block-change packet over a 64-block box,
       # which no player-state primitive expresses; the engine's temp-block ledger places and reverts a REAL
@@ -96,7 +97,7 @@ levels:
   2:
     chance: "max(1, 8 - 1.25 * %victim.enchlevel.metaphysical% - 1.25 * %victim.enchlevel.polymorphic-metaphysical%)"
     effects:
-      - { FREEZE: { duration: 55, dot: 0, slow: 99.5, who: "@Victim" } }
+      - { FREEZE: { duration: 55, dot: 0, slow: 99.5, no-jump: true, who: "@Victim" } }
       - { SET_VAR: { name: "trap.frozen", value: "1", ttl: 55, who: "@Victim" } }
       - { TEMP_BLOCK: { shape: "POINT", material: "WATER", ticks: 55, dy: 1, airOnly: false, who: "@Victim" } }
       - { SOUND: { sound: "BLOCK_WATER_AMBIENT", volume: 10.0, pitch: 1.1 } }
@@ -106,7 +107,7 @@ levels:
   3:
     chance: "max(1, 12 - 1.25 * %victim.enchlevel.metaphysical% - 1.25 * %victim.enchlevel.polymorphic-metaphysical%)"
     effects:
-      - { FREEZE: { duration: 65, dot: 0, slow: 99.5, who: "@Victim" } }
+      - { FREEZE: { duration: 65, dot: 0, slow: 99.5, no-jump: true, who: "@Victim" } }
       - { SET_VAR: { name: "trap.frozen", value: "1", ttl: 65, who: "@Victim" } }
       - { TEMP_BLOCK: { shape: "POINT", material: "WATER", ticks: 65, dy: 1, airOnly: false, who: "@Victim" } }
       - { SOUND: { sound: "BLOCK_WATER_AMBIENT", volume: 10.0, pitch: 1.1 } }

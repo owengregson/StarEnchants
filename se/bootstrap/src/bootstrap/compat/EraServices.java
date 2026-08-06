@@ -126,6 +126,10 @@ public interface EraServices {
      *  join-time stranded-lock reconcile; 1.8 has no freeze concept, so an inert listener. */
     Listener freezeDamageGuard();
 
+    /** FREEZE no-jump guard (R-QC57): modern cancel of a frozen player's jump when the window authored the
+     *  flag; 1.8 has no cancellable jump event, so an inert listener (the recorded era degrade). */
+    Listener freezeJumpGuard();
+
     /** ITEM_DAMAGE source (modern {@code PlayerItemDamageEvent}; 1.8 an inert listener — the poll fires it). */
     Listener itemDamageSource(TriggerDispatch dispatch);
 

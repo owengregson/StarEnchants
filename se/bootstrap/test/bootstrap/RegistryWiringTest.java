@@ -53,6 +53,8 @@ class RegistryWiringTest {
 
     static final class FreezeDamageGuard implements Listener { }
 
+    static final class FreezeJumpGuard implements Listener { }
+
     static final class ItemDamageSource implements Listener { }
 
     static final class HeroicDurabilitySave implements Listener { }
@@ -77,6 +79,7 @@ class RegistryWiringTest {
             "TempEquipListener", "TimedRevertListener", "TempBlockGuardListener",
             "HellfireFloorListener", "KeepOnDeathListener", "HeadTrophyListener",
             "TeleblockListener", "ImmuneListener", "FoodWindowListener", "PotionLockGuard", "FreezeDamageGuard",
+            "FreezeJumpGuard", // R-QC57: FREEZE no-jump, beside its sibling guard; inert on the 1.8 binding
             "EngineStoreListener", "VanillaGuardListener", "HeadEquipGuard", "DispenseArmorGuard", "StationGuard",
             "CarrierListener", "CrystalListener",
             "HeroicListener", "HeroicDurabilitySave",
@@ -141,6 +144,7 @@ class RegistryWiringTest {
         when(bindings.handChangeFeeder(any())).thenReturn(new HandChangeFeeder());
         when(bindings.potionLockGuard()).thenReturn(new PotionLockGuard());
         when(bindings.freezeDamageGuard()).thenReturn(new FreezeDamageGuard());
+        when(bindings.freezeJumpGuard()).thenReturn(new FreezeJumpGuard()); // R-QC57 FREEZE no-jump, modern-only
         when(bindings.itemDamageSource(any())).thenReturn(new ItemDamageSource());
         when(bindings.heroicDurabilitySave(any(), any())).thenReturn(new HeroicDurabilitySave());
         when(bindings.maskBreakSource(any(), any())).thenReturn(new MaskBreakSource());

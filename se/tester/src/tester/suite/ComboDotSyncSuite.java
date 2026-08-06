@@ -180,7 +180,7 @@ public final class ComboDotSyncSuite implements Harness.Scenario {
                 sink.delay(5);
                 sink.damage(victim, 4.0, attacker); // deferred DAMAGE (site #1) → hurtOrPark banks it
                 sink.delay(0);
-                sink.freeze(victim, 40, 2.0, 10, 5.0, true, 0, attacker); // four DoT slots at t+10/20/30/40, each banked
+                sink.freeze(victim, 40, 2.0, 10, 5.0, true, 0, false, attacker); // four DoT slots at t+10/20/30/40, each banked
                 sink.flush();
                 // Hold past the whole freeze window so all four slots have parked before we read the ledger.
                 Scheduling.onEntityLater(victim, 60L, () -> {

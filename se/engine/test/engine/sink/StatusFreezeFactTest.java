@@ -62,7 +62,7 @@ class StatusFreezeFactTest {
         assertFalse(pop.populate(new ActivationContext(a, null, null, null), 0L, mask).flag(slot),
                 "an actor under no freeze reads false");
 
-        long gen = FrozenTargets.arm(actorId, 60, System.currentTimeMillis() + 3_000, UUID.randomUUID(), null);
+        long gen = FrozenTargets.arm(actorId, 60, System.currentTimeMillis() + 3_000, UUID.randomUUID(), null, false);
         assertTrue(pop.populate(new ActivationContext(a, null, null, null), 0L, mask).flag(slot),
                 "a live window reads true");
 
@@ -77,7 +77,7 @@ class StatusFreezeFactTest {
     void theFlagIsPerActorAndMaskGated() {
         int slot = freezeSlot();
         FactPopulator pop = FactPopulator.builtin(new ModernActorProbe());
-        FrozenTargets.arm(actorId, 60, System.currentTimeMillis() + 3_000, UUID.randomUUID(), null);
+        FrozenTargets.arm(actorId, 60, System.currentTimeMillis() + 3_000, UUID.randomUUID(), null, false);
 
         Player frozen = actor();
         Player other = mock(Player.class);
