@@ -2,12 +2,21 @@ package compile.load;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import compile.Compiler;
+import compile.MapSpecRegistry;
 import compile.def.AbilityDef;
 import compile.def.RebateKnobs;
+import compile.model.Ability;
+import compile.model.Snapshot;
+import java.util.List;
 import java.util.function.IntSupplier;
+import schema.spec.D;
+import schema.spec.ParamSpec;
+import testfx.PermissiveResolvers;
 import org.junit.jupiter.api.Test;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostics;
@@ -145,5 +154,58 @@ class RebateKnobsReaderTest {
             """, diags);
         assertFalse(diags.hasErrors(), () -> diags.all().toString());
         assertEquals(RebateKnobs.NONE, ability.rebate());
+    }
+
+    @Test
+    void theEnvelopeThreadsAllTheWayToTheCompiledAbility() {
+        // The producer seam suppress-immune and no-souls-message already guard: a stage that rebuilds the
+        // record field-by-field drops a knob with no diagnostic and no other failing test. Gate 8 would then
+        // roll the UNREBATED rate for every migrated file, silently doubling their live proc rates.
+        Diagnostics diags = new Diagnostics();
+        int[] id = {0};
+        IntSupplier ids = () -> id[0]++;
+        String yaml = """
+            trigger: ATTACK
+            levels:
+              1:
+                chance: 4
+                chance-rebate: "min(3, 2.5 * %victim.enchlevel.metaphysical%)"
+                blocked-message: "&8blocked"
+                rebate-spends-cooldown: true
+                effects: [{ HEAL: { amount: 2 } }]
+              2:
+                chance: 7.5
+                chance-rebate-scale: "0.2 * %victim.enchlevel.polymorphic-metaphysical%"
+                effects: [{ HEAL: { amount: 2 } }]
+              3:
+                chance: 4
+                effects: [{ HEAL: { amount: 2 } }]
+            """;
+        List<AbilityDef> defs = EnchantDefReader.read("enchants/trapish",
+                YamlNode.compose("test.yml", yaml, diags), ids, diags).abilities();
+        Snapshot snap = Compiler.of(MapSpecRegistry.of(heal()), head -> compile.model.Affinity.CONTEXT_LOCAL,
+                MapSpecRegistry.of(), head -> null, PermissiveResolvers.INSTANCE).compile(defs, 1, diags);
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        Ability points = snap.byStableKey("enchants/trapish/1");
+        assertEquals(4.0, points.baseChance(), "the ladder is the UNREBATED rate again");
+        assertNotNull(points.chanceRebate().points());
+        assertNull(points.chanceRebate().scale());
+        assertEquals("&8blocked", points.chanceRebate().message());
+        assertTrue(points.chanceRebate().spendsCooldown());
+        // The rebate reads a fact at gate 8 from the same buffer the chance does, so the demand-driven
+        // populator has to be told — an unmasked slot would price every rebate off a never-populated 0.
+        assertNotNull(points.factMask());
+
+        Ability fraction = snap.byStableKey("enchants/trapish/2");
+        assertNull(fraction.chanceRebate().points());
+        assertNotNull(fraction.chanceRebate().scale());
+
+        assertNull(snap.byStableKey("enchants/trapish/3").chanceRebate(), "no envelope, no allocation");
+    }
+
+    /** A minimal effect spec so the compiler has a head to validate against. */
+    private static ParamSpec heal() {
+        return ParamSpec.of("HEAL").param("amount", D.DOUBLE.min(0)).build();
     }
 }
