@@ -210,6 +210,15 @@ public final class LoreRenderer {
         /** The weapon's own lore for {@code setKey} (empty if none / unknown). */
         List<String> weapon(String setKey);
 
+        /**
+         * As above for ONE of a multi-weapon set's weapons, selected by the rendered item's gear kind
+         * ({@code SWORD}, {@code AXE}) — the same shape {@link #armor(String, String)} takes. Defaults to the
+         * set-key-only read, so a lookup written before R-QC35a keeps answering.
+         */
+        default List<String> weapon(String setKey, String kindToken) {
+            return weapon(setKey);
+        }
+
         /** A lookup that renders no member lore at all. */
         SetLore NONE = new SetLore() {
             @Override public List<String> armor(String setKey) {

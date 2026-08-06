@@ -386,6 +386,11 @@ public final class BootCore {
                         compile.load.SetDef def = content.library().setDefOf(setKey);
                         return def != null ? def.weaponLore() : java.util.List.of();
                     }
+
+                    @Override public java.util.List<String> weapon(String setKey, String kindToken) {
+                        compile.load.SetDef def = content.library().setDefOf(setKey);
+                        return def != null ? def.weaponLoreFor(kindToken) : java.util.List.of();
+                    }
                 })
                 .withProtectionLines(protectionLinesFn) // §I applied-scroll PROTECTED lines, from marker state
                 .withTrakLines(trakLinesFn)             // §I applied-trak count lines, from marker + counter state

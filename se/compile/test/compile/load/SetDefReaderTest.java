@@ -400,6 +400,46 @@ class SetDefReaderTest {
     }
 
     @Test
+    void aSetMayDeclareSeveralWeaponsAndTheSingularFormStaysTheFirstOne() {
+        // R-QC35a: `weapons:` is the keyed form of `weapon:` — the same shape `armor.pieces` uses. Every read
+        // written against the singular form must keep answering, which is why weapon() is the FIRST member.
+        Diagnostics diags = new Diagnostics();
+        String yaml = """
+            armor:
+              pieces:
+                helmet: { material: DIAMOND_HELMET }
+            weapons:
+              sword:
+                material: DIAMOND_SWORD
+                name: "KOTH Sword"
+              axe:
+                material: DIAMOND_AXE
+                lore: ["&7strips armour"]
+                enchants:
+                  SHARPNESS: 5
+            bonuses:
+              - on: armor
+                trigger: DEFEND
+                effects: [{ DAMAGE: { amount: 1 } }]
+            """;
+        SetDef def = SetDefReader.read("sets/koth", root(yaml, diags), counter(), diags).def();
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        assertTrue(def.hasWeapon());
+        assertEquals(2, def.weaponMembers().size());
+        assertEquals("DIAMOND_SWORD", def.weapon().material(), "the singular read is the FIRST weapon");
+        assertEquals("DIAMOND_AXE", def.weaponMember("axe").material());
+        assertNull(def.weaponMember("mace"), "an undeclared token resolves to nothing rather than the first");
+        // Lore and roster live on the MEMBER now — a weapon has no shared block to refine, which is exactly
+        // what lets several of them coexist under one def.
+        assertEquals(List.of("&7strips armour"), def.weaponLoreFor("axe"));
+        assertEquals(List.of(), def.weaponLoreFor("sword"));
+        assertEquals(List.of(), def.weaponLoreFor("mace"), "an unknown token falls back to the first weapon's");
+        assertEquals(Map.of("SHARPNESS", EnchantRoll.fixed(5)), def.weaponMember("axe").enchants());
+        assertEquals(Map.of(), def.weaponEnchants(), "the singular roster is the first weapon's");
+    }
+
+    @Test
     void theRollFormsParseToTheirBandsAndAnUnreadableOneWarnsAndIsSkipped() {
         Diagnostics diags = new Diagnostics();
         String yaml = """

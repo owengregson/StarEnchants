@@ -124,7 +124,10 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
     private static final java.time.format.DateTimeFormatter BACKUP_STAMP =
             java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmmss");
 
-    static final List<String> SET_MEMBERS = List.of("helmet", "chestplate", "leggings", "boots", "weapon");
+    // Completion only — the mint itself accepts any token the named set declares, so a multi-weapon set's
+    // own tokens (`sword`, `axe`, R-QC35a) work whether or not they are listed here.
+    static final List<String> SET_MEMBERS = List.of("helmet", "chestplate", "leggings", "boots", "weapon",
+            "sword", "axe");
 
     private final ContentReloader reloader;
     private final ItemEnchanter enchanter;

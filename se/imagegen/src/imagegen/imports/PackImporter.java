@@ -86,11 +86,13 @@ public final class PackImporter {
             out.add(fixture("set-" + simpleKey + "-" + member.slot(), member, def,
                     vanilla(library, roster), renderer, state));
         }
-        if (def.hasWeapon()) {
-            CombatState state = new CombatState(custom(library, def.weaponEnchants()), List.of(), null, def.key(),
+        // One fixture per declared weapon (R-QC35a); the id carries the member token so a sword and an axe
+        // of the same set cannot collide on `-weapon`.
+        for (compile.load.SetDef.Member weapon : def.weaponMembers()) {
+            CombatState state = new CombatState(custom(library, weapon.enchants()), List.of(), null, def.key(),
                     false, HeroicStat.NONE, 0, null, null);
-            out.add(fixture("set-" + simpleKey + "-weapon", def.weapon(), def,
-                    vanilla(library, def.weaponEnchants()), renderer, state));
+            out.add(fixture("set-" + simpleKey + "-" + weapon.slot(), weapon, def,
+                    vanilla(library, weapon.enchants()), renderer, state));
         }
         return out;
     }

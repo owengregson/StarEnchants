@@ -227,10 +227,13 @@ public final class LibraryLoader {
         }
         for (SetDef set : sets) {
             checkSetEnchantRefs(set, set.armorEnchants(), byKey, diags);
-            checkSetEnchantRefs(set, set.weaponEnchants(), byKey, diags);
             // Per-piece rosters are references too: a slot's own entries are validated exactly like the
             // shared ones, so a typo on one boot cannot slip through because its three siblings are clean.
+            // Weapons carry theirs on the member as well since R-QC35a, so both lists walk the same way.
             for (SetDef.Member member : set.armorMembers()) {
+                checkSetEnchantRefs(set, member.enchants(), byKey, diags);
+            }
+            for (SetDef.Member member : set.weaponMembers()) {
                 checkSetEnchantRefs(set, member.enchants(), byKey, diags);
             }
         }

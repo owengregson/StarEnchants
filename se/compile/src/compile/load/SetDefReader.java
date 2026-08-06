@@ -26,9 +26,9 @@ import schema.grammar.EffectLine;
 final class SetDefReader {
 
     private static final Set<String> ROOT_KEYS = Set.of("display", "description", "complete", "armor", "weapon",
-            "bonuses", "announce", "equip-message", "remove-message");
+            "weapons", "bonuses", "announce", "equip-message", "remove-message");
     private static final Set<String> ARMOR_KEYS = Set.of("lore", "enchants", "pieces");
-    private static final Set<String> WEAPON_KEYS = Set.of("material", "name", "lore", "enchants");
+    private static final Set<String> WEAPON_KEYS = Set.of("material", "name", "lore", "enchants", "color");
     private static final Set<String> BONUS_KEYS = ContentParse.withEnvelopeKnobs(
             "on", "trigger", "disabled-worlds", "group", "repeat", "repeat-delay", "chance", "cooldown", "soul-cost",
             "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
@@ -100,25 +100,23 @@ final class SetDefReader {
                     + complete, root.sourceOf("complete"));
         }
 
-        // Physical weapon (optional): material, name, lore, minted enchants. Its behaviour is an on:weapon bonus.
-        SetDef.Member weapon = null;
-        List<String> weaponLore = List.of();
-        java.util.Map<String, EnchantRoll> weaponEnchants = java.util.Map.of();
-        boolean hasWeaponItem = false;
+        // Physical weapons (optional): material, name, lore, minted enchants. Their behaviour is an on:weapon
+        // bonus. `weapon:` is ONE item under the token `weapon`; `weapons:` is a keyed map of them (R-QC35a),
+        // the same shape `armor.pieces` uses, so a set can ship a sword AND an axe.
+        List<SetDef.Member> weaponMembers = new ArrayList<>();
         if (root.has("weapon")) {
-            YamlNode weaponNode = root.child("weapon");
-            ContentParse.warnUnknownKeys(weaponNode, WEAPON_KEYS, diags);
-            String material = ContentParse.blankToNull(weaponNode.string("material"));
-            String name = ContentParse.blankToNull(weaponNode.string("name"));
-            weaponLore = weaponNode.stringList("lore");
-            weaponEnchants = readEnchants(weaponNode, baseKey, diags);
-            if (material == null) {
-                diags.error(DiagCode.E_LOAD_SET_WEAPON, "the weapon of '" + baseKey + "' must declare a 'material'",
-                        weaponNode.sourceOf("material"));
+            SetDef.Member single = weaponMember(root.child("weapon"), "weapon", baseKey, diags);
+            if (single != null) {
+                weaponMembers.add(single);
             }
-            weapon = new SetDef.Member("weapon", material, name);
-            hasWeaponItem = true;
         }
+        for (YamlNode.Entry entry : root.entries("weapons")) {
+            SetDef.Member member = weaponMember(entry.value(), entry.key(), baseKey, diags);
+            if (member != null) {
+                weaponMembers.add(member);
+            }
+        }
+        boolean hasWeaponItem = !weaponMembers.isEmpty();
 
         // Behaviours: the unified bonuses list. The first on:armor bonus is the completion ability
         // (stableKey == baseKey, setPieces = complete); further armour bonuses are baseKey/aN and weapon
@@ -158,9 +156,30 @@ final class SetDefReader {
         String removeMessage = root.string("remove-message");
 
         SetDef def = new SetDef(baseKey, display, description == null ? "" : description, null,
-                Math.max(0, complete), armorMembers, armorLore, weapon, weaponLore, appliesTo,
-                armorEnchants, weaponEnchants, announce, equipMessage, removeMessage, fileSource);
+                Math.max(0, complete), armorMembers, armorLore, weaponMembers, appliesTo,
+                armorEnchants, announce, equipMessage, removeMessage, fileSource);
         return new Parsed(def, abilities);
+    }
+
+    /**
+     * One weapon item. Its lore and mint roster live on the MEMBER (a weapon has no shared block to refine),
+     * which is what lets several of them coexist under one set def.
+     */
+    private static SetDef.Member weaponMember(YamlNode node, String token, String baseKey, Diagnostics diags) {
+        if (!node.isMapping()) {
+            diags.error(DiagCode.E_LOAD_SET_WEAPON, "weapon '" + token + "' of '" + baseKey + "' must be a mapping",
+                    node.source());
+            return null;
+        }
+        ContentParse.warnUnknownKeys(node, WEAPON_KEYS, diags);
+        String material = ContentParse.blankToNull(node.string("material"));
+        if (material == null) {
+            diags.error(DiagCode.E_LOAD_SET_WEAPON, "weapon '" + token + "' of '" + baseKey
+                    + "' must declare a 'material'", node.sourceOf("material"));
+        }
+        return new SetDef.Member(token, material, ContentParse.blankToNull(node.string("name")),
+                node.stringList("lore"), readEnchants(node, baseKey + " weapon '" + token + "'", diags),
+                ContentParse.blankToNull(node.string("color")), false);
     }
 
     /** A bonus is weapon-scoped when {@code on: weapon} (case-insensitive); anything else (incl. absent) is armour. */
