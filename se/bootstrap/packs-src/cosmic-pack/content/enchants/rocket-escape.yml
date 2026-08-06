@@ -22,12 +22,16 @@ chance: 100
 # An attacker's Sabotage window (swords doc) blocks the escape at 10% x its level and the 600t cooldown still
 # burns (measured) — attacker-side, authored with Sabotage, whose line is
 # `§c§l ** §7Rocket Escape:§c§l SABOTAGED **` (leading space verbatim).
+# Cooldown bucket: SHARED with the heroic grade (R-QC57) via the named `cooldown-scope: rocket-escape` on the
+# launch ability, which is the matrix's one bucket across the pair. The 600 t here and the heroic's 300 t are
+# both kept — a shared bucket paces the two, it does not align their thresholds.
 # era: EXPLODE is the 1.8 sound id (ENTITY_GENERIC_EXPLODE here, resolver alias); raw Y velocities 6-10 cross
 # the client's velocity-warning threshold identically on both eras (jar-faithful).
 levels:
   1:
     abilities:
       - cooldown: 600
+        cooldown-scope: rocket-escape
         condition: "%damage% >= %actor.health%"
         effects:
           - { CANCEL: {} }
@@ -51,6 +55,7 @@ levels:
   2:
     abilities:
       - cooldown: 600
+        cooldown-scope: rocket-escape
         condition: "%damage% >= %actor.health%"
         effects:
           - { CANCEL: {} }
@@ -73,6 +78,7 @@ levels:
   3:
     abilities:
       - cooldown: 600
+        cooldown-scope: rocket-escape
         condition: "%damage% >= %actor.health%"
         effects:
           - { CANCEL: {} }

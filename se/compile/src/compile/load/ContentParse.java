@@ -325,27 +325,35 @@ final class ContentParse {
 
     private static final String SUPPRESS_TYPE = "suppress-type";
 
-    /** The one accepted {@code cooldown-scope} value; anything else is an {@code E_ENUM}. */
+    /** The one RESERVED {@code cooldown-scope} value — the opt-out; anything else is a shared bucket name. */
     private static final String COOLDOWN_SCOPE_NONE = "none";
 
     /**
-     * The ability's ENCHANT cooldown scope: {@code defaultScope}, or {@code null} for {@code cooldown-scope:
-     * none}. A null scope erases to {@code -1}, which gate 6 skips outright — so the ability neither blocks on
-     * nor arms the bucket its siblings share (Rocket Escape's FALL companion, starved by its own launch).
-     * An unrecognised value blocks with the default kept, never a throw and never a silent opt-out.
+     * The ability's ENCHANT cooldown scope. Three forms:
+     *
+     * <ul>
+     *   <li>absent &rarr; {@code defaultScope}, this enchant's own key: its blocks share one bucket;</li>
+     *   <li>{@code none} &rarr; {@code null}, which erases to {@code -1} and gate 6 skips outright, so the
+     *       ability neither blocks on nor arms the bucket its siblings share (Rocket Escape's FALL
+     *       companion, starved by its own launch);</li>
+     *   <li>any other name &rarr; a SHARED bucket two enchants can both point at (R-QC57). The scope table is
+     *       a free-form intern, and gate 6 keys on the interned id, so two files writing the same name pace
+     *       each other — which is the only way to express the measured "one bucket across a grade pair".
+     *       Each ability keeps its OWN {@code cooldown:}, so the asymmetric thresholds the matrix records
+     *       (15 s on one grade, 30 s on the other) survive the sharing.</li>
+     * </ul>
+     *
+     * <p>A shared name is deliberately NOT namespaced or validated against a registry: there is no scope
+     * catalogue to validate against, and a typo produces a private bucket rather than a wrong one — the same
+     * failure an un-shared ability already has, and strictly safer than silently joining the wrong pace.
      */
     static String resolveCooldownScope(YamlNode node, String defaultScope, Diagnostics diags) {
         String raw = blankToNull(resolveString(node, COOLDOWN_SCOPE, diags));
         if (raw == null) {
             return defaultScope;
         }
-        if (COOLDOWN_SCOPE_NONE.equalsIgnoreCase(raw.trim())) {
-            return null;
-        }
-        diags.error(DiagCode.E_ENUM, label(COOLDOWN_SCOPE) + " must be '" + COOLDOWN_SCOPE_NONE + "', got '"
-                        + raw + "'", node.sourceOf(COOLDOWN_SCOPE),
-                "drop the key to keep the shared cooldown bucket");
-        return defaultScope;
+        String trimmed = raw.trim();
+        return COOLDOWN_SCOPE_NONE.equalsIgnoreCase(trimmed) ? null : trimmed;
     }
 
     /**
