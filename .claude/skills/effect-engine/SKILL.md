@@ -47,6 +47,16 @@ Every `evaluate` also reports `(defId, trigger, verdict, per-gate payload)` to t
 injected `WhyRecorder` (a per-player packed ring in `WhyStore`, ADR-0045) — `/se why`
 renders it; payloads are captured at the failing gate, names resolve at render time.
 
+**Per-target evaluation is NOT a gate (ADR-0076).** The activation is adjudicated
+once; a target is adjudicated many times, and a target verdict may only REMOVE A
+BODY. `each-if`/`each-chance`/`each-cooldown` filter an effect's resolved list
+inside gate 12, at the `withoutDefendedTargets` site — no `GateOutcome`, no
+cooldown release, no recorder entry. `%target.*%` is a Bukkit-free subset (no live
+entity read, ever) and is a blocking diagnostic in `condition:`/`chance:`.
+`%selected%` is one dense slot rewritten by every targeting effect and by every
+ability that fails to activate, so exactly one row and one sibling ability may
+read it; anything further captures it into a var first.
+
 ## Adding a kind — one class, one ParamSpec, one registration
 
 Implement `EffectKind` / `ConditionFn` / `TriggerKind` / `SelectorKind`, declare

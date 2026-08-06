@@ -17,10 +17,14 @@ stackable: true
 # The payload below is sets/dimensional-traveler.yml's, copied in the same sitting from that one reading: the
 # freeze, the Clarity-shed blindness, the slow, both cues, the target line and the two-material FALLING_BLOCK
 # field with its whole layer/density/re-hit profile. If either copy is retuned, both must move together.
-# TWO CLAUSES OF THE SET'S READING DO NOT TRAVEL, recorded rather than faked:
-#  * the POLTERGEIST REBATE. The set splits its 1 % between the shift and a verbatim immune line; here the
-#    rebate would be 0.025 pp of a 0.2 % roll, and its message rung would double-print for anyone wearing the
-#    set AND a crystal. The rider keeps its whole rate; the set keeps the rebate.
+# THE POLTERGEIST REBATE NOW TRAVELS (ADR-0076). It used not to: as an ability-level chance split it would
+# have been 0.025 pp of a 0.2 % roll, and its message rung a second ability that double-printed for anyone
+# wearing the set AND a crystal. Per-target it is neither — the filter is a property of each resolved body at
+# a flat 12.5 % per Poltergeist level whatever the rider's own rate, and the immune line is a row of the same
+# ability rather than a rung of its own. A wearer who holds both still sees the pair twice, exactly as they
+# already take the whole shift payload twice; that is the set/crystal double-billing this file records below,
+# not a new one. Both copies must move together, per this file's own rule.
+# ONE CLAUSE OF THE SET'S READING STILL DOES NOT TRAVEL, recorded rather than faked:
 #  * the IMPACT LANDING PAYLOAD. A landing block fires the ACTOR's IMPACT abilities, and the set owns the only
 #    one — so a wearer who carries crystals WITHOUT completing the set rains blocks that land for nothing.
 #    A second IMPACT rung here would fix that case and double-bill every landing for a wearer who has both,
@@ -44,7 +48,10 @@ abilities:
     group: "dimensional-shift"
     condition: "(%actor.world% contains \"dungeon\") : %stop%"
     effects:
-      - { FREEZE: { duration: 80, dot: 0, slow: 100, who: "@Aoe{r=25, filter=ENEMIES}" } }
+      - { FREEZE: { duration: 80, dot: 0, slow: 100, who: "@Aoe{r=25, filter=ENEMIES}",
+            each-if: "%target.roll% >= 12.5 * %target.enchlevel.poltergeist%" } }
+      - { MESSAGE: { text: "§4§l* POLTERGEIST [§7Immune: Dimensional Traveler§4§l] *", who: "@Aoe{r=25, filter=ENEMIES}",
+            each-if: "%target.roll% < 12.5 * %target.enchlevel.poltergeist%" } }
       - { POTION: { effect: BLINDNESS, level: 1, duration: 60, who: "@Aoe{r=25, filter=ENEMIES}" } }
       - { POTION: { effect: SLOW, level: 1, duration: 80, who: "@Aoe{r=25, filter=ENEMIES}" } }
       # Both cues at dy: 4 and the freeze line on {RELATION_COLOR} — byte-identical to the set's copies after

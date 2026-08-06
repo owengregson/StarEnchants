@@ -21,44 +21,44 @@ no-souls-message: "§c§l** OUT OF SOULS **"
 # `dy` translates by a FLAT distance, so it could not track the mob set's per-entity heights anyway.
 # The recorded per-DoT-pulse cues — SOUND(GHAST_SCREAM2, 2.0, 2.0), PARTICLE(SPELL, 35) and the frozen
 # victim's "§2§l** NATURE'S WRATH **" line — have no home on the frozen surface: FREEZE carries no per-pulse
-# feedback hook (only PERIODIC_DAMAGE does, and re-homing the DoT there would move its attribution). Dropped
-# as cosmetics, recorded here. Same for the out-of-souls PARTICLE(LAVA, 20) at eye height and
+# feedback hook, and moving the ROOTED body's DoT to PERIODIC_DAMAGE to get one would trade a refreshed window
+# for a stacking burn. Dropped as cosmetics, recorded here. Same for the out-of-souls PARTICLE(LAVA, 20) and
 # SOUND(ITEM_BREAK, 0.7, 0.4): a failed soul gate runs no effects, so no-souls-message carries that branch.
-# R-QC2 binds both tokens. `{cost}` is the flat 75 on every rung and both arms — the KOTH doubling is an
-# environment gate this port declines. `{souls}` subtracts it, because facts are populated before the
-# gate-10 debit and the jar read the balance AFTER it; one activation charges once, so the immune arm
-# subtracts 75 too.
+# R-QC2 binds both tokens. `{cost}` is the flat 75 on every rung — the KOTH doubling is an environment gate
+# this port declines. `{souls}` subtracts it, because facts are populated before the gate-10 debit and the jar
+# read the balance AFTER it; one activation charges once.
 # Interactions carried by the OTHER side, nothing authored here: a live Soul Trap window (axes doc) blocks
 # this proc. Frozen players cannot melee or shoot (engine freeze-lock), FREEZE scopes its root per target (the
 # jar's global walk-speed enforcement is not replicated), and the jar's die-while-rooted speed leak is engine
 # hygiene.
-# ── THE POLTERGEIST FREEZE IMMUNITY IS AUTHORED HERE ───────────────────────────────────────────────────────
+# ── THE POLTERGEIST FREEZE IMMUNITY IS PER TARGET (ADR-0076) ────────────────────────────────────────────────
 # OWNER RULING, closing the ownership question this file used to answer the other way: a rebate belongs to the
 # roll it rebates, so the immunity lives on the CONSUMER. `poltergeist.yml` keeps only the wearer's own fall
 # cancel and publishes the level. D-07-13 makes the roll ONE uniform 12.5 % per Poltergeist level everywhere —
-# 12.5 / 25 / 37.5 % — replacing the jar's test-vs-roll always-true reading (D-02-2).
-# Authored as the pack's rebate idiom (trap.yml / snare.yml / titan-trap.yml / disarmor.yml): the immunity is
-# rolled INSIDE the proc roll, by splitting each rung's chance across two mutually exclusive abilities whose
-# expressions sum to the recorded figure. At L1 that is `0.4 - 0.05 x PG` for the rooting branch and
-# `0.05 x PG` for the immune one, 0.05 being 0.4 x 0.125 — so the advertised proc rate is unchanged and the
-# immune share is exactly 12.5 % a level. `%victim.enchlevel.poltergeist%` keys on the file STEM and reads a
-# real 0 for a player wearing none, which collapses the second branch to chance 0: the ordinary case pays
-# nothing for the split.
-# THREE DELTAS the split cannot avoid, recorded rather than faked:
-#  - SUBJECT. The roll reads ONE player's level, the DEFENSE pass's `%victim%` — the attacker who hit the
-#    wearer, which is the payload's centre target and the only body a condition can see. The jar rolled per
-#    AoE member, and nothing on the frozen surface filters a selector by a per-target fact.
-#  - SCOPE. An immune branch therefore drops the FREEZE for the WHOLE scan rather than for the immune attacker
-#    alone, so one Poltergeist wearer spares the group the root.
-#  - THE DoT. The matrix keeps the bolt AND the DoT on an immune victim, but this port carries the DoT on
-#    FREEZE (`dot:`), so the immune branch loses it with the root. The bolt, the Weakness, the mob sweep and
-#    the wearer's lines all still land, and the ENDER_DRAGON_GROWL — recorded per FROZEN victim — does not,
-#    since that branch freezes nobody.
+# 12.5 / 25 / 37.5 / 50 % — replacing the jar's test-vs-roll always-true reading (D-02-2).
+# It rolls PER AoE MEMBER now, which is what the jar did and what this file used to record as unreachable.
+# One ability per rung carries the whole package at its plain advertised chance; the FREEZE row and the immune
+# line are the two arms of ONE draw per bystander (`%target.roll%`, memoised per body per ability), so they
+# genuinely partition. The shape this replaces — two mutually exclusive abilities whose chances SUM to the
+# advertised figure — could only ever adjudicate the DEFENSE pass's `%victim%`, the attacker who hit the
+# wearer, and so spared or rooted the whole scan together. `%target.enchlevel.poltergeist%` keys on the file
+# STEM and reads a real 0 for a body wearing none, which makes the immune arm unreachable for them and the
+# ordinary case pay nothing for the split.
+# THE IMMUNE BODY KEEPS THE DoT, which is the recorded rule: the jar's immunity skipped only its walk-speed
+# and potion block, and its per-second damage task ran on an immune player for the full window. This port
+# carries the rooted body's DoT on FREEZE (`dot:`), so a body dropped from the root would have lost it; the
+# immune arm therefore authors the same burn on PERIODIC_DAMAGE — the same activator-attributed raw
+# half-hearts, the same rate, the same window. The bolt, the Weakness, the mob sweep and the wearer's lines
+# all land on an immune body too. RESIDUE: PERIODIC_DAMAGE stacks where FREEZE refreshes, so two procs
+# landing on one immune body inside a window burn twice, where the jar's task skipped a body already under it.
+# ONE DELTA SURVIVES, narrowed from the whole scan to nothing observable: ENDER_DRAGON_GROWL is recorded per
+# FROZEN victim and plays at the activation point, so it sounds even on the rare proc where every bystander is
+# immune. ADR-0066 already collapses its copies to one play per event, so the residue is one cue, not a count.
 # The blocked line is the entry's own verbatim string, to the immune player. `{source}` has no token binding,
 # so the consumer's own name is inlined (the batch-1 literal convention), which also makes the rendered line
 # byte-identical to the matrix's.
-# The other two consumers matrix 07 lists — Dimensional Traveler and Mother of Yijki (doc 10) — are armour
-# sets this pack does not ship yet; each owes the same branch when the sets batch lands.
+# `sets/dimensional-traveler.yml` (and its crystal twin) carry the same per-target shape one layer up; Mother
+# of Yijki cannot, its rebate sitting per STRIKE POINT inside a deferred payload.
 # era: FREEZE's powder-snow presentation is 1.17+ and the legacy sink has no stand-in — it no-ops the pin
 # and the vignette and lands the authored slow as an NMS movement-speed modifier, so 1.8 keeps DoT + slow;
 # LEVEL_UP / ENDERDRAGON_GROWL (and the dropped GHAST_SCREAM2) are 1.8 sound ids the resolver maps, and
@@ -66,127 +66,95 @@ no-souls-message: "§c§l** OUT OF SOULS **"
 levels:
   # radius 8 + 5xL; window (7+L)x20 t; DoT L HP per 20 t (8/18/30/44 HP total); break-free 30 - 7.5xL %.
   1:
-    abilities:
-      - chance: "0.4 - 0.05 * %victim.enchlevel.poltergeist%"
-        effects:
-          - { LIGHTNING: { damage: 0, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS}" } }  # cosmetic bolt per victim
-          - { FREEZE: { duration: 160, dot: 1, dot-period: 20, slow: 100, breakout-chance: 22.5, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS}" } }
-          - { POTION: { effect: "WEAKNESS", level: 3, duration: 160, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS}" } }
-          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=13, filter=MOBS}" } }
-          - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=13, filter=MOBS}" } }
-          - { DESPAWN: { who: "@Aoe{r=13, filter=MOBS}" } }  # D-02-3: silent removal, no drops and no XP (KILL would fire a real death)
-          - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
-          - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }  # recorded per frozen victim; ADR-0066 plays one sound id at most once per event, so the copies collapse into this single play
-          - { MESSAGE: { text: "" } }
-          - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
-          - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: 75 } } }
-          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 75" } } }
-          - { MESSAGE: { text: "" } }
-      # Poltergeist immune: the same proc without the root, plus the blocked line.
-      - chance: "0.05 * %victim.enchlevel.poltergeist%"
-        effects:
-          - { LIGHTNING: { damage: 0, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS}" } }
-          - { POTION: { effect: "WEAKNESS", level: 3, duration: 160, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS}" } }
-          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=13, filter=MOBS}" } }
-          - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=13, filter=MOBS}" } }
-          - { DESPAWN: { who: "@Aoe{r=13, filter=MOBS}" } }
-          - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
-          - { MESSAGE: { text: "§4§l* POLTERGEIST [§7Immune: Nature's Wrath§4§l] *", who: "@Victim" } }
-          - { MESSAGE: { text: "" } }
-          - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
-          - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: 75 } } }
-          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 75" } } }
-          - { MESSAGE: { text: "" } }
+    chance: 0.4
+    effects:
+      - { LIGHTNING: { damage: 0, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS}" } }  # cosmetic bolt per victim
+      - { FREEZE: { duration: 160, dot: 1, dot-period: 20, slow: 100, breakout-chance: 22.5, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS}",
+            each-if: "%target.roll% >= 12.5 * %target.enchlevel.poltergeist%" } }
+      # The complementary arm of the same draw: exactly the bodies the row above dropped.
+      - { MESSAGE: { text: "§4§l* POLTERGEIST [§7Immune: Nature's Wrath§4§l] *", who: "@Aoe{r=13, filter=ENEMIES+PLAYERS}",
+            each-if: "%target.roll% < 12.5 * %target.enchlevel.poltergeist%" } }
+      # The immune body keeps the DoT the root carried: the jar's task ran on it regardless, and
+      # PERIODIC_DAMAGE is the same activator-attributed raw burn at the same rate and window.
+      - { PERIODIC_DAMAGE: { amount: 1, period: 20, duration: 160, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS}",
+            each-if: "%target.roll% < 12.5 * %target.enchlevel.poltergeist%" } }
+      - { POTION: { effect: "WEAKNESS", level: 3, duration: 160, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS}" } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=13, filter=MOBS}" } }
+      - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=13, filter=MOBS}" } }
+      - { DESPAWN: { who: "@Aoe{r=13, filter=MOBS}" } }  # D-02-3: silent removal, no drops and no XP (KILL would fire a real death)
+      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
+      - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }  # recorded per frozen victim; ADR-0066 plays one sound id at most once per event, so the copies collapse into this single play
+      - { MESSAGE: { text: "" } }
+      - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: 75 } } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 75" } } }
+      - { MESSAGE: { text: "" } }
   2:
-    abilities:
-      - chance: "0.8 - 0.1 * %victim.enchlevel.poltergeist%"
-        effects:
-          - { LIGHTNING: { damage: 0, who: "@Aoe{r=18, filter=ENEMIES+PLAYERS}" } }
-          - { FREEZE: { duration: 180, dot: 2, dot-period: 20, slow: 100, breakout-chance: 15, who: "@Aoe{r=18, filter=ENEMIES+PLAYERS}" } }
-          - { POTION: { effect: "WEAKNESS", level: 3, duration: 180, who: "@Aoe{r=18, filter=ENEMIES+PLAYERS}" } }
-          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=18, filter=MOBS}" } }
-          - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=18, filter=MOBS}" } }
-          - { DESPAWN: { who: "@Aoe{r=18, filter=MOBS}" } }
-          - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
-          - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
-          - { MESSAGE: { text: "" } }
-          - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
-          - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: 75 } } }
-          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 75" } } }
-          - { MESSAGE: { text: "" } }
-      - chance: "0.1 * %victim.enchlevel.poltergeist%"
-        effects:
-          - { LIGHTNING: { damage: 0, who: "@Aoe{r=18, filter=ENEMIES+PLAYERS}" } }
-          - { POTION: { effect: "WEAKNESS", level: 3, duration: 180, who: "@Aoe{r=18, filter=ENEMIES+PLAYERS}" } }
-          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=18, filter=MOBS}" } }
-          - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=18, filter=MOBS}" } }
-          - { DESPAWN: { who: "@Aoe{r=18, filter=MOBS}" } }
-          - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
-          - { MESSAGE: { text: "§4§l* POLTERGEIST [§7Immune: Nature's Wrath§4§l] *", who: "@Victim" } }
-          - { MESSAGE: { text: "" } }
-          - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
-          - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: 75 } } }
-          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 75" } } }
-          - { MESSAGE: { text: "" } }
+    chance: 0.8
+    effects:
+      - { LIGHTNING: { damage: 0, who: "@Aoe{r=18, filter=ENEMIES+PLAYERS}" } }
+      - { FREEZE: { duration: 180, dot: 2, dot-period: 20, slow: 100, breakout-chance: 15, who: "@Aoe{r=18, filter=ENEMIES+PLAYERS}",
+            each-if: "%target.roll% >= 12.5 * %target.enchlevel.poltergeist%" } }
+      - { MESSAGE: { text: "§4§l* POLTERGEIST [§7Immune: Nature's Wrath§4§l] *", who: "@Aoe{r=18, filter=ENEMIES+PLAYERS}",
+            each-if: "%target.roll% < 12.5 * %target.enchlevel.poltergeist%" } }
+      # The immune body keeps the DoT the root carried: the jar's task ran on it regardless, and
+      # PERIODIC_DAMAGE is the same activator-attributed raw burn at the same rate and window.
+      - { PERIODIC_DAMAGE: { amount: 2, period: 20, duration: 180, who: "@Aoe{r=18, filter=ENEMIES+PLAYERS}",
+            each-if: "%target.roll% < 12.5 * %target.enchlevel.poltergeist%" } }
+      - { POTION: { effect: "WEAKNESS", level: 3, duration: 180, who: "@Aoe{r=18, filter=ENEMIES+PLAYERS}" } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=18, filter=MOBS}" } }
+      - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=18, filter=MOBS}" } }
+      - { DESPAWN: { who: "@Aoe{r=18, filter=MOBS}" } }
+      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
+      - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
+      - { MESSAGE: { text: "" } }
+      - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: 75 } } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 75" } } }
+      - { MESSAGE: { text: "" } }
   3:
-    abilities:
-      - chance: "1.2 - 0.15 * %victim.enchlevel.poltergeist%"
-        effects:
-          - { LIGHTNING: { damage: 0, who: "@Aoe{r=23, filter=ENEMIES+PLAYERS}" } }
-          - { FREEZE: { duration: 200, dot: 3, dot-period: 20, slow: 100, breakout-chance: 7.5, who: "@Aoe{r=23, filter=ENEMIES+PLAYERS}" } }
-          - { POTION: { effect: "WEAKNESS", level: 3, duration: 200, who: "@Aoe{r=23, filter=ENEMIES+PLAYERS}" } }
-          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=23, filter=MOBS}" } }
-          - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=23, filter=MOBS}" } }
-          - { DESPAWN: { who: "@Aoe{r=23, filter=MOBS}" } }
-          - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
-          - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
-          - { MESSAGE: { text: "" } }
-          - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
-          - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: 75 } } }
-          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 75" } } }
-          - { MESSAGE: { text: "" } }
-      - chance: "0.15 * %victim.enchlevel.poltergeist%"
-        effects:
-          - { LIGHTNING: { damage: 0, who: "@Aoe{r=23, filter=ENEMIES+PLAYERS}" } }
-          - { POTION: { effect: "WEAKNESS", level: 3, duration: 200, who: "@Aoe{r=23, filter=ENEMIES+PLAYERS}" } }
-          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=23, filter=MOBS}" } }
-          - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=23, filter=MOBS}" } }
-          - { DESPAWN: { who: "@Aoe{r=23, filter=MOBS}" } }
-          - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
-          - { MESSAGE: { text: "§4§l* POLTERGEIST [§7Immune: Nature's Wrath§4§l] *", who: "@Victim" } }
-          - { MESSAGE: { text: "" } }
-          - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
-          - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: 75 } } }
-          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 75" } } }
-          - { MESSAGE: { text: "" } }
+    chance: 1.2
+    effects:
+      - { LIGHTNING: { damage: 0, who: "@Aoe{r=23, filter=ENEMIES+PLAYERS}" } }
+      - { FREEZE: { duration: 200, dot: 3, dot-period: 20, slow: 100, breakout-chance: 7.5, who: "@Aoe{r=23, filter=ENEMIES+PLAYERS}",
+            each-if: "%target.roll% >= 12.5 * %target.enchlevel.poltergeist%" } }
+      - { MESSAGE: { text: "§4§l* POLTERGEIST [§7Immune: Nature's Wrath§4§l] *", who: "@Aoe{r=23, filter=ENEMIES+PLAYERS}",
+            each-if: "%target.roll% < 12.5 * %target.enchlevel.poltergeist%" } }
+      # The immune body keeps the DoT the root carried: the jar's task ran on it regardless, and
+      # PERIODIC_DAMAGE is the same activator-attributed raw burn at the same rate and window.
+      - { PERIODIC_DAMAGE: { amount: 3, period: 20, duration: 200, who: "@Aoe{r=23, filter=ENEMIES+PLAYERS}",
+            each-if: "%target.roll% < 12.5 * %target.enchlevel.poltergeist%" } }
+      - { POTION: { effect: "WEAKNESS", level: 3, duration: 200, who: "@Aoe{r=23, filter=ENEMIES+PLAYERS}" } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=23, filter=MOBS}" } }
+      - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=23, filter=MOBS}" } }
+      - { DESPAWN: { who: "@Aoe{r=23, filter=MOBS}" } }
+      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
+      - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
+      - { MESSAGE: { text: "" } }
+      - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: 75 } } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 75" } } }
+      - { MESSAGE: { text: "" } }
   4:
-    abilities:
-      - chance: "1.6 - 0.2 * %victim.enchlevel.poltergeist%"
-        effects:
-          - { LIGHTNING: { damage: 0, who: "@Aoe{r=28, filter=ENEMIES+PLAYERS}" } }
-          - { FREEZE: { duration: 220, dot: 4, dot-period: 20, slow: 100, breakout-chance: 0, who: "@Aoe{r=28, filter=ENEMIES+PLAYERS}" } }  # the exact-0 break-free at max level is measured, shipped
-          - { POTION: { effect: "WEAKNESS", level: 3, duration: 220, who: "@Aoe{r=28, filter=ENEMIES+PLAYERS}" } }
-          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=28, filter=MOBS}" } }
-          - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=28, filter=MOBS}" } }
-          - { DESPAWN: { who: "@Aoe{r=28, filter=MOBS}" } }
-          - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
-          - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
-          - { MESSAGE: { text: "" } }
-          - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
-          - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: 75 } } }
-          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 75" } } }
-          - { MESSAGE: { text: "" } }
-      - chance: "0.2 * %victim.enchlevel.poltergeist%"
-        effects:
-          - { LIGHTNING: { damage: 0, who: "@Aoe{r=28, filter=ENEMIES+PLAYERS}" } }
-          - { POTION: { effect: "WEAKNESS", level: 3, duration: 220, who: "@Aoe{r=28, filter=ENEMIES+PLAYERS}" } }
-          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=28, filter=MOBS}" } }
-          - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=28, filter=MOBS}" } }
-          - { DESPAWN: { who: "@Aoe{r=28, filter=MOBS}" } }
-          - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
-          - { MESSAGE: { text: "§4§l* POLTERGEIST [§7Immune: Nature's Wrath§4§l] *", who: "@Victim" } }
-          - { MESSAGE: { text: "" } }
-          - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
-          - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: 75 } } }
-          - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 75" } } }
-          - { MESSAGE: { text: "" } }
+    chance: 1.6
+    effects:
+      - { LIGHTNING: { damage: 0, who: "@Aoe{r=28, filter=ENEMIES+PLAYERS}" } }
+      - { FREEZE: { duration: 220, dot: 4, dot-period: 20, slow: 100, breakout-chance: 0, who: "@Aoe{r=28, filter=ENEMIES+PLAYERS}",
+            each-if: "%target.roll% >= 12.5 * %target.enchlevel.poltergeist%" } }  # the exact-0 break-free at max level is measured, shipped
+      - { MESSAGE: { text: "§4§l* POLTERGEIST [§7Immune: Nature's Wrath§4§l] *", who: "@Aoe{r=28, filter=ENEMIES+PLAYERS}",
+            each-if: "%target.roll% < 12.5 * %target.enchlevel.poltergeist%" } }
+      # The immune body keeps the DoT the root carried: the jar's task ran on it regardless, and
+      # PERIODIC_DAMAGE is the same activator-attributed raw burn at the same rate and window.
+      - { PERIODIC_DAMAGE: { amount: 4, period: 20, duration: 220, who: "@Aoe{r=28, filter=ENEMIES+PLAYERS}",
+            each-if: "%target.roll% < 12.5 * %target.enchlevel.poltergeist%" } }
+      - { POTION: { effect: "WEAKNESS", level: 3, duration: 220, who: "@Aoe{r=28, filter=ENEMIES+PLAYERS}" } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=28, filter=MOBS}" } }
+      - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=28, filter=MOBS}" } }
+      - { DESPAWN: { who: "@Aoe{r=28, filter=MOBS}" } }
+      - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
+      - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
+      - { MESSAGE: { text: "" } }
+      - { MESSAGE: { text: "§a§l** NATURE'S WRATH **" } }
+      - { MESSAGE: { text: "§c§l- {cost} Soul Gems", tokens: { cost: 75 } } }
+      - { MESSAGE: { text: "§7You have §n{souls}§7 souls left.", tokens: { souls: "%actor.souls% - 75" } } }
+      - { MESSAGE: { text: "" } }
