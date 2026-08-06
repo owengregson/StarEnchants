@@ -138,9 +138,16 @@ armor:
 # No `lore:` either: every OTHER set's weapon carries a recorded `<SET> WEAPON BONUS` block, and KOTH's has
 # none because the jar never built the item. Writing one would be authoring strings the codex does not hold,
 # so the weapon ships with the pattern-derived name and nothing else.
-weapon:
-  material: DIAMOND_SWORD
-  name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nSword§r"
+# TWO WEAPONS (R-QC35a): `weapons:` is the keyed form of `weapon:`, so this set ships both the sword and the
+# axe the codex records. Each token is the member's own name; `sword` and `axe` match the rendered gear kind,
+# which is how a per-weapon lore block would select itself (neither carries one — see the sword note above).
+weapons:
+  sword:
+    material: DIAMOND_SWORD
+    name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nSword§r"
+  axe:
+    material: DIAMOND_AXE
+    name: "§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nAxe§r"
 bonuses:
   # 1. +20% outgoing vs players.
   - on: armor
@@ -193,18 +200,30 @@ bonuses:
     condition: "%victim.type% == \"PLAYER\""
     effects:
       - { DAMAGE_MOD: { side: attack, mode: add, amount: 7.5 } }
-  # 6. NOT AUTHORED — the KOTH AXE rider (deferred-content.md). Held with the set complete, it strips armour
-  # on a player hit: the jar rolls 50 % per slot for -2 or -3 durability (50/50), expected 5/hit, which
-  # decomposes as `[chance 50] DURABILITY(target=armor, mode=damage, amount=2)` plus `[chance 25]
-  # DURABILITY(target=armor, mode=damage, amount=1)` on `%victim.type% == "PLAYER"`. Every effect it needs
-  # exists; what does not is a SECOND set weapon — `weapon:` is one member per set def, and the axe's
-  # identity is a distinct item. The one alternative on the surface, gating on `%actor.helditem%
-  # matchesregex ".*_AXE$"`, would hand the strip to ANY axe a KOTH wearer picks up (a Yeti Maul included),
-  # which is a play change, not a translation. Closes with a multi-weapon set surface.
-  # The item, recorded so it lands whole that day: `DIAMOND_AXE` (R-QC35d, the sword's ruling) named
-  # `§f§l§k!§r §c§lK§6§l.§e§lO§a§l.§b§lT§5§l.§d§lH §f§l§k!§r §f§l§nAxe§r` — the piece-name pattern with `Axe`
-  # in the {Piece} slot, port-chosen like the sword's because the jar never built either item. The strip must
-  # route through the item-damage layer on both eras (a synthetic PlayerItemDamageEvent on the 1.8 harness).
+  # 6. THE KOTH AXE RIDER — LIVE (R-QC35a). Held with the set complete, it strips armour on a player hit:
+  # the jar rolls 50 % per slot for -2 or -3 durability (50/50), expected 5 a hit, which decomposes as the
+  # two rows below (a different formula from the Yeti Maul's 75 %/-1). `on: weapon` is per-SET, not per-
+  # weapon — it asks "is a KOTH set weapon in the main hand and is the set complete" — so WHICH weapon is
+  # decided by the material, and that is exact here rather than the loose reading the ledger rejected: a
+  # bare `%actor.helditem% matchesregex ".*_AXE$"` would hand the strip to any axe a KOTH wearer picks up
+  # (a Yeti Maul included), but `== "DIAMOND_AXE"` UNDER `on: weapon` can only ever match the KOTH axe,
+  # because nothing else is both a DIAMOND_AXE and a stamped weapon of this completed set. The residue,
+  # recorded: two weapons of the SAME material in one set would be indistinguishable this way. No set in
+  # the family has that.
+  # The strip routes through the item-damage layer on both eras (a synthetic PlayerItemDamageEvent on the
+  # 1.8 harness).
+  - on: weapon
+    trigger: ATTACK
+    chance: 50
+    condition: '%victim.type% == "PLAYER" && %actor.helditem% == "DIAMOND_AXE"'
+    effects:
+      - { DURABILITY: { target: armor, mode: damage, amount: 2, who: "@Victim" } }
+  - on: weapon
+    trigger: ATTACK
+    chance: 25
+    condition: '%victim.type% == "PLAYER" && %actor.helditem% == "DIAMOND_AXE"'
+    effects:
+      - { DURABILITY: { target: armor, mode: damage, amount: 1, who: "@Victim" } }
 # era: `§k` magic text renders on both eras and LeatherArmorMeta dye is era-safe; `DIAMOND_SWORD` /
 # `DIAMOND_AXE` need no alias at all (the flattening never touched them), which is one fewer resolver row
 # than the gold pair carried; the extra armour value beyond the leather base needs the engine's heroic

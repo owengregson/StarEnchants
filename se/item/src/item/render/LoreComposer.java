@@ -66,7 +66,9 @@ public final class LoreComposer {
             }
         }
         if (state.setWeaponKey() != null) {
-            for (String wrapped : TextWrap.wrapAll(config.setLore().weapon(state.setWeaponKey()), item.mint.ItemFactory.itemWrapWidth())) {
+            // R-QC35a: a set may declare SEVERAL weapons, so the kind selects which one's lore this is —
+            // the same gear-kind read the armour branch above uses, and the same single-weapon fallback.
+            for (String wrapped : TextWrap.wrapAll(config.setLore().weapon(state.setWeaponKey(), kind), item.mint.ItemFactory.itemWrapWidth())) {
                 out.add(Colors.translate(wrapped));
             }
         }

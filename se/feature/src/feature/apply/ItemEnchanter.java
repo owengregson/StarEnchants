@@ -294,14 +294,17 @@ public final class ItemEnchanter {
             return java.util.Optional.empty();
         }
         String token = memberToken == null ? "" : memberToken.toLowerCase(java.util.Locale.ROOT);
-        if (def.hasWeapon() && token.equals("weapon")) {
-            compile.load.SetDef.Member member = def.weapon();
+        // R-QC35a: a set may declare SEVERAL weapons (`weapons:`), so the token names WHICH — `weapon` for
+        // the singular form every other set uses, `sword` / `axe` for a set that ships both.
+        compile.load.SetDef.Member weaponMember = def.weaponMember(token);
+        if (weaponMember != null) {
+            compile.load.SetDef.Member member = weaponMember;
             Material material = item.mint.ItemFactory.material(member.material(), Material.IRON_SWORD);
             String name = member.name() != null ? member.name() : def.display();
             ItemStack stack = item.mint.ItemFactory.build(material, name, List.of());
             // §6.6 configured weapon enchants: custom ones stamp into the combat state (so the engine runs
             // them while held), vanilla names apply cross-version at mint. Rolled entries draw ONCE, here.
-            Map<String, Integer> roster = SetMint.resolve(def.weaponEnchants(), rolls);
+            Map<String, Integer> roster = SetMint.resolve(member.enchants(), rolls);
             CombatState next = new CombatState(customEnchants(roster), List.of(), null, setKey,
                     false, item.codec.HeroicStat.NONE, 0, null, null); // weaponMember(setKey) + carried custom enchants
             codec.write(stack, next);

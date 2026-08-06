@@ -74,10 +74,10 @@ public final class SetsBrowserMenu extends PagedMenu<SetsBrowserMenu.Row> {
             rows.add(new Row(def, new Piece(member.slot(), member.material(),
                     member.name() != null ? member.name() : def.display(), capitalize(member.slot()), false)));
         }
-        if (def.hasWeapon()) {
-            SetDef.Member weapon = def.weapon();
-            rows.add(new Row(def, new Piece("weapon", weapon.material(),
-                    weapon.name() != null ? weapon.name() : def.display(), "Weapon", true)));
+        // R-QC35a: one row per declared weapon, so a set that ships a sword AND an axe is mintable from here.
+        for (SetDef.Member weapon : def.weaponMembers()) {
+            rows.add(new Row(def, new Piece(weapon.slot(), weapon.material(),
+                    weapon.name() != null ? weapon.name() : def.display(), capitalize(weapon.slot()), true)));
         }
         return rows;
     }
@@ -157,8 +157,8 @@ public final class SetsBrowserMenu extends PagedMenu<SetsBrowserMenu.Row> {
         List<String> lore = new ArrayList<>(MenuText.describe(def.description(), "&7"));
         lore.add("&8completes at: &7" + def.armorComplete() + " armour piece" + (def.armorComplete() == 1 ? "" : "s"));
         lore.add("&8armour: &7" + ItemGroups.kindsLabel(def.appliesTo()));
-        if (def.hasWeapon()) {
-            lore.add("&8weapon: &7" + (def.weapon().name() != null ? def.weapon().name() : def.weapon().material()));
+        for (SetDef.Member weapon : def.weaponMembers()) {
+            lore.add("&8weapon: &7" + (weapon.name() != null ? weapon.name() : weapon.material()));
         }
         lore.add("&eClick to view the pieces.");
         return MenuIcons.hideDetails(ItemFactory.build(

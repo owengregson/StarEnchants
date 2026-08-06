@@ -19,14 +19,15 @@ import schema.diag.Source;
  * @param armorComplete worn-piece count that completes the set ({@code >= 1})
  * @param armorLore     lore SHARED by every armour piece, rendered from state on the worn piece
  * @param weapon        the weapon member, or {@code null} for an armour-only set
- * @param weaponLore    the weapon's own lore (empty when there is no weapon)
+ * @param weaponMembers the set's weapon items, in authored order (empty when the set has none). A set may
+ *                      declare SEVERAL (R-QC35a); {@link #weapon()} is the first, which is what every
+ *                      single-weapon read means
  * @param appliesTo     armour slot tokens this set covers, derived from {@link #armorMembers}
  * @param armorEnchants enchants every armour piece is minted with ({@code ref → roll}, insertion order):
  *                      a {@code enchants/<id>} ref is a custom plugin enchant (stamped into the piece's
  *                      combat state, validated at compile), any other key is a vanilla enchant NAME applied
  *                      cross-version at mint (§6.6, author-configurable). A member's own
  *                      {@link Member#enchants()} extend this shared roster per slot
- * @param weaponEnchants enchants the set weapon is minted with (same {@code ref → roll} model)
  * @param announce      send the player a chat line when the set transitions complete/incomplete (off by default)
  * @param equipMessage  the line sent when the set becomes complete (authored verbatim, no tokens; may be empty)
  * @param removeMessage the line sent when a complete set drops below its threshold (verbatim; may be empty)
@@ -39,11 +40,9 @@ public record SetDef(
         int armorComplete,
         List<Member> armorMembers,
         List<String> armorLore,
-        Member weapon,
-        List<String> weaponLore,
+        List<Member> weaponMembers,
         List<String> appliesTo,
         Map<String, EnchantRoll> armorEnchants,
-        Map<String, EnchantRoll> weaponEnchants,
         boolean announce,
         String equipMessage,
         String removeMessage,
@@ -52,14 +51,13 @@ public record SetDef(
     public SetDef {
         armorMembers = List.copyOf(armorMembers);
         armorLore = List.copyOf(armorLore);
-        weaponLore = List.copyOf(weaponLore);
+        weaponMembers = List.copyOf(weaponMembers);
         appliesTo = List.copyOf(appliesTo);
         equipMessage = equipMessage == null ? "" : equipMessage;
         removeMessage = removeMessage == null ? "" : removeMessage;
         // Unmodifiable LinkedHashMap (not Map.copyOf) so the authored enchant order is preserved — it
         // determines the lore order of custom set-piece enchants.
         armorEnchants = Collections.unmodifiableMap(new LinkedHashMap<>(armorEnchants));
-        weaponEnchants = Collections.unmodifiableMap(new LinkedHashMap<>(weaponEnchants));
     }
 
     /**
@@ -94,7 +92,46 @@ public record SetDef(
     }
 
     public boolean hasWeapon() {
-        return weapon != null;
+        return !weaponMembers.isEmpty();
+    }
+
+    /**
+     * The set's FIRST weapon — the one a single-weapon set has, and the one every read written before
+     * R-QC35a was asking for. Kept as a derived accessor so the multi-weapon widening stayed additive.
+     */
+    public Member weapon() {
+        return weaponMembers.isEmpty() ? null : weaponMembers.get(0);
+    }
+
+    /** The weapon member for a token ({@code weapon}, {@code sword}, {@code axe}), or {@code null}. */
+    public Member weaponMember(String token) {
+        if (token == null) {
+            return null;
+        }
+        for (Member member : weaponMembers) {
+            if (member.slot().equalsIgnoreCase(token)) {
+                return member;
+            }
+        }
+        return null;
+    }
+
+    /** The first weapon's lore — a weapon's lines live on its own member, so there is no shared block. */
+    public List<String> weaponLore() {
+        Member first = weapon();
+        return first == null ? List.of() : first.lore();
+    }
+
+    /** One weapon's lore by token; an unknown token falls back to the first weapon's (the single-weapon read). */
+    public List<String> weaponLoreFor(String token) {
+        Member member = weaponMember(token);
+        return member == null ? weaponLore() : member.lore();
+    }
+
+    /** The first weapon's mint roster. */
+    public Map<String, EnchantRoll> weaponEnchants() {
+        Member first = weapon();
+        return first == null ? Map.of() : first.enchants();
     }
 
     /**

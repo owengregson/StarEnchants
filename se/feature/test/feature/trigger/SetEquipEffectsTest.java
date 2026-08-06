@@ -20,8 +20,8 @@ class SetEquipEffectsTest {
     private static final ParticleSpec UNEQUIP_GRAY = new ParticleSpec("REDSTONE", 170, 170, 170, 20, 1.25, 1.0);
 
     private static SetDef set(String display) {
-        return new SetDef("sets/x", display, "", null, 1, List.of(), List.of(), null, List.of(), List.of(),
-                Map.of(), Map.of(), true, "", "", schema.diag.Source.ofFile("t"));
+        return new SetDef("sets/x", display, "", null, 1, List.of(), List.of(), List.of(), List.of(),
+                Map.of(), true, "", "", schema.diag.Source.ofFile("t"));
     }
 
     private static MasterConfig.SetsSection cfg(boolean useSetColor) {
