@@ -1,19 +1,31 @@
 # Matrix: 06-enchants-tools-heroic.md § Infinite Luck
-# Roster marker (metaphysical.yml / sticky.yml precedent): the enchant is rollable, applicable and displayed,
-# and it has zero local logic — the matrix's own decomposition is one marker write and nothing else. It ships
-# effect-less rather than as the recorded `SET_VAR(name=infinite-luck, value=L, ttl=0)` for the reason the
-# Solitude row settled pack-wide: a ttl-0 marker written on a PASSIVE walk has no teardown, so one equip
-# would leave it standing forever. The level is published as worn state instead, which the consumer reads as
-# `%actor.enchlevel.infinite-luck%` (the file STEM is the key; the `enchants/infinite-luck` stable-key
-# spelling reads 0 in silence). Unequipping therefore clears it, and a second piece leaves the highest level
-# standing — which is also the fix for the jar's clear-on-any-unequip quirk.
+# NO LONGER A MARKER (R-QC9). The entry does two things now, and only the first was ever the matrix's own
+# decomposition. (1) It PUBLISHES its level as worn state, which the armour sets read as
+# `%actor.enchlevel.infinite-luck%` / `%victim.enchlevel.infinite-luck%` (the file STEM is the key; the
+# `enchants/infinite-luck` stable-key spelling reads 0 in silence). Unequipping clears it and a second piece
+# leaves the highest level standing — the fix for the jar's clear-on-any-unequip quirk, and the reason it is
+# worn state and not the recorded `SET_VAR(..., ttl=0)`, which on a PASSIVE walk would never have torn down.
+# (2) It CARRIES ITS OWN DEATH SAVE, built below.
+# THE THRESHOLD READING, picked here because matrix 06 leaves it UNRESOLVED and R-QC9 rules the consumer gets
+# built: the codex records two independent numbers on this enchant and the port had conflated them. The
+# `stored >= N` threshold is what the SETS check — each set names its own N, and the level is what it reads.
+# The `+12.5 per worn heroic piece` accumulator is the SAVE's chance, not part of that threshold: it reaches
+# exactly 50 at a full heroic set, which is a coherent death-save rate and is not a coherent anything else.
+# So the save is `12.5 x pieces %`, level-independent, and the ladder exists for the sets. Recorded rather
+# than derived a second time.
+# D-10-1 RIDES THE SAME EXPRESSION. The jar counted the heroic pieces off the Infinite Luck HOLDER — self-
+# negation, the ledgered bug — where the lore reads "12.5% negation to enemy Infinite Luck". Subtracting the
+# attacker's count in the same chance expression is that correction: on a DEFENCE walk `%victim%` IS the
+# attacker, so `12.5 x actor - 12.5 x victim` is the wearer's save minus the striker's negation, one roll,
+# with the expression's own [0,100] clamp as the floor. A fully heroic attacker cancels a fully heroic
+# wearer's save outright, which is the lore's own arithmetic.
 display: "Infinite Luck"
 # description: not matrix-recorded (factual paraphrase)
 description:
   - "&eLuck without a ceiling — the heroic armor"
   - "&esets read this level when they answer a"
   - "&ekilling blow."
-trigger: PASSIVE
+trigger: DEFENSE
 applies-to: [ARMOR]
 group: "heroic"
 tier: heroic
@@ -30,28 +42,50 @@ removes-required: true
 # owned by the layers that read `tier:`. Acquisition carries one more: a tier-7 draw re-rolls Infinite Luck
 # 50 % of the time (half as likely as any other heroic) — pool-weight metadata for the book table, not a
 # rule a content file states.
-# DELTA vs `lucky.yml` (matrix 01), which this replaces: everything. Lucky is a self-contained death save at
-# `level/400`; this grade keeps NO save of its own and exists only to be read. Until the consumer ships, an
-# item that trades Lucky for Infinite Luck trades a working save for a marker — the jar's own arrangement,
-# recorded here and in deferred-content.md rather than softened.
+# DELTA vs `lucky.yml` (matrix 01), which this replaces: the SHAPE of the save. Lucky rolls `level/400`
+# (0.25-2.5 %) off its own level and nothing else; this grade rolls off the wearer's heroic GEAR instead, so
+# it is worthless on plain armour and worth 50 % on a full heroic set. The upgrade is therefore a real trade
+# and not the strict downgrade it was while this file was inert — `removes-required` strips Lucky as this
+# lands, and the recorded consequence of that (a marker replacing a working save) is closed.
 # CONSUMER (matrix 10, armour sets): a threshold check satisfied when the stored level >= N, over an
 # accumulator each worn LEATHER heroic-armor piece raises by +12.5 (four pieces = 50.0; iron/diamond heroic
-# pieces contribute 0). Nothing on THIS file changes when that lands — the marker publishes the level and the
-# arithmetic is the set's — so the entry still ships exactly as its decomposition says, and the two things
-# still owed are the consumer's, recorded here so whoever writes it does not re-derive them:
-#  - the codex leaves the accumulator's semantics UNRESOLVED past the +12.5, so the weighting is an owner /
-#    matrix-10 ruling, not a translation;
-#  - the piece COUNT half is CLOSED. This consumer counts the WEARER'S OWN pieces, so it reads
-#    `%actor.heroicpieces%` (the same flattened-WornState read as the victim-scope twin), and minted-heroic
-#    set pieces make the count real. Both scopes are UNWEIGHTED, where the recorded accumulator pays only for
-#    leather — but the three M-Kit sets whose pieces mint heroic are all LEATHER, precisely the case where
-#    weighted and unweighted agree; whether the weighting survives the port stays part of the same ruling.
+# pieces contribute 0). Both halves are BUILT here, on one caveat R-QC9 rules explicitly:
+#  - the piece count is UNWEIGHTED. `%actor.heroicpieces%` / `%victim.heroicpieces%` count any worn armour
+#    piece carrying a heroic upgrade and never look at its material, so an iron or diamond heroic piece pays
+#    12.5 here where the jar paid 0. Ledgered as D-06-20 rather than built — the three M-Kit sets whose
+#    pieces mint heroic are all LEATHER, which is precisely the case where weighted and unweighted agree, so
+#    the divergence needs an operator minting heroic iron to be reachable at all.
+#  - the count itself is real: minted-heroic set pieces stamp the HeroicStat the fact reads (ADR-0073), so
+#    neither scope is inert-by-construction any more.
 # strings: none. era: none.
+condition: "%posthit.health% <= 0"  # true post-mitigation lethality (D-01-14); one defensive pass (D-001)
 levels:
-  # The ladder exists so the marker carries a readable level — the stored value IS the level, and every
-  # number that consumes it lives on the armour-set side.
-  1: { effects: [] }
-  2: { effects: [] }
-  3: { effects: [] }
-  4: { effects: [] }
-  5: { effects: [] }
+  # The ladder is what the ARMOUR SETS threshold against (`stored >= N`: Yeti and Supreme at 1, Dimensional
+  # Traveler at 2, Phantom at 3, Ranger at 4, Dragon Slayer at 5), so every rung turns off a different set of
+  # bonuses. The SAVE does not read it — the accumulator is the PIECE COUNT, not the level — which is why all
+  # five rungs are identical, exactly as the matrix's "stored value = level" says.
+  1:
+    chance: "12.5 * %actor.heroicpieces% - 12.5 * %victim.heroicpieces%"
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CLOUD", count: 30, who: "@Self" } }
+  2:
+    chance: "12.5 * %actor.heroicpieces% - 12.5 * %victim.heroicpieces%"
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CLOUD", count: 30, who: "@Self" } }
+  3:
+    chance: "12.5 * %actor.heroicpieces% - 12.5 * %victim.heroicpieces%"
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CLOUD", count: 30, who: "@Self" } }
+  4:
+    chance: "12.5 * %actor.heroicpieces% - 12.5 * %victim.heroicpieces%"
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CLOUD", count: 30, who: "@Self" } }
+  5:
+    chance: "12.5 * %actor.heroicpieces% - 12.5 * %victim.heroicpieces%"
+    effects:
+      - { CANCEL: {} }
+      - { PARTICLE: { particle: "CLOUD", count: 30, who: "@Self" } }
