@@ -245,7 +245,16 @@ final class EnchantDefReader {
                 cooldownPerVictim,
                 repeatDelayTicks,
                 sourceGroup,
-                stacks);
+                stacks)
+                // Each rebate knob keeps its OWN innermost-declaring scope, like the soul envelope above:
+                // a per-level chance-rebate: over a file-root blocked-message: is the normal shape.
+                .withRebate(ContentParse.resolveRebateKnobs(
+                        knobNode(block, lvl, root, "chance-rebate"),
+                        knobNode(block, lvl, root, "chance-rebate-scale"),
+                        knobNode(block, lvl, root, "blocked-message"),
+                        knobNode(block, lvl, root, "blocked-message-who"),
+                        knobNode(block, lvl, root, "blocked-sound"),
+                        knobNode(block, lvl, root, "rebate-spends-cooldown"), diags));
     }
 
     /** The node a knob is read from: the innermost scope that declares it — block, then level, then file root. */

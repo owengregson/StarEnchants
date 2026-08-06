@@ -1,5 +1,6 @@
 package compile.load;
 
+import compile.def.RebateKnobs;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -414,13 +415,94 @@ final class ContentParse {
 
     /**
      * {@code keys} plus the scope-envelope knobs ({@code cooldown-scope}, {@code cooldown-per-victim},
-     * {@code suppress-type}) — accepted by every reader, soul envelope or not.
+     * {@code suppress-type}) and the chance-rebate envelope — accepted by every reader, soul envelope or not.
      */
     static Set<String> withCooldownScope(String... keys) {
         List<String> all = new ArrayList<>(List.of(keys));
         all.add(COOLDOWN_SCOPE);
         all.add(COOLDOWN_PER_VICTIM);
         all.add(SUPPRESS_TYPE);
+        all.addAll(REBATE_KNOB_KEYS);
         return Set.copyOf(all);
+    }
+
+    private static final String CHANCE_REBATE = "chance-rebate";
+
+    private static final String CHANCE_REBATE_SCALE = "chance-rebate-scale";
+
+    private static final String BLOCKED_MESSAGE = "blocked-message";
+
+    private static final String BLOCKED_MESSAGE_WHO = "blocked-message-who";
+
+    private static final String BLOCKED_SOUND = "blocked-sound";
+
+    private static final String REBATE_SPENDS_COOLDOWN = "rebate-spends-cooldown";
+
+    /** The names of the {@link RebateKnobs} keys, for a reader's allowed-key set. */
+    static final Set<String> REBATE_KNOB_KEYS = Set.of(CHANCE_REBATE, CHANCE_REBATE_SCALE, BLOCKED_MESSAGE,
+            BLOCKED_MESSAGE_WHO, BLOCKED_SOUND, REBATE_SPENDS_COOLDOWN);
+
+    /** {@code blocked-message-who}'s two values; anything else is a diagnostic rather than a silent default. */
+    private static final String WHO_ACTOR = "actor";
+
+    private static final String WHO_VICTIM = "victim";
+
+    /**
+     * The chance-rebate envelope (ADR-0076 part E) read off ONE node — the seven def readers share one read.
+     *
+     * <p>Two shapes are rejected rather than tolerated, because both ship as content that quietly does nothing:
+     * declaring BOTH terms (which of the two prices the roll would be an arbitrary tie-break), and declaring
+     * feedback with no term at all (the verdict that would carry it can never be reached).
+     */
+    static RebateKnobs resolveRebateKnobs(YamlNode node, Diagnostics diags) {
+        return resolveRebateKnobs(node, node, node, node, node, node, diags);
+    }
+
+    /**
+     * {@link RebateKnobs} where each knob resolves against its OWN node — the shape a reader with scoped knob
+     * inheritance needs, so an inner {@code rebate-spends-cooldown: false} still beats an outer {@code true}.
+     */
+    static RebateKnobs resolveRebateKnobs(YamlNode points, YamlNode scale, YamlNode message, YamlNode who,
+                                          YamlNode sound, YamlNode spends, Diagnostics diags) {
+        String pointsExpr = blankToNull(resolveString(points, CHANCE_REBATE, diags));
+        String scaleExpr = blankToNull(resolveString(scale, CHANCE_REBATE_SCALE, diags));
+        if (pointsExpr != null && scaleExpr != null) {
+            diags.error(DiagCode.E_LOAD_REBATE,
+                    "'" + CHANCE_REBATE + "' and '" + CHANCE_REBATE_SCALE + "' are mutually exclusive",
+                    points.sourceOf(CHANCE_REBATE),
+                    "a rebate is either percentage points off the base chance or a fraction of it, not both");
+            scaleExpr = null;
+        }
+        String line = blankToNull(resolveString(message, BLOCKED_MESSAGE, diags));
+        String cue = blankToNull(resolveString(sound, BLOCKED_SOUND, diags));
+        boolean spendsCooldown = boolOr(resolveString(spends, REBATE_SPENDS_COOLDOWN, diags), false,
+                REBATE_SPENDS_COOLDOWN, DiagCode.W_LOAD_BOOL, spends.sourceOf(REBATE_SPENDS_COOLDOWN), diags);
+        RebateKnobs knobs = new RebateKnobs(pointsExpr, scaleExpr, line, rebateMessageToActor(who, diags), cue,
+                spendsCooldown);
+        if (knobs.authored() && !knobs.hasTerm()) {
+            diags.error(DiagCode.E_LOAD_REBATE,
+                    "the chance-rebate feedback knobs need a '" + CHANCE_REBATE + "' or '"
+                            + CHANCE_REBATE_SCALE + "' to report on", message.sourceOf(BLOCKED_MESSAGE),
+                    "gate 8 can only name a blocked roll when the rebate is a declared term");
+            return RebateKnobs.NONE;
+        }
+        return knobs;
+    }
+
+    /** {@code blocked-message-who}: the VICTIM by default, since the party a rebate protects is the one told. */
+    private static boolean rebateMessageToActor(YamlNode node, Diagnostics diags) {
+        String raw = blankToNull(resolveString(node, BLOCKED_MESSAGE_WHO, diags));
+        if (raw == null) {
+            return false;
+        }
+        String trimmed = raw.trim();
+        if (WHO_ACTOR.equalsIgnoreCase(trimmed)) {
+            return true;
+        }
+        if (!WHO_VICTIM.equalsIgnoreCase(trimmed)) {
+            diags.error(DiagCode.E_LOAD_REBATE, "unknown '" + BLOCKED_MESSAGE_WHO + "' value '" + trimmed + "'",
+                    node.sourceOf(BLOCKED_MESSAGE_WHO), "use '" + WHO_VICTIM + "' or '" + WHO_ACTOR + "'");
+        }
+        return false;
     }
 }

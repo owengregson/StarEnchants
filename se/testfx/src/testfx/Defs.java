@@ -1,7 +1,9 @@
 package testfx;
 
 import compile.def.AbilityDef;
+import compile.def.RebateKnobs;
 import compile.model.Affinity;
+import compile.model.ChanceRebate;
 import compile.model.CompiledCondition;
 import compile.model.CompiledEffect;
 import compile.model.SourceKind;
@@ -66,6 +68,13 @@ public final class Defs {
         private int soulCostDecayPeriod = 0;
         private boolean cooldownPerVictim = false;
         private boolean stacks = false;
+        private RebateKnobs rebate = RebateKnobs.NONE;
+
+        /** The authored chance-rebate envelope (ADR-0076 part E). */
+        public AbilityBuilder rebate(RebateKnobs rebate) {
+            this.rebate = rebate;
+            return this;
+        }
 
         public AbilityBuilder sourceKind(SourceKind sourceKind) {
             this.sourceKind = sourceKind;
@@ -253,7 +262,7 @@ public final class Defs {
                     cdScopeType, repeatTicks, source, setPieces, suppressImmune, chanceExpr, noSoulsMessage,
                     soulCostCarried, noSoulsSound, noSoulsParticle,
                     soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim, repeatDelayTicks,
-                    sourceGroup, stacks);
+                    sourceGroup, stacks, rebate);
         }
     }
 
@@ -291,6 +300,13 @@ public final class Defs {
         private int soulCostDecayPeriod = 0;
         private boolean cooldownPerVictim = false;
         private boolean stacks = false;
+        private ChanceRebate chanceRebate = null;
+
+        /** The lowered chance rebate gate 8 splits its roll on (ADR-0076 part E). */
+        public LoweredBuilder chanceRebate(ChanceRebate chanceRebate) {
+            this.chanceRebate = chanceRebate;
+            return this;
+        }
 
         public LoweredBuilder sourceKind(SourceKind sourceKind) {
             this.sourceKind = sourceKind;
@@ -466,7 +482,7 @@ public final class Defs {
                     cdScopeType, repeatTicks, affinity, source, setPieces, suppressImmune, loweredChanceExpr,
                     noSoulsMessage, soulCostCarried, noSoulsSound, noSoulsParticle,
                     soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim, repeatDelayTicks,
-                    sourceGroup, stacks);
+                    sourceGroup, stacks, chanceRebate);
         }
     }
 }

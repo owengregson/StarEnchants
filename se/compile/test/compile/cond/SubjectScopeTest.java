@@ -123,6 +123,14 @@ class SubjectScopeTest {
                     Diagnostics diags = new Diagnostics();
                     assertTrue(abilityLevel().compile(parse("%target.roll%", diags), diags).isEmpty());
                     assertBlocked(diags);
+                }),
+                // `chance-rebate:` is read one line below `chance:` at gate 8 (ADR-0076 part E), so it lowers
+                // through the SAME ability-side compiler and the subject is just as absent there.
+                DynamicTest.dynamicTest("chance-rebate:", () -> {
+                    Diagnostics diags = new Diagnostics();
+                    assertTrue(abilityLevel().numeric(
+                            parse("4 * %target.enchlevel.metaphysical%", diags), diags).isEmpty());
+                    assertBlocked(diags);
                 }));
     }
 

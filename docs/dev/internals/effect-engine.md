@@ -158,6 +158,29 @@ functional interface defaulting to `Guard.ALLOW`. Protection (region/claim
 plugins) and the cancellable `PreActivate` event plug in here without the engine
 depending on them.
 
+### Gate 8's three-way split (ADR-0076 part E)
+
+A declared `chance-rebate:` (percentage points) or `chance-rebate-scale:` (a
+fraction of the base) lets gate 8 split its **single** roll into
+`ACTIVATED` / `REBATED` / `CHANCE_FAILED`:
+
+```text
+base      = chanceOf(ability) + cond.chanceDelta()   // the UNREBATED rate
+effective = clamp(base - rebate, 0, 100)
+roll <  effective → gate 9
+roll <  base      → REBATED         (a proc the rebate ate)
+otherwise         → CHANCE_FAILED   (an ordinary miss; silent)
+```
+
+The distribution is identical to burying the subtraction in the `chance:`
+expression, which is what lets the corpus's blocked-proc lines land without
+re-pricing a single file. The verdict is always recorded for `/se why`; the line
+is optional and the **dispatch** layer emits it (the pipeline stays Bukkit-free),
+to the victim by default because the rebate is their defence.
+`rebate-spends-cooldown: true` keeps gate 6's reservation on the REBATED arm and
+**only** there, reusing the `spendCooldownOnChanceFail` mechanism the cold
+use-item path already has.
+
 ### The per-target pass inside gate 12 (ADR-0076)
 
 **The activation is adjudicated once. A target is adjudicated many times, and a

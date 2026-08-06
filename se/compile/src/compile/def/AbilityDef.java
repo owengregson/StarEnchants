@@ -41,6 +41,8 @@ import java.util.List;
  *                        ADR-0074 payload filter only; {@code null} = no override (the family group scopes it)
  * @param stacks          whether the enchant contributes once per worn PIECE ({@code stacks: true}, R-QC63);
  *                        {@code false} = the highest-worn-piece-only default, one contribution per wearer
+ * @param rebate          the authored chance-rebate envelope (ADR-0076); {@link RebateKnobs#NONE} for the
+ *                        overwhelming majority that declare none
  */
 public record AbilityDef(
         SourceKind sourceKind,
@@ -73,12 +75,42 @@ public record AbilityDef(
         boolean cooldownPerVictim,
         int repeatDelayTicks,
         String sourceGroup,
-        boolean stacks) {
+        boolean stacks,
+        RebateKnobs rebate) {
 
     public AbilityDef {
         triggers = List.copyOf(triggers);
         worldBlacklist = List.copyOf(worldBlacklist);
         effects = List.copyOf(effects);
+        rebate = rebate == null ? RebateKnobs.NONE : rebate;
+    }
+
+    /**
+     * A copy carrying {@code knobs} — the seam every def reader attaches its chance-rebate envelope through
+     * (ADR-0076), so seven positional constructor calls do not each grow a thirty-second argument.
+     */
+    public AbilityDef withRebate(RebateKnobs knobs) {
+        return new AbilityDef(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers,
+                worldBlacklist, conditionExpr, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType,
+                repeatTicks, source, setPieces, suppressImmune, chanceExpr, noSoulsMessage, soulCostCarried,
+                noSoulsSound, noSoulsParticle, soulCostGrowth, soulCostCap, soulCostDecayPeriod,
+                cooldownPerVictim, repeatDelayTicks, sourceGroup, stacks, knobs);
+    }
+
+    /** Construction with no chance rebate (ADR-0076) — every source but the readers that resolve the knobs. */
+    public AbilityDef(SourceKind sourceKind, String stableKey, int defId, int level, double baseChance,
+                      int cooldownTicks, int soulCost, List<String> triggers, List<String> worldBlacklist,
+                      String conditionExpr, List<EffectLine> effects, String suppressKey, String cdScopeEnchant,
+                      String cdScopeGroup, String cdScopeType, int repeatTicks, Source source, int setPieces,
+                      boolean suppressImmune, String chanceExpr, String noSoulsMessage, boolean soulCostCarried,
+                      String noSoulsSound, String noSoulsParticle, double soulCostGrowth, int soulCostCap,
+                      int soulCostDecayPeriod, boolean cooldownPerVictim, int repeatDelayTicks,
+                      String sourceGroup, boolean stacks) {
+        this(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost, triggers, worldBlacklist,
+                conditionExpr, effects, suppressKey, cdScopeEnchant, cdScopeGroup, cdScopeType, repeatTicks,
+                source, setPieces, suppressImmune, chanceExpr, noSoulsMessage, soulCostCarried, noSoulsSound,
+                noSoulsParticle, soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim,
+                repeatDelayTicks, sourceGroup, stacks, RebateKnobs.NONE);
     }
 
     /** Construction with the R-QC63 default: this source does NOT stack across pieces (highest-worn wins). */

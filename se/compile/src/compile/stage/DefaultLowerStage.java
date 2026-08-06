@@ -7,7 +7,9 @@ import compile.SpecRegistry;
 import compile.cond.ConditionCompiler;
 import compile.cond.VarResolver;
 import compile.def.AbilityDef;
+import compile.def.RebateKnobs;
 import compile.model.Affinity;
+import compile.model.ChanceRebate;
 import compile.model.CompiledCondition;
 import compile.model.CompiledEffect;
 import compile.model.CompiledSelector;
@@ -193,7 +195,41 @@ public final class DefaultLowerStage implements LowerStage {
                 def.cooldownPerVictim(),
                 def.repeatDelayTicks(),
                 def.sourceGroup(),
-                def.stacks());
+                def.stacks(),
+                lowerRebate(def, diags));
+    }
+
+    /**
+     * The chance-rebate envelope lowered (ADR-0076 part E), or {@code null} when none was authored. Both terms
+     * go through the ABILITY-side condition compiler, which is what makes {@code %target.*%} a blocking
+     * diagnostic here: gate 8 runs before any selector resolves, so there is no subject to read.
+     *
+     * <p>A faulty expression drops the whole envelope rather than defaulting to zero. Zero would silently mean
+     * "no rebate ever", which reads in play as the rebate having been removed; the diagnostic blocks the load
+     * either way.
+     */
+    private ChanceRebate lowerRebate(AbilityDef def, Diagnostics diags) {
+        RebateKnobs knobs = def.rebate();
+        if (!knobs.hasTerm()) {
+            return null;
+        }
+        NumExpr points = rebateTerm(knobs.points(), def, diags);
+        NumExpr scale = rebateTerm(knobs.scale(), def, diags);
+        if (points == null && scale == null) {
+            return null;
+        }
+        return new ChanceRebate(points, scale, knobs.message(), knobs.messageToActor(),
+                envelopeHandle(knobs.sound(), HandleCategory.SOUND, "blocked-sound", def, diags),
+                knobs.spendsCooldown());
+    }
+
+    private NumExpr rebateTerm(String raw, AbilityDef def, Diagnostics diags) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        return ExprParser.parse(raw, def.source(), diags)
+                .flatMap(expr -> conditionCompiler.numeric(expr, diags))
+                .orElse(null);
     }
 
     /**
