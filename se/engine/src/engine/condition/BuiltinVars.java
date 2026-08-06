@@ -161,6 +161,11 @@ public final class BuiltinVars {
                 // are different questions, and one buffer serves the WHOLE trigger pass — so a sibling ability's
                 // gate-7 condition can read the payload ability's outcome, which is what makes an
                 // empty-selection refusal line a FACT rather than a new branching construct.
+                //
+                // AUTHORING TRAP, both halves of one rule: the slot is rewritten by EVERY targeting effect and
+                // by every ability that fails to activate. So exactly ONE row and ONE sibling ability may read
+                // it — the row directly under the payload, and the ability directly after it. A second reader
+                // captures the count into a var first (the lava-elemental.yml marker idiom).
                 .number("selected")
                 .build();
     }

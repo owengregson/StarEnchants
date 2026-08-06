@@ -30,14 +30,16 @@ condition: "%victim.type% == \"PLAYER\" && %victim.var.trap.frozen% != 1"
 # Heroic Trap's own 0.01 floor; matrix-02's blanket "Trap has no floor" line records the measured jar, which
 # D-03-11 supersedes for this file. (Snare and Disarmor keep their recorded no-floor immunity — there the
 # expression's own [0,100] clamp is the floor.)
-# STILL PENDING — the blocked-proc line `§8§l** METAPHYSICAL (§8Trap blocked!§l) **`, shown to the VICTIM
+# THE BLOCKED-PROC LINE SHIPS (ADR-0076 part E): `§8§l** METAPHYSICAL (§8Trap blocked!§l) **`, to the VICTIM
 # (doc 03 names the recipient; matrix-02's "attacker-side rule" names the side that CARRIES the string, i.e.
-# this file — the recipient question the earlier note left open is settled that way). Its trigger is not
-# expressible: the matrix fires it "on a would-be proc", a roll that would have passed but for the rebate,
-# and the matrix's own decomposition is a PRE-roll subtraction it calls distribution-identical — so the
-# engine rolls exactly once at the already-reduced chance and no fact reports a roll that failed only
-# because of the rebate. Re-gating it on FULL immunity instead is no substitute here: the 1 % floor means
-# Trap is never fully blocked, so that line would never print at all.
+# this file). It fires on the REBATED verdict — the "would-be proc" the matrix describes, which turns out to
+# exist inside the shipped single roll and only to have been unnamed: a roll landing between the rebated rate
+# and the authored one IS a proc the rebate ate. So the subtraction moves out of `chance:` into a declared
+# `chance-rebate:` and gate 8 splits the SAME roll three ways. Nothing about the rate moves.
+# THE FLOOR SURVIVES THE MOVE, as algebra rather than as a second knob: `max(1, B - r)` is `B - min(B-1, r)`,
+# so each rung's rebate is capped at one point below its own base. Re-gating on FULL immunity was the other
+# candidate and is rejected for good: the 1 % floor means Trap is never fully blocked, so that line would
+# never print at all.
 # Interactions carried by the OTHER side, nothing authored here: the Dragon Slayer set (`immune_freeze`) blocks
 # outright — no leak chance — with `§8§l* DRAGON SLAYER [§7Trap blocked!§8§l] *` (the set-side rule
 # `dragon-slayer-blocks-freeze`, shared with §IceAspect; armour-set doc 10), and the engine's native
@@ -57,7 +59,9 @@ levels:
   # Freeze is 35 t and a FULL stop at every level; only the chance ladders (4/8/12 %, L3 measured
   # `0.12000000000000001`) — each rung carrying its own Metaphysical rebate and D-03-11 floor.
   1:
-    chance: "max(1, 4 - 2.5 * %victim.enchlevel.metaphysical% - 2.5 * %victim.enchlevel.polymorphic-metaphysical%)"
+    chance: 4
+    chance-rebate: "min(3, 2.5 * (%victim.enchlevel.metaphysical% + %victim.enchlevel.polymorphic-metaphysical%))"
+    blocked-message: "§8§l** METAPHYSICAL (§8Trap blocked!§l) **"
     effects:
       # The matrix writes this row as `MOVEMENT_SPEED(speed=-0.2)` — a delta off the vanilla 0.2 — but the
       # primitive SETS walk speed, so the recorded end state ("walk speed to 0", full stop) is authored
@@ -72,7 +76,9 @@ levels:
       # release line lands at t=35 — the tick the freeze and the marker both expire.
       - { MESSAGE: { text: "§a§l(!) §aYou are no longer trapped!", who: "@Victim", wait: 35 } }
   2:
-    chance: "max(1, 8 - 2.5 * %victim.enchlevel.metaphysical% - 2.5 * %victim.enchlevel.polymorphic-metaphysical%)"
+    chance: 8
+    chance-rebate: "min(7, 2.5 * (%victim.enchlevel.metaphysical% + %victim.enchlevel.polymorphic-metaphysical%))"
+    blocked-message: "§8§l** METAPHYSICAL (§8Trap blocked!§l) **"
     effects:
       - { MOVEMENT_SPEED: { speed: 0, ticks: 35, who: "@Victim" } }
       - { SET_VAR: { name: "trap.frozen", value: "1", ttl: 35, who: "@Victim" } }
@@ -80,7 +86,9 @@ levels:
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "SNOW_BLOCK", count: 8, who: "@Victim" } }
       - { MESSAGE: { text: "§a§l(!) §aYou are no longer trapped!", who: "@Victim", wait: 35 } }
   3:
-    chance: "max(1, 12 - 2.5 * %victim.enchlevel.metaphysical% - 2.5 * %victim.enchlevel.polymorphic-metaphysical%)"
+    chance: 12
+    chance-rebate: "min(11, 2.5 * (%victim.enchlevel.metaphysical% + %victim.enchlevel.polymorphic-metaphysical%))"
+    blocked-message: "§8§l** METAPHYSICAL (§8Trap blocked!§l) **"
     effects:
       - { MOVEMENT_SPEED: { speed: 0, ticks: 35, who: "@Victim" } }
       - { SET_VAR: { name: "trap.frozen", value: "1", ttl: 35, who: "@Victim" } }

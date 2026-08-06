@@ -41,14 +41,19 @@ disabled-worlds: ["world_koth"]
 # grades' launch abilities point at `rocket-escape`, so they pace each other. Each keeps its OWN `cooldown:`,
 # which is what lets the two thresholds stay asymmetric inside one bucket. The FALL companions below keep
 # `cooldown-scope: none` and are unaffected.
-# SABOTAGE VETO (swords doc 03). Inside Sabotage's 1000 ms mark the escape is vetoed at 10 % x the mark
-# level; sabotage.yml writes that level onto its victim as `sabotage`, read here actor-side as a bare
-# `%sabotage%` (inversion.yml's idiom for the same seam). It rides the chance as a pre-roll subtraction —
-# distribution-identical, the same shape trap.yml/snare.yml use for the Metaphysical rebate. Two recorded
-# halves do not survive that shape: the jar BURNS the cooldown on a vetoed escape (a failed roll arms
-# nothing here), and the victim-shown line `§c§l ** §7Guided Rocket Escape:§c§l SABOTAGED **` (leading space
-# verbatim) fires "on a would-be proc", which one already-reduced roll cannot report. Same class as the
-# Metaphysical blocked-proc lines; tracked in deferred-content.md.
+# SABOTAGE VETO (swords doc 03), WHOLE (ADR-0076 part E). Inside Sabotage's 1000 ms mark the escape is
+# vetoed at 10 % x the mark level; sabotage.yml writes that level onto its victim as `sabotage`, read here
+# actor-side as a bare `%sabotage%` (inversion.yml's idiom for the same seam). It is now a DECLARED
+# `chance-rebate:` rather than a subtraction buried in `chance:` — the same single roll, the same rate, and
+# gate 8 splitting it three ways — so both halves the old shape could not carry now land:
+#  * The SABOTAGED line ships verbatim, leading space and all, on the REBATED verdict. `blocked-message-who:
+#    actor` because the sabotaged party IS this ability's activator (the wearer whose escape was eaten); the
+#    jar sends it to the same body.
+#  * `rebate-spends-cooldown: true` BURNS the 15 s window on a vetoed escape, which is the measured jar
+#    behaviour and, per R-QC69b, a confirmed nerf under sabotage pressure: today's shipped file releases the
+#    reservation on the failed roll, so a sabotaged wearer could immediately re-roll on the next lethal hit.
+#    The knob keeps the reservation on the REBATED arm ONLY — an ordinary miss still releases it, so a rung
+#    that fails its roll for any other reason is not silently throttled. deviations.md carries the row.
 # WORLD RULES. `world_koth` is a literal refusal and ships as `disabled-worlds:` — inert on any server
 # without that world. The other three do not: the duels-lowered launch (y = 2+L in `world_duels`/
 # `world_duels2`) would need the whole ladder duplicated behind another deployment's world names, the
@@ -66,7 +71,11 @@ levels:
     abilities:
       - cooldown: 300
         cooldown-scope: rocket-escape
-        chance: "100 - 10 * %sabotage%"
+        chance: 100
+        chance-rebate: "10 * %sabotage%"
+        blocked-message: "§c§l ** §7Guided Rocket Escape:§c§l SABOTAGED **"
+        blocked-message-who: actor
+        rebate-spends-cooldown: true
         condition: "%damage% >= %actor.health%"
         effects:
           - { CANCEL: {} }
@@ -94,7 +103,11 @@ levels:
     abilities:
       - cooldown: 300
         cooldown-scope: rocket-escape
-        chance: "100 - 10 * %sabotage%"
+        chance: 100
+        chance-rebate: "10 * %sabotage%"
+        blocked-message: "§c§l ** §7Guided Rocket Escape:§c§l SABOTAGED **"
+        blocked-message-who: actor
+        rebate-spends-cooldown: true
         condition: "%damage% >= %actor.health%"
         effects:
           - { CANCEL: {} }
@@ -119,7 +132,11 @@ levels:
     abilities:
       - cooldown: 300
         cooldown-scope: rocket-escape
-        chance: "100 - 10 * %sabotage%"
+        chance: 100
+        chance-rebate: "10 * %sabotage%"
+        blocked-message: "§c§l ** §7Guided Rocket Escape:§c§l SABOTAGED **"
+        blocked-message-who: actor
+        rebate-spends-cooldown: true
         condition: "%damage% >= %actor.health%"
         effects:
           - { CANCEL: {} }

@@ -18,12 +18,12 @@ cooldown-per-victim: true  # R-QC8: the recorded pacing is PER TARGET, so the bu
 # D-04-8: the jar's splash was attacker-less generic damage — armour-reduced, NO kill credit, and it re-entered
 # the defensive pass only (`00-MECHANICS.md` §3.5 mode B). Engine DAMAGE is activator-attributed, so a splash
 # kill now credits the swinger.
-# PER-VICTIM PACING (R-QC8), and it is not exactly the jar's: the recorded stamp is 20 t on each SPLASH
-# victim, while `cooldown-per-victim` keys the bucket on the activation's own victim — the player actually
-# struck. So the throttle now follows the target rather than the swinger (chasing a second enemy no longer
-# waits on the first), and the splash itself is paced by the primary target's window, not per bystander. The
-# 30 t figure stays the jar's attacker throttle; nothing here promotes it to the 20 t splash number, which
-# belongs to a keying the engine still has no slot for.
+# TWO PACINGS, both now the recorded ones. `cooldown-per-victim` (R-QC8) keys the ability's own 30 t attacker
+# throttle on the player actually STRUCK, so chasing a second enemy no longer waits on the first. The jar's
+# other stamp — 20 t (1000 ms) on each SPLASH member, who is a selector target of one activation and never a
+# cooldown key — is `each-cooldown: 20` on the DAMAGE row (ADR-0076): it stamps the resolved body in the
+# cooldown store's existing per-victim dimension, under a target bucket gate 6 never produces, so a bystander
+# inside their own window is dropped from this splash and neither window can collide with the other.
 # The heroic twin shares a mutual 20 t exclusion window with this one, authored from the HEROIC side (batch 06)
 # as SUPPRESS(scope=ENCHANT, key=enchants/cleave, duration=20, who=@Self) — nothing is owed here.
 # Not ported: the mcMMO Skull Splitter hook (external plugin — with it gone the jar's
@@ -34,22 +34,22 @@ levels:
   # Radius 0.45 x level; splash damage 1 (L1-3) / 2 (L4-6) / 3 (L7). Only those two ladders move.
   1:
     effects:
-      - { DAMAGE: { amount: 1, who: "@Aoe{r=0.45, filter=ENEMIES, exclude=victim}" } }
+      - { DAMAGE: { amount: 1, who: "@Aoe{r=0.45, filter=ENEMIES, exclude=victim}", each-cooldown: 20 } }
   2:
     effects:
-      - { DAMAGE: { amount: 1, who: "@Aoe{r=0.90, filter=ENEMIES, exclude=victim}" } }
+      - { DAMAGE: { amount: 1, who: "@Aoe{r=0.90, filter=ENEMIES, exclude=victim}", each-cooldown: 20 } }
   3:
     effects:
-      - { DAMAGE: { amount: 1, who: "@Aoe{r=1.35, filter=ENEMIES, exclude=victim}" } }
+      - { DAMAGE: { amount: 1, who: "@Aoe{r=1.35, filter=ENEMIES, exclude=victim}", each-cooldown: 20 } }
   4:
     effects:
-      - { DAMAGE: { amount: 2, who: "@Aoe{r=1.80, filter=ENEMIES, exclude=victim}" } }
+      - { DAMAGE: { amount: 2, who: "@Aoe{r=1.80, filter=ENEMIES, exclude=victim}", each-cooldown: 20 } }
   5:
     effects:
-      - { DAMAGE: { amount: 2, who: "@Aoe{r=2.25, filter=ENEMIES, exclude=victim}" } }
+      - { DAMAGE: { amount: 2, who: "@Aoe{r=2.25, filter=ENEMIES, exclude=victim}", each-cooldown: 20 } }
   6:
     effects:
-      - { DAMAGE: { amount: 2, who: "@Aoe{r=2.70, filter=ENEMIES, exclude=victim}" } }
+      - { DAMAGE: { amount: 2, who: "@Aoe{r=2.70, filter=ENEMIES, exclude=victim}", each-cooldown: 20 } }
   7:
     effects:
-      - { DAMAGE: { amount: 3, who: "@Aoe{r=3.15, filter=ENEMIES, exclude=victim}" } }
+      - { DAMAGE: { amount: 3, who: "@Aoe{r=3.15, filter=ENEMIES, exclude=victim}", each-cooldown: 20 } }

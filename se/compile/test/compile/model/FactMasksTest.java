@@ -108,6 +108,19 @@ class FactMasksTest {
     }
 
     @Test
+    void aChanceRebateContributesItsSlotsToo() {
+        // ADR-0076 part E: the rebate is evaluated one line below the chance, on the same buffer. An unmasked
+        // slot would price every rebate off a never-populated 0 — the rebate would silently stop rebating.
+        ChanceRebate points = new ChanceRebate(new NumExpr.Var(11), null, null, false, -1, false);
+        assertTrue(FactMasks.of(null, null, points, NO_EFFECTS).readsNum(11));
+
+        ChanceRebate scale = new ChanceRebate(null, new NumExpr.Var(12), null, false, -1, false);
+        assertTrue(FactMasks.of(null, null, scale, NO_EFFECTS).readsNum(12));
+
+        assertEquals(FactMask.NONE, FactMasks.of(null, null, null, NO_EFFECTS));
+    }
+
+    @Test
     void aPerTargetFilterContributesItsORDINARYSlotsButNoneForTheSubjectScope() {
         // ADR-0076's cheapness claim, held as a test: the subject cursor is a RE-BIND of lazy readers, so a
         // %target.*% operand must add no bits at all. If it forced a bit — or worse, ALL — every filtered AoE

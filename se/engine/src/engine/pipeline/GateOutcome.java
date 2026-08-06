@@ -32,6 +32,13 @@ public enum GateOutcome {
     /** Skipped: the chance roll did not pass (gate 8). */
     CHANCE_FAILED,
 
+    /**
+     * Skipped: the roll would have passed the UNREBATED chance, and a declared {@code chance-rebate:} ate it
+     * (gate 8, ADR-0076). An ordinary miss stays {@link #CHANCE_FAILED} and stays silent; this one names the
+     * moment a defensive rebate blocked a proc, which is the event the blocked-proc lines hang on.
+     */
+    REBATED,
+
     /** Cancelled: a {@code PreActivate} listener cancelled the activation (gate 9). */
     CANCELLED,
 

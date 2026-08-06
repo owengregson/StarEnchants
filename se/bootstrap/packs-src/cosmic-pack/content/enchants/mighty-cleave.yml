@@ -28,9 +28,9 @@ cooldown-per-victim: true  # R-QC8, as cleave.yml — the bucket keys on the str
 # D-04-8, inherited: the jar's splash was attacker-less generic damage — armour-reduced, NO kill credit, and
 # it only re-entered the defensive pass. Engine DAMAGE is activator-attributed, so a splash kill now credits
 # the swinger and the splashed player's own defence enchants see a damager.
-# PER-VICTIM PACING (R-QC8), with the same caveat cleave.yml spells out: `cooldown-per-victim` keys on the
-# activation's own victim, not on each splash bystander, so the throttle follows the struck player where the
-# jar stamped every body the splash touched.
+# TWO PACINGS, as cleave.yml spells out: `cooldown-per-victim` (R-QC8) keys the ability's own 30 t attacker
+# throttle on the struck player, and `each-cooldown: 20` on the DAMAGE row (ADR-0076) carries the jar's 20 t
+# stamp on each SPLASH member — the selector target the cooldown key could not name before.
 # THE SHARED BUCKET IS authored, from this side, exactly as cleave.yml assigns it: the jar keyed the heroic's
 # per-victim stamp under the SAME bucket name as the counterpart's, so a heroic splash locks the plain one
 # out for 20 t. `SUPPRESS(scope=ENCHANT, key=enchants/cleave, who=@Self)` is that half, coarsened to the
@@ -46,21 +46,21 @@ levels:
   # Only those two ladders move; the roll is 100 % at every rung, so no `chance:` appears.
   1:
     effects:
-      - { DAMAGE: { amount: 5, who: "@Aoe{r=3.25, filter=ENEMIES, exclude=victim}" } }
+      - { DAMAGE: { amount: 5, who: "@Aoe{r=3.25, filter=ENEMIES, exclude=victim}", each-cooldown: 20 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/cleave", duration: 20, mode: "timed", who: "@Self" } }
   2:
     effects:
-      - { DAMAGE: { amount: 5, who: "@Aoe{r=3.50, filter=ENEMIES, exclude=victim}" } }
+      - { DAMAGE: { amount: 5, who: "@Aoe{r=3.50, filter=ENEMIES, exclude=victim}", each-cooldown: 20 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/cleave", duration: 20, mode: "timed", who: "@Self" } }
   3:
     effects:
-      - { DAMAGE: { amount: 6, who: "@Aoe{r=3.75, filter=ENEMIES, exclude=victim}" } }
+      - { DAMAGE: { amount: 6, who: "@Aoe{r=3.75, filter=ENEMIES, exclude=victim}", each-cooldown: 20 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/cleave", duration: 20, mode: "timed", who: "@Self" } }
   4:
     effects:
-      - { DAMAGE: { amount: 7, who: "@Aoe{r=4.00, filter=ENEMIES, exclude=victim}" } }
+      - { DAMAGE: { amount: 7, who: "@Aoe{r=4.00, filter=ENEMIES, exclude=victim}", each-cooldown: 20 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/cleave", duration: 20, mode: "timed", who: "@Self" } }
   5:
     effects:
-      - { DAMAGE: { amount: 7, who: "@Aoe{r=4.25, filter=ENEMIES, exclude=victim}" } }
+      - { DAMAGE: { amount: 7, who: "@Aoe{r=4.25, filter=ENEMIES, exclude=victim}", each-cooldown: 20 } }
       - { SUPPRESS: { scope: "ENCHANT", key: "enchants/cleave", duration: 20, mode: "timed", who: "@Self" } }

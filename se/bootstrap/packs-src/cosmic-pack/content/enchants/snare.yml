@@ -28,16 +28,16 @@ tier: rare
 # expression chance clamps to [0,100] and that 0 bound is the recorded absolute immunity, so Metaphysical >= 2
 # already hard-blocks Snare I and >= 4 covers Snare I-III. Measured reduction per level: 7 / 14 /
 # 21.000000000000002 / 28 / 35.000000000000003 pp — float noise on exact 7 pp rungs, so the exact rung ships.
-# STILL PENDING — the blocked-proc line `§8§l** METAPHYSICAL (§8Snare blocked!§l) **`, shown to the victim.
-# The matrix fires it "only when Metaphysical blocks the proc", i.e. on a roll that would have passed but for
-# the reduction, and that event does not exist under the matrix's own pre-roll-subtraction expression: the
-# engine rolls once at the already-reduced chance and no fact reports a roll that failed only because of the
-# rebate. Gating it on the FULL-immunity regime instead would print the line only when the victim is already
-# immune and never when merely reduced — an asymmetry the matrix does not describe, and one Trap's D-03-11
-# floor could not carry at all, so the three consumers stay uniform and the string waits (deferred-content).
+# THE BLOCKED-PROC LINE SHIPS (ADR-0076 part E): `§8§l** METAPHYSICAL (§8Snare blocked!§l) **`, to the victim.
+# The matrix fires it "only when Metaphysical blocks the proc" — a roll that would have passed but for the
+# reduction — and that event turns out to live inside the shipped single roll, merely unnamed: a roll landing
+# between the rebated rate and the authored one IS a proc the rebate ate. The subtraction therefore moves out
+# of `chance:` into a declared `chance-rebate:` and gate 8 splits the SAME roll three ways, at the same rate.
+# NO FLOOR here, as recorded: the [0,100] clamp is the bound, so Metaphysical >= 2 still hard-blocks Snare I
+# — and a fully immune victim now hears why on every would-be proc instead of nothing at all.
 # Same reduction family as Pummel/Trap/Titan Trap; Snare is retired from tier rolls (a catalog flag, not
 # behavior — nothing to author on the ability).
-# strings: none on the enchant itself (the blocked line above belongs to the pending rule).
+# strings: the blocked line above is the only one this side carries.
 # era: `VINE` exists on 1.8.9 and `SLOW` / `SLOW_DIGGING` are the 1.8-era potion spellings the resolver maps
 # to SLOWNESS / MINING_FATIGUE; the block-crack burst carries the material through the same resolver.
 # No hazard.
@@ -50,23 +50,31 @@ levels:
   # single-burst 2001 mapping (healing.yml and devour.yml port theirs the same way). The world effect's
   # vanilla break sound has no PARTICLE half and is not authored.
   1:
-    chance: "9 - 7 * %victim.enchlevel.metaphysical% - 7 * %victim.enchlevel.polymorphic-metaphysical%"
+    chance: 9
+    chance-rebate: "7 * (%victim.enchlevel.metaphysical% + %victim.enchlevel.polymorphic-metaphysical%)"
+    blocked-message: "§8§l** METAPHYSICAL (§8Snare blocked!§l) **"
     effects:
       - { POTION: { effect: "SLOW", level: 2, duration: 40, who: "@Victim" } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "VINE", count: 8, who: "@Victim" } }
   2:
-    chance: "18 - 7 * %victim.enchlevel.metaphysical% - 7 * %victim.enchlevel.polymorphic-metaphysical%"
+    chance: 18
+    chance-rebate: "7 * (%victim.enchlevel.metaphysical% + %victim.enchlevel.polymorphic-metaphysical%)"
+    blocked-message: "§8§l** METAPHYSICAL (§8Snare blocked!§l) **"
     effects:
       - { POTION: { effect: "SLOW", level: 3, duration: 60, who: "@Victim" } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "VINE", count: 8, who: "@Victim" } }
   3:
-    chance: "27 - 7 * %victim.enchlevel.metaphysical% - 7 * %victim.enchlevel.polymorphic-metaphysical%"
+    chance: 27
+    chance-rebate: "7 * (%victim.enchlevel.metaphysical% + %victim.enchlevel.polymorphic-metaphysical%)"
+    blocked-message: "§8§l** METAPHYSICAL (§8Snare blocked!§l) **"
     effects:
       - { POTION: { effect: "SLOW", level: 4, duration: 80, who: "@Victim" } }
       - { POTION: { effect: "SLOW_DIGGING", level: 1, duration: 80, who: "@Victim" } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "VINE", count: 8, who: "@Victim" } }
   4:
-    chance: "36 - 7 * %victim.enchlevel.metaphysical% - 7 * %victim.enchlevel.polymorphic-metaphysical%"
+    chance: 36
+    chance-rebate: "7 * (%victim.enchlevel.metaphysical% + %victim.enchlevel.polymorphic-metaphysical%)"
+    blocked-message: "§8§l** METAPHYSICAL (§8Snare blocked!§l) **"
     effects:
       - { POTION: { effect: "SLOW", level: 5, duration: 100, who: "@Victim" } }
       - { POTION: { effect: "SLOW_DIGGING", level: 2, duration: 100, who: "@Victim" } }

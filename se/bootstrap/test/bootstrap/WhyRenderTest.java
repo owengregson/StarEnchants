@@ -97,6 +97,10 @@ class WhyRenderTest {
                         M.fragment("command.why.condition")),
                 dyn(at(GateOutcome.CHANCE_FAILED, 8720, 2500),
                         M.fragment("command.why.chance", "ROLL", "87.20", "CHANCE", "25.00")),
+                // ADR-0076: the same payload pair, read the other way — the roll is UNDER the unrebated chance,
+                // which is exactly what makes it a proc a rebate ate rather than an ordinary miss.
+                dyn(at(GateOutcome.REBATED, 1900, 2500),
+                        M.fragment("command.why.rebated", "ROLL", "19.00", "CHANCE", "25.00")),
                 dyn(at(GateOutcome.CANCELLED, 0, 0),
                         M.fragment("command.why.cancelled")),
                 dyn(at(GateOutcome.NO_SOULS, 0, 5),

@@ -130,7 +130,8 @@ final class MaskDefReader {
                 chance.expr(), noSoulsMessage, soulKnobs.carried(), soulKnobs.sound(), soulKnobs.particle(),
                 soulCostGrowth, soulCostCap, soulCostDecayPeriod,
                 ContentParse.resolveCooldownPerVictim(node, diags),
-                repeatDelayTicks);
+                repeatDelayTicks)
+                .withRebate(ContentParse.resolveRebateKnobs(node, diags));
     }
 
     private static String orEmpty(String value) {

@@ -330,6 +330,7 @@ final class SetDefReader {
                 Math.max(0, setPieces), false, chance.expr(), noSoulsMessage, soulKnobs.carried(), soulKnobs.sound(),
                 soulKnobs.particle(), soulCostGrowth, soulCostCap, soulCostDecayPeriod,
                 ContentParse.resolveCooldownPerVictim(node, diags),
-                repeatDelayTicks);
+                repeatDelayTicks)
+                .withRebate(ContentParse.resolveRebateKnobs(node, diags));
     }
 }

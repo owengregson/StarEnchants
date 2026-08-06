@@ -127,6 +127,10 @@ final class WhyRender {
             case CONDITION_FAILED -> messages.fragment("command.why.condition");
             case CHANCE_FAILED -> messages.fragment("command.why.chance",
                     "ROLL", percent(at.pA()), "CHANCE", percent(at.pB()));
+            // ADR-0076: CHANCE is the UNREBATED rate, so the pair reads "you would have procced at {CHANCE},
+            // and the rebate took it" — the one answer a bare CHANCE_FAILED could never give an operator.
+            case REBATED -> messages.fragment("command.why.rebated",
+                    "ROLL", percent(at.pA()), "CHANCE", percent(at.pB()));
             case CANCELLED -> messages.fragment("command.why.cancelled");
             case NO_SOULS -> messages.fragment(
                     at.pA() == 0 ? "command.why.no-souls-gem" : "command.why.no-souls-pool", "COST", at.pB());

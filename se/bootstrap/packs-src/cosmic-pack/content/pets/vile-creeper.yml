@@ -26,10 +26,14 @@
 # figures are LORE LITERALS on this pet — they are not read from the enchant, they do not scale with pet
 # level, and this file never touches the Rot and Decay mastery (matrix/07) directly; it only advertises it.
 # So the two creepers are behaviourally identical today and the descriptor is what tells them apart.
-# NOT PORTED, no surface: the jar's spawn-failure branch (`§c§lPET: §cUnable to spawn Vile Creeper!`, then
-# stop). An activation cannot see whether its selector or spawn found anything, so a failed spawn here is
-# silent and still burns the cooldown (the as-intended "no cooldown burned on failure" ordering needs that
-# same missing fact). Recorded as a stop.
+# NOT PORTED, and NOT closed by the per-target subject wave: the jar's spawn-failure branch
+# (`§c§lPET: §cUnable to spawn Vile Creeper!`, then stop). `%selected%` (ADR-0076) reports how many bodies an
+# effect's SELECTOR bound, and `SPAWN_ENTITY`'s selector is `@Self` — it always resolves the activator, one
+# body, whether or not the world accepted the summon. So the fact the wave adds cannot see this failure, and
+# authoring the refusal on it would print never. What it would take is a spawn that REPORTS, the way
+# `INVENTORY_CONVERT` reports its count. Recorded as a stop against that, not against a subject fact.
+# In practice the branch is close to unreachable here anyway: the jar's `spawnCreeper` returned null on a
+# refused spawn, where this engine's `SPAWN_ENTITY` at the activator's own feet has nothing to refuse.
 # The pet is listed in the Mystery Pet Box's lore at a 0 % chance and is not obtainable from it (ruling R3
 # leaves the box out of scope entirely).
 # era: creeper spawning is identical on both trees and the custom stats are external either way. `DIG_SNOW`

@@ -248,7 +248,8 @@ final class PetDefReader {
                 repeatTicks, node.source(), 0, false, chance.expr(), noSoulsMessage, soulKnobs.carried(),
                 soulKnobs.sound(), soulKnobs.particle(), soulCostGrowth, soulCostCap, soulCostDecayPeriod,
                 ContentParse.resolveCooldownPerVictim(node, diags),
-                repeatDelayTicks);
+                repeatDelayTicks)
+                .withRebate(ContentParse.resolveRebateKnobs(node, diags));
         out.add(ability);
         return ability;
     }

@@ -36,12 +36,13 @@ condition: "%victim.type% == \"PLAYER\" && %victim.var.trap.frozen% != 1"
 # Disarmor, whose recorded absolute immunity is the expression chance's own [0,100] clamp. The counterpart
 # takes -2.5 pp unfloored and D-03-11 puts the same 1 % floor under it, so the pair is uniform.
 # Resistance table the matrix records at L3 (12 % base): M1 10.75 %, M2 9.5 %, M3 8.25 %, M4 7 %.
-# STILL PENDING, exactly as on trap.yml / snare.yml — the blocked-proc line `§8§l** METAPHYSICAL (§8Trap
-# blocked!§l) **`, shown to the VICTIM. The matrix fires it on a would-be proc, a roll that would have passed
-# but for the rebate, and its own decomposition is a PRE-roll subtraction it calls distribution-identical: the
-# engine rolls once at the already-reduced chance and no fact reports a roll that failed only because of the
-# rebate. Re-gating on FULL immunity is no substitute here — the 1 % floor means Titan Trap is never fully
-# blocked, so the line would never print. Tracked with its two siblings in deferred-content.
+# THE BLOCKED-PROC LINE SHIPS (ADR-0076 part E), exactly as on trap.yml / snare.yml: `§8§l** METAPHYSICAL
+# (§8Trap blocked!§l) **` — the counterpart's wording, verbatim, because the jar reuses the string — shown to
+# the VICTIM. It fires on the REBATED verdict, the "would-be proc" the matrix describes, which lives inside
+# the shipped single roll and was only unnamed: a roll landing between the rebated rate and the authored one
+# IS a proc the rebate ate. The subtraction moves out of `chance:` into a declared `chance-rebate:` and gate 8
+# splits the SAME roll three ways, at the same rate. The floor moves with it as algebra — `max(1, B - r)` is
+# `B - min(B-1, r)` — so each rung's rebate is capped one point below its own base and the >= 1 % window holds.
 # MEASURED INTERACTION POSTURE, copied not fixed: unlike the counterpart, this entry does NOT fire the
 # proc-veto event and IGNORES the Dragon Slayer set's `immune_freeze`. So the set line
 # `§8§l* DRAGON SLAYER [§7Trap blocked!§8§l] *` and the engine's activation veto both cover Trap and NOT
@@ -66,7 +67,9 @@ levels:
   # Duration 35 + 10L = 45 / 55 / 65 t (2.25 / 2.75 / 3.25 s) — the freeze, the water cue and the marker all
   # run on the SAME clock, and the release line waits it out.
   1:
-    chance: "max(1, 4 - 1.25 * %victim.enchlevel.metaphysical% - 1.25 * %victim.enchlevel.polymorphic-metaphysical%)"
+    chance: 4
+    chance-rebate: "min(3, 1.25 * (%victim.enchlevel.metaphysical% + %victim.enchlevel.polymorphic-metaphysical%))"
+    blocked-message: "§8§l** METAPHYSICAL (§8Trap blocked!§l) **"
     effects:
       # slow 99.5 % IS the matrix's walk speed 0.001 (0.5 % of vanilla's 0.2), and `dot: 0` keeps the root
       # damage-free — the jar's freeze only holds, it never bleeds. `neutralize-frost-slow` defaults true, so
@@ -95,7 +98,9 @@ levels:
       # the victim's line — the "attacker" reading was a decompiler artifact.
       - { MESSAGE: { text: "§a§l** FREE [§7Titan Trap§a§l] **", who: "@Victim", wait: 45 } }
   2:
-    chance: "max(1, 8 - 1.25 * %victim.enchlevel.metaphysical% - 1.25 * %victim.enchlevel.polymorphic-metaphysical%)"
+    chance: 8
+    chance-rebate: "min(7, 1.25 * (%victim.enchlevel.metaphysical% + %victim.enchlevel.polymorphic-metaphysical%))"
+    blocked-message: "§8§l** METAPHYSICAL (§8Trap blocked!§l) **"
     effects:
       - { FREEZE: { duration: 55, dot: 0, slow: 99.5, no-jump: true, who: "@Victim" } }
       - { SET_VAR: { name: "trap.frozen", value: "1", ttl: 55, who: "@Victim" } }
@@ -105,7 +110,9 @@ levels:
       - { MESSAGE: { text: "§c§l** TITAN TRAP [§7{seconds}s§c§l] **", who: "@Victim", tokens: { seconds: 2.75 } } }
       - { MESSAGE: { text: "§a§l** FREE [§7Titan Trap§a§l] **", who: "@Victim", wait: 55 } }
   3:
-    chance: "max(1, 12 - 1.25 * %victim.enchlevel.metaphysical% - 1.25 * %victim.enchlevel.polymorphic-metaphysical%)"
+    chance: 12
+    chance-rebate: "min(11, 1.25 * (%victim.enchlevel.metaphysical% + %victim.enchlevel.polymorphic-metaphysical%))"
+    blocked-message: "§8§l** METAPHYSICAL (§8Trap blocked!§l) **"
     effects:
       - { FREEZE: { duration: 65, dot: 0, slow: 99.5, no-jump: true, who: "@Victim" } }
       - { SET_VAR: { name: "trap.frozen", value: "1", ttl: 65, who: "@Victim" } }

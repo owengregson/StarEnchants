@@ -2,6 +2,7 @@ package engine.run;
 
 import compile.cond.VarBinding;
 import compile.model.Ability;
+import compile.model.ChanceRebate;
 import compile.model.CompiledEffect;
 import compile.model.StableKeyIndex;
 import engine.condition.BuiltinVars;
@@ -189,6 +190,28 @@ public final class AbilityExecutor {
             }
             if (feedback.soundId() >= 0) {
                 sink.sound(actor.getLocation(), feedback.soundId(), 1.0f, 1.0f);
+            }
+        } else if (outcome == GateOutcome.REBATED) {
+            // ADR-0076 part E, on the #314 suppression-feedback surface: the pipeline names the verdict and the
+            // DISPATCH layer decides who hears about it, so the gate stays Bukkit-free and holds only a UUID.
+            // The recipient defaults to the VICTIM because the rebate is THEIR defence — the party protected is
+            // the party told — and blocked-message-who: actor flips it for a line about the attacker's own gear.
+            ChanceRebate rebate = ability.chanceRebate();
+            if (rebate == null || !rebate.hasFeedback()) {
+                return; // the verdict is still recorded for /se why; only the line is optional
+            }
+            LivingEntity victim = context.victim();
+            Player recipient = rebate.messageToActor() ? actor
+                    : (victim instanceof Player player ? player : null);
+            if (recipient == null) {
+                return; // a mob cannot be told, and nothing else may receive a line addressed to the victim
+            }
+            if (rebate.message() != null && !rebate.message().isEmpty()) {
+                sink.message(recipient, Tokens.sub(rebate.message(), ATTACKER, actor.getName(),
+                        VICTIM, victim == null ? "" : victim.getName()));
+            }
+            if (rebate.soundId() >= 0) {
+                sink.sound(recipient.getLocation(), rebate.soundId(), 1.0f, 1.0f);
             }
         } else if (outcome == GateOutcome.NO_SOULS) {
             String notice = ability.noSoulsMessage();

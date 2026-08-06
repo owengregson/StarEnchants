@@ -73,8 +73,17 @@ Parts A–D ship as stages S1–S3 (engine) and S4 (content); part E as S5–S6.
 - An effect that opts into nothing pays **one null check** and allocates exactly what it allocates today; an
   unfiltered pass returns the resolved list ITSELF (the defender consult's copy-on-first-drop idiom). The
   cursor is thread-local and re-pointed by field writes, so a 20-body sweep allocates nothing for it. The JMH
-  `ExecutorBenchmark` floor and its ~0 B/op assertion hold unchanged; a filtered-AoE bench row lands with the
-  content stage, where a real filtered AoE exists to measure.
+  `ExecutorBenchmark` floor and its ~0 B/op assertion hold unchanged.
+- **The filtered-AoE bench row is NOT built, and the reason is structural.** `:bench` has the Bukkit API on its
+  classpath and no server, and `SubjectCursor.bind` reads `getUniqueId()` off a real `LivingEntity`, so a
+  16-body row needs sixteen entity stand-ins. Every way to make one distorts exactly the number the row exists
+  to prove: a Mockito proxy or a `java.lang.reflect.Proxy` allocates per invocation, which swamps a 0 B/op
+  assertion; a hand-written `LivingEntity` implementation allocates nothing but pins ~200 no-op methods against
+  an interface that grows across the 1.17.1 → 26.1.x range, so a toolchain bump would break the build on a
+  benchmark. The per-body cost the row would measure is already gated from two sides — `PerTargetFilterTest`
+  asserts the copy-on-first-drop identity (an unfiltered pass returns the list itself) and the existing
+  `effectExecution` budget covers the executor path the filter sits in. Revisit if the engine ever grows a
+  UUID-keyed filter seam a bench could drive without an entity at all.
 - The authoring surface grows by three effect params, one variable scope, one variable (and, at S5, four
   ability knobs) — `RegistryFingerprint` and `docs/reference/authoring-surface.txt` churn in two stages, so
   two golden-regen reviews rather than one. Declaring an ENTITY target slot now moves the fingerprint, because
@@ -85,7 +94,28 @@ Parts A–D ship as stages S1–S3 (engine) and S4 (content); part E as S5–S6.
   from their arguments too.
 - `%victim%` vs `%target%` is a real authoring hazard, closed by the scope-legality diagnostic rather than by
   documentation.
-- At S5: `GateOutcome` gains one constant and `/se why` gains one verdict with a richer payload.
+- `%selected%` is ONE dense slot, rewritten by every targeting effect and overwritten with `-1` by every
+  ability that fails to activate. So exactly one effect row and one sibling ability may read it directly;
+  anything beyond that captures the count into a var first (the `lava-elemental.yml` marker idiom). Found by
+  the S4 content, and now stated in `docs/dev/internals/effect-engine.md` and on the `BuiltinVars` entry.
+- `GateOutcome` gains one constant and `/se why` gains one verdict rendering both the roll and the UNREBATED
+  chance — "you would have procced at 40 %, and a rebate took it" is an answer a bare `CHANCE_FAILED` cannot
+  give. `REBATED` is inserted next to `CHANCE_FAILED` to keep the enum in gate order; the ordinal is a
+  per-run `WhyRing` encoding and is not persisted, so the insert costs nothing.
+
+### As built, where part E's shape differs from the design
+
+Two adjustments, both made during S5 and neither changing what the decision above says:
+
+- The six rebate knobs land as ONE nullable record component (`ChanceRebate` on `Ability`, `RebateKnobs` on
+  `AbilityDef`) rather than six flat fields in the `noSouls*` shape. They are absent together on all but a
+  handful of abilities, so one null check at gate 8 replaces two, three records with 30+ components each grow
+  by one instead of six, and the seven def readers attach the envelope through one `withRebate(...)` seam
+  instead of each growing a positional argument list.
+- The mutual exclusion is a reader diagnostic (`E_LOAD_REBATE`), not a `ParamSpec` `CrossRule`. `CrossRule`
+  governs EFFECT params; these are ability-level knobs the `ContentParse` envelope reads, so `ContentFuzz`
+  (which generates effect lines) is untouched and needs no new rule. The same code covers the second shape
+  worth rejecting — feedback declared with no term at all, which would ship as a line that can never fire.
 
 ## Alternatives considered
 

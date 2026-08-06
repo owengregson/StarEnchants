@@ -2,6 +2,7 @@ package testfx;
 
 import compile.model.Ability;
 import compile.model.Affinity;
+import compile.model.ChanceRebate;
 import compile.model.CompiledCondition;
 import compile.model.CompiledEffect;
 import compile.model.FactMask;
@@ -58,6 +59,7 @@ public final class Abilities {
         private int soulCostDecayPeriod = 0;
         private boolean cooldownPerVictim = false;
         private boolean stacks = false;
+        private ChanceRebate chanceRebate = null;
 
         public Builder id(int id) {
             this.id = id;
@@ -224,13 +226,19 @@ public final class Abilities {
             return this;
         }
 
+        /** The declared term gate 8 splits its roll on, and its feedback (ADR-0076 part E). */
+        public Builder chanceRebate(ChanceRebate chanceRebate) {
+            this.chanceRebate = chanceRebate;
+            return this;
+        }
+
         public Ability build() {
             return new Ability(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost,
                     worldBlacklist, condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup,
                     cdScopeType, suppressKey, setPieces, suppressImmune, factMask, chanceExpr, noSoulsMessage,
                     soulCostCarried, noSoulsSound, noSoulsParticle,
                     soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim, repeatDelayTicks,
-                    sourceGroup == null ? cdScopeGroup : sourceGroup, stacks);
+                    sourceGroup == null ? cdScopeGroup : sourceGroup, stacks, chanceRebate);
         }
     }
 }

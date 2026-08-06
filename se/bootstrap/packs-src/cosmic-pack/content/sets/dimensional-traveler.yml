@@ -152,20 +152,21 @@ bonuses:
       - { REMOVE_POTION: { effect: DAMAGE_RESISTANCE, who: "@Self" } }
   # DIMENSIONAL SHIFT — 1 % per incoming hit: a 4 s full root on everyone within 25 blocks, blinded and
   # slowed, under a two-material block storm.
-  # THE POLTERGEIST REBATE is authored here, as the deferred-content row owes this entry and on the idiom
-  # enchants/nature-wrath established by owner ruling: a rebate belongs to the roll it rebates, so
-  # poltergeist.yml publishes the level and the consumer rolls it — two mutually exclusive abilities whose
-  # chances sum to the recorded 1 %. D-07-13 makes the share a uniform 12.5 % per Poltergeist level, so it is
-  # 0.125 pp per level here. A victim wearing none reads a real 0 and the immune rung collapses to chance 0,
-  # so the ordinary case pays nothing for the split. (Mother of Yijki, the family's other Poltergeist
-  # consumer, cannot use this shape — its rebate sits per-strike INSIDE DELAYED_STRIKE_FIELD — so that file
-  # records the rule instead of authoring it.)
-  # THREE DELTAS, recorded rather than faked (the three nature-wrath.yml carries):
-  #  * SUBJECT — the roll reads ONE body, the DEFENSE pass's %victim% (the attacker who hit the wearer), where
-  #    the jar rolled per AoE member. Nothing on the surface filters a selector by a per-target fact.
-  #  * SCOPE — an immune roll therefore spares the WHOLE scan, not just the immune attacker.
-  #  * WINDOW — the jar's 8 000 ms immunity, which the falling blocks also honoured, has no expression; an
-  #    immune roll here simply means this activation never happens.
+  # THE POLTERGEIST REBATE is authored here, PER TARGET (ADR-0076), on the idiom enchants/nature-wrath
+  # established by owner ruling: a rebate belongs to the roll it rebates, so poltergeist.yml publishes the
+  # level and the consumer rolls it. D-07-13 makes the share a uniform 12.5 % per Poltergeist level. The shift
+  # keeps its plain 1 % roll and the FREEZE row and the immune line are the two arms of ONE draw per body
+  # (`%target.roll%`, memoised per body per ability), so they partition instead of dividing the ability's own
+  # chance between two mutually exclusive rungs — which is what this file used to do, and which could only
+  # adjudicate the DEFENSE pass's %victim% and so spared or rooted the whole scan together. A body wearing no
+  # Poltergeist reads a real 0, so the immune arm is unreachable for them and the ordinary case pays nothing.
+  # (Mother of Yijki, the family's other Poltergeist consumer, cannot use this shape — its rebate sits
+  # per-strike INSIDE DELAYED_STRIKE_FIELD — so that file records the rule instead of authoring it.)
+  # TWO RESIDUES, both now scoped to the immune body rather than to the scan:
+  #  * The immunity is the FREEZE immunity only. An immune body still takes the blindness, the slow, both cues
+  #    and the block field — which is what the matrix records (the jar's immunity gated the root).
+  #  * WINDOW — the jar's 8 000 ms per-victim immunity, which the falling blocks also honoured, has no
+  #    expression; an immune body here is simply dropped from this activation's root.
   # The Clarity gate the matrix records on the BLINDNESS rung needs nothing authored: enchants/clarity is an
   # autonomous 3-tick scrubber in this port, so a victim wearing it sheds the blindness on its own while the
   # SLOW — never Clarity-gated, measured — stays.
@@ -183,10 +184,15 @@ bonuses:
   - on: armor
     trigger: DEFENSE
     group: "dimensional-shift"
-    chance: "1 - 0.125 * %victim.enchlevel.poltergeist%"
+    chance: 1
     condition: "(%actor.world% contains \"dungeon\") : %stop%"
     effects:
-      - { FREEZE: { duration: 80, dot: 0, slow: 100, who: "@Aoe{r=25, filter=ENEMIES}" } }
+      - { FREEZE: { duration: 80, dot: 0, slow: 100, who: "@Aoe{r=25, filter=ENEMIES}",
+            each-if: "%target.roll% >= 12.5 * %target.enchlevel.poltergeist%" } }
+      # The complementary arm of the same draw: exactly the bodies the root above dropped. The consumer's own
+      # name is inlined ({source} has no token binding), which keeps the rendered line byte-identical.
+      - { MESSAGE: { text: "§4§l* POLTERGEIST [§7Immune: Dimensional Traveler§4§l] *", who: "@Aoe{r=25, filter=ENEMIES}",
+            each-if: "%target.roll% < 12.5 * %target.enchlevel.poltergeist%" } }
       - { POTION: { effect: BLINDNESS, level: 1, duration: 60, who: "@Aoe{r=25, filter=ENEMIES}" } }
       - { POTION: { effect: SLOW, level: 1, duration: 80, who: "@Aoe{r=25, filter=ENEMIES}" } }
       - { SOUND: { sound: "ENTITY_ENDERMAN_TELEPORT", volume: 1.0, pitch: 1.1, dy: 4, who: "@Aoe{r=25, filter=ENEMIES}" } }
@@ -208,14 +214,6 @@ bonuses:
             layers-min: 3, layers-max: 4, layer-step-min: 12, layer-step-max: 19, density: 50,
             damage-percent: 15, health-cap: 44, rehit-max: 4, rehit-window: 200, kill-material: COBWEB,
             who: "@Aoe{r=25, filter=ENEMIES}" } }
-  # Poltergeist immune — the same roll spent on the blocked line instead of the shift. The consumer's own name
-  # is inlined ({source} has no token binding), which also makes the rendered line byte-identical.
-  - on: armor
-    trigger: DEFENSE
-    chance: "0.125 * %victim.enchlevel.poltergeist%"
-    condition: "(%actor.world% contains \"dungeon\") : %stop%"
-    effects:
-      - { MESSAGE: { text: "§4§l* POLTERGEIST [§7Immune: Dimensional Traveler§4§l] *", who: "@Victim" } }
   # The field's landing payload. A landing block fires the actor's IMPACT abilities on what it hit and
   # forwards the field's computed bite as %damage%; the engine spends the re-hit ceiling at the landing, so
   # this rung is already capped at 4 hits per victim per 10 s. MODIFY_HEALTH take is the recorded RAW health

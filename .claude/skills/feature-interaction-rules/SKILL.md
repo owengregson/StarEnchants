@@ -82,6 +82,24 @@ remains for add-on interception.
 - **Consume cues fire on one-shot charges too** — the burn is blind, the block is not — and
   fill `{ATTACKER}` (the armer) / `{VICTIM}` (the silenced).
 
+## REBATED is an interaction verdict (ADR-0076 part E)
+
+A defender's gear can also cut an attacker's chance instead of silencing it. Declared as
+`chance-rebate:` (points) or `chance-rebate-scale:` (a fraction of base), it lets gate 8
+split ONE roll into ACTIVATED / **REBATED** / CHANCE_FAILED at identical distribution to
+burying the subtraction in `chance:` — so the Metaphysical family and Guided Rocket
+Escape's sabotage finally have a real event for their blocked-proc lines. Unlike
+suppression it is **inline on the attacker's own walk**, so it cannot park a hit late the
+way a defender-armed `SUPPRESS_INCOMING` does. The verdict is always recorded for
+`/se why`; the line is optional, goes to the **victim** by default
+(`blocked-message-who: actor` flips it), and is emitted by the dispatch layer.
+`rebate-spends-cooldown: true` burns the window on the REBATED arm only.
+
+A **per-target** veto is the other shape and a different one: `each-if`/`each-chance` drop
+a body from one effect's list inside gate 12 and can never un-activate the ability
+(the R-v rule, generalised). Reach for the rebate when the whole activation is at stake,
+for `each-*` when one body is.
+
 ## Example: an effect contributes, never commits
 
 ```java
