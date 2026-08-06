@@ -37,13 +37,17 @@ public final class FrozenTargets {
         volatile long budgetTicks;
         /** Lattice ticks the chain has consumed; single writer = the owning chain's thread. */
         volatile long elapsedTicks;
+        /** {@code FREEZE no-jump} (R-QC57): this window also pins the victim to the ground. */
+        volatile boolean noJump;
 
-        Window(long generation, long budgetTicks, long deadlineMs, UUID attackerId, LivingEntity attacker) {
+        Window(long generation, long budgetTicks, long deadlineMs, UUID attackerId, LivingEntity attacker,
+               boolean noJump) {
             this.generation = generation;
             this.budgetTicks = budgetTicks;
             this.deadlineMs = deadlineMs;
             this.attackerId = attackerId;
             this.attacker = attacker;
+            this.noJump = noJump;
         }
 
         public LivingEntity attacker() {
@@ -69,7 +73,8 @@ public final class FrozenTargets {
      * a dead chain (its tasks died with the entity/region), so the caller arms fresh and {@link #arm}
      * supersedes it.
      */
-    static boolean refresh(UUID victim, int durationTicks, long deadlineMs, UUID attackerId, LivingEntity attacker) {
+    static boolean refresh(UUID victim, int durationTicks, long deadlineMs, UUID attackerId,
+                           LivingEntity attacker, boolean noJump) {
         Window w = WINDOWS.get(victim);
         if (w == null || System.currentTimeMillis() >= w.deadlineMs) {
             return false;
@@ -78,6 +83,10 @@ public final class FrozenTargets {
         w.deadlineMs = Math.max(w.deadlineMs, deadlineMs);
         w.attackerId = attackerId;
         w.attacker = attacker;
+        // The no-jump flag LATCHES on refresh, like the budget and the deadline: a re-proc must never be able
+        // to release a ground-pin the window already had, which is what a plain overwrite from a second
+        // consumer's ordinary FREEZE would do mid-window.
+        w.noJump |= noJump;
         return true;
     }
 
@@ -86,7 +95,8 @@ public final class FrozenTargets {
      * under lag, or its chain died with the entity) is torn down FIRST, so its stale teardown can never
      * fire later and clobber this window's visual/slow, and two DoT chains never coexist.
      */
-    static long arm(UUID victim, int durationTicks, long deadlineMs, UUID attackerId, LivingEntity attacker) {
+    static long arm(UUID victim, int durationTicks, long deadlineMs, UUID attackerId, LivingEntity attacker,
+                    boolean noJump) {
         Window prior = WINDOWS.get(victim);
         if (prior != null) {
             Runnable priorTeardown = prior.teardown;
@@ -99,7 +109,7 @@ public final class FrozenTargets {
             }
         }
         long gen = GENERATIONS.incrementAndGet();
-        WINDOWS.put(victim, new Window(gen, durationTicks, deadlineMs, attackerId, attacker));
+        WINDOWS.put(victim, new Window(gen, durationTicks, deadlineMs, attackerId, attacker, noJump));
         return gen;
     }
 
@@ -140,6 +150,22 @@ public final class FrozenTargets {
     public static boolean isFrozen(UUID victim) {
         Window w = WINDOWS.get(victim);
         return w != null && w.elapsedTicks < w.budgetTicks;
+    }
+
+    /**
+     * Whether {@code victim} is inside a live window that also pins them to the GROUND ({@code FREEZE
+     * no-jump}, R-QC57). The modern lane's jump listener is the only reader; the legacy overlay has no
+     * cancellable jump event, so a legacy freeze keeps its DoT and slow and the victim can still hop — the
+     * same recorded degrade the powder-snow visual takes there.
+     *
+     * <p>Deliberately a SECOND read rather than a widening of {@link #isFrozen}: frozen and ground-pinned are
+     * different states, and every consumer authored before the flag existed must keep the feel it was tuned
+     * at. One map read on a jump — an event that fires far less often than the hit path this class usually
+     * serves — so the guard costs nothing anyone can measure.
+     */
+    public static boolean blocksJump(UUID victim) {
+        Window w = WINDOWS.get(victim);
+        return w != null && w.noJump && w.elapsedTicks < w.budgetTicks;
     }
 
     /** Drop the window iff still the {@code generation} one (a newer window survives a stale teardown). */

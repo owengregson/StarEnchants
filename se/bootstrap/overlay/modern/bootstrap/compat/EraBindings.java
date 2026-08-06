@@ -9,6 +9,7 @@ import engine.sink.SinkFactory;
 import engine.stores.KnockbackControlStore;
 import feature.combat.EquipListener;
 import feature.combat.FreezeDamageGuardListener;
+import feature.combat.FreezeJumpGuardListener;
 import feature.combat.KnockbackListener;
 import feature.combat.LegacyKnockbackListener;
 import feature.combat.ModernArmourChangeListener;
@@ -244,6 +245,12 @@ public final class EraBindings implements EraServices {
     @Override
     public Listener freezeDamageGuard() {
         return new FreezeDamageGuardListener();
+    }
+
+    /** FREEZE no-jump guard (R-QC57): cancel a ground-pinned victim's jump; Paper's own cancellable event. */
+    @Override
+    public Listener freezeJumpGuard() {
+        return new FreezeJumpGuardListener();
     }
 
     /** ITEM_DAMAGE source (§4): modern {@code PlayerItemDamageEvent} listener (1.8 fires it from the gear poll). */

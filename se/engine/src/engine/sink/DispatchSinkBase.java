@@ -1589,7 +1589,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
     @Override
     public void freeze(LivingEntity target, int durationTicks, double dotPerTick, int dotPeriodTicks,
                        double slowPercent, boolean neutralizeFrostSlow, double breakoutChancePercent,
-                       LivingEntity attacker) {
+                       boolean noJump, LivingEntity attacker) {
         if (target == null || durationTicks <= 0) {
             return;
         }
@@ -1602,10 +1602,10 @@ public abstract class DispatchSinkBase implements SinkReadback {
             // drops a DoT tick nor blinds the pin/guard while the victim is still pinned.
             long deadlineMs = System.currentTimeMillis() + durationTicks * 50L;
             UUID attackerId = attacker != null ? attacker.getUniqueId() : null;
-            if (FrozenTargets.refresh(victim, durationTicks, deadlineMs, attackerId, attacker)) {
+            if (FrozenTargets.refresh(victim, durationTicks, deadlineMs, attackerId, attacker, noJump)) {
                 return; // refresh-not-stack (owner rule): the live chain reads the extended tick budget
             }
-            long gen = FrozenTargets.arm(victim, durationTicks, deadlineMs, attackerId, attacker);
+            long gen = FrozenTargets.arm(victim, durationTicks, deadlineMs, attackerId, attacker, noJump);
             // EVERY victim rides Paper's freeze-tick LOCK where it exists (guards vanilla's decay AND
             // the burning-entity clear, §1.1/§1.2 — fire coexistence with zero per-tick work); an
             // unlocked re-pin can never hold under fire, because it runs before the entity ticks and

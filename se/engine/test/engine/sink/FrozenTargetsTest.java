@@ -29,7 +29,7 @@ class FrozenTargetsTest {
 
     @Test
     void livenessIsTheTickBudgetNotTheWallDeadline() {
-        long gen = FrozenTargets.arm(victim, 60, System.currentTimeMillis() + 10_000, UUID.randomUUID(), null);
+        long gen = FrozenTargets.arm(victim, 60, System.currentTimeMillis() + 10_000, UUID.randomUUID(), null, false);
         assertTrue(FrozenTargets.isFrozen(victim), "live from arm");
         FrozenTargets.chainTick(victim, gen, 20);
         FrozenTargets.chainTick(victim, gen, 20);
@@ -44,7 +44,7 @@ class FrozenTargetsTest {
         // The laggy tail: below 20 TPS a 60-tick window outlasts its 3000 ms wall deadline while the victim is
         // still pinned by Paper's freeze-tick lock. A wall-clock read went blind here, so vanilla's fully-frozen
         // self-hurt landed and its i-frames partialled the next DoT slot on <=1.20.6 (the folia:1.20.6 flake).
-        long gen = FrozenTargets.arm(victim, 60, System.currentTimeMillis() - 1, UUID.randomUUID(), null);
+        long gen = FrozenTargets.arm(victim, 60, System.currentTimeMillis() - 1, UUID.randomUUID(), null, false);
         FrozenTargets.chainTick(victim, gen, 20); // mid-window: 20 of 60 lattice ticks claimed
         assertTrue(FrozenTargets.isFrozen(victim), "the tick budget outlives the wall deadline under lag");
     }
@@ -52,7 +52,7 @@ class FrozenTargetsTest {
     @Test
     void chainClaimsExactlyTheBudgetBoundaryInclusive() {
         long now = System.currentTimeMillis();
-        long gen = FrozenTargets.arm(victim, 60, now + 3_000, null, null);
+        long gen = FrozenTargets.arm(victim, 60, now + 3_000, null, null, false);
         assertNotNull(FrozenTargets.chainTick(victim, gen, 20)); // t+20
         assertNotNull(FrozenTargets.chainTick(victim, gen, 20)); // t+40
         FrozenTargets.Window boundary = FrozenTargets.chainTick(victim, gen, 20); // t+60 == duration
@@ -65,8 +65,8 @@ class FrozenTargetsTest {
     void chainTickRejectsAStaleGenerationOrAnAbsentWindow() {
         long now = System.currentTimeMillis();
         assertNull(FrozenTargets.chainTick(victim, 1L, 20), "no window, no slot");
-        long stale = FrozenTargets.arm(victim, 60, now + 3_000, null, null);
-        long current = FrozenTargets.arm(victim, 60, now + 3_000, null, null);
+        long stale = FrozenTargets.arm(victim, 60, now + 3_000, null, null, false);
+        long current = FrozenTargets.arm(victim, 60, now + 3_000, null, null, false);
         assertNull(FrozenTargets.chainTick(victim, stale, 20), "a superseded chain claims nothing");
         assertNotNull(FrozenTargets.chainTick(victim, current, 20));
     }
@@ -76,10 +76,10 @@ class FrozenTargetsTest {
         long now = System.currentTimeMillis();
         UUID first = UUID.randomUUID();
         UUID second = UUID.randomUUID();
-        long gen = FrozenTargets.arm(victim, 40, now + 2_000, first, null);
+        long gen = FrozenTargets.arm(victim, 40, now + 2_000, first, null, false);
         assertNotNull(FrozenTargets.chainTick(victim, gen, 20)); // t+20 consumed before the re-proc
 
-        assertTrue(FrozenTargets.refresh(victim, 60, now + 4_000, second, null), "a live window refreshes");
+        assertTrue(FrozenTargets.refresh(victim, 60, now + 4_000, second, null, false), "a live window refreshes");
         FrozenTargets.Window w = FrozenTargets.get(victim);
         assertEquals(gen, w.generation, "the generation is kept (no second window)");
         assertEquals(now + 4_000, w.deadlineMs, "a later deadline extends the window");
@@ -94,8 +94,8 @@ class FrozenTargetsTest {
     @Test
     void refreshNeverShortensTheBudgetOrTheDeadline() {
         long now = System.currentTimeMillis();
-        long gen = FrozenTargets.arm(victim, 100, now + 5_000, null, null);
-        assertTrue(FrozenTargets.refresh(victim, 20, now + 1_000, null, null));
+        long gen = FrozenTargets.arm(victim, 100, now + 5_000, null, null, false);
+        assertTrue(FrozenTargets.refresh(victim, 20, now + 1_000, null, null, false));
         assertEquals(now + 5_000, FrozenTargets.get(victim).deadlineMs,
                 "an EARLIER deadline never shortens the window");
         // The 100-tick budget outlives the 0+20 refresh: all five 20-tick slots still land.
@@ -106,22 +106,46 @@ class FrozenTargetsTest {
     }
 
     @Test
+    void noJumpIsASeparateStateFromFrozenAndLatchesAcrossARefresh() {
+        // R-QC57: `no-jump` is a FLAG, not a redefinition of frozen — an ordinary window must not pin the
+        // ground, or every consumer authored before the flag existed silently re-tunes.
+        long now = System.currentTimeMillis();
+        FrozenTargets.arm(victim, 60, now + 5_000, null, null, false);
+        assertTrue(FrozenTargets.isFrozen(victim));
+        assertFalse(FrozenTargets.blocksJump(victim), "an ordinary freeze leaves the victim able to jump");
+
+        // A second consumer's plain FREEZE lands on the same victim mid-window. It must not RELEASE a pin the
+        // window already had — the flag latches, exactly as the budget and the deadline do.
+        long gen = FrozenTargets.arm(victim, 60, now + 5_000, null, null, true);
+        assertTrue(FrozenTargets.blocksJump(victim));
+        assertTrue(FrozenTargets.refresh(victim, 60, now + 6_000, null, null, false));
+        assertTrue(FrozenTargets.blocksJump(victim), "a plain re-proc cannot lift a live ground-pin");
+
+        // And the pin dies with the window's budget, on the same tick read the DoT and the guard use — never
+        // on the wall clock, which lags behind under load and would leave a player rooted after the thaw.
+        for (int slot = 1; slot <= 6; slot++) {
+            FrozenTargets.chainTick(victim, gen, 20);
+        }
+        assertFalse(FrozenTargets.blocksJump(victim), "a spent window pins nothing");
+    }
+
+    @Test
     void refreshOnAnAbsentOrWallLapsedWindowReturnsFalse() {
         long now = System.currentTimeMillis();
-        assertFalse(FrozenTargets.refresh(victim, 60, now + 1_000, UUID.randomUUID(), null), "no window to refresh");
-        FrozenTargets.arm(victim, 60, now - 1, UUID.randomUUID(), null); // wall lapsed: a presumed-dead chain
-        assertFalse(FrozenTargets.refresh(victim, 60, now + 1_000, UUID.randomUUID(), null),
+        assertFalse(FrozenTargets.refresh(victim, 60, now + 1_000, UUID.randomUUID(), null, false), "no window to refresh");
+        FrozenTargets.arm(victim, 60, now - 1, UUID.randomUUID(), null, false); // wall lapsed: a presumed-dead chain
+        assertFalse(FrozenTargets.refresh(victim, 60, now + 1_000, UUID.randomUUID(), null, false),
                 "a lapsed window is not refreshed (arm supersedes it instead)");
     }
 
     @Test
     void armSupersedesRunningTheSurvivorsTeardownFirst() {
         long now = System.currentTimeMillis();
-        long stale = FrozenTargets.arm(victim, 60, now + 5_000, null, null);
+        long stale = FrozenTargets.arm(victim, 60, now + 5_000, null, null, false);
         AtomicInteger ran = new AtomicInteger();
         FrozenTargets.onTeardown(victim, stale, ran::incrementAndGet);
 
-        long current = FrozenTargets.arm(victim, 60, now + 5_000, null, null);
+        long current = FrozenTargets.arm(victim, 60, now + 5_000, null, null, false);
         assertEquals(1, ran.get(), "the superseded window's teardown ran at arm (no stale clobber later)");
         assertEquals(current, FrozenTargets.get(victim).generation, "the new window is live");
         assertTrue(FrozenTargets.isFrozen(victim));
@@ -130,8 +154,8 @@ class FrozenTargetsTest {
     @Test
     void disarmOnlyRemovesItsOwnGeneration() {
         long now = System.currentTimeMillis();
-        long stale = FrozenTargets.arm(victim, 60, now + 5_000, UUID.randomUUID(), null);
-        long current = FrozenTargets.arm(victim, 60, now + 5_000, UUID.randomUUID(), null); // re-arm supersedes
+        long stale = FrozenTargets.arm(victim, 60, now + 5_000, UUID.randomUUID(), null, false);
+        long current = FrozenTargets.arm(victim, 60, now + 5_000, UUID.randomUUID(), null, false); // re-arm supersedes
 
         FrozenTargets.disarm(victim, stale);
         assertTrue(FrozenTargets.isFrozen(victim), "a stale-generation disarm leaves the newer window intact");
@@ -146,8 +170,8 @@ class FrozenTargetsTest {
         long now = System.currentTimeMillis();
         UUID a = UUID.randomUUID();
         UUID b = UUID.randomUUID();
-        long genA = FrozenTargets.arm(a, 60, now + 5_000, null, null);
-        long genB = FrozenTargets.arm(b, 60, now + 5_000, null, null);
+        long genA = FrozenTargets.arm(a, 60, now + 5_000, null, null, false);
+        long genB = FrozenTargets.arm(b, 60, now + 5_000, null, null, false);
         AtomicInteger ranA = new AtomicInteger();
         AtomicInteger ranB = new AtomicInteger();
         FrozenTargets.onTeardown(a, genA, ranA::incrementAndGet);
@@ -167,7 +191,7 @@ class FrozenTargetsTest {
     @Test
     void onTeardownWithAStaleGenerationDoesNotAttach() {
         long now = System.currentTimeMillis();
-        long gen = FrozenTargets.arm(victim, 60, now + 5_000, null, null);
+        long gen = FrozenTargets.arm(victim, 60, now + 5_000, null, null, false);
         AtomicInteger ran = new AtomicInteger();
         FrozenTargets.onTeardown(victim, gen + 999, ran::incrementAndGet); // stale — must not attach
 

@@ -81,6 +81,10 @@ final class ControlsModule {
                 // a crash-stranded freeze lock; 1.8 binding is inert. The stop runs every live window's teardown
                 // (unlock + thaw + strip the slow) best-effort — the SwarmSpawns disable-sweep shape.
                 .events(core.bindings().freezeDamageGuard())
+                // FREEZE no-jump (R-QC57): a window that authored the flag also stops the victim jumping.
+                // One cancel on Paper's own jump event; the 1.8 binding is inert, so a legacy freeze keeps
+                // its DoT and slow and the victim can still hop.
+                .events(core.bindings().freezeJumpGuard())
                 .stop("frozen windows", engine.sink.FrozenTargets::teardownAll)
                 // §C KNOCKBACK_CONTROL: capability-probed onto modern-bukkit or legacy destroystokyo; inert on neither.
                 .install("KNOCKBACK_CONTROL applier", () -> {

@@ -55,12 +55,13 @@ tier: mastery
 # minimum 1) needs nothing authored: the engine ROUNDS (`(int) Math.round(max x percent / 100)`), which is
 # already >= 1 for every max at or above 5 — no vanilla armour is below that.
 # ── FREEZE, POTIONS, PARTICLES ─────────────────────────────────────────────────────────────────────────────
-# THE JUMP LOCK IS NOT SHIPPED, on either lane — the pack-wide ruling `titan-trap.yml` records: the jar's
-# Jump-amplifier-128 no-jump is a 1.8-only integer overflow, and on the modern lane the same amplifier is a
-# real and enormous jump that would fling the targets this proc exists to pin. FREEZE is the root that
-# replaces it, which is what the matrix decomposes here anyway (it records FREEZE and the potion pair as one
-# step), so the entry loses only the jump half of the hold: a rooted target at `slow: 100` can still hop on
-# the spot. A jump knob on FREEZE is owed engine-side, as that file's precedent already notes.
+# THE JUMP LOCK SHIPS ON THE MODERN LANE (R-QC57), as `FREEZE no-jump`. The jar's Jump-amplifier-128 trick
+# stays ruled out pack-wide — it is a 1.8-only integer overflow, and on the modern lane that amplifier is a
+# real and enormous jump that would fling the targets this proc exists to pin. The knob is a cancel on
+# Paper's own `PlayerJumpEvent` instead, which is exact and costs nothing per tick. The 1.8.9 overlay has no
+# such event and every substitute is felt-wrong (a move-event velocity test rubber-bands; a per-tick write
+# jitters), so the LEGACY lane keeps the recorded degrade: the root, the slow and the potions all land and a
+# trapped target can still hop on the spot at `slow: 100`. Same shape as FREEZE's powder-snow visual.
 # The SLOW rung stays: amplifier 128 is a full movement stop on BOTH eras (the modern speed multiplier floors
 # at 0 rather than wrapping), so it carries no overflow hazard, and the jar's freeze-restore removed SLOW
 # while leaving JUMP running its full 60 t — engine FREEZE plus this one explicit potion reproduce the
@@ -97,7 +98,7 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
-          - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
           - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
           - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
           - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
@@ -125,7 +126,7 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
-          - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
           - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
           - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
           - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
@@ -153,7 +154,7 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
-          - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
           - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
           - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
           - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
@@ -181,7 +182,7 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
-          - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
           - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
           - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
           - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
@@ -209,7 +210,7 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
-          - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
           - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
           - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
           - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
@@ -237,7 +238,7 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
-          - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
           - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
           - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
           - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
@@ -265,7 +266,7 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
-          - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
           - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
           - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
           - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
@@ -293,7 +294,7 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
-          - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
           - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
           - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
           - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
@@ -321,7 +322,7 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
-          - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
           - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
           - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
           - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
@@ -349,7 +350,7 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
-          - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
           - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
           - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
           - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }

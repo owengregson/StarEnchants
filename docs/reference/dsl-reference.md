@@ -401,16 +401,17 @@ Grant flight to the target(s) while NOT in combat, revoke it while in combat (su
 
 ### FREEZE
 
-Fully freeze the target for a span of ticks (vanilla powder-snow visual: blue hearts + full vignette, held even while the victim burns), dealing dot damage every dot-period ticks (attributed to the activator; raw pre-armor half-hearts) and slowing them by slow percent. Re-procs refresh the window instead of stacking. neutralize-frost-slow cancels vanilla's own ~50% fully-frozen slow so the authored percent is the real one. breakout-chance rolls once per DoT pulse: on a hit the root shatters there and then, so a long freeze becomes a struggle the victim can win early instead of a fixed sentence.
+Fully freeze the target for a span of ticks (vanilla powder-snow visual: blue hearts + full vignette, held even while the victim burns), dealing dot damage every dot-period ticks (attributed to the activator; raw pre-armor half-hearts) and slowing them by slow percent. Re-procs refresh the window instead of stacking. neutralize-frost-slow cancels vanilla's own ~50% fully-frozen slow so the authored percent is the real one. breakout-chance rolls once per DoT pulse: on a hit the root shatters there and then, so a long freeze becomes a struggle the victim can win early instead of a fixed sentence. no-jump additionally pins the victim to the ground: a frozen player cannot jump out of the root. It is off by default because it re-tunes the feel of every freeze it is added to, and it is MODERN-ONLY — the 1.8.9 lane has no cancellable jump event, so a freeze there keeps its DoT and slow and the victim can still hop (the recorded era degrade, as with the powder-snow visual).
 
 - _affinity_: `TARGET_ENTITY`
-- _usage_: `{ FREEZE: { duration: <ticks[0..]=60>, dot: <double[0..]=2>, dot-period: <ticks[0..]=20>, slow: <double[0..100]=5>, neutralize-frost-slow: <bool=true>, breakout-chance: <double[0..100]=0> } }`
+- _usage_: `{ FREEZE: { duration: <ticks[0..]=60>, dot: <double[0..]=2>, dot-period: <ticks[0..]=20>, slow: <double[0..100]=5>, neutralize-frost-slow: <bool=true>, breakout-chance: <double[0..100]=0>, no-jump: <bool=false> } }`
 - _param_ `duration` `ticks[0..]`
 - _param_ `dot` `double[0..]`
 - _param_ `dot-period` `ticks[0..]`
 - _param_ `slow` `double[0..100]`
 - _param_ `neutralize-frost-slow` `bool`
 - _param_ `breakout-chance` `double[0..100]` — percent chance per DoT pulse that the victim shatters the root early
+- _param_ `no-jump` `bool` — also stop the victim jumping for the window (modern lane only; inert on 1.8.9)
 - _target_ `who`: selector `VICTIM`
 - _example_: `{ FREEZE: { duration: 100, dot: 2, dot-period: 20, slow: 5 } }`
 

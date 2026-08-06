@@ -248,7 +248,7 @@ public interface Sink {
      */
     void freeze(LivingEntity target, int durationTicks, double dotPerTick, int dotPeriodTicks,
                 double slowPercent, boolean neutralizeFrostSlow, double breakoutChancePercent,
-                LivingEntity attacker);
+                boolean noJump, LivingEntity attacker);
 
     /** Clear every active potion effect from the target. */
     void cure(LivingEntity target);
