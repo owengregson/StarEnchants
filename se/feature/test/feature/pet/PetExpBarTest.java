@@ -1,58 +1,60 @@
 package feature.pet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import compile.load.MasterConfig;
 import org.junit.jupiter.api.Test;
 
 /**
- * The {@link PetService#expBar} render algorithm (ADR-0052) as a format spec over test-owned {@code (level,
- * exp)} inputs and the default {@code pets:} knobs. Pins the max-level padding fix (1.8.4): a FULL bar keeps
- * the same right-hand pad every partial/empty bar shows — its last filled square carries its trailing space
- * before the template's closing bracket, so max-level formatting matches the other levels. The pad
- * assertions are glyph-agnostic (anchored on the {@code &7} empty-colour) so a change to the filled glyph is
- * not a false failure; {@link #fullBarStringIsExactlyPinned} additionally hard-pins the exact max-level
- * string (the regression the owner reported was the loss of that one trailing space).
+ * The {@link PetService#expBar} render algorithm (ADR-0052, widened by R-QC65) as a format spec over
+ * test-owned {@code (level, exp)} inputs and the default {@code pets:} knobs.
+ *
+ * <p>The bar is FIFTY segments, one glyph each and no separator — the recorded width, restored over the
+ * proportionality the port always had. What is pinned here is the arithmetic that made the jar's own bar
+ * useless: it must fill in proportion below the cap (the jar's long division floored every partial bar to
+ * zero) and clamp at exactly full rather than overflow past its width (the jar grew the line unbounded once
+ * banked exp passed the threshold). The segment count is read from the rendered string, so the two halves of
+ * "50 wide" and "fills proportionally" are one assertion.
  */
 class PetExpBarTest {
 
     private static final MasterConfig.PetsSection CFG = MasterConfig.PetsSection.defaults();
-    private static final String EMPTY_COLOUR = "&7"; // separates the filled group from the empty group
+    private static final int SEGMENTS = 50;
 
-    @Test
-    void fullBarKeepsItsRightHandPad() {
-        String full = PetService.expBar(CFG.maxLevel(), 0, CFG);
-        int closer = full.indexOf(EMPTY_COLOUR);
-        assertTrue(closer > 0, "the full bar still carries the empty-colour marker");
-        assertEquals(EMPTY_COLOUR, full.substring(closer), "no empty slots follow a full bar");
-        assertEquals(' ', full.charAt(closer - 1),
-                "a full bar keeps the trailing pad between its last filled square and the closer (max-level padding)");
+    /** Filled segments of a rendered bar — everything before the empty-colour marker, glyphs only. */
+    private static int filled(String bar) {
+        return bar.substring(0, bar.indexOf("&c")).length() - "&a".length();
+    }
+
+    /** Total segments of a rendered bar, so a width change fails here rather than silently halving the meter. */
+    private static int width(String bar) {
+        return bar.length() - "&a".length() - "&c".length();
     }
 
     @Test
-    void fullBarStringIsExactlyPinned() {
-        // The exact max-level render: ten filled squares, each with its trailing space, then the empty-colour
-        // marker with no underscores following. The final "■ &7" is the restored pad (1.8.4 fix).
-        assertEquals("&a■ ■ ■ ■ ■ ■ ■ ■ ■ ■ &7", PetService.expBar(CFG.maxLevel(), 0, CFG));
+    void aCappedPetRendersExactlyFullAndNeverWider() {
+        // The jar overflowed here: past the threshold its `exp/needed` became 2, 3, 4… and the line grew to
+        // 100 and 150 glyphs. Banked exp far beyond the threshold must still render one full bar.
+        String full = PetService.expBar(CFG.maxLevel(), CFG.expPerLevel() * 9, CFG);
+        assertEquals(SEGMENTS, filled(full), "a capped pet is full");
+        assertEquals(SEGMENTS, width(full), "and never wider than the bar");
     }
 
     @Test
-    void partialBarKeepsItsSeparatorAndTrailingPad() {
-        String partial = PetService.expBar(1, CFG.expPerLevel() / 2, CFG);
-        int closer = partial.indexOf(EMPTY_COLOUR);
-        // Unlike the full bar, a partial bar has an empty group following, so it KEEPS the separator space
-        // between the last filled square and the closer, and the trailing pad after its last underscore.
-        assertEquals(' ', partial.charAt(closer - 1), "a partial bar keeps the filled/empty separator space");
-        assertTrue(partial.endsWith(" "), "a partial bar keeps the trailing pad on its underscore group");
+    void aPartialBarFillsInProportionRatherThanFlooringToEmpty() {
+        // The bug D-12-2 records: integer division made every non-capped bar read empty at every XP value.
+        assertEquals(SEGMENTS / 2, filled(PetService.expBar(1, CFG.expPerLevel() / 2, CFG)), "half is half");
+        assertEquals(SEGMENTS / 5, filled(PetService.expBar(1, CFG.expPerLevel() / 5, CFG)));
+        assertEquals(SEGMENTS, width(PetService.expBar(1, CFG.expPerLevel() / 2, CFG)));
     }
 
     @Test
-    void emptyBarPadsBeforeItsFirstUnderscore() {
-        String empty = PetService.expBar(1, 0, CFG);
-        int closer = empty.indexOf(EMPTY_COLOUR);
-        // Nothing filled: the empty-colour is immediately followed by a leading pad so the first underscore
-        // does not hug the template's opening bracket.
-        assertEquals(' ', empty.charAt(closer + EMPTY_COLOUR.length()), "empty bar pads a leading space");
+    void anUnstartedLevelIsEmptyAndAFinishedOneIsFullWithoutCrossingTheLevelBoundary() {
+        assertEquals(0, filled(PetService.expBar(1, 0, CFG)), "no progress renders no fill");
+        assertEquals(SEGMENTS, width(PetService.expBar(1, 0, CFG)));
+        // Exp at (or, through a curved pet's own threshold, above) the requirement clamps at full rather than
+        // spilling — the level roll is what advances the level, not the meter.
+        assertEquals(SEGMENTS, filled(PetService.expBar(1, CFG.expPerLevel(), CFG)));
+        assertEquals(SEGMENTS, filled(PetService.expBar(1, CFG.expPerLevel() * 3, CFG)));
     }
 }
