@@ -124,8 +124,29 @@ the ledger row is updated to cite it.
 - **R-QC65** — Fix the pet layer to the ledger's promises: activation-only XP with a ZEROABLE floor
   (a refused use banks NOTHING), comma grouping on the rendered numbers (a `#,###.##` equivalent),
   and the 50-segment proportional EXP bar D-12-2 promises, clamped at full. Both packs are affected.
+- **R-QC66** — The per-target subject wave (R-QC49's one feature) is **APPROVED WHOLE**: all six
+  stages build, as designed, in order. The three alternatives the design weighed are RECORDED
+  REJECTIONS and are not to be resurrected — per-target sub-activations (one gate walk per target),
+  a new pipeline gate for the post-selection filter, and naive re-population of `%victim.*%` against
+  each body. ADR-0076 carries the reasoning.
+- **R-QC67** — `%selected%` publishes **−1** when the ability never activated and **0** when it ran
+  and matched nobody. Those are different questions, and the empty-selection refusal lines cannot be
+  authored without telling them apart; this closes the design's R1 in favour of the extra rule over
+  the two-var marker dance (which stays available, and stays the right tool for other markers).
+- **R-QC69** — The wave's two balance deltas are **CONFIRMED**, and land in their content stages with
+  deviation rows: Pummel's Metaphysical rebate narrows from a whole-splash veto to a per-body one
+  (one Metaphysical victim shields themselves, no longer their whole crowd — strictly a nerf to
+  Metaphysical), and a sabotaged Guided Rocket Escape BURNS its 15 s window
+  (`rebate-spends-cooldown: true`, faithful to the jar and a real nerf under sabotage pressure).
+  Noted here now so neither reads as a silent fix when its stage lands.
 
 ## Permanent rejections (close the rows — do NOT re-propose)
+
+- **R-QC68** — `%target.potion.<effect>%` is **CUT** from the per-target subject vocabulary. It is the
+  one proposed subject fact that is not UUID-keyed: it reads the live entity, so a cross-region target
+  would throw and silently default on Folia. **The no-entity-read rule is absolute** — the per-target
+  pass reads no live entity, ever — and no consumer in the cluster needs it. The compiler rejects
+  `%target.potion.*%` by construction, like every other live read.
 
 - **R-QC50** — The per-slot heroic ladder and the second (M-Kit) heroic tier are
   **REJECTED PERMANENTLY** ("never add this"). The four M-Kit sets keep the 45% fold as
