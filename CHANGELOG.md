@@ -6,6 +6,8 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.14.0-alpha] — 2026-08-06
+
 ### Added
 
 - **The Cosmic Pack ships in the jar.** `cosmic-pack` is the classic Cosmic experience ported
@@ -20,6 +22,20 @@ versioning: [Semantic Versioning](https://semver.org/).
 - **The bundled default pack is now `signature-pack`** (was `cosmic-pack`). Only the pack's name
   changed — its content is untouched, and an on-disk copy you already have is never overwritten.
   Apply the new one with `/se pack apply signature-pack`.
+- **Same-enchant stacking follows the source's whitelist.** An enchant worn on several pieces
+  now procs from the highest piece only, one roll per hit — except the 14 enchants the source
+  deliberately stacks, which keep per-piece multiplicity. Multi-piece proc rates change on most
+  armour enchants.
+- **Pet economy tightened.** XP is banked only by a successful ability use (refusals grant
+  nothing), numbers group their thousands, and the EXP bar is the source's 50-segment
+  proportional fill. M-Kit set pieces mint enchant levels on the source's own distribution.
+- **`signature-pack` is declared modern-only** (1.17.1+). Applying it on a 1.8.9 server now
+  explains that plainly instead of failing with a wall of unknown-sound errors; the engine,
+  built-in defaults and `cosmic-pack` remain fully 1.8.9-capable — and a new legacy handle gate
+  keeps future packs honest (it already fixed BLINK, whose arrival cue silently killed it on
+  1.8.9).
+- **A mid-fight `/se reload` can no longer mis-wire in-flight payloads** — falling blocks,
+  summons and turret volleys carry their config generation and stand down if it goes stale.
 
 ### Fixed
 
@@ -31,6 +47,15 @@ versioning: [Semantic Versioning](https://semver.org/).
   the docs have always advertised. In play the cap now genuinely bites (and Vengeful Diminish's
   overflow genuinely comes back at the attacker) on a later swing instead of quietly softening the
   proc swing itself. Any pack using the `DAMAGE_CAP` effect is affected.
+- **58 messages no longer print raw `{token}` text** (Paradox, Nature's Wrath, Smoke Bomb,
+  Phoenix, Immortal, Avenging Angel), Teleblock's line shows its real duration, Atomic
+  Detonate's levels I and III actually explode, Detonate blasts void bulk drops again, and
+  seven enchants apply to their correct armour slots.
+- **Undead Ruse's minions serve their summoner** (and carry their owner's name) instead of
+  attacking the wearer standing in their own ring.
+- **A turret skull or anvil landing fires only its own payload** — the mastery-group cross-fire
+  (Tombstone's set damage riding other masteries' impacts) is scoped away without weakening the
+  Dragon Slayer or Rift negation windows.
 
 ## [1.13.0-beta] — 2026-07-19
 
