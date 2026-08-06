@@ -56,11 +56,15 @@ takes either a bare level or a roll map:
 | --- | --- |
 | `PROTECTION: 5` | fixed, always minted, **consumes no draw** |
 | `{ min: 2, max: 5 }` | uniform over the band |
-| `{ nearly-maxed: M }` | `min(M, max(1, M - 2) + rand(3))` |
-| `{ chance: 17.5, min: 1, max: 4 }` | a probability gate over either shape; fractional (R-QC51), drawn in basis points |
+| `{ nearly-maxed: M }` | `min(M, max(1, M - 2) + rand(3))` — the plain sets' helper |
+| `{ ability-set: M }` | `M - rand(min(4, M))`, then a 25 % chance to shave one level off a natural max above 1 — the M-Kit sets' helper (R-QC64) |
+| `{ chance: 17.5, min: 1, max: 4 }` | a probability gate over any of the above; fractional (R-QC51), drawn in basis points |
 
-`nearly-maxed` is reproduced **literally**, not as a uniform band over the same bounds: the outer
-`min` collapses two of the three rungs once `M < 3`, and that skew is the measured distribution.
+Both `M`-shaped forms are reproduced **literally**, not as uniform bands over the same bounds.
+`nearly-maxed`'s outer `min` collapses two of the three rungs once `M < 3`, and `ability-set` opens a
+rung wider at the bottom and then taxes its top — neither skew is expressible as a band, and the two
+are different distributions at every `M` these rosters use, which is why one draw was not enough
+(R-QC64 reverses D-12-37).
 
 `EnchantRoll` is pure data in `se-compile` (which is RNG-free); the draw is `feature.apply.SetMint`
 over the injected `Rolls` vocabulary. The image-fixture importer takes the top of the band instead —
