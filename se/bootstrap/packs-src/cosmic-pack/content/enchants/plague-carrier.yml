@@ -5,7 +5,10 @@ description:
   - "&eA killing blow finishes you off and leaves a plague:"
   - "&epoison for everyone near, and charged creepers to carry it."
 trigger: DEFENSE
-applies-to: [ARMOR]
+# The codex registration is `super("Plague Carrier", GeneralUtil.leggings, 3)` — LEGGINGS ONLY, the slot
+# restriction the port's blanket ARMOR lost. Corrected here (R-QC57 leftovers): a full-set wearer could
+# otherwise carry four copies of a death rattle the source allows one of.
+applies-to: [LEGGINGS]
 group: "uncommon"
 tier: uncommon
 # The hostile-players-only payload is the filter conjunction smoke-bomb.yml already ships for the same
