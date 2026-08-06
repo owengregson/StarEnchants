@@ -13,9 +13,9 @@ import java.util.Objects;
  * {@code {NAME}} its display name, {@code {DESCRIPTOR}} the pet's flavour line(s) (one lore line per
  * authored line), {@code {DESCRIPTION}} the per-pet ability description (one lore line per authored line),
  * {@code {TIME_FORMATTED}} the live bracket's cooldown (h/m/s), {@code {LEVEL}} / {@code {MAX_LEVEL}} /
- * {@code {EXP}} / {@code {EXP_NEXT}} the stored progress against the universal knobs, and {@code {EXP_BAR}}
- * a ten-slot progress meter ({@code &a▪} filled / {@code &7_} empty) toward the next level — full at the
- * level cap.
+ * {@code {EXP}} / {@code {EXP_NEXT}} the stored progress against the universal knobs (comma-grouped,
+ * R-QC65), and {@code {EXP_BAR}} a fifty-segment progress meter ({@code &a|} filled / {@code &c|} empty)
+ * toward the next level — full at the level cap.
  */
 public record PetItemConfig(String name, List<String> loreActive, List<String> lorePassive) {
 

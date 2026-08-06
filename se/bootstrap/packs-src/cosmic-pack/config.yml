@@ -184,8 +184,9 @@ crystals:
 #   * passive-levels-per-hour 0 / passive-hotbar-levels-per-hour 0 — the two idle routes, off.
 #   * exp-per-level 1 — the FLOOR, not a threshold. A pet's own `exp-curve` supplies its per-level costs, so
 #     this value never sets one; what it still governs is the ACTIVE right-click roll, a uniform
-#     [exp-per-level/8, exp-per-level/5] with a hard min of 1, which cannot be switched off. At 1 that roll is
-#     exactly 1 exp a successful click — the smallest the surface allows on top of the pet's authored grant.
+#     [exp-per-level/8, exp-per-level/5]. R-QC65 dropped that roll's own min-of-1, so at 1 the roll is 0 and
+#     every entry's `ITEM_XP_TRACK` amount IS its whole income — which is what makes each file's "N uses to
+#     cap" arithmetic exact, and what stops a REFUSAL branch (an activation like any other) banking a point.
 #   * max-level 100 is the universal ceiling only; each pet's own `max-level` (4, 5 or 10) caps it far below.
 # level-up-sound / level-up-particle play for the holder whenever a pet gains a level from ANY source — once
 # per gain event; blank the sound ("") / empty the particle ({ }) to silence it. max-percent-money-cap

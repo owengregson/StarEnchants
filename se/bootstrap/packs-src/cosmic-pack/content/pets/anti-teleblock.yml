@@ -59,7 +59,10 @@ levels:
   # Three abilities per bracket, and the ORDER is load-bearing: the payload is index 0, so it is the ability
   # that carries the pet-wide cooldown scope. Both refusals author `cooldown: 0` and therefore scope to their
   # own keys — a refused use burns nothing, which is D-12's "no cooldown burned on failure" expressed by
-  # ordering rather than by the jar's un-stamp.
+  # ordering rather than by the jar's un-stamp. R-QC65 makes that claim true of XP as well: a refusal branch
+  # ACTIVATES like any ability, and the use-XP floor used to bank a point for it; at this pack's
+  # `exp-per-level: 1` the floor is now 0, so being told no costs and earns nothing and the `ITEM_XP_TRACK`
+  # amount above IS the whole economy — which is what makes the "900 uses" arithmetic on the curve exact.
   # D-12-13: the jar fired on LAPSED teleblock metadata (free XP off an expired block). Nothing is authored
   # for it — `%status.teleblock%` reads the engine's expiring status window, so "must be actively blocked" is
   # structural here.

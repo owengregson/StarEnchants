@@ -33,6 +33,7 @@ import java.util.function.Consumer;
 import java.util.function.LongSupplier;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import platform.text.Numbers;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -189,8 +190,11 @@ public final class PetService {
                 "TIME_FORMATTED", time,
                 "LEVEL", Integer.toString(level),
                 "MAX_LEVEL", Integer.toString(max),
-                "EXP", Integer.toString(exp),
-                "EXP_NEXT", Integer.toString(needed),
+                // R-QC65: the exp pair is comma-grouped (the recorded `#,###.##`) — these run to five and six
+                // digits on the long curves, where an ungrouped 56250 is read wrong at a glance. The level pair
+                // is not: it never leaves single digits, and a separator there would only be noise.
+                "EXP", Numbers.grouped(exp),
+                "EXP_NEXT", Numbers.grouped(needed),
                 "EXP_BAR", expBar(level, exp, needed, max),
         };
         List<String> template = PetTokens.colorTolerant(def.active() ? cfg.loreActive() : cfg.lorePassive());
@@ -207,13 +211,19 @@ public final class PetService {
                 ItemFactory.wrapLore(lore));
     }
 
+    /** Bar width (R-QC65): the recorded {@code int j = 50}, restored from the ten-slot port approximation. */
+    private static final int EXP_BAR_SEGMENTS = 50;
+
     /**
-     * The ten-slot exp meter toward the next level (ADR-0052): {@code &a■} per filled tenth, {@code &7_} per
-     * empty one, space-separated — the pack's exact styling; the template wraps it in {@code &f[ ... &f]}.
-     * Every filled square carries its own trailing space, so a level-capped FULL bar ends
-     * {@code …■ &7} — the same right-hand pad every partial/empty bar shows before the closing {@code ]}
-     * (max-level formatting matches the padded shape of the other levels). The all-empty bar additionally
-     * pads a leading space so its first {@code _} does not hug the {@code [}.
+     * The exp meter toward the next level: {@code &a|} per filled fiftieth, {@code &c|} per empty one, no
+     * separator — the recorded rendering, and at fifty segments the only one that fits a lore line. The
+     * template wraps it in {@code &f[ ... &f]}.
+     *
+     * <p>R-QC65 restores the recorded WIDTH on top of the proportionality D-12-2 always promised. The jar drew
+     * fifty segments through a long division that made {@code exp/needed} zero for every non-capped pet, so the
+     * bar was fifty red pipes at every XP value and overflowed past fifty green ones at the cap; this fills
+     * proportionally and clamps at full. The ten-slot meter the port shipped was a second divergence on top of
+     * the first, and it is the one being retired here — the count was never a look, it was the bug.
      */
     static String expBar(int level, int exp, MasterConfig.PetsSection cfg) {
         return expBar(level, exp, cfg.expPerLevel(), cfg.maxLevel());
@@ -221,16 +231,10 @@ public final class PetService {
 
     /** As above over an explicit per-level threshold + cap, so a per-pet curve renders its OWN bar. */
     static String expBar(int level, int exp, int needed, int maxLevel) {
-        int filled = level >= maxLevel ? 10
-                : (int) Math.min(10, Math.max(0, (10L * exp) / Math.max(1, needed)));
-        StringBuilder bar = new StringBuilder("&a");
-        bar.append("■ ".repeat(filled)); // each square keeps its trailing space — the last one is the right-hand pad
-        bar.append("&7");
-        if (filled == 0) {
-            bar.append(' ');
-        }
-        bar.append("_ ".repeat(10 - filled));
-        return bar.toString();
+        int filled = level >= maxLevel ? EXP_BAR_SEGMENTS
+                : (int) Math.min(EXP_BAR_SEGMENTS,
+                        Math.max(0, ((long) EXP_BAR_SEGMENTS * exp) / Math.max(1, needed)));
+        return "&a" + "|".repeat(filled) + "&c" + "|".repeat(EXP_BAR_SEGMENTS - filled);
     }
 
     /** What one exp credit did to a pet (the caller re-renders slots / refreshes on a bracket change). */
@@ -294,9 +298,20 @@ public final class PetService {
         return new LevelRoll(level, total);
     }
 
-    /** The ACTIVE use-XP roll: uniform in {@code [expPerLevel/8, expPerLevel/5]}, floor division, min 1. */
+    /**
+     * The ACTIVE use-XP roll: uniform in {@code [expPerLevel/8, expPerLevel/5]}, floor division — and the
+     * floor is ZERO, not one (R-QC65).
+     *
+     * <p>The old {@code max(1, …)} was a universal {@code +1} that no pack could turn off, because
+     * {@code expPerLevel} is itself clamped to at least 1. On a pack whose whole pet economy is authored in
+     * {@code ITEM_XP_TRACK} amounts (every cosmic curve is), it silently added a point to every use — so the
+     * files' own "N uses to cap" arithmetic was wrong by that point — and, worse, it paid a REFUSED use: a
+     * refusal branch is an ability like any other, it activates, and it banked the {@code +1} for being told
+     * no. At {@code exp-per-level: 1} this now rolls 0, so a refusal banks nothing and a successful use banks
+     * exactly what its {@code ITEM_XP_TRACK} authored. A pack with a real per-level threshold is unchanged.
+     */
     static int useExpRoll(Random random, int expPerLevel) {
-        int lo = Math.max(1, expPerLevel / 8);
+        int lo = expPerLevel / 8;
         int hi = Math.max(lo, expPerLevel / 5);
         return Rolls.between(random, lo, hi);
     }
@@ -310,9 +325,15 @@ public final class PetService {
         return Math.round(levelsPerHour * 1000.0) * (long) expPerLevel;
     }
 
-    /** Whether a progress write moved a DISPLAYED number — the level or a bar tenth — else render is skipped. */
+    /**
+     * Whether a progress write moved a DISPLAYED number — the level, or one segment of the bar — else the
+     * render is skipped. Keyed to {@link #EXP_BAR_SEGMENTS}, so widening the bar makes the gate finer with it
+     * rather than leaving four fifths of its segments unable to appear.
+     */
     static boolean displayedChanged(int oldLevel, int newLevel, int oldExp, int newExp, int expPerLevel) {
-        return newLevel != oldLevel || (10L * oldExp) / expPerLevel != (10L * newExp) / expPerLevel;
+        return newLevel != oldLevel
+                || ((long) EXP_BAR_SEGMENTS * oldExp) / expPerLevel
+                        != ((long) EXP_BAR_SEGMENTS * newExp) / expPerLevel;
     }
 
     /**
@@ -406,8 +427,8 @@ public final class PetService {
             // {needed} is the requirement AFTER the level-up — the recorded quirk, kept: on the activation
             // that levels you the bar you are told about is the new one.
             messenger.line(holder, Tokens.sub(gainMessage,
-                    "xp", amount, "exp", roll.exp(),
-                    "needed", def.expNeededFrom(roll.level(), universalFlat)));
+                    "xp", Numbers.grouped(amount), "exp", Numbers.grouped(roll.exp()),
+                    "needed", Numbers.grouped(def.expNeededFrom(roll.level(), universalFlat))));
         }
         if (roll.level() > oldLevel && levelUpMessage != null && !levelUpMessage.isEmpty()) {
             // {item} is the PRE-rebuild display name, so the line names the pet at the level it just left.

@@ -45,11 +45,17 @@ class PetLevelMathTest {
     }
 
     @Test
-    void useExpRollNeverDropsBelowOne() {
+    void theUseExpFloorIsZeroSoAPackCanOwnItsWholeXpEconomy() {
+        // R-QC65: the floor used to be 1, and `expPerLevel` is itself clamped to >= 1, so every activated use
+        // banked a point no pack could turn off — including a use that only ever activated a REFUSAL branch.
+        // At the lowest expressible threshold the roll is now 0, so a refusal banks nothing and a real use
+        // banks exactly what its ITEM_XP_TRACK authored.
         Random random = new Random(7);
         for (int i = 0; i < 100; i++) {
-            assertEquals(1, PetService.useExpRoll(random, 1)); // expPerLevel/8 == 0 → the min-1 floor
+            assertEquals(0, PetService.useExpRoll(random, 1));
         }
+        // A pack with a real per-level threshold is untouched — the floor only ever bit where /8 truncated to 0.
+        assertTrue(PetService.useExpRoll(random, 100) >= 12);
     }
 
     @Test
@@ -71,10 +77,12 @@ class PetLevelMathTest {
     }
 
     @Test
-    void renderGateFiresOnLevelOrBarTenthOnly() {
+    void renderGateFiresOnLevelOrBarSegmentOnly() {
+        // Keyed to the bar's own width (R-QC65 widened it to 50), so a segment that can appear is a segment
+        // that triggers a render — a gate coarser than the bar leaves most of it unable to move.
         assertTrue(PetService.displayedChanged(1, 2, 99, 0, 100), "a level change always renders");
-        assertTrue(PetService.displayedChanged(1, 1, 9, 10, 100), "crossing a bar tenth renders");
-        assertFalse(PetService.displayedChanged(1, 1, 10, 19, 100), "inside one tenth: a silent write");
+        assertTrue(PetService.displayedChanged(1, 1, 1, 2, 100), "crossing a bar segment renders");
+        assertFalse(PetService.displayedChanged(1, 1, 2, 3, 100), "inside one segment: a silent write");
     }
 
     @Test

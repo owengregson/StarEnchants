@@ -30,12 +30,12 @@ type: pet
 name: "{COLOR}&l{NAME}&7 [LVL {LEVEL}]"
 # The recorded tail, verbatim, after the flavour block and the ability body:
 #   `§7` / `§f§lLevel` / `§7 {level}` / `§7` / `§f§lEXP` / `{bar}` / `§7 ({exp}/{needed})`
-# THE BAR IS TEN SLOTS, NOT FIFTY (ledger D-12-2). The jar drew 50 segments through an integer division that
-# rendered the bar always EMPTY below the cap and overflowing past 50 segments AT it (codex §A.5) — never the
-# proportional meter it was written to be. `{EXP_BAR}` is the engine's ten-slot meter, proportional and
-# clamped full at the cap, which IS the as-intended reading; the segment COUNT is the visible divergence and
-# is recorded rather than reproduced (a 50-segment bar has no spelling, and the shape it had in play was a
-# bug, not a look).
+# THE BAR IS FIFTY SEGMENTS (R-QC65, closing ledger D-12-2). The jar drew 50 through an integer division that
+# rendered it always EMPTY below the cap and overflowing past 50 segments AT it (codex §A.5) — never the
+# proportional meter it was written to be. `{EXP_BAR}` is that meter: 50 segments, `§a|` filled and `§c|`
+# empty, proportional and clamped full at the cap. The port's earlier ten-slot approximation was a second
+# divergence stacked on the first and is retired — the COUNT was never a look, it was the bug.
+# `{EXP}` / `{EXP_NEXT}` are comma-grouped (the recorded `#,###.##`), so a 56 250-point curve reads as one.
 lore-active:
   - "{DESCRIPTOR}"
   - "{DESCRIPTION}"
