@@ -43,6 +43,11 @@ class WornResolverTest {
         return Abilities.ability().id(id).triggerMask(triggerMask).build();
     }
 
+    /** The R-QC63 opt-out: an enchant authored {@code stacks: true}, which fires once per worn piece. */
+    private static Ability stackingAbility(int id, int triggerMask) {
+        return Abilities.ability().id(id).triggerMask(triggerMask).stacks(true).build();
+    }
+
     private static WornResolver resolver() {
         return new WornResolver(EQUIP, null, TRIGGERS, ATTACK, DEFENSE); // itemViews unused by resolveFrom
     }
@@ -140,11 +145,45 @@ class WornResolverTest {
     }
 
     @Test
-    void multiplicityIsPreservedAcrossPieces() {
-        CombatState a = new CombatState(Map.of("enchants/lifesteal", 3), List.of());
-        CombatState b = new CombatState(Map.of("enchants/lifesteal", 3), List.of());
-        WornState worn = resolver().resolveFrom(List.of(a, b), KEYS, ABILITIES, 1);
-        assertEquals(2, worn.byTrigger(0).length); // lifesteal on two pieces → id 0 twice
+    void anEnchantOnTwoPiecesFiresOnceUnlessItDeclaresItStacks() {
+        // R-QC63: the DEFAULT is one contribution per wearer — dropping the duplicate id here is what makes one
+        // event roll one chance, arm one cooldown and play one cue. `stacks: true` is the whitelist opt-out that
+        // keeps Tank/Valor/Armored folding per piece (D-02-10, D-02-14).
+        CombatState piece = new CombatState(Map.of("enchants/lifesteal", 3), List.of());
+
+        WornState plain = resolver().resolveFrom(List.of(piece, piece), KEYS, ABILITIES, 1);
+        assertArrayEquals(new int[] {0}, plain.byTrigger(0), "two pieces, one activation");
+
+        Ability[] stacking = {stackingAbility(0, 1 << 0), ABILITIES[1]};
+        WornState stacked = resolver().resolveFrom(List.of(piece, piece), KEYS, stacking, 1);
+        assertEquals(2, stacked.byTrigger(0).length, "a stacking enchant keeps full multiplicity");
+    }
+
+    @Test
+    void aNonStackingEnchantContributesItsHighestWornLevelOnly() {
+        // Two pieces at different levels: the higher one fires and the lower is dropped entirely — not folded,
+        // not run at a blended level. The lower piece's ability id must be absent from every trigger.
+        StableKeyIndex keys = new StableKeyIndex(List.of("enchants/molten/1", "enchants/molten/4"));
+        Ability[] abilities = {ability(0, 1 << 0), ability(1, 1 << 0)};
+
+        WornState worn = resolver().resolveFrom(
+                List.of(ench("enchants/molten", 1), ench("enchants/molten", 4)), keys, abilities, 1);
+
+        assertArrayEquals(new int[] {1}, worn.byTrigger(0), "the level-4 piece wins outright");
+        assertEquals(4, worn.enchantLevel("molten"), "and the published level still reads the highest worn");
+    }
+
+    @Test
+    void aWinningLevelWhoseContentIsGoneFallsBackToTheHighestThatStillCompiles() {
+        // Pulling the top rung out of a pack must not silently disarm every item carrying the enchant: an
+        // unresolvable level can never be the sole contributor, so the next one down takes the slot.
+        StableKeyIndex keys = new StableKeyIndex(List.of("enchants/molten/2"));
+        Ability[] abilities = {ability(0, 1 << 0)};
+
+        WornState worn = resolver().resolveFrom(
+                List.of(ench("enchants/molten", 9), ench("enchants/molten", 2)), keys, abilities, 1);
+
+        assertArrayEquals(new int[] {0}, worn.byTrigger(0));
     }
 
     @Test
@@ -158,8 +197,9 @@ class WornResolverTest {
 
         assertEquals(4, worn.enchantLevel("solitude"), "a higher-level piece wins over a lower-level one");
         assertEquals(0, worn.enchantLevel("metaphysical"), "an enchant nobody wears reads 0");
-        // Both pieces still fire independently — the level map is a read-side view, not a dedup.
-        assertEquals(2, worn.byTrigger(0).length);
+        // The level map is a read-side view over every piece, so it still reports 4 even though R-QC63 dropped
+        // the level-1 piece's ability: the fact answers "highest worn", not "what fired".
+        assertArrayEquals(new int[] {1}, worn.byTrigger(0));
     }
 
     @Test

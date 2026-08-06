@@ -22,8 +22,15 @@ import org.bukkit.inventory.ItemStack;
  * ({@code <base>/<level>}, ADR-0014) resolved (with each crystal key) to a dense ability id via the
  * snapshot's {@link StableKeyIndex}; {@link WornFlattener} flattens the union into the per-trigger +
  * per-direction arrays the hit walks. An unknown key (content no longer present) resolves to
- * {@code -1} and is skipped — never a crash. Multiplicity is preserved (an enchant on two pieces
- * contributes twice).
+ * {@code -1} and is skipped — never a crash.
+ *
+ * <p><strong>Stacking (R-QC63).</strong> An enchant on two pieces is ONE contribution by default: the highest
+ * worn level fires, once, so an event rolls its chance once, arms one cooldown and plays one cue. An enchant
+ * authored {@code stacks: true} keeps full multiplicity and fires once per piece with that piece's own level —
+ * the per-piece folds (Tank, Valor, Armored, Heavy …) are exactly this set. The decision is made HERE, at
+ * equip, so the hit path pays nothing either way. Ties break on source order (armour, then main hand, then
+ * off-hand), which means a wearer whose highest copy sits in the OFF-HAND keeps that copy and loses its
+ * attacker-direction procs to G01 — level beats slot, one rule.
  *
  * <p><strong>Hand attribution (G01).</strong> An off-hand item never swings in vanilla, so it contributes
  * no attacker-direction procs, no summed heroic flat stats, no set-completion count, and no held
@@ -161,6 +168,33 @@ public final class WornResolver {
                 snapshot.generation(), heroicPieces, crystalCounts);
     }
 
+    /**
+     * R-QC63: base key &rarr; the single level each NON-stacking enchant contributes at — the HIGHEST level worn.
+     * An enchant authored {@code stacks: true} is absent from the map and keeps full multiplicity, which is what
+     * lets Tank/Valor/Armored still fold per piece (D-02-10, D-02-14).
+     *
+     * <p>A level whose content is gone ({@code id < 0}) can never win, so pulling the top rung of an enchant out
+     * of a pack falls back to the highest rung that still compiles instead of silently dropping the enchant off
+     * every item that carried it.
+     *
+     * <p>Resolved once per equip, never per hit — the caller then drops the losing copies and the hot path just
+     * walks a shorter array.
+     */
+    private static Map<String, Integer> soleContributingLevels(List<CombatState> combats, StableKeyIndex keys,
+                                                               Ability[] abilities) {
+        Map<String, Integer> out = new java.util.HashMap<>();
+        for (CombatState combat : combats) {
+            for (Map.Entry<String, Integer> enchant : combat.enchants().entrySet()) {
+                int id = keys.idOf(enchant.getKey() + "/" + enchant.getValue());
+                if (id < 0 || abilities[id].stacks()) {
+                    continue;
+                }
+                out.merge(enchant.getKey(), enchant.getValue(), Math::max);
+            }
+        }
+        return out;
+    }
+
     /** Equipment-array index where the hand slots begin; indices below this are the four armour slots. */
     private static final int ARMOR_SLOTS = 4;
 
@@ -233,6 +267,11 @@ public final class WornResolver {
         Features f = features.get(); // §L master toggles: a disabled feature's source is skipped
         java.util.Set<String> nonStackable = nonStackableCrystals.get(); // §ADR-0035 crystals that dedup per wearer
         java.util.Set<String> seenNonStackable = new java.util.HashSet<>(); // non-stackable keys already contributed
+        // R-QC63: base key → the ONE level a non-stacking enchant contributes at, and the claim set that keeps
+        // it to one source. Both empty for a single-source wearer, who has nothing to dedup.
+        Map<String, Integer> soleLevel = f.enchants() && combats.size() > 1
+                ? soleContributingLevels(combats, keys, abilities) : Map.of();
+        java.util.Set<String> soleClaimed = soleLevel.isEmpty() ? java.util.Set.of() : new java.util.HashSet<>();
         for (int i = 0; i < combats.size(); i++) {
             CombatState combat = combats.get(i);
             boolean offhand = i >= offhandFrom; // off-hand pieces are processed last (armour, then main, then off)
@@ -250,6 +289,15 @@ public final class WornResolver {
                     if (id >= 0) {
                         // Highest level wins when the same enchant sits on two pieces at different levels.
                         enchantLevels.merge(stemOf(enchant.getKey()), enchant.getValue(), Math::max);
+                        // R-QC63: a non-stacking enchant contributes ONCE per wearer — the highest worn level,
+                        // and the first source carrying it. Dropping the copy here (rather than folding it
+                        // downstream) is what makes it one activation: one chance roll, one cooldown arm, one
+                        // cue, however many pieces spell the enchant.
+                        Integer sole = soleLevel.get(enchant.getKey());
+                        if (sole != null
+                                && (enchant.getValue().intValue() != sole || !soleClaimed.add(enchant.getKey()))) {
+                            continue;
+                        }
                         firing.add(id);
                         // A multi-ability level keys its further blocks <base>/<level>/a1, /a2, … (dense, no
                         // gaps), exactly like a crystal/mask/reforge/set. Walk them so every block fires;

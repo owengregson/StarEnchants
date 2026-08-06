@@ -31,7 +31,7 @@ final class EnchantDefReader {
             "display", "description", "tier", "applies-to", "trigger", "disabled-worlds", "group",
             "repeat", "repeat-delay", "levels", "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap",
             "soul-cost-decay-period", "no-souls-message", "condition",
-            "requires", "blacklist", "removes-required", "suppress-immune");
+            "requires", "blacklist", "removes-required", "suppress-immune", "stacks");
     private static final Set<String> LEVEL_KEYS = ContentParse.withEnvelopeKnobs(
             "chance", "cooldown", "soul-cost", "soul-cost-growth", "soul-cost-cap", "soul-cost-decay-period",
             "no-souls-message", "condition", "effects", "abilities");
@@ -91,6 +91,10 @@ final class EnchantDefReader {
         // be disabled, so a permanent buff survives while the wearer's other enchants are still silenced.
         boolean suppressImmune = ContentParse.boolOr(root.string("suppress-immune"), false, "suppress-immune",
                 DiagCode.W_LOAD_BOOL, root.sourceOf("suppress-immune"), diags);
+        // R-QC63: per-ENCHANT, so it is read at the ROOT only — a level or block that stacked where its siblings
+        // did not would be one enchant with two multiplicity rules on one wearer, which nothing can render.
+        boolean stacks = ContentParse.boolOr(root.string("stacks"), false, "stacks",
+                DiagCode.W_LOAD_BOOL, root.sourceOf("stacks"), diags);
 
         Map<Integer, YamlNode> levelNodes = new LinkedHashMap<>();
         for (YamlNode.Entry entry : root.entries("levels")) {
@@ -123,7 +127,7 @@ final class EnchantDefReader {
             String levelKey = baseKey + "/" + level;
             if (!lvl.has("abilities")) {
                 abilities.add(ability(levelKey, level, null, lvl, root, baseKey, triggers, disabledWorlds, group,
-                        repeatTicks, repeatDelayTicks, suppressImmune, nextDefId, diags));
+                        repeatTicks, repeatDelayTicks, suppressImmune, stacks, nextDefId, diags));
                 continue;
             }
             if (lvl.has("effects")) {
@@ -145,7 +149,7 @@ final class EnchantDefReader {
                 // WornResolver runs over them (crystal/mask/reforge/set/pet).
                 String stableKey = index == 0 ? levelKey : levelKey + "/a" + index;
                 abilities.add(ability(stableKey, level, block, lvl, root, baseKey, triggers, disabledWorlds, group,
-                        repeatTicks, repeatDelayTicks, suppressImmune, nextDefId, diags));
+                        repeatTicks, repeatDelayTicks, suppressImmune, stacks, nextDefId, diags));
                 index++;
             }
             if (index == 0) {
@@ -168,7 +172,8 @@ final class EnchantDefReader {
     private static AbilityDef ability(String stableKey, int level, YamlNode block, YamlNode lvl, YamlNode root,
                                       String baseKey, List<String> triggers, List<String> disabledWorlds,
                                       String group, int rootRepeatTicks, int rootRepeatDelayTicks,
-                                      boolean suppressImmune, IntSupplier nextDefId, Diagnostics diags) {
+                                      boolean suppressImmune, boolean stacks, IntSupplier nextDefId,
+                                      Diagnostics diags) {
         ContentParse.Chance chance =
                 ContentParse.resolveChanceValue(knobNode(block, lvl, root, "chance"), "chance", diags);
         int cooldown = ContentParse.resolveInt(knobNode(block, lvl, root, "cooldown"), "cooldown", 0, diags);
@@ -239,7 +244,8 @@ final class EnchantDefReader {
                 soulCostDecayPeriod,
                 cooldownPerVictim,
                 repeatDelayTicks,
-                sourceGroup);
+                sourceGroup,
+                stacks);
     }
 
     /** The node a knob is read from: the innermost scope that declares it — block, then level, then file root. */

@@ -8,7 +8,8 @@ applies-to: [ARMOR]
 group: "uncommon"
 tier: uncommon
 condition: "%damagecause% == \"ENTITY_ATTACK\""
-# Non-stacking: the highest-level piece alone fires (the shared highest-only interaction rule).
+# Non-stacking: the highest-level piece alone fires, once. That is the engine default since R-QC63 — this
+# file authors no `stacks:` and therefore gets it; the codex whitelist does not name Molten.
 # The measured jar SETS the attacker's fire ticks absolutely, so a re-proc could SHORTEN a longer burn;
 # IGNITE refreshes instead — benign divergence, recorded and not replicated.
 # era: none.

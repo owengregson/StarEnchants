@@ -57,6 +57,7 @@ public final class Abilities {
         private int soulCostCap = 0;
         private int soulCostDecayPeriod = 0;
         private boolean cooldownPerVictim = false;
+        private boolean stacks = false;
 
         public Builder id(int id) {
             this.id = id;
@@ -217,13 +218,19 @@ public final class Abilities {
             return this;
         }
 
+        /** Contribute once per worn PIECE instead of once per wearer ({@code stacks: true}, R-QC63). */
+        public Builder stacks(boolean stacks) {
+            this.stacks = stacks;
+            return this;
+        }
+
         public Ability build() {
             return new Ability(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost,
                     worldBlacklist, condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup,
                     cdScopeType, suppressKey, setPieces, suppressImmune, factMask, chanceExpr, noSoulsMessage,
                     soulCostCarried, noSoulsSound, noSoulsParticle,
                     soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim, repeatDelayTicks,
-                    sourceGroup == null ? cdScopeGroup : sourceGroup);
+                    sourceGroup == null ? cdScopeGroup : sourceGroup, stacks);
         }
     }
 }

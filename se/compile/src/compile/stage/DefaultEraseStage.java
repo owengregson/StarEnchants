@@ -186,7 +186,8 @@ public final class DefaultEraseStage implements EraseStage {
                     la.soulCostDecayPeriod(),
                     la.cooldownPerVictim(),
                     la.repeatDelayTicks(),
-                    sourceGroup);
+                    sourceGroup,
+                    la.stacks());
 
             abilities.add(ability);
             keysByDenseId.add(la.stableKey());

@@ -16,8 +16,8 @@ tier: legendary
 # quirk is replaced by the engine's clamp (benign).
 # @Aoe excludes the activator, so the wearer is never buffed by their own pulse — matches the jar.
 # Allies are the relation layer's faction ally/member set (filter=ALLIES).
-# Mixed-level pieces genuinely multiply pulse streams in the jar; shipped highest-only per the standard
-# worn-state rule, recorded as a divergence candidate.
+# Mixed-level pieces genuinely multiply pulse streams in the jar; shipped highest-only per R-QC63's
+# worn-state default (the codex whitelist does not name Protection), recorded as a divergence candidate.
 # era: REDSTONE/SPELL are the 1.8 EnumParticle constants (the jar spells the first RED_DUST) — authored as the
 # particle resolver maps in both directions.
 levels:

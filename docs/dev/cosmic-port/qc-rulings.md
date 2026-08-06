@@ -113,6 +113,18 @@ the ledger row is updated to cite it.
 - **R-QC60** — LegacyGearPoll: cancel handle kept, setter-overwrite guard added, the
   scoping invariant written into harness docs.
 
+- **R-QC63** — Build the STACKING WHITELIST rule: a per-enchant stacking knob whose default is
+  highest-worn-piece-only, one roll per event, and whose opt-in restores per-piece multiplicity.
+  The codex's 14 whitelisted stackers (`02-enchants-armor-m-z.md`:154-157) are authored as
+  stacking; Tank and Valor keep their ledgered folds (D-02-10, D-02-14). The ~18 files claiming
+  non-stacking have their comments made true, and the family behavior lands in `deviations.md`.
+- **R-QC64** — Build the ABILITY-SET mint roller as a SECOND roller shape: `M − nextInt(4)`, then a
+  25 % one-step shave (codex §A.11). The four M-Kit sets take it; `nearly-maxed` (§A.16) stays the
+  plain-set draw. This reverses D-12-37's "one draw is enough" reading.
+- **R-QC65** — Fix the pet layer to the ledger's promises: activation-only XP with a ZEROABLE floor
+  (a refused use banks NOTHING), comma grouping on the rendered numbers (a `#,###.##` equivalent),
+  and the 50-segment proportional EXP bar D-12-2 promises, clamped at full. Both packs are affected.
+
 ## Permanent rejections (close the rows — do NOT re-propose)
 
 - **R-QC50** — The per-slot heroic ladder and the second (M-Kit) heroic tier are

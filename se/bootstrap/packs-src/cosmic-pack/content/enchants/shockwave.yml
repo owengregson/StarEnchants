@@ -8,7 +8,8 @@ applies-to: [CHESTPLATE]
 group: "rare"
 tier: rare
 condition: "%damagecause% == \"ENTITY_ATTACK\""
-# Non-stacking (highest piece only); vanished players and the per-target PvP-region check are engine rules.
+# Non-stacking (R-QC63's highest-piece-only default — one push per hit); vanished players and the per-target
+# PvP-region check are engine rules.
 # The push radius IS the level: at L1 it is smaller than melee reach, so the attacker who triggered it is
 # usually outside the blast (measured, shipped).
 # era: ENCHANTMENT_TABLE is the 1.8 particle id (modern ENCHANT — resolver alias, bidirectional);

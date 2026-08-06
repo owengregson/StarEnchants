@@ -7,6 +7,10 @@ trigger: DEFENSE
 applies-to: [ARMOR]
 group: "epic"
 tier: epic
+# R-QC63: on the codex's 14-name stacking whitelist (`02-enchants-armor-m-z.md` §0.3) — every worn piece
+# fires with its OWN level. Everything else in this pack takes the engine default, one contribution per
+# wearer at the highest worn level.
+stacks: true
 condition: "%angelic.active% != 1"  # re-entry guard: a roll landing during a live regen is consumed, matching measured
 # era: SPELL particle exists on 1.8.9; no hazards.
 # `wait:` tiers accumulate down the effect list, so each pulse carries only the GAP since the previous one —

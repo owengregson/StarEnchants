@@ -672,6 +672,41 @@ class EnchantDefReaderTest {
         assertNotNull(snap.byStableKey("enchants/phoenix/2/a1"));
     }
 
+    @Test
+    void stacksIsAnEnchantWideRootKnobThatReachesEveryOneOfItsAbilities() {
+        // R-QC63: the knob is per-ENCHANT, so it is read at the root and stamped on every level and block —
+        // an enchant with two multiplicity rules on one wearer has no meaning. Default is false (highest-only).
+        Diagnostics diags = new Diagnostics();
+        IntSupplier ids = counter();
+        String stacking = """
+            trigger: DEFENSE
+            stacks: true
+            levels:
+              1: { effects: [{ HEAL: { amount: 2 } }] }
+              2:
+                abilities:
+                  - { effects: [{ HEAL: { amount: 2 } }] }
+                  - { effects: [{ HEAL: { amount: 3 } }] }
+            """;
+        String plain = """
+            trigger: DEFENSE
+            levels:
+              1: { effects: [{ HEAL: { amount: 2 } }] }
+            """;
+        List<AbilityDef> defs = new ArrayList<>();
+        defs.addAll(EnchantDefReader.read("enchants/tank", root(stacking, diags), ids, diags).abilities());
+        defs.addAll(EnchantDefReader.read("enchants/molten", root(plain, diags), ids, diags).abilities());
+
+        Snapshot snap = Compiler.of(MapSpecRegistry.of(heal())).compile(defs, 1, diags);
+
+        assertFalse(diags.hasErrors(), () -> diags.all().toString());
+        assertTrue(snap.byStableKey("enchants/tank/1").stacks(),
+                "the flag must survive reader \u2192 lower \u2192 resolve \u2192 erase");
+        assertTrue(snap.byStableKey("enchants/tank/2").stacks());
+        assertTrue(snap.byStableKey("enchants/tank/2/a1").stacks(), "every block of the enchant, not just the first");
+        assertFalse(snap.byStableKey("enchants/molten/1").stacks(), "unauthored is the highest-piece-only default");
+    }
+
     private static ParamSpec heal() {
         return ParamSpec.of("HEAL").param("amount", D.DOUBLE.min(0)).build();
     }

@@ -7,7 +7,8 @@
 #   Trap -2.5 pp per level; Heroic Trap -1.25; Snare -7; Pummel -4 (matrix-02's consumer table — an earlier
 #   note here mis-assigned Snare's and Heroic Trap's rungs). No floor except Trap's, where D-03-11 rules a
 #   1 % floor as-intended; elsewhere the expression chance's own [0,100] clamp is the recorded immunity.
-#   Heroic Metaphysical follows the highest-only rule (no stacking with this base form).
+#   Heroic Metaphysical follows the same R-QC63 highest-only default this grade does (neither is on the
+#   codex whitelist), and the two publish different stems, so nothing stacks either within or across them.
 # Blocked-proc feedback — carried by the attacking enchant's file, shown to the VICTIM (docs 03/05 name the
 # recipient), verbatim. NOT authored on any consumer: the matrix fires each line on a "would-be proc", and
 # under its own pre-roll-subtraction expression that event does not exist (one roll, at the already-reduced

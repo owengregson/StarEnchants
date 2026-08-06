@@ -16,7 +16,8 @@ tier: epic
 # immunity at equal-or-higher level (measured, and matching the jar's own description). That delta IS
 # authored, on disarmor.yml's chance expression, which reads this worn level as `%victim.enchlevel.sticky%`
 # (the file STEM is the key); nothing about it belongs on this file, which stays effect-less for good.
-# Worn across all four slots but read last-writer-wins in the jar — the highest-only rule ships instead.
+# Worn across all four slots but read last-writer-wins in the jar — the R-QC63 highest-only default ships
+# instead, so a second piece raises the published level and never doubles the rebate.
 # Disarmor is additionally gated on its target sitting at or below 10 HP (recorded in doc 03).
 # strings: none — Disarmor's success feedback lives in doc 03.
 # era: none.

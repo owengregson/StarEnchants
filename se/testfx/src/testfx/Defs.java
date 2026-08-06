@@ -65,6 +65,7 @@ public final class Defs {
         private int soulCostCap = 0;
         private int soulCostDecayPeriod = 0;
         private boolean cooldownPerVictim = false;
+        private boolean stacks = false;
 
         public AbilityBuilder sourceKind(SourceKind sourceKind) {
             this.sourceKind = sourceKind;
@@ -233,6 +234,12 @@ public final class Defs {
             return this;
         }
 
+        /** Contribute once per worn PIECE instead of once per wearer ({@code stacks: true}, R-QC63). */
+        public AbilityBuilder stacks(boolean stacks) {
+            this.stacks = stacks;
+            return this;
+        }
+
         public AbilityDef build() {
             List<EffectLine> lines = effects;
             if (rawEffects != null) {
@@ -246,7 +253,7 @@ public final class Defs {
                     cdScopeType, repeatTicks, source, setPieces, suppressImmune, chanceExpr, noSoulsMessage,
                     soulCostCarried, noSoulsSound, noSoulsParticle,
                     soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim, repeatDelayTicks,
-                    sourceGroup);
+                    sourceGroup, stacks);
         }
     }
 
@@ -283,6 +290,7 @@ public final class Defs {
         private int soulCostCap = 0;
         private int soulCostDecayPeriod = 0;
         private boolean cooldownPerVictim = false;
+        private boolean stacks = false;
 
         public LoweredBuilder sourceKind(SourceKind sourceKind) {
             this.sourceKind = sourceKind;
@@ -446,13 +454,19 @@ public final class Defs {
             return this;
         }
 
+        /** Contribute once per worn PIECE instead of once per wearer ({@code stacks: true}, R-QC63). */
+        public LoweredBuilder stacks(boolean stacks) {
+            this.stacks = stacks;
+            return this;
+        }
+
         public LoweredAbility build() {
             return new LoweredAbility(sourceKind, stableKey, defId, level, baseChance, cooldownTicks, soulCost,
                     triggers, worldBlacklist, condition, effects, suppressKey, cdScopeEnchant, cdScopeGroup,
                     cdScopeType, repeatTicks, affinity, source, setPieces, suppressImmune, loweredChanceExpr,
                     noSoulsMessage, soulCostCarried, noSoulsSound, noSoulsParticle,
                     soulCostGrowth, soulCostCap, soulCostDecayPeriod, cooldownPerVictim, repeatDelayTicks,
-                    sourceGroup);
+                    sourceGroup, stacks);
         }
     }
 }

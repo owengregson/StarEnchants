@@ -7,6 +7,10 @@ trigger: PASSIVE
 applies-to: [ARMOR]
 group: "epic"
 tier: epic
+# R-QC63: on the codex's 14-name stacking whitelist (`02-enchants-armor-m-z.md` §0.3) — every worn piece
+# fires with its OWN level. Everything else in this pack takes the engine default, one contribution per
+# wearer at the highest worn level.
+stacks: true
 # The matrix's shared suppression ruling maps the corpus's noDefenseProcs to SUPPRESS(scope=TYPE, key=DEFENSE),
 # which is live since R-QC3 (ADR-0075) and keys the DEFENDER SIDE — so it structurally cannot reach a PASSIVE
 # ability, which belongs to no combat direction and is stamped with no type at all. That is the jar's own

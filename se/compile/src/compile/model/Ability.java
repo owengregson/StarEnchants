@@ -42,6 +42,7 @@ import compile.model.cond.NumExpr;
  * @param soulCostCap    ceiling on the escalated cost; {@code 0} = uncapped
  * @param soulCostDecayPeriod ticks per escalation step shed since the actor's last charge of THIS ability; {@code 0} = never decays
  * @param cooldownPerVictim when {@code true} gate 6 keys the cooldown on the activation's victim rather than the coarse player/mob target bucket, so one target's window never throttles a strike on another ({@code cooldown-per-victim: true}); {@code false} = today's shared bucket
+ * @param stacks           whether this enchant contributes ONCE PER WORN PIECE (R-QC63, {@code stacks: true}). The default {@code false} is the highest-worn-piece-only rule: the {@code WornResolver} keeps the highest-level copy and drops the rest, so one event rolls the chance once, arms one cooldown and plays one cue however many pieces carry it. Read at RESOLVE time only — the hot path sees a shorter array and pays nothing
  */
 public record Ability(
         int id,
@@ -74,7 +75,23 @@ public record Ability(
         int soulCostDecayPeriod,
         boolean cooldownPerVictim,
         int repeatDelayTicks,
-        int sourceGroup) {
+        int sourceGroup,
+        boolean stacks) {
+
+    /** Construction with the R-QC63 default: this source does NOT stack across pieces (highest-worn wins). */
+    public Ability(int id, int defId, SourceKind sourceKind, int triggerMask, int level, double baseChance,
+                   int cooldownTicks, int soulCost, long worldBlacklist, CompiledCondition condition,
+                   CompiledEffect[] effects, int repeatTicks, Affinity affinity, int cdScopeEnchant,
+                   int cdScopeGroup, int cdScopeType, int suppressKey, int setPieces, boolean suppressImmune,
+                   FactMask factMask, NumExpr chanceExpr, String noSoulsMessage, boolean soulCostCarried,
+                   int noSoulsSound, int noSoulsParticle, double soulCostGrowth, int soulCostCap,
+                   int soulCostDecayPeriod, boolean cooldownPerVictim, int repeatDelayTicks, int sourceGroup) {
+        this(id, defId, sourceKind, triggerMask, level, baseChance, cooldownTicks, soulCost, worldBlacklist,
+                condition, effects, repeatTicks, affinity, cdScopeEnchant, cdScopeGroup, cdScopeType,
+                suppressKey, setPieces, suppressImmune, factMask, chanceExpr, noSoulsMessage, soulCostCarried,
+                noSoulsSound, noSoulsParticle, soulCostGrowth, soulCostCap, soulCostDecayPeriod,
+                cooldownPerVictim, repeatDelayTicks, sourceGroup, false);
+    }
 
     /** Construction where the IMPACT source group IS the family group — every ability with no per-ability override. */
     public Ability(int id, int defId, SourceKind sourceKind, int triggerMask, int level, double baseChance,

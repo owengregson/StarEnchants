@@ -8,6 +8,10 @@ trigger: [PASSIVE, HURT]
 applies-to: [HELMET]
 group: "legendary"
 tier: legendary
+# R-QC63: on the codex's 14-name stacking whitelist (`02-enchants-armor-m-z.md` §0.3) — every worn piece
+# fires with its OWN level. Everything else in this pack takes the engine default, one contribution per
+# wearer at the highest worn level.
+stacks: true
 # The matrix's shared suppression ruling maps the corpus's noDefenseProcs to SUPPRESS(scope=TYPE, key=DEFENSE),
 # which is live since R-QC3 (ADR-0075) and keys the DEFENDER SIDE, so it structurally cannot reach the
 # maintained PASSIVE trio — cosmic silence never dropped worn passives. The flag stays for the broader
