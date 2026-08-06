@@ -41,6 +41,8 @@ public final class ItemKeys {
     private final String illusion;
     private final String reforgeItem;
     private final String holyProtections;
+    private final String claimant;
+    private final String claimDate;
 
     private ItemKeys(String combat, String soul, String carrier, String guarded,
                      String crystalItem, String crystalExtractor, String heroicUpgrade,
@@ -50,7 +52,8 @@ public final class ItemKeys {
                      String loreComposer, String useItem,
                      String pet, String petLevel, String petExp, String petExpFrac, String petFood,
                      String petXpGate,
-                     String maskItem, String illusion, String reforgeItem, String holyProtections) {
+                     String maskItem, String illusion, String reforgeItem, String holyProtections,
+                     String claimant, String claimDate) {
         this.combat = combat;
         this.soul = soul;
         this.carrier = carrier;
@@ -82,6 +85,8 @@ public final class ItemKeys {
         this.illusion = illusion;
         this.reforgeItem = reforgeItem;
         this.holyProtections = holyProtections;
+        this.claimant = claimant;
+        this.claimDate = claimDate;
     }
 
     public static ItemKeys of() {
@@ -90,7 +95,7 @@ public final class ItemKeys {
                 "godlytransmog", "appliedslot", "trakgem", "trakblocks", "trakmobs", "traksouls", "trakfish",
                 "lorecomposer", "useitem", "pet", "petlevel", "petexp", "petexpfrac", "petfood", "petxpgate",
                 "maskitem",
-                "illusion", "reforgeitem", "holyprotections");
+                "illusion", "reforgeitem", "holyprotections", "claimant", "claimdate");
     }
 
     public String combat() {
@@ -233,6 +238,22 @@ public final class ItemKeys {
     /** A mask-illusion shown head (ADR-0064): payload = Base64 of the real helmet it dresses, {@code "-"} = none. */
     public String illusion() {
         return illusion;
+    }
+
+    /**
+     * The set-piece CLAIM footer's claimant name (R-QC35c), or absent on an unclaimed piece. Its own key
+     * rather than a {@code CombatState} component for the reason souls and the trak counters have their own:
+     * a claim is written by an external event system on its own schedule, and folding it into the
+     * content-hash blob would thrash the {@code ItemView} cache on every capture.
+     */
+    public String claimant() {
+        return claimant;
+    }
+
+    /** The claim's date, epoch millis (R-QC35c). Present on a claimed AND an unclaimed piece — the footer's
+     *  unclaimed form still names the date the piece was staked. */
+    public String claimDate() {
+        return claimDate;
     }
 
     /** A reforge catalogue item (ADR-0070): the PDC string under this key is the reforge's def key (pre-apply). */

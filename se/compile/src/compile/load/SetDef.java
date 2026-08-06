@@ -19,6 +19,8 @@ import schema.diag.Source;
  * @param armorComplete worn-piece count that completes the set ({@code >= 1})
  * @param armorLore     lore SHARED by every armour piece, rendered from state on the worn piece
  * @param weapon        the weapon member, or {@code null} for an armour-only set
+ * @param claimFooter   the CLAIM footer's claimed/unclaimed lines (R-QC35c); {@link ClaimFooter#NONE} for a
+ *                      set that stakes nothing
  * @param weaponMembers the set's weapon items, in authored order (empty when the set has none). A set may
  *                      declare SEVERAL (R-QC35a); {@link #weapon()} is the first, which is what every
  *                      single-weapon read means
@@ -41,6 +43,7 @@ public record SetDef(
         List<Member> armorMembers,
         List<String> armorLore,
         List<Member> weaponMembers,
+        ClaimFooter claimFooter,
         List<String> appliesTo,
         Map<String, EnchantRoll> armorEnchants,
         boolean announce,
@@ -53,11 +56,35 @@ public record SetDef(
         armorLore = List.copyOf(armorLore);
         weaponMembers = List.copyOf(weaponMembers);
         appliesTo = List.copyOf(appliesTo);
+        claimFooter = claimFooter == null ? ClaimFooter.NONE : claimFooter;
         equipMessage = equipMessage == null ? "" : equipMessage;
         removeMessage = removeMessage == null ? "" : removeMessage;
         // Unmodifiable LinkedHashMap (not Map.copyOf) so the authored enchant order is preserved — it
         // determines the lore order of custom set-piece enchants.
         armorEnchants = Collections.unmodifiableMap(new LinkedHashMap<>(armorEnchants));
+    }
+
+    /**
+     * The claim footer's two forms (R-QC35c): the line a CLAIMED piece prints and the line an unclaimed one
+     * prints. Both bind {@code {CLAIMANT}} and {@code {DATE}} — the unclaimed form simply names no claimant,
+     * which is why it is a second template and not the same line with an empty token.
+     *
+     * @param claimed   the line for a piece someone holds; {@code {CLAIMANT}} and {@code {DATE}}
+     * @param unclaimed the line for a staked-but-unheld piece; {@code {DATE}}
+     */
+    public record ClaimFooter(String claimed, String unclaimed) {
+
+        /** No footer at all — what every set but KOTH authors, and what an unstaked piece renders. */
+        public static final ClaimFooter NONE = new ClaimFooter("", "");
+
+        public ClaimFooter {
+            claimed = claimed == null ? "" : claimed;
+            unclaimed = unclaimed == null ? "" : unclaimed;
+        }
+
+        public boolean isEmpty() {
+            return claimed.isBlank() && unclaimed.isBlank();
+        }
     }
 
     /**
