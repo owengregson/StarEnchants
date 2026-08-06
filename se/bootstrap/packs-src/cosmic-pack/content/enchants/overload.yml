@@ -7,6 +7,10 @@ trigger: PASSIVE
 applies-to: [ARMOR]
 group: "legendary"
 tier: legendary
+# R-QC63: on the codex's 14-name stacking whitelist (`02-enchants-armor-m-z.md` §0.3) — every worn piece
+# fires with its OWN level. Everything else in this pack takes the engine default, one contribution per
+# wearer at the highest worn level.
+stacks: true
 # The matrix's shared suppression ruling maps the corpus's noDefenseProcs to SUPPRESS(scope=TYPE, key=DEFENSE),
 # which is live since R-QC3 (ADR-0075) and keys the DEFENDER SIDE — so it structurally cannot reach a PASSIVE
 # ability, which belongs to no combat direction and is stamped with no type at all. That is the jar's own
@@ -14,9 +18,9 @@ tier: legendary
 # guarantee — it also holds against the ENCHANT- and GROUP-scoped windows a TYPE stamp says nothing about, so
 # this permanent worn buff is unsilenceable outright (the wearer's other enchants still are not).
 suppress-immune: true
-# Stackable in bookkeeping, never in effect: POTION's non-stacking amplifier semantics skip an equal-or-higher
-# amplifier, so pieces never sum and only the highest worn level expresses — exactly the measured behaviour,
-# with the highest-only interaction rule on top.
+# Stackable in bookkeeping, never in effect: `stacks: true` puts every worn piece on the walk (the codex
+# whitelist names Overload), but POTION's non-stacking amplifier semantics skip an equal-or-higher amplifier,
+# so the pieces never sum and only the highest worn level expresses — exactly the measured behaviour.
 # Progression interlock with the tier-7 heroic upgrade (the upgrade only applies over max-level Overload, and
 # Overload refuses to apply over the upgrade) is an anvil/progression rule, not runtime.
 # The mastery drain reduces the expressed HEALTH_BOOST amplifier by its own level + 1 and skips the effect

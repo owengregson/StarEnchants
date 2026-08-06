@@ -13,7 +13,8 @@ tier: rare
 # player. No damage-cause narrowing — the dispatcher resolves a projectile's shooter as the attacker, so a
 # player-shot arrow procs it too.
 condition: '%victim.type% == "PLAYER"'
-# Non-stacking, no cooldown: one hit in ten blinks the wearer at L8 (measured).
+# Non-stacking (the R-QC63 default), no cooldown: one hit in ten blinks the wearer at L8 (measured). Four
+# Trickster pieces roll ONE 10 % blink, not four.
 # D-02-11 (flattening): the original teleported to the looked-at block only when it carried two stacked air
 # blocks — landing the wearer mid-air — and copied the ATTACKER's facing. BLINK is ground-safe and keeps the
 # wearer's own facing; behaviour ships as BLINK.

@@ -15,8 +15,8 @@ tier: rare
 # self-damage a proc) while bolt and knockback correctly hit the attacker. All three ship on the attacker.
 # The engine bolt is safe — no block ignition, no mob conversion — so the jar's real-lightning side effects
 # are not replicated.
-# era: the real-lightning vs effect-lightning split exists on 1.8 identically; no hazard. Non-stacking, so
-# only the highest worn level fires.
+# era: the real-lightning vs effect-lightning split exists on 1.8 identically; no hazard. Non-stacking under
+# R-QC63's default, so only the highest worn level fires and a proc is one bolt, not four.
 levels:
   1:
     chance: 4.5

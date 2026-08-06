@@ -9,7 +9,8 @@ applies-to: [ARMOR]
 group: "rare"
 tier: rare
 condition: '%damagecause% == "ENTITY_ATTACK"'
-# Non-stacking; the potion is not forced, so a stronger existing Weakness shadows it (potion-priority rule).
+# Non-stacking (R-QC63's default — one roll per hit); the potion is additionally not forced, so a stronger
+# existing Weakness shadows it (potion-priority rule).
 # Durations are the original's truncated (int)(1.5 x level) seconds plus a 25-tick tail — the quarter-second
 # ends and the uneven +1s/+2s steps are the real values, shipped as measured.
 # Weakness I through L3, II from L4 (POTION level is 1-based: level 1 = the I tier).

@@ -8,10 +8,15 @@ trigger: DEFENSE
 applies-to: [ARMOR]
 group: "epic"
 tier: epic
+# R-QC63: on the codex's 14-name stacking whitelist (`02-enchants-armor-m-z.md` §0.3) — every worn piece
+# fires with its OWN level. Everything else in this pack takes the engine default, one contribution per
+# wearer at the highest worn level.
+stacks: true
 # The bow check reads the attacker's held item at damage resolution, so a swap mid-flight evades it (verbatim).
 # Each level's %damage% floor is 1 / (1 - reduction) — the measured skip-below-1.0 guard, as Armored.
-# Per-piece stacking is granted by the original's whitelist and lives in the interaction layer: four L5 pieces
-# compound 0.90^4 = 34.39% total bow reduction, above Armored's despite the lower tier (verbatim).
+# Per-piece stacking is the `stacks: true` above, and it is LIVE: four L5 pieces each contribute their own
+# rung. The jar compounds them (0.90^4 = 34.39% total bow reduction, above Armored's despite the lower tier,
+# verbatim); the engine folds the same four contributions additively (ADR-0012), as Tank and Valor do.
 # era: emerald blocks exist on 1.8.9 (1.3+); the stone-break cue maps to the legacy `dig.stone` family as Armored.
 levels:
   1:

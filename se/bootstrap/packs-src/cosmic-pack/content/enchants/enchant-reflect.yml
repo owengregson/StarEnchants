@@ -29,8 +29,8 @@ tier: legendary
 # The jar's non-player-victim quirk (a successful rebound against a mob drops the proc for both parties) has
 # no expression and needs none: the marker is armed for PLAYERS only, so a mob defender never claims anything
 # and neither direction runs. That is also the heroic entry's "victim must be a player" rule, one layer down.
-# Highest-only across pieces is the engine's WornState default (one armed rule per enchant, the highest worn
-# level), which also repairs the jar's last-equip-wins marker (D-01-15).
+# Highest-only across pieces is the engine's WornState default (R-QC63: one contribution per enchant, at the
+# highest worn level), which also repairs the jar's last-equip-wins marker (D-01-15).
 # Acquisition: max 10; table weight 3; enchant-table thresholds 25..115 step 10; tier 5 (the `legendary` rung).
 # strings: none. era: none.
 levels:

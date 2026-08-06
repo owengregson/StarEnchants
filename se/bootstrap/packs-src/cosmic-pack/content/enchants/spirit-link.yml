@@ -21,7 +21,8 @@ tier: rare
 # layer, the wearer by construction — so the player-sized arithmetic is exact on the modern lane.
 # The heal is PER ALLY, never divided: a faction ball multiplies the total healing (measured).
 # Ally = faction ally/member both ways with neither side in a duel (relation layer); chestplate-only and
-# non-stacking, so the highest worn level is the only one that fires.
+# non-stacking (no `stacks:`, and the codex whitelist does not name it), so the highest worn level is the
+# only one that fires — the R-QC63 default, enforced in WornResolver.
 levels:
   1:
     abilities:

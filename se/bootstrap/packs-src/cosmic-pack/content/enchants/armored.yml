@@ -7,6 +7,10 @@ trigger: DEFENSE
 applies-to: [ARMOR]
 group: "legendary"
 tier: legendary
+# R-QC63: on the codex's 14-name stacking whitelist (`02-enchants-armor-m-z.md` §0.3) — every worn piece
+# fires with its OWN level. Everything else in this pack takes the engine default, one contribution per
+# wearer at the highest worn level.
+stacks: true
 # era: the diamond-block break cue on 1.8.9 is the legacy dig.stone sound family — resolver-mapped;
 # BLOCK_CRACK particle is fine.
 # The %damage% floor per level is 1 / (1 - reduction): the measured guard skips the reduction whenever it

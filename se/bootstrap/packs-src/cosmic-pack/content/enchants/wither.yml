@@ -10,7 +10,8 @@ group: "rare"
 tier: rare
 # No cause filter (verbatim): any damage carrying an attacker qualifies, projectile hits included — DEFENSE
 # only fires with a damager, so @Attacker is always there.
-# Non-stacking; the potion is not forced, so a stronger existing Wither shadows it (potion-priority rule).
+# Non-stacking (R-QC63's default — one roll per hit); the potion is additionally not forced, so a stronger
+# existing Wither shadows it (potion-priority rule).
 # POTION level is 1-based, so level 5 is amplifier 4 — far above vanilla Wither, shipped as measured.
 # era: Wither V's tick cadence differs by version (~every 2 ticks on 1.8-era servers), so the same config is
 # era-dependent DPS — flagged for the legacy sweep, not compensated here.

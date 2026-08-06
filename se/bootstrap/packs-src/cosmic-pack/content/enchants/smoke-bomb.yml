@@ -11,7 +11,8 @@ tier: rare
 condition: "%damage% >= %actor.health%"
 cooldown: 300
 # A soul-free second Phoenix: the lethal hit is fully negated (measured, shipped).
-# Non-stacking (highest piece only); truce+ players are exempt through the relation layer.
+# Non-stacking (R-QC63's highest-piece-only default: one save per lethal hit however many pieces carry it);
+# truce+ players are exempt through the relation layer.
 # filter=ENEMIES+PLAYERS is the jar's hostile-players-only payload: the frozen AOE surface takes a filter
 # conjunction, so the matrix's FILTER_COMPOSE note needs no wave-2 primitive here.
 # era: FIREWORK_TWINKLE2 is the 1.8 sound id (modern ENTITY_FIREWORK_ROCKET_TWINKLE_FAR); SLOW_DIGGING is the

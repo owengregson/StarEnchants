@@ -10,7 +10,9 @@ tier: rare
 # D-02-7: the jar gated on final damage but halved BASE damage, so its line overstated the save; the engine's
 # single damage scalar halves the hit for real. The line is sent whether or not the halved hit still kills
 # (measured) — no post-save gate.
-# Non-stacking: the interaction layer's highest-piece-only rule covers it. The description's combat-log NPC
+# Non-stacking, and NOT on the codex's 14-name whitelist despite its siblings' "stackable" framing
+# (`02-enchants-armor-m-z.md` §0.3 says so outright): the R-QC63 default resolves the highest worn piece and
+# fires it once. The description's combat-log NPC
 # "+15% HP per level" lives in an external plugin (codex UNRESOLVED) and is not ported.
 # era: none.
 levels:

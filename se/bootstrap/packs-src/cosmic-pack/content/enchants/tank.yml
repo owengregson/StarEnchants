@@ -9,8 +9,11 @@ trigger: DEFENSE
 applies-to: [ARMOR]
 group: "epic"
 tier: epic
-# Stackable (the original's whitelist): every worn piece fires with its own level. The original composes the
-# per-piece factors multiplicatively — a full L4 set is 0.925^4 = 26.80% single-pass, and Tank null-guards the
+# R-QC63: on the codex's 14-name stacking whitelist (`02-enchants-armor-m-z.md` §0.3) — every worn piece
+# fires with its OWN level. Everything else in this pack takes the engine default, one contribution per
+# wearer at the highest worn level.
+stacks: true
+# The original composes the per-piece factors multiplicatively — a full L4 set is 0.925^4 = 26.80% single-pass, and Tank null-guards the
 # attacker so D-001's double fire is moot for it — while the engine folds additively, so a full L4 set reduces
 # 30% (ledger D-02-10).
 # The gate keeps the matrix's own multiplicative form, %damage% * (1 - 0.01875 x level) > 1.0: small hits are

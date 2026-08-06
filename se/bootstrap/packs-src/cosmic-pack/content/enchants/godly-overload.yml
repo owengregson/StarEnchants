@@ -26,9 +26,10 @@ removes-required: true  # the heroic supersedes its non-heroic partner (net-zero
 # exempts an enchant from ALL suppression (`SuppressionStore.suppressesAny` returns false outright). So the
 # base's reading — noDefenseProcs maps to SUPPRESS(scope=TYPE, key=defense), which never dropped worn
 # passives, hence overload.yml's immunity — does not carry up a tier.
-# Stackable in bookkeeping, never in effect: POTION's non-stacking amplifier semantics skip an equal-or-higher
-# amplifier, so several pieces at the same level yield ONE Health Boost and only the highest worn level
-# expresses — the measured behaviour, and the highest-only rule the base shares with this grade.
+# Never stacks, at two independent layers. The codex whitelist names `Overload` and not `Godly Overload`, so
+# this grade takes R-QC63's highest-piece-only default where its base authors `stacks: true`; and POTION's
+# non-stacking amplifier semantics would skip an equal-or-higher amplifier even if it did, so several pieces
+# at the same level yield ONE Health Boost either way — the measured behaviour.
 # The jar's swap-without-unequip lingering-effect hazard is structural in the engine's WornState (equip arms,
 # unequip lifts), so there is nothing to port.
 # The mastery drain reduces the expressed HEALTH_BOOST amplifier by its own level + 1 and skips the effect at

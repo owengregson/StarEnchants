@@ -9,7 +9,11 @@ trigger: DEFENSE
 applies-to: [ARMOR]
 group: "epic"
 tier: epic
-# Stackable (the original's whitelist), per-piece multiplicative there. Valor is victim-gated — it never reads
+# R-QC63: on the codex's 14-name stacking whitelist (`02-enchants-armor-m-z.md` §0.3) — every worn piece
+# fires with its OWN level. Everything else in this pack takes the engine default, one contribution per
+# wearer at the highest worn level.
+stacks: true
+# Per-piece multiplicative in the original. Valor is victim-gated — it never reads
 # the attacker — so it also DOUBLE-fires in the original: a full max set nets 0.85^8 = 72.75%. Single-pass
 # values ship per D-001, i.e. 0.85^4 = 47.80% measured against 60% under the engine's additive fold
 # (ledger D-02-14).
