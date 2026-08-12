@@ -178,7 +178,10 @@ final class DispatchPlan {
             try {
                 op.run();
             } catch (Throwable failed) {
-                // One intent failing must not sink the batch; log and move on (§9 warn-and-skip).
+                // One intent failing must not sink the batch; log and move on (§9 warn-and-skip). The count is
+                // what makes the skip visible: the executor has long since returned, so nothing here can reach
+                // an AbilityQuarantine and a test would otherwise see a green run over a logged fault.
+                DispatchFaults.record(failed);
                 LOG.log(Level.WARNING, "intent failed during dispatch flush", failed);
             }
         }

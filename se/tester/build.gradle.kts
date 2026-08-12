@@ -66,29 +66,37 @@ tasks.named<ProcessResources>("processResources") {
     from(rootProject.file("se/bootstrap/resources/content")) {
         into("content")
     }
-    // Bundle the shipped signature pack's content the same way, with a generated index, so CatalogSuite
-    // validates ITS handle tokens on every matrix server too — the default catalog staying clean says
-    // nothing about the pack (the 1.20.5 particle rename wave shipped 79 dead cue lines this way).
-    val signatureContent = rootProject.file("se/bootstrap/packs-src/signature-pack/content")
-    val indexDir = layout.buildDirectory.dir("generated/pack-signature-index")
-    inputs.dir(signatureContent)
-    from(signatureContent) {
-        into("pack-signature/content")
-    }
-    from(indexDir) {
-        into("pack-signature")
-    }
-    doFirst {
-        val root = signatureContent.toPath()
-        val lines = Files.walk(root).use { walk ->
-            walk.filter { Files.isRegularFile(it) }
-                .map { root.relativize(it).toString().replace('\\', '/') }
-                .sorted()
-                .toList()
+    // Bundle EVERY shipped pack's content the same way, with a generated index, so CatalogSuite validates
+    // THEIR handle tokens on every matrix server too — the default catalog staying clean says nothing about a
+    // pack (the 1.20.5 particle rename wave shipped 79 dead cue lines this way). cosmic-pack rides here for
+    // the same reason and a sharper one: it is the larger handle surface by 3x, and the unit-side era gates
+    // only pin sounds/particles — its material/entity/attribute/potion/enchantment tokens resolve nowhere but
+    // a real server, so before this it shipped on thirteen targets no test had ever compiled it against.
+    val packRoots = mapOf(
+        "pack-signature" to rootProject.file("se/bootstrap/packs-src/signature-pack/content"),
+        "pack-cosmic" to rootProject.file("se/bootstrap/packs-src/cosmic-pack/content"),
+    )
+    packRoots.forEach { (bundle, content) ->
+        val indexDir = layout.buildDirectory.dir("generated/$bundle-index")
+        inputs.dir(content)
+        from(content) {
+            into("$bundle/content")
         }
-        val out = indexDir.get().file("index.txt").asFile
-        out.parentFile.mkdirs()
-        out.writeText(lines.joinToString("\n") + "\n")
+        from(indexDir) {
+            into(bundle)
+        }
+        doFirst {
+            val root = content.toPath()
+            val lines = Files.walk(root).use { walk ->
+                walk.filter { Files.isRegularFile(it) }
+                    .map { root.relativize(it).toString().replace('\\', '/') }
+                    .sorted()
+                    .toList()
+            }
+            val out = indexDir.get().file("index.txt").asFile
+            out.parentFile.mkdirs()
+            out.writeText(lines.joinToString("\n") + "\n")
+        }
     }
 }
 

@@ -15,6 +15,7 @@ import engine.run.AbilityExecutor;
 import engine.run.AbilityQuarantine;
 import engine.run.AreaScan;
 import engine.selector.kind.BuiltinSelectors;
+import engine.sink.DispatchFaults;
 import engine.spec.EffectSpec;
 import engine.stores.CooldownStore;
 import engine.trigger.BuiltinTriggers;
@@ -74,8 +75,11 @@ import tester.harness.Harness;
  * spawn (region A), each victim is a cow {@value CrossRegion#GAP} blocks away (region B), and the hit is fired on
  * the victim's region thread — where Folia delivers a real combat event. So a {@code @Self}-targeted intent
  * must hop B&rarr;A through the Sink; kinds capture the actor origin at dispatch (ADR-0043), so a remote actor
- * is never read in {@code run()}, and a wrong-thread intent that still faults is caught by the executor and
- * lands in the {@link AbilityQuarantine} — the fault channel this suite reads. On Paper the two chunks share
+ * is never read in {@code run()}. A wrong-thread intent that faults while the executor is still on the stack
+ * lands in the {@link AbilityQuarantine}; one that faults after it returned — every deferred world mutation —
+ * lands in {@link DispatchFaults} instead, because {@code DispatchPlan} flushes under warn-and-skip and the
+ * quarantine can no longer hear it. Both channels are read, a step later so a Folia owner hop has landed.
+ * On Paper the two chunks share
  * the one thread, so this is still a smoke of the whole dispatch path. The distinctness of the two regions is
  * asserted on Folia (see {@code affinity.autogen.staging}), not merely assumed from the block gap.
  *
@@ -423,6 +427,10 @@ public final class AffinityAutogenSuite implements Harness.Scenario {
             }
             int faultsBefore = quarantine.quarantinedKeys().size();
             activations.set(0);
+            // The deferred half reports through its own channel: DispatchPlan flushes under warn-and-skip, so a
+            // wrong-thread intent that faults AFTER the executor returned reaches no quarantine. Zero it here and
+            // read it a step later — on Folia the owner-batch hop may not have run by the time damage() returns.
+            DispatchFaults.reset();
             String threw = null;
             try {
                 cow.damage(1.0, attacker); // synchronous: fires EDBE → dispatch → executor.run → sink.flush
@@ -430,22 +438,29 @@ public final class AffinityAutogenSuite implements Harness.Scenario {
                 threw = t.toString();
             }
             boolean faulted = quarantine.quarantinedKeys().size() > faultsBefore;
-            if (threw != null) {
-                h.fail(check, "the hit threw synchronously: " + threw);
-            } else if (activations.get() != 1) {
-                h.fail(check, "expected exactly 1 activation, got " + activations.get()
-                        + " (worn resolve / candidate issue)");
-            } else if (faulted) {
-                h.fail(check, "effect kind faulted during run — quarantined (wrong-thread or bad intent)");
-            } else {
-                h.pass(check);
-            }
+            int seen = activations.get();
+            String synchronousThrow = threw;
             try {
                 cow.remove();
             } catch (Throwable ignored) {
                 // best-effort: a dead/removed cow (KILL, EXPLODE) must never mask the result
             }
-            Scheduling.onGlobalLater(STEP_TICKS, () -> step(index + 1));
+            Scheduling.onGlobalLater(STEP_TICKS, () -> {
+                if (synchronousThrow != null) {
+                    h.fail(check, "the hit threw synchronously: " + synchronousThrow);
+                } else if (seen != 1) {
+                    h.fail(check, "expected exactly 1 activation, got " + seen
+                            + " (worn resolve / candidate issue)");
+                } else if (faulted) {
+                    h.fail(check, "effect kind faulted during run — quarantined (wrong-thread or bad intent)");
+                } else if (DispatchFaults.count() > 0) {
+                    h.fail(check, "effect kind faulted during the dispatch FLUSH (wrong-thread or bad intent): "
+                            + DispatchFaults.last());
+                } else {
+                    h.pass(check);
+                }
+                step(index + 1);
+            });
         }
     }
 }

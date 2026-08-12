@@ -49,6 +49,7 @@ import tester.suite.ProtectionSuite;
 import tester.suite.RenderSuite;
 import tester.suite.ResolverSuite;
 import tester.suite.SetSuite;
+import tester.suite.ShippedPackExecutionSuite;
 import tester.suite.SoulEconomySuite;
 import tester.suite.SoulSuite;
 import tester.suite.TeleportSuite;
@@ -155,6 +156,8 @@ public final class SeTesterPlugin extends JavaPlugin implements Listener {
         harness.add(new CrossRegionTeleportSuite(this)); // Folia: TELEPORT must hop the actor's scheduler across regions
         // Auto-grown Folia coverage (architecture.md §7): a cross-region activation check per non-local effect kind.
         harness.add(new AffinityAutogenSuite(this));
+        // The shipped pack's own abilities, force-executed: CatalogSuite proves it compiles, this proves it runs.
+        harness.add(new ShippedPackExecutionSuite(this));
 
         getServer().getPluginManager().registerEvents(this, this);
     }
