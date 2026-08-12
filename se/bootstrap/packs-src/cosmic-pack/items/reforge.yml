@@ -3,6 +3,9 @@
 # socket — its one near-collision is an enchant named "Reforged" (an axe/tool durability enchant, matrix/04),
 # which is a different thing entirely and is noted only so a later reader does not confuse the two. The family is
 # ADR-0070/0071 and everything below is this pack's own styling of it.
+# NOTHING MINTS THIS ON A STOCK INSTALL: the pack ships no content/reforges/ tree, so there is no def for the
+# tokens below to render. It is here to complete the pack's items/ theme, so a server that adds its own
+# reforges on top of this pack gets them in the gold bracket frame rather than in the engine's neutral one.
 # Drag onto a WEAPON (config.yml reforges.weapon-groups) to apply — always succeeds, one socket per weapon — then
 # SHIFT + RIGHT CLICK while holding it to fire the reforge's signature ability. The Item Extractor
 # (items/crystal.yml `extractor:`) pops it back off intact.

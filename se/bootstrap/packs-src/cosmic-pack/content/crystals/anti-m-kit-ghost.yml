@@ -1,8 +1,9 @@
 # Matrix: 10-armor-sets.md § Ghost (Anti-M-Kit Crystal; the codex numbers this §C.6 in prose under a `### C.2`
 # heading — source-side numbering drift, recorded by the matrix, not resolved here)
-# The counter-crystal to an ability set: on ANY ONE worn piece of the wearer it cancels that set's four
-# mastery-pool procs aimed at them OUTRIGHT — 100%, no roll. The percent a player sees on this crystal is its
-# APPLY chance (the family-wide 20% gamble on the likeness, items/crystal.yml), never a proc chance.
+# The counter-crystal to an ability set: on ANY ONE worn piece of the wearer it cancels that set's mastery-pool
+# procs aimed at them OUTRIGHT — 100%, no roll (three of the four here; see Poltergeist below, D-10-10). The
+# percent a player sees on this crystal is its APPLY chance (the family-wide 20% gamble on the likeness,
+# items/crystal.yml), never a proc chance.
 # THE COUNTER-CRYSTAL'S DISPLAY RULE, stated once here and cited by its two siblings. Its name slot takes the
 # ABILITY set's STYLED name, exactly as the armour crystals' takes the plain set's: the source's counter-
 # crystal is its OWN item, named `§6§lAnti M-Kit Crystal (§3§lGhost§6§l)` (codex §C.2), where `§3§lGhost` is
@@ -36,24 +37,22 @@ stackable: false
 # Maintained-while-worn is a REPEATING re-arm rather than PASSIVE — PASSIVE is a start/stop lifecycle fired
 # once at equip, so a window armed there would expire mid-wear. `repeat: 20` under a `duration: 60` window
 # holds it open continuously and bounds the residual immunity after the crystal comes off at 3 s.
-# POOL (matrix § Ghost): Horrify, Feign Death, Poltergeist, Mark of the Beast — all four now SHIP (R-QC1 and
-# R-QC30 closed the last three), so every key below is live and the crystal is complete. The key is the
-# enchant's file STEM under `enchants/`, the same spelling every SUPPRESS in this pack uses.
-# POLTERGEIST IS THE ODD ONE, AND IT TAKES THE OTHER DIRECTION. The jar's cancel keys on the PROC'S TARGET
-# ("cancel this mastery proc when its target wears a matching crystal"), which is what `SUPPRESS_INCOMING`
-# means here — but Poltergeist is the one pool member that never procs on anybody else: it is an
-# unconditional fall-damage cancel on its own wearer, a FALL activation with no victim at all, so a
-# defender-keyed window has nothing to be consulted against and would sit inert forever. The jar's ONE
-# reachable case is the wearer BEING the target — a player carrying both this crystal and Poltergeist loses
-# their own fall immunity — and that is an activator-keyed `SUPPRESS` on `@Self`, which is what ships. The
-# residue, recorded: an enemy's Poltergeist is out of reach because there is nothing of it aimed at anyone,
-# and its other surface — the freeze rebate consumers read off `%target.enchlevel.poltergeist%` — is a worn
-# FACT rather than an activation, so no suppression window of any scope has ever touched it, here or in the jar.
+# POOL (matrix § Ghost): Horrify, Feign Death, Poltergeist, Mark of the Beast — all four SHIP (R-QC1 and
+# R-QC30 closed the last three). The key is the enchant's file STEM under `enchants/`, the same spelling every
+# SUPPRESS in this pack uses.
+# POLTERGEIST HAS NO RUNG, AND CANNOT GET ONE THAT HELPS THE WEARER (D-10-10). It is the one pool member that
+# never procs on anybody else: an unconditional fall-damage cancel on its own wearer, a FALL activation with
+# no victim, so a defender-keyed `SUPPRESS_INCOMING` has nothing to be consulted against and sits inert. The
+# only window that CAN match it is activator-keyed on `@Self` — and since the activator IS the crystal's own
+# wearer, that spelling reads "wearing the anti-Ghost crystal deletes your own fall immunity", permanently
+# while worn and unmentioned by the description above. An enemy's Poltergeist is unreachable either way, and
+# so is its other surface — the freeze rebate consumers read off `%target.enchlevel.poltergeist%` is a worn
+# FACT, not an activation, and no suppression window of any scope has ever touched it, here or in the jar.
+# So the enumerated line ships verbatim and this pool member is a no-op rather than a self-nerf.
 abilities:
   - trigger: REPEATING
     repeat: 20
     effects:
       - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/horrify", duration: 60, who: "@Self" } }
       - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/feign-death", duration: 60, who: "@Self" } }
-      - { SUPPRESS: { scope: ENCHANT, key: "enchants/poltergeist", duration: 60, who: "@Self" } }
       - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/mark-of-the-beast", duration: 60, who: "@Self" } }

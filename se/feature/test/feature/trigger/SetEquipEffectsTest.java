@@ -21,7 +21,7 @@ class SetEquipEffectsTest {
 
     private static SetDef set(String display) {
         return new SetDef("sets/x", display, "", null, 1, List.of(), List.of(), List.of(), SetDef.ClaimFooter.NONE, List.of(),
-                Map.of(), true, "", "", schema.diag.Source.ofFile("t"));
+                Map.of(), true, "", "", false, schema.diag.Source.ofFile("t"));
     }
 
     private static MasterConfig.SetsSection cfg(boolean useSetColor) {

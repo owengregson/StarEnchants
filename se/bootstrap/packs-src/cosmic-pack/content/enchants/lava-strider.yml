@@ -25,13 +25,17 @@ description:
   - "&eunder your boots for as long as you walk it."
 trigger: REPEATING
 repeat: 10  # the stamp cadence; level-independent
-# Over lava, OR over the crust this enchant already laid. `%actor.groundblock%` is the block one below the
-# feet — the very layer WALKER stamps (`origin.getBlockY() - 1`) — which makes the lava clause SELF-CLOSING on
-# its own: the first pad turns its own gate to OBSIDIAN, the walk halts one pad in, and the wearer is left
-# standing in the lake it exists to carry them across. `%actor.ownedground%` asks the temp-block ledger "is
-# the block under my feet one I laid" (the permafrost.yml idiom), and the OBSIDIAN test keeps a wearer
-# standing on some OTHER enchant's field out of it — both halves are load-bearing, neither is the rule alone.
-condition: "%actor.groundblock% contains \"LAVA\" || (%actor.ownedground% && %actor.groundblock% == \"OBSIDIAN\")"
+# ONLY over lava. `%actor.groundblock%` is the block one below the feet — the very layer WALKER stamps
+# (`origin.getBlockY() - 1`) — so a wearer atop a fresh pad does NOT re-arm; they re-arm on the step that
+# carries them past its 2-block margin back onto lava, and that alternation is the walk. Extending the pad
+# from atop itself is deliberately unauthored: an `|| == "OBSIDIAN"` clause self-sustains over AIR too
+# (`replace: REPLACEABLE` takes air), turning the walk into an endless bridge off the nearest ledge — the
+# flight enchant the ground test above refuses. Nor can `%actor.ownedground%` narrow it to this enchant's own
+# crust: that flag reads the placer the temp-block ledger recorded and WALKER places UNOWNED
+# (`DispatchSinkBase.tempPlatform` passes a null owner), so it is false over every tile this file lays —
+# permafrost.yml's gate works only because TEMP_BLOCK carries its placer.
+# Residue, recorded: each re-arm costs the wearer up to one 10 t pulse of lava contact between pads.
+condition: "%actor.groundblock% contains \"LAVA\""
 # BOOTS, not ARMOR: the matrix records this as the only mastery whose natural items are restricted to one
 # slot. The rest of the family takes all four pieces. Handing a mastery onto locked kit armour is the Mastery
 # Shard flow, an economy/config concern the effect matrix leaves out.

@@ -4,6 +4,7 @@
 - **Date:** 2026-07-16
 - **Deciders:** project owner + agent
 - **Extends:** ADR-0052 (pets)
+- **Rulings:** R-QC65 (the use-XP roll's floor is 0, not 1), R-115-1 (a refusal branch is not a use — §3)
 
 ## Context
 
@@ -23,9 +24,11 @@ held in the hotbar.
    GAIN EVENT from any source (a +10 Pet Food is one cue). Absent keys default in-family; a blank sound or
    empty particle is silent. All leveling paths already run on the holder's region thread, so playback adds
    no scheduler hops.
-3. **Use-XP.** On `UseAttempt.activated()` (the full gate walk passed — cooldown gate included) an ACTIVE
-   pet gains a uniform random `[expPerLevel/8, expPerLevel/5]` exp, min 1, rolled through the injected
-   `Rolls`/`Random`. PASSIVE pets have no USE path. Stacked heads are skipped (the ADR-0052 dupe rule).
+3. **Use-XP.** On `UseAttempt.activated()` whose `activatedCandidateIndex()` is **0** — the full gate walk
+   passed (cooldown gate included) *and* the bracket's PAYLOAD ability answered rather than a refusal
+   sibling (R-115-1) — an ACTIVE pet gains a uniform random `[expPerLevel/8, expPerLevel/5]` exp,
+   **floor 0** (R-QC65), rolled through the injected `Rolls`/`Random`. PASSIVE pets have no USE path.
+   Stacked heads are skipped (the ADR-0052 dupe rule).
 4. **Passive inventory accrual.** Replaces `exp-passive-per-minute`: any pet in the player's MAIN inventory
    (slots 0-35 — era-stable; never containers, never offline) earns `passive-levels-per-hour` (default 0.5);
    a PASSIVE-type pet in the hotbar earns `passive-hotbar-levels-per-hour` (default 1.0) instead. The

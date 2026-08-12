@@ -36,6 +36,15 @@ public final class RecordingSchedulerBackend implements SchedulerBackend {
             cancelled = true;
         }
 
+        /**
+         * Retire the task the way Folia does when its owning entity is removed — nobody called {@link #cancel},
+         * the handle simply stops being live. Paper never does this, so a driver that treats "the handle is in
+         * my map" as "the task still runs" can only be caught here.
+         */
+        public void retire() {
+            cancelled = true;
+        }
+
         @Override
         public boolean isCancelled() {
             return cancelled;

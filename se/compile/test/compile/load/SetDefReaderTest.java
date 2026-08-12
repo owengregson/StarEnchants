@@ -304,6 +304,43 @@ class SetDefReaderTest {
     }
 
     @Test
+    void foldsHeroicIsReadAndCollidesWithAPieceMintedHeroic() {
+        // ADR-0073 D3. The marker is what the upgrade gesture refuses on; a member minting heroic under it
+        // routes a SECOND reduction into the channel the completion bonus already fills.
+        Diagnostics clean = new Diagnostics();
+        SetDefReader.Parsed marked = SetDefReader.read("sets/architect",
+                root(setYaml("folds-heroic: true\n", "helmet: { material: DIAMOND_HELMET }"), clean),
+                counter(), clean);
+        assertFalse(clean.hasErrors(), () -> clean.all().toString());
+        assertTrue(marked.def().foldsHeroic());
+
+        Diagnostics diags = new Diagnostics();
+        SetDefReader.read("sets/architect",
+                root(setYaml("folds-heroic: true\n", "helmet: { material: DIAMOND_HELMET, heroic: true }"), diags),
+                counter(), diags);
+        assertTrue(diags.hasErrors());
+        assertCode(diags, DiagCode.E_LOAD_SET_MEMBER);
+
+        // Absent by default, so every set authored before the marker existed reads and mints unchanged.
+        Diagnostics plain = new Diagnostics();
+        SetDefReader.Parsed unmarked = SetDefReader.read("sets/koth",
+                root(setYaml("", "helmet: { material: DIAMOND_HELMET }"), plain), counter(), plain);
+        assertFalse(unmarked.def().foldsHeroic());
+    }
+
+    private static String setYaml(String rootLine, String piece) {
+        return rootLine + """
+            armor:
+              pieces:
+                %s
+            bonuses:
+              - on: armor
+                trigger: DEFEND
+                effects: [{ DAMAGE: { amount: 1 } }]
+            """.formatted(piece);
+    }
+
+    @Test
     void aPieceCarriesItsOwnLoreEnchantsDyeAndHeroicStamp() {
         Diagnostics diags = new Diagnostics();
         String yaml = """

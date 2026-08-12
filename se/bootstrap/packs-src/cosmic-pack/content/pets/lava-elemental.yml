@@ -59,6 +59,8 @@ description:
   - "§7§f§lCooldown"
   - "§7§7 5 Minutes"
 max-level: 10
+# D-12-41 re-priced ten pet ladders against the cooldown window this port enforces and left this one as
+# recorded: the grant is the bucket COUNT, a per-use amount no uses-to-cap arithmetic can price.
 exp-curve: { base: 0, per-level: 1000 }   # `level x 1000`: L2 2000 … L10 10000, 54 000 to cap; XP = buckets filled
 levels:
   1:

@@ -107,7 +107,7 @@ public final class Aliases {
             // The cosmic-port legacy sweep; each verified present in BOTH the 1.8 enum and the modern
             // constant lists before landing. FIREWORK_TWINKLE2 is the "far" twinkle (plain FIREWORK_TWINKLE
             // is the near one), and MAGMACUBE_WALK2 is deliberately the only squish alias — a second key onto
-            // the same target would make the resolver's reverse scan pick non-deterministically.
+            // the same target would leave the reverse scan picking by key order rather than by meaning.
             Map.entry("DIG_STONE", "BLOCK_STONE_BREAK"),
             Map.entry("FIREWORK_LAUNCH", "ENTITY_FIREWORK_ROCKET_LAUNCH"),
             Map.entry("FIREWORK_TWINKLE2", "ENTITY_FIREWORK_ROCKET_TWINKLE_FAR"),
@@ -138,8 +138,9 @@ public final class Aliases {
             Map.entry("ZOMBIE_WOODBREAK", "ENTITY_ZOMBIE_BREAK_WOODEN_DOOR"),
             // Wave 2e.2 closes the sweep's remainder — every row javap'd against the real Spigot 1.8.8 Sound
             // enum and grepped against both committed modern fixtures, values mutually distinct so the reverse
-            // scan stays deterministic. These are content's LAST unaliased cues; several files were silent on
-            // the 1.8 lane entirely (Permafrost and Soul Trap each author exactly one sound, and it was this one).
+            // scan picks by meaning, not key order. These are content's LAST unaliased cues; several files were
+            // silent on the 1.8 lane entirely (Permafrost and Soul Trap each author exactly one sound, and it
+            // was this one).
             Map.entry("ENDERMAN_SCREAM", "ENTITY_ENDERMAN_SCREAM"),
             Map.entry("ENDERMAN_HIT", "ENTITY_ENDERMAN_HURT"),
             Map.entry("SPLASH", "ENTITY_GENERIC_SPLASH"),

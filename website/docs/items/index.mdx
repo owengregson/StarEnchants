@@ -62,8 +62,9 @@ See the [commands](../commands/index.mdx) page for the exact argument shapes.
 ## The heroic upgrade item
 
 The heroic upgrade (`items/heroic.yml`, `type: heroic`) is a one-shot power-up dragged onto any armor
-piece or weapon. It has a small randomized success chance, is consumed either way, and on success
-stamps percent stats and optionally swaps the material:
+piece or weapon — except a piece of a set declaring `folds-heroic: true`, which refuses the upgrade
+without consuming it. It has a small randomized success chance, is consumed
+either way, and on success stamps percent stats and optionally swaps the material:
 
 ```yaml
 type: heroic

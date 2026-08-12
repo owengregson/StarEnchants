@@ -60,8 +60,6 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
 
     private static final Logger LOG = System.getLogger("StarEnchants.Sink");
 
-    private static final int[] NO_PARTICLE_DATA = new int[0];
-
     /** The 1.8 NMS {@code Entity.invulnerable} flag is private; cache the reflective handle once. */
     private static volatile Field nmsInvulnerableField;
 
@@ -502,10 +500,7 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
         if (resolved == null || world == null) {
             return;
         }
-        int[] data = particleData(resolved, blockMaterialId);
-        if (data == null) {
-            return;
-        }
+        int[] data = LegacyParticleData.forParticle(resolved, blockMaterialId < 0 ? null : material(blockMaterialId));
         PacketPlayOutWorldParticles packet = new PacketPlayOutWorldParticles(
                 resolved, true,
                 (float) at.getX(), (float) at.getY(), (float) at.getZ(),
@@ -518,27 +513,6 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
                 sendPacket(viewer, packet);
             }
         }
-    }
-
-    /**
-     * The trailing varint block the 1.8 packet writer demands: {@code PacketPlayOutWorldParticles.b} loops
-     * {@code EnumParticle.d()} times over the varargs array, so a short array throws inside the Netty encoder and
-     * the frame goes out truncated. BLOCK_CRACK/BLOCK_DUST want one int, ITEM_CRACK two; every other 1.8 particle
-     * wants none. {@code null} means "cannot be sent" — skipped like any other unresolved handle.
-     */
-    @SuppressWarnings("deprecation") // Material.getId(): 1.8 addresses blocks by numeric id.
-    private int[] particleData(EnumParticle resolved, int blockMaterialId) {
-        int arity = resolved.d();
-        if (arity <= 0) {
-            return NO_PARTICLE_DATA;
-        }
-        Material block = blockMaterialId < 0 ? null : material(blockMaterialId);
-        if (block == null) {
-            return null;
-        }
-        int[] data = new int[arity];
-        data[0] = block.getId(); // 1.8 packs the state as id | (data << 12); data 0 = the default state
-        return data;
     }
 
     @Override
@@ -565,8 +539,15 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
         // "exactly 0 = default red" special case. `size`/`count` have no 1.8 analogue and are ignored.
         EnumParticle resolved = particle(particleId);
         World world = at.getWorld();
-        if (resolved == null || world == null || resolved.d() > 0) {
-            return; // a data-carrying particle has no colour channel to ride and cannot be sent data-less
+        if (resolved == null || world == null) {
+            return;
+        }
+        if (resolved.d() > 0) {
+            // Only REDSTONE reads the offset as an RGB triple, so a data-carrying particle has no colour
+            // channel. Degrade to a plain burst — the same fallback the modern leaf takes when the resolved
+            // particle refuses DustOptions.
+            sendParticleAt(at, particleId, count, -1, 0f, 0f, 0f);
+            return;
         }
         float fr = Math.max(0.001f, clampChannel(r) / 255f);
         float fg = clampChannel(g) / 255f;

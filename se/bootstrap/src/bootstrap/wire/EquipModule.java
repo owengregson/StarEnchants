@@ -12,7 +12,6 @@ import feature.trigger.SetMessageDriver;
 import feature.trigger.TriggerDispatch;
 import org.bukkit.entity.Player;
 import platform.sched.Scheduling;
-import platform.sched.TaskHandle;
 import platform.text.Colors;
 
 /**
@@ -39,7 +38,7 @@ final class EquipModule {
         TriggerDispatch triggerDispatch = core.triggerDispatch();
         // §B REPEATING: one entity-owned repeating task per (player, ability), armed/torn-down by EquipListener.
         this.passives = new RepeatingDriver(triggerDispatch, core.content(),
-                core.triggers().idOf("REPEATING").orElse(-1), new RepeatStore<TaskHandle>());
+                core.triggers().idOf("REPEATING").orElse(-1), new RepeatStore<RepeatingDriver.Armed>());
         // §B HELD/PASSIVE buffs that flip on/off at equip/unequip via EquipListener's worn-ability diff (ADR-0022).
         this.lifecycle = new LifecycleDriver(triggerDispatch, core.content(),
                 core.triggers().idOf("HELD").orElse(-1), core.triggers().idOf("PASSIVE").orElse(-1));

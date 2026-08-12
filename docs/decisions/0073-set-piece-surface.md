@@ -92,6 +92,13 @@ the M-Kit's steeper tier is what unblocks them. A set with no such row (KOTH) ta
 gains a channel it did not have. This is the standing note those files already carried, made
 load-bearing.
 
+The set **declares** it — `folds-heroic: true`, read by `feature.heroic.HeroicSetFold`, which the
+upgrade gesture consults before it consumes anything; a member authoring `heroic: true` under the same
+marker is a load error, so the mint half cannot contradict it either. It is deliberately not inferred
+from a `DAMAGE_MOD(side: defense)` row: that row is near-universal across the shipped packs —
+supreme's is a damage-TAKEN penalty — so inferring would refuse the upgrade on almost every set on
+the server.
+
 ## Decision 4 — a levelless `PROC_REBOUND` rule has no level bound
 
 `AbilityDef.level` is an ENCHANT level; every non-enchant reader passes a literal `0` because a set,
@@ -112,10 +119,22 @@ later in a cycle governed the next window, and the crystal's chance is always th
 wearer who completed the set AND carried its crystal was permanently WORSE off than one wearing the
 set alone.
 
-Merge to the **stronger chance over the later expiry**. Chance decides the identity (and carries its
-own attribution and block line) because chance is the point of the window and expiry is a refresh
-detail; a chance tie falls back to the later expiry, and a full tie keeps the incumbent — the same
-"ties keep what is already live" rule the activator-side merges use.
+Do not merge the two arms at all: keep **one window per arming ability**, and let the CONSULT take the
+strongest one still live. Chance decides which governs because chance is the point of the window and
+expiry is a refresh detail; a chance tie falls back to the later expiry, and a full tie keeps the
+incumbent — the same "ties keep what is already live" rule the activator-side merges use. The
+governing window carries its own attribution and block line, as before.
+
+Every single-record merge is wrong in one direction or another, which is why the arms stay separate.
+Splicing the stronger chance onto the later expiry lets the ladder only climb: a crystal ladder's base
+rung re-arms every 20 ticks under a 60-tick duration, so a wearer who dropped from four rungs to one
+would have the strongest chance ever armed refreshed forever by the weakest arm still firing. Keeping
+the stronger record whole and discarding the weaker one goes the other way — it throws away coverage
+the losing source had already paid for, so when the stronger source stops arming, the holder is
+uncovered until the weaker one's next cadence tick. Per-source arms have neither edge: a source that
+stops arming ages out on its own clock within one duration, and what is still armed underneath it
+keeps covering. A **lapsed** arm is dropped rather than trusted — eviction is lazy, so a stale record
+must never be handed a fresh expiry or consulted minutes (or a logout) after it ended.
 
 ## Decision 6 — `%actor.setweapon%` answers the `on: weapon` gate's own question
 

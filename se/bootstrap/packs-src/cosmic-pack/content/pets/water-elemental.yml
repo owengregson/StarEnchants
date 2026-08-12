@@ -36,6 +36,8 @@ description:
   - "§7§f§lCooldown"
   - "§7§7 5 Minutes"
 max-level: 10
+# Left as recorded by D-12-41, the reason `lava-elemental.yml` spells: the grant is the bucket COUNT, which
+# no uses-to-cap arithmetic can price.
 exp-curve: { base: 0, per-level: 500 }   # `level x 500`: L2 1000 … L10 5000, 27 000 to cap; XP = buckets filled
 levels:
   1:

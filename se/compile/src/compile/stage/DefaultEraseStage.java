@@ -214,8 +214,7 @@ public final class DefaultEraseStage implements EraseStage {
      * CHECK-ONLY — it writes no reservation of its own but still blocks on a live one, so such an ability is
      * silenced for the whole of its sibling's window, which is exactly when it was meant to fire. Every block
      * of one enchant shares the enchant's bucket by default, so an arm and the payload it exists to run are
-     * both the natural authoring shape and the natural dead one: this left Demonic Gateway's three IMPACT
-     * payloads inert behind their own 200-tick arm until each took {@code cooldown-scope: none}.
+     * both the natural authoring shape and the natural dead one (Demonic Gateway's ring and its skulls).
      *
      * <p>A cohort is only compared where both members can be live at once, which is what keeps the warning
      * off legitimate ladders:
@@ -251,7 +250,9 @@ public final class DefaultEraseStage implements EraseStage {
                     "'" + la.stableKey() + "' has no cooldown but shares cooldown bucket '" + la.cdScopeEnchant()
                             + "' with '" + armer + "', which arms one — it cannot fire while that window runs",
                     la.source(),
-                    "give it 'cooldown-scope: none' to leave the bucket, or a scope name of its own");
+                    "leave the bucket with 'cooldown-scope: none' or a scope name of its own — but both also "
+                            + "move the ENCHANT-scope id a SUPPRESS/SUPPRESS_INCOMING window matches this "
+                            + "ability by; 'cooldown-per-victim: true' frees a victim-keyed block without it");
         }
     }
 

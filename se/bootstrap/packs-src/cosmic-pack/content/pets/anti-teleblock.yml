@@ -56,7 +56,9 @@ description:
 max-level: 10
 # Flat 1000/level, 9000 to cap 10; XP 10 per use = 900 uses. Against the 120-to-66 s window this port really
 # enforces that is ≈ 23 h to cap — the one recorded ladder already in the family band, so it is the anchor the
-# other nine were re-priced against (D-12-41) and the only one left untouched.
+# other TEN were re-priced against (D-12-41). `lava-elemental.yml` and `water-elemental.yml` keep their
+# recorded ladders too, on a different ground: their grant is the bucket COUNT, so no uses-to-cap figure
+# prices them at all.
 exp-curve: { base: 1000, per-level: 0 }
 levels:
   # Three abilities per bracket, and the ORDER is load-bearing: the payload is index 0, so it is the ability

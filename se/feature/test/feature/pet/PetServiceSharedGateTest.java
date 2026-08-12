@@ -15,6 +15,7 @@ import compile.load.ContentHolder;
 import compile.load.Library;
 import compile.load.LibraryLoader;
 import compile.load.MasterConfig;
+import compile.load.PetBracket;
 import compile.load.PetDef;
 import compile.load.PetFoodConfig;
 import compile.load.PetItemConfig;
@@ -31,6 +32,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
@@ -52,6 +55,9 @@ import schema.spec.ParamSpec;
  * pending home RECALL is EXEMPT (resolved before the gate check) and itself arms the gate. Real compiled pet
  * content + real stores; {@link TriggerDispatch}/{@link PetMessenger}/cues are mocked (their outcomes are the
  * axis under test, and the recall-success path touches no scheduler, so it stays server-free).
+ *
+ * <p>Also the gate's precondition: WHICH activation counts as a use (R-115-1) — the bracket's declared payload,
+ * never a sibling refusal branch and never a position.
  */
 class PetServiceSharedGateTest {
 
@@ -71,6 +77,7 @@ class PetServiceSharedGateTest {
 
     private ItemStack activeA;
     private ItemStack activeB;
+    private ItemStack twoUse;
     private ItemStack digger;
 
     private static Compiler compiler() {
@@ -93,6 +100,19 @@ class PetServiceSharedGateTest {
             levels:
               1: { cooldown: 100, effects: [ { HEAL: { amount: 1 } } ] }
             """);
+        // Two USE abilities: the payload and one sibling — the shape every shipped active pet has, where the
+        // siblings are refusal branches and %…fired%-gated follow-ups.
+        write("pets/twouse.yml", """
+            display: "Two Use"
+            type: ACTIVE
+            levels:
+              1:
+                cooldown: 100
+                abilities:
+                  - effects: [ { HEAL: { amount: 1 } } ]
+                  - cooldown: 0
+                    effects: [ { HEAL: { amount: 1 } } ]
+            """);
         write("pets/digger.yml", """
             display: "Digger"
             type: ACTIVE
@@ -106,6 +126,7 @@ class PetServiceSharedGateTest {
         codec = new PetCodec(ItemKeys.of(), store);
         activeA = stampedPet(store, "activea");
         activeB = stampedPet(store, "activeb");
+        twoUse = stampedPet(store, "twouse");
         digger = stampedPet(store, "digger");
 
         dispatch = mock(TriggerDispatch.class);
@@ -176,6 +197,51 @@ class PetServiceSharedGateTest {
         pets.use(p, activeB); // the gate is still open → this one activates
         verify(messenger).activated(p, defB);
         verify(messenger, never()).sharedCooldown(any(), anyLong());
+    }
+
+    @Test
+    void aSiblingAnsweringTheClickEarnsNoneOfTheUsesEconomy() {
+        // R-115-1. A refusal branch is an ability like any other: it activates, and crediting it would pay the
+        // shared gate, the activated line, use-XP and a fresh armed window for being told no.
+        Player p = player();
+        PetDef def = holder.library().petDefOf("twouse");
+        when(dispatch.fireUse(any(), any())).thenReturn(new UseAttempt(true, false, 0, -1, false, 1));
+
+        pets.use(p, twoUse);
+
+        verify(messenger, never()).activated(p, def);
+        assertEquals(0, sharedGate.remaining(PLAYER, 0), "a sibling's activation must not arm the any-pet gate");
+    }
+
+    @Test
+    void thePayloadIsTheOneTheBracketDeclaresNotWhicheverSitsFirst() {
+        // The bracket NAMES its payload, so nothing here rests on it being candidate 0 — a pack that ordered a
+        // guard branch ahead of its payload would otherwise lose every use's credit, silently.
+        Player p = player();
+        PetDef renamed = withPayloadAt(1, holder.library().petDefOf("twouse"));
+        when(dispatch.fireUse(any(), any())).thenReturn(new UseAttempt(true, false, 0, -1, false, 1));
+
+        pets.use(p, twoUse);
+
+        verify(messenger).activated(p, renamed);
+        assertEquals(40, sharedGate.remaining(PLAYER, 0), "the declared payload arms the gate wherever it sits");
+    }
+
+    /** Republish the library with {@code key}'s single bracket declaring its {@code index}-th use as the payload. */
+    private PetDef withPayloadAt(int index, PetDef def) {
+        PetBracket bracket = def.brackets().get(0);
+        PetBracket moved = new PetBracket(bracket.floor(), bracket.cooldownTicks(), bracket.durationTicks(),
+                bracket.useStableKeys(), bracket.wornStableKeys(), bracket.conditionSources(),
+                bracket.useStableKeys().get(index));
+        PetDef republished = new PetDef(def.key(), def.display(), def.color(), def.active(), def.head(),
+                def.material(), def.descriptor(), def.description(), def.permission(), def.messageOnNoHome(),
+                def.expCurve(), def.maxLevel(), List.of(moved));
+        Library old = holder.library();
+        List<PetDef> pets = new ArrayList<>(old.pets());
+        pets.replaceAll(existing -> existing.key().equals(def.key()) ? republished : existing);
+        holder.publish(new Library(old.snapshot(), old.catalog(), old.crystals(), old.sets(), old.useItems(),
+                pets, old.masks(), old.reforges(), old.tiers(), old.diagnostics()));
+        return republished;
     }
 
     @Test

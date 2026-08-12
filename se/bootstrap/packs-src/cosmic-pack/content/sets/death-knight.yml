@@ -147,6 +147,9 @@ armor:
 # The only delta is partial wear: two worn pieces pay 16+13 in the jar and nothing here until the fourth lands.
 # `items/heroic.yml` carries ONE flat percent for every heroic piece; R-QC50 rejected a per-slot ladder and the
 # M-Kit's own heroic tier PERMANENTLY, so this row is final and nothing will arrive to double-count against it.
+# ADR-0073 D3: the 4/4 row below IS this set's heroic wall folded in, so a piece of it takes no heroic
+# stamp — the stamp writes into the SAME additive channel and 45 + 27 would bill one wall twice.
+folds-heroic: true
 bonuses:
   - on: armor
     trigger: DEFENSE

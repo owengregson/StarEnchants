@@ -6,6 +6,116 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+The Cosmic Pack defect sweep: 77 confirmed findings closed. The pack gains its own menus and its
+last nine support items, and a run of balance corrections changes how several enchants, masks and
+pets feel in a fight.
+
+### Added
+
+- **The Cosmic Pack ships its own menus.** All sixteen menu screens — hub, catalogues, enchanter,
+  alchemist, tinkerer, transmog, mint and the admin/console panes — now come styled with the pack
+  instead of falling back on the built-in chrome, so `/se` on a cosmic server looks like the rest of
+  it.
+- **Nine more Cosmic Pack items.** The soul gem, the four trak gems (block, mob, soul, fish), the
+  item nametag, the holy white scroll, the godly transmog and the weapon reforge all have cosmic
+  likenesses now, so the pack carries every one of the 22 support-item types. All nine are
+  port-original — the source records no material, name or lore for them — and each says so in its
+  own file.
+
+### Changed
+
+- **Monopoly's Holy White Scroll strip is now per hit.** ⚠️ *Shipped-behavior change, flagged for
+  pre-release veto.* It was a 33 % roll gated on the killing blow; the gate could not be written
+  honestly (on an attacker's swing the engine only knows the raw pre-armour amount), so it fired on
+  ordinary swings against any wounded target and burned a premium scroll each time it guessed wrong.
+  It is now a flat **2 % on every landed hit**, which is about the same 33 % across a full kill — so
+  a strip can land mid-fight rather than only at the end, and a hurt opponent no longer risks a
+  scroll on each swing you land.
+- **Master Blacksmith deals damage again.** ⚠️ *Shipped-behavior change.* Its self-tax was
+  ×0.20/×0.15/×0.10/×0.05/**×0.00**, so most level-5 swings dealt literally nothing and the heroic
+  grade was a strict downgrade on the enchant it replaces. The same −5 pp per rung now floors at
+  ×0.40: ×0.60/×0.55/×0.50/×0.45/×0.40. The free armour repair it trades for is untouched.
+- **Ender Walker blinds you for 3 seconds, not 10.** ⚠️ *Shipped-behavior change.* Every cancelled
+  wither/poison tick re-armed the blind, so one Wither II splash cost the whole DoT plus ten more
+  seconds and lost the fight the immunity had just won. 3 seconds still outlasts the slowest vanilla
+  DoT interval, so the blind is unbroken while the effect is on you — only the tail is gone.
+- **Nature's Wrath and the Gaia Pet sweep hostile mobs only.** ⚠️ *Shipped-behavior change.* Both
+  removed *every* non-player living thing out to 28 blocks — villagers, tamed wolves, horses,
+  chested mules, iron golems, armour stands — silently, with no drops and no death event for a
+  protection plugin to see. One hit taken at home erased a base. They now reach hostile mobs.
+- **Stormcaller's bolt no longer sets the world on fire.** ⚠️ *Shipped-behavior change.* It called a
+  real lightning strike, which ignited the ground and the attacker and could turn a nearby pig or
+  creeper. The bolt is now cosmetic and its damage is folded into a single deterministic 20.0 hit —
+  the same total, delivered once instead of being half-swallowed by the attacker's immunity window.
+- **Ten pet XP curves rescaled.** ⚠️ *Shipped-behavior change.* The ladders were priced against a
+  cooldown the source never actually enforced, so with the real 10-minute windows in place max level
+  sat 250–1690 hours of perfectly-spaced clicks away and every pet's upper brackets were unreachable.
+  Each is now divided against the window this port enforces, targeting roughly **25 hours** to cap.
+  Per-use grants are unchanged.
+- **The heroic upgrade is a flat 50 % chance.** ⚠️ *Shipped-behavior change.* The rate was drawn from
+  a 1–100 band, which meant the percentage printed on the item was never the percentage the attempt
+  actually rolled. One honest number now serves both.
+- **Heroic upgrades are refused on M-Kit set pieces.** Those four sets already fold a heroic-grade
+  wall into their completion bonus (they now declare `folds-heroic: true`), so stamping heroic on a
+  piece would bill that reduction twice — 45 % + 27 %, uncapped. The gesture explains itself and the
+  upgrade is **not** consumed.
+- **Telling a pet "no" is no longer a use.** ⚠️ *Shipped-behavior change.* A refusal branch — "you already have that buff", "no
+  enemy players nearby" — used to spend the click like a success: it armed the 2-second cross-pet
+  gate, banked XP and re-opened the ability's own window. The XP Booster pet was doubling its
+  5-minute buff off a single one-hour charge while printing a refusal. Only a pet's actual payload
+  pays its economy now.
+- **A suppression window keeps the arm that granted it.** ⚠️ *Shipped-behavior change.* Two sources
+  arming the same immunity (a set and its matching crystal) still merge to the stronger chance, but
+  that chance no longer inherits the later expiry. Previously the weakest arm still firing could
+  refresh the strongest chance ever seen, forever — so dropping from four crystal rungs to one, or
+  taking a completed set off, kept full protection indefinitely. A source you stop wearing now ages
+  out within one duration, and logging out drops your own windows.
+- **Set equip and unequip cues retuned on both packs.** The chords named a few 1.21-only sounds,
+  which are silent on older servers and on the 1.8.9 lane; every layer is now a token with a real
+  floor spelling. **Operators who copied the old chord into their own `config.yml` still carry the
+  1.21-only tokens** and should re-copy the block.
+- **Inquisitive and Master Inquisitive round their XP payout** instead of truncating it: a 5-XP orb
+  now pays 6/8/9/10 and 13/15/18/20 (was 6/7/8/10 and 12/15/17/20).
+- **Leadership counts the allies around the *victim*,** the body you struck, rather than around
+  yourself — the anchor every other area effect in the engine already uses.
+- **A maxed pet's lore reads as maxed.** The exp pair no longer counts past the level it can never
+  buy, and the gain line stops firing at the cap.
+
+### Fixed
+
+- **Scrolling your hotbar no longer restarts your repeating abilities.** Every equipment refresh
+  cancelled and rescheduled them, and a fresh task's first run is a whole period out — so ordinary
+  PvP churn could starve a 20-tick ward that holds a 60-tick immunity window open. Unchanged
+  abilities are now left running and only the ones you dropped are stopped.
+- **Ally-only effects work on a stock server.** `ENEMIES`/`ALLIES` targeting now reads vanilla
+  scoreboard teams — two players on one team with friendly fire off are allies — instead of needing
+  a party plugin, which left every ally-only enchant a silent no-op.
+- **An area effect no longer reaches past its own radius.** ⚠️ *Shipped-behavior change — every AoE
+  loses the extra reach.* The broad-phase entity lookup is a cube;
+  its corners reach about 1.7× the stated radius and a tall body's feet reach below it, which leaked
+  an AoE between floors and into rooms it never named. The radius is now cut for real.
+- **Two different warnings no longer silence each other.** The gate-notice rate limit was one window
+  per player, so an out-of-souls line could swallow an unrelated notice for its whole duration. Each
+  kind of notice has its own.
+- **A cooldown refund releases the cooldown it actually armed** — including a per-victim one on a
+  PvP hit, where the refund previously released nothing at all.
+- **The heroic display swap lands on 1.8.9.** A weapon upgraded to its gold form kept a modern-only
+  material name that the legacy lane could not resolve.
+- **Legacy particles and sounds accept modern spellings.** Config and likeness cues on the 1.8.9
+  lane now resolve through the same alias table the content DSL uses, so a token written in its
+  modern form plays instead of being dropped — and the three 1.8 particles that need block or item
+  data behind them are skipped rather than throwing inside the packet encoder.
+- **A heroic weapon says "weapon".** The stamped tagline renders the gear kind, so a heroic sword no
+  longer reads "This armor is stronger than diamond."
+- **A menu with nothing in it says so.** An empty catalogue shows a "nothing here yet" tile instead
+  of bare chrome, and the hub hides the Pets, Masks and Reforges tiles when the live pack ships none
+  of that family.
+
+### Internal
+
+- The test harness now executes the shipped Cosmic Pack end to end and asserts the deferred half is
+  genuinely absent rather than quietly broken.
+
 ## [1.14.0-alpha] — 2026-08-06
 
 ### Added

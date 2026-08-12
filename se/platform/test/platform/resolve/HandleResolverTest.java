@@ -67,6 +67,22 @@ class HandleResolverTest {
     }
 
     @Test
+    void reverseScanPicksTheLowestKeyWhenTwoLegacyNamesShareOneModernName() {
+        // The real PARTICLE table has four such pairs (BLOCK_CRACK/BLOCK_DUST → BLOCK, …). Map.ofEntries'
+        // iteration order is salted per JVM start, so without an order rule the pick changes across restarts.
+        Map<String, String> aliases = Map.of("B_LATER", "MODERN", "A_FIRST", "MODERN");
+        assertEquals("A_FIRST",
+                HandleResolver.resolve("MODERN", aliases, Set.of("A_FIRST", "B_LATER")::contains).orElseThrow());
+    }
+
+    @Test
+    void reverseScanFallsPastALowerKeyThatDoesNotExistOnThisServer() {
+        Map<String, String> aliases = Map.of("B_LATER", "MODERN", "A_FIRST", "MODERN");
+        assertEquals("B_LATER",
+                HandleResolver.resolve("MODERN", aliases, Set.of("B_LATER")::contains).orElseThrow());
+    }
+
+    @Test
     void resolvesWritableBookBothWaysAcrossThe113MaterialRename() {
         // Godly Transmog names WRITABLE_BOOK; on a 1.8 server only BOOK_AND_QUILL exists (and forward the
         // other way when a 1.8 config is loaded on a modern server).

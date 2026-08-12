@@ -17,11 +17,13 @@ settleable from source and should be replaced with the strings below.
 
 ## Family-level facts
 
-- **Which pack ships what.** The cosmic pack currently carries **4 of the 22 likeness
-  types** (`crystal`, `heroic`, `mask`, `pet`); the signature pack carries 22. Where an
-  entry below says "the pack ships …", the value quoted is the **signature pack's**, used
-  as the comparison baseline — the cosmic pack has no file for that item at all. That
-  absence, not any wrong value, is the bulk of the gap this doc closes.
+- **Which pack ships what.** Both packs now carry **all 22 likeness types**. Thirteen of
+  the cosmic pack's are recovered from the source; the other nine — soul gem, the four trak
+  gems, item nametag, holy white scroll, godly transmog and weapon reforge — are
+  port-original and say so in their own file headers. Where an entry below says "the pack
+  ships …", read the **cosmic** file first; the signature pack's value is the comparison
+  baseline only where the entry names it. Closing the absences was the bulk of this doc's
+  work, so an entry still phrased as "the pack has no file for that item" is stale.
 - **One likeness per type per pack.** The engine mints every instance of a support item
   from a single YAML likeness with brace tokens; the jar mints a **separate item per
   variant** (six rarities of dust, eight sets of crystal, four sets of shard, two orb
@@ -385,9 +387,10 @@ settleable from source and should be replaced with the strings below.
 ### Heroic Armour Upgrade — targeted (`items/heroic.yml`)
 
 - **codex:** `10-armor-sets.md` §C.7
-- **likeness — VERBATIM, all fields recorded** (the pack currently leaves `name`, `lore`,
-  `success-min/max` and `percent-damage` unauthored on the grounds that nothing fixes
-  them — that is now settleable):
+- **likeness — VERBATIM, all fields recorded** (the pack now authors `name`, `lore` and the
+  flat `success-min`/`success-max: 50` from the strings below — D-13-14; `percent-damage`
+  stays unauthored because the source's heroic weapon bonus is a flat +4 attack, not a
+  percent — D-13-5):
   - material `Material.INK_SACK` data `11` (Dandelion Yellow → `YELLOW_DYE`)
   - name (set-specific): `§6§lHeroic §6(<setDisplayName>§6) §6§lUpgrade`
     → e.g. `§6§lHeroic §6(§a§lRanger§6) §6§lUpgrade`
@@ -760,7 +763,7 @@ settleable from source and should be replaced with the strings below.
   0–8 and black scrolls reject the armour slot type explicitly, so this is a
   white-scroll-only hole).
 - **decomposition:** `type: white-scroll` with `protected-line` and
-  `min-success`/`max-success` (the pack ships `100/100`, matching the jar's no-roll
+  `min-success`/`max-success` (both packs ship `100/100`, matching the jar's no-roll
   apply) — a direct hit including the verbatim `§f§lPROTECTED` line, which the pack
   already carries.
 - **strings:** right-click help,
@@ -782,7 +785,8 @@ settleable from source and should be replaced with the strings below.
     ```
 
 - **numbers:** the default mint rolls the drawn book's success uniformly in
-  **`[51, 100]`**; the pack ships `min-convert: 50` / `max-convert: 100`, one rung off.
+  **`[51, 100]`**; the cosmic pack ships `min-convert: 51` / `max-convert: 100` — a hit.
+  (The signature pack's own `50/100` is its own baseline, one rung off, and stays that way.)
 - **mechanics:** extraction targets a random enchant from the item, excluding mastery
   enchants and (on the plain grade) heroic enchants. Armour must be **unequipped**:
   `§c§l(!) §cPlease remove your armor before attempting to Black Scroll it!`
@@ -925,7 +929,7 @@ settleable from source and should be replaced with the strings below.
   corpus records**; the jar has one "tracker" family with a rank ladder. Both the split
   and the likenesses are port-original and should stay marked as such.
 - **decomposition:** four `type: *trak` likenesses with `count-format` and `applies-to`,
-  already shipped in the signature pack; the cosmic pack carries none.
+  shipped in both packs — the cosmic pack's four are port-original and say so.
 
 ### Item Nametag (`items/nametag.yml`)
 
@@ -986,7 +990,8 @@ settleable from source and should be replaced with the strings below.
   success `§e§l(!) §e§l<Pet itemName>: §c§l+1 LEVEL! §7(Rare Candy)` + `LEVEL_UP`
   `3.0F`/`1.1F`
 - **decomposition:** `type: pet-food` with `levels` and `{AMOUNT}` — a hit on the grant
-  (the pack ships `levels: 10` against the jar's `+1`), and the cooldown-refresh side
+  (the cosmic pack ships `levels: 1`, the jar's own `+1`; the signature pack's `10` is its
+  own baseline), and the cooldown-refresh side
   effect plus the 24 h per-item rate limit have no knob.
 - **era:** `RED_MUSHROOM` era-stable.
 - **gaps:** `ITEM_USE_RATE_LIMIT` (a per-target-item cooldown on an applied item, stored
