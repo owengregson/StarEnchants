@@ -28,7 +28,8 @@ cooldown-per-victim: true  # R-QC8: the recorded pacing is PER TARGET, so the bu
 # as SUPPRESS(scope=ENCHANT, key=enchants/cleave, duration=20, who=@Self) — nothing is owed here.
 # Not ported: the mcMMO Skull Splitter hook (external plugin — with it gone the jar's
 # cooldown-consumed-on-a-suppressed-hit quirk has no analogue) and two console log lines. The jar's faction
-# and duel sparing rides the ENEMIES filter's single ally model; spectator-flagged entities are exempt natively.
+# and duel sparing rides the ENEMIES filter's single ally model. Its spectator exemption does NOT: no selector
+# filter reads gamemode, so a spectator in the splash is cleaved (D-12-38, engine-side and pack-wide).
 # era: none — no sounds, no particles.
 levels:
   # Radius 0.45 x level; splash damage 1 (L1-3) / 2 (L4-6) / 3 (L7). Only those two ladders move.

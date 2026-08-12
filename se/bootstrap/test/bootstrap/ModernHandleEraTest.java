@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import platform.resolve.Aliases;
 import platform.resolve.HandleResolver;
@@ -31,8 +32,10 @@ import schema.spec.HandleCategory;
  * on 1.21.x — resolution here runs through the production {@link HandleResolver} + {@link Aliases} against
  * committed per-era constant lists (javap'd from the reference-cache paper-api jars,
  * {@code test-fixtures/handles/}), so a stale token or a missing alias fails {@code ./gradlew build}
- * instead of a live {@code /se pack apply}. Sounds/particles only: the other handle categories are
- * floor-validated by the twin and live-validated per matrix version by the tester's CatalogSuite.
+ * instead of a live {@code /se pack apply}. Content is swept for sounds/particles only — the other handle
+ * categories are floor-validated by the twin and live-validated per matrix version by the tester's
+ * CatalogSuite — while a pack's {@code items/} tree is swept for materials as well, since that is where a pack
+ * names its physical items and no compiler ever reads those tokens ({@link ItemHandles}).
  */
 class ModernHandleEraTest {
 
@@ -71,6 +74,27 @@ class ModernHandleEraTest {
     @ValueSource(strings = {"1.21.11", "26.1.2"})
     void cosmicPackResolvesOnModernEra(String era) {
         compileClean(Path.of("packs-src/cosmic-pack/content"), era, 1000);
+    }
+
+    /**
+     * The {@code items/} half of a shipped pack, which the compile sweeps above cannot reach — they run the
+     * CONTENT compiler, and an item's material/cue/particle token never passes through it. Nothing on that path
+     * diagnoses a miss either (the mint drops to a generic fallback, the cue plays silence, the burst is
+     * skipped), so a spelling the flattening retired ships as a wrong icon or a mute gesture with nothing to
+     * point at it. Materials are pinned here too, which the content sweeps never do: {@code items/} is where a
+     * pack names its physical items.
+     */
+    @ParameterizedTest
+    @CsvSource({"cosmic-pack, 1.21.11", "cosmic-pack, 26.1.2",
+                "signature-pack, 1.21.11", "signature-pack, 26.1.2"})
+    void shippedPackItemsResolveOnModernEra(String pack, String era) {
+        ItemHandles handles = ItemHandles.of(Path.of("packs-src", pack, "items"));
+        String materials = handles.unresolvableMaterials(constants("materials-" + era + ".txt"));
+        String sounds = handles.unresolvableSounds(constants("sounds-" + era + ".txt"));
+        String particles = handles.unresolvableParticles(constants("particles-" + era + ".txt"));
+        assertTrue(materials.isEmpty(), () -> pack + " items name materials absent on " + era + ": " + materials);
+        assertTrue(sounds.isEmpty(), () -> pack + " items name sounds absent on " + era + ": " + sounds);
+        assertTrue(particles.isEmpty(), () -> pack + " items name particles absent on " + era + ": " + particles);
     }
 
     private static void compileClean(Path content, String era, int minAbilities) {

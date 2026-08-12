@@ -398,6 +398,56 @@ class EraseStageTest {
         assertEquals(0L, erased.abilities()[64].worldBlacklist(), "the overflowed world wired no bit");
     }
 
+    /**
+     * The Demonic Gateway trap: an arm and the payload blocks it exists to run share the enchant's default
+     * bucket, so gate 6's check-only pass on the zero-cooldown payloads blocks them for the arm's whole
+     * window. Every payload is named, not just the first — each one is separately dead and separately fixable.
+     */
+    @Test
+    void aCooldownZeroBlockSharingItsArmsBucketIsReportedDead() {
+        Diagnostics d = new Diagnostics();
+        STAGE.erase(List.of(
+                Defs.lowered().stableKey("gateway/1").defId(1).level(1)
+                        .cooldown(200).cooldownScope("gateway", null, null).build(),
+                Defs.lowered().stableKey("gateway/1/a1").defId(2).level(1)
+                        .cooldownScope("gateway", null, null).build(),
+                Defs.lowered().stableKey("gateway/1/a2").defId(3).level(1)
+                        .cooldownScope("gateway", null, null).build()), d);
+
+        assertFalse(d.hasErrors(), "a dead bucket is a warning, never a publish-blocking error");
+        assertEquals(2, d.all().stream().filter(x -> x.is(DiagCode.W_DEAD_COOLDOWN_BUCKET)).count());
+    }
+
+    /**
+     * The four shapes that look like the trap and are not, each the reason a knob joins the cohort key: the
+     * common "cooldown only at the top rung" ladder (a non-stacking enchant contributes one level, R-QC63),
+     * a per-victim arm (its own dimension), a pet's per-BRACKET default bucket (brackets are alternatives),
+     * and the opt-out itself.
+     */
+    @Test
+    void abilitiesThatCannotContendForTheKeyAreNotReported() {
+        Diagnostics d = new Diagnostics();
+        STAGE.erase(List.of(
+                Defs.lowered().stableKey("ladder/3").defId(1).level(3)
+                        .cooldown(40).cooldownScope("ladder", null, null).build(),
+                Defs.lowered().stableKey("ladder/1").defId(2).level(1)
+                        .cooldownScope("ladder", null, null).build(),
+                Defs.lowered().stableKey("victim/1").defId(3).level(1)
+                        .cooldown(40).cooldownPerVictim(true).cooldownScope("victim", null, null).build(),
+                Defs.lowered().stableKey("victim/1/a1").defId(4).level(1)
+                        .cooldownScope("victim", null, null).build(),
+                Defs.lowered().stableKey("pets/tesla/b2").defId(5).sourceKind(SourceKind.PET)
+                        .cooldown(100).suppressKey("pet:tesla").cooldownScope("pet:tesla", null, null).build(),
+                Defs.lowered().stableKey("pets/tesla/b1").defId(6).sourceKind(SourceKind.PET)
+                        .suppressKey("pet:tesla").cooldownScope("pet:tesla", null, null).build(),
+                Defs.lowered().stableKey("opted-out/1").defId(7).level(1)
+                        .cooldown(200).cooldownScope("opted-out", null, null).build(),
+                Defs.lowered().stableKey("opted-out/1/a1").defId(8).level(1)
+                        .cooldownScope(null, null, null).build()), d);
+
+        assertEquals(List.of(), d.all());
+    }
+
     @Test
     void neverThrowsOnEmptyInput() {
         Diagnostics d = new Diagnostics();

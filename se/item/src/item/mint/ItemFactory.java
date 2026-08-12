@@ -84,8 +84,12 @@ public final class ItemFactory {
             // A head-shaped trophy is the intended likeness; the skin is a codex question (deferred-content).
             Map.entry("PLAYER_HEAD", "SKULL_ITEM"));
 
-    /** The closest older-server equivalent of a newer material, or {@code null} if none is registered. */
-    static String legacyFallback(String upperToken) {
+    /**
+     * The closest older-server equivalent of a newer material, or {@code null} if none is registered. Public so
+     * the legacy handle-era gate can ask this table what {@link #material} would ask it, instead of committing
+     * a second copy of the rows that would drift the day one is added.
+     */
+    public static String legacyFallback(String upperToken) {
         return LEGACY_FALLBACK.get(upperToken);
     }
 

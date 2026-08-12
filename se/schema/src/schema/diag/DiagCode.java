@@ -64,6 +64,8 @@ public enum DiagCode {
     E_TRIGGER_OVERFLOW,
     E_WORLD_OVERFLOW,
     E_DUP_KEY,
+    W_DEAD_COOLDOWN_BUCKET, // a cooldown-0 ability sharing a bucket a sibling arms — gate 6 blocks it for that
+                            // sibling's whole window, so it is inert exactly when it was meant to fire
 
     // Library / content loading.
     E_DUPLICATE_KEY,

@@ -81,6 +81,26 @@ class EngineStoresTest {
         assertFalse(s.suppression().isImmune(id), "the quit sweep drops self-derived suppression immunity");
     }
 
+    /**
+     * The other self-armed half of suppression. A defender-keyed window is armed by its holder from worn gear
+     * on a repeating cadence, so retaining one would let it outlive the armour: log out, take the gear off,
+     * log back in still immune. The activator-side window an OPPONENT landed on the same key must survive the
+     * same sweep — the two halves live in one store and are swept in opposite directions.
+     */
+    @Test
+    void quitSweepClearsDefenderKeyedWindowsButKeepsWhatAnOpponentLanded() {
+        UUID id = UUID.randomUUID();
+        EngineStores s = EngineStores.fresh();
+        long key = CooldownStore.key(0, 7);
+        s.suppression().defend(id, key, 0L, 400, 100, -1, null);
+        s.suppression().suppress(id, key, 0L, 400); // still LIVE at the sweep tick
+
+        s.quitSweep(id, 100L);
+
+        assertFalse(s.suppression().anyDefenderWindows(), "the self-armed defender window is dropped");
+        assertTrue(s.suppression().isSuppressed(id, key, 200L), "the opponent-landed window survives the relog");
+    }
+
     @Test
     void evictElapsedSweepsRetainedStoresAcrossPlayers() {
         UUID id = UUID.randomUUID();

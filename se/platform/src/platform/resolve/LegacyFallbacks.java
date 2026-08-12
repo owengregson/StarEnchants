@@ -12,7 +12,8 @@ import schema.spec.HandleCategory;
  * <p>Every row exists because an ENGINE or CATALOGUE default names a post-1.8 constant, so no author can avoid
  * it: {@code BLOCK_ANVIL_PLACE} is the default catalogue's (1.8 spells that cue {@code random.anvil_land},
  * which its {@code ANVIL_LAND} constant already owns, so it cannot be an {@link Aliases} row without
- * duplicating that key) and {@code BLOCK_AMETHYST_BLOCK_CHIME} is {@code BLINK}'s arrival accent.
+ * duplicating that key), and the two amethyst rows are {@code BLINK}'s arrival accent plus the apply/remove
+ * pair {@code CrystalConfig} and {@code MaskItemConfig} default to.
  *
  * <p>Data, not era API — it lives here rather than in the legacy overlay so the legacy handle-era gate can
  * resolve exactly as {@code LegacyHandleLookup} does instead of re-typing the table.
@@ -23,7 +24,11 @@ public final class LegacyFallbacks {
             HandleCategory.PARTICLE, Map.of("SOUL", "SMOKE_LARGE"),
             HandleCategory.SOUND, Map.of(
                     "BLOCK_ANVIL_PLACE", "ANVIL_LAND",
-                    "BLOCK_AMETHYST_BLOCK_CHIME", "NOTE_PLING"));
+                    "BLOCK_AMETHYST_BLOCK_CHIME", "NOTE_PLING",
+                    // The chime's other half: the crystal/mask families' default REMOVE cue. Without a row the
+                    // apply gesture chimed on 1.8 and the pop-off went mute. GLASS is 1.8's only crystalline
+                    // shatter, which is what an amethyst cluster breaking is.
+                    "BLOCK_AMETHYST_CLUSTER_BREAK", "GLASS"));
 
     private LegacyFallbacks() {
     }

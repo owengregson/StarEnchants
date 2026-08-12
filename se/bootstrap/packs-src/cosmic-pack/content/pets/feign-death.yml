@@ -24,11 +24,12 @@
 # reservation and a refused click burns no cooldown.
 # VANISH IS HIDE-ONLY, the shipped primitive: a packet-level hide from every player, ending on the timer or
 # after `break-hits` of the actor's OWN landed hits (damage taken never spends one — measured, and structural
-# in the effect). PENDING, the polish decision this file is waiting on: the jar also spawned an unequipped
-# decoy corpse at the actor's position that played the death animation and was destroyed after 30 t, and it
-# emitted `§4§l* Feign Death - UNVANISHED *` when the window ended by either route. Neither has a surface —
-# VANISH takes no decoy and emits no end hook — so neither is authored, and the corpse-ticks value (30 t) and
-# that one string stay in the matrix entry until the decoy/end-hook lands.
+# in the effect). `end-message:` (R-QC30) fires once on whichever of those two routes closes the window, which
+# is why the recorded `§4§l* Feign Death - UNVANISHED *` rides it rather than a `wait:`-delayed MESSAGE that
+# would print late on an early break — the same authoring `enchants/feign-death.yml` takes for the mastery.
+# PENDING, the polish decision this file is waiting on: the jar also spawned an unequipped decoy corpse at the
+# actor's position that played the death animation and was destroyed after 30 t. VANISH takes no decoy, so
+# that half is unauthored and its corpse-ticks value (30 t) stays in the matrix entry until the seam lands.
 # XP: 5 in combat, 1 out of it (D-12-7 collapses the jar's third tier — 50 in a warzone — into the in-combat
 # 5, faction territory having no engine analogue; the jar's own quirk that an out-of-combat warzone use still
 # paid 1 disappears with it). BOTH tiers are authored, and the in-combat one is INERT today: a USE activation
@@ -76,7 +77,8 @@ levels:
       - condition: '%actor.gamemode% != "SPECTATOR" && %feignwindow% != 1'
         effects:
           - { SET_VAR: { name: "feign.fired", value: "1", ttl: 1, who: "@Self" } }
-          - { VANISH: { duration: 30, break-hits: 1, var: "mastery.feign.vanished", who: "@Self" } }
+          - { VANISH: { duration: 30, break-hits: 1, var: "mastery.feign.vanished",
+                end-message: "§4§l* Feign Death - UNVANISHED *", who: "@Self" } }
           - { MESSAGE: { channel: title, text: "§c§lFeign Death", subtitle: "§c1.5" } }
           - { MESSAGE: { text: "§4§l* Feign Death - VANISHED [1.5s] *" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
@@ -108,7 +110,8 @@ levels:
       - condition: '%actor.gamemode% != "SPECTATOR" && %feignwindow% != 1'
         effects:
           - { SET_VAR: { name: "feign.fired", value: "1", ttl: 1, who: "@Self" } }
-          - { VANISH: { duration: 60, break-hits: 2, var: "mastery.feign.vanished", who: "@Self" } }
+          - { VANISH: { duration: 60, break-hits: 2, var: "mastery.feign.vanished",
+                end-message: "§4§l* Feign Death - UNVANISHED *", who: "@Self" } }
           - { MESSAGE: { channel: title, text: "§c§lFeign Death", subtitle: "§c3.0" } }
           - { MESSAGE: { text: "§4§l* Feign Death - VANISHED [3.0s] *" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
@@ -140,7 +143,8 @@ levels:
       - condition: '%actor.gamemode% != "SPECTATOR" && %feignwindow% != 1'
         effects:
           - { SET_VAR: { name: "feign.fired", value: "1", ttl: 1, who: "@Self" } }
-          - { VANISH: { duration: 90, break-hits: 3, var: "mastery.feign.vanished", who: "@Self" } }
+          - { VANISH: { duration: 90, break-hits: 3, var: "mastery.feign.vanished",
+                end-message: "§4§l* Feign Death - UNVANISHED *", who: "@Self" } }
           - { MESSAGE: { channel: title, text: "§c§lFeign Death", subtitle: "§c4.5" } }
           - { MESSAGE: { text: "§4§l* Feign Death - VANISHED [4.5s] *" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
@@ -172,7 +176,8 @@ levels:
       - condition: '%actor.gamemode% != "SPECTATOR" && %feignwindow% != 1'
         effects:
           - { SET_VAR: { name: "feign.fired", value: "1", ttl: 1, who: "@Self" } }
-          - { VANISH: { duration: 120, break-hits: 4, var: "mastery.feign.vanished", who: "@Self" } }
+          - { VANISH: { duration: 120, break-hits: 4, var: "mastery.feign.vanished",
+                end-message: "§4§l* Feign Death - UNVANISHED *", who: "@Self" } }
           - { MESSAGE: { channel: title, text: "§c§lFeign Death", subtitle: "§c6.0" } }
           - { MESSAGE: { text: "§4§l* Feign Death - VANISHED [6.0s] *" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }

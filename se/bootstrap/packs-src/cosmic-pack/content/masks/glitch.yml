@@ -59,6 +59,9 @@ description:
 abilities:
   - trigger: REPEATING
     repeat: 20
+    # repeat-delay: 1 (R-QC35b) — the driver's default first run is one full PERIOD out, so a fresh equip,
+    # a respawn or a login would advertise the line above for ~1 s before the window it names is armed.
+    repeat-delay: 1
     effects:
       - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/teleblock", duration: 60, who: "@Self" } }
       - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/bidirectional-teleportation", duration: 60,

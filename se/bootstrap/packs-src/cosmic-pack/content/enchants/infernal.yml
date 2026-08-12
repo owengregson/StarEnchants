@@ -20,7 +20,8 @@ tier: rare
 # IGNITE is absolute on BOTH halves here, which is exactly the jar: unlike §Hellfire's landing pool, Infernal's
 # ring SETS fire ticks, so it can shorten a longer burn and a volley never stacks.
 # The landing set is living entities minus owner/allies (mobs included, no Ender Dragon carve-out) —
-# `filter=ENEMIES`; the jar's spectator/do_not_clear metadata exclusions are the engine's own gates.
+# `filter=ENEMIES`. The jar's do_not_clear metadata exclusion is the engine's own gate; its SPECTATOR one is
+# not — no selector filter reads gamemode, so a spectator in the ring is ignited (D-12-38, pack-wide).
 # The jar's tier registry lists this one as retired from enchant-table rolls (twice) while the handler stays
 # wired: catalog trivia, fully functional wherever the enchant is present.
 # Fire damage is not Virus-amplified (Virus keys WITHER and POISON causes only).
