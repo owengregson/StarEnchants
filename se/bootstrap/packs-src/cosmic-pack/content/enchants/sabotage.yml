@@ -27,8 +27,8 @@ condition: "%actor.helditem% contains \"_SWORD\" && %heldswitch% != 1 && %actor.
 # interactions: the consumer is Rocket Escape / Heroic Rocket Escape (armor docs). Inside this 1 s mark their
 # lethal save is blocked at 10% x the mark level and the wearer sees
 # `§c§l ** §7Rocket Escape:§c§l SABOTAGED **` (leading space verbatim) before dying. That roll reads the
-# wearer's OWN %sabotage% var, so it belongs to the Rocket Escape side — layer rule
-# `sabotage-blocks-rocket-escape`; nothing about it is authorable from here.
+# wearer's OWN %sabotage% var, so it belongs to the Rocket Escape side and is authored there, on both grades,
+# as `chance-rebate: "10 * %sabotage%"` — nothing about it is authorable from here.
 # strings: none of its own (the consumer line above is armor-doc authored).
 # era: none.
 levels:

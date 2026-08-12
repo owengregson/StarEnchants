@@ -1,0 +1,10 @@
+# The corpus records no GUI of its own — the jar's economy items are minted by plugins absent from it and
+# every menu in this engine is port-original chrome (ADR-0030). What ships here is a THEME, not a likeness:
+# the pack's own gold-on-black frame so its menus read as one surface with its gold Armor Crystal / Heroic
+# items instead of the engine's neutral purple. Only the fields below differ from the engine default; any
+# field omitted keeps it.
+# Grant Books GUI — pick tier, then enchant, then level (requires starenchants.admin).
+
+title: "&6&l❖ Grant Books ❖"
+frame: "border"
+filler: "BLACK_STAINED_GLASS_PANE"

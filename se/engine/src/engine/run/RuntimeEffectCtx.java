@@ -33,6 +33,8 @@ final class RuntimeEffectCtx implements EffectCtx {
     private final int sourceGroup;
     private final int cooldownScope;
     private final int cooldownTicks;
+    private final int cooldownBucket;
+    private final UUID cooldownVictim;
     private final UUID activeGem;
     private final FactBuffer facts;
     private final ActorOrigin origin;
@@ -43,11 +45,13 @@ final class RuntimeEffectCtx implements EffectCtx {
     RuntimeEffectCtx(Args args, ActivationContext context,
                      Map<String, List<LivingEntity>> targetsBySlot,
                      Map<String, List<Location>> locationsBySlot, int level, int sourceDefId, int sourceGroup,
-                     int cooldownScope, int cooldownTicks,
+                     int cooldownScope, int cooldownTicks, int cooldownBucket, UUID cooldownVictim,
                      UUID activeGem, FactBuffer facts, ActorOrigin origin, SubjectCursor cursor) {
         this.cursor = cursor;
         this.cooldownScope = cooldownScope;
         this.cooldownTicks = cooldownTicks;
+        this.cooldownBucket = cooldownBucket;
+        this.cooldownVictim = cooldownVictim;
         this.args = args;
         this.context = context;
         this.targetsBySlot = targetsBySlot;
@@ -188,6 +192,16 @@ final class RuntimeEffectCtx implements EffectCtx {
     @Override
     public int cooldownTicks() {
         return cooldownTicks;
+    }
+
+    @Override
+    public int cooldownBucket() {
+        return cooldownBucket;
+    }
+
+    @Override
+    public UUID cooldownVictim() {
+        return cooldownVictim;
     }
 
     @Override

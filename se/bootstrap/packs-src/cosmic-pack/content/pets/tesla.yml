@@ -56,8 +56,11 @@ description:
   - "§7§f§lCooldown"
   - "§7§7 5 minutes"
 max-level: 10
-exp-curve: { base: 0, per-level: 1500 }   # `level x 1500`: L2 3000 … L10 15000, 81 000 lifetime — the most
-                                          # expensive pet in the family (XP 4 per use = 20 250 uses)
+# The recorded ladder is `level × 1500` (L2 3000 … L10 15 000, 81 000 lifetime), priced by the jar against a
+# cooldown that never fired — 20 250 uses × 300 s is ~1690 h of perfectly-spaced clicks, the worst in the
+# family. Divided by 60 against the window this port really enforces (D-12-41): L2 50 … L10 250, 1350
+# lifetime = ~338 uses at 4 XP each ≈ 28 h.
+exp-curve: { base: 0, per-level: 25 }
 levels:
   # ABILITY ORDER IS LOAD-BEARING: the payload is index 0, so it carries the pet-wide cooldown scope (the
   # running 5 minutes survives a level-up crossing a bracket floor). Both refusals author `cooldown: 0` and

@@ -74,6 +74,10 @@ tier: mastery
 # (measured). `%selected%` (ADR-0076) is the count the effect ABOVE it bound — this radius, this filter, this
 # nearest-first cap, after every per-target filter — so the number is the one the proc really caught, where
 # `%nearbyenemies%`, a fixed 8-block scan of living entities, would have printed a wrong one at every level.
+# The word in the string is what fixes the filter: every `who:` here is `ENEMIES+PLAYERS`, the jar's opening
+# `instanceof Player` test (hellfire.yml's note), because a bare `ENEMIES` also admits hostile MOBS — which
+# would both print zombies under "players" and, worse, spend the nearest-first `limit` on them before the
+# enemy player six blocks out is ever reached.
 # It reads the row above it because the executor publishes the count AFTER each effect runs, so a summary must
 # sit directly under the payload whose bodies it is reporting. The wearer also keeps the recorded proc cue,
 # the 4.0-volume anvil clang.
@@ -100,19 +104,19 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
-          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
-          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
-          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
-          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
-          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
-          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
-          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
-          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=7, filter=ENEMIES+PLAYERS, limit=4}" } }
+          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=7, filter=ENEMIES+PLAYERS, limit=4}" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=7, filter=ENEMIES+PLAYERS, limit=4}" } }
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=7, filter=ENEMIES+PLAYERS, limit=4}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=7, filter=ENEMIES+PLAYERS, limit=4}" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=7, filter=ENEMIES+PLAYERS, limit=4}" } }
+          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=7, filter=ENEMIES+PLAYERS, limit=4}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=7, filter=ENEMIES+PLAYERS, limit=4}" } }
+          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=7, filter=ENEMIES+PLAYERS, limit=4}" } }
           - { MESSAGE: { text: "§c§l* TOMBSTONE [§7{count} players§c§l] *", tokens: { count: "%selected%" } } }
           # Expiry pair — only this first line carries the wait tier.
-          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=7, filter=ENEMIES, limit=4}", wait: 80 } }
-          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=7, filter=ENEMIES, limit=4}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=7, filter=ENEMIES+PLAYERS, limit=4}", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=7, filter=ENEMIES+PLAYERS, limit=4}" } }
       - trigger: IMPACT
         group: "tombstone"
         chance: 100
@@ -129,19 +133,19 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
-          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
-          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
-          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
-          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
-          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
-          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
-          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
-          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=8, filter=ENEMIES+PLAYERS, limit=5}" } }
+          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=8, filter=ENEMIES+PLAYERS, limit=5}" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=8, filter=ENEMIES+PLAYERS, limit=5}" } }
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=8, filter=ENEMIES+PLAYERS, limit=5}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=8, filter=ENEMIES+PLAYERS, limit=5}" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=8, filter=ENEMIES+PLAYERS, limit=5}" } }
+          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=8, filter=ENEMIES+PLAYERS, limit=5}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=8, filter=ENEMIES+PLAYERS, limit=5}" } }
+          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=8, filter=ENEMIES+PLAYERS, limit=5}" } }
           - { MESSAGE: { text: "§c§l* TOMBSTONE [§7{count} players§c§l] *", tokens: { count: "%selected%" } } }
           # Expiry pair — only this first line carries the wait tier.
-          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=8, filter=ENEMIES, limit=5}", wait: 80 } }
-          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=8, filter=ENEMIES, limit=5}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=8, filter=ENEMIES+PLAYERS, limit=5}", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=8, filter=ENEMIES+PLAYERS, limit=5}" } }
       - trigger: IMPACT
         group: "tombstone"
         chance: 100
@@ -158,19 +162,19 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
-          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
-          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
-          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
-          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
-          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
-          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
-          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
-          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=9, filter=ENEMIES+PLAYERS, limit=5}" } }
+          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=9, filter=ENEMIES+PLAYERS, limit=5}" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=9, filter=ENEMIES+PLAYERS, limit=5}" } }
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=9, filter=ENEMIES+PLAYERS, limit=5}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=9, filter=ENEMIES+PLAYERS, limit=5}" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=9, filter=ENEMIES+PLAYERS, limit=5}" } }
+          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=9, filter=ENEMIES+PLAYERS, limit=5}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=9, filter=ENEMIES+PLAYERS, limit=5}" } }
+          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=9, filter=ENEMIES+PLAYERS, limit=5}" } }
           - { MESSAGE: { text: "§c§l* TOMBSTONE [§7{count} players§c§l] *", tokens: { count: "%selected%" } } }
           # Expiry pair — only this first line carries the wait tier.
-          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=9, filter=ENEMIES, limit=5}", wait: 80 } }
-          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=9, filter=ENEMIES, limit=5}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=9, filter=ENEMIES+PLAYERS, limit=5}", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=9, filter=ENEMIES+PLAYERS, limit=5}" } }
       - trigger: IMPACT
         group: "tombstone"
         chance: 100
@@ -187,19 +191,19 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
-          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
-          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
-          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
-          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
-          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
-          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
-          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
-          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=10, filter=ENEMIES+PLAYERS, limit=6}" } }
+          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=10, filter=ENEMIES+PLAYERS, limit=6}" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=10, filter=ENEMIES+PLAYERS, limit=6}" } }
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=10, filter=ENEMIES+PLAYERS, limit=6}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=10, filter=ENEMIES+PLAYERS, limit=6}" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=10, filter=ENEMIES+PLAYERS, limit=6}" } }
+          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=10, filter=ENEMIES+PLAYERS, limit=6}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=10, filter=ENEMIES+PLAYERS, limit=6}" } }
+          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=10, filter=ENEMIES+PLAYERS, limit=6}" } }
           - { MESSAGE: { text: "§c§l* TOMBSTONE [§7{count} players§c§l] *", tokens: { count: "%selected%" } } }
           # Expiry pair — only this first line carries the wait tier.
-          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=10, filter=ENEMIES, limit=6}", wait: 80 } }
-          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=10, filter=ENEMIES, limit=6}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=10, filter=ENEMIES+PLAYERS, limit=6}", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=10, filter=ENEMIES+PLAYERS, limit=6}" } }
       - trigger: IMPACT
         group: "tombstone"
         chance: 100
@@ -216,19 +220,19 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
-          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
-          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
-          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
-          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
-          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
-          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
-          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
-          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=11, filter=ENEMIES+PLAYERS, limit=6}" } }
+          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=11, filter=ENEMIES+PLAYERS, limit=6}" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=11, filter=ENEMIES+PLAYERS, limit=6}" } }
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=11, filter=ENEMIES+PLAYERS, limit=6}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=11, filter=ENEMIES+PLAYERS, limit=6}" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=11, filter=ENEMIES+PLAYERS, limit=6}" } }
+          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=11, filter=ENEMIES+PLAYERS, limit=6}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=11, filter=ENEMIES+PLAYERS, limit=6}" } }
+          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=11, filter=ENEMIES+PLAYERS, limit=6}" } }
           - { MESSAGE: { text: "§c§l* TOMBSTONE [§7{count} players§c§l] *", tokens: { count: "%selected%" } } }
           # Expiry pair — only this first line carries the wait tier.
-          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=11, filter=ENEMIES, limit=6}", wait: 80 } }
-          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=11, filter=ENEMIES, limit=6}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=11, filter=ENEMIES+PLAYERS, limit=6}", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=11, filter=ENEMIES+PLAYERS, limit=6}" } }
       - trigger: IMPACT
         group: "tombstone"
         chance: 100
@@ -245,19 +249,19 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
-          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
-          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
-          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
-          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
-          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
-          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
-          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
-          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=12, filter=ENEMIES+PLAYERS, limit=7}" } }
+          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=12, filter=ENEMIES+PLAYERS, limit=7}" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=12, filter=ENEMIES+PLAYERS, limit=7}" } }
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=12, filter=ENEMIES+PLAYERS, limit=7}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=12, filter=ENEMIES+PLAYERS, limit=7}" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=12, filter=ENEMIES+PLAYERS, limit=7}" } }
+          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=12, filter=ENEMIES+PLAYERS, limit=7}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=12, filter=ENEMIES+PLAYERS, limit=7}" } }
+          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=12, filter=ENEMIES+PLAYERS, limit=7}" } }
           - { MESSAGE: { text: "§c§l* TOMBSTONE [§7{count} players§c§l] *", tokens: { count: "%selected%" } } }
           # Expiry pair — only this first line carries the wait tier.
-          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=12, filter=ENEMIES, limit=7}", wait: 80 } }
-          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=12, filter=ENEMIES, limit=7}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=12, filter=ENEMIES+PLAYERS, limit=7}", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=12, filter=ENEMIES+PLAYERS, limit=7}" } }
       - trigger: IMPACT
         group: "tombstone"
         chance: 100
@@ -274,19 +278,19 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
-          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
-          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
-          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
-          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
-          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
-          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
-          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
-          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS, limit=7}" } }
+          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS, limit=7}" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS, limit=7}" } }
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=13, filter=ENEMIES+PLAYERS, limit=7}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS, limit=7}" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS, limit=7}" } }
+          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS, limit=7}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS, limit=7}" } }
+          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=13, filter=ENEMIES+PLAYERS, limit=7}" } }
           - { MESSAGE: { text: "§c§l* TOMBSTONE [§7{count} players§c§l] *", tokens: { count: "%selected%" } } }
           # Expiry pair — only this first line carries the wait tier.
-          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=13, filter=ENEMIES, limit=7}", wait: 80 } }
-          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=13, filter=ENEMIES, limit=7}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS, limit=7}", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS, limit=7}" } }
       - trigger: IMPACT
         group: "tombstone"
         chance: 100
@@ -303,19 +307,19 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
-          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
-          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
-          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
-          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
-          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
-          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
-          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
-          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=14, filter=ENEMIES+PLAYERS, limit=8}" } }
+          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=14, filter=ENEMIES+PLAYERS, limit=8}" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=14, filter=ENEMIES+PLAYERS, limit=8}" } }
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=14, filter=ENEMIES+PLAYERS, limit=8}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=14, filter=ENEMIES+PLAYERS, limit=8}" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=14, filter=ENEMIES+PLAYERS, limit=8}" } }
+          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=14, filter=ENEMIES+PLAYERS, limit=8}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=14, filter=ENEMIES+PLAYERS, limit=8}" } }
+          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=14, filter=ENEMIES+PLAYERS, limit=8}" } }
           - { MESSAGE: { text: "§c§l* TOMBSTONE [§7{count} players§c§l] *", tokens: { count: "%selected%" } } }
           # Expiry pair — only this first line carries the wait tier.
-          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=14, filter=ENEMIES, limit=8}", wait: 80 } }
-          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=14, filter=ENEMIES, limit=8}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=14, filter=ENEMIES+PLAYERS, limit=8}", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=14, filter=ENEMIES+PLAYERS, limit=8}" } }
       - trigger: IMPACT
         group: "tombstone"
         chance: 100
@@ -332,19 +336,19 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
-          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
-          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
-          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
-          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
-          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
-          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
-          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
-          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=15, filter=ENEMIES+PLAYERS, limit=8}" } }
+          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=15, filter=ENEMIES+PLAYERS, limit=8}" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=15, filter=ENEMIES+PLAYERS, limit=8}" } }
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=15, filter=ENEMIES+PLAYERS, limit=8}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=15, filter=ENEMIES+PLAYERS, limit=8}" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=15, filter=ENEMIES+PLAYERS, limit=8}" } }
+          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=15, filter=ENEMIES+PLAYERS, limit=8}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=15, filter=ENEMIES+PLAYERS, limit=8}" } }
+          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=15, filter=ENEMIES+PLAYERS, limit=8}" } }
           - { MESSAGE: { text: "§c§l* TOMBSTONE [§7{count} players§c§l] *", tokens: { count: "%selected%" } } }
           # Expiry pair — only this first line carries the wait tier.
-          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=15, filter=ENEMIES, limit=8}", wait: 80 } }
-          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=15, filter=ENEMIES, limit=8}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=15, filter=ENEMIES+PLAYERS, limit=8}", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=15, filter=ENEMIES+PLAYERS, limit=8}" } }
       - trigger: IMPACT
         group: "tombstone"
         chance: 100
@@ -361,19 +365,19 @@ levels:
         condition: "%victim.type% == \"PLAYER\""
         effects:
           - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 4.0, pitch: 1.9, who: "@Self" } }
-          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
-          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
-          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
-          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
-          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
-          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
-          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
-          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
+          - { FREEZE: { duration: 60, dot: 0, slow: 100, no-jump: true, who: "@Aoe{r=16, filter=ENEMIES+PLAYERS, limit=9}" } }
+          - { POTION: { effect: "SLOW", level: 129, duration: 60, who: "@Aoe{r=16, filter=ENEMIES+PLAYERS, limit=9}" } }
+          - { SOUND: { sound: "ENTITY_WITHER_HURT", volume: 1.0, pitch: 0.25, who: "@Aoe{r=16, filter=ENEMIES+PLAYERS, limit=9}" } }
+          - { SUPPRESS: { scope: "TYPE", key: "DEFENSE", duration: 80, mode: "timed", who: "@Aoe{r=16, filter=ENEMIES+PLAYERS, limit=9}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=16, filter=ENEMIES+PLAYERS, limit=9}" } }
+          - { PARTICLE: { particle: "PORTAL", count: 20, who: "@Aoe{r=16, filter=ENEMIES+PLAYERS, limit=9}" } }
+          - { FALLING_BLOCK: { material: "ANVIL", radius: 0, height: 5, ttl: 40, who: "@Aoe{r=16, filter=ENEMIES+PLAYERS, limit=9}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 3.0, pitch: 1.1, who: "@Aoe{r=16, filter=ENEMIES+PLAYERS, limit=9}" } }
+          - { MESSAGE: { text: "§5§l* TOMBSTONE (§7{ATTACKER} §7[4s]§5§l) *", who: "@Aoe{r=16, filter=ENEMIES+PLAYERS, limit=9}" } }
           - { MESSAGE: { text: "§c§l* TOMBSTONE [§7{count} players§c§l] *", tokens: { count: "%selected%" } } }
           # Expiry pair — only this first line carries the wait tier.
-          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=16, filter=ENEMIES, limit=9}", wait: 80 } }
-          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=16, filter=ENEMIES, limit=9}" } }
+          - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 20, who: "@Aoe{r=16, filter=ENEMIES+PLAYERS, limit=9}", wait: 80 } }
+          - { PARTICLE: { particle: "PORTAL", count: 30, who: "@Aoe{r=16, filter=ENEMIES+PLAYERS, limit=9}" } }
       - trigger: IMPACT
         group: "tombstone"
         chance: 100

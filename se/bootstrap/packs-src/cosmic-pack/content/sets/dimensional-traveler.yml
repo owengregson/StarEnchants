@@ -246,6 +246,7 @@ bonuses:
 #    (4 → ×1.30), plus a shift roll of 0.002 × pieces per incoming hit. Owned by the crystals family;
 #    crystals/dimensional-traveler.yml ships both halves, its rider copied from the payload below in the same
 #    sitting (the crystal's lore advertises "20%" against that measured 0.2 %/piece — measured wins, the
-#    mismatch is recorded).
+#    mismatch is recorded). It carries its OWN arm/payload group, `dimensional-shift-crystal`, so a
+#    crystal-armed field pays the crystal's copy and this one is never billed twice for a wearer with both.
 #  * the wearer is never a target (AOE excludes the activator), and frozen players surviving a teleport was
 #    dead code in the jar — the engine's FREEZE lifecycle handles teleports correctly.

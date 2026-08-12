@@ -93,7 +93,7 @@ class ReforgeRunnerTest {
     @Test
     void activatedSpeaksTheUniversalLineAndFiresTheMachinesHook() {
         Player player = mock(Player.class);
-        when(dispatch.fireUse(any(), any())).thenReturn(new UseAttempt(true, false, 0, -1, false));
+        when(dispatch.fireUse(any(), any())).thenReturn(new UseAttempt(true, false, 0, -1, false, 0));
 
         runner.activate(player, KEY);
 
@@ -106,7 +106,7 @@ class ReforgeRunnerTest {
     @Test
     void onCooldownSendsTheRemainingTime() {
         Player player = mock(Player.class);
-        when(dispatch.fireUse(any(), any())).thenReturn(new UseAttempt(false, true, 40, -1, false));
+        when(dispatch.fireUse(any(), any())).thenReturn(new UseAttempt(false, true, 40, -1, false, -1));
 
         runner.activate(player, KEY);
 
@@ -117,7 +117,7 @@ class ReforgeRunnerTest {
     @Test
     void conditionFailSendsTheFailLine() {
         Player player = mock(Player.class);
-        when(dispatch.fireUse(any(), any())).thenReturn(new UseAttempt(false, false, 0, 0, false));
+        when(dispatch.fireUse(any(), any())).thenReturn(new UseAttempt(false, false, 0, 0, false, -1));
 
         runner.activate(player, KEY);
 
@@ -139,7 +139,7 @@ class ReforgeRunnerTest {
     @Test
     void chanceFailIsSilent() {
         Player player = mock(Player.class);
-        when(dispatch.fireUse(any(), any())).thenReturn(new UseAttempt(false, false, 0, -1, true));
+        when(dispatch.fireUse(any(), any())).thenReturn(new UseAttempt(false, false, 0, -1, true, -1));
 
         runner.activate(player, KEY);
 

@@ -304,6 +304,9 @@ mask.near-entry: "&7 - &f{NAME} &7({DISTANCE}m)"
 mask.near-none: "&7No players nearby."
 heroic.not-gear: "&cApply the heroic upgrade onto a piece of gear."
 heroic.already-heroic: "&7That item is already heroic."
+# A set whose completion bonus IS its heroic wall folded in (ADR-0073 D3) refuses the upgrade — stamping it
+# would bill that wall twice. The upgrade is NOT consumed.
+heroic.set-folded: "&7That set already carries its heroic bonus — the upgrade would count it twice."
 slot.not-gear: "&cApply the slot item onto a piece of gear."
 slot.not-slot-item: "&cThat is not a slot item."
 scroll.black.apply-target: "&cApply the black scroll onto enchanted gear."

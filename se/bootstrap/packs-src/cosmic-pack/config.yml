@@ -3,18 +3,29 @@
 # Every value here is the engine default: the cosmic port tunes a knob only when the batch that needs it
 # lands (combat ceilings with the damage families, set cues with the sets batch, …).
 #
-# WHAT THIS PACK DOES NOT CARRY (R-QC12/R-QC47). The pack ships content/ in full plus thirteen item likenesses
-# — crystal, heroic, mask, pet, enchant-book, unopened-book, dust, slot-orb, white-scroll, black-scroll,
-# transmog-scroll, randomizer-scroll, pet-food — every one recovered from source in
-# docs/dev/cosmic-port/matrix/13-support-items.md rather than invented. NINE stay at the engine defaults, and
-# each for the same reason: the codex records nothing to port. The soul gem, the four trak gems, the item
-# nametag, the holy white scroll and the godly transmog are all minted by external plugins absent from the
-# corpus (material, name and lore alike are codex-silent), and the weapon reforge family is this project's own
-# (ADR-0070) with no counterpart there at all. ALL menus stay at the engine defaults too. Nothing breaks; those
-# items simply keep their stock StarEnchants likeness.
+# WHAT THIS PACK CARRIES, AND ON WHAT AUTHORITY (R-QC12/R-QC47). content/ in full, plus every item likeness and
+# every menu — but the two halves are not the same kind of thing, and each file says which it is in its own
+# header.
+#   * RECOVERED (thirteen): crystal, heroic, mask, pet, enchant-book, unopened-book, dust, slot-orb,
+#     white-scroll, black-scroll, transmog-scroll, randomizer-scroll, pet-food. Material, name, lore and numbers
+#     all read out of docs/dev/cosmic-port/matrix/13-support-items.md, never invented. Their display strings are
+#     written with § — the pack's mark for a string that came off the source.
+#   * PORT-ORIGINAL (nine): soul-gem, the four trak gems, nametag, holy-white-scroll, godly-transmog, reforge.
+#     The first eight are minted by plugins absent from the corpus, which is codex-silent on their material,
+#     name and lore alike (the soul gem's CALL CONTRACT and its two toggle cues are recorded, and those are the
+#     only recovered lines among them); the reforge family is this project's own (ADR-0070) with no counterpart
+#     there at all. Their strings are written with & and each file states what is recorded and what is ours.
+#     They ship rather than sit at the engine default so that a server running this pack does not mix stock
+#     StarEnchants naming into a shelf of cosmic items — the features were already enabled either way.
+#   * menus/ carries the pack's own gold-on-black chrome. The corpus records no GUI of any kind, so those files
+#     are theme, not likeness, and say so.
 #
-# Era: cosmic-pack is legacy-capable — it applies on the whole supported range, 1.8.9 included (its sound and
-# particle tokens are gated on every era by the handle-era tests). The signature pack is modern-only.
+# Era: cosmic-pack is legacy-capable — it applies on the whole supported range, 1.8.9 included. content/'s
+# handles are gated on every era by the handle-era tests, which compile content/ only: the sound and particle
+# tokens in THIS file and in items/ are resolved at play time instead, through the same bidirectional alias
+# table, and a token with no spelling on the running server is skipped in silence with no diagnostic. Author
+# them accordingly — a name that exists only above the 1.17.1 floor is a cue nobody below it ever hears. The
+# signature pack is modern-only.
 #
 # This file holds the CROSS-CUTTING knobs: ceilings and switches that are not a single item's "physical
 # likeness" (those live in items/*.yml) and not player-facing text (that lives in lang.yml). Edit here, then
@@ -102,18 +113,23 @@ message-on-activate:
 # { particle: NAME, count: N, color: { r, g, b }, spread: S, y-offset: Y } form. With use-set-color on, the
 # dust cloud is tinted to each set's own & colour (read from its display name), overriding any configured
 # color; turn it off to use a fixed color. message-uppercase auto-capitalises the set equip/remove message.
+# Era: a config cue token resolves through the same bidirectional sound alias table the content DSL uses, so
+# each one below is authored in its modern spelling and lands on the 1.8.9 lane wherever a floor spelling
+# exists (BLOCK_GLASS_BREAK -> GLASS, both anvils). A token with no 1.8 twin drops out of the chord rather
+# than silencing it, which is why each chord keeps at least one aliasable layer. No token here may name a
+# constant newer than the 1.17.1 floor: an absent constant is skipped in silence, with no diagnostic.
 sets:
   message-uppercase: false  # auto-capitalise the set equip/remove message (colour codes preserved)
   use-set-color: true       # tint the EQUIP dust to the set's own & colour (the unequip dust stays as configured)
   equip-sound:
     - { sound: BLOCK_BEACON_POWER_SELECT, volume: 0.4, pitch: 2 }
     - { sound: BLOCK_BONE_BLOCK_BREAK, volume: 1, pitch: 1 }
-    - { sound: ITEM_ARMOR_EQUIP_COPPER, volume: 0.4, pitch: 1 }
+    - { sound: BLOCK_ANVIL_LAND, volume: 0.4, pitch: 1 }
   unequip-sound:
     - { sound: BLOCK_GLASS_BREAK, volume: 0.25, pitch: 0.8 }
     - { sound: BLOCK_CHAIN_STEP, volume: 0.6, pitch: 1.0 }
-    - { sound: BLOCK_COPPER_GOLEM_STATUE_BREAK, volume: 1, pitch: 1 }
-    - { sound: ITEM_LLAMA_CARPET_UNEQUIP, volume: 0.4, pitch: 2 }
+    - { sound: BLOCK_ANVIL_DESTROY, volume: 0.35, pitch: 1.4 }
+    - { sound: ITEM_ARMOR_EQUIP_LEATHER, volume: 0.4, pitch: 2 }
   # The EQUIP cloud is tinted per set (use-set-color); the UNEQUIP cloud stays gray (&7) for every set.
   equip-particle:   { particle: REDSTONE, count: 20, spread: 1.25, y-offset: 1.0 }
   unequip-particle: { particle: REDSTONE, count: 20, color: { r: 170, g: 170, b: 170 }, spread: 1.25, y-offset: 1.0 }
@@ -154,11 +170,11 @@ slots:
   # `§a§l{maxSlots} Enchantment Slots§7 (Orb [§a+{maxSlots - 9}§7])`, and {ADDED} is that difference exactly.
   lore-line: "&a&l{TOTAL} Enchantment Slots&7 (Orb [&a+{ADDED}&7])"
 
-# Souls (§D). The full soul economy — per-kill amount, per-mob overrides, colour tiers, sounds, particles,
-# messages — is the gem's likeness, which stays at the ENGINE DEFAULT: this pack ships no items/soul-gem.yml
-# because the gem is minted by an absent external plugin and the codex records only its CALL CONTRACT, never
-# its material, name or lore (matrix/13-support-items.md § Soul Gem — every recorded contract line already
-# holds here). Only the master deposit switch lives here.
+# Souls (§D). The full soul economy — per-kill amount, per-mob overrides, colour tiers, sounds, particles — is
+# the gem's likeness and lives in items/soul-gem.yml, which is PORT-ORIGINAL apart from its two recorded toggle
+# cues: the gem is minted by an absent external plugin and the codex holds only its CALL CONTRACT, never its
+# material, name or lore (matrix/13-support-items.md § Soul Gem — every recorded contract line already holds
+# here). The recorded soul-mode banners live in lang.yml. Only the master deposit switch lives here.
 souls:
   # Whether souls deposit into a carried gem on ANY kill. false disables the deposit-on-kill mechanic entirely
   # (the give/combine/split commands and soul-cost spending still work).
@@ -238,9 +254,10 @@ masks:
 
 # Weapon Reforges (ADR-0070). A reforge drag-applies onto a WEAPON (one socket per weapon — the ONLY knob
 # here decides what counts as a weapon) and its signature ability fires on SHIFT + Right Click while that
-# weapon is held. The reforge ITEM's likeness stays at the ENGINE DEFAULT — this pack ships neither
-# items/reforge.yml nor a content/reforges/ tree (the cosmic corpus has no reforge family; see
-# matrix/13-support-items.md). Removal is the Item Extractor (items/crystal.yml `extractor:`). weapon-groups
+# weapon is held. The reforge ITEM's likeness lives in items/reforge.yml, PORT-ORIGINAL like the family itself —
+# the cosmic corpus has no reforge of any kind (matrix/13-support-items.md), so this pack ships the item styled
+# to its own palette and no content/reforges/ tree at all. Removal is the Item Extractor
+# (items/crystal.yml `extractor:`). weapon-groups
 # takes ItemGroups tokens (SWORD, AXE, TRIDENT, MACE, or the WEAPON composite); a token's materials that don't
 # exist on this server version are simply skipped. Read live on /se reload.
 reforges:

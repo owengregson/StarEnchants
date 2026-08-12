@@ -18,8 +18,8 @@ lore:
 levels: 1
 # No glint: the source builds the candy plain.
 shiny: false
-# The source's own success cue (its LEVEL_UP at 3.0/1.1). era: an item cue resolves as a Sound CONSTANT by
-# exact name (no alias table on this path), so the modern spelling plays on modern and is skipped on 1.8.9.
+# The source's own success cue (its LEVEL_UP at 3.0/1.1). era: an item cue resolves as a Sound CONSTANT through
+# the bidirectional alias table, so this modern spelling plays on modern and lands on 1.8.9 as LEVEL_UP itself.
 sound: { sound: ENTITY_PLAYER_LEVELUP, volume: 3.0, pitch: 1.1 }
 particles: []
 # NOT EXPRESSED (both declared in matrix/13 § Gap declarations): the 24 h per-PET rate limit the source stores

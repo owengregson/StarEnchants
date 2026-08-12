@@ -175,11 +175,10 @@ bonuses:
             strike-particle: "EXPLOSION_LARGE", strike-particle-count: 4, lightning: true, who: "@Self" } }
   # (The World Ender's "125% Revenge of Yijki Ability" is the `+1.25 %chance%` clause on the roll above, not a
   # rung of its own — one roll, both rates, exactly as the jar computes it.)
-  - on: armor
-    trigger: ATTACK
-    chance: 100
-    effects:
-      - { REMOVE_POTION: { effect: DAMAGE_RESISTANCE, who: "@Self" } }
+  # The jar carried a SECOND Resistance strip on the attacker pass, at 100 % with nothing else in it.
+  # Resistance is incoming-only, so it could not affect the swing it fired on: the whole rung was the wearer
+  # paying a potion for nothing, every time they hit anything. Dropped — ledger D-10-9. The defensive strip
+  # above stays, because there it is the thing that makes the -30 % the only mitigation on the hit.
   # The set's ONLY offence, and it lives entirely on the held sword.
   - on: weapon
     trigger: ATTACK

@@ -97,9 +97,15 @@ weapon:
 # Behaviours: on:armor fires while the set is complete; on:weapon also requires the Scythe held (main hand),
 # gated by PDC identity — so the bonus survives a Heroic Sword reforge exactly as the jar's item tag did.
 bonuses:
-  # The set strips the WEARER's own Resistance on both sides before any damage maths, so the multiplier lands
-  # on an unblunted hit. Unconditional in the jar — it fires even inside a world-blocked region, ahead of every
-  # gate (measured quirk; the outpost world gates themselves are interaction-layer and off by default here).
+  # The set strips the WEARER's own Resistance before any damage maths, so the set's own reduction is the only
+  # thing pricing the hit: `event.setDamage` writes the BASE modifier and the server's RESISTANCE modifier
+  # still multiplies over it, so the strip does here exactly what it did in the jar. Unconditional — it fires
+  # even inside a world-blocked region, ahead of every gate (measured quirk; the outpost world gates
+  # themselves are interaction-layer and off by default here).
+  # DEFENSE ONLY. The jar ran the same strip on the attacker pass, where Resistance — an INCOMING-only
+  # mitigation — can change nothing about the swing: it was pure subtraction from the wearer, and it meant a
+  # Phantom wearer lost a beacon or a teammate's splash the first time they hit anything at all. Dropped,
+  # ledger D-10-9.
   - on: armor
     trigger: DEFENSE
     chance: 100
@@ -110,7 +116,6 @@ bonuses:
     trigger: ATTACK
     chance: 100
     effects:
-      - { REMOVE_POTION: { effect: DAMAGE_RESISTANCE, who: "@Self" } }
       - { DAMAGE_MOD: { side: attack, mode: add, amount: 25 } }
   # Held-weapon rider. Set ×1.25 and Scythe ×1.1 compose multiplicatively in the jar (×1.375 measured); the
   # engine folds them additively to ×1.35 per the project-wide damage model (global ADR, not a per-item deviation).

@@ -12,6 +12,10 @@ condition: "%damagecause% == \"ENTITY_ATTACK\""
 # PvP-region check are engine rules.
 # The push radius IS the level: at L1 it is smaller than melee reach, so the attacker who triggered it is
 # usually outside the blast (measured, shipped).
+# The wearer's own burst is the recorded eye-height one, spelled `who: @Self` + `dy: 0.7` (R-QC55): PARTICLE
+# reads only the ENTITY channel of `who` and falls back to the bare activation location, so a location
+# selector names a height the effect silently drops and bursts at the wearer's feet. 0.7 lifts the engine's
+# body centre (feet + height/2) to the eyes on a standing player.
 # era: ENCHANTMENT_TABLE is the 1.8 particle id (modern ENCHANT — resolver alias, bidirectional);
 # FIREWORK_LAUNCH is the 1.8 sound id, authored in its modern ENTITY_FIREWORK_ROCKET_LAUNCH spelling.
 levels:
@@ -22,32 +26,32 @@ levels:
       - { VELOCITY: { mode: "away", strength: 1.7, who: "@Aoe{r=1, filter=ENEMIES}" } }
       - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 100, who: "@Aoe{r=1, filter=ENEMIES}" } }
       - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_LAUNCH", volume: 1.0, pitch: 0.1 } }
-      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 100, who: "@EyeHeight" } }
+      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 100, who: "@Self", dy: 0.7 } }
   2:
     chance: 4
     effects:
       - { VELOCITY: { mode: "away", strength: 1.7, who: "@Aoe{r=2, filter=ENEMIES}" } }
       - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 100, who: "@Aoe{r=2, filter=ENEMIES}" } }
       - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_LAUNCH", volume: 1.0, pitch: 0.1 } }
-      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 100, who: "@EyeHeight" } }
+      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 100, who: "@Self", dy: 0.7 } }
   3:
     chance: 6
     effects:
       - { VELOCITY: { mode: "away", strength: 1.7, who: "@Aoe{r=3, filter=ENEMIES}" } }
       - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 100, who: "@Aoe{r=3, filter=ENEMIES}" } }
       - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_LAUNCH", volume: 1.0, pitch: 0.1 } }
-      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 100, who: "@EyeHeight" } }
+      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 100, who: "@Self", dy: 0.7 } }
   4:
     chance: 8
     effects:
       - { VELOCITY: { mode: "away", strength: 1.7, who: "@Aoe{r=4, filter=ENEMIES}" } }
       - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 100, who: "@Aoe{r=4, filter=ENEMIES}" } }
       - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_LAUNCH", volume: 1.0, pitch: 0.1 } }
-      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 100, who: "@EyeHeight" } }
+      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 100, who: "@Self", dy: 0.7 } }
   5:
     chance: 10
     effects:
       - { VELOCITY: { mode: "away", strength: 1.7, who: "@Aoe{r=5, filter=ENEMIES}" } }
       - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 100, who: "@Aoe{r=5, filter=ENEMIES}" } }
       - { SOUND: { sound: "ENTITY_FIREWORK_ROCKET_LAUNCH", volume: 1.0, pitch: 0.1 } }
-      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 100, who: "@EyeHeight" } }
+      - { PARTICLE: { particle: "ENCHANTMENT_TABLE", count: 100, who: "@Self", dy: 0.7 } }

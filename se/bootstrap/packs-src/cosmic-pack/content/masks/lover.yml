@@ -38,9 +38,10 @@ description:
 # `mastery/mortal-coil` is `enchants/mortal-coil` here.
 # The jar's immunity was SILENT (no feedback to either side, and it still consumed the proc roll); a
 # defender-keyed SUPPRESS_INCOMING with no consumed-message is exactly that.
-# THE SANTA SYNERGY IS EMERGENT, nothing to author: Mortal Coil also suppresses the Santa mask's max-health
-# bonus, so a Santa + Lover compound keeps its +2 hearts purely because this window stops the Coil that would
-# have taken them. Two rules, one outcome — no third rule to write.
+# THE SANTA SYNERGY IS EMERGENT, nothing to author: Mortal Coil suppresses the Santa mask's max-health bonus
+# on its own second rung (`SUPPRESS{scope: KIND, key: HEALTH}`), so a Santa + Lover compound keeps its +2
+# hearts purely because this window stops the Coil before either rung fires. Two rules, one outcome — no
+# third rule to write.
 # MULTI-MASK: routed through the shared mask lookup in the source and already worked inside a compound mask,
 # so the family routing bug (D-11-1) does not touch this entry.
 # ACQUISITION: RARE generator pool, 10 %/9 = 1.1111 % per roll; active in the mask help menu. A mask def

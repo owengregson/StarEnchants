@@ -26,10 +26,9 @@ lore:
 # clamp — the book's new rate is min(100, current + bonus) — which config.yml books.max-success already is.
 # The apply cue is the source's own shared economy-success template (its LEVEL_UP at 1.0/0.75 plus a
 # happy-villager burst); the two further particle layers it fires have no second slot here. era: an item cue is
-# resolved as a Sound CONSTANT by exact name (feature.compat.Sounds — no alias table on this path, unlike
-# content SOUND effects), so this modern spelling plays on the modern lane and is skipped on 1.8.9, whose own
-# constant is the source's LEVEL_UP. Modern-only either way, and the engine default (an amethyst chime) is
-# 1.17+ on top of that.
+# resolved as a Sound CONSTANT through the same bidirectional alias table content SOUND effects use
+# (feature.compat.Sounds), so this modern spelling plays on the modern lane and lands on 1.8.9 as that era's
+# LEVEL_UP — the source's own constant. The engine default it replaces (an amethyst chime) is 1.17+.
 sound: { sound: ENTITY_PLAYER_LEVELUP, volume: 1.0, pitch: 0.75 }
 particles:
   - HAPPY_VILLAGER

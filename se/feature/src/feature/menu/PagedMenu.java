@@ -129,6 +129,9 @@ public abstract class PagedMenu<T> implements Menu {
                 holder.set(slot, icon(holder, item), click -> onSelect(click, item));
             }
         }
+        if (items.isEmpty()) {
+            placeEmptyState(holder, layout);
+        }
 
         placeInfo(holder, layout, theme);
 
@@ -149,6 +152,18 @@ public abstract class PagedMenu<T> implements Menu {
         }
         bind(holder, layout.closeSlot(), MenuIcons.plain(vanilla, theme.close()),
                 click -> click.player().closeInventory());
+    }
+
+    /**
+     * Say so when a catalogue is empty. A pack need not ship every family, and chrome with nothing in it reads
+     * as a broken browser rather than an absent one — the info pane above it is still promising content.
+     */
+    private void placeEmptyState(MenuHolder holder, MenuLayout layout) {
+        int slot = layout.contentSlot(layout.contentSlotCount() / 2);
+        if (slot >= 0) {
+            holder.set(slot, MenuIcons.tile(vanilla, "BARRIER", Material.PAPER, "&7&lNothing here yet",
+                    List.of("&7This pack ships no entries", "&7for this catalogue."), ""), null);
+        }
     }
 
     /** Place the info pane, but only where it would sit on a decorative cell (never clobbering paged content). */

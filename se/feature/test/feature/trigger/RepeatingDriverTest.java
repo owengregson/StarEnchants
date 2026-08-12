@@ -105,18 +105,46 @@ class RepeatingDriverTest {
     }
 
     @Test
-    void reArmCancelsTheSupersededTasks() {
+    void reArmCancelsOnlyWhatIsNoLongerWorn() {
         driver.arm(player, worn(3, 7));
         RecordingSchedulerBackend.Repeat first3 = backend.repeating.get(0);
         RecordingSchedulerBackend.Repeat first7 = backend.repeating.get(1);
 
         driver.arm(player, worn(3)); // re-arm with only 3 worn now
 
-        assertTrue(first3.isCancelled(), "the prior task for 3 is superseded and cancelled");
+        assertFalse(first3.isCancelled(), "3 is still worn — its task keeps running");
         assertTrue(first7.isCancelled(), "7 is no longer worn → cancelled");
-        assertEquals(3, backend.repeating.size(), "one fresh task scheduled on re-arm");
+        assertEquals(2, backend.repeating.size(), "the survivor is kept, not re-scheduled");
         assertTrue(store.has(uuid, 3));
         assertFalse(store.has(uuid, 7));
+    }
+
+    @Test
+    void anUnchangedReArmTouchesNothing() {
+        // arm() fires on every equipment refresh, a plain hotbar scroll included. A task whose first run is one
+        // full period out never reaches it if each scroll restarts the phase — which is how a 20t ward holding
+        // a 60t immunity window open goes inert mid-fight while the mask still says "Immune to …".
+        driver.arm(player, worn(3, 7));
+        List<RecordingSchedulerBackend.Repeat> armed = new ArrayList<>(backend.repeating);
+
+        driver.arm(player, worn(3, 7));
+        driver.arm(player, worn(3, 7));
+
+        assertTrue(armed.stream().noneMatch(RecordingSchedulerBackend.Repeat::isCancelled));
+        assertEquals(2, backend.repeating.size(), "no task is re-scheduled by a no-op refresh");
+    }
+
+    @Test
+    void aNewlyWornAbilityIsArmedWithoutDisturbingItsSiblings() {
+        driver.arm(player, worn(3));
+        RecordingSchedulerBackend.Repeat first3 = backend.repeating.get(0);
+
+        driver.arm(player, worn(3, 7));
+
+        assertFalse(first3.isCancelled());
+        assertEquals(2, backend.repeating.size());
+        assertEquals(40L, backend.repeating.get(1).periodTicks, "only 7 is freshly scheduled");
+        assertTrue(store.has(uuid, 7));
     }
 
     @Test

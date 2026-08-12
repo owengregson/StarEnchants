@@ -198,36 +198,40 @@ bonuses:
     effects:
       - { CURE: { category: "HARMFUL", count: 1, who: "@Self" } }
   # 5. The sword rider: +7.5% more, PvP only, while the set is complete AND the KOTH sword is held. `on:
-  # weapon` IS the held-identity gate — `%actor.helditem%` is only ever a material name, so it could never
-  # express the jar's item tag.
+  # weapon` is per-SET, not per-weapon (see bonus 6), so it arms this row for the AXE too — the `_SWORD`
+  # suffix is what makes it the sword's. Under `on: weapon` the main hand is already a stamped weapon of
+  # this completed set, so the suffix can only ever mean the KOTH sword, and it survives the heroic retype
+  # to GOLDEN_SWORD (and 1.8's GOLD_SWORD) that an exact-material test would lose.
   - on: weapon
     trigger: ATTACK
     chance: 100
-    condition: "%victim.type% == \"PLAYER\""
+    condition: '%victim.type% == "PLAYER" && %actor.helditem% contains "_SWORD"'
     effects:
       - { DAMAGE_MOD: { side: attack, mode: add, amount: 7.5 } }
   # 6. THE KOTH AXE RIDER — LIVE (R-QC35a). Held with the set complete, it strips armour on a player hit:
   # the jar rolls 50 % per slot for -2 or -3 durability (50/50), expected 5 a hit, which decomposes as the
   # two rows below (a different formula from the Yeti Maul's 75 %/-1). `on: weapon` is per-SET, not per-
-  # weapon — it asks "is a KOTH set weapon in the main hand and is the set complete" — so WHICH weapon is
-  # decided by the material, and that is exact here rather than the loose reading the ledger rejected: a
-  # bare `%actor.helditem% matchesregex ".*_AXE$"` would hand the strip to any axe a KOTH wearer picks up
-  # (a Yeti Maul included), but `== "DIAMOND_AXE"` UNDER `on: weapon` can only ever match the KOTH axe,
-  # because nothing else is both a DIAMOND_AXE and a stamped weapon of this completed set. The residue,
-  # recorded: two weapons of the SAME material in one set would be indistinguishable this way. No set in
-  # the family has that.
+  # weapon — it asks "is a KOTH set weapon in the main hand and is the set complete" — so WHICH weapon a row
+  # means has to be spelt in the condition, and the only fact on the surface is `%actor.helditem%`, a raw
+  # material NAME. A `_AXE` SUFFIX rather than `== "DIAMOND_AXE"`: `on: weapon` has already narrowed the
+  # main hand to a stamped weapon of THIS completed set (a Yeti Maul carries Yeti's weapon key and arms
+  # nothing here), so the suffix can only ever match the KOTH axe — and it keeps matching after
+  # items/heroic.yml retypes the axe to GOLDEN_AXE, where an exact-material test would go quietly false
+  # forever on the first heroic upgrade and take the axe's whole reason to exist with it (1.8's GOLD_AXE
+  # spelling comes free with the suffix too). The residue, recorded: two weapons of the same KIND in one set
+  # would still be indistinguishable this way. No set in the family has that.
   # The strip routes through the item-damage layer on both eras (a synthetic PlayerItemDamageEvent on the
   # 1.8 harness).
   - on: weapon
     trigger: ATTACK
     chance: 50
-    condition: '%victim.type% == "PLAYER" && %actor.helditem% == "DIAMOND_AXE"'
+    condition: '%victim.type% == "PLAYER" && %actor.helditem% contains "_AXE"'
     effects:
       - { DURABILITY: { target: armor, mode: damage, amount: 2, who: "@Victim" } }
   - on: weapon
     trigger: ATTACK
     chance: 25
-    condition: '%victim.type% == "PLAYER" && %actor.helditem% == "DIAMOND_AXE"'
+    condition: '%victim.type% == "PLAYER" && %actor.helditem% contains "_AXE"'
     effects:
       - { DURABILITY: { target: armor, mode: damage, amount: 1, who: "@Victim" } }
 # era: `§k` magic text renders on both eras and LeatherArmorMeta dye is era-safe; `DIAMOND_SWORD` /

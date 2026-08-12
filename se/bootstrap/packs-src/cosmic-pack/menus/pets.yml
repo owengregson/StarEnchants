@@ -1,0 +1,11 @@
+# The corpus records no GUI of its own — the jar's economy items are minted by plugins absent from it and
+# every menu in this engine is port-original chrome (ADR-0030). What ships here is a THEME, not a likeness:
+# the pack's own gold-on-black frame so its menus read as one surface with its gold Armor Crystal / Heroic
+# items instead of the engine's neutral purple. Only the fields below differ from the engine default; any
+# field omitted keeps it.
+# Pets GUI — every pet as its real textured head. "Inventory Pets" is the family's own wording (the Rare
+# Candy lore reads "Apply to any inventory pet"), and red is the family's colour.
+
+title: "&c&l✦ Inventory Pets ✦"
+frame: "border"
+filler: "BLACK_STAINED_GLASS_PANE"

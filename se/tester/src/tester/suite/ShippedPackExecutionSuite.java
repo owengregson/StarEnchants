@@ -310,8 +310,10 @@ public final class ShippedPackExecutionSuite implements Harness.Scenario {
             World world = center.getWorld();
             List<LivingEntity> living = new ArrayList<>();
             if (world != null) {
+                double radiusSq = radius * radius; // box broad phase, sphere cut — resemble BootCore.areaScan exactly
                 for (Entity entity : world.getNearbyEntities(center, radius, radius, radius)) {
-                    if (entity instanceof LivingEntity found) {
+                    if (entity instanceof LivingEntity found
+                            && found.getLocation().distanceSquared(center) <= radiusSq) {
                         living.add(found);
                     }
                 }

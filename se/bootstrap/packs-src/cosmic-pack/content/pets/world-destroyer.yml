@@ -21,10 +21,13 @@
 # cage is stopped (below). NOTHING scales with pet level: level is purely cosmetic here, which is why one
 # bracket serves the whole 1–4 ladder.
 # TARGETING: the jar walked a 61×61×61 box (a "30-block" cube) and spared allies, faction members and truced
-# parties (either side flagged as duelling counted as NOT truced). `@Aoe{r=30, filter=ENEMIES}` is a SPHERE
-# where the jar used a box — recorded — and the ENEMIES filter is the engine's own relation rule. The jar
-# applied no region/gamemode/spectator check to the victims (unlike Smite); this port's global PvP gates do
-# apply, and that is recorded rather than worked around.
+# parties (either side flagged as duelling counted as NOT truced). `@Aoe{r=30}` walks the same box — the area
+# scan is `getNearbyEntities(r, r, r)` with no distance re-check — and the filter is the CONJUNCTION
+# `ENEMIES+PLAYERS`, the only spelling that means hostile PLAYERS: bare `ENEMIES` also admits every hostile
+# MOB, which would drop the rot on zombies the jar's `List<Player>` never held and would leave the empty-box
+# refusal below unreachable anywhere mobs spawn. The jar applied no region/gamemode/spectator check to the
+# victims (unlike Smite); this port's global PvP gates do apply, and a SPECTATOR inside the box still counts
+# as a victim because no selector filter reads gamemode (D-12-38) — both recorded rather than worked around.
 # THE CAGE IS THE ONE UNPORTED CLAUSE — recorded as a stop, everything around it ships. The jar encases EACH
 # victim where they stand: a 3×3 footprint, walls 3 high at y…y+2, an obsidian floor at y−1 and roof at y+3,
 # up to 44 blocks, 100 t. The matrix writes that as `CAGE(..., rise=0)`, but this engine's `CAGE` is a
@@ -92,8 +95,10 @@ description:
   - "§7"
   - "§7§f§lCooldown"
   - "§7§75 minutes"
-# 1000 + 500 × level to a cap of 4 (2000/2500/3000; 7500 total, 1500 uses at 5 XP each).
-exp-curve: { base: 1000, per-level: 500 }
+# The recorded ladder is `1000 + 500 × level` (7500 to cap), priced by the jar against a cooldown that never
+# fired — 1500 uses × 600 s is 250 h of perfectly-spaced clicks. Divided by 10 against the window this port
+# really enforces (D-12-41): 200/250/300, 750 to cap = 150 uses at 5 XP each ≈ 25 h, the family band.
+exp-curve: { base: 100, per-level: 50 }
 max-level: 4
 levels:
   # ONE bracket: nothing about this pet reads its level.
@@ -105,12 +110,12 @@ levels:
           - { SET_VAR: { name: "wdpet.fired", value: "1", ttl: 1, who: "@Self" } }
           # The cage itself is owed a per-victim shell primitive (header): floor/roof OBSIDIAN, walls OBSIDIAN
           # (port pick, D-12-31), width 3, depth 3, height 3, rise 0, ticks 100.
-          - { MESSAGE: { text: "§5§l** DIMENSIONAL CAGE §7[§c3s§7]§5§l **", who: "@Aoe{r=30, filter=ENEMIES}" } }
-          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 2.0, pitch: 2.0, who: "@Aoe{r=30, filter=ENEMIES}" } }
-          - { POTION: { effect: "BLINDNESS", level: 101, duration: 200, who: "@Aoe{r=30, filter=ENEMIES}" } }
-          - { POTION: { effect: "POISON", level: 19, duration: 100, who: "@Aoe{r=30, filter=ENEMIES}" } }
-          - { POTION: { effect: "WITHER", level: 19, duration: 100, who: "@Aoe{r=30, filter=ENEMIES}" } }
-          - { FREEZE: { duration: 55, dot: 7, dot-period: 5, slow: 0, neutralize-frost-slow: false, who: "@Aoe{r=30, filter=ENEMIES}" } }
+          - { MESSAGE: { text: "§5§l** DIMENSIONAL CAGE §7[§c3s§7]§5§l **", who: "@Aoe{r=30, filter=ENEMIES+PLAYERS}" } }
+          - { SOUND: { sound: "BLOCK_ANVIL_LAND", volume: 2.0, pitch: 2.0, who: "@Aoe{r=30, filter=ENEMIES+PLAYERS}" } }
+          - { POTION: { effect: "BLINDNESS", level: 101, duration: 200, who: "@Aoe{r=30, filter=ENEMIES+PLAYERS}" } }
+          - { POTION: { effect: "POISON", level: 19, duration: 100, who: "@Aoe{r=30, filter=ENEMIES+PLAYERS}" } }
+          - { POTION: { effect: "WITHER", level: 19, duration: 100, who: "@Aoe{r=30, filter=ENEMIES+PLAYERS}" } }
+          - { FREEZE: { duration: 55, dot: 7, dot-period: 5, slow: 0, neutralize-frost-slow: false, who: "@Aoe{r=30, filter=ENEMIES+PLAYERS}" } }
           # Both read the rot's own count. SET_VAR declares a target slot, so it overwrites %selected% when it
           # runs and the refund has to ask first.
           - { REFUND_COOLDOWN: { unless: "%selected%" } }

@@ -40,8 +40,9 @@ tier: rare
 # THE NAMEPLATE is Guardians' own `§b§l{OWNER}'s Guardian`, which now reads the THIEF's name — the visible
 # half of the theft, and the reason the token matters here.
 # CUES. The particle and the pull-away cue are authored BEFORE the rebind so they resolve against the golem
-# that is about to be replaced; the rebind removes that body. `SPELL` is the engine's spelling of the jar's
-# `WITCH_MAGIC` (guardians.yml uses the same row) and `dy: 1` is its `add(0.0, 1.0, 0.0)` anchor. The jar
+# that is about to be replaced; the rebind removes that body. `SPELL_WITCH` is the jar's `WITCH_MAGIC`
+# (`WITCH` on the modern lane, per the alias row) and `dy: 1` is its `add(0.0, 1.0, 0.0)` anchor — not
+# `SPELL`, which is a separate constant and guardians.yml's own particle, a different row entirely. The jar
 # plays IRONGOLEM_DEATH twice — once per nearby player at 0.8/1.2 and once world-audible from the spawner at
 # 1.0/0.55 — and ADR-0066 emits a sound id at most once per event sink, so the second copy would never play.
 # The per-listener one is dropped and the spawner's kept, which is the copy guardians.yml already authors.
@@ -55,7 +56,7 @@ levels:
     chance: 8
     condition: "%victim.type% == \"IRON_GOLEM\""
     effects:
-      - { PARTICLE: { particle: "SPELL", count: 60, spread: 1.2, dy: 1, who: "@Victim" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 60, spread: 1.2, dy: 1, who: "@Victim" } }
       - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
       - { SUMMON_REBIND: { type: "IRON_GOLEM", ttl: 600, rise: 2, health: 70, name: "§b§l{OWNER}'s Guardian",
                            effects: "FIRE_RESISTANCE", steal: true, steal-radius: 24,
@@ -64,7 +65,7 @@ levels:
     chance: 16
     condition: "%victim.type% == \"IRON_GOLEM\""
     effects:
-      - { PARTICLE: { particle: "SPELL", count: 60, spread: 1.2, dy: 1, who: "@Victim" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 60, spread: 1.2, dy: 1, who: "@Victim" } }
       - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
       - { SUMMON_REBIND: { type: "IRON_GOLEM", ttl: 600, rise: 2, health: 90, name: "§b§l{OWNER}'s Guardian",
                            effects: "FIRE_RESISTANCE,REGENERATION", steal: true, steal-radius: 24,
@@ -73,7 +74,7 @@ levels:
     chance: 24
     condition: "%victim.type% == \"IRON_GOLEM\""
     effects:
-      - { PARTICLE: { particle: "SPELL", count: 60, spread: 1.2, dy: 1, who: "@Victim" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 60, spread: 1.2, dy: 1, who: "@Victim" } }
       - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
       - { SUMMON_REBIND: { type: "IRON_GOLEM", ttl: 600, rise: 2, health: 110, name: "§b§l{OWNER}'s Guardian",
                            effects: "FIRE_RESISTANCE,REGENERATION,INCREASE_DAMAGE", steal: true, steal-radius: 24,
@@ -82,7 +83,7 @@ levels:
     chance: 32
     condition: "%victim.type% == \"IRON_GOLEM\""
     effects:
-      - { PARTICLE: { particle: "SPELL", count: 60, spread: 1.2, dy: 1, who: "@Victim" } }
+      - { PARTICLE: { particle: "SPELL_WITCH", count: 60, spread: 1.2, dy: 1, who: "@Victim" } }
       - { SOUND: { sound: "ENTITY_IRON_GOLEM_DEATH", volume: 1.0, pitch: 0.55 } }
       - { SUMMON_REBIND: { type: "IRON_GOLEM", ttl: 600, rise: 2, health: 130, name: "§b§l{OWNER}'s Guardian",
                            effects: "FIRE_RESISTANCE,REGENERATION,INCREASE_DAMAGE,SPEED", steal: true, steal-radius: 24,

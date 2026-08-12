@@ -20,8 +20,8 @@ material: YELLOW_DYE
 # heroic here is NOT set-bound (which also disposes of the source's unreachable-wildcard bug, D-13-3).
 name: "§6§lHeroic ArmorUpgrade"
 # The recorded eight-line lore, in its generic form (line 2 reads "§7Apply to any §7armor set" where a
-# set-specific upgrade names its set). {SUCCESS} is the per-item chance; the source truncates the displayed
-# number and keeps the double, which is what this token does.
+# set-specific upgrade names its set). {SUCCESS} renders the flat rate configured below, so the number the
+# item promises is the number the apply rolls.
 lore:
   - ""
   - "§7Apply to any §7armor set"
@@ -31,10 +31,13 @@ lore:
   - "§7This will increase the armor's base"
   - "§7stats as well as add a §612.5% negation"
   - "§7to enemy §6Infinite Luck§7 enchantments."
-# The recorded band: the source's random-upgrade redemption mints a uniform integer 1..100, and its apply roll
-# is exactly floor(success) percent. A targeted upgrade carries whatever rate it was minted with.
-success-min: 1
-success-max: 100
+# ONE flat rate: min == max. The source mints each upgrade with its own uniform 1..100 rate and then rolls at
+# exactly that number, but a per-ITEM rate is unexpressible here — nothing stamps one on the stack, so {SUCCESS}
+# renders this ceiling while the apply draws a fresh rate out of the band. Any band wider than a point therefore
+# advertises a number no single attempt uses. 50 is the recorded band's own expectation (E[1..100] = 50.5) stated
+# as the one honest number (D-13-14).
+success-min: 50
+success-max: 50
 # The gear is unharmed on a failed roll; the upgrade is consumed either way (the source's own consume-then-roll).
 destroy-on-fail: false
 # Per-PIECE incoming reduction; armour stacks x4 per wearer, so this lands the recorded full-set 27%.
@@ -49,8 +52,9 @@ percent-reduction: 0.0675
 # than an invented number. Its declared vanilla base damages (axe 3.0, sword 4.0) are stored and never read.
 # The display swap on success. Armour becomes LEATHER — the source's heroic pieces are leather, dyed per set —
 # and weapons take the gold form it records for converted set weapons (a Phantom Scythe retyped to a gold sword
-# keeps its identity; the Yeti Maul is the same conversion on an axe). era: GOLDEN_SWORD/GOLDEN_AXE are the
-# modern spellings of 1.8's GOLD_SWORD/GOLD_AXE and both resolve through the alias resolver.
+# keeps its identity; the Yeti Maul is the same conversion on an axe). era: this map is MINTED, not migrated, so
+# it resolves through ItemFactory's own legacy table rather than the migrator's alias table — GOLDEN_SWORD and
+# GOLDEN_AXE degrade there to 1.8's GOLD_SWORD/GOLD_AXE, and LEATHER_* exists on every era unchanged.
 material-upgrades:
   DIAMOND_HELMET: LEATHER_HELMET
   DIAMOND_CHESTPLATE: LEATHER_CHESTPLATE
@@ -64,12 +68,14 @@ material-upgrades:
 # platform has them, and the plugin's own combat maths on the 1.8.9 fork, which has no armour attribute at
 # all — the era hazard the matrix flags on every leather-heroic entry.
 diamond-stats: true
-# The heroic lore stamped on an upgraded piece, verbatim. The source's block is four lines — a blank,
-# "§7+{armor} Armor Value", "§7{durability} Durability", then this one — and its weapon block reorders the same
-# three (durability, "§4+4 Bonus Attack Damage", tagline). Armour-point and durability TOKENS on this template
-# are REJECTED with the rest of the per-slot ladder (R-QC50), so the third line is the one that ships; it is
-# ONE template for armour and weapons both, so a heroic sword wears the armour wording.
-lore-line: "§4This armor is stronger than diamond."
+# The heroic lore stamped on an upgraded piece. The source's block is four lines — a blank, "§7+{armor} Armor
+# Value", "§7{durability} Durability", then this one — and its weapon block reorders the same three (durability,
+# "§4+4 Bonus Attack Damage", tagline). Armour-point and durability TOKENS on this template are REJECTED with the
+# rest of the per-slot ladder (R-QC50), so the tagline is the one line that ships. The source writes it twice,
+# once per category ("armor" on a piece, "weapon" on a converted sword or axe), and this surface has ONE template
+# for both — {TYPE} is the only token that separates them, so it carries the noun rather than one category
+# wearing the other's wording (D-13-15).
+lore-line: "§4This {TYPE} is stronger than diamond."
 # NOT EXPRESSED here:
 #   * The ABSOLUTE DURABILITIES (810/1000/935/686 on armour, 1952 on both weapons) — rejected with the per-slot
 #     ladder (R-QC50). The `durability` knob here is a wear-CANCEL probability, not a maximum, and

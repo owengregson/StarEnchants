@@ -67,9 +67,12 @@ description:
   - "§7"
   - "§7§f§lCooldown"
   - "§7§7 {TIME_FORMATTED}"
-# Identical ladder to Blackscroll: `250 + 1000 × level` (the cost of REACHING level N) — 2250 at L2 … 10250 at
-# L10, 56 250 to cap, 1125 uses at 50 XP each.
-exp-curve: { base: 250, per-level: 1000 }
+# The recorded ladder is Blackscroll's — `250 + 1000 × level`, 56 250 to cap — priced by the jar against a
+# cooldown that never fired: 1125 uses at ONE HOUR apiece is ~1125 h. The two pets no longer share a curve,
+# because pricing against the enforced window is what splits them (D-12-41): this one's hour-long cooldown
+# buys ~28 uses in the family's ≈ 25 h band, so the ladder divides by 40 — 55 at L2 … 255 at L10, 1395 to cap
+# at 50 XP each.
+exp-curve: { base: 5, per-level: 25 }
 max-level: 10
 levels:
   # One bracket per level: only the bonus percent (= the level) and the success line's number scale. Cooldown

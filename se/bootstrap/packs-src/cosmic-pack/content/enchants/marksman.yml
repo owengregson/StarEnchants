@@ -12,6 +12,10 @@ tier: epic
 # below ship instead.
 # Stackable BY FORMULA: the jar summed the levels of all four pieces into one 1 + 0.015625 x Σlevels
 # multiplier, which is exactly this additive per-piece DAMAGE_MOD contribution (full level-4 set = +25%).
+# `stacks: true` is load-bearing for that sum and is here for the FORMULA, not for the codex's 14-name
+# whitelist (D-003) — the jar's hook re-scanned `getArmorContents()` itself, so the whitelist never reached it.
+# Without the flag R-QC63's default keeps one copy at the highest worn level and a full set pays 6.25%.
+stacks: true
 # The weak-bow gate (draw force < 0.75 never procs) is the engine's own BOW force gate — nothing authored.
 # era: none.
 levels:

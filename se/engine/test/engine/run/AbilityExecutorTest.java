@@ -393,7 +393,7 @@ class AbilityExecutorTest {
         assertEquals(0, gated.run(new Ability[] {blocked}, new int[] {0}, rebatedRoll,
                 context(actor, victim), sink, KEYS));
 
-        verify(sink).message(victim, "blocked by Swinger");
+        verify(sink).rebateNotice(victim, "blocked by Swinger", -1);
         verifyNoMoreInteractions(sink);
     }
 
@@ -428,7 +428,7 @@ class AbilityExecutorTest {
 
         gated.run(new Ability[] {blocked}, new int[] {0}, rebatedRoll, context(actor, null), sink, KEYS);
 
-        verify(sink).message(actor, "your gear was vetoed");
+        verify(sink).rebateNotice(actor, "your gear was vetoed", -1);
         verifyNoMoreInteractions(sink);
     }
 

@@ -469,19 +469,50 @@ class SuppressionStoreTest {
     }
 
     @Test
-    void aStrongerButShorterArmKeepsTheLongerWindowItLandsOn() {
-        // Never-weaken is about BOTH axes: adopting the stronger chance must not shorten the live window, and
-        // extending it must not silently hand the extension the weaker chance.
+    void aChanceNeverOutlivesTheArmThatGrantedIt() {
+        // The stronger chance governs while it is live, and dies with its own arm. Splicing it onto the later
+        // expiry is what let a crystal ladder only ever climb.
         Ability incoming = scoped(4, -1, -1);
         long key = CooldownStore.key(ScopeKinds.ENCHANT, 4);
         store.defend(p, key, 0L, 1000, 10, 22, null);
         store.defend(p, key, 0L, 40, 100, 11, null);
 
         assertEquals(11, store.defenderBlocks(incoming, p, 20L, neverFails()).byDefId());
-        assertEquals(11, store.defenderBlocks(incoming, p, 500L, neverFails()).byDefId(),
-                "the longer window survives the stronger arm");
-        assertEquals(null, store.defenderBlocks(incoming, p, 1000L, neverFails()),
-                "and still expires when the longest arm says it does");
+        assertNull(store.defenderBlocks(incoming, p, 40L, neverFails()),
+                "the 100 arm expires on its own 40-tick clock, taking the merged record with it");
+    }
+
+    @Test
+    void aWeakerRungThatKeepsArmingCannotHoldAStrongerRungOpen() {
+        // The shipped ladder: crystals/dragon-slayer arms one key at 10/20/30/40 by worn count, every 20 ticks
+        // under a 60-tick duration. Strip three of four pieces and only the 10 rung still fires — the 40 must
+        // age out within its own duration instead of being re-stamped forever by the survivor.
+        Ability incoming = scoped(4, -1, -1);
+        long key = CooldownStore.key(ScopeKinds.ENCHANT, 4);
+        store.defend(p, key, 0L, 60, 40, 44, null);   // four pieces worn
+        for (long t = 20L; t <= 40L; t += 20L) {
+            store.defend(p, key, t, 60, 10, 11, null); // …then only the base rung, on its own cadence
+        }
+
+        assertEquals(44, store.defenderBlocks(incoming, p, 40L, neverFails()).byDefId(),
+                "the 40 rung still governs inside its own window");
+
+        store.defend(p, key, 60L, 60, 10, 11, null);
+        assertEquals(11, store.defenderBlocks(incoming, p, 60L, neverFails()).byDefId(),
+                "once the 40 lapses the surviving rung's own chance takes over");
+    }
+
+    @Test
+    void aLapsedWindowIsNeverResurrectedByAFreshArm() {
+        // Eviction is lazy — a consult, or the 5-minute offline sweep. Without a liveness test in the merge a
+        // record that expired (or that its holder logged out under) would be handed a fresh expiry whole.
+        Ability incoming = scoped(4, -1, -1);
+        long key = CooldownStore.key(ScopeKinds.ENCHANT, 4);
+        store.defend(p, key, 0L, 60, 100, 99, null);
+
+        store.defend(p, key, 5000L, 60, 10, 11, null); // long after it lapsed, nothing having consulted it
+
+        assertEquals(11, store.defenderBlocks(incoming, p, 5000L, neverFails()).byDefId());
     }
 
     @Test

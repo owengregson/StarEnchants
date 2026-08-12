@@ -32,8 +32,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
@@ -63,6 +65,9 @@ public final class DefaultLowerStage implements LowerStage {
     private static final String EACH_IF = "each-if";
     private static final String EACH_CHANCE = "each-chance";
     private static final String EACH_COOLDOWN = "each-cooldown";
+
+    /** Triggers routed to {@code AbilityExecutor.runLifecycle}, which walks no gates and binds no subject. */
+    private static final Set<String> LIFECYCLE_TRIGGERS = Set.of("PASSIVE", "HELD");
 
     /** Convenience: no dense-id stamping — every effect/selector {@code kindId} is {@code -1} (the head-fallback path). */
     public DefaultLowerStage(SpecRegistry registry, Function<String, Affinity> affinityOf,
@@ -148,8 +153,9 @@ public final class DefaultLowerStage implements LowerStage {
             // The per-target knobs are HOISTED out of the arg bag into CompiledEffect fields before the generic
             // expression walk runs — otherwise each-if (a condition) would be lowered as a number, and the
             // executor would pay a map lookup per hit for a knob almost no effect declares.
-            Cond eachCondition = lowerEachCondition(args, diags);
-            NumExpr eachCooldown = lowerEachCooldown(args, def, diags);
+            boolean inertKnobs = rejectPerTargetKnobsOnLifecycle(def, args, diags);
+            Cond eachCondition = inertKnobs ? null : lowerEachCondition(args, diags);
+            NumExpr eachCooldown = inertKnobs ? null : lowerEachCooldown(args, def, diags);
             out.add(new CompiledEffect(cl.head(),
                     lowerExprArgs(args.without(EACH_IF, EACH_CHANCE, EACH_COOLDOWN), diags), selector,
                     waitAccum, affinityOf(cl.head()), effectIdOf.applyAsInt(cl.head()),
@@ -302,6 +308,30 @@ public final class DefaultLowerStage implements LowerStage {
         }
         Cond roll = new Cond.NumCmp(new NumExpr.SubjectNum(NumExpr.SubjectFact.ROLL), Cmp.LT, rate);
         return gate == null ? roll : new Cond.And(gate, roll);
+    }
+
+    /**
+     * A HELD/PASSIVE ability runs as a lifecycle transition, not an activation: no facts, no roll supplier and
+     * no subject cursor, so a per-target knob there can never be evaluated. Blocking on the same principle as
+     * {@link #lowerEachCooldown}'s scope test — a load error beats a knob that silently does nothing.
+     */
+    private boolean rejectPerTargetKnobsOnLifecycle(AbilityDef def, Args args, Diagnostics diags) {
+        if (!args.has(EACH_IF) && !args.has(EACH_CHANCE) && !args.has(EACH_COOLDOWN)) {
+            return false;
+        }
+        List<String> triggers = def.triggers();
+        if (triggers.isEmpty()) {
+            return false;
+        }
+        for (String trigger : triggers) {
+            if (!LIFECYCLE_TRIGGERS.contains(trigger.trim().toUpperCase(Locale.ROOT))) {
+                return false; // a gated trigger shares this ability — the knob runs there
+            }
+        }
+        diags.error(DiagCode.E_EFFECT, "each-if / each-chance / each-cooldown cannot run on a "
+                        + String.join("/", triggers) + " ability — a lifecycle transition walks no gates",
+                def.source(), "move the test into the ability's condition:, or give it a gated trigger");
+        return true;
     }
 
     /**

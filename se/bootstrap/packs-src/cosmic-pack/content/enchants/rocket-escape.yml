@@ -19,9 +19,12 @@ chance: 100
 # (`guided-rocket-escape.yml` ships the same pairing.)
 # The window-end cloud puff carries the only `wait:` and so is written LAST: a wait tier accumulates down the
 # effect list, so anything after it would inherit the delay — the launch lines must land on the launch.
-# An attacker's Sabotage window (swords doc) blocks the escape at 10% x its level and the 600t cooldown still
-# burns (measured) — attacker-side, authored with Sabotage, whose line is
-# `§c§l ** §7Rocket Escape:§c§l SABOTAGED **` (leading space verbatim).
+# An attacker's Sabotage window (swords doc) blocks the escape at 10% x its level, and the 600 t cooldown
+# still burns (measured) — hence `rebate-spends-cooldown: true`, without which a sabotaged wearer would simply
+# re-roll the save on the next lethal hit. The mark is written by `sabotage.yml` onto the wearer, so the roll
+# is READ here: `%sabotage%` is the wearer's own var on their own DEFENSE pass. The blocked line
+# `§c§l ** §7Rocket Escape:§c§l SABOTAGED **` (leading space verbatim) goes to the wearer, who is the actor
+# of this activation. `guided-rocket-escape.yml` carries the identical four knobs at its own numbers.
 # Cooldown bucket: SHARED with the heroic grade (R-QC57) via the named `cooldown-scope: rocket-escape` on the
 # launch ability, which is the matrix's one bucket across the pair. The 600 t here and the heroic's 300 t are
 # both kept — a shared bucket paces the two, it does not align their thresholds.
@@ -32,6 +35,10 @@ levels:
     abilities:
       - cooldown: 600
         cooldown-scope: rocket-escape
+        chance-rebate: "10 * %sabotage%"
+        blocked-message: "§c§l ** §7Rocket Escape:§c§l SABOTAGED **"
+        blocked-message-who: actor
+        rebate-spends-cooldown: true
         condition: "%damage% >= %actor.health%"
         effects:
           - { CANCEL: {} }
@@ -56,6 +63,10 @@ levels:
     abilities:
       - cooldown: 600
         cooldown-scope: rocket-escape
+        chance-rebate: "10 * %sabotage%"
+        blocked-message: "§c§l ** §7Rocket Escape:§c§l SABOTAGED **"
+        blocked-message-who: actor
+        rebate-spends-cooldown: true
         condition: "%damage% >= %actor.health%"
         effects:
           - { CANCEL: {} }
@@ -79,6 +90,10 @@ levels:
     abilities:
       - cooldown: 600
         cooldown-scope: rocket-escape
+        chance-rebate: "10 * %sabotage%"
+        blocked-message: "§c§l ** §7Rocket Escape:§c§l SABOTAGED **"
+        blocked-message-who: actor
+        rebate-spends-cooldown: true
         condition: "%damage% >= %actor.health%"
         effects:
           - { CANCEL: {} }

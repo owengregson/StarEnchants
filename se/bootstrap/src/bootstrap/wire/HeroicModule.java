@@ -2,6 +2,7 @@ package bootstrap.wire;
 
 import feature.heroic.HeroicListener;
 import feature.heroic.HeroicService;
+import feature.heroic.HeroicSetFold;
 import feature.menu.Mintable;
 import item.codec.HeroicUpgradeCodec;
 import item.codec.ItemKeys;
@@ -23,7 +24,8 @@ final class HeroicModule {
         HeroicUpgradeCodec heroicCodec = new HeroicUpgradeCodec(ItemKeys.of().heroicUpgrade(), core.store());
         this.heroics = new HeroicService(heroicCodec, core.codec(), core.lore(),
                 () -> core.items().config().heroicOrDefault(), core.rolls(), core.messages(), core.itemGroups(),
-                core.heroicStamp()); // the stats writer the set minter shares (§F)
+                core.heroicStamp(), // the stats writer the set minter shares (§F)
+                HeroicSetFold.over(core.content()));
         this.mints = List.of(Mints.heroic(heroics));
     }
 

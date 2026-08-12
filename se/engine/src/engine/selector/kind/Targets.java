@@ -17,8 +17,9 @@ import org.bukkit.entity.Slime;
  * ghasts and the ender dragon by class (present at the 1.8 floor the shared core ALSO compiles against), and
  * shulkers/phantoms/hoglins by {@code EntityType} name (absent from the 1.8 API, so a class reference would not
  * compile). The modern {@code Enemy} marker (1.19.4+) is deliberately unused for the same reason.
- * {@code ENEMIES}/{@code ALLIES} additionally consult the {@link Allies} soft-hook; with no team bridge
- * installed every other player is an enemy (vanilla free-for-all PvP).
+ * {@code ENEMIES}/{@code ALLIES} additionally consult the {@link Allies} soft-hook; until a server puts two
+ * players on one friendly-fire-off scoreboard team (or runs a bridged party plugin) every other player is an
+ * enemy — vanilla free-for-all PvP.
  */
 public final class Targets {
 

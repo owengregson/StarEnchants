@@ -1,0 +1,34 @@
+# Matrix: 13-support-items.md § Weapon Reforge.
+# PORT-ORIGINAL, WHOLE FAMILY. The corpus has NOTHING resembling a reforge item or a per-weapon signature-ability
+# socket — its one near-collision is an enchant named "Reforged" (an axe/tool durability enchant, matrix/04),
+# which is a different thing entirely and is noted only so a later reader does not confuse the two. The family is
+# ADR-0070/0071 and everything below is this pack's own styling of it.
+# Drag onto a WEAPON (config.yml reforges.weapon-groups) to apply — always succeeds, one socket per weapon — then
+# SHIFT + RIGHT CLICK while holding it to fire the reforge's signature ability. The Item Extractor
+# (items/crystal.yml `extractor:`) pops it back off intact.
+# Tokens: {COLOR} the reforge's own colour codes, {NAME} its display, {NAME_UPPER} the same upper-cased,
+# {TYPE} ACTIVE or PASSIVE, {DESCRIPTION} its description block (line-expanding), {APPLIES} the weapon kinds,
+# {TIME_FORMATTED} the signature ability's cooldown. There is no material here: a reforge's icon is per-reforge.
+type: reforge
+# The gold bracket frame the pack's Armor Crystal uses, so a socketed weapon and a socketed armour piece read as
+# one convention. The minted item and the on-weapon line are the same string deliberately.
+name: "&6&lWeapon Reforge ({COLOR}&l{NAME}&r&6&l)"
+lore:
+  - "&7Imbues one weapon with a reforge"
+  - "&7ability. Shift + Right Click while"
+  - "&7holding it to activate."
+  - ""
+  - "{COLOR}&l{TYPE} REFORGE ABILITY"
+  - "{DESCRIPTION}"
+  - ""
+  - "&7Cooldown: &6{TIME_FORMATTED}"
+  - "&7Applies to: &6{APPLIES}"
+  - "&6Place reforge on weapon to apply."
+lore-while-on-item: "&6&lWeapon Reforge ({NAME}&r&6&l)"
+# Anvil cues — smithing identity, distinct from the crystal/mask family. era: both are authored in their modern
+# spellings and the sound alias table carries them back to 1.8's ANVIL_LAND / ANVIL_BREAK, so the gesture is
+# audible on every lane.
+sounds:
+  enabled: true
+  apply: { sound: BLOCK_ANVIL_LAND, volume: 0.8, pitch: 1.2 }
+  remove: { sound: BLOCK_ANVIL_DESTROY, volume: 0.5, pitch: 1.4 }

@@ -12,9 +12,13 @@ tier: epic
 # mechanism and is reproduced, not treated as a bug: the arming window is level x 10t.
 # Residual: the measured jar deleted the arrow entity; CANCEL negates the damage and leaves the arrow flying
 # past — cosmetic only.
-# Alternation survives both blocks sharing one DEFENSE pass because SET_VAR rides the Sink: every write lands
-# at the single post-pass flush, so both conditions read the pre-hit flag and exactly one block fires — a
-# deflected hit cannot re-arm the guard on its way out, in whatever order the two are evaluated.
+# Both blocks share one DEFENSE pass and a SET_VAR write lands in the store immediately, so the arm block's
+# condition reads whatever the deflect block just wrote. That is why the deflect stamps a SPENT sentinel (2,
+# ttl 1) rather than clearing the flag, and why the arm block excludes both 1 and 2: a cleared flag would read
+# as "not armed" and the deflect would re-arm the guard on its way out, giving blanket arrow immunity instead
+# of alternation. The sentinel elapses on the next tick, so the following arrow arms normally.
+# ORDER IS LOAD-BEARING for the same reason: candidates run in authored order, so the deflect block has to stay
+# FIRST at every rung — an arm evaluated first would arm and then deflect the very arrow that armed it.
 # THE LETHAL SNIPER BYPASS (matrix 06 § Lethal Sniper, authored on THIS file): a Lethal Sniper arrow beats the
 # deflect at `0.1 x its level`, 10-50 %. Shipped as a pre-roll subtraction on the deflect block — the shape
 # Trap/Snare use for their Metaphysical rebates, distribution-identical to rolling the bypass separately. The
@@ -29,10 +33,10 @@ levels:
         condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% == 1"
         effects:
           - { CANCEL: {} }
-          - { SET_VAR: { name: "arrowdeflect.armed", value: "", ttl: 1, who: "@Self" } }
+          - { SET_VAR: { name: "arrowdeflect.armed", value: "2", ttl: 1, who: "@Self" } }
           - { PARTICLE: { particle: "SPELL", count: 20, who: "@Self" } }
           - { SOUND: { sound: "ENTITY_ITEM_BREAK", volume: 0.7, pitch: 0.2 } }
-      - condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% != 1"
+      - condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% != 1 && %arrowdeflect.armed% != 2"
         effects:
           - { SET_VAR: { name: "arrowdeflect.armed", value: "1", ttl: 10, who: "@Self" } }
   2:
@@ -41,10 +45,10 @@ levels:
         condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% == 1"
         effects:
           - { CANCEL: {} }
-          - { SET_VAR: { name: "arrowdeflect.armed", value: "", ttl: 1, who: "@Self" } }
+          - { SET_VAR: { name: "arrowdeflect.armed", value: "2", ttl: 1, who: "@Self" } }
           - { PARTICLE: { particle: "SPELL", count: 20, who: "@Self" } }
           - { SOUND: { sound: "ENTITY_ITEM_BREAK", volume: 0.7, pitch: 0.2 } }
-      - condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% != 1"
+      - condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% != 1 && %arrowdeflect.armed% != 2"
         effects:
           - { SET_VAR: { name: "arrowdeflect.armed", value: "1", ttl: 20, who: "@Self" } }
   3:
@@ -53,10 +57,10 @@ levels:
         condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% == 1"
         effects:
           - { CANCEL: {} }
-          - { SET_VAR: { name: "arrowdeflect.armed", value: "", ttl: 1, who: "@Self" } }
+          - { SET_VAR: { name: "arrowdeflect.armed", value: "2", ttl: 1, who: "@Self" } }
           - { PARTICLE: { particle: "SPELL", count: 20, who: "@Self" } }
           - { SOUND: { sound: "ENTITY_ITEM_BREAK", volume: 0.7, pitch: 0.2 } }
-      - condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% != 1"
+      - condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% != 1 && %arrowdeflect.armed% != 2"
         effects:
           - { SET_VAR: { name: "arrowdeflect.armed", value: "1", ttl: 30, who: "@Self" } }
   4:
@@ -65,9 +69,9 @@ levels:
         condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% == 1"
         effects:
           - { CANCEL: {} }
-          - { SET_VAR: { name: "arrowdeflect.armed", value: "", ttl: 1, who: "@Self" } }
+          - { SET_VAR: { name: "arrowdeflect.armed", value: "2", ttl: 1, who: "@Self" } }
           - { PARTICLE: { particle: "SPELL", count: 20, who: "@Self" } }
           - { SOUND: { sound: "ENTITY_ITEM_BREAK", volume: 0.7, pitch: 0.2 } }
-      - condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% != 1"
+      - condition: "%damagecause% == \"PROJECTILE\" && %arrowdeflect.armed% != 1 && %arrowdeflect.armed% != 2"
         effects:
           - { SET_VAR: { name: "arrowdeflect.armed", value: "1", ttl: 40, who: "@Self" } }

@@ -206,13 +206,11 @@ public final class AbilityExecutor {
             if (recipient == null) {
                 return; // a mob cannot be told, and nothing else may receive a line addressed to the victim
             }
-            if (rebate.message() != null && !rebate.message().isEmpty()) {
-                sink.message(recipient, Tokens.sub(rebate.message(), ATTACKER, actor.getName(),
-                        VICTIM, victim == null ? "" : victim.getName()));
-            }
-            if (rebate.soundId() >= 0) {
-                sink.sound(recipient.getLocation(), rebate.soundId(), 1.0f, 1.0f);
-            }
+            // Throttled in the sink: the rebated band widens with the DEFENCE, so a well-countered defender
+            // trips several siblings' bands on one swing — and one throttle for line + cue.
+            String line = rebate.message() == null ? "" : Tokens.sub(rebate.message(), ATTACKER, actor.getName(),
+                    VICTIM, victim == null ? "" : victim.getName());
+            sink.rebateNotice(recipient, line, rebate.soundId());
         } else if (outcome == GateOutcome.NO_SOULS) {
             String notice = ability.noSoulsMessage();
             int soundId = ability.noSoulsSound();
@@ -252,6 +250,7 @@ public final class AbilityExecutor {
         boolean onCooldown = false;
         long cooldownRemaining = 0;
         int conditionIndex = -1;
+        int activatedIndex = -1;
         boolean chanceFailed = false;
         for (int i = 0; i < candidateIds.length; i++) {
             int id = candidateIds[i];
@@ -274,6 +273,9 @@ public final class AbilityExecutor {
                         boolean faulted = runEffects(ability, context, sink, activation.activeGem(),
                                 activation.facts(), quarantine, activation);
                         activated = true;
+                        if (activatedIndex < 0) {
+                            activatedIndex = i; // which ability answered — a refusal sibling is not the use
+                        }
                         notifyActivation(ability, context, stableKeys);
                         emitSoulRefund(ability, activation, context, sink);
                         if (faulted) {
@@ -291,6 +293,12 @@ public final class AbilityExecutor {
                         }
                     }
                     case CHANCE_FAILED -> chanceFailed = true;
+                    case REBATED -> {
+                        // ADR-0076 part E puts the rebate line on the DISPATCH layer with no hot-path caveat, so
+                        // it has to fire here too. The rest of the bucket stays silent by UseOutcome's contract.
+                        emitVerdictFeedback(outcome, ability, activation, context, sink);
+                        chanceFailed = true; // the roll ate it — not a world/suppression gate
+                    }
                     default -> { } // world/protection/trigger/level/suppression/souls/cancel → the BLOCKED bucket
                 }
             } catch (Throwable failed) {
@@ -299,7 +307,8 @@ public final class AbilityExecutor {
                 quarantine.recordFailure(id, ability.defId());
             }
         }
-        return new UseAttempt(activated, onCooldown, cooldownRemaining, conditionIndex, chanceFailed);
+        return new UseAttempt(activated, onCooldown, cooldownRemaining, conditionIndex, chanceFailed,
+                activatedIndex);
     }
 
     // Failure isolated so a bad observer never aborts the hit. Key resolved against the run's own snapshot
@@ -396,7 +405,7 @@ public final class AbilityExecutor {
                 List<org.bukkit.Location> locations = selector == null ? List.of() : selector.resolveLocations(sel);
                 EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets),
                         locationSlotMap(kind, locations), ability.level(), ability.defId(), ability.sourceGroup(),
-                        -1, 0, // a lifecycle transition walks no gates, so it reserved no cooldown to refund
+                        -1, 0, 0, null, // a lifecycle transition walks no gates: no reservation to refund
                         null, null, origin, null);
                 sink.delay(0);
                 if (stopping) {
@@ -414,9 +423,9 @@ public final class AbilityExecutor {
      * Returns true if any effect KIND threw (a genuine fault the quarantine counts). An unregistered head is
      * warn-and-skip, NOT a fault — the ability still activates and its sibling effects run (§9).
      *
-     * <p>{@code gated} is the activation this run belongs to, or {@code null} when there is none (the lifecycle
-     * paths) — the only thing it is read for here is the per-target defender consult, which needs an actor, a
-     * primary victim to exempt, and a roll supplier.
+     * <p>{@code gated} is the activation this run belongs to — read for the per-target defender consult, which
+     * needs an actor, a primary victim to exempt, and a roll supplier. The lifecycle path has none of those and
+     * so does not come through here at all ({@link #runLifecycle}).
      */
     private boolean runEffects(Ability ability, ActivationContext context, SinkReadback sink, UUID activeGem,
                                FactBuffer facts, AbilityQuarantine quarantine, Activation gated) {
@@ -461,6 +470,7 @@ public final class AbilityExecutor {
                 EffectCtx ctx = new RuntimeEffectCtx(effect.args(), context, slotMap(kind, targets),
                         locationSlotMap(kind, locations), ability.level(), ability.defId(), ability.sourceGroup(),
                         ability.cdScopeEnchant(), ability.cooldownTicks(),
+                        gated.targetBucket(), ability.cooldownPerVictim() ? gated.victimId() : null,
                         activeGem, facts, origin, perTarget ? cursor : null);
                 // WAIT (§3.6): defer only this effect's world-mutation intents by its accumulated tick tier.
                 // Targets are resolved now on the firing thread; inline feedback (fold/cancel) stays instant.

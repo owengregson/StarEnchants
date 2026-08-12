@@ -1,0 +1,18 @@
+# Matrix: 13-support-items.md § Trak gems (codex 16-item-builders.md, kill-tracker builder).
+# PORT-ORIGINAL LIKENESS, and a FINER SPLIT than the corpus records: the jar has ONE tracker family selected by
+# matching a tracker rank to the item's rarity rung (1-7, falling back to the lowest rank when that rung has no
+# tracker). Four separate gems, their materials, their names, their lore and the count line are all this
+# engine's. The rank ladder has no knob here and is not expressed.
+type: mobtrak
+# Era-stable on both lanes.
+material: MAGMA_CREAM
+name: "&e&lMobTrak Gem"
+# {KINDS} = the applies-to label, {COUNT} = the live count.
+lore:
+  - "&7Counts every mob this weapon has"
+  - "&7slain since the gem was applied."
+  - ""
+  - "&7Applies to: &e{KINDS}"
+  - "&ePlace gem on item to apply."
+applies-to: [WEAPON]
+count-format: "&7Mobs Slain: &e{COUNT}"

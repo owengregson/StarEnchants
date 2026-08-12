@@ -3,7 +3,7 @@ display: "Skill Swipe"
 # description: not matrix-recorded (factual paraphrase)
 description:
   - "&eA chance to swipe experience straight out of the"
-  - "&eplayer you hit, plus an orb of your own."
+  - "&eplayer you hit."
 trigger: ATTACK
 applies-to: [SWORD]
 group: "uncommon"
@@ -12,10 +12,15 @@ condition: "%victim.type% == \"PLAYER\""
 # MODIFY_EXP mode=transfer moves at most what the victim actually holds — the primitive's clamp IS the jar's
 # `j - i < 0` clamp, so a poor victim simply loses everything they had.
 # Recorded delta: the jar skipped the WHOLE proc (orb included) against a zero-XP victim. Here the transfer
-# clamps to a no-op and the bonus orb still spawns. No victim-XP condition fact exists and the matrix does not
-# call it gap-worthy; the pair is non-XP-conserving in the jar too (the orb is free XP either way).
-# The orb is the jar's bonus drop, kept as measured; the jar placed it at the attacker's target block within a
-# block of them, which is a cosmetic placement delta against @Self.
+# clamps to a no-op and the orb still spawns. No victim-XP condition fact exists and the matrix does not call
+# it gap-worthy.
+# The orb is the jar's own drop, kept as measured, and it is worth NOTHING on either side: a spawn through the
+# entity type — the jar's `spawnEntity(EXPERIENCE_ORB)` as much as SPAWN_ENTITY here — builds an orb with the
+# default value 0, and neither the primitive nor the jar stamps one on it. So the transfer is the whole
+# payload and the orb is a green spark over the kill; the codex's "non-XP-conserving" note reads the orb as
+# carrying its own value, which CraftBukkit's spawn path does not. Not compensated with a real `MODIFY_EXP`
+# grant: that would hand the attacker XP the jar never gave. The jar placed it at the attacker's target block
+# within a block of them, which is a cosmetic placement delta against @Self.
 # interactions: none. strings: none.
 # era: none.
 levels:

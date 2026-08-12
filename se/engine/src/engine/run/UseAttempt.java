@@ -14,12 +14,16 @@ package engine.run;
  *                                 order) of the FIRST candidate that stopped at the condition gate, else {@code -1}
  * @param chanceFailed             a candidate stopped at the chance-roll gate (gate 8); the cold path charges the
  *                                 cooldown on this fail, so a spammed sub-100% use-item is throttled per attempt
+ * @param activatedCandidateIndex  the index of the FIRST candidate that activated, else {@code -1}. A source
+ *                                 whose siblings are refusal branches ("you must wait…") needs to tell WHICH
+ *                                 ability answered: a refusal activates like any other, and crediting it as the
+ *                                 use would pay its economy for being told no (R-115-1)
  */
 public record UseAttempt(boolean activated, boolean onCooldown, long cooldownRemainingTicks,
-                         int conditionCandidateIndex, boolean chanceFailed) {
+                         int conditionCandidateIndex, boolean chanceFailed, int activatedCandidateIndex) {
 
     /** The all-blocked/no-candidate result — every field inert. */
     public static UseAttempt none() {
-        return new UseAttempt(false, false, 0L, -1, false);
+        return new UseAttempt(false, false, 0L, -1, false, -1);
     }
 }

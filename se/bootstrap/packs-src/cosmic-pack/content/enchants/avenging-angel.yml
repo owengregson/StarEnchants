@@ -12,6 +12,9 @@ tier: epic
 # fills it. Facts are the pre-effect snapshot, so one expression serves every rung, and the `< 100` gate
 # guarantees it is positive. `Numbers.chat` and the jar's `#,###.##` agree for every value under 1000.
 # The unclosed `[` is the jar's own (codex quirk) and the rest is byte-verbatim — leave it open.
+# `%victim.relation% == "ALLY"` reads the server's alliance bridge (a friendly-fire-off scoreboard team, or a
+# bridged party plugin), so on a server that defines no alliances this enchant never has a death to answer —
+# the jar's isAlly gate had the same shape.
 levels:
   1:
     # radius min(50 + level x 12, 100) = 62; the observer walk itself is bounded at 16 blocks by the engine

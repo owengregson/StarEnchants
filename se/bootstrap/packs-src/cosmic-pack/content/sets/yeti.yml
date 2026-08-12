@@ -138,7 +138,10 @@ weapon:
 # below; the port gates on PDC identity, so the branches survive the reforge (as intended, with the reforge family).
 bonuses:
   # −10 % incoming, all sources (the jar routes everything through entity-attack). The wearer's own Resistance
-  # is stripped first so the fold lands on an unblunted hit.
+  # is stripped first so the fold lands on an unblunted hit — `event.setDamage` writes the BASE modifier and
+  # the server's RESISTANCE modifier still multiplies over it, so the strip means here what it meant in the jar.
+  # DEFENSE ONLY: the jar ran the same strip on the attacker pass, where Resistance (an INCOMING-only
+  # mitigation) can change nothing about the swing — pure subtraction from the wearer, dropped under D-10-9.
   - on: armor
     trigger: DEFENSE
     chance: 100
@@ -149,7 +152,6 @@ bonuses:
     trigger: ATTACK
     chance: 100
     effects:
-      - { REMOVE_POTION: { effect: DAMAGE_RESISTANCE, who: "@Self" } }
       - { DAMAGE_MOD: { side: attack, mode: add, amount: 10 } }
   # Armour strip, players only. The jar rolls 75 % per armour SLOT independently (expected 3 pieces a hit);
   # one whole-set roll at the same 75 % carries the same expected value, differing only in distribution

@@ -55,7 +55,7 @@ class RefundCooldownTest {
         assertEquals(0L, reserve(), "the gate acquires the window");
         assertEquals(DURATION, stores.cooldowns().remainingTicks(actorId, key(), now));
 
-        sink.refundCooldown(actor, SCOPE, DURATION);
+        sink.refundCooldown(actor, SCOPE, 0, null, DURATION);
         sink.flush();
 
         assertEquals(0L, stores.cooldowns().remainingTicks(actorId, key(), now),
@@ -70,7 +70,7 @@ class RefundCooldownTest {
         reserve();
         now = 140L; // e.g. a WAIT tier deferred the refund off the arming tick
 
-        sink.refundCooldown(actor, SCOPE, DURATION);
+        sink.refundCooldown(actor, SCOPE, 0, null, DURATION);
         sink.flush();
 
         assertEquals(DURATION - 40, stores.cooldowns().remainingTicks(actorId, key(), now));
@@ -82,10 +82,25 @@ class RefundCooldownTest {
         // they must be inert rather than releasing key(-1) or key(scope, 0).
         reserve();
 
-        sink.refundCooldown(actor, -1, DURATION);
-        sink.refundCooldown(actor, SCOPE, 0);
+        sink.refundCooldown(actor, -1, 0, null, DURATION);
+        sink.refundCooldown(actor, SCOPE, 0, null, 0);
         sink.flush();
 
         assertEquals(DURATION, stores.cooldowns().remainingTicks(actorId, key(), now));
+    }
+
+    @Test
+    void theRefundReleasesThePlayerRouteAndThePerVictimDimensionItWasArmedIn() {
+        // The key gate 6 wrote carries the target bucket (1 whenever the other combat party is a player) and,
+        // for a cooldown-per-victim ability, lives in that victim's own dimension. A refund that assumed the
+        // coarse bucket-0 key released nothing on exactly the hits the effect exists to forgive.
+        UUID victim = UUID.randomUUID();
+        long pvpKey = CooldownStore.key(ScopeKinds.ENCHANT, SCOPE, 1);
+        assertEquals(0L, stores.cooldowns().tryAcquire(actorId, victim, pvpKey, now, DURATION));
+
+        sink.refundCooldown(actor, SCOPE, 1, victim, DURATION);
+        sink.flush();
+
+        assertEquals(0L, stores.cooldowns().remainingTicks(actorId, victim, pvpKey, now));
     }
 }

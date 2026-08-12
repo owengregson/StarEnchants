@@ -1,0 +1,10 @@
+# The corpus records no GUI of its own — the jar's economy items are minted by plugins absent from it and
+# every menu in this engine is port-original chrome (ADR-0030). What ships here is a THEME, not a likeness:
+# the pack's own gold-on-black frame so its menus read as one surface with its gold Armor Crystal / Heroic
+# items instead of the engine's neutral purple. Only the fields below differ from the engine default; any
+# field omitted keeps it.
+# Alchemist exchange GUI — two matching books forge one of the next level. A bench fills its whole
+# backdrop, so frame is omitted; green is the exchange-bench convention.
+
+title: "&a&l❖ Alchemist ❖"
+filler: "LIME_STAINED_GLASS_PANE"

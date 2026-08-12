@@ -21,8 +21,9 @@ tier: legendary
 # dominate it).
 # interactions: none — a self-contained mark → XP chain. strings: none. era: none.
 levels:
-  # mark chance 7.5 pp per level; XP x1.25 / x1.5 / x1.75 / x2.0. The engine truncates to whole XP, matching
-  # the measured 5 XP → 6 / 7 / 8 / 10.
+  # mark chance 7.5 pp per level; XP x1.25 / x1.5 / x1.75 / x2.0. EXP_GAIN ROUNDS to whole XP where the jar
+  # truncated the orb — the engine's own documented split, MINE truncating and EXP_GAIN rounding — so 5 XP
+  # pays 6 / 8 / 9 / 10 against the measured 6 / 7 / 8 / 10 (D-03-18).
   1:
     abilities:
       - trigger: ATTACK

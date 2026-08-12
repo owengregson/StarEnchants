@@ -30,6 +30,10 @@ public final class Purity {
     public static void assertServerFree(String rootPackage, String... extraBannedRoots) {
         JavaClasses classes = new ClassFileImporter()
                 .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                // The predefined option keys off the conventional `build/classes/java/test` path, which the
+                // legacy tree (`build-legacy/`, §11) does not match — so without this the "PRODUCTION class"
+                // the javadoc promises silently includes every test class on that lane.
+                .withImportOption(location -> !location.contains("/classes/java/test/"))
                 .importPackages(rootPackage);
         String[] banned = Stream.concat(Stream.of(SERVER_ROOTS), Stream.of(extraBannedRoots))
                 .toArray(String[]::new);

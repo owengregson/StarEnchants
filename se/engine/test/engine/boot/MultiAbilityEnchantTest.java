@@ -335,6 +335,40 @@ class MultiAbilityEnchantTest {
                 () -> lib.diagnostics().toString());
     }
 
+    @Test
+    void aPerTargetKnobOnALifecycleTriggerIsBlocking() throws Exception {
+        // HELD/PASSIVE run as a lifecycle transition — no facts, no roll supplier, no subject cursor — so the
+        // knob would load clean, report nothing to /se problems and never run. Same principle as above.
+        Path enchants = Files.createDirectories(root.resolve("content/enchants"));
+        Files.writeString(enchants.resolve("phoenix.yml"), """
+                display: "Phoenix"
+                trigger: "PASSIVE"
+                levels:
+                  1:
+                    effects:
+                      - { IGNITE: { duration: 60, who: "@Aoe", each-if: "%target.type% == \\"PLAYER\\"" } }
+                """, StandardCharsets.UTF_8);
+        Library lib = LibraryLoader.load(root.resolve("content"), COMPILER, 0);
+        assertTrue(lib.hasErrors(), () -> lib.diagnostics().toString());
+        assertTrue(lib.diagnostics().stream().anyMatch(d -> d.is(schema.diag.DiagCode.E_EFFECT)),
+                () -> lib.diagnostics().toString());
+    }
+
+    @Test
+    void aPerTargetKnobSurvivesWhenAGatedTriggerSharesTheAbility() throws Exception {
+        // The rejection is about an ability that can ONLY reach the lifecycle path; one gated trigger is
+        // enough for the knob to mean something.
+        Snapshot snap = load("""
+                display: "Phoenix"
+                trigger: ["PASSIVE", "ATTACK"]
+                levels:
+                  1:
+                    effects:
+                      - { IGNITE: { duration: 60, who: "@Aoe", each-chance: 25 } }
+                """);
+        assertTrue(snap.byStableKey("enchants/phoenix/1").effects()[0].hasPerTargetFilter());
+    }
+
     private GateOutcome gate(Ability ability, FactBuffer facts, double roll) {
         return new ActivationPipeline(new CooldownStore(), SoulSpender.NONE).evaluate(ability,
                 Activation.builder(ACTOR, 0, triggerId, 0L).facts(facts).chanceRoll(() -> roll).build());

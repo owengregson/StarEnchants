@@ -8,6 +8,12 @@ applies-to: [ARMOR]
 group: "soul"
 tier: soul
 chance: 100
+# The gem is a wallet, not a switch (the phoenix.yml rule): matrix 07's Soul Mode section lists the mode's
+# consumers — Soul Trap, Hero Killer, Sabotage, Divine Immolation, Teleblock, Nature's Wrath, Paradox — and
+# Immortal is not among them; the jar's listener charged the carried gems with no toggle check at all. Without
+# this the engine refuses every soul-cost ability outside soul mode, which is the DEFAULT state after any
+# relog: no repair, and the OUT OF SOULS line every 15 s to a player carrying thousands.
+soul-cost-carried: true
 # era: souls and gems are engine features on both lanes; ENTITY_PLAYER_LEVELUP carries the 1.8.9
 # `random.levelup` spelling through the LEVEL_UP resolver alias.
 levels:
@@ -28,6 +34,12 @@ levels:
       # test is whether paying the cost steps the total over a 20-boundary — the post-deduction crossing.
       # R-QC2 binds `{souls}` on the same footing: this block never charges, so it subtracts the funded
       # branch's own per-level cost from the pre-spend balance the facts carry.
+      # The funded branch's DEBIT is what makes this a crossing test instead of a standing property of the
+      # balance — the fact is frozen for the activation, so with nothing ever spent the same total would
+      # satisfy it on every hit taken for the whole fight (1 balance in 5 at L1). `soul-cost-carried: true`
+      # above is what guarantees the spend. Residue: a SOUL_COST_EXEMPT waiver repairs without debiting, and
+      # under one the line does repeat. The level-up cue rides here rather than on the funded branch because
+      # SOUND takes no `each-if:` — it is the one row that could not be gated on the crossing.
       - condition: "%actor.souls% >= 4 && floor(%actor.souls% / 20) > floor((%actor.souls% - 4) / 20)"
         effects:
           - { MESSAGE: { text: "" } }

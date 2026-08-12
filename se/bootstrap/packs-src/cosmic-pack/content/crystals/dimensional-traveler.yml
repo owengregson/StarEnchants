@@ -24,11 +24,14 @@ stackable: true
 # ability rather than a rung of its own. A wearer who holds both still sees the pair twice, exactly as they
 # already take the whole shift payload twice; that is the set/crystal double-billing this file records below,
 # not a new one. Both copies must move together, per this file's own rule.
-# ONE CLAUSE OF THE SET'S READING STILL DOES NOT TRAVEL, recorded rather than faked:
-#  * the IMPACT LANDING PAYLOAD. A landing block fires the ACTOR's IMPACT abilities, and the set owns the only
-#    one — so a wearer who carries crystals WITHOUT completing the set rains blocks that land for nothing.
-#    A second IMPACT rung here would fix that case and double-bill every landing for a wearer who has both,
-#    which is worse; it closes with the group-scoped IMPACT identity (deferred-content.md).
+# THE IMPACT LANDING PAYLOAD TRAVELS TOO, on a group of its OWN. A landing block fires the ACTOR's IMPACT
+# abilities scoped to the group its field carried, so the crystal route needs a payload of its own or its
+# ~142 blocks a victim land for nothing — a purely cosmetic storm, with the COBWEB counterplay and the
+# health-cap/re-hit ceiling below inert with it. Sharing the set's group would have double-billed a wearer who
+# holds both (two payloads on one landing), so the two identities are kept apart: `dimensional-shift` arms and
+# pays the SET, `dimensional-shift-crystal` arms and pays the CRYSTAL. A wearer with both still rolls two
+# independent shifts, each raining its own field that pays its own payload once — the same set/crystal
+# double-billing this file already records for the rest of the payload, not a new one.
 # The set's damage hook carries NO Infinite Luck check, and the crystal path never had one either, so the fold
 # below is unconditional. Worded to match crystals/koth.yml rather than claiming exclusivity: the matrix awards
 # that twice and cannot mean both — § Dimensional Traveler calls this hook "unique among damage sets" while
@@ -41,11 +44,11 @@ abilities:
   # the same reading — a shift is a shift whichever piece armed it.
   - trigger: DEFENSE
     chance: 0.2
-    # The IMPACT scope (ADR-0074 §4), the SAME interned string as the set's arm and payload: a crystal-armed
-    # landing fires the set's shift payload — the one ability in the group — and never the wearer's whole
-    # IMPACT roster. A wearer carrying this crystal WITHOUT the set has no ability in the group, which is the
-    # recorded payload gap above, unchanged.
-    group: "dimensional-shift"
+    # The IMPACT scope (ADR-0074 §4): a crystal-armed landing fires the CRYSTAL's payload below — the one
+    # ability in this group — and never the set's copy nor the wearer's whole IMPACT roster. The name is this
+    # file's own, deliberately NOT the set's, per the note above; it must be spelled the same on the arm and
+    # the payload or the field lands on nothing.
+    group: "dimensional-shift-crystal"
     condition: "(%actor.world% contains \"dungeon\") : %stop%"
     effects:
       - { FREEZE: { duration: 80, dot: 0, slow: 100, who: "@Aoe{r=25, filter=ENEMIES}",
@@ -63,3 +66,22 @@ abilities:
             layers-min: 3, layers-max: 4, layer-step-min: 12, layer-step-max: 19, density: 50,
             damage-percent: 15, health-cap: 44, rehit-max: 4, rehit-window: 200, kill-material: COBWEB,
             who: "@Aoe{r=25, filter=ENEMIES}" } }
+  # The landing payload, sets/dimensional-traveler.yml's copied under this file's own group — same raw health
+  # subtraction (armour and protection never price it, and unlike Revenge of Yijki it CAN kill), same on-hit
+  # unfreeze, same cue; the engine has already spent the field's re-hit ceiling before this runs.
+  # ONE PAYLOAD A LANDING, which the arm above does not have to care about and this rung does: a stacked
+  # crystal contributes its ability once per crystal-bearing PIECE (§6.5), so four crystals would otherwise
+  # bill every block four times over. `cooldown: 1` with `cooldown-per-victim` is the collapse — gate 6's
+  # reservation is keyed on this ability's own scope and the struck victim, so all four copies race for one
+  # slot and exactly one wins. It is a per-victim window, so a landing on a second victim in the same tick is
+  # untouched; the residue, recorded, is that two blocks reaching the SAME victim inside one tick pay once.
+  - trigger: IMPACT
+    group: "dimensional-shift-crystal"
+    chance: 100
+    cooldown: 1
+    cooldown-per-victim: true
+    condition: "%victim.type% == \"PLAYER\""
+    effects:
+      - { MODIFY_HEALTH: { amount: "%damage%", mode: take, who: "@Victim" } }
+      - { STATUS_CLEAR: { status: FREEZE, who: "@Victim" } }
+      - { SOUND: { sound: "ENTITY_ZOMBIE_BREAK_WOODEN_DOOR", volume: 1.0, pitch: 1.0, who: "@Victim" } }

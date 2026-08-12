@@ -39,11 +39,21 @@ stackable: false
 # POOL (matrix § Ghost): Horrify, Feign Death, Poltergeist, Mark of the Beast — all four now SHIP (R-QC1 and
 # R-QC30 closed the last three), so every key below is live and the crystal is complete. The key is the
 # enchant's file STEM under `enchants/`, the same spelling every SUPPRESS in this pack uses.
+# POLTERGEIST IS THE ODD ONE, AND IT TAKES THE OTHER DIRECTION. The jar's cancel keys on the PROC'S TARGET
+# ("cancel this mastery proc when its target wears a matching crystal"), which is what `SUPPRESS_INCOMING`
+# means here — but Poltergeist is the one pool member that never procs on anybody else: it is an
+# unconditional fall-damage cancel on its own wearer, a FALL activation with no victim at all, so a
+# defender-keyed window has nothing to be consulted against and would sit inert forever. The jar's ONE
+# reachable case is the wearer BEING the target — a player carrying both this crystal and Poltergeist loses
+# their own fall immunity — and that is an activator-keyed `SUPPRESS` on `@Self`, which is what ships. The
+# residue, recorded: an enemy's Poltergeist is out of reach because there is nothing of it aimed at anyone,
+# and its other surface — the freeze rebate consumers read off `%target.enchlevel.poltergeist%` — is a worn
+# FACT rather than an activation, so no suppression window of any scope has ever touched it, here or in the jar.
 abilities:
   - trigger: REPEATING
     repeat: 20
     effects:
       - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/horrify", duration: 60, who: "@Self" } }
       - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/feign-death", duration: 60, who: "@Self" } }
-      - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/poltergeist", duration: 60, who: "@Self" } }
+      - { SUPPRESS: { scope: ENCHANT, key: "enchants/poltergeist", duration: 60, who: "@Self" } }
       - { SUPPRESS_INCOMING: { scope: ENCHANT, key: "enchants/mark-of-the-beast", duration: 60, who: "@Self" } }

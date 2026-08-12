@@ -1,5 +1,6 @@
 package feature.menu;
 
+import compile.load.ContentHolder;
 import compile.load.MenusConfig;
 import java.util.List;
 import java.util.function.Supplier;
@@ -17,11 +18,13 @@ import platform.caps.Capabilities;
 public final class UserHubMenu extends HubMenu {
 
     private final MenuRegistry registry;
+    private final ContentHolder content;
 
-    public UserHubMenu(MenuRegistry registry, Capabilities caps, Supplier<MenusConfig> menus,
-                       item.mint.VanillaEnchants vanilla) {
+    public UserHubMenu(MenuRegistry registry, ContentHolder content, Capabilities caps,
+                       Supplier<MenusConfig> menus, item.mint.VanillaEnchants vanilla) {
         super("hub", null, MenuLayout.sized(5, "&d&lStarEnchants &8• &7Menu"), caps, menus, vanilla);
         this.registry = registry;
+        this.content = content;
     }
 
     @Override
@@ -62,15 +65,23 @@ public final class UserHubMenu extends HubMenu {
                 List.of("&7Browse every socketable crystal", "&7and what it grants your gear."),
                 "&eClick to browse."), open("crystals"));
         // Row 2 centre — the item catalogues (pets ADR-0052, masks ADR-0053, reforges ADR-0070), a centred triple.
-        tile(holder, 20, MenuIcons.tile(vanilla,"PLAYER_HEAD", Material.GOLDEN_CARROT, "&6&lPets",
-                List.of("&7Browse every pet — hold one in", "&7your hotbar and level it up."),
-                "&eClick to browse."), open("pets"));
-        tile(holder, 22, MenuIcons.tile(vanilla,"PLAYER_HEAD", Material.PUMPKIN, "&8&lMasks",
-                List.of("&7Browse every mask — drag one onto", "&7a helmet to wear its likeness."),
-                "&eClick to browse."), open("masks"));
-        tile(holder, 24, MenuIcons.tile(vanilla,"ANVIL", Material.ANVIL, "&6&lWeapon Reforges",
-                List.of("&7Browse every weapon reforge — socket", "&7one and shift + right-click to fire it."),
-                "&eClick to browse."), open("reforges"));
+        // Each is skipped when the live pack ships none of that family: a tile promising "Browse every weapon
+        // reforge" on a pack with no reforge tree is a dead end that reads as a broken menu, not an absent one.
+        if (!content.library().pets().isEmpty()) {
+            tile(holder, 20, MenuIcons.tile(vanilla,"PLAYER_HEAD", Material.GOLDEN_CARROT, "&6&lPets",
+                    List.of("&7Browse every pet — hold one in", "&7your hotbar and level it up."),
+                    "&eClick to browse."), open("pets"));
+        }
+        if (!content.library().masks().isEmpty()) {
+            tile(holder, 22, MenuIcons.tile(vanilla,"PLAYER_HEAD", Material.PUMPKIN, "&8&lMasks",
+                    List.of("&7Browse every mask — drag one onto", "&7a helmet to wear its likeness."),
+                    "&eClick to browse."), open("masks"));
+        }
+        if (!content.library().reforges().isEmpty()) {
+            tile(holder, 24, MenuIcons.tile(vanilla,"ANVIL", Material.ANVIL, "&6&lWeapon Reforges",
+                    List.of("&7Browse every weapon reforge — socket", "&7one and shift + right-click to fire it."),
+                    "&eClick to browse."), open("reforges"));
+        }
     }
 
     /** A tile action that drills into the sibling menu registered under {@code name}. */
