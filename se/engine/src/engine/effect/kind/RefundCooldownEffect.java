@@ -48,6 +48,7 @@ public final class RefundCooldownEffect implements EffectKind {
         if (ctx.dbl("unless") != 0.0) {
             return; // the payload found something to do — the window stands
         }
-        sink.refundCooldown(ctx.actor(), ctx.cooldownScope(), ctx.cooldownTicks());
+        sink.refundCooldown(ctx.actor(), ctx.cooldownScope(), ctx.cooldownBucket(), ctx.cooldownVictim(),
+                ctx.cooldownTicks());
     }
 }

@@ -21,6 +21,10 @@ class ApiBoundaryArchTest {
     void dependsOnlyOnSchemaJavaAndBukkit() {
         JavaClasses classes = new ClassFileImporter()
                 .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                // DO_NOT_INCLUDE_TESTS recognises a test class by the conventional `build/classes/java/test`
+                // path, which the legacy tree (`build-legacy/`, §11) does not match — so on that lane THIS class
+                // was imported and the rule failed on its own ArchUnit imports. Match on the tail alone.
+                .withImportOption(location -> !location.contains("/classes/java/test/"))
                 .importPackages("api");
         ArchRule rule = classes().should().onlyDependOnClassesThat()
                 .resideInAnyPackage("api..", "schema..", "java..", "javax..", "org.bukkit..");

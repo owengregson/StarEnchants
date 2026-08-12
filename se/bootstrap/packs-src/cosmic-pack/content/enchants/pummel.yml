@@ -16,13 +16,20 @@ tier: rare
 # Shape delta, recorded not fixed: the jar's radius is a box half-extent, the engine's `r` a sphere radius.
 # THE METAPHYSICAL VETO IS PER TARGET (ADR-0076, R-QC69a). The rebate is a property of the BYSTANDER under
 # test, not of the activation, so it rides `each-chance:` on the splash row and the ability's `chance:` is the
-# plain 6 pp-per-level ladder again. Each body draws once (`%target.roll%`, memoised per body per ability) and
-# survives at `100 - 4 x L` %: -4 pp per level of Metaphysical, plus a SECOND term at the same coefficient for
-# the heroic grade, which publishes its own stem (`polymorphic-metaphysical`) rather than feeding this one.
+# plain 6 pp-per-level ladder again. Each body draws once (`%target.roll%`, memoised per body per ability).
+# The per-body rate is a SHARE OF THE RUNG, `100 x (base - 4 x L) / base`, never `100 - 4 x L`: gate 8 has
+# already rolled the ability's own `chance:` by the time a per-body filter runs, so the two compose, and only
+# the share form leaves the family's -4 pp per Metaphysical level taken off 6/12/18 the way Trap, Titan Trap,
+# Snare and Disarmor take theirs through `chance-rebate:` ("nothing about the rate moves"). A splash veto
+# cannot use that knob — the rebate differs per body, and `chance-rebate:` is one number for the activation.
+# A SECOND term at the same coefficient covers the heroic grade, which publishes its own stem
+# (`polymorphic-metaphysical`) rather than feeding this one.
 # Owner ruling: additive, not highest-of-the-two — both grades are boots-only and the contract keeps them off
 # one item, so the sum is unreachable in play. The key is the file STEM, never the `enchants/metaphysical`
 # stable key: the worn map is keyed by stem and an unknown key reads 0 in silence, so a stable-key spelling
-# would compile and rebate nothing forever. No floor — the [0,100] clamp is the bound, as on Snare/Disarmor.
+# would compile and rebate nothing forever. No floor of its own: `max(0, ...)` on the numerator is what makes
+# the recorded absolute immunity reachable (Metaphysical II vs Pummel I = 0 %), the same bound Snare and
+# Disarmor get from their expression's own clamp.
 # BALANCE DELTA, confirmed by R-QC69a and carried in deviations.md: the shield NARROWS. It used to be one
 # whole-splash veto keyed to the struck victim (who is `exclude=victim` and never in their own splash), so one
 # Metaphysical wearer spared the entire crowd; now a wearer spares only themselves. That is D-04-13's ruling —
@@ -42,11 +49,11 @@ levels:
     chance: 6
     effects:
       - { POTION: { effect: "SLOW", level: 1, duration: 30, who: "@Aoe{r=1,filter=ENEMIES,exclude=victim}",
-            each-chance: "100 - 4 * %target.enchlevel.metaphysical% - 4 * %target.enchlevel.polymorphic-metaphysical%" } }
+            each-chance: "100 * max(0, 6 - 4 * %target.enchlevel.metaphysical% - 4 * %target.enchlevel.polymorphic-metaphysical%) / 6" } }
       # The exact complement of the row above, over the SAME draw — so a vetoed bystander is told, and a
       # slowed one never is. Verbatim; the wearer sees nothing (the jar told the blocked party only).
       - { MESSAGE: { text: "§8§l** METAPHYSICAL (§8Pummel blocked!§l) **", who: "@Aoe{r=1,filter=ENEMIES,exclude=victim}",
-            each-if: "%target.roll% >= 100 - 4 * %target.enchlevel.metaphysical% - 4 * %target.enchlevel.polymorphic-metaphysical%" } }
+            each-if: "%target.roll% >= 100 * max(0, 6 - 4 * %target.enchlevel.metaphysical% - 4 * %target.enchlevel.polymorphic-metaphysical%) / 6" } }
       # The jar plays the block-break world effect at the VICTIM's feet + 0.5 (block id = whatever they stand
       # in, STONE when that is air) once per affected bystander: `dy: -0.4` is that point off the engine's
       # body-centre anchor (feet + 0.9 standing). RESIDUE — one `who` both picks the targets and anchors the
@@ -57,15 +64,15 @@ levels:
     chance: 12
     effects:
       - { POTION: { effect: "SLOW", level: 2, duration: 60, who: "@Aoe{r=2,filter=ENEMIES,exclude=victim}",
-            each-chance: "100 - 4 * %target.enchlevel.metaphysical% - 4 * %target.enchlevel.polymorphic-metaphysical%" } }
+            each-chance: "100 * max(0, 12 - 4 * %target.enchlevel.metaphysical% - 4 * %target.enchlevel.polymorphic-metaphysical%) / 12" } }
       - { MESSAGE: { text: "§8§l** METAPHYSICAL (§8Pummel blocked!§l) **", who: "@Aoe{r=2,filter=ENEMIES,exclude=victim}",
-            each-if: "%target.roll% >= 100 - 4 * %target.enchlevel.metaphysical% - 4 * %target.enchlevel.polymorphic-metaphysical%" } }
+            each-if: "%target.roll% >= 100 * max(0, 12 - 4 * %target.enchlevel.metaphysical% - 4 * %target.enchlevel.polymorphic-metaphysical%) / 12" } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "STONE", who: "@Victim", dy: -0.4 } }
   3:
     chance: 18
     effects:
       - { POTION: { effect: "SLOW", level: 3, duration: 90, who: "@Aoe{r=3,filter=ENEMIES,exclude=victim}",
-            each-chance: "100 - 4 * %target.enchlevel.metaphysical% - 4 * %target.enchlevel.polymorphic-metaphysical%" } }
+            each-chance: "100 * max(0, 18 - 4 * %target.enchlevel.metaphysical% - 4 * %target.enchlevel.polymorphic-metaphysical%) / 18" } }
       - { MESSAGE: { text: "§8§l** METAPHYSICAL (§8Pummel blocked!§l) **", who: "@Aoe{r=3,filter=ENEMIES,exclude=victim}",
-            each-if: "%target.roll% >= 100 - 4 * %target.enchlevel.metaphysical% - 4 * %target.enchlevel.polymorphic-metaphysical%" } }
+            each-if: "%target.roll% >= 100 * max(0, 18 - 4 * %target.enchlevel.metaphysical% - 4 * %target.enchlevel.polymorphic-metaphysical%) / 18" } }
       - { PARTICLE: { particle: "BLOCK_CRACK", block: "STONE", who: "@Victim", dy: -0.4 } }

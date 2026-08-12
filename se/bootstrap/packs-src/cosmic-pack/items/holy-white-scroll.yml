@@ -1,0 +1,31 @@
+# Matrix: 13-support-items.md § Holy White Scroll (codex 16-item-builders.md, item broker dispatch table).
+# PORT-ORIGINAL LIKENESS. The scroll is fetched from an absent dungeons plugin: material, name and lore are
+# codex-silent. Exactly two facts are recorded — it is a DISTINCT item from the White Scroll, and one mask
+# advertises "§c33% Holy White Scroll negation", a headline that is not implemented anywhere in the corpus
+# (matrix/11 carries that as a mask-side note). Shipping this likeness is what makes that mask line live; the
+# negation itself is still unbuilt and is NOT expressed here.
+type: holy-white-scroll
+# The same MAP the White Scroll takes — deliberately, so the pair reads as one family — separated by the gold
+# name. era: the 1.13 flattening renamed EMPTY_MAP -> MAP, so this token names the blank map on modern and that
+# era's own MAP on 1.8.9; the same recorded trade-off items/white-scroll.yml carries.
+material: MAP
+name: "&6&lHoly White Scroll"
+lore:
+  - "&7Keeps an item in your inventory"
+  - "&7when you die. The scroll is spent"
+  - "&7and removed from the item there."
+  - "&6Place scroll on item to apply."
+# Every kind: the corpus draws no line here, and the White Scroll it grades up from draws none either.
+applies-to: [ALL]
+# 100/100 = no roll, the family's apply rule in this pack (the White Scroll and the crystal both apply flat).
+min-success: 100
+max-success: 100
+# The line rendered from state on a protected item, and the corruption ladder read off how many scrolls the item
+# has SPENT (a save on death, not an apply). Both port-original — the corpus records neither the wording nor a
+# ceiling, so 7 is this pack's number.
+protected-line: "&6&l*&f&lHOLY&6&l* &f&lPROTECTED"
+max-protections: 7
+corrupt-lines:
+  semi: "&c&lSEMI CORRUPT (&r&f&n{AMOUNT}&r&7 / {MAX} Holy Protections&r&c&l)"
+  very: "&c&lVERY CORRUPT (&r&f&n{AMOUNT}&r&7 / {MAX} Holy Protections&r&c&l)"
+  full: "&c&lCORRUPTED (&r&f&n{AMOUNT}&r&7 / {MAX} Holy Protections&r&c&l)"

@@ -12,9 +12,13 @@
 # reached the conversion — on cooldown, or spectating — can never re-fire a branch off the previous use's
 # count. Index 0 also carries the pet-wide cooldown scope (`pet:<key>`, so a level-up crossing a bracket floor
 # keeps the running window); the three follow-ups author `cooldown: 0` and scope to their own keys.
-# RESIDUAL, the one place this pet cannot express its intent: the jar un-stamped the cooldown when nothing
-# converted, and gate 6 reserves the window before a count exists, so a zero-bucket use spends the 5 minutes.
-# The refusal is post-conversion, not a condition, which is what makes it un-refundable.
+# THE ZERO-BUCKET CLICK COSTS NOTHING (R-QC15), which is the jar's own un-stamp expressed rather than
+# approximated. Gate 6 reserves the window before any count exists, so the answer is not a condition but
+# `REFUND_COOLDOWN{unless: "%lavapet.filled%"}` handing that reservation back once the conversion has run and
+# bound nothing. It belongs in index 0 and nowhere else: that is the ability holding the 6000 t pet-wide
+# reservation, and the zero arm below authors `cooldown: 0`, so a refund row there would have no window to
+# release. A WAIT tier would forfeit it too — there is none here, and INVENTORY_CONVERT settles the count
+# inline (even at zero) before the refund row asks.
 # D-12-4 needs nothing authored: INVENTORY_CONVERT converts UP TO the limit and hands back the overflow —
 # exactly the shape the jar inverted (it converted the overflow and returned the part that fitted).
 # NOT AUTHORED — the fat-bucket half: `+{fatFill}` charges to every Fat Bucket (25 x level, L10 256), hard
@@ -64,6 +68,7 @@ levels:
         effects:
           - { SET_VAR: { name: "lavapet.fired", value: "1", ttl: 1, who: "@Self" } }
           - { INVENTORY_CONVERT: { from: "BUCKET", to: "LAVA_BUCKET", limit: 32, plain: true, protect-seconds: 60, count-var: "lavapet.filled" } }
+          - { REFUND_COOLDOWN: { unless: "%lavapet.filled%" } }
       - condition: '%lavapet.fired% == 1 && %lavapet.filled% > 0'
         cooldown: 0
         effects:
@@ -85,6 +90,7 @@ levels:
         effects:
           - { SET_VAR: { name: "lavapet.fired", value: "1", ttl: 1, who: "@Self" } }
           - { INVENTORY_CONVERT: { from: "BUCKET", to: "LAVA_BUCKET", limit: 64, plain: true, protect-seconds: 60, count-var: "lavapet.filled" } }
+          - { REFUND_COOLDOWN: { unless: "%lavapet.filled%" } }
       - condition: '%lavapet.fired% == 1 && %lavapet.filled% > 0'
         cooldown: 0
         effects:
@@ -106,6 +112,7 @@ levels:
         effects:
           - { SET_VAR: { name: "lavapet.fired", value: "1", ttl: 1, who: "@Self" } }
           - { INVENTORY_CONVERT: { from: "BUCKET", to: "LAVA_BUCKET", limit: 96, plain: true, protect-seconds: 60, count-var: "lavapet.filled" } }
+          - { REFUND_COOLDOWN: { unless: "%lavapet.filled%" } }
       - condition: '%lavapet.fired% == 1 && %lavapet.filled% > 0'
         cooldown: 0
         effects:
@@ -127,6 +134,7 @@ levels:
         effects:
           - { SET_VAR: { name: "lavapet.fired", value: "1", ttl: 1, who: "@Self" } }
           - { INVENTORY_CONVERT: { from: "BUCKET", to: "LAVA_BUCKET", limit: 128, plain: true, protect-seconds: 60, count-var: "lavapet.filled" } }
+          - { REFUND_COOLDOWN: { unless: "%lavapet.filled%" } }
       - condition: '%lavapet.fired% == 1 && %lavapet.filled% > 0'
         cooldown: 0
         effects:
@@ -148,6 +156,7 @@ levels:
         effects:
           - { SET_VAR: { name: "lavapet.fired", value: "1", ttl: 1, who: "@Self" } }
           - { INVENTORY_CONVERT: { from: "BUCKET", to: "LAVA_BUCKET", limit: 160, plain: true, protect-seconds: 60, count-var: "lavapet.filled" } }
+          - { REFUND_COOLDOWN: { unless: "%lavapet.filled%" } }
       - condition: '%lavapet.fired% == 1 && %lavapet.filled% > 0'
         cooldown: 0
         effects:
@@ -169,6 +178,7 @@ levels:
         effects:
           - { SET_VAR: { name: "lavapet.fired", value: "1", ttl: 1, who: "@Self" } }
           - { INVENTORY_CONVERT: { from: "BUCKET", to: "LAVA_BUCKET", limit: 192, plain: true, protect-seconds: 60, count-var: "lavapet.filled" } }
+          - { REFUND_COOLDOWN: { unless: "%lavapet.filled%" } }
       - condition: '%lavapet.fired% == 1 && %lavapet.filled% > 0'
         cooldown: 0
         effects:
@@ -190,6 +200,7 @@ levels:
         effects:
           - { SET_VAR: { name: "lavapet.fired", value: "1", ttl: 1, who: "@Self" } }
           - { INVENTORY_CONVERT: { from: "BUCKET", to: "LAVA_BUCKET", limit: 224, plain: true, protect-seconds: 60, count-var: "lavapet.filled" } }
+          - { REFUND_COOLDOWN: { unless: "%lavapet.filled%" } }
       - condition: '%lavapet.fired% == 1 && %lavapet.filled% > 0'
         cooldown: 0
         effects:
@@ -211,6 +222,7 @@ levels:
         effects:
           - { SET_VAR: { name: "lavapet.fired", value: "1", ttl: 1, who: "@Self" } }
           - { INVENTORY_CONVERT: { from: "BUCKET", to: "LAVA_BUCKET", limit: 256, plain: true, protect-seconds: 60, count-var: "lavapet.filled" } }
+          - { REFUND_COOLDOWN: { unless: "%lavapet.filled%" } }
       - condition: '%lavapet.fired% == 1 && %lavapet.filled% > 0'
         cooldown: 0
         effects:
@@ -232,6 +244,7 @@ levels:
         effects:
           - { SET_VAR: { name: "lavapet.fired", value: "1", ttl: 1, who: "@Self" } }
           - { INVENTORY_CONVERT: { from: "BUCKET", to: "LAVA_BUCKET", limit: 288, plain: true, protect-seconds: 60, count-var: "lavapet.filled" } }
+          - { REFUND_COOLDOWN: { unless: "%lavapet.filled%" } }
       - condition: '%lavapet.fired% == 1 && %lavapet.filled% > 0'
         cooldown: 0
         effects:
@@ -254,6 +267,7 @@ levels:
         effects:
           - { SET_VAR: { name: "lavapet.fired", value: "1", ttl: 1, who: "@Self" } }
           - { INVENTORY_CONVERT: { from: "BUCKET", to: "LAVA_BUCKET", limit: 1152, plain: true, protect-seconds: 60, count-var: "lavapet.filled" } }
+          - { REFUND_COOLDOWN: { unless: "%lavapet.filled%" } }
       - condition: '%lavapet.fired% == 1 && %lavapet.filled% > 0'
         cooldown: 0
         effects:

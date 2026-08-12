@@ -66,9 +66,10 @@ description:
   - "§7"
   - "§7§f§lCooldown"
   - "§7§72 Minutes"
-# 1000 × level to a cap of 5 (2000/3000/4000/5000; 14 000 total) — at 1 XP per use, the slowest ladder in the
-# plugin: 14 000 uses to cap.
-exp-curve: { base: 0, per-level: 1000 }
+# The recorded ladder is `1000 × level` (2000/3000/4000/5000, 14 000 total), priced by the jar against a
+# cooldown that never fired — at 1 XP per use that is 14 000 uses × 120 s, ~467 h. Divided by 20 against the
+# window this port really enforces (D-12-41): 100/150/200/250, 700 total = 700 uses ≈ 23 h.
+exp-curve: { base: 0, per-level: 50 }
 max-level: 5
 levels:
   # Freeze (1.0 + 0.25 × level) s = 25/30/35/40/45 t. The strike itself never scales; neither does the

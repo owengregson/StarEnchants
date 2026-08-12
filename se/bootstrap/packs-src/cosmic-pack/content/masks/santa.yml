@@ -24,9 +24,10 @@ description:
   - "§6§l* §6Christmas 2018"
 # Acquisition: Random Mask generator, COMMON pool — 8.1818 % (see pilgrim.yml for why the pool is comment-only).
 # Multi-Mask: works inside a compound in the jar and here (D-11-1).
-# Mortal Coil: the jar suppressed this bonus outright while the wearer was coiled. Nothing is authored for it
-# on this side — the coil's max-health attack and this maintained bonus meet in the ONE max-health driver, so
-# the reconciliation is emergent and belongs to the coil's file. enchants/mortal-coil is still deferred here
-# (deferred-content.md, batch 07), so that half is inert until it lands.
+# Mortal Coil: the jar suppressed this bonus outright while the wearer was coiled, and so does the port —
+# from the COIL's side, not this one. Its `POTION_AMP_REDUCE` arm cannot reach a bonus that lives in an
+# attribute modifier rather than a HEALTH_BOOST potion, so enchants/mortal-coil carries a second
+# `SUPPRESS{scope: KIND, key: HEALTH}` rung; the max-health driver re-derives its total from live suppression,
+# which is the whole of what this file has to do to be reachable by it.
 abilities:
   - { trigger: PASSIVE, effects: [ { HEALTH: { amount: 4 } } ] }

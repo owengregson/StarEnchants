@@ -3,7 +3,7 @@ display: "Nature Wrath"
 # description: not matrix-recorded (factual paraphrase)
 description:
   - "&eSpends souls to root, drain and weaken the hostile players"
-  - "&earound you, and wipes every mob in range."
+  - "&earound you, and wipes every hostile mob in range."
 trigger: DEFENSE
 applies-to: [ARMOR]
 group: "soul"
@@ -13,7 +13,13 @@ soul-cost: 75  # flat at every level, charge-or-abort (the KOTH doubled 150 and 
 no-souls-message: "§c§l** OUT OF SOULS **"
 # The player payload targets hostile PLAYERS: the entry's FILTER_COMPOSE gap records "player-only hostile
 # payloads here", and the wave-1 filter conjunction (ENEMIES+PLAYERS) now expresses exactly that — the mobs
-# inside the same radius take the DESPAWN sweep instead of the root.
+# inside the same radius take the DESPAWN sweep instead of the root, and everything else in range is left
+# untouched.
+# THE SWEEP IS `filter=MONSTERS`, NOT `MOBS` (D-02-17). `MOBS` is every non-player LIVING entity, so at
+# r=13..28 off a DEFENSE trigger one hit taken at home erases the trading hall, the stable, the tamed wolves,
+# the golem and every armour stand — permanently, with no drops and nothing said to their owner. `MONSTERS`
+# is what "wipes every hostile mob in range" means to the player reading the lore, and it is the only reading
+# a wearer can act on. Deliberate narrowing from the jar, laddered against the description, not a port slip.
 # The two mob-sweep bursts are authored BEFORE the sweep and carry the sweep's own selector body, so they
 # resolve the mob set while it still exists (the per-mob closing cue). R-QC55: both are recorded at the
 # mob's feet +1 y and neither takes a `dy` — an entity-anchored burst already centres on the body (feet +
@@ -49,8 +55,12 @@ no-souls-message: "§c§l** OUT OF SOULS **"
 # carries the rooted body's DoT on FREEZE (`dot:`), so a body dropped from the root would have lost it; the
 # immune arm therefore authors the same burn on PERIODIC_DAMAGE — the same activator-attributed raw
 # half-hearts, the same rate, the same window. The bolt, the Weakness, the mob sweep and the wearer's lines
-# all land on an immune body too. RESIDUE: PERIODIC_DAMAGE stacks where FREEZE refreshes, so two procs
-# landing on one immune body inside a window burn twice, where the jar's task skipped a body already under it.
+# all land on an immune body too. `each-cooldown:` at the window length is the re-application guard that keeps
+# the two arms comparable — PERIODIC_DAMAGE stacks where FREEZE merely refreshes, and the jar's task likewise
+# skipped a body already under it, so without the guard an immune body caught by two procs inside one window
+# burns twice for advertising immunity. RESIDUE, the one axis that cannot be matched: a won breakout roll
+# tears the ROOTED body's window down and its DoT with it, and PERIODIC_DAMAGE has no breakout, so below L4
+# an immune body burns longer in expectation than a rooted one. The root's slow:100 pin is what pays for that.
 # ONE DELTA SURVIVES, narrowed from the whole scan to nothing observable: ENDER_DRAGON_GROWL is recorded per
 # FROZEN victim and plays at the activation point, so it sounds even on the rare proc where every bystander is
 # immune. ADR-0066 already collapses its copies to one play per event, so the residue is one cue, not a count.
@@ -77,11 +87,11 @@ levels:
       # The immune body keeps the DoT the root carried: the jar's task ran on it regardless, and
       # PERIODIC_DAMAGE is the same activator-attributed raw burn at the same rate and window.
       - { PERIODIC_DAMAGE: { amount: 1, period: 20, duration: 160, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS}",
-            each-if: "%target.roll% < 12.5 * %target.enchlevel.poltergeist%" } }
+            each-if: "%target.roll% < 12.5 * %target.enchlevel.poltergeist%", each-cooldown: 160 } }
       - { POTION: { effect: "WEAKNESS", level: 3, duration: 160, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS}" } }
-      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=13, filter=MOBS}" } }
-      - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=13, filter=MOBS}" } }
-      - { DESPAWN: { who: "@Aoe{r=13, filter=MOBS}" } }  # D-02-3: silent removal, no drops and no XP (KILL would fire a real death)
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=13, filter=MONSTERS}" } }
+      - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=13, filter=MONSTERS}" } }
+      - { DESPAWN: { who: "@Aoe{r=13, filter=MONSTERS}" } }  # D-02-3 silent removal, no drops and no XP (KILL would fire a real death); D-02-17 for the hostile-only scope
       - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
       - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }  # recorded per frozen victim; ADR-0066 plays one sound id at most once per event, so the copies collapse into this single play
       - { MESSAGE: { text: "" } }
@@ -100,11 +110,11 @@ levels:
       # The immune body keeps the DoT the root carried: the jar's task ran on it regardless, and
       # PERIODIC_DAMAGE is the same activator-attributed raw burn at the same rate and window.
       - { PERIODIC_DAMAGE: { amount: 2, period: 20, duration: 180, who: "@Aoe{r=18, filter=ENEMIES+PLAYERS}",
-            each-if: "%target.roll% < 12.5 * %target.enchlevel.poltergeist%" } }
+            each-if: "%target.roll% < 12.5 * %target.enchlevel.poltergeist%", each-cooldown: 180 } }
       - { POTION: { effect: "WEAKNESS", level: 3, duration: 180, who: "@Aoe{r=18, filter=ENEMIES+PLAYERS}" } }
-      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=18, filter=MOBS}" } }
-      - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=18, filter=MOBS}" } }
-      - { DESPAWN: { who: "@Aoe{r=18, filter=MOBS}" } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=18, filter=MONSTERS}" } }
+      - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=18, filter=MONSTERS}" } }
+      - { DESPAWN: { who: "@Aoe{r=18, filter=MONSTERS}" } }
       - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
       - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
       - { MESSAGE: { text: "" } }
@@ -123,11 +133,11 @@ levels:
       # The immune body keeps the DoT the root carried: the jar's task ran on it regardless, and
       # PERIODIC_DAMAGE is the same activator-attributed raw burn at the same rate and window.
       - { PERIODIC_DAMAGE: { amount: 3, period: 20, duration: 200, who: "@Aoe{r=23, filter=ENEMIES+PLAYERS}",
-            each-if: "%target.roll% < 12.5 * %target.enchlevel.poltergeist%" } }
+            each-if: "%target.roll% < 12.5 * %target.enchlevel.poltergeist%", each-cooldown: 200 } }
       - { POTION: { effect: "WEAKNESS", level: 3, duration: 200, who: "@Aoe{r=23, filter=ENEMIES+PLAYERS}" } }
-      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=23, filter=MOBS}" } }
-      - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=23, filter=MOBS}" } }
-      - { DESPAWN: { who: "@Aoe{r=23, filter=MOBS}" } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=23, filter=MONSTERS}" } }
+      - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=23, filter=MONSTERS}" } }
+      - { DESPAWN: { who: "@Aoe{r=23, filter=MONSTERS}" } }
       - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
       - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
       - { MESSAGE: { text: "" } }
@@ -146,11 +156,11 @@ levels:
       # The immune body keeps the DoT the root carried: the jar's task ran on it regardless, and
       # PERIODIC_DAMAGE is the same activator-attributed raw burn at the same rate and window.
       - { PERIODIC_DAMAGE: { amount: 4, period: 20, duration: 220, who: "@Aoe{r=28, filter=ENEMIES+PLAYERS}",
-            each-if: "%target.roll% < 12.5 * %target.enchlevel.poltergeist%" } }
+            each-if: "%target.roll% < 12.5 * %target.enchlevel.poltergeist%", each-cooldown: 220 } }
       - { POTION: { effect: "WEAKNESS", level: 3, duration: 220, who: "@Aoe{r=28, filter=ENEMIES+PLAYERS}" } }
-      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=28, filter=MOBS}" } }
-      - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=28, filter=MOBS}" } }
-      - { DESPAWN: { who: "@Aoe{r=28, filter=MOBS}" } }
+      - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, who: "@Aoe{r=28, filter=MONSTERS}" } }
+      - { PARTICLE: { particle: "SPELL", count: 35, who: "@Aoe{r=28, filter=MONSTERS}" } }
+      - { DESPAWN: { who: "@Aoe{r=28, filter=MONSTERS}" } }
       - { SOUND: { sound: "ENTITY_PLAYER_LEVELUP", volume: 1.0, pitch: 0.65 } }
       - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
       - { MESSAGE: { text: "" } }

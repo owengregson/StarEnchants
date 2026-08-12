@@ -22,6 +22,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 import schema.diag.DiagCode;
 import schema.diag.Source;
@@ -326,6 +327,7 @@ final class ContentFuzz {
         p.source = Source.of("fuzz.yml", caseIndex + 1, 1);
         p.lines.add(line);
         teachEachCooldownScope(p);
+        teachPerTargetTrigger(p);
         return new Case(assemble(p), (validArgs ? "sel-valid #" : "sel-adv #") + caseIndex, expected,
                 List.copyOf(p.lines));
     }
@@ -378,6 +380,7 @@ final class ContentFuzz {
                     validNamed(lk.spec().paramSpec(), rnd, i, vocab), selectorToken(rnd, i, vocab)));
         }
         teachEachCooldownScope(p);
+        teachPerTargetTrigger(p);
         return p;
     }
 
@@ -397,6 +400,29 @@ final class ContentFuzz {
                 return;
             }
         }
+    }
+
+    /**
+     * The other per-target rule, same shape: a HELD/PASSIVE ability runs as a lifecycle transition, which walks
+     * no gates and binds no subject, so any of the three knobs there is a blocking diagnostic. Give the def a
+     * gated trigger whenever a drawn line carries one.
+     */
+    private static void teachPerTargetTrigger(Plan p) {
+        if (p.triggers.isEmpty() || p.triggers.stream().anyMatch(t -> !isLifecycle(t))) {
+            return;
+        }
+        for (GeneratedLine line : p.lines) {
+            if (line.named().containsKey("each-if") || line.named().containsKey("each-chance")
+                    || line.named().containsKey("each-cooldown")) {
+                p.triggers = new ArrayList<>(p.triggers);
+                p.triggers.add("ATTACK");
+                return;
+            }
+        }
+    }
+
+    static boolean isLifecycle(String trigger) {
+        return trigger.equalsIgnoreCase("HELD") || trigger.equalsIgnoreCase("PASSIVE");
     }
 
     /** For every required param emit a token; each optional param — with or without default — is included with probability ½, so an absent optional round-trips for both shapes. */
@@ -532,30 +558,45 @@ final class ContentFuzz {
         sb.append("description: ").append(q("generated fuzz enchant")).append('\n');
         // tier: omitted — TierRegistry.BUILTIN's accepted names are not this gate's contract (trap 14).
         int triggerCount = 1 + rnd.nextInt(2);
-        if (triggerCount == 1) {
-            sb.append("trigger: ").append(q(pickTrigger(rnd, vocab))).append('\n');
-        } else {
-            sb.append("trigger: [").append(q(pickTrigger(rnd, vocab))).append(", ")
-                    .append(q(pickTrigger(rnd, vocab))).append("]\n");
+        List<String> triggers = new ArrayList<>();
+        for (int t = 0; t < triggerCount; t++) {
+            triggers.add(pickTrigger(rnd, vocab));
         }
         if (rnd.nextBoolean()) {
             sb.append("group: ").append(q("fuzzgroup")).append('\n');
         }
-        sb.append("levels:\n");
+        StringBuilder body = new StringBuilder("levels:\n");
         for (int lv = 1; lv <= levels; lv++) {
-            sb.append("  ").append(lv).append(":\n");
-            sb.append("    chance: ").append(q(fmt3(rnd.nextDouble() * 100.0))).append('\n');
-            sb.append("    cooldown: ").append(q(String.valueOf(rnd.nextInt(2000)))).append('\n');
+            body.append("  ").append(lv).append(":\n");
+            body.append("    chance: ").append(q(fmt3(rnd.nextDouble() * 100.0))).append('\n');
+            body.append("    cooldown: ").append(q(String.valueOf(rnd.nextInt(2000)))).append('\n');
             if (rnd.nextBoolean()) {
-                sb.append("    condition: ").append(q(yamlCondition(rnd, vocab))).append('\n');
+                body.append("    condition: ").append(q(yamlCondition(rnd, vocab))).append('\n');
             }
-            sb.append("    effects:\n");
+            body.append("    effects:\n");
             int effectCount = 1 + rnd.nextInt(3);
             for (int e = 0; e < effectCount; e++) {
-                sb.append(yamlEffectItem(vocab.effectKinds().get(rnd.nextInt(vocab.effectKinds().size())), rnd));
+                body.append(yamlEffectItem(vocab.effectKinds().get(rnd.nextInt(vocab.effectKinds().size())), rnd));
             }
         }
+        // teachPerTargetTrigger's rule on this family: the per-target knobs are a blocking diagnostic on an
+        // ability whose every trigger routes to the lifecycle path, so give it a gated one too.
+        if (triggers.stream().allMatch(ContentFuzz::isLifecycle) && declaresPerTargetKnob(body.toString())) {
+            triggers.add("ATTACK");
+        }
+        if (triggers.size() == 1) {
+            sb.append("trigger: ").append(q(triggers.get(0))).append('\n');
+        } else {
+            StringJoiner joined = new StringJoiner(", ", "trigger: [", "]\n");
+            triggers.forEach(t -> joined.add(q(t)));
+            sb.append(joined);
+        }
+        sb.append(body);
         return new YamlSample("fuzz-" + fileIndex + ".yml", sb.toString(), levels);
+    }
+
+    private static boolean declaresPerTargetKnob(String yaml) {
+        return yaml.contains("each-if:") || yaml.contains("each-chance:") || yaml.contains("each-cooldown:");
     }
 
     private static String yamlEffectItem(EffectKind kind, Random rnd) {

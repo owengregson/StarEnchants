@@ -29,10 +29,17 @@ tier: mastery
 # ── THE WEARER'S SUMMARY ───────────────────────────────────────────────────────────────────────────────────
 # `§a§l* HORRIFIED {count} player(s) [§7{seconds}s§a§l] *` ships on `%selected%` (ADR-0076), the count the
 # effect above it bound after every per-target filter — this 32-block radius and this filter, where
-# `%nearbyenemies%`'s fixed 8-block living-entity scan would have printed a wrong number at every level. Its
+# `%nearbyenemies%`'s fixed 8-block living-entity scan would have printed a wrong number at every level. The
+# string says players, so the row it reads is player-scoped: that is the second reason for `ENEMIES+PLAYERS`
+# below, and a bare `ENEMIES` would have counted every zombie in a 32-block sphere under the word. Its
 # `{seconds}` is inlined per rung like the target line's, so both render byte-identically to the matrix's.
 # `tombstone.yml` carries the same summary on the same fact, and the same rule with it: the count belongs to
 # the row directly above, because the executor publishes it after each effect runs.
+# `each-if: "%selected% > 0"` is the matrix's "only when >= 1 target was horrified" — the filter runs BEFORE
+# the row's own targets are published, so it still reads the SOUND row's count. Without it a proc that caught
+# nobody (a lone attacker wearing the Dragon Slayer set is stripped by the defender window) still announces
+# `HORRIFIED 0 player(s)` to the wearer, which reads as a broken mastery. Note tombstone.yml does NOT take
+# this gate: its unconditional `[0 players]` send is measured behaviour and recorded on that file.
 # ── D-07-9 AND THE DRAGON SLAYER IMMUNITY ──────────────────────────────────────────────────────────────────
 # The jar's `immune_freeze` branch `return`s out of the whole per-target loop, so ONE protected player inside
 # the radius cancelled Horrify for everyone — and whether they did depended on iteration order. D-07-9 rules
@@ -45,7 +52,10 @@ tier: mastery
 # ── GEOMETRY AND STRINGS ───────────────────────────────────────────────────────────────────────────────────
 # `@Aoe{r=32}` is a symmetric sphere for the jar's asymmetric cube, the D-07-1 family geometry note. The
 # codex's candidate filters — not-truce, PvP-enabled, not vanished, not god-mode, not spectator, not creative
-# — are the engine's own targeting gates plus `filter=ENEMIES`; none is authored per-file.
+# — are the engine's own targeting gates; none is authored per-file. What IS authored is the one filter none
+# of them supplies: the jar's loop opens on `instanceof Player`, and `filter=ENEMIES` alone admits every
+# hostile MOB in the sphere, so the terror is spelled `ENEMIES+PLAYERS` — hostile players only, the same
+# conjunction `hellfire.yml` and `smoke-bomb.yml` document. It is also what makes the summary's noun true.
 # The per-target line's `{seconds}` is inlined per rung (no MESSAGE token binds a duration), which also makes
 # each rendered line byte-identical to the matrix's. Levels 2 and 3 print the same 3 s because `2 + floor(L/2)`
 # gives the same value — measured, kept.
@@ -58,43 +68,43 @@ levels:
     chance: 2
     condition: "%victim.type% == \"PLAYER\""
     effects:
-      - { FREEZE: { duration: 40, dot: 0, slow: 100, who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { FACING_SET: { mode: "away", anchor: "activator", who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { SET_VAR: { name: "horrify.nofall", value: "1", ttl: 200, who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { FALL_SHIELD: { window: 200, who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { MESSAGE: { text: "§c§l* HORRIFIED §c[§c§l2s§c] §c§l*", who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { SOUND: { sound: "ENTITY_GHAST_SCREAM", volume: 1.0, pitch: 1.4, who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { MESSAGE: { text: "§a§l* HORRIFIED {count} player(s) [§72s§a§l] *", tokens: { count: "%selected%" } } }
+      - { FREEZE: { duration: 40, dot: 0, slow: 100, who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { FACING_SET: { mode: "away", anchor: "activator", who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { SET_VAR: { name: "horrify.nofall", value: "1", ttl: 200, who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { FALL_SHIELD: { window: 200, who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { MESSAGE: { text: "§c§l* HORRIFIED §c[§c§l2s§c] §c§l*", who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { SOUND: { sound: "ENTITY_GHAST_SCREAM", volume: 1.0, pitch: 1.4, who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { MESSAGE: { text: "§a§l* HORRIFIED {count} player(s) [§72s§a§l] *", tokens: { count: "%selected%" }, each-if: "%selected% > 0" } }
   2:
     chance: 4
     condition: "%victim.type% == \"PLAYER\""
     effects:
-      - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { FACING_SET: { mode: "away", anchor: "activator", who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { SET_VAR: { name: "horrify.nofall", value: "1", ttl: 200, who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { FALL_SHIELD: { window: 200, who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { MESSAGE: { text: "§c§l* HORRIFIED §c[§c§l3s§c] §c§l*", who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { SOUND: { sound: "ENTITY_GHAST_SCREAM", volume: 1.0, pitch: 1.4, who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { MESSAGE: { text: "§a§l* HORRIFIED {count} player(s) [§73s§a§l] *", tokens: { count: "%selected%" } } }
+      - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { FACING_SET: { mode: "away", anchor: "activator", who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { SET_VAR: { name: "horrify.nofall", value: "1", ttl: 200, who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { FALL_SHIELD: { window: 200, who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { MESSAGE: { text: "§c§l* HORRIFIED §c[§c§l3s§c] §c§l*", who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { SOUND: { sound: "ENTITY_GHAST_SCREAM", volume: 1.0, pitch: 1.4, who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { MESSAGE: { text: "§a§l* HORRIFIED {count} player(s) [§73s§a§l] *", tokens: { count: "%selected%" }, each-if: "%selected% > 0" } }
   3:
     chance: 6
     condition: "%victim.type% == \"PLAYER\""
     effects:
-      - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { FACING_SET: { mode: "away", anchor: "activator", who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { SET_VAR: { name: "horrify.nofall", value: "1", ttl: 200, who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { FALL_SHIELD: { window: 200, who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { MESSAGE: { text: "§c§l* HORRIFIED §c[§c§l3s§c] §c§l*", who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { SOUND: { sound: "ENTITY_GHAST_SCREAM", volume: 1.0, pitch: 1.4, who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { MESSAGE: { text: "§a§l* HORRIFIED {count} player(s) [§73s§a§l] *", tokens: { count: "%selected%" } } }
+      - { FREEZE: { duration: 60, dot: 0, slow: 100, who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { FACING_SET: { mode: "away", anchor: "activator", who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { SET_VAR: { name: "horrify.nofall", value: "1", ttl: 200, who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { FALL_SHIELD: { window: 200, who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { MESSAGE: { text: "§c§l* HORRIFIED §c[§c§l3s§c] §c§l*", who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { SOUND: { sound: "ENTITY_GHAST_SCREAM", volume: 1.0, pitch: 1.4, who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { MESSAGE: { text: "§a§l* HORRIFIED {count} player(s) [§73s§a§l] *", tokens: { count: "%selected%" }, each-if: "%selected% > 0" } }
   4:
     chance: 8
     condition: "%victim.type% == \"PLAYER\""
     effects:
-      - { FREEZE: { duration: 80, dot: 0, slow: 100, who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { FACING_SET: { mode: "away", anchor: "activator", who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { SET_VAR: { name: "horrify.nofall", value: "1", ttl: 200, who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { FALL_SHIELD: { window: 200, who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { MESSAGE: { text: "§c§l* HORRIFIED §c[§c§l4s§c] §c§l*", who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { SOUND: { sound: "ENTITY_GHAST_SCREAM", volume: 1.0, pitch: 1.4, who: "@Aoe{r=32, filter=ENEMIES}" } }
-      - { MESSAGE: { text: "§a§l* HORRIFIED {count} player(s) [§74s§a§l] *", tokens: { count: "%selected%" } } }
+      - { FREEZE: { duration: 80, dot: 0, slow: 100, who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { FACING_SET: { mode: "away", anchor: "activator", who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { SET_VAR: { name: "horrify.nofall", value: "1", ttl: 200, who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { FALL_SHIELD: { window: 200, who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { MESSAGE: { text: "§c§l* HORRIFIED §c[§c§l4s§c] §c§l*", who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { SOUND: { sound: "ENTITY_GHAST_SCREAM", volume: 1.0, pitch: 1.4, who: "@Aoe{r=32, filter=ENEMIES+PLAYERS}" } }
+      - { MESSAGE: { text: "§a§l* HORRIFIED {count} player(s) [§74s§a§l] *", tokens: { count: "%selected%" }, each-if: "%selected% > 0" } }

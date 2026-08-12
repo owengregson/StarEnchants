@@ -12,6 +12,7 @@ import item.render.LoreRenderer;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -20,8 +21,9 @@ import platform.text.Tokens;
 
 /**
  * Heroic upgrade economy (docs/v3-directives.md §F; ADR-0021) — mints the upgrade and applies it on a
- * success roll. NOT set-bound: any armour or weapon may be upgraded. On success it stamps the heroic
- * percents onto {@link CombatState} and optionally swaps to a configured within-category material
+ * success roll. Gear-wide: any armour or weapon may be upgraded, save a piece of a set that already folds
+ * its heroic wall into a completion bonus ({@link HeroicSetFold}, ADR-0073 D3). On success it stamps the
+ * heroic percents onto {@link CombatState} and optionally swaps to a configured within-category material
  * (e.g. diamond→netherite) preserving meta/enchants/PDC. The roll is injected for tests.
  */
 public final class HeroicService {
@@ -34,19 +36,20 @@ public final class HeroicService {
     private final platform.lang.Messages messages; // §L lang.yml
     private final ItemGroups groups; // §F: gate applyTo to armour/weapons
     private final HeroicStamp stamp; // §F the stats write, shared with a set piece minted heroic
+    private final Predicate<String> setFoldsHeroic; // ADR-0073 D3, keyed on the piece's set
 
     /** {@code groups} is the armour/weapon group table gating heroic's applies-to. */
     public HeroicService(HeroicUpgradeCodec upgrades, CombatCodec combat, LoreRenderer lore,
                          Supplier<HeroicConfig> config, Random random, platform.lang.Messages messages,
                          ItemGroups groups, VanillaStats vanillaStats) {
         this(upgrades, combat, lore, config, random, messages, groups,
-                new HeroicStamp(config, vanillaStats, combat, lore));
+                new HeroicStamp(config, vanillaStats, combat, lore), setKey -> false);
     }
 
     /** Wiring form: the composition root builds ONE {@link HeroicStamp} and shares it with the set minter. */
     public HeroicService(HeroicUpgradeCodec upgrades, CombatCodec combat, LoreRenderer lore,
                          Supplier<HeroicConfig> config, Random random, platform.lang.Messages messages,
-                         ItemGroups groups, HeroicStamp stamp) {
+                         ItemGroups groups, HeroicStamp stamp, Predicate<String> setFoldsHeroic) {
         this.upgrades = Objects.requireNonNull(upgrades, "upgrades");
         this.combat = Objects.requireNonNull(combat, "combat");
         this.lore = Objects.requireNonNull(lore, "lore");
@@ -55,6 +58,7 @@ public final class HeroicService {
         this.messages = Objects.requireNonNull(messages, "messages");
         this.groups = Objects.requireNonNull(groups, "groups");
         this.stamp = Objects.requireNonNull(stamp, "stamp");
+        this.setFoldsHeroic = Objects.requireNonNull(setFoldsHeroic, "setFoldsHeroic");
     }
 
     public boolean isUpgrade(ItemStack stack) {
@@ -104,8 +108,13 @@ public final class HeroicService {
         if (!groups.matches(gear.getType(), List.of("ARMOR", "WEAPON"))) {
             return GestureOutcome.noop(messages.format("heroic.not-gear")); // §F: armour/weapons only
         }
-        if (!combat.read(gear).heroic().isZero()) {
+        CombatState state = combat.read(gear);
+        if (!state.heroic().isZero()) {
             return GestureOutcome.noop(messages.format("heroic.already-heroic"));
+        }
+        // ADR-0073 D3: refuse BEFORE the upgrade is consumed — the stamp would bill the set's folded wall twice.
+        if (setFoldsHeroic.test(state.setKey())) {
+            return GestureOutcome.noop(messages.format("heroic.set-folded"));
         }
         HeroicConfig cfg = config.get();
         boolean weapon = groups.matches(gear.getType(), List.of("WEAPON")); // else armour (validated above)

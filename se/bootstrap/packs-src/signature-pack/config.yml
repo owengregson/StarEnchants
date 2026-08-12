@@ -85,18 +85,23 @@ message-on-activate:
 # unequip-particle. Sounds use our unified { sound, volume, pitch } bracket form; particles our
 # { particle, count, color, spread, y-offset } form. With use-set-color on, the dust cloud is tinted to each
 # set's own & colour (read from its display name), so the supreme set's cloud is dark red, etc.
+# Era: a config cue token resolves through the same bidirectional sound alias table the content DSL uses, so
+# each one below is authored in its modern spelling and lands on the 1.8.9 lane wherever a floor spelling
+# exists (BLOCK_GLASS_BREAK -> GLASS, both anvils). A token with no 1.8 twin drops out of the chord rather
+# than silencing it, which is why each chord keeps at least one aliasable layer. No token here may name a
+# constant newer than the 1.17.1 floor: an absent constant is skipped in silence, with no diagnostic.
 sets:
   message-uppercase: true   # auto-capitalise the set equip/remove message (colour codes preserved)
   use-set-color: true       # tint the equip/unequip dust to the set's own & colour
   equip-sound:
     - { sound: BLOCK_BEACON_POWER_SELECT, volume: 0.4, pitch: 2 }
     - { sound: BLOCK_BONE_BLOCK_BREAK, volume: 1, pitch: 1 }
-    - { sound: ITEM_ARMOR_EQUIP_COPPER, volume: 0.4, pitch: 1 }
+    - { sound: BLOCK_ANVIL_LAND, volume: 0.4, pitch: 1 }
   unequip-sound:
     - { sound: BLOCK_GLASS_BREAK, volume: 0.25, pitch: 0.8 }
     - { sound: BLOCK_CHAIN_STEP, volume: 0.6, pitch: 1.0 }
-    - { sound: BLOCK_COPPER_GOLEM_STATUE_BREAK, volume: 1, pitch: 1 }
-    - { sound: ITEM_LLAMA_CARPET_UNEQUIP, volume: 0.4, pitch: 2 }
+    - { sound: BLOCK_ANVIL_DESTROY, volume: 0.35, pitch: 1.4 }
+    - { sound: ITEM_ARMOR_EQUIP_LEATHER, volume: 0.4, pitch: 2 }
   # A dust cloud at the same density as the soul-gem activate cloud. The EQUIP cloud is tinted to each set's
   # colour (use-set-color above); the UNEQUIP cloud stays gray (&7 = 170,170,170) for every set.
   equip-particle:   { particle: REDSTONE, count: 20, spread: 1.25, y-offset: 1.0 }

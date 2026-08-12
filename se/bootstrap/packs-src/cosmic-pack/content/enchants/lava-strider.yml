@@ -6,15 +6,17 @@
 # publishes as worn state (`%actor.enchlevel.lava-strider%`, keyed on the file STEM) because worn state has
 # the teardown a ttl-0 SET_VAR does not — the Solitude row's pack-wide reading.
 # THE WALK, and every number in it is a port choice, not a measurement — the jar held none:
-#  * REPEATING at 10 t rather than a move hook. The surface has no per-step trigger, and 10 t is the coarsest
-#    period a sprinter (~5.6 blocks/s) cannot outrun with the radius below.
+#  * REPEATING at 10 t rather than a move hook: the surface has no per-step trigger. Radius 2 stamps
+#    cx-2..cx+2, so the pad leads by 2-3 blocks depending on where in the block the wearer stands, and a
+#    wearer wading a lake carries lava's horizontal drag — well under the 5.6 blocks/s sprint. Margin, not a
+#    guarantee.
 #  * The ground test is a `contains` on the server's own block name, which spans 1.8's LAVA / STATIONARY_LAVA
 #    split and the flattened modern LAVA in one clause — the `detonate.yml` idiom. Without it a radius-2
 #    REPLACEABLE stamp would pave AIR under a jumping wearer, which is a flight enchant, not this one.
 #  * `replace: REPLACEABLE` (air/liquid only) is what keeps it off terrain: the pad can never eat a floor,
 #    and the temp-block ledger restores the lava it took.
 #  * OBSIDIAN is the crust a lava strider walks on, exists unrenamed on both eras, and needs no alias row.
-#  * radius 2 (a 5x5 pad) and 60 t of life: two blocks of margin ahead of a sprinter, and a trail that closes
+#  * radius 2 (a 5x5 pad) and 60 t of life: two blocks of margin ahead of the wearer, and a trail that closes
 #    behind them rather than a bridge anyone can follow.
 display: "Lava Strider"
 # description: not matrix-recorded (factual paraphrase); it names the walk now that the walk is authored.
@@ -23,9 +25,13 @@ description:
   - "&eunder your boots for as long as you walk it."
 trigger: REPEATING
 repeat: 10  # the stamp cadence; level-independent
-# Only over lava — see the ground test above. `%actor.groundblock%` is the block one below the feet, which is
-# what a wearer sinking into a lava lake stands on for the tick before the pad forms.
-condition: "%actor.groundblock% contains \"LAVA\""
+# Over lava, OR over the crust this enchant already laid. `%actor.groundblock%` is the block one below the
+# feet — the very layer WALKER stamps (`origin.getBlockY() - 1`) — which makes the lava clause SELF-CLOSING on
+# its own: the first pad turns its own gate to OBSIDIAN, the walk halts one pad in, and the wearer is left
+# standing in the lake it exists to carry them across. `%actor.ownedground%` asks the temp-block ledger "is
+# the block under my feet one I laid" (the permafrost.yml idiom), and the OBSIDIAN test keeps a wearer
+# standing on some OTHER enchant's field out of it — both halves are load-bearing, neither is the rule alone.
+condition: "%actor.groundblock% contains \"LAVA\" || (%actor.ownedground% && %actor.groundblock% == \"OBSIDIAN\")"
 # BOOTS, not ARMOR: the matrix records this as the only mastery whose natural items are restricted to one
 # slot. The rest of the family takes all four pieces. Handing a mastery onto locked kit armour is the Mastery
 # Shard flow, an economy/config concern the effect matrix leaves out.

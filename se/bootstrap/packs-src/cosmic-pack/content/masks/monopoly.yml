@@ -1,8 +1,8 @@
 # Matrix: 11-masks.md § Monopoly Mask
 # Two halves: a measured −5 % incoming (x0.95, the victim branch this mask shares with Party Hat) and the
-# advertised 33 % Holy White Scroll negation, which is implemented NOWHERE in the jar and ships here as
-# intended (deviations.md D-11-4) — display strings never deviate, so the headline the item sells is the
-# behaviour the port gives it.
+# advertised 33 % Holy White Scroll negation, which is implemented NOWHERE in the jar and ships here as a
+# per-hit strip priced to the headline's aggregate (deviations.md D-11-4) — display strings never deviate,
+# so the headline the item sells is the behaviour the port gives it.
 display: "Monopoly Mask"
 # `display` carries the FULL codex name text; items/mask.yml renders `{COLOR}&l{NAME}` and appends no " Mask"
 # of its own — SIX of the family's 27 verbatim NAMES carry none (Pumpkin Monster, Santa, Reindeer, Party Hat,
@@ -29,14 +29,17 @@ abilities:
   # −5 % incoming, into the additive reduction bucket. Defense-side percents are NOT touched by
   # combat.attack-scale (ADR-0050 R2), so 5 here is 5 % felt.
   - { trigger: DEFENSE, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 5 } } ] }
-  # The lethal-hit gate is what makes a per-hit 33 % roll read as "33 % per kill": the condition admits only
-  # the blow that would finish the victim, so at most one roll is spent per death. Spelt off the incoming
-  # amount the way enchants/phoenix.yml prices its own save (`%damage% >= %actor.health%`, the same
-  # comparison from the other side of the hit).
-  # The strip must land before the death-drop keep check reads the victim's scrolls; that ordering is an
-  # engine seam inside the kill event, shared with the Anubis pet's STRIP_SCROLL, and nothing here can state it.
+  # A PER-HIT roll, priced so the aggregate over a kill is the headline's 33 %. The lethal blow itself is not
+  # expressible on an attacker walk: `%damage%` there is the RAW event amount (pre-armour, pre-protection,
+  # pre-resistance) and `%posthit.health%` is populated on the DEFENSE context only, so a
+  # `%victim.health% <= %damage%` gate is true on ordinary hits against any wounded target — and each false
+  # positive burns one of the victim's premium scrolls — while still missing a swing that only kills through
+  # the SE fold. `trigger: KILL` cannot rescue the reading either: it rides EntityDeathEvent at MONITOR,
+  # after the holy-scroll keep check has already read the drop list at HIGH, so the strip would land on an
+  # inventory that is about to be cleared. The rate therefore carries the whole meaning, in the Anubis pet's
+  # shape (STRIP_SCROLL names the per-hit percent as its own rate limiter): 2 % a landed hit is ~33 % over a
+  # ~20-hit kill. Ledger D-11-4.
   - trigger: ATTACK
-    condition: "%victim.health% <= %damage%"
-    chance: 33
+    chance: 2
     effects:
       - { STRIP_SCROLL: { scroll: HOLY, hand: true, who: "@Victim" } }

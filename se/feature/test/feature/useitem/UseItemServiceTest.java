@@ -89,20 +89,20 @@ class UseItemServiceTest {
 
     @Test
     void anyActivatedCandidateWins() {
-        UseOutcome out = serviceReturning(new UseAttempt(true, true, 40, 1, true)).use(player, DEF);
+        UseOutcome out = serviceReturning(new UseAttempt(true, true, 40, 1, true, 0)).use(player, DEF);
         assertEquals(UseOutcome.Result.ACTIVATED, out.result());
     }
 
     @Test
     void cooldownBeatsConditionAndChanceAndCarriesRemaining() {
-        UseOutcome out = serviceReturning(new UseAttempt(false, true, 40, 1, true)).use(player, DEF);
+        UseOutcome out = serviceReturning(new UseAttempt(false, true, 40, 1, true, -1)).use(player, DEF);
         assertEquals(UseOutcome.Result.ON_COOLDOWN, out.result());
         assertEquals(40L, out.cooldownRemainingTicks());
     }
 
     @Test
     void conditionStopNamesTheFailingAbilitysAuthoredSource() {
-        UseOutcome out = serviceReturning(new UseAttempt(false, false, 0, 1, true)).use(player, DEF);
+        UseOutcome out = serviceReturning(new UseAttempt(false, false, 0, 1, true, -1)).use(player, DEF);
         assertEquals(UseOutcome.Result.CONDITION_FAILED, out.result());
         assertEquals("%health% < 6", out.conditionSource()); // index 1 → a1's condition, not a0's ""
     }
@@ -110,7 +110,7 @@ class UseItemServiceTest {
     @Test
     void chanceFailIsSilentButDistinctFromBlocked() {
         assertEquals(UseOutcome.Result.CHANCE_FAILED,
-                serviceReturning(new UseAttempt(false, false, 0, -1, true)).use(player, DEF).result());
+                serviceReturning(new UseAttempt(false, false, 0, -1, true, -1)).use(player, DEF).result());
     }
 
     @Test
@@ -121,7 +121,7 @@ class UseItemServiceTest {
 
     @Test
     void anOutOfRangeConditionIndexFallsBackToEmptyNotAnException() {
-        UseOutcome out = serviceReturning(new UseAttempt(false, false, 0, 9, false)).use(player, DEF);
+        UseOutcome out = serviceReturning(new UseAttempt(false, false, 0, 9, false, -1)).use(player, DEF);
         assertEquals(UseOutcome.Result.CONDITION_FAILED, out.result());
         assertEquals("", out.conditionSource());
     }

@@ -6,9 +6,10 @@ import org.bukkit.entity.Player;
 
 /**
  * Soft-hook deciding whether two players are ALLIED (same team / party / faction), consulted by the
- * {@code ENEMIES}/{@code ALLIES} area filters ({@link Targets.Filter}). Boot installs a bridge to whatever
- * team plugin is present; with none installed the default treats everyone as an enemy — vanilla free-for-all
- * PvP, the safe assumption for an AoE strike. Kept off the engine API surface (one static volatile hook,
+ * {@code ENEMIES}/{@code ALLIES} area filters ({@link Targets.Filter}). Boot installs a bridge over the
+ * scoreboard teams every server has plus whatever party plugin is present; the default with no bridge at all
+ * treats everyone as an enemy — vanilla free-for-all PvP, the safe assumption for an AoE strike. Kept off the
+ * engine API surface (one static volatile hook,
  * mirroring {@code FactPopulator.entityTypeResolver}) so engine-core never references a team plugin.
  */
 public final class Allies {

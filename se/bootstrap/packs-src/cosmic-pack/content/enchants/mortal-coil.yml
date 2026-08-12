@@ -34,8 +34,16 @@ cooldown-per-victim: true  # the measured re-proc block is "while THIS victim is
 # ── INTERACTIONS ───────────────────────────────────────────────────────────────────────────────────────────
 # `masks/lover.yml` already ships the silent total immunity as a `SUPPRESS_INCOMING` keyed to this enchant,
 # and `crystals/anti-m-kit-necromancer.yml` carries the same key in its four-key pool; both were authored
-# ahead of this file and complete themselves with it. The Santa mask's read of the affected state is emergent:
-# Mortal Coil suppresses the Santa bonus for the same reason it suppresses any other worn Health Boost.
+# ahead of this file and complete themselves with it.
+# ── THE SECOND CHANNEL: WORN MAX HEALTH ────────────────────────────────────────────────────────────────────
+# Bonus hearts reach a player by TWO disjoint routes and `POTION_AMP_REDUCE` only sees one of them. A worn
+# `HEALTH` grant (masks/santa's +4) is a reconciled ATTRIBUTE modifier owned by the max-health driver, never a
+# HEALTH_BOOST potion, so the amplifier arm is a plain no-op against it and a Santa wearer would otherwise be
+# silently immune to this mastery. `SUPPRESS{scope: KIND, key: HEALTH}` is that route's switch: the driver
+# re-derives its total from live suppression, so the window drops every worn max-health grant on the victim
+# and the driver hands them back at expiry. Keyed on the effect KIND rather than on `masks/santa`, so it means
+# "the bonus hearts your gear is holding up" for whatever a pack authors — the description's own wording.
+# TOTAL where the potion arm is partial, because the jar suppressed the worn bonus outright.
 # era: HEALTH_BOOST exists on 1.8.9 and the recorded interception hazard dissolved on inspection —
 # `EntityPotionEffectEvent` is cancel-only on the modern lane too, so a per-tick re-assert is the sole
 # enforcer on BOTH lanes and there is no era seam here.
@@ -48,6 +56,7 @@ levels:
     condition: "%victim.type% == \"PLAYER\""
     effects:
       - { POTION_AMP_REDUCE: { effect: "HEALTH_BOOST", amount: 2, duration: 48, who: "@Victim" } }
+      - { SUPPRESS: { scope: KIND, key: HEALTH, duration: 48, who: "@Victim" } }
       - { MESSAGE: { text: "§c§l* MORTAL COIL I (§7{ATTACKER} [2.4s]§c§l) *", who: "@Victim" } }
   2:
     chance: 5.5
@@ -55,6 +64,7 @@ levels:
     condition: "%victim.type% == \"PLAYER\""
     effects:
       - { POTION_AMP_REDUCE: { effect: "HEALTH_BOOST", amount: 3, duration: 56, who: "@Victim" } }
+      - { SUPPRESS: { scope: KIND, key: HEALTH, duration: 56, who: "@Victim" } }
       - { MESSAGE: { text: "§c§l* MORTAL COIL II (§7{ATTACKER} [2.8s]§c§l) *", who: "@Victim" } }
   3:
     chance: 7.0
@@ -62,6 +72,7 @@ levels:
     condition: "%victim.type% == \"PLAYER\""
     effects:
       - { POTION_AMP_REDUCE: { effect: "HEALTH_BOOST", amount: 4, duration: 64, who: "@Victim" } }
+      - { SUPPRESS: { scope: KIND, key: HEALTH, duration: 64, who: "@Victim" } }
       - { MESSAGE: { text: "§c§l* MORTAL COIL III (§7{ATTACKER} [3.2s]§c§l) *", who: "@Victim" } }
   4:
     chance: 8.5
@@ -69,6 +80,7 @@ levels:
     condition: "%victim.type% == \"PLAYER\""
     effects:
       - { POTION_AMP_REDUCE: { effect: "HEALTH_BOOST", amount: 5, duration: 72, who: "@Victim" } }
+      - { SUPPRESS: { scope: KIND, key: HEALTH, duration: 72, who: "@Victim" } }
       - { MESSAGE: { text: "§c§l* MORTAL COIL IV (§7{ATTACKER} [3.6s]§c§l) *", who: "@Victim" } }
   5:
     chance: 10.0
@@ -76,4 +88,5 @@ levels:
     condition: "%victim.type% == \"PLAYER\""
     effects:
       - { POTION_AMP_REDUCE: { effect: "HEALTH_BOOST", amount: 6, duration: 80, who: "@Victim" } }
+      - { SUPPRESS: { scope: KIND, key: HEALTH, duration: 80, who: "@Victim" } }
       - { MESSAGE: { text: "§c§l* MORTAL COIL V (§7{ATTACKER} [4.0s]§c§l) *", who: "@Victim" } }

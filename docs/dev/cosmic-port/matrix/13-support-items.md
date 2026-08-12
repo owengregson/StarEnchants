@@ -379,7 +379,8 @@ settleable from source and should be replaced with the strings below.
   `DIAMOND_SWORD → GOLDEN_SWORD` / `DIAMOND_AXE → GOLDEN_AXE`, which is the jar's own gold
   form; `diamond-stats: true` supplies the "stronger than diamond" contract. The flat +4
   attack and the absolute 1952 durability have no knob (same two gaps as armour).
-- **era:** `GOLD_AXE`/`GOLD_SWORD` → `GOLDEN_*` through the alias resolver.
+- **era:** `GOLD_AXE`/`GOLD_SWORD` → `GOLDEN_*`. `material-upgrades` is a MINT-path token, so it
+  degrades through `ItemFactory`'s own legacy table, not the migrator's alias table.
 
 ### Heroic Armour Upgrade — targeted (`items/heroic.yml`)
 

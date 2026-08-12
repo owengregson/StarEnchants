@@ -27,7 +27,9 @@ removes-required: true
 # ~0 Y and stays there). The felt result is the same capped, distance-scaled yank toward the shooter.
 # `%victim.relation%` needs no gap either: it shipped in wave 1b and teleportation.yml has branched on it
 # since batch 05. The matrix's ALLY/MEMBER vs ENEMY/NEUTRAL split collapses onto the one installed alliance
-# hook's ALLY | ENEMY | NEUTRAL, so the enemy arm is spelled as "not ALLY".
+# hook's ALLY | ENEMY | NEUTRAL, so the enemy arm is spelled as "not ALLY". That hook reads a friendly-fire-off
+# scoreboard team or a bridged party plugin; a server that defines no alliances only ever reaches the enemy
+# arms, which is the same halving the jar's isAlly gave such a server.
 # THE ROLL IS CARRIED, NOT RE-ROLLED. The source's enemy branch is one `Math.random() <= 0.066 x L` with an
 # else — grapple or trap, never both, never neither — and two independently-rolled abilities cannot express
 # that (they would double-fire on ~6-22 % of hits and whiff on as many). The shape is inversion.yml's:

@@ -56,6 +56,15 @@ public final class ItemFactory {
             Map.entry("INK_SAC", "INK_SACK"),
             Map.entry("RED_DYE", "REDSTONE"),
             Map.entry("YELLOW_DYE", "GOLD_INGOT"),
+            // The 1.13 GOLD_* → GOLDEN_* tool/armour rename. `material-upgrades` tokens (items/heroic.yml) are
+            // minted through this path, not through the migrator's Aliases table, so the heroic display swap
+            // needs its own rows to land on 1.8.
+            Map.entry("GOLDEN_SWORD", "GOLD_SWORD"),
+            Map.entry("GOLDEN_AXE", "GOLD_AXE"),
+            Map.entry("GOLDEN_HELMET", "GOLD_HELMET"),
+            Map.entry("GOLDEN_CHESTPLATE", "GOLD_CHESTPLATE"),
+            Map.entry("GOLDEN_LEGGINGS", "GOLD_LEGGINGS"),
+            Map.entry("GOLDEN_BOOTS", "GOLD_BOOTS"),
             Map.entry("ENDER_EYE", "EYE_OF_ENDER"),   // 1.13 rename: the Singularity reforge icon on the 1.8 lane
             Map.entry("STONE_BRICKS", "SMOOTH_BRICK"),// 1.13 rename: the Castling reforge icon on the 1.8 lane
             Map.entry("CHORUS_FRUIT", "ENDER_PEARL"), // 1.9+ item: the Blink reforge icon → the 1.8 pearl

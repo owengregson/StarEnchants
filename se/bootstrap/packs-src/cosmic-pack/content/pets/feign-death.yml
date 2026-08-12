@@ -60,7 +60,12 @@ description:
   - "§7§f§lCooldown"
   - "§7§7 10 Minutes"
 max-level: 4
-exp-curve: { base: 0, per-level: 750 }   # `level x 750`: 1500/2250/3000, 6750 to cap 4
+# The recorded ladder is `level × 750` (1500/2250/3000, 6750 to cap), priced by the jar against a cooldown
+# that never fired — 6750 uses × 600 s on the arm that actually answers a pet click. Divided by 30 against
+# the window this port really enforces (D-12-41): 50/75/100, 225 to cap. That is ~225 uses ≈ 37 h today, and
+# ~45 uses ≈ 8 h the day the USE context carries a combat fact and the 5-XP arm starts answering — the band
+# is deliberately straddled, because which arm runs is an engine question this file cannot settle.
+exp-curve: { base: 0, per-level: 25 }
 levels:
   # Vanish `level x 1.5 s` = 30/60/90/120 t; free outgoing hits before the early break = level (1–4).
   # The `{seconds}` readout is written out per bracket rather than bound through MESSAGE `tokens:`, which

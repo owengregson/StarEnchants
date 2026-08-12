@@ -13,8 +13,8 @@ tier: rare
 # 0.30000000000000004). POTION `level` is 1-based, so level L is amplifier L-1 = Blindness I-III.
 # Application is non-force: an already-live stronger or longer blindness wins, which is the engine's own
 # potion semantics — nothing to author. The jar's declared recently-blinded marker is dead and not ported.
-# Clarity (doc 01) blocking low-amplifier blindness on PLAYER victims is the interaction layer's
-# `clarity-blocks-blindness` rule and is authored on neither side (mobs are always blinded).
+# Clarity (doc 01) stripping low-amplifier blindness off PLAYER victims is authored wholly on ITS side, as an
+# amplifier gate on its own scan — nothing is authored here (and mobs, which Clarity cannot reach, stay blind).
 # era: BLINDNESS exists on 1.8.9; no hazard.
 levels:
   1:

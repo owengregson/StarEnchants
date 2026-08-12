@@ -13,32 +13,36 @@ tier: rare
 # and the self-attack guard is the engine's.
 # D-02-9 (as-intended): the jar's 10.0 damage lands on the WEARER (bytecode-confirmed, 5 hearts of
 # self-damage a proc) while bolt and knockback correctly hit the attacker. All three ship on the attacker.
-# The engine bolt is safe — no block ignition, no mob conversion — so the jar's real-lightning side effects
-# are not replicated.
+# `damage: 0` is what keeps the jar's real-lightning side effects out: LIGHTNING's payload is also its bolt
+# selector — any positive number strikes a REAL bolt that ignites blocks, chars the attacker, and converts a
+# nearby pig or creeper. So the bolt is cosmetic and its recorded hit (the codex's 5 hearts) rides the DAMAGE
+# row instead, which is why that row carries 20.0: the bolt's 10 plus the jar's own 10.0 flat payload, as ONE
+# hit. Two 10s would not sum — a second engine hurt in the same tick lands inside the attacker's vanilla
+# immunity window and is swallowed whole.
 # era: the real-lightning vs effect-lightning split exists on 1.8 identically; no hazard. Non-stacking under
 # R-QC63's default, so only the highest worn level fires and a proc is one bolt, not four.
 levels:
   1:
     chance: 4.5
     effects:
-      - { LIGHTNING: { damage: 10, who: "@Attacker" } }
-      - { DAMAGE: { amount: 10.0, who: "@Attacker" } }
+      - { LIGHTNING: { damage: 0, who: "@Attacker" } }
+      - { DAMAGE: { amount: 20.0, who: "@Attacker" } }
       - { VELOCITY: { mode: "away", strength: 1.5, who: "@Attacker" } }
   2:
     chance: 9
     effects:
-      - { LIGHTNING: { damage: 10, who: "@Attacker" } }
-      - { DAMAGE: { amount: 10.0, who: "@Attacker" } }
+      - { LIGHTNING: { damage: 0, who: "@Attacker" } }
+      - { DAMAGE: { amount: 20.0, who: "@Attacker" } }
       - { VELOCITY: { mode: "away", strength: 1.5, who: "@Attacker" } }
   3:
     chance: 13.5
     effects:
-      - { LIGHTNING: { damage: 10, who: "@Attacker" } }
-      - { DAMAGE: { amount: 10.0, who: "@Attacker" } }
+      - { LIGHTNING: { damage: 0, who: "@Attacker" } }
+      - { DAMAGE: { amount: 20.0, who: "@Attacker" } }
       - { VELOCITY: { mode: "away", strength: 1.5, who: "@Attacker" } }
   4:
     chance: 18
     effects:
-      - { LIGHTNING: { damage: 10, who: "@Attacker" } }
-      - { DAMAGE: { amount: 10.0, who: "@Attacker" } }
+      - { LIGHTNING: { damage: 0, who: "@Attacker" } }
+      - { DAMAGE: { amount: 20.0, who: "@Attacker" } }
       - { VELOCITY: { mode: "away", strength: 1.5, who: "@Attacker" } }

@@ -4,7 +4,7 @@ display: "Alien Implants"
 description:
   - "&eThe heroic grade of Implants: hunger never"
   - "&edrains while the helmet is worn, and the"
-  - "&etimer hands back two hearts' worth instead of one."
+  - "&etimer hands back a whole heart instead of half of one."
 trigger: REPEATING
 # Item set = the jar's 5 `helmets`, which is this pack's HELMET group (the base Implants ships the same
 # token). The modern widening to turtle/netherite helmets rides along, as it does on every armour file.

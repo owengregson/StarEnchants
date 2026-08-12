@@ -1,10 +1,10 @@
 # Matrix: 10-armor-sets.md § Mother of Yijki (crystal route, family preamble §A.7/§C.1)
 # The defensive sixth of the set's -30% incoming, per crystal-bearing piece; four pieces fold to -20% in,
-# plus the set's own Revenge of Yijki at a hundredth of its rate per piece.
+# plus the set's own Revenge of Yijki at a fifth of its rate per piece.
 display: "§f§lMother of Yijki"  # ArmorSet.MOTHER_OF_YIJKI.getDisplayName (codex §A.2); see phantom.yml
 # The source's own crystalDescription, verbatim (codex §A.2); see phantom.yml for the construction rule. The
-# "20%" it advertises for the revenge roll is the source's own advert against a measured 0.010000000000000002
-# per piece — its mismatch, not this port's (recorded on sets/mother-of-yijki.yml) — and it ships because the
+# "20%" it advertises for the revenge roll is the source's own advert against a measured 0.01 probability per
+# piece — its mismatch, not this port's (recorded on sets/mother-of-yijki.yml) — and it ships because the
 # roll it names ships.
 description:
   - " §f§l§f§lMother of Yijki"
@@ -14,14 +14,17 @@ tier: legendary  # (port-chosen) see phantom.yml
 applies-to: [ARMOR]
 stackable: true
 # The revenge rider fires once per crystal-bearing piece, which is how every per-piece crystal number in this
-# family scales — so the authored rate is the ONE-piece rate, `0.010000000000000002`, the exact FP literal the
-# jar computes as 0.05 x 0.2. The payload below is sets/mother-of-yijki.yml's DELAYED_STRIKE_FIELD copied in
-# the same sitting, from that one reading: same 16 points, same offsets, same cue chain, same verbatim warning
-# line. If either copy is retuned, both must move together.
+# family scales — so the authored rate is the ONE-piece rate: the jar's 0.05 x 0.2 = 0.01 PROBABILITY, and
+# `chance:` here is a PERCENT, so it is written 1.0 (four pieces ≈ 3.94 %). Same x100 as
+# crystals/dimensional-traveler.yml's 0.002 -> `chance: 0.2` and the set's own 0.05 -> `chance: 5`; writing
+# the bare probability instead would ship the roll a hundred times too rare and read as no roll at all.
+# The payload below is sets/mother-of-yijki.yml's DELAYED_STRIKE_FIELD copied in the same sitting, from that
+# one reading: same 16 points, same offsets, same cue chain, same verbatim warning line. If either copy is
+# retuned, both must move together.
 abilities:
   - { trigger: DEFENSE, effects: [ { DAMAGE_MOD: { side: defense, mode: add, amount: 5 } } ] }
   - trigger: DEFENSE
-    chance: 0.010000000000000002
+    chance: 1.0
     effects:
       - { DELAYED_STRIKE_FIELD: { points: 16, offset-min: 2, offset-max: 9, delay: 20,
             hit-radius: 1.4142135623730951, target-range: 32, filter: ENEMIES, damage: 16, health-floor: 1,

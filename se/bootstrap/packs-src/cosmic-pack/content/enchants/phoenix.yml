@@ -10,10 +10,13 @@ applies-to: [BOOTS]  # boots-only in the source registration; the matrix records
 # the APPLY path only, so a minted copy fires from any slot.
 group: "soul"
 tier: soul
-# Every damage cause qualifies — the lethal-hit gate IS the whole activation. Same spelling resilience.yml
-# ships from this doc; the post-mitigation %posthit.health% form is deliberately not substituted, since the
-# matrix prices the save off the incoming hit.
-condition: "%damage% >= %actor.health%"
+# Every damage cause qualifies — the lethal-hit gate IS the whole activation, and it is POST-MITIGATION
+# (D-01-14). The jar priced the gate off `damage x (1 - 0.04 x armorValue)`, so the raw `%damage% >=
+# %actor.health%` spelling fires about five times as wide on a full-diamond wearer — and every false positive
+# spends a DOUBLING charge and a 1-3 minute lockout, which is what leaves the save priced out or parked on the
+# hit that really is lethal. The matrix's "prices the save off the incoming hit" dropped the jar's armour
+# factor; the ledger's `%posthit.health%` is the replacement for that whole predictor family.
+condition: "%posthit.health% <= 0"
 # NO `suppress-immune`, by the END-SUPPRESS contract rule: all tier > 5 enchants must stay reachable by
 # suppression and the flag exempts an enchant from ALL of it (`SuppressionStore.suppressesAny` returns false
 # before it reads a single scope), so the two cannot both hold on a tier-6 `soul` rung — the same ruling that
@@ -49,8 +52,8 @@ no-souls-message: "§c§l** OUT OF SOULS **"  # the engine's 300 t throttle IS t
 # the save 50 % of the time (masks doc 11) and the jar still burns the full cooldown on a blocked save
 # (measured, kept) — with it go `§c§l* PHOENIX BLOCKED [§7{attacker}§c§l] *` to the owner and
 # `§c§l* DEATH KNIGHT MASK [§7{owner}'s Phoenix Blocked§c§l] *` to the attacker. The jar's
-# armor-value > 25 self-disable is an artifact of its own lethal-gate arithmetic; the %damage% gate has no
-# such hole, so it is not ported.
+# armor-value > 25 self-disable is an artifact of its own lethal-gate arithmetic (the 4%-per-point factor
+# reaches 0 there); %posthit.health% has no such hole, so it is not ported.
 # era: ENDERDRAGON_GROWL is the 1.8 sound id and already carries its alias row
 # (ENDERDRAGON_GROWL -> ENTITY_ENDER_DRAGON_GROWL); FLAME and LAVA resolve on both eras. No new debt.
 levels:

@@ -56,9 +56,10 @@ lore-while-on-item-multi: "&6&lMulti Armor Set Crystal ({CRYSTAL}&7&6&l)"
 #     (Ghost))" off this one template. One crystal likeness per pack is the ADR-0034 shape (R-QC53).
 # The apply cue is the source's own (its LEVEL_UP at 1.0/1.1); `remove` carries the extractor's first cue at its
 # recorded volume — the second, a WITHER_IDLE at a pitch outside the valid band, has no slot here. The source's
-# FAILURE cue (GLASS) has no home either: nothing fails. era: an item cue resolves as a Sound CONSTANT by exact
-# name (feature.compat.Sounds — no alias table on this path), so this modern spelling plays on modern and is
-# skipped on 1.8.9; the engine default it replaces is an amethyst handle, 1.17+ and skipped there as well.
+# FAILURE cue (GLASS) has no home either: nothing fails. era: an item cue resolves as a Sound CONSTANT through
+# the same bidirectional alias table content uses (feature.compat.Sounds), so this modern spelling plays on
+# modern and lands on 1.8.9 as that era's LEVEL_UP — the source's own constant. The engine default it replaces
+# is an amethyst handle, 1.17+ and silent below that.
 sounds:
   enabled: true
   apply: { sound: ENTITY_PLAYER_LEVELUP, volume: 1.0, pitch: 1.1 }

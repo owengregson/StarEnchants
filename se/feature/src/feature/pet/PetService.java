@@ -193,7 +193,10 @@ public final class PetService {
                 // R-QC65: the exp pair is comma-grouped (the recorded `#,###.##`) — these run to five and six
                 // digits on the long curves, where an ungrouped 56250 is read wrong at a glance. The level pair
                 // is not: it never leaves single digits, and a separator there would only be noise.
-                "EXP", Numbers.grouped(exp),
+                // At the cap the pair reads full rather than live: the bank keeps growing (R-iii) while
+                // `needed` is frozen on a level nobody can buy, so the raw numerator drifts past its own
+                // denominator under a bar that is already pinned full.
+                "EXP", Numbers.grouped(level >= max ? needed : exp),
                 "EXP_NEXT", Numbers.grouped(needed),
                 "EXP_BAR", expBar(level, exp, needed, max),
         };
@@ -302,13 +305,11 @@ public final class PetService {
      * The ACTIVE use-XP roll: uniform in {@code [expPerLevel/8, expPerLevel/5]}, floor division — and the
      * floor is ZERO, not one (R-QC65).
      *
-     * <p>The old {@code max(1, …)} was a universal {@code +1} that no pack could turn off, because
-     * {@code expPerLevel} is itself clamped to at least 1. On a pack whose whole pet economy is authored in
-     * {@code ITEM_XP_TRACK} amounts (every cosmic curve is), it silently added a point to every use — so the
-     * files' own "N uses to cap" arithmetic was wrong by that point — and, worse, it paid a REFUSED use: a
-     * refusal branch is an ability like any other, it activates, and it banked the {@code +1} for being told
-     * no. At {@code exp-per-level: 1} this now rolls 0, so a refusal banks nothing and a successful use banks
-     * exactly what its {@code ITEM_XP_TRACK} authored. A pack with a real per-level threshold is unchanged.
+     * <p>A {@code max(1, …)} floor would be an unturnoffable {@code +1}: {@code expPerLevel} is itself clamped
+     * to at least 1, so on a pack whose whole pet economy is authored in {@code ITEM_XP_TRACK} amounts (every
+     * cosmic curve is) it would add a point to every use and falsify the files' own "N uses to cap"
+     * arithmetic. At {@code exp-per-level: 1} this rolls 0; a pack with a real per-level threshold is
+     * unchanged.
      */
     static int useExpRoll(Random random, int expPerLevel) {
         int lo = expPerLevel / 8;
@@ -405,7 +406,7 @@ public final class PetService {
             codec.writeXpGateMinutes(stack, nowMinutes); // stamped on the GRANT, so a skipped one does not slide it
         }
         emitXpLines(holder, def, gainMessage, levelUpMessage, amount, roll, oldName,
-                level, cfg.expPerLevel());
+                level, cfg.expPerLevel(), def.cappedAt(cfg.maxLevel()));
         if (progress.changed() || windowMinutes > 0) {
             inventory.setItem(inventory.getHeldItemSlot(), stack);
             if (progress.bracketCrossed()) {
@@ -420,9 +421,17 @@ public final class PetService {
         return stack.getItemMeta() == null ? def.display() : stack.getItemMeta().getDisplayName();
     }
 
-    /** The two authored lines of an {@code ITEM_XP_TRACK} grant; an empty template is silent. */
+    /**
+     * The two authored lines of an {@code ITEM_XP_TRACK} grant; an empty template is silent. A pet already at
+     * its cap says nothing: the bank keeps growing (R-iii) but its {@code {exp}/{needed}} pair stopped meaning
+     * anything the moment {@code needed} froze on a level that can never be bought.
+     */
     private void emitXpLines(Player holder, PetDef def, String gainMessage, String levelUpMessage,
-                             int amount, LevelRoll roll, String oldName, int oldLevel, int universalFlat) {
+                             int amount, LevelRoll roll, String oldName, int oldLevel, int universalFlat,
+                             int maxLevel) {
+        if (oldLevel >= maxLevel) {
+            return;
+        }
         if (gainMessage != null && !gainMessage.isEmpty()) {
             // {needed} is the requirement AFTER the level-up — the recorded quirk, kept: on the activation
             // that levels you the bar you are told about is the new one.
@@ -557,14 +566,19 @@ public final class PetService {
         }
         UseAttempt attempt = dispatch.fireUse(player, bracket.useStableKeys());
         if (attempt.activated()) {
-            sharedGate.arm(player.getUniqueId(), nowTicks.getAsLong() + SHARED_USE_GATE_TICKS); // ADR-0070 rider
-            messenger.activated(player, def);
-            if (dig != null) {
-                armHome(player, def, dig); // ADR-0061: the dig is non-XP — use-XP lands on the RECALL
-            } else {
-                creditUseExp(player, stack);
+            // R-115-1: a refusal branch is a SIBLING ability that activates to say no. Only the bracket's
+            // payload — its first ability — is a use, so a refusal cannot arm the shared gate, bank XP, or
+            // re-open the armed window (which would extend a live buff by the very click that refused it).
+            if (attempt.activatedCandidateIndex() == 0) {
+                sharedGate.arm(player.getUniqueId(), nowTicks.getAsLong() + SHARED_USE_GATE_TICKS); // ADR-0070 rider
+                messenger.activated(player, def);
+                if (dig != null) {
+                    armHome(player, def, dig); // ADR-0061: the dig is non-XP — use-XP lands on the RECALL
+                } else {
+                    creditUseExp(player, stack);
+                }
+                openWindow(player, def, bracket);
             }
-            openWindow(player, def, bracket);
             return;
         }
         if (attempt.onCooldown()) {

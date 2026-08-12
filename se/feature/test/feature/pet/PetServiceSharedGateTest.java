@@ -140,7 +140,7 @@ class PetServiceSharedGateTest {
     }
 
     private static UseAttempt activated() {
-        return new UseAttempt(true, false, 0, -1, false);
+        return new UseAttempt(true, false, 0, -1, false, 0);
     }
 
     @Test
@@ -166,7 +166,7 @@ class PetServiceSharedGateTest {
     void aFailedActivationDoesNotArmTheGate() {
         Player p = player();
         // first use is blocked at the cooldown gate, the second activates
-        when(dispatch.fireUse(any(), any())).thenReturn(new UseAttempt(false, true, 100, -1, false), activated());
+        when(dispatch.fireUse(any(), any())).thenReturn(new UseAttempt(false, true, 100, -1, false, -1), activated());
         PetDef defA = holder.library().petDefOf("activea");
         PetDef defB = holder.library().petDefOf("activeb");
 

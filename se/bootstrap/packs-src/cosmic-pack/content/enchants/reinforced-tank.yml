@@ -40,10 +40,13 @@ removes-required: true
 # form the counterpart already ships (`%damage% * 0.9775 > 1.0`), which is the same guard without the
 # matrix's rounding: 1/0.9775 = 1.0230179…, and the rounded 1.02302 sits a hair above it.
 # Reduction 0.0225 x level = 2.25 / 4.5 / 6.75 / 9 % (damage kept 0.9775 / 0.9550 / 0.9325 / 0.9100).
-# Stacking: every worn piece fires with its own level, and the engine folds the pieces ADDITIVELY where the
-# jar composed them multiplicatively — a full L4 set reduces 36 % here against the jar's 0.91^4 = 31.4 %
-# (ledger D-02-10, ruled on the counterpart; the same fold, one rung up). Attacker-gated, so D-001's
-# double-fire never applies and the recorded values are single-pass as spec §6 requires.
+# NEVER STACKS. The codex whitelist names `Tank` and not `Reinforced Tank` (ledger D-003), so this grade takes
+# R-QC63's highest-piece-only default where its base authors `stacks: true` — four worn pieces are ONE
+# contribution at the highest level, so a full L4 set reduces 9 %, not 4 x 9. D-02-10's additive fold is ruled
+# on the counterpart alone and does not carry up a tier. The consequence is the jar's own and is recorded, not
+# corrected: four stacking Tank IV pieces out-reduce this grade (30 % against 9 %), so finishing the upgrade on
+# all four is a net loss where upgrading one is a gain. Attacker-gated, so D-001's double-fire never applies
+# and the recorded values are single-pass as spec §6 requires.
 # Counterpart Tank (0.01875 x level, plus a break cue) is REPLACED by the contract, never summed.
 # era: none. BLOCK_CRACK + IRON_BLOCK both resolve on 1.8.9; unlike the counterpart this entry plays no
 # break SOUND at all, so no sound alias is in play here either way.

@@ -56,7 +56,10 @@ description:
   - "§7§f§lCooldown"
   - "§7§7 1 hour"
 max-level: 10
-exp-curve: { base: 0, per-level: 100 }   # `level x 100`: L2 200 … L10 1000, 5400 lifetime; XP 15 per use
+# The recorded ladder is `level × 100` (5400 lifetime), priced by the jar against a cooldown that never fired
+# — 360 uses at ONE HOUR apiece is ~360 h. Divided by 14 against the window this port really enforces
+# (D-12-41): L2 14 … L10 70, 378 lifetime = ~25 uses at 15 XP each ≈ 25 h.
+exp-curve: { base: 0, per-level: 7 }
 levels:
   # ABILITY ORDER IS LOAD-BEARING: the arm is index 0, so it carries the pet-wide cooldown scope (the hour
   # survives a level-up crossing a bracket floor). Both refusals author `cooldown: 0` and scope to their own

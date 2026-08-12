@@ -13,6 +13,11 @@ levels:
   # The count resolves live per hit, and the buff holds only while the enchant is worn (D-01-12).
   # The jar's 6 s ally scan also emitted a snow-block break burst at the wearer's eyes; that scan is gone, so
   # the cue has no cadence to hang off and is dropped rather than re-timed to the swing (D-01-17).
+  # SHAPE DELTA (D-01-18), in the form mighty-cleave.yml and pummel.yml already use: the count is centred on
+  # the VICTIM, where the jar measured from the WEARER. `@Aoe` anchors on the activation location, which on
+  # any entity-combat pass IS the struck body, and every area selector in the engine takes the same centre —
+  # the surface exposes no wearer-anchored one, so this is not a spelling choice. It bites hardest on a bow
+  # shot, where the whole ally scan runs around the target and the shooter's own line counts for nothing.
   1:
     effects:
       - { DAMAGE_SCALE: { side: "attack", mode: "add", per: 10, cap: 75, who: "@Aoe{r=5, filter=ALLIES}" } }

@@ -69,9 +69,11 @@ description:
   - "§7"
   - "§7§f§lCooldown"
   - "§7§7 {TIME_FORMATTED}"
-# The recorded ladder `250 + 1000 × level` (the cost of REACHING level N): 2250 at L2 … 10250 at L10,
-# 56 250 to cap — 1125 uses at 50 XP each.
-exp-curve: { base: 250, per-level: 1000 }
+# The recorded ladder is `250 + 1000 × level` (2250 at L2 … 10 250 at L10, 56 250 to cap), priced by the jar
+# against a cooldown that never fired — 1125 uses × 900 s is ~281 h of perfectly-spaced clicks. Divided by 11
+# against the window this port really enforces (D-12-41): 205 at L2 … 925 at L10, 5085 to cap = ~102 uses at
+# 50 XP each ≈ 25 h. Enchanter's identical source ladder divides harder, its cooldown being four times this.
+exp-curve: { base: 25, per-level: 90 }
 max-level: 10
 levels:
   # One bracket per level: only the bonus percent (= the level) and the success line's number scale. Cooldown

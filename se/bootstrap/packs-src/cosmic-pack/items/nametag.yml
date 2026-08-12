@@ -1,0 +1,16 @@
+# Matrix: 13-support-items.md § Item Nametag (codex 16-item-builders.md, item broker dispatch table).
+# PORT-ORIGINAL LIKENESS. The nametag is fetched from an absent plugin — no material, no name, no lore, no
+# blacklist is recorded; only that the item exists and that two dispatch constants resolve to one factory. The
+# rename-with-anvil-GUI flow is this engine's own as well, so nothing here reproduces anything.
+type: nametag
+# Era-stable on both lanes.
+material: NAME_TAG
+name: "&e&lItem Nametag"
+lore:
+  - "&7Renames an item. Colour and format"
+  - "&7codes are parsed, so the name carries"
+  - "&7whatever styling you type."
+  - "&ePlace nametag on item to apply."
+# Substrings a renamed item may not contain (case-insensitive). Empty = allow any name; the corpus records no
+# list, so inventing one would be inventing server policy.
+blacklist: []

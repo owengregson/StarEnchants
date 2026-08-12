@@ -114,7 +114,7 @@ class EngineStoresTest {
         s.headTrophies().arm(id, "n", "l", 0L);
         s.foodWindows().arm(id, FoodWindowStore.Type.SCALE_GAIN, 0L, 100, 2.0);
         s.foodWindows().arm(id, FoodWindowStore.Type.CANCEL_DRAIN, 0L, 100, 0.0);
-        s.messageThrottle().tryEmit(id, 0L, 300);
+        s.messageThrottle().tryEmit(id, MessageThrottleStore.Notice.OUT_OF_SOULS, 0L, 300);
         s.soulEscalation().step(id, CooldownStore.key(0, 1), 0L, 0);
         s.dotSuppression().suppress(id, DotSuppressionStore.CAUSE_WITHER, 0L, 100);
         s.rebounds().arm(id, 1, 4, 5.0, 0, 5);
@@ -131,7 +131,7 @@ class EngineStoresTest {
         assertEquals(3.0, s.dotAmplify().factor(id, 0L, DotAmplifyStore.CAUSE_WITHER));
         assertEquals(2.0, s.foodWindows().gainFactor(id, 0L));
         assertTrue(s.foodWindows().cancelsDrain(id, 0L));
-        assertFalse(s.messageThrottle().tryEmit(id, 0L, 300)); // armed by the emit above
+        assertFalse(s.messageThrottle().tryEmit(id, MessageThrottleStore.Notice.OUT_OF_SOULS, 0L, 300)); // armed by the emit above
         assertEquals(1, s.soulEscalation().steps(id, CooldownStore.key(0, 1), 0L, 0));
         assertTrue(s.dotSuppression().suppressed(id, 0L, DotSuppressionStore.CAUSE_WITHER));
         assertTrue(s.rebounds().armed(id));
@@ -152,7 +152,7 @@ class EngineStoresTest {
         assertNull(s.headTrophies().consume(id));
         assertEquals(1.0, s.foodWindows().gainFactor(id, 0L)); // 1 = unarmed, the neutral multiplier
         assertFalse(s.foodWindows().cancelsDrain(id, 0L));
-        assertTrue(s.messageThrottle().tryEmit(id, 0L, 300));
+        assertTrue(s.messageThrottle().tryEmit(id, MessageThrottleStore.Notice.OUT_OF_SOULS, 0L, 300));
         assertEquals(0, s.soulEscalation().steps(id, CooldownStore.key(0, 1), 0L, 0)); // back to the base price
         assertFalse(s.dotSuppression().suppressed(id, 0L, DotSuppressionStore.CAUSE_WITHER));
         // A worn marker with no expiry: a missed clear would outlive the armour that granted it.

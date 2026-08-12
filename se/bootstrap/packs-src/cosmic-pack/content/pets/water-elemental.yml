@@ -2,8 +2,8 @@
 # THE PET FAMILY SHAPE is read once in `anti-teleblock.yml`; the ABILITY SHAPE is Lava's, read once in
 # `lava-elemental.yml` — same four-ability bracket (payload at index 0 stamping `waterpet.fired` + the inline
 # `waterpet.filled` count, then the converted/zero/spectator branches), same pet-wide cooldown scope on index
-# 0, same residual (a zero-bucket use spends the cooldown, because the refusal can only be known after the
-# conversion has run). This pet has no fat-bucket half.
+# 0, and the same `REFUND_COOLDOWN{unless:}` row handing that window back on a zero-bucket click (R-QC15 —
+# why it can only live on index 0 is read in Lava's header). This pet has no fat-bucket half.
 # COOLDOWN: 6000 t = the as-intended 300 s, flat at every level (ledger D-12-5).
 # D-12-6 is the same inverted partial fill as Lava and needs nothing authored — INVENTORY_CONVERT converts up
 # to the limit and returns the overflow.
@@ -45,6 +45,7 @@ levels:
         effects:
           - { SET_VAR: { name: "waterpet.fired", value: "1", ttl: 1, who: "@Self" } }
           - { INVENTORY_CONVERT: { from: "BUCKET", to: "WATER_BUCKET", limit: 32, plain: true, protect-seconds: 60, count-var: "waterpet.filled" } }
+          - { REFUND_COOLDOWN: { unless: "%waterpet.filled%" } }
       - condition: '%waterpet.fired% == 1 && %waterpet.filled% > 0'
         cooldown: 0
         effects:
@@ -66,6 +67,7 @@ levels:
         effects:
           - { SET_VAR: { name: "waterpet.fired", value: "1", ttl: 1, who: "@Self" } }
           - { INVENTORY_CONVERT: { from: "BUCKET", to: "WATER_BUCKET", limit: 64, plain: true, protect-seconds: 60, count-var: "waterpet.filled" } }
+          - { REFUND_COOLDOWN: { unless: "%waterpet.filled%" } }
       - condition: '%waterpet.fired% == 1 && %waterpet.filled% > 0'
         cooldown: 0
         effects:
@@ -87,6 +89,7 @@ levels:
         effects:
           - { SET_VAR: { name: "waterpet.fired", value: "1", ttl: 1, who: "@Self" } }
           - { INVENTORY_CONVERT: { from: "BUCKET", to: "WATER_BUCKET", limit: 96, plain: true, protect-seconds: 60, count-var: "waterpet.filled" } }
+          - { REFUND_COOLDOWN: { unless: "%waterpet.filled%" } }
       - condition: '%waterpet.fired% == 1 && %waterpet.filled% > 0'
         cooldown: 0
         effects:
@@ -108,6 +111,7 @@ levels:
         effects:
           - { SET_VAR: { name: "waterpet.fired", value: "1", ttl: 1, who: "@Self" } }
           - { INVENTORY_CONVERT: { from: "BUCKET", to: "WATER_BUCKET", limit: 128, plain: true, protect-seconds: 60, count-var: "waterpet.filled" } }
+          - { REFUND_COOLDOWN: { unless: "%waterpet.filled%" } }
       - condition: '%waterpet.fired% == 1 && %waterpet.filled% > 0'
         cooldown: 0
         effects:
@@ -129,6 +133,7 @@ levels:
         effects:
           - { SET_VAR: { name: "waterpet.fired", value: "1", ttl: 1, who: "@Self" } }
           - { INVENTORY_CONVERT: { from: "BUCKET", to: "WATER_BUCKET", limit: 160, plain: true, protect-seconds: 60, count-var: "waterpet.filled" } }
+          - { REFUND_COOLDOWN: { unless: "%waterpet.filled%" } }
       - condition: '%waterpet.fired% == 1 && %waterpet.filled% > 0'
         cooldown: 0
         effects:
@@ -150,6 +155,7 @@ levels:
         effects:
           - { SET_VAR: { name: "waterpet.fired", value: "1", ttl: 1, who: "@Self" } }
           - { INVENTORY_CONVERT: { from: "BUCKET", to: "WATER_BUCKET", limit: 192, plain: true, protect-seconds: 60, count-var: "waterpet.filled" } }
+          - { REFUND_COOLDOWN: { unless: "%waterpet.filled%" } }
       - condition: '%waterpet.fired% == 1 && %waterpet.filled% > 0'
         cooldown: 0
         effects:
@@ -171,6 +177,7 @@ levels:
         effects:
           - { SET_VAR: { name: "waterpet.fired", value: "1", ttl: 1, who: "@Self" } }
           - { INVENTORY_CONVERT: { from: "BUCKET", to: "WATER_BUCKET", limit: 224, plain: true, protect-seconds: 60, count-var: "waterpet.filled" } }
+          - { REFUND_COOLDOWN: { unless: "%waterpet.filled%" } }
       - condition: '%waterpet.fired% == 1 && %waterpet.filled% > 0'
         cooldown: 0
         effects:
@@ -192,6 +199,7 @@ levels:
         effects:
           - { SET_VAR: { name: "waterpet.fired", value: "1", ttl: 1, who: "@Self" } }
           - { INVENTORY_CONVERT: { from: "BUCKET", to: "WATER_BUCKET", limit: 256, plain: true, protect-seconds: 60, count-var: "waterpet.filled" } }
+          - { REFUND_COOLDOWN: { unless: "%waterpet.filled%" } }
       - condition: '%waterpet.fired% == 1 && %waterpet.filled% > 0'
         cooldown: 0
         effects:
@@ -213,6 +221,7 @@ levels:
         effects:
           - { SET_VAR: { name: "waterpet.fired", value: "1", ttl: 1, who: "@Self" } }
           - { INVENTORY_CONVERT: { from: "BUCKET", to: "WATER_BUCKET", limit: 288, plain: true, protect-seconds: 60, count-var: "waterpet.filled" } }
+          - { REFUND_COOLDOWN: { unless: "%waterpet.filled%" } }
       - condition: '%waterpet.fired% == 1 && %waterpet.filled% > 0'
         cooldown: 0
         effects:
@@ -235,6 +244,7 @@ levels:
         effects:
           - { SET_VAR: { name: "waterpet.fired", value: "1", ttl: 1, who: "@Self" } }
           - { INVENTORY_CONVERT: { from: "BUCKET", to: "WATER_BUCKET", limit: 1152, plain: true, protect-seconds: 60, count-var: "waterpet.filled" } }
+          - { REFUND_COOLDOWN: { unless: "%waterpet.filled%" } }
       - condition: '%waterpet.fired% == 1 && %waterpet.filled% > 0'
         cooldown: 0
         effects:

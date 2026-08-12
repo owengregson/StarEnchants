@@ -1,0 +1,54 @@
+# Matrix: 13-support-items.md § Soul Gem (codex 07-enchants-mastery-soul.md § Soul Mode).
+# PORT-ORIGINAL LIKENESS. The gem is minted by a plugin absent from the corpus, so its material, name and lore
+# are codex-silent in all three fields; what IS recorded is the CALL CONTRACT — a per-player soul-mode flag, a
+# "has N souls" test across the player's gems, drain-across-gems, per-gem get/set with the count stored ON the
+# item, and a mint-with-N — and this engine already honours every line of it. The cosmetics below are therefore
+# this pack's own, authored to sit beside its gold Armor Crystal, and are NOT a likeness of anything.
+type: soul-gem
+# Era-stable on both lanes.
+material: EMERALD
+# {AMOUNT} = the live count, {SOUL_COLOR} = its tier colour; both re-render on every change and work in the name
+# as well as the lore.
+name: "&c&lSoul Gem &7[{SOUL_COLOR}&l{AMOUNT}&r&7]"
+lore:
+  - "&7Right click to toggle &c&nSoul Mode&7."
+  - "&7While it is on, your soul enchantments"
+  - "&7may activate and drain this gem."
+  - ""
+  - "&7Stack another gem onto this one to"
+  - "&7combine their counts."
+  - "&cUse /splitsouls on this gem to split it."
+# Codex-silent: the accrual lived in the absent plugin, and the only soul PRICES the corpus records are
+# per-consumer (an item's 300, an enchant's cost). One soul per kill is a port choice, not a recovered number —
+# no per-mob table ships for the same reason.
+souls-per-kill: 1
+# The {SOUL_COLOR} ladder (min count -> & colour, highest wins) and the below-tier colour. Port-original.
+soul-colors:
+  1: "&f"
+  64: "&e"
+  256: "&6"
+  1024: "&c"
+empty-soul-color: "&7"
+# RECORDED, verbatim: the toggle cues are the source's own — ORB_PICKUP 1.0F/1.2F entering soul mode and
+# BAT_TAKEOFF 1.0F/1.2F leaving it. Authored in their modern spellings, which the sound alias table carries back
+# to exactly those two 1.8 constants, so both lanes play the recorded cue. The other three actions (spend,
+# combine, split) have no recorded cue and take era-safe port choices.
+sounds:
+  toggle-on:
+    - { sound: ENTITY_EXPERIENCE_ORB_PICKUP, volume: 1.0, pitch: 1.2 }
+  toggle-off:
+    - { sound: ENTITY_BAT_TAKEOFF, volume: 1.0, pitch: 1.2 }
+  use:
+    - { sound: ENTITY_GENERIC_EAT, volume: 1.0, pitch: 1.0 }
+  combine:
+    - { sound: ENTITY_EXPERIENCE_ORB_PICKUP, volume: 1.0, pitch: 0.8 }
+  split:
+    - { sound: BLOCK_GLASS_BREAK, volume: 1.0, pitch: 1.4 }
+# Port-original. Each token is authored in the spelling the particle alias table carries both ways, so the 1.8.9
+# lane spawns them too; the coloured dust degrades to a plain cloud there (no coloured-dust API on 1.8).
+particles:
+  enable:  { particle: REDSTONE, count: 20, color: { r: 255, g: 85, b: 85 }, spread: 1.25, y-offset: 1.0 }
+  disable: { particle: REDSTONE, count: 20, color: { r: 85,  g: 85, b: 85 }, spread: 1.25, y-offset: 1.0 }
+  idle:    { particle: ENCHANTMENT_TABLE, count: 8,  spread: 0.75, y-offset: 1.0 }
+  use:     { particle: SPELL_WITCH,       count: 15, spread: 0.75, y-offset: 1.0 }
+# The soul-mode ON/OFF banners and the spend feedback ARE recorded verbatim and live in lang.yml, not here.

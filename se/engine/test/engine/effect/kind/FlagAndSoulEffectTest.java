@@ -57,7 +57,7 @@ class FlagAndSoulEffectTest {
                 // defaults (-1 / 0) are what a cooldown-less ability hands it, and the sink treats them as inert.
                 flag("REFUND_COOLDOWN → refundCooldown(actor, own scope, own duration)", new RefundCooldownEffect(),
                         c -> c.with("unless", 0.0).cooldownScope(12).cooldownTicks(6000),
-                        s -> verify(s).refundCooldown(null, 12, 6000)),
+                        s -> verify(s).refundCooldown(null, 12, 0, null, 6000)),
                 flag("REFUND_COOLDOWN with a non-zero `unless` emits nothing", new RefundCooldownEffect(),
                         c -> c.with("unless", 3.0).cooldownScope(12).cooldownTicks(6000),
                         s -> { }),

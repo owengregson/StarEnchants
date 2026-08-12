@@ -5,6 +5,7 @@ display: "Ender Walker"
 # description: not matrix-recorded (factual paraphrase)
 description:
   - "&eWither and poison never land, and may instead heal you for the tick they would have dealt."
+  - "&eThe cost is your sight: you go blind for as long as the effect is on you."
 trigger: [HURT, PASSIVE]
 applies-to: [BOOTS]  # boots-only in the source registration; the matrix records no item set
 group: "epic"
@@ -12,6 +13,12 @@ tier: epic
 # The immunity rides HURT, not DEFENSE: wither/poison ticks carry no damager, so only the all-cause
 # defender walk sees them. The heal is the event's own damage (EVENT_DAMAGE_FRACTION, fraction 1.0,
 # uncapped) — a cancelled tick converted into health.
+# THE SELF-BLIND IS 60 t, NOT THE MEASURED 200 (D-01-19). Every cancelled tick is its own activation and
+# re-applies it, so the window only ever ends after the LAST tick: at 200 t a single Wither II splash bought
+# immunity and paid for it with the DoT's whole duration PLUS ten more seconds of blindness, which loses the
+# fight the immunity just won. 60 t still covers the slowest vanilla DoT interval (Wither I, 2 s) with margin,
+# so the blind is unbroken while the effect is on you — the cost the description now names — and clears three
+# seconds after it stops.
 levels:
   1:
     abilities:
@@ -21,7 +28,7 @@ levels:
         effects:
           - { CANCEL: {} }
           - { PARTICLE: { particle: "PORTAL", count: 70, who: "@Self" } }
-          - { POTION: { effect: "BLINDNESS", level: 1, duration: 200, who: "@Self", wait: 2 } }  # suppressed by the Clarity interaction rule (interaction layer)
+          - { POTION: { effect: "BLINDNESS", level: 1, duration: 60, who: "@Self", wait: 2 } }  # scrubbed by a co-worn Clarity (its scan strips amp-0 blindness at every rung)
       - trigger: HURT
         chance: 15
         condition: "%damagecause% == \"WITHER\" || %damagecause% == \"POISON\""
@@ -39,7 +46,7 @@ levels:
         effects:
           - { CANCEL: {} }
           - { PARTICLE: { particle: "PORTAL", count: 70, who: "@Self" } }
-          - { POTION: { effect: "BLINDNESS", level: 1, duration: 200, who: "@Self", wait: 2 } }  # suppressed by the Clarity interaction rule (interaction layer)
+          - { POTION: { effect: "BLINDNESS", level: 1, duration: 60, who: "@Self", wait: 2 } }  # scrubbed by a co-worn Clarity (its scan strips amp-0 blindness at every rung)
       - trigger: HURT
         chance: 30
         condition: "%damagecause% == \"WITHER\" || %damagecause% == \"POISON\""
@@ -57,7 +64,7 @@ levels:
         effects:
           - { CANCEL: {} }
           - { PARTICLE: { particle: "PORTAL", count: 70, who: "@Self" } }
-          - { POTION: { effect: "BLINDNESS", level: 1, duration: 200, who: "@Self", wait: 2 } }  # suppressed by the Clarity interaction rule (interaction layer)
+          - { POTION: { effect: "BLINDNESS", level: 1, duration: 60, who: "@Self", wait: 2 } }  # scrubbed by a co-worn Clarity (its scan strips amp-0 blindness at every rung)
       - trigger: HURT
         chance: 45
         condition: "%damagecause% == \"WITHER\" || %damagecause% == \"POISON\""
@@ -75,7 +82,7 @@ levels:
         effects:
           - { CANCEL: {} }
           - { PARTICLE: { particle: "PORTAL", count: 70, who: "@Self" } }
-          - { POTION: { effect: "BLINDNESS", level: 1, duration: 200, who: "@Self", wait: 2 } }  # suppressed by the Clarity interaction rule (interaction layer)
+          - { POTION: { effect: "BLINDNESS", level: 1, duration: 60, who: "@Self", wait: 2 } }  # scrubbed by a co-worn Clarity (its scan strips amp-0 blindness at every rung)
       - trigger: HURT
         chance: 60
         condition: "%damagecause% == \"WITHER\" || %damagecause% == \"POISON\""
@@ -93,7 +100,7 @@ levels:
         effects:
           - { CANCEL: {} }
           - { PARTICLE: { particle: "PORTAL", count: 70, who: "@Self" } }
-          - { POTION: { effect: "BLINDNESS", level: 1, duration: 200, who: "@Self", wait: 2 } }  # suppressed by the Clarity interaction rule (interaction layer)
+          - { POTION: { effect: "BLINDNESS", level: 1, duration: 60, who: "@Self", wait: 2 } }  # scrubbed by a co-worn Clarity (its scan strips amp-0 blindness at every rung)
       - trigger: HURT
         chance: 75
         condition: "%damagecause% == \"WITHER\" || %damagecause% == \"POISON\""

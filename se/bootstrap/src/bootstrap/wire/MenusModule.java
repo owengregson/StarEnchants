@@ -32,7 +32,8 @@ final class MenusModule {
     MenusModule(BootCore core, ReloadModule reload, ScrollsModule scrolls, List<Mintable> mintables) {
         this.core = core;
         this.scrolls = scrolls;
-        this.userHub = new UserHubMenu(registry, core.caps(), core.menusHolder()::config, core.vanillaEnchants());
+        this.userHub = new UserHubMenu(registry, core.content(), core.caps(), core.menusHolder()::config,
+                core.vanillaEnchants());
         this.operatorConsole = new OperatorConsoleMenu(registry, reload.reloader, core.messages(), core.caps(),
                 core.menusHolder()::config, core.vanillaEnchants());
         // The operator "mint anything" catalogue (ADR-0030, ADR-0047) — derived from the module-declared mintables.

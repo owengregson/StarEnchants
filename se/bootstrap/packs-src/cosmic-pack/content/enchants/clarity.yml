@@ -2,8 +2,9 @@
 display: "Clarity"
 # description: not matrix-recorded (factual paraphrase)
 description:
-  - "&eBlindness is scrubbed off you"
-  - "&ealmost as fast as it lands."
+  - "&eBlindness is scrubbed off you almost as fast"
+  - "&eas it lands — the stronger it is, the higher"
+  - "&ethe level you need to shake it."
 trigger: REPEATING
 applies-to: [ARMOR]
 group: "legendary"
@@ -11,27 +12,35 @@ tier: legendary
 repeat: 3  # scan period, level-independent
 # era: `BLOCK_FIRE_EXTINGUISH` is 1.8's `FIZZ` (`random.fizz`) and `Aliases.SOUND` carries the row, so the
 # scrub is audible on both lanes — it matters here because this entry authors exactly ONE sound.
-# Grace window: the matrix's interactions line is the authority (its activation line's %clarity.grace%
-# condition is not an authorable fact) — the grace is a SUPPRESS(scope=ENCHANT, key=enchants/clarity),
-# armed here on @Self so gate 5 holds off the 3-tick re-fire for one blindness window. Durations are the
-# per-level blindness the enchant is graced against (matrix 03 § Blind, 30/60/90 t).
+# The scan is gated on a blindness actually being live, so the cleanse, the fizz and the burst are one event
+# per landed blindness — the matrix's "on a successful cleanse" wording. Ungated, a 3-tick REPEATING with
+# world-audible cues is a permanent metronome on nine armour sets that grant this enchant.
+# THE AMPLIFIER LADDER IS THE LEVEL SCALING (matrix: threshold `level == 3 ? 3 : level - 1` = amp 0/1/3, the
+# L2->L3 two-tier jump verbatim). The matrix routes it through an interaction layer only because it assumed
+# active amplifiers are not condition facts; `%actor.potion.BLINDNESS%` is one here and reads amplifier+1, so
+# the thresholds are authored inline as 1 / <=2 / <=4. Same rule, one file. A blindness above the rung's
+# threshold is left alone, which is what the jar's check did.
+# NO GRACE WINDOW. The matrix's `%clarity.grace%` condition reads a marker Blind was supposed to arm, and
+# blind.yml records that marker as dead in the jar and not ported — nothing arms it. Self-arming a SUPPRESS
+# here instead would idle the enchant for its own level's blindness duration, i.e. make a higher rung scrub
+# LATER; the amplifier gate already bounds the re-fire, since after one pass there is nothing left to remove.
 levels:
   1:
+    condition: "%actor.potion.BLINDNESS% == 1"
     effects:
       - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }
       # FIZZ on 1.8.9 is random.fizz; SPELL is fine there — resolver-mapped
       - { SOUND: { sound: "BLOCK_FIRE_EXTINGUISH", volume: 1.0, pitch: 0.6 } }
       - { PARTICLE: { particle: "SPELL", count: 20, who: "@Self" } }
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/clarity", duration: 30, who: "@Self" } }
   2:
+    condition: "%actor.potion.BLINDNESS% > 0 && %actor.potion.BLINDNESS% <= 2"
     effects:
       - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }
       - { SOUND: { sound: "BLOCK_FIRE_EXTINGUISH", volume: 1.0, pitch: 0.6 } }
       - { PARTICLE: { particle: "SPELL", count: 20, who: "@Self" } }
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/clarity", duration: 60, who: "@Self" } }
   3:
+    condition: "%actor.potion.BLINDNESS% > 0 && %actor.potion.BLINDNESS% <= 4"
     effects:
       - { REMOVE_POTION: { effect: "BLINDNESS", who: "@Self" } }
       - { SOUND: { sound: "BLOCK_FIRE_EXTINGUISH", volume: 1.0, pitch: 0.6 } }
       - { PARTICLE: { particle: "SPELL", count: 20, who: "@Self" } }
-      - { SUPPRESS: { scope: "ENCHANT", key: "enchants/clarity", duration: 90, who: "@Self" } }

@@ -20,7 +20,9 @@ tier: soul
 # `TieredEnchantments.bloodlust = 5` — tier 5 is this pack's `soul` rung. Max 6; base 17.0, interval 4.0.
 # THE GATE, in the jar's own order. `%proximityevent% == "bleed"` is the tag half: PROXIMITY_EVENT also fires
 # on a nearby player DEATH (Avenging Angel's half), and without the tag each of the two would proc on the
-# other's event. `%victim.relation% == "ALLY"` is `GeneralUtil.isAlly(bleedingPlayer, wearer)` — the subject
+# other's event. `%victim.relation% == "ALLY"` is `GeneralUtil.isAlly(bleedingPlayer, wearer)` — it reads the
+# server's alliance bridge (a friendly-fire-off scoreboard team, or a bridged party plugin), so a server that
+# defines no alliances at all never fires this enchant, exactly as the jar's isAlly did. The subject
 # rides the activation as the victim, so every `%victim.*%` read here describes the BLEEDING player and not
 # the wearer. `%distance% <= 7` is the jar's `getNearbyEntities(7, 7, 7)` box narrowed to a sphere (the
 # engine's single-radius house rule; the corners of that box reached 12 blocks).

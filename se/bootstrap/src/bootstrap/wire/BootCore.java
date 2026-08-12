@@ -76,6 +76,8 @@ import java.util.function.BiPredicate;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import platform.caps.Capabilities;
 import platform.caps.Regions;
 import platform.economy.EconomyProvider;
@@ -580,11 +582,15 @@ public final class BootCore {
                 // PROXIMITY_ANNOUNCE: the second place the sink hands a trigger back to the feature layer.
                 // Late-bound like summonPayloads for the same reason — the dispatch this env feeds is built below.
                 this::announceProximity);
-        // mcMMO friendly-fire gate — ONE alliance predicate feeding both consumers. Combat suppression has
-        // always used it; the targeting filters (@Aoe{filter=ENEMIES|ALLIES}) never had it installed, so they
-        // treated a party-mate as an enemy while the damage gate spared them. Same predicate, both sides.
-        BiPredicate<Player, Player> allied =
+        // ONE alliance predicate feeding both consumers. Combat suppression has always used it; the targeting
+        // filters (@Aoe{filter=ENEMIES|ALLIES}) never had it installed, so they treated a party-mate as an
+        // enemy while the damage gate spared them. Same predicate, both sides.
+        // Two sources, OR'd: an mcMMO party (modern lane only) and the first-party scoreboard-team signal
+        // below — without the latter, ALLY is unreachable on a stock server and every ally-only enchant is a
+        // silent no-op, which the port refuses to ship (see training.yml/cleave.yml dropping mcMMO hooks).
+        BiPredicate<Player, Player> parties =
                 bindings.mcmmoFriendlyFire(plugin, master.config().integrations()::enabled);
+        BiPredicate<Player, Player> allied = (a, b) -> parties.test(a, b) || protectedTeammates(a, b);
         CombatDispatch.friendlyFire(allied);
         engine.selector.kind.Allies.resolver(allied);
         // The worn-gear facts (%scope.enchlevel.<key>%, %victim.heroicpieces%): both flattened into the live
@@ -826,6 +832,26 @@ public final class BootCore {
     }
 
     /**
+     * The first-party alliance signal: both players on ONE scoreboard team whose friendly fire is OFF.
+     * {@code /team} ships with every server, so ALLY is reachable without a party plugin on either lane —
+     * and the friendly-fire flag is what keeps a nametag/tab-sorting team (which leaves the vanilla default
+     * ON) from being mistaken for an alliance. Read off the ATTACKER's board, since per-player scoreboards
+     * make "the same team" a per-viewer question. Best-effort: any lookup fault degrades to "not allied".
+     */
+    private static boolean protectedTeammates(Player a, Player b) {
+        if (a == null || b == null) {
+            return false;
+        }
+        try {
+            Scoreboard board = a.getScoreboard();
+            Team team = board.getEntryTeam(a.getName());
+            return team != null && !team.allowFriendlyFire() && team.equals(board.getEntryTeam(b.getName()));
+        } catch (RuntimeException unavailable) {
+            return false;
+        }
+    }
+
+    /**
      * The world-access seam for selectors (§3.6). All run synchronously on the firing thread, so each touch is
      * region-correct on Folia. {@code bindings} supplies the era targeting (modern raytrace / 1.8 LOS).
      */
@@ -836,8 +862,14 @@ public final class BootCore {
                 World world = center.getWorld();
                 List<LivingEntity> out = new ArrayList<>();
                 if (world != null) {
+                    // getNearbyEntities is a CUBE matched by bounding-box overlap: its corners reach r·√3 and a
+                    // tall body's feet reach r + its own height BELOW the centre, which leaks an AoE between
+                    // floors. It is the cheap broad phase only — the radius cut is what every selector's "within
+                    // r" contract and every authored figure price against (GravityWellService, same shape).
+                    double radiusSq = radius * radius;
                     for (Entity entity : world.getNearbyEntities(center, radius, radius, radius)) {
-                        if (entity instanceof LivingEntity living) {
+                        if (entity instanceof LivingEntity living
+                                && living.getLocation().distanceSquared(center) <= radiusSq) {
                             out.add(living);
                         }
                     }

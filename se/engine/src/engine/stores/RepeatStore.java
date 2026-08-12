@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -53,6 +54,12 @@ public final class RepeatStore<H> {
     public boolean has(UUID player, int abilityId) {
         Map<Integer, H> handles = handlesByPlayer.get(player);
         return handles != null && handles.containsKey(abilityId);
+    }
+
+    /** A snapshot of {@code player}'s live ability ids — what a re-arm diffs its fresh desired set against. */
+    public Set<Integer> liveIds(UUID player) {
+        Map<Integer, H> handles = handlesByPlayer.get(player);
+        return handles == null ? Set.of() : Set.copyOf(handles.keySet());
     }
 
     /**

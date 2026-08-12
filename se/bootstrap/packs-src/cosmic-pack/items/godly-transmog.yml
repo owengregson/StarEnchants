@@ -1,0 +1,14 @@
+# Matrix: 13-support-items.md § Godly Transmog.
+# PORT-ORIGINAL, MECHANIC INCLUDED. The corpus has no entry at all: it records exactly ONE transmog item, the
+# rarity-sorting scroll that ships as items/transmog-scroll.yml, and nothing that reorders enchants by hand. The
+# manual-reorder GUI is this engine's own (v3-directives §I/§K), so nothing below is a likeness. It is styled as
+# the Transmog Scroll's higher grade — same sentence shape, one rung up the palette — so the two read as a pair.
+type: godly-transmog
+# era: 1.13 renamed BOOK_AND_QUILL -> WRITABLE_BOOK; ItemFactory's legacy table degrades this back for 1.8.9.
+material: WRITABLE_BOOK
+name: "&6&lGodly Transmog Scroll"
+lore:
+  - "&7Opens a bench where you set the"
+  - "&7enchantment order on an item by hand."
+  - "&7Reusable — it is never consumed."
+  - "&6&oPlace scroll on item to open."

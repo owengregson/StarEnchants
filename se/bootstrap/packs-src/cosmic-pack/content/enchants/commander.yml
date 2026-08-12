@@ -9,6 +9,10 @@ applies-to: [ARMOR]
 group: "uncommon"
 tier: uncommon
 repeat: 160  # 8 s cadence, level-independent; buffs refresh faster than they lapse
+# EVERY row here targets `filter=ALLIES`, so the enchant is exactly as alive as the server's alliance bridge:
+# two players on one scoreboard team with friendly fire OFF, or a bridged party plugin. With neither, the ally
+# set is empty and — because the cue hangs off the same selector — the enchant emits nothing at all rather
+# than buffing the wearer. That is the intended reading of an ally-only buff, not a silent failure.
 levels:
   1:
     effects:

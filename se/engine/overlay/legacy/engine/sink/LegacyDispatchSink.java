@@ -60,6 +60,8 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
 
     private static final Logger LOG = System.getLogger("StarEnchants.Sink");
 
+    private static final int[] NO_PARTICLE_DATA = new int[0];
+
     /** The 1.8 NMS {@code Entity.invulnerable} flag is private; cache the reflective handle once. */
     private static volatile Field nmsInvulnerableField;
 
@@ -471,32 +473,37 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
     @Override
     public void particle(Location at, int particleId, int count) {
         // 1.8: no Bukkit Particle — spawn via the NMS particle packet sent to players in the same world.
-        regionOp(at, () -> sendParticleAt(at, particleId, count, 0f, 0f, 0f));
+        regionOp(at, () -> sendParticleAt(at, particleId, count, -1, 0f, 0f, 0f));
     }
 
     @Override
     public void particle(Location at, int particleId, int count, int blockMaterialId,
                          double offsetX, double offsetY, double offsetZ) {
-        // 1.8 has no block-crack particle data — the block material is dropped; a plain burst is the fallback (§10).
-        // The packet DOES carry the offset spread, so mixed-position bursts still work.
-        regionOp(at, () -> sendParticleAt(at, particleId, count, (float) offsetX, (float) offsetY, (float) offsetZ));
+        // The 1.8 packet carries both the offset spread and the block state, so this is a full-fidelity burst.
+        regionOp(at, () -> sendParticleAt(at, particleId, count, blockMaterialId,
+                (float) offsetX, (float) offsetY, (float) offsetZ));
     }
 
     @Override
     public void particle(LivingEntity target, int particleId, int count, int blockMaterialId,
                          double offsetX, double offsetY, double offsetZ, double dy) {
         // Entity-anchored: read the target's mid-body AT DISPATCH on its own region thread (getHeight is absent on
-        // 1.8, so use a flat +1.0 body-centre); block data dropped as above.
+        // 1.8, so use a flat +1.0 body-centre).
         entityOp(target, () -> sendParticleAt(target.getLocation().add(0.0, 1.0 + dy, 0.0), particleId, count,
-                (float) offsetX, (float) offsetY, (float) offsetZ));
+                blockMaterialId, (float) offsetX, (float) offsetY, (float) offsetZ));
     }
 
     /** Send an NMS particle packet at {@code at} (with the per-axis offset spread) to nearby players (the shared
      *  body for the particle overloads). */
-    private void sendParticleAt(Location at, int particleId, int count, float offsetX, float offsetY, float offsetZ) {
+    private void sendParticleAt(Location at, int particleId, int count, int blockMaterialId,
+                                float offsetX, float offsetY, float offsetZ) {
         EnumParticle resolved = particle(particleId);
         World world = at.getWorld();
         if (resolved == null || world == null) {
+            return;
+        }
+        int[] data = particleData(resolved, blockMaterialId);
+        if (data == null) {
             return;
         }
         PacketPlayOutWorldParticles packet = new PacketPlayOutWorldParticles(
@@ -504,7 +511,8 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
                 (float) at.getX(), (float) at.getY(), (float) at.getZ(),
                 offsetX, offsetY, offsetZ, // offset spread (0 = the old point burst)
                 0f,         // particle data/speed
-                Math.max(1, count));
+                Math.max(1, count),
+                data);
         for (Player viewer : world.getPlayers()) {
             if (viewer.getLocation().distanceSquared(at) <= 64 * 64) { // vanilla long-distance cutoff
                 sendPacket(viewer, packet);
@@ -512,16 +520,37 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
         }
     }
 
+    /**
+     * The trailing varint block the 1.8 packet writer demands: {@code PacketPlayOutWorldParticles.b} loops
+     * {@code EnumParticle.d()} times over the varargs array, so a short array throws inside the Netty encoder and
+     * the frame goes out truncated. BLOCK_CRACK/BLOCK_DUST want one int, ITEM_CRACK two; every other 1.8 particle
+     * wants none. {@code null} means "cannot be sent" — skipped like any other unresolved handle.
+     */
+    @SuppressWarnings("deprecation") // Material.getId(): 1.8 addresses blocks by numeric id.
+    private int[] particleData(EnumParticle resolved, int blockMaterialId) {
+        int arity = resolved.d();
+        if (arity <= 0) {
+            return NO_PARTICLE_DATA;
+        }
+        Material block = blockMaterialId < 0 ? null : material(blockMaterialId);
+        if (block == null) {
+            return null;
+        }
+        int[] data = new int[arity];
+        data[0] = block.getId(); // 1.8 packs the state as id | (data << 12); data 0 = the default state
+        return data;
+    }
+
     @Override
     protected void particleDirect(LivingEntity target, int particleId, int count, double spread) {
         // getHeight is absent on 1.8, so the body centre is a flat +1.0 (the particle who-slot's own choice).
-        sendParticleAt(target.getLocation().add(0.0, 1.0, 0.0), particleId, count,
+        sendParticleAt(target.getLocation().add(0.0, 1.0, 0.0), particleId, count, -1,
                 (float) spread, (float) spread, (float) spread);
     }
 
     @Override
     protected void particleDirect(Location at, int particleId, int count, double spread) {
-        sendParticleAt(at, particleId, count, (float) spread, (float) spread, (float) spread);
+        sendParticleAt(at, particleId, count, -1, (float) spread, (float) spread, (float) spread);
     }
 
     @Override
@@ -536,8 +565,8 @@ public final class LegacyDispatchSink extends DispatchSinkBase {
         // "exactly 0 = default red" special case. `size`/`count` have no 1.8 analogue and are ignored.
         EnumParticle resolved = particle(particleId);
         World world = at.getWorld();
-        if (resolved == null || world == null) {
-            return;
+        if (resolved == null || world == null || resolved.d() > 0) {
+            return; // a data-carrying particle has no colour channel to ride and cannot be sent data-less
         }
         float fr = Math.max(0.001f, clampChannel(r) / 255f);
         float fg = clampChannel(g) / 255f;

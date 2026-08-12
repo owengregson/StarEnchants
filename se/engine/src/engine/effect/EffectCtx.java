@@ -130,6 +130,23 @@ public interface EffectCtx {
     }
 
     /**
+     * The target bucket folded into the cooldown key gate 6 wrote ({@code 1} when the other combat party is a
+     * player, else {@code 0}). Part of the key, so a refund that assumed {@code 0} would release nothing on
+     * every player-versus-player proc.
+     */
+    default int cooldownBucket() {
+        return 0;
+    }
+
+    /**
+     * The victim dimension gate 6 keyed on for a {@code cooldown-per-victim:} ability, or {@code null} for the
+     * coarse one. Per-victim windows live in their own map, so this is the other half of the key a refund needs.
+     */
+    default UUID cooldownVictim() {
+        return null;
+    }
+
+    /**
      * The activator's active soul-gem id, or {@code null} when they are not in soul mode (REMOVE_SOULS).
      * Souls bind to the activator, so this is the actor's gem — not a target's.
      */

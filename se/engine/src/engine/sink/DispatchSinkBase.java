@@ -179,6 +179,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
 
     /** The out-of-souls notice cadence — a fixed 15s, never an authored knob. */
     private static final int OUT_OF_SOULS_THROTTLE_TICKS = 300;
+    /** The rebate-line cadence — 2s: short enough to still read as "that swing", long enough to stay one line. */
+    private static final int REBATE_THROTTLE_TICKS = 40;
     /** PERIODIC_DAMAGE tick-burst spread: PARTICLE's own default, so a burn's aura frames the body, not a point. */
     private static final double TICK_CUE_SPREAD = 0.4;
     /** How often a falling block re-checks the field's kill material — the measured 1s cobweb poll. */
@@ -3759,7 +3761,7 @@ public abstract class DispatchSinkBase implements SinkReadback {
     // ── Player feedback ──────────────────────────────────────────────────────────────────────────
 
     @Override
-    public void refundCooldown(Player actor, int scopeId, int cooldownTicks) {
+    public void refundCooldown(Player actor, int scopeId, int targetBucket, UUID victim, int cooldownTicks) {
         if (actor == null || scopeId < 0 || cooldownTicks <= 0) {
             return; // nothing was reserved, so there is nothing to hand back
         }
@@ -3767,8 +3769,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
         // gate reserved (CONTEXT_LOCAL), so the recomputed expiry is the one in the map. A later tick would
         // simply miss and leave the window standing, which is the safe direction to fail.
         long now = nowTicks.getAsLong();
-        cooldowns.release(actor.getUniqueId(),
-                CooldownStore.key(ScopeKinds.ENCHANT, scopeId, 0), now + cooldownTicks);
+        cooldowns.release(actor.getUniqueId(), victim,
+                CooldownStore.key(ScopeKinds.ENCHANT, scopeId, targetBucket), now + cooldownTicks);
     }
 
     @Override
@@ -3795,7 +3797,8 @@ public abstract class DispatchSinkBase implements SinkReadback {
         // One hit walks many abilities and every soul-cost one aborts on the same empty pool, so the throttle
         // has to sit here, below the per-ability walk, not at the call site. ONE throttle for the whole notice:
         // the cue is part of the message, so it can never fire on a beat the line was suppressed for.
-        if (!messageThrottle.tryEmit(target.getUniqueId(), nowTicks.getAsLong(), OUT_OF_SOULS_THROTTLE_TICKS)) {
+        if (!messageThrottle.tryEmit(target.getUniqueId(), MessageThrottleStore.Notice.OUT_OF_SOULS,
+                nowTicks.getAsLong(), OUT_OF_SOULS_THROTTLE_TICKS)) {
             return;
         }
         if (!isBlank(message)) {
@@ -3806,6 +3809,25 @@ public abstract class DispatchSinkBase implements SinkReadback {
         }
         if (particleId >= 0) {
             particle(target, particleId, 8, -1, 0.4, 0.4, 0.4, 0.0);
+        }
+    }
+
+    @Override
+    public void rebateNotice(Player recipient, String message, int soundId) {
+        if (recipient == null || (isBlank(message) && soundId < 0)) {
+            return;
+        }
+        // Below the per-ability walk, like the soul notice: one swing can rebate Snare, Trap and Ice Aspect at
+        // once, and the defender wants to know they were shielded, not to read three lines a second saying so.
+        if (!messageThrottle.tryEmit(recipient.getUniqueId(), MessageThrottleStore.Notice.REBATE,
+                nowTicks.getAsLong(), REBATE_THROTTLE_TICKS)) {
+            return;
+        }
+        if (!isBlank(message)) {
+            message(recipient, message);
+        }
+        if (soundId >= 0) {
+            sound(recipient, soundId, 1.0f, 1.0f, 0.0);
         }
     }
 

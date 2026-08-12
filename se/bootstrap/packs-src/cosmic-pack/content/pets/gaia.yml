@@ -1,6 +1,7 @@
 # Matrix: 12-pets.md § Gaia Pet
 # An ACTIVE inventory pet whose WHOLE payload is the Nature's Wrath armour-enchant package at 50 % duration,
-# free of its soul cost: wipe every mob in range, then root, drain and weaken the hostile players around you.
+# free of its soul cost: root, drain and weaken the hostile players around you, and wipe the hostile mobs in
+# range once that has landed.
 # `content/enchants/nature-wrath.yml` is the same package one door over — this file mirrors its authoring
 # choices deliberately, because the two ARE one behaviour and two readings of the same matrix rows would drift.
 #
@@ -25,14 +26,15 @@
 #    `items/pet.yml`.
 #  - Pet heads are invalid helmet items (the masks family refuses to wear one) — an interaction-layer rule.
 # FAMILY-WIDE, AUTHORED ONCE FOR THE FOLDER: items/pet.yml + config.yml — full reading in anti-teleblock.yml.
-# THE NO-TARGET ANSWER IS THE SELECTION ITSELF (ADR-0076). The jar wipes the mobs FIRST and only then throws
-# when no enemy player is in range, so a mob-only click still cleared the mobs — for free, since the throw
-# also skipped the XP and the cooldown stamp. All three halves now express, and the pre-selection gate that
-# stood in for them is GONE: the payload always runs (so the free mob wipe is back), `%selected%` reports what
-# the player package actually caught, and `REFUND_COOLDOWN{unless:}` hands the window back on a whiff. What
-# the gate cost is worth naming, because it is what closes: `%nearbyenemies%` is a FIXED 8-block scan of
-# LIVING ENTITIES where the payload reaches 13–28 blocks and the jar's check was hostile PLAYERS only, so a
-# lone cow inside 8 blocks opened the ability and a player at 20 blocks did not.
+# THE NO-TARGET ANSWER IS THE SELECTION ITSELF (ADR-0076), AND A REFUSAL DOES NOTHING AT ALL (owner ruling).
+# The jar wiped the mobs FIRST and only then threw when no enemy player was in range, so a mob-only click
+# cleared a 13–28 block radius for free — the canonical case that ruling reverses. The player package is the
+# whole activation now: `%selected%` reports what it caught, `REFUND_COOLDOWN{unless:}` hands the window back
+# on a whiff, the XP sits behind the hit arm, and the mob sweep moved there with it (D-12-39), so a refusing
+# click leaves the world exactly as it found it. The pre-selection gate that used to stand in for all three
+# is GONE, and what it cost is worth naming: `%nearbyenemies%` is a FIXED 8-block scan of LIVING ENTITIES
+# where the payload reaches 13–28 blocks and the jar's check was hostile PLAYERS only, so a lone cow inside
+# 8 blocks opened the ability and a player at 20 blocks did not.
 # The verbatim `§c§lPET: §cNo valid enemy players nearby!` is now the exact complement of the real selection.
 # It is a sibling ability rather than a row, because a message cannot be gated inside an ability, and it reads
 # a captured VAR rather than `%selected%` directly: only the IMMEDIATELY NEXT ability can read that fact (an
@@ -58,16 +60,21 @@
 #    `breakout-chance` stays at its 0 default here — the pet's root is unbreakable for its (halved) window.
 # The mob wipe uses `DESPAWN`, not the matrix's `KILL`: the jar deletes via `remove()` — no drops, no XP, no
 # death event — which is exactly `DESPAWN`, so ledger D-12-23 (KILL would fire vanilla deaths and hand out the
-# loot the jar never dropped) is NOT taken. `nature-wrath.yml` ships the same verb under D-02-3.
+# loot the jar never dropped) is NOT taken. `nature-wrath.yml` ships the same verb under D-02-3. The FILTER is
+# `MONSTERS`, not the jar's every-non-player `MOBS` (D-12-40): a silent unrecoverable delete of armour stands,
+# villagers, tamed wolves, chested horses and iron golems is a base-wiping tool, not a combat sweep.
 # interactions: this is a free, soul-cost-free proc of the Nature's Wrath armour enchant (matrix/02) at 50 %
 # duration. The Poltergeist mastery immunity `nature-wrath.yml` carries is EXPRESSIBLE here now that it is an
 # `each-if:` on the payload row rather than a division of the ability's `chance:` (which a deterministic pet
 # click had nothing to divide). It is not authored in this pass — the per-target wave's content stage names
 # the enchant and the two Dimensional Traveler copies, not this pet — so it stays a ledger row, and until it
 # lands a Poltergeist wearer takes the pet's root where the enchant would spare them at `12.5 % × level`.
-# The jar's own exclusion list (WorldGuard PvP, spectator, gamemode, god/staff mode,
-# faction truce/ally, protection-flagged mobs, ender crystals) maps onto the ENEMIES filter plus the engine's
-# global PvP gates, and the koth-world short release depends on a named external world — recorded, not ported.
+# The jar's own exclusion list (WorldGuard PvP, god/staff mode, faction truce/ally, protection-flagged mobs,
+# ender crystals) maps onto the ENEMIES relation rule plus the engine's global PvP gates. Its SPECTATOR and
+# GAMEMODE exclusions do NOT: no selector filter reads gamemode, so a spectator standing in radius is
+# selected, satisfies the payload, suppresses the refund and banks the XP (D-12-38 — an engine-side fact, and
+# not one an `each-if:` can express today). The koth-world short release depends on a named external world —
+# recorded, not ported.
 # era: legacy particle names `LARGE_EXPLODE`/`SPELL` author as `EXPLOSION_LARGE`/`SPELL`, and `DIG_SNOW`,
 # `WITHER_SHOOT` and `ENDERDRAGON_GROWL` as their modern spellings. `WITHER_SHOOT` and `ENDERDRAGON_GROWL`
 # already have `Aliases.SOUND` rows, and so does `DIG_SNOW → BLOCK_SNOW_BREAK`, so every cue plays on the
@@ -95,9 +102,10 @@ description:
   - "§7"
   - "§7§f§lCooldown"
   - "§7§7 10 Minutes"
-# The recorded ladder `1000 + level × 500` (the cost of REACHING level N): 2000 / 2500 / 3000, 7500 to cap —
-# 1500 uses at 5 XP each.
-exp-curve: { base: 1000, per-level: 500 }
+# The recorded ladder is `1000 + level × 500` (2000 / 2500 / 3000, 7500 to cap), priced by the jar against a
+# cooldown that never fired — 1500 uses × 600 s is 250 h of perfectly-spaced clicks. Divided by 10 against the
+# window this port really enforces (D-12-41): 200 / 250 / 300, 750 to cap = 150 uses at 5 XP each ≈ 25 h.
+exp-curve: { base: 100, per-level: 50 }
 max-level: 4
 levels:
   # Per level: radius 8 + 5×L = 13/18/23/28; potion window (7+L)×20 t = 160/180/200/220; the walk-lock/DoT
@@ -109,13 +117,6 @@ levels:
       - condition: '%actor.gamemode% != "SPECTATOR"'
         effects:
           - { SET_VAR: { name: "gaia.fired", value: "1", ttl: 1, who: "@Self" } }
-          # The mob sweep runs first and its two bursts carry the sweep's own selector, so they resolve the mob
-          # set while it still exists (the per-mob closing cue). It is unconditional again: the jar's free
-          # mob-only wipe is back, because nothing gates the ability ahead of its own selection now.
-          - { LIGHTNING: { damage: 0, who: "@Aoe{r=13, filter=MOBS}" } }
-          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, spread: 0.6, who: "@Aoe{r=13, filter=MOBS}" } }
-          - { PARTICLE: { particle: "SPELL", count: 35, spread: 0.4, who: "@Aoe{r=13, filter=MOBS}" } }
-          - { DESPAWN: { who: "@Aoe{r=13, filter=MOBS}" } }
           # The player package: hostile PLAYERS only (the wave-1 filter conjunction, `nature-wrath.yml`'s reading
           # of the entry's player-only payload). %selected% below is THIS package's post-filter count.
           - { LIGHTNING: { damage: 0, who: "@Aoe{r=13, filter=ENEMIES+PLAYERS}" } }
@@ -126,11 +127,17 @@ levels:
           # the moment it runs, and the refund has to ask first.
           - { REFUND_COOLDOWN: { unless: "%selected%" } }
           - { SET_VAR: { name: "gaia.hit", op: increment, step: "%selected%", ttl: 1, who: "@Self" } }
-      # Caught somebody: the proc's cues and its XP. Recorded per frozen victim; ADR-0066 plays one sound id at
-      # most once per event, so the copies collapse.
+      # Caught somebody: the mob sweep, then the proc's cues and its XP. The sweep rides the HIT rather than the
+      # click, so a refusal costs the world nothing (D-12-39), and its two bursts carry the sweep's own
+      # selector so they resolve the mob set while it still exists (the per-mob closing cue). Cues recorded
+      # per frozen victim; ADR-0066 plays one sound id at most once per event, so the copies collapse.
       - condition: '%gaia.fired% == 1 && %gaia.hit% >= 1'
         cooldown: 0
         effects:
+          - { LIGHTNING: { damage: 0, who: "@Aoe{r=13, filter=MONSTERS}" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, spread: 0.6, who: "@Aoe{r=13, filter=MONSTERS}" } }
+          - { PARTICLE: { particle: "SPELL", count: 35, spread: 0.4, who: "@Aoe{r=13, filter=MONSTERS}" } }
+          - { DESPAWN: { who: "@Aoe{r=13, filter=MONSTERS}" } }
           - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
           - { MESSAGE: { text: "§a§lPET: ** NATURE'S WRATH **" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
@@ -151,13 +158,6 @@ levels:
       - condition: '%actor.gamemode% != "SPECTATOR"'
         effects:
           - { SET_VAR: { name: "gaia.fired", value: "1", ttl: 1, who: "@Self" } }
-          # The mob sweep runs first and its two bursts carry the sweep's own selector, so they resolve the mob
-          # set while it still exists (the per-mob closing cue). It is unconditional again: the jar's free
-          # mob-only wipe is back, because nothing gates the ability ahead of its own selection now.
-          - { LIGHTNING: { damage: 0, who: "@Aoe{r=18, filter=MOBS}" } }
-          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, spread: 0.6, who: "@Aoe{r=18, filter=MOBS}" } }
-          - { PARTICLE: { particle: "SPELL", count: 35, spread: 0.4, who: "@Aoe{r=18, filter=MOBS}" } }
-          - { DESPAWN: { who: "@Aoe{r=18, filter=MOBS}" } }
           # The player package: hostile PLAYERS only (the wave-1 filter conjunction, `nature-wrath.yml`'s reading
           # of the entry's player-only payload). %selected% below is THIS package's post-filter count.
           - { LIGHTNING: { damage: 0, who: "@Aoe{r=18, filter=ENEMIES+PLAYERS}" } }
@@ -168,11 +168,17 @@ levels:
           # the moment it runs, and the refund has to ask first.
           - { REFUND_COOLDOWN: { unless: "%selected%" } }
           - { SET_VAR: { name: "gaia.hit", op: increment, step: "%selected%", ttl: 1, who: "@Self" } }
-      # Caught somebody: the proc's cues and its XP. Recorded per frozen victim; ADR-0066 plays one sound id at
-      # most once per event, so the copies collapse.
+      # Caught somebody: the mob sweep, then the proc's cues and its XP. The sweep rides the HIT rather than the
+      # click, so a refusal costs the world nothing (D-12-39), and its two bursts carry the sweep's own
+      # selector so they resolve the mob set while it still exists (the per-mob closing cue). Cues recorded
+      # per frozen victim; ADR-0066 plays one sound id at most once per event, so the copies collapse.
       - condition: '%gaia.fired% == 1 && %gaia.hit% >= 1'
         cooldown: 0
         effects:
+          - { LIGHTNING: { damage: 0, who: "@Aoe{r=18, filter=MONSTERS}" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, spread: 0.6, who: "@Aoe{r=18, filter=MONSTERS}" } }
+          - { PARTICLE: { particle: "SPELL", count: 35, spread: 0.4, who: "@Aoe{r=18, filter=MONSTERS}" } }
+          - { DESPAWN: { who: "@Aoe{r=18, filter=MONSTERS}" } }
           - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
           - { MESSAGE: { text: "§a§lPET: ** NATURE'S WRATH **" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
@@ -193,13 +199,6 @@ levels:
       - condition: '%actor.gamemode% != "SPECTATOR"'
         effects:
           - { SET_VAR: { name: "gaia.fired", value: "1", ttl: 1, who: "@Self" } }
-          # The mob sweep runs first and its two bursts carry the sweep's own selector, so they resolve the mob
-          # set while it still exists (the per-mob closing cue). It is unconditional again: the jar's free
-          # mob-only wipe is back, because nothing gates the ability ahead of its own selection now.
-          - { LIGHTNING: { damage: 0, who: "@Aoe{r=23, filter=MOBS}" } }
-          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, spread: 0.6, who: "@Aoe{r=23, filter=MOBS}" } }
-          - { PARTICLE: { particle: "SPELL", count: 35, spread: 0.4, who: "@Aoe{r=23, filter=MOBS}" } }
-          - { DESPAWN: { who: "@Aoe{r=23, filter=MOBS}" } }
           # The player package: hostile PLAYERS only (the wave-1 filter conjunction, `nature-wrath.yml`'s reading
           # of the entry's player-only payload). %selected% below is THIS package's post-filter count.
           - { LIGHTNING: { damage: 0, who: "@Aoe{r=23, filter=ENEMIES+PLAYERS}" } }
@@ -210,11 +209,17 @@ levels:
           # the moment it runs, and the refund has to ask first.
           - { REFUND_COOLDOWN: { unless: "%selected%" } }
           - { SET_VAR: { name: "gaia.hit", op: increment, step: "%selected%", ttl: 1, who: "@Self" } }
-      # Caught somebody: the proc's cues and its XP. Recorded per frozen victim; ADR-0066 plays one sound id at
-      # most once per event, so the copies collapse.
+      # Caught somebody: the mob sweep, then the proc's cues and its XP. The sweep rides the HIT rather than the
+      # click, so a refusal costs the world nothing (D-12-39), and its two bursts carry the sweep's own
+      # selector so they resolve the mob set while it still exists (the per-mob closing cue). Cues recorded
+      # per frozen victim; ADR-0066 plays one sound id at most once per event, so the copies collapse.
       - condition: '%gaia.fired% == 1 && %gaia.hit% >= 1'
         cooldown: 0
         effects:
+          - { LIGHTNING: { damage: 0, who: "@Aoe{r=23, filter=MONSTERS}" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, spread: 0.6, who: "@Aoe{r=23, filter=MONSTERS}" } }
+          - { PARTICLE: { particle: "SPELL", count: 35, spread: 0.4, who: "@Aoe{r=23, filter=MONSTERS}" } }
+          - { DESPAWN: { who: "@Aoe{r=23, filter=MONSTERS}" } }
           - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
           - { MESSAGE: { text: "§a§lPET: ** NATURE'S WRATH **" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }
@@ -235,13 +240,6 @@ levels:
       - condition: '%actor.gamemode% != "SPECTATOR"'
         effects:
           - { SET_VAR: { name: "gaia.fired", value: "1", ttl: 1, who: "@Self" } }
-          # The mob sweep runs first and its two bursts carry the sweep's own selector, so they resolve the mob
-          # set while it still exists (the per-mob closing cue). It is unconditional again: the jar's free
-          # mob-only wipe is back, because nothing gates the ability ahead of its own selection now.
-          - { LIGHTNING: { damage: 0, who: "@Aoe{r=28, filter=MOBS}" } }
-          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, spread: 0.6, who: "@Aoe{r=28, filter=MOBS}" } }
-          - { PARTICLE: { particle: "SPELL", count: 35, spread: 0.4, who: "@Aoe{r=28, filter=MOBS}" } }
-          - { DESPAWN: { who: "@Aoe{r=28, filter=MOBS}" } }
           # The player package: hostile PLAYERS only (the wave-1 filter conjunction, `nature-wrath.yml`'s reading
           # of the entry's player-only payload). %selected% below is THIS package's post-filter count.
           - { LIGHTNING: { damage: 0, who: "@Aoe{r=28, filter=ENEMIES+PLAYERS}" } }
@@ -252,11 +250,17 @@ levels:
           # the moment it runs, and the refund has to ask first.
           - { REFUND_COOLDOWN: { unless: "%selected%" } }
           - { SET_VAR: { name: "gaia.hit", op: increment, step: "%selected%", ttl: 1, who: "@Self" } }
-      # Caught somebody: the proc's cues and its XP. Recorded per frozen victim; ADR-0066 plays one sound id at
-      # most once per event, so the copies collapse.
+      # Caught somebody: the mob sweep, then the proc's cues and its XP. The sweep rides the HIT rather than the
+      # click, so a refusal costs the world nothing (D-12-39), and its two bursts carry the sweep's own
+      # selector so they resolve the mob set while it still exists (the per-mob closing cue). Cues recorded
+      # per frozen victim; ADR-0066 plays one sound id at most once per event, so the copies collapse.
       - condition: '%gaia.fired% == 1 && %gaia.hit% >= 1'
         cooldown: 0
         effects:
+          - { LIGHTNING: { damage: 0, who: "@Aoe{r=28, filter=MONSTERS}" } }
+          - { PARTICLE: { particle: "EXPLOSION_LARGE", count: 10, spread: 0.6, who: "@Aoe{r=28, filter=MONSTERS}" } }
+          - { PARTICLE: { particle: "SPELL", count: 35, spread: 0.4, who: "@Aoe{r=28, filter=MONSTERS}" } }
+          - { DESPAWN: { who: "@Aoe{r=28, filter=MONSTERS}" } }
           - { SOUND: { sound: "ENTITY_ENDER_DRAGON_GROWL", volume: 2.0, pitch: 2.0 } }
           - { MESSAGE: { text: "§a§lPET: ** NATURE'S WRATH **" } }
           - { SOUND: { sound: "BLOCK_SNOW_BREAK", volume: 1.1, pitch: 3.0 } }

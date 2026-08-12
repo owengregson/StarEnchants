@@ -158,10 +158,11 @@ Applying swaps the **whole** config surface — `config.yml`, `lang.yml`, `conte
 are all replaced by the pack's, not merged with yours. Your current surface is snapshotted into a timestamped
 backup pack first, so `/se pack apply backup-<stamp>` puts everything back.
 
-`cosmic-pack` does not carry every item: it ships `content/` in full plus thirteen item likenesses, so nine
-item likenesses and all menus stay at the engine defaults after you apply it. Those nine — the soul gem, the
-four trak gems, the item nametag, the holy white scroll, the godly transmog and weapon reforges — have no
-counterpart to port. Nothing breaks; they just look like stock StarEnchants. See
+`cosmic-pack` carries the whole surface — `content/` in full, every item likeness, and its own menu chrome —
+but not all of it is a port. Thirteen item likenesses are recovered from the source down to their exact display
+strings; the other nine (the soul gem, the four trak gems, the item nametag, the holy white scroll, the godly
+transmog and the weapon reforge) have no counterpart to port, so they are styled to the pack instead. The menus
+are theme rather than likeness for the same reason. Each file says which it is in its own header. See
 [Configuring](../configuring/index.mdx) for the full note.
 
 ## Migrating
