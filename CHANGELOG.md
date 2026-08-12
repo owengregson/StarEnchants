@@ -6,6 +6,8 @@ versioning: [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.15.0-alpha] — 2026-08-12
+
 The Cosmic Pack defect sweep: 77 confirmed findings closed. The pack gains its own menus and its
 last nine support items, and a run of balance corrections changes how several enchants, masks and
 pets feel in a fight.
