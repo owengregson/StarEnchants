@@ -33,6 +33,9 @@ import schema.diag.Source;
  * @param announce      send the player a chat line when the set transitions complete/incomplete (off by default)
  * @param equipMessage  the line sent when the set becomes complete (authored verbatim, no tokens; may be empty)
  * @param removeMessage the line sent when a complete set drops below its threshold (verbatim; may be empty)
+ * @param foldsHeroic   this set's completion bonus IS its heroic wall folded in, so a piece of it refuses the
+ *                      heroic stamp (ADR-0073 D3) — declared per set, never inferred from a defensive row,
+ *                      because most sets carry one for reasons that have nothing to do with heroic
  */
 public record SetDef(
         String key,
@@ -49,6 +52,7 @@ public record SetDef(
         boolean announce,
         String equipMessage,
         String removeMessage,
+        boolean foldsHeroic,
         Source source) {
 
     public SetDef {

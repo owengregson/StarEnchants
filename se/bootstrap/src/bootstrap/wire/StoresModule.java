@@ -2,6 +2,7 @@ package bootstrap.wire;
 
 import engine.sink.CombatTag;
 import engine.sink.DamageMarks;
+import engine.sink.DispatchFaults;
 import engine.sink.FallingBlockCasts;
 import engine.sink.GuardianCasts;
 import engine.sink.OwnerZones;
@@ -33,6 +34,7 @@ final class StoresModule {
                 .stop("decay ladders", StackingDots::clearAll)            // rot's per-victim STACKING_DOT stacks
                 .stop("turret casts", TurretCasts::clearAll)              // live TURRET_RING emplacements + their shots
                 .stop("potion reductions", ReducedPotions::clearAll)      // mortal coil's POTION_AMP_REDUCE claims
+                .stop("dispatch faults", DispatchFaults::reset)           // else the last flush fault's cause graph is retained
                 .build();
     }
 }

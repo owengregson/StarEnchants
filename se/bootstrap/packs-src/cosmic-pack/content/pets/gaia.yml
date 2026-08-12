@@ -3,7 +3,11 @@
 # free of its soul cost: root, drain and weaken the hostile players around you, and wipe the hostile mobs in
 # range once that has landed.
 # `content/enchants/nature-wrath.yml` is the same package one door over — this file mirrors its authoring
-# choices deliberately, because the two ARE one behaviour and two readings of the same matrix rows would drift.
+# choices deliberately, so two readings of the same matrix rows cannot drift. They part in exactly ONE place,
+# on purpose: the enchant's mob sweep rides its proc and runs whether or not a player was caught, while this
+# pet's rides the HIT arm (D-12-39, owner ruling R-115-1 — a refusing click must leave the world untouched),
+# so Gaia can never clear mobs in PvE. Everything else, the D-12-40 `filter=MONSTERS` narrowing included, is
+# the same behaviour on both sides.
 #
 # FAMILY FACTS (matrix § Family-level facts, shared by all 17 entries; recorded once per file):
 #  - The jar fires on ANY interaction (no action filter, codex §A.2); as intended it is right-click only,

@@ -470,16 +470,42 @@ class SuppressionStoreTest {
 
     @Test
     void aChanceNeverOutlivesTheArmThatGrantedIt() {
-        // The stronger chance governs while it is live, and dies with its own arm. Splicing it onto the later
-        // expiry is what let a crystal ladder only ever climb.
+        // Each source's window runs on its OWN clock: the stronger chance governs while it lives and cannot be
+        // spliced onto the longer arm's expiry (that is what let a crystal ladder only ever climb), and the
+        // longer arm is not truncated by it either — it still holds the 960 ticks it paid for.
         Ability incoming = scoped(4, -1, -1);
         long key = CooldownStore.key(ScopeKinds.ENCHANT, 4);
         store.defend(p, key, 0L, 1000, 10, 22, null);
         store.defend(p, key, 0L, 40, 100, 11, null);
 
         assertEquals(11, store.defenderBlocks(incoming, p, 20L, neverFails()).byDefId());
-        assertNull(store.defenderBlocks(incoming, p, 40L, neverFails()),
-                "the 100 arm expires on its own 40-tick clock, taking the merged record with it");
+        assertEquals(22, store.defenderBlocks(incoming, p, 40L, neverFails()).byDefId(),
+                "the 100 arm ends on its own 40-tick clock and uncovers the window still running under it");
+        assertNull(store.defenderBlocks(incoming, p, 1000L, neverFails()),
+                "and the long arm still expires when its own duration says it does");
+    }
+
+    @Test
+    void aStrongerArmLapsingMidCadenceLeavesNoGapInTheWeakerSourcesOwnCover() {
+        // Shipped shape: sets/dragon-slayer arms one key on a 20-tick cadence under a 60-tick duration, and
+        // crystals/dragon-slayer arms the SAME key on its own independent phase. Take the set off and the
+        // crystal's already-paid-for window must keep covering until its next tick — asserted OFF the cadence,
+        // because a t=60 probe lands exactly where a re-arm would paper over the hole.
+        Ability incoming = scoped(4, -1, -1);
+        long key = CooldownStore.key(ScopeKinds.ENCHANT, 4);
+        for (long t = 0L; t <= 40L; t += 20L) {
+            store.defend(p, key, t, 60, 75, 44, null);  // the set, until it comes off after t=40
+        }
+        for (long t = 10L; t <= 50L; t += 20L) {
+            store.defend(p, key, t, 60, 10, 11, null);  // the crystal, on its own offset phase
+        }
+
+        assertEquals(44, store.defenderBlocks(incoming, p, 70L, neverFails()).byDefId(),
+                "the set's last arm still governs inside its own 60 ticks");
+        assertEquals(11, store.defenderBlocks(incoming, p, 105L, neverFails()).byDefId(),
+                "and past it the crystal's t=50 window still covers — no wait for its next cadence tick");
+        assertNull(store.defenderBlocks(incoming, p, 110L, neverFails()),
+                "with nothing arming, cover ends one duration after the last arm");
     }
 
     @Test

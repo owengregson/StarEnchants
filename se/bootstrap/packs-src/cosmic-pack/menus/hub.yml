@@ -3,9 +3,10 @@
 # the pack's own gold-on-black frame so its menus read as one surface with its gold Armor Crystal / Heroic
 # items instead of the engine's neutral purple. Only the fields below differ from the engine default; any
 # field omitted keeps it.
-# Player hub GUI — the /enchants landing menu. The one menu that carries the pack's NAME, so a server
-# running this pack reads as the cosmic suite rather than as stock StarEnchants.
+# Player hub GUI — the /enchants landing menu. The one menu that carries the pack's own name, pack.yml's
+# "Cosmic Pack", so a server running this pack reads as itself rather than as stock StarEnchants. The repo's
+# generic stand-in for the styles this port studied stays in prose and never reaches a player-facing string.
 
-title: "&6&l✦ &e&lCosmic Enchants &6&l✦"
+title: "&6&l✦ &e&lCosmic Pack &6&l✦"
 frame: "border"
 filler: "BLACK_STAINED_GLASS_PANE"

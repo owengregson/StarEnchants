@@ -112,7 +112,7 @@ class SetMessageDriverTest {
 
     private static SetDef setDef(String key, boolean announce, String equip, String remove) {
         return new SetDef(key, key, "", null, 1, List.of(), List.of(), List.of(), SetDef.ClaimFooter.NONE, List.of(),
-                Map.of(), announce, equip, remove, schema.diag.Source.ofFile("test"));
+                Map.of(), announce, equip, remove, false, schema.diag.Source.ofFile("test"));
     }
 
     private WornState worn(int... activeSetIds) {

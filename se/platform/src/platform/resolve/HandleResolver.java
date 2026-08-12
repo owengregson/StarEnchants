@@ -35,11 +35,18 @@ public final class HandleResolver {
         if (forward != null && exists.test(forward)) {
             return Optional.of(forward);
         }
+        // Modern token on an older server. Several tables map two legacy keys onto one modern name
+        // (BLOCK_CRACK/BLOCK_DUST → BLOCK), and Map.ofEntries' iteration order is salted per JVM start, so the
+        // LOWEST matching key wins rather than whichever came first — otherwise one authored token picks a
+        // different particle across restarts.
+        String legacy = null;
         for (Map.Entry<String, String> entry : aliases.entrySet()) {
-            if (entry.getValue().equals(norm) && exists.test(entry.getKey())) {
-                return Optional.of(entry.getKey()); // modern token on an older server
+            String key = entry.getKey();
+            if (entry.getValue().equals(norm) && (legacy == null || key.compareTo(legacy) < 0)
+                    && exists.test(key)) {
+                legacy = key;
             }
         }
-        return Optional.empty();
+        return Optional.ofNullable(legacy);
     }
 }

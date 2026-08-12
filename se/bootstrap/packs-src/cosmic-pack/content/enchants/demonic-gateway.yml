@@ -29,10 +29,15 @@ tier: mastery
 # ring site was blocked cost nothing and could re-roll immediately; gate 6 reserves before the effect runs and
 # no effect reports how many sites it took. Recorded, not reproduced — the divergence costs the wearer a
 # lockout on a wasted proc, never the other way.
-# The lockout belongs to the ARM alone, so the three IMPACT payloads take `cooldown-scope: none`: every block
-# of one enchant otherwise shares ONE bucket and a cooldown-0 block still BLOCKS on a sibling's live
-# reservation, which would leave every skull the ring fires inside its own 200 t window inert — a ring that
-# lights up and does nothing (the rocket-escape.yml / guided-rocket-escape.yml pairing, same trap).
+# The lockout belongs to the ARM alone, so the three IMPACT payloads take `cooldown-per-victim: true`: every
+# block of one enchant shares ONE bucket and a cooldown-0 block still BLOCKS on a sibling's live reservation,
+# which would leave every skull the ring fires inside its own 200 t window inert — a ring that lights up and
+# does nothing (the rocket-escape.yml / guided-rocket-escape.yml pairing, same trap). A per-victim block reads
+# its (never-written) bucket in the STRUCK BODY's own dimension, which the arm's coarse reservation never
+# touches, and the payloads KEEP the enchant scope — which they must: `crystals/anti-m-kit-necromancer` negates
+# this enchant with `SUPPRESS_INCOMING{scope: ENCHANT, key: enchants/demonic-gateway}` and gate 5b matches that
+# against `cdScopeEnchant`, so the one shape that also frees the bucket — `cooldown-scope: none` — erases the
+# id to -1 and puts all three payloads permanently out of that crystal's reach.
 # ── THE SKULL PAYLOAD, AND WHAT THE IMPACT WALK CAN AND CANNOT SEE ─────────────────────────────────────────
 # Three IMPACT abilities, not one: the surface has no per-effect chance or condition, so the recorded "then
 # roll the trap, then check the distance" tail is three independently-gated abilities against one skull hit.
@@ -83,7 +88,7 @@ levels:
       # The skull strike itself — armour-bypassing, the jar's raw 5 %-of-max health write.
       - trigger: IMPACT
         group: "demonic-gateway"
-        cooldown-scope: none
+        cooldown-per-victim: true
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -92,7 +97,7 @@ levels:
       # The trap, its own roll off the same strike.
       - trigger: IMPACT
         group: "demonic-gateway"
-        cooldown-scope: none
+        cooldown-per-victim: true
         chance: 9
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -101,7 +106,7 @@ levels:
       # The close-range shove; the distance is wearer-to-victim, not crystal-to-victim (see the header).
       - trigger: IMPACT
         group: "demonic-gateway"
-        cooldown-scope: none
+        cooldown-per-victim: true
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %distance% < 4"
         effects:
@@ -119,7 +124,7 @@ levels:
       # The skull strike itself — armour-bypassing, the jar's raw 5 %-of-max health write.
       - trigger: IMPACT
         group: "demonic-gateway"
-        cooldown-scope: none
+        cooldown-per-victim: true
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -128,7 +133,7 @@ levels:
       # The trap, its own roll off the same strike.
       - trigger: IMPACT
         group: "demonic-gateway"
-        cooldown-scope: none
+        cooldown-per-victim: true
         chance: 12
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -137,7 +142,7 @@ levels:
       # The close-range shove; the distance is wearer-to-victim, not crystal-to-victim (see the header).
       - trigger: IMPACT
         group: "demonic-gateway"
-        cooldown-scope: none
+        cooldown-per-victim: true
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %distance% < 4"
         effects:
@@ -155,7 +160,7 @@ levels:
       # The skull strike itself — armour-bypassing, the jar's raw 5 %-of-max health write.
       - trigger: IMPACT
         group: "demonic-gateway"
-        cooldown-scope: none
+        cooldown-per-victim: true
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -164,7 +169,7 @@ levels:
       # The trap, its own roll off the same strike.
       - trigger: IMPACT
         group: "demonic-gateway"
-        cooldown-scope: none
+        cooldown-per-victim: true
         chance: 15
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -173,7 +178,7 @@ levels:
       # The close-range shove; the distance is wearer-to-victim, not crystal-to-victim (see the header).
       - trigger: IMPACT
         group: "demonic-gateway"
-        cooldown-scope: none
+        cooldown-per-victim: true
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %distance% < 4"
         effects:
@@ -191,7 +196,7 @@ levels:
       # The skull strike itself — armour-bypassing, the jar's raw 5 %-of-max health write.
       - trigger: IMPACT
         group: "demonic-gateway"
-        cooldown-scope: none
+        cooldown-per-victim: true
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -200,7 +205,7 @@ levels:
       # The trap, its own roll off the same strike.
       - trigger: IMPACT
         group: "demonic-gateway"
-        cooldown-scope: none
+        cooldown-per-victim: true
         chance: 18
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -209,7 +214,7 @@ levels:
       # The close-range shove; the distance is wearer-to-victim, not crystal-to-victim (see the header).
       - trigger: IMPACT
         group: "demonic-gateway"
-        cooldown-scope: none
+        cooldown-per-victim: true
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %distance% < 4"
         effects:
@@ -227,7 +232,7 @@ levels:
       # The skull strike itself — armour-bypassing, the jar's raw 5 %-of-max health write.
       - trigger: IMPACT
         group: "demonic-gateway"
-        cooldown-scope: none
+        cooldown-per-victim: true
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -236,7 +241,7 @@ levels:
       # The trap, its own roll off the same strike.
       - trigger: IMPACT
         group: "demonic-gateway"
-        cooldown-scope: none
+        cooldown-per-victim: true
         chance: 21
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -245,7 +250,7 @@ levels:
       # The close-range shove; the distance is wearer-to-victim, not crystal-to-victim (see the header).
       - trigger: IMPACT
         group: "demonic-gateway"
-        cooldown-scope: none
+        cooldown-per-victim: true
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %distance% < 4"
         effects:
@@ -263,7 +268,7 @@ levels:
       # The skull strike itself — armour-bypassing, the jar's raw 5 %-of-max health write.
       - trigger: IMPACT
         group: "demonic-gateway"
-        cooldown-scope: none
+        cooldown-per-victim: true
         chance: 100
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -272,7 +277,7 @@ levels:
       # The trap, its own roll off the same strike.
       - trigger: IMPACT
         group: "demonic-gateway"
-        cooldown-scope: none
+        cooldown-per-victim: true
         chance: 24
         condition: "%victim.type% == \"PLAYER\""
         effects:
@@ -281,7 +286,7 @@ levels:
       # The close-range shove; the distance is wearer-to-victim, not crystal-to-victim (see the header).
       - trigger: IMPACT
         group: "demonic-gateway"
-        cooldown-scope: none
+        cooldown-per-victim: true
         chance: 100
         condition: "%victim.type% == \"PLAYER\" && %distance% < 4"
         effects:

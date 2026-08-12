@@ -72,9 +72,10 @@ diamond-stats: true
 # "§4+4 Bonus Attack Damage", tagline). Armour-point and durability TOKENS on this template are REJECTED with the
 # rest of the per-slot ladder (R-QC50), so the tagline is the one line that ships. The source writes it twice,
 # once per category ("armor" on a piece, "weapon" on a converted sword or axe), and this surface has ONE template
-# for both — {TYPE} is the only token that separates them, so it carries the noun rather than one category
-# wearing the other's wording (D-13-15).
-lore-line: "§4This {TYPE} is stronger than diamond."
+# for both. {TYPE} does NOT separate them — it renders the gear KIND upper-cased ("BOOTS", "SWORD"), so it would
+# ship "§4This BOOTS is stronger than diamond." The armour wording is the one the port stamps on both, and it is
+# the same string the four M-Kit sets hard-code in their own `armor.lore` (D-13-15).
+lore-line: "§4This armor is stronger than diamond."
 # NOT EXPRESSED here:
 #   * The ABSOLUTE DURABILITIES (810/1000/935/686 on armour, 1952 on both weapons) — rejected with the per-slot
 #     ladder (R-QC50). The `durability` knob here is a wear-CANCEL probability, not a maximum, and

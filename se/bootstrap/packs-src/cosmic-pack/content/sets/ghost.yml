@@ -175,6 +175,9 @@ armor:
 # Behaviours. The jar grants the M-Kit reduction PER WORN PIECE (§C.3-C.5); the engine gates a set bonus on
 # completion, so the four component stats fold into this one 4/4 bonus at their measured full-set 45 %.
 # Additive here, multiplicative in the jar (project-wide damage model, a global ADR — not a per-item deviation).
+# ADR-0073 D3: the 4/4 row below IS this set's heroic wall folded in, so a piece of it takes no heroic
+# stamp — the stamp writes into the SAME additive channel and 45 + 27 would bill one wall twice.
+folds-heroic: true
 bonuses:
   # The M-Kit wall: 45 % flat incoming reduction while all four are worn (chest 16 + legs 13 + boots 8 +
   # helm 8, additive then folded). No trigger condition, no roll, no cooldown — and no attack half at all:

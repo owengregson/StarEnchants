@@ -13,11 +13,14 @@ group: "uncommon"
 tier: uncommon
 # The hostile-players-only payload is the filter conjunction smoke-bomb.yml already ships for the same
 # FILTER_COMPOSE note: ENEMIES+PLAYERS keeps only what BOTH admit.
-# THE LETHAL GATE IS POST-MITIGATION (D-01-14), unlike the raw `%damage% >= %actor.health%` the rest of the
-# last-stand family spells. The jar predicted lethality through its own 4%-per-armor-point model, so it never
-# fired on a hit armour would have absorbed; here the payload is an unconditional `KILL: @Self`, so the raw
-# form would convert every survivable big swing into a suicide and get WORSE the better the armour. The
-# `%posthit.health%` fact is the ledger's replacement for exactly that predictor.
+# THE LETHAL GATE IS POST-MITIGATION (D-01-14). The jar predicted lethality through its own
+# 4%-per-armor-point model, so it never fired on a hit armour would have absorbed; here the payload is an
+# unconditional `KILL: @Self`, so the raw `%damage% >= %actor.health%` form (which compares BASE damage, not
+# the mitigated figure) would convert every survivable big swing into a suicide and get WORSE the better the
+# armour. `%posthit.health%` replaces that predictor in the five files D-01-14 enumerates — ender-shift,
+# lifebloom, lucky, phoenix and this one. `rocket-escape.yml`, `guided-rocket-escape.yml` and `resilience.yml`
+# still spell the raw form and KEEP it: the ledger does not put the armour model behind their gates, so there
+# is no predictor there to replace.
 # The recorded 200 t re-arm is NOT authored, for two reasons that both hold: the wearer is deliberately
 # finished off on every proc (the KILL below is unconditional), so a re-arm window can never be reached; and
 # a cooldown here would gate the CREEPER PAYLOAD too — every ability of one enchant shares one cooldown

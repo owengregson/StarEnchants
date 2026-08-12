@@ -10,7 +10,7 @@
   `effect-engine`, `feature-interaction-rules`, `performance-hot-paths`
 - **Rulings:** R-QC49 (one designed feature, one wave), R-QC66 (the design is approved whole),
   R-QC67 (`%selected%` publishes −1 for "never activated"), R-QC68 (`%target.potion.*` is CUT),
-  R-QC69 (the two balance deltas are confirmed)
+  R-QC69 (the two balance deltas are confirmed), R-115-1 (a refusal does nothing — see the amendment below)
 
 ## Context
 
@@ -147,3 +147,22 @@ if Mother of Yijki must close before the deferred-payload wave.
 `%target.potion.<effect>%` — **CUT** (R-QC68). It is the one listed fact that is not UUID-keyed: it reads the
 live entity, so a cross-region target would throw and default. No consumer in the cluster needs it, and
 keeping the no-live-entity-read rule absolute is worth more than the fact.
+
+## Amendment (2026-08-12, R-115-1): an activation is no longer the same thing as a use
+
+Part D's empty-selection refusal idiom — a payload ability and a sibling whose `condition:` reads the
+`%selected%` it published — stands, and so does every gate in part A: **a refusal branch still activates like
+any other ability**. What changes is what a CONSUMER may conclude from that.
+
+`UseAttempt` now publishes `activatedCandidateIndex`, the index of the FIRST candidate that activated, and
+`PetService` credits the shared 2 s pet gate, the universal activate line, the use-XP roll and the armed
+window only when that index is **0** — the bracket's payload. A refusal-only activation buys none of them.
+Without this, `pets/xp-booster`'s busy refusal — authored `cooldown: 0` and true for the whole buff — re-armed
+its own 5-minute `EXP_MULTIPLY` window on every refused click, doubling the buff off one charge while telling
+the player it had refused. See ledger rows D-12-39 and D-12-42.
+
+The gate is INDEX-based because the surface offers nothing finer: an ability that activates and selects nobody
+is indistinguishable, from outside, from one that activated and did work. A pet whose payload is index 0 and
+whose selectors resolve empty therefore still counts as a use for the shared gate, and its files close that
+hole themselves — with an inline `REFUND_COOLDOWN{unless: "%selected%"}` and their XP grant moved onto the hit
+arm. A per-ability "did nothing" verdict would close it in the engine; it is not built.

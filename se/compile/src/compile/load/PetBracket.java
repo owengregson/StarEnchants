@@ -22,6 +22,10 @@ import java.util.List;
  * @param wornStableKeys   stable keys of the bracket's non-USE abilities, in authored order
  * @param conditionSources authored condition strings aligned to {@link #useStableKeys} ({@code ""} where none);
  *                         the fail message renders {@code {CONDITION}} from these
+ * @param payloadUseKey    the ONE use ability that IS the click ({@code null} for a PASSIVE pet). Its siblings
+ *                         are refusal branches and {@code %…fired%}-gated follow-ups, which activate like any
+ *                         other ability — so the runtime must be told which one earns the use's economy
+ *                         (R-115-1) rather than assuming a position in {@link #useStableKeys}
  */
 public record PetBracket(
         int floor,
@@ -29,7 +33,8 @@ public record PetBracket(
         int durationTicks,
         List<String> useStableKeys,
         List<String> wornStableKeys,
-        List<String> conditionSources) {
+        List<String> conditionSources,
+        String payloadUseKey) {
 
     public PetBracket {
         useStableKeys = List.copyOf(useStableKeys);

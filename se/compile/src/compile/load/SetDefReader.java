@@ -26,7 +26,7 @@ import schema.grammar.EffectLine;
 final class SetDefReader {
 
     private static final Set<String> ROOT_KEYS = Set.of("display", "description", "complete", "armor", "weapon",
-            "weapons", "bonuses", "announce", "equip-message", "remove-message", "claim-footer");
+            "weapons", "bonuses", "announce", "equip-message", "remove-message", "claim-footer", "folds-heroic");
     private static final Set<String> ARMOR_KEYS = Set.of("lore", "enchants", "pieces");
     private static final Set<String> WEAPON_KEYS = Set.of("material", "name", "lore", "enchants", "color");
     private static final Set<String> BONUS_KEYS = ContentParse.withEnvelopeKnobs(
@@ -165,9 +165,25 @@ final class SetDefReader {
         String equipMessage = root.string("equip-message");
         String removeMessage = root.string("remove-message");
 
+        // ADR-0073 D3. Authored, not derived: a DAMAGE_MOD(side: defense) row says nothing about heroic on its
+        // own (most shipped sets carry one, and one of them is a damage-TAKEN penalty), so only the set itself
+        // can say that its completion bonus IS the heroic wall folded in.
+        boolean foldsHeroic = ContentParse.boolOr(root.string("folds-heroic"), false, "folds-heroic",
+                DiagCode.W_LOAD_BOOL, root.sourceOf("folds-heroic"), diags);
+        if (foldsHeroic) {
+            for (SetDef.Member member : armorMembers) {
+                if (member.heroic()) {
+                    // The two say opposite things about the same channel, and shipping both bills the wall twice.
+                    diags.error(DiagCode.E_LOAD_SET_MEMBER, "set '" + baseKey + "' declares 'folds-heroic' but "
+                            + "mints its '" + member.slot() + "' already heroic — one wall, two channels",
+                            root.sourceOf("folds-heroic"));
+                }
+            }
+        }
+
         SetDef def = new SetDef(baseKey, display, description == null ? "" : description, null,
                 Math.max(0, complete), armorMembers, armorLore, weaponMembers, claimFooter, appliesTo,
-                armorEnchants, announce, equipMessage, removeMessage, fileSource);
+                armorEnchants, announce, equipMessage, removeMessage, foldsHeroic, fileSource);
         return new Parsed(def, abilities);
     }
 

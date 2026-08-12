@@ -11,6 +11,11 @@ A **Heroic upgrade** is a one-shot power-up you apply to a single piece of gear 
 weapon, *not* tied to a set. It is the high-roller item: a small success chance, consumed whether it
 works or not, but a permanent boost when it lands.
 
+There is one exception. Some sets already fold a heroic-grade damage reduction into their completion
+bonus and say so with `folds-heroic: true`; a piece of one of those sets **refuses** the upgrade,
+because stamping it would bill that wall from two channels at once. The gesture says so and the
+upgrade is *not* consumed.
+
 On success a heroic upgrade:
 
 - adds a **percent damage** bonus (for weapons),
@@ -36,8 +41,9 @@ The success chance is drawn from a `[success-min, success-max]` range in the her
 
 ## Related concepts
 
-- **[Armor sets](./armor-sets.mdx)** — heroic is independent of sets; you can heroic-upgrade set
-  pieces too.
+- **[Armor sets](./armor-sets.mdx)** — heroic is independent of sets; you can heroic-upgrade most set
+  pieces. The exception is a set declaring `folds-heroic: true`, whose completion bonus already is
+  its heroic wall: those pieces refuse the upgrade, and it is not consumed.
 - **[The heroic item](../items/index.mdx)** — minting and giving heroic upgrades.
 
 For the upgrade item's full config, see **[Items](../items/index.mdx)**.

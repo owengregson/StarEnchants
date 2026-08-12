@@ -567,9 +567,9 @@ public final class PetService {
         UseAttempt attempt = dispatch.fireUse(player, bracket.useStableKeys());
         if (attempt.activated()) {
             // R-115-1: a refusal branch is a SIBLING ability that activates to say no. Only the bracket's
-            // payload — its first ability — is a use, so a refusal cannot arm the shared gate, bank XP, or
-            // re-open the armed window (which would extend a live buff by the very click that refused it).
-            if (attempt.activatedCandidateIndex() == 0) {
+            // declared payload is a use, so a refusal cannot arm the shared gate, bank XP, or re-open the
+            // armed window (which would extend a live buff by the very click that refused it).
+            if (payloadActivated(bracket, attempt)) {
                 sharedGate.arm(player.getUniqueId(), nowTicks.getAsLong() + SHARED_USE_GATE_TICKS); // ADR-0070 rider
                 messenger.activated(player, def);
                 if (dig != null) {
@@ -593,6 +593,17 @@ public final class PetService {
             return;
         }
         messenger.failed(player, def); // condition failed / blocked
+    }
+
+    /**
+     * Whether the ability that answered the click was the bracket's PAYLOAD, matched by stable key against
+     * {@link PetBracket#payloadUseKey()} — the candidate list {@code fireUse} walked is
+     * {@code useStableKeys()}, index-aligned, so the reported index names one of them.
+     */
+    private static boolean payloadActivated(PetBracket bracket, UseAttempt attempt) {
+        int index = attempt.activatedCandidateIndex();
+        return index >= 0 && index < bracket.useStableKeys().size()
+                && bracket.useStableKeys().get(index).equals(bracket.payloadUseKey());
     }
 
     /**

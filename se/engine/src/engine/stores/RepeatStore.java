@@ -50,7 +50,13 @@ public final class RepeatStore<H> {
         return Optional.ofNullable(removed);
     }
 
-    /** @return {@code true} if a live handle is stored for {@code abilityId} on {@code player}. */
+    /** The stored handle for {@code (player, abilityId)}, or empty — what a re-arm inspects before keeping it. */
+    public Optional<H> get(UUID player, int abilityId) {
+        Map<Integer, H> handles = handlesByPlayer.get(player);
+        return Optional.ofNullable(handles == null ? null : handles.get(abilityId));
+    }
+
+    /** @return {@code true} if a handle is stored for {@code abilityId} on {@code player} (presence, not liveness). */
     public boolean has(UUID player, int abilityId) {
         Map<Integer, H> handles = handlesByPlayer.get(player);
         return handles != null && handles.containsKey(abilityId);

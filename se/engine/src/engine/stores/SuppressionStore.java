@@ -3,8 +3,10 @@ package engine.stores;
 import compile.model.Ability;
 import compile.model.CompiledEffect;
 import compile.model.ScopeKinds;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,8 +46,36 @@ public final class SuppressionStore implements RetainedStore {
     private record Window(long expiry, int byDefId, Feedback feedback) {
     }
 
-    /** A defender-keyed window: a {@link Window} plus the per-incoming-activation chance rolled at the consult. */
-    private record Defender(long expiry, int chance, int byDefId, Feedback feedback) {
+    /**
+     * A defender-keyed window: a {@link Window} plus the per-incoming-activation chance rolled at the consult.
+     * {@code armedAt} is the tick it was created on, which is what lets the merge test the incumbent's
+     * liveness without capturing "now" in a lambda per arm.
+     */
+    private record Defender(long armedAt, long expiry, int chance, int byDefId, Feedback feedback) {
+    }
+
+    /**
+     * Every live arm on ONE {@code (holder, scope, key)} triple, one entry per arming ability
+     * ({@link Defender#byDefId()}). Kept per SOURCE rather than merged into a single record because the two
+     * axes belong to different owners: a stronger arm must not truncate a weaker source's own longer window,
+     * and a weaker arm must neither displace nor extend the stronger one. The consult takes the strongest
+     * entry still live (ADR-0073 D5); a source that stops arming ages out on its own clock, and its
+     * disappearance uncovers whatever else is still armed instead of a gap until the next cadence tick.
+     */
+    private record Defenders(List<Defender> arms) {
+
+        /** The governing arm at {@code nowTicks}: strongest chance, ties to the later expiry, then incumbent. */
+        Defender strongest(long nowTicks) {
+            Defender best = null;
+            for (Defender arm : arms) {
+                if (nowTicks < arm.expiry()
+                        && (best == null || arm.chance() > best.chance()
+                        || (arm.chance() == best.chance() && arm.expiry() > best.expiry()))) {
+                    best = arm;
+                }
+            }
+            return best;
+        }
     }
 
     /**
@@ -97,9 +127,9 @@ public final class SuppressionStore implements RetainedStore {
      * gate 5 for the activation's primary victim, and gate 12's target loop for every OTHER body an effect
      * resolves onto (the chain hops) — and each draws exactly once per (window, target application).
      */
-    private final Map<UUID, Map<Long, Defender>> defenderByPlayer = new ConcurrentHashMap<>();
+    private final Map<UUID, Map<Long, Defenders>> defenderByPlayer = new ConcurrentHashMap<>();
     /** The KIND-scoped half of {@link #defenderByPlayer}, split for the same fast-path reason. */
-    private final Map<UUID, Map<Integer, Defender>> defenderKindByPlayer = new ConcurrentHashMap<>();
+    private final Map<UUID, Map<Integer, Defenders>> defenderKindByPlayer = new ConcurrentHashMap<>();
     private volatile SuppressListener onSuppress = (player, durationTicks) -> { };
 
     /**
@@ -563,11 +593,11 @@ public final class SuppressionStore implements RetainedStore {
             return ids.isEmpty() ? null : ids;
         });
         defenderByPlayer.computeIfPresent(player, (id, ids) -> {
-            ids.values().removeIf(w -> nowTicks >= w.expiry());
+            ids.values().removeIf(d -> d.strongest(nowTicks) == null); // a triple dies with its LAST live arm
             return ids.isEmpty() ? null : ids;
         });
         defenderKindByPlayer.computeIfPresent(player, (id, ids) -> {
-            ids.values().removeIf(w -> nowTicks >= w.expiry());
+            ids.values().removeIf(d -> d.strongest(nowTicks) == null);
             return ids.isEmpty() ? null : ids;
         });
     }
@@ -605,8 +635,8 @@ public final class SuppressionStore implements RetainedStore {
     /**
      * Arm (or extend) a defender-keyed window on {@code defender} for the packed cooldown-scope {@code id}.
      * {@code chance} is the percentage rolled at each CONSULT (clamped to 100; {@code >= 100} is absolute).
-     * Maintained-while-worn is the intended shape, so a weaker re-arm never displaces a live stronger window
-     * — see {@link #strongerDefender}, which also bounds how long that stronger chance may survive.
+     * Maintained-while-worn is the intended shape, so each arming ability keeps its OWN window — see
+     * {@link #withArm}, and {@link Defenders} for why the arms are not merged into one record.
      *
      * <p>Deliberately does NOT fire {@link SuppressListener}: that hook exists so a maintained buff on the
      * SUPPRESSED player drops instantly, and a defender window suppresses none of its holder's own abilities.
@@ -616,9 +646,9 @@ public final class SuppressionStore implements RetainedStore {
         if (defender == null || durationTicks <= 0 || chance <= 0) {
             return;
         }
-        Defender fresh = new Defender(nowTicks + durationTicks, Math.min(chance, 100), byDefId, feedback);
+        Defenders fresh = oneArm(nowTicks, durationTicks, chance, byDefId, feedback);
         defenderByPlayer.computeIfAbsent(defender, k -> new ConcurrentHashMap<>())
-                .merge(id, fresh, (live, arriving) -> strongerDefender(live, arriving, nowTicks));
+                .merge(id, fresh, SuppressionStore::withArm);
     }
 
     /** {@link #defend} for a dense effect kindId ({@code scope: KIND}). */
@@ -627,39 +657,42 @@ public final class SuppressionStore implements RetainedStore {
         if (defender == null || durationTicks <= 0 || chance <= 0 || kindId < 0) {
             return;
         }
-        Defender fresh = new Defender(nowTicks + durationTicks, Math.min(chance, 100), byDefId, feedback);
+        Defenders fresh = oneArm(nowTicks, durationTicks, chance, byDefId, feedback);
         defenderKindByPlayer.computeIfAbsent(defender, k -> new ConcurrentHashMap<>())
-                .merge(kindId, fresh, (live, arriving) -> strongerDefender(live, arriving, nowTicks));
+                .merge(kindId, fresh, SuppressionStore::withArm);
+    }
+
+    private static Defenders oneArm(long nowTicks, int durationTicks, int chance, int byDefId, Feedback feedback) {
+        return new Defenders(List.of(
+                new Defender(nowTicks, nowTicks + durationTicks, Math.min(chance, 100), byDefId, feedback)));
     }
 
     /**
-     * Two arms on one {@code (holder, scope, key)} triple resolve to the STRONGEST chance (ADR-0073 D5), which
-     * carries its own attribution and cue. A set and its own matching crystal arm the same triple on the same
-     * cadence from two independent abilities; without this, whichever fired later in a cycle governed the next
-     * window, so completing a set AND carrying its crystal left a wearer permanently WORSE off than the set
-     * alone. Arm order must not decide that.
+     * Fold a fresh arm into the triple's live ones: its own source's previous window is REPLACED, every other
+     * source's is kept while still live, and lapsed ones are dropped (eviction is otherwise lazy — a consult,
+     * or the 5-minute offline sweep — so a stale record must never be allowed to speak again).
      *
-     * <p>The governing record is kept WHOLE — its chance never outlives the arm that granted it. Splicing the
-     * stronger chance onto the later expiry is what let the ladder only climb: a crystal ladder's base rung
-     * re-arms every 20 ticks under a 60-tick duration, so a wearer who dropped from four rungs to one (or took
-     * a completed set off and kept one crystal piece) had the strongest chance EVER armed refreshed forever by
-     * the weakest arm still firing. A source that stops arming now ages out on its own clock within one
-     * duration, which is the residual bound the crystal files themselves promise.
+     * <p>Nothing here decides which window governs; {@link Defenders#strongest} does, at the consult (ADR-0073
+     * D5). Every single-record merge is wrong in one direction or another: it lets arm order pick the winner
+     * (a set and its own crystal arm the same triple on the same cadence), or lets the weakest arm still
+     * firing re-stamp the strongest chance ever armed, or discards coverage the losing source already paid for.
      *
-     * <p>A LAPSED incumbent is treated as absent: eviction is lazy (consult-time plus the 5-minute offline
-     * sweep), so without this a fresh arm would resurrect a window that expired minutes — or a logout — ago.
-     *
-     * <p>Chance decides the identity rather than expiry because chance is the whole point of the window and
-     * expiry is a refresh detail; a chance tie falls back to the later expiry, and a full tie keeps the
-     * incumbent — the same "ties keep what is already live" rule the activator-side merges use.
+     * <p>{@code arriving} always holds exactly one arm (the {@code defend} entry points build it).
      */
-    private static Defender strongerDefender(Defender live, Defender arriving, long nowTicks) {
-        if (nowTicks >= live.expiry()) {
-            return arriving;
+    private static Defenders withArm(Defenders live, Defenders arriving) {
+        Defender fresh = arriving.arms().get(0);
+        if (live.arms().size() == 1 && live.arms().get(0).byDefId() == fresh.byDefId()) {
+            return arriving; // the common shape: one source re-arming itself on its cadence, no copy needed
         }
-        boolean arrivingGoverns = arriving.chance() > live.chance()
-                || (arriving.chance() == live.chance() && arriving.expiry() > live.expiry());
-        return arrivingGoverns ? arriving : live;
+        long now = fresh.armedAt();
+        List<Defender> kept = new ArrayList<>(live.arms().size() + 1);
+        for (Defender arm : live.arms()) {
+            if (now < arm.expiry() && arm.byDefId() != fresh.byDefId()) {
+                kept.add(arm);
+            }
+        }
+        kept.add(fresh);
+        return new Defenders(List.copyOf(kept));
     }
 
     /** What a defender-keyed block reports back: the naming scope, the arming ability, and the cue to emit. */
@@ -708,17 +741,18 @@ public final class SuppressionStore implements RetainedStore {
         if (scopeId < 0) {
             return null;
         }
-        Map<Long, Defender> windows = defenderByPlayer.get(defender);
+        Map<Long, Defenders> windows = defenderByPlayer.get(defender);
         if (windows == null) {
             return null;
         }
         long key = CooldownStore.key(scopeKind, scopeId);
-        Defender w = windows.get(key);
-        if (w == null) {
+        Defenders armed = windows.get(key);
+        if (armed == null) {
             return null;
         }
-        if (nowTicks >= w.expiry()) {
-            windows.remove(key, w);
+        Defender w = armed.strongest(nowTicks);
+        if (w == null) {
+            windows.remove(key, armed); // every arm on this triple has lapsed
             return null;
         }
         return rolls(w, roll) ? new Matched(scopeKind, scopeId, w.byDefId(), w.feedback()) : null;
@@ -726,7 +760,7 @@ public final class SuppressionStore implements RetainedStore {
 
     private Matched defenderKind(Ability ability, UUID defender, long nowTicks,
                                  java.util.function.DoubleSupplier roll) {
-        Map<Integer, Defender> windows = defenderKindByPlayer.get(defender);
+        Map<Integer, Defenders> windows = defenderKindByPlayer.get(defender);
         if (windows == null) {
             return null;
         }
@@ -735,12 +769,13 @@ public final class SuppressionStore implements RetainedStore {
             if (kindId < 0) {
                 continue;
             }
-            Defender w = windows.get(kindId);
-            if (w == null) {
+            Defenders armed = windows.get(kindId);
+            if (armed == null) {
                 continue;
             }
-            if (nowTicks >= w.expiry()) {
-                windows.remove(kindId, w);
+            Defender w = armed.strongest(nowTicks);
+            if (w == null) {
+                windows.remove(kindId, armed);
                 continue;
             }
             if (rolls(w, roll)) {

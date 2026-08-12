@@ -18,7 +18,6 @@ import org.bukkit.entity.Player;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import platform.sched.Scheduling;
-import platform.sched.TaskHandle;
 import testfx.Abilities;
 import testfx.RecordingSchedulerBackend;
 import testfx.Snapshots;
@@ -36,7 +35,7 @@ class RepeatingDriverTest {
     private static final int GEN = 1;
 
     private RecordingSchedulerBackend backend;
-    private RepeatStore<TaskHandle> store;
+    private RepeatStore<RepeatingDriver.Armed> store;
     private RepeatingDriver driver;
     private Player player;
     private UUID uuid;
@@ -145,6 +144,43 @@ class RepeatingDriverTest {
         assertEquals(2, backend.repeating.size());
         assertEquals(40L, backend.repeating.get(1).periodTicks, "only 7 is freshly scheduled");
         assertTrue(store.has(uuid, 7));
+    }
+
+    @Test
+    void aRetiredTaskIsReArmedInsteadOfAssumedLive() {
+        // On Folia an entity task is RETIRED when its entity is removed, which a player death does; nothing
+        // disarms on death or respawn. Reading liveness off the store instead of the handle left every
+        // REPEATING ward dead for the rest of the session, and only a retiring backend can show it.
+        driver.arm(player, worn(3));
+        RecordingSchedulerBackend.Repeat armed = backend.repeating.get(0);
+
+        armed.retire();
+        driver.arm(player, worn(3));
+
+        assertEquals(2, backend.repeating.size(), "a retired task is rescheduled, not kept");
+        assertFalse(backend.repeating.get(1).isCancelled());
+        assertEquals(20L, backend.repeating.get(1).periodTicks);
+        assertTrue(store.has(uuid, 3));
+    }
+
+    @Test
+    void aReloadReschedulesSoAnEditedPeriodTakesEffect() {
+        // ReloadModule re-arms every online player for exactly this reason. The period is read once, at
+        // schedule time, so a task kept across the swap would run on the OLD cadence forever — and the same
+        // dense id can name different content after a recompile.
+        ContentHolder held = mock(ContentHolder.class);
+        when(held.snapshot()).thenReturn(Snapshots.snapshot().generation(1)
+                .abilities(ability(0, 20)).build());
+        RepeatingDriver reloaded = new RepeatingDriver(mock(TriggerDispatch.class), held, REPEATING, store);
+        reloaded.arm(player, worn(0));
+
+        when(held.snapshot()).thenReturn(Snapshots.snapshot().generation(2)
+                .abilities(ability(0, 100)).build());
+        reloaded.arm(player, worn(0));
+
+        assertTrue(backend.repeating.get(0).isCancelled(), "the task armed against the old snapshot is replaced");
+        assertEquals(2, backend.repeating.size());
+        assertEquals(100L, backend.repeating.get(1).periodTicks, "the re-armed task runs the edited period");
     }
 
     @Test

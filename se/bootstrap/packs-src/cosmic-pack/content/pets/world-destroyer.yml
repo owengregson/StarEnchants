@@ -21,13 +21,14 @@
 # cage is stopped (below). NOTHING scales with pet level: level is purely cosmetic here, which is why one
 # bracket serves the whole 1–4 ladder.
 # TARGETING: the jar walked a 61×61×61 box (a "30-block" cube) and spared allies, faction members and truced
-# parties (either side flagged as duelling counted as NOT truced). `@Aoe{r=30}` walks the same box — the area
-# scan is `getNearbyEntities(r, r, r)` with no distance re-check — and the filter is the CONJUNCTION
-# `ENEMIES+PLAYERS`, the only spelling that means hostile PLAYERS: bare `ENEMIES` also admits every hostile
-# MOB, which would drop the rot on zombies the jar's `List<Player>` never held and would leave the empty-box
-# refusal below unreachable anywhere mobs spawn. The jar applied no region/gamemode/spectator check to the
-# victims (unlike Smite); this port's global PvP gates do apply, and a SPECTATOR inside the box still counts
-# as a victim because no selector filter reads gamemode (D-12-38) — both recorded rather than worked around.
+# parties (either side flagged as duelling counted as NOT truced). `@Aoe{r=30}` is a SPHERE where the jar used
+# a box — recorded; the scan's `getNearbyEntities(r, r, r)` is the broad phase only and `AreaScan` cuts to the
+# radius after it. The filter is the CONJUNCTION `ENEMIES+PLAYERS`, the only spelling that means hostile
+# PLAYERS: bare `ENEMIES` also admits every hostile MOB, which would drop the rot on zombies the jar's
+# `List<Player>` never held and would leave the no-target refusal below unreachable anywhere mobs spawn. The
+# jar applied no region/gamemode/spectator check to the victims (unlike Smite); this port's global PvP gates
+# do apply, and a SPECTATOR in range still counts as a victim because no selector filter reads gamemode
+# (D-12-38) — both recorded rather than worked around.
 # THE CAGE IS THE ONE UNPORTED CLAUSE — recorded as a stop, everything around it ships. The jar encases EACH
 # victim where they stand: a 3×3 footprint, walls 3 high at y…y+2, an obsidian floor at y−1 and roof at y+3,
 # up to 44 blocks, 100 t. The matrix writes that as `CAGE(..., rise=0)`, but this engine's `CAGE` is a

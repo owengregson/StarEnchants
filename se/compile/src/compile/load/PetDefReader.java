@@ -197,8 +197,10 @@ final class PetDefReader {
                 firstUseCooldown = ability.cooldownTicks();
             }
         }
+        // The payload is the bracket's FIRST use ability — the same one that carries the pet-wide cooldown
+        // scope. Recorded here, where that choice is made, so the runtime reads a name instead of an index.
         return new PetBracket(floor, firstUseCooldown >= 0 ? firstUseCooldown : cooldown, duration,
-                useKeys, wornKeys, conditionSources);
+                useKeys, wornKeys, conditionSources, useKeys.isEmpty() ? null : useKeys.get(0));
     }
 
     /** Read one ability block, classify it USE vs worn by trigger, and append + return its {@link AbilityDef}. */

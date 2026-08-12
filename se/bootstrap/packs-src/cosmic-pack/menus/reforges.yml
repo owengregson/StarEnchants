@@ -4,7 +4,11 @@
 # items instead of the engine's neutral purple. Only the fields below differ from the engine default; any
 # field omitted keeps it.
 # Weapon Reforges GUI. The reforge family is this project's own (ADR-0070) and has no counterpart in the
-# corpus, so this menu is themed to the pack rather than to anything recorded.
+# corpus, so this menu is themed to the pack rather than to anything recorded — and this pack ships NO
+# content/reforges/ tree, so on a stock install the browser is empty and the player hub omits its tile
+# (the operator console still opens it). The theme ships anyway so a server that adds its own reforges on
+# top of this pack inherits the frame instead of one purple menu among gold ones; the same reason
+# items/reforge.yml is here.
 
 title: "&6&l✦ Weapon Reforges ✦"
 frame: "border"
