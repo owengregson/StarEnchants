@@ -18,8 +18,11 @@ condition: "%damagecause% == \"ENTITY_ATTACK\" && %victim.type% == \"PLAYER\""
 # `ttl: 0` leaves the engine reaping nothing, exactly as the jar left it — the far-away pin is a TTL-only
 # guard, so vanilla despawn still collects a ring the wearer walks away from. That plus the chunk cap is the
 # whole bound on a long fight, measured and kept. The ring replaces the jar's spawn
-# stacked at one crosshair point, which could bury a minion in a wall; radius and rise are SPAWN_SWARM's own,
-# since the matrix records no ring numbers.
+# stacked at one crosshair point, which could bury a minion in a wall. The matrix records no ring numbers, so
+# both are the port's: `radius: 2.0` because SPAWN_SWARM's 0.5 default is inside the wearer's own hitbox — a
+# "ring" nobody can see, and the one thing this shape was chosen to avoid — while two blocks leaves five
+# minions ~2.5 blocks of arc each. `rise: 0.8` against the 1.2 default because the ±0.6 spawn-Y scatter is
+# measured from it: 0.2–1.4 clears a one-block step, where 0.6–1.8 can put a body in a two-high ceiling.
 # The buff ladder is the matrix's amplifiers read as levels (amp 0/1/2 = level I/II/III): SPEED I always,
 # II from L4, III from L7; INCREASE_DAMAGE III from L5; FAST_DIGGING III from L8 — all permanent.
 # The vanish window is the INTENDED (zombies x 20) + 20 t; the jar's flat 20 t is its own loop counter already
@@ -36,7 +39,7 @@ levels:
   1:
     chance: 1
     effects:
-      - { SPAWN_SWARM: { type: "ZOMBIE", count: 1, ttl: 0, owner: "activator", name: "§d§l{OWNER}'s Undead Minion", effects: "SPEED" } }
+      - { SPAWN_SWARM: { type: "ZOMBIE", count: 1, radius: 2.0, rise: 0.8, ttl: 0, owner: "activator", name: "§d§l{OWNER}'s Undead Minion", effects: "SPEED" } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self" } }
       - { VIEWER_HIDE: { duration: 40, viewer: "attacker", who: "@Self" } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
@@ -44,7 +47,7 @@ levels:
   2:
     chance: 2
     effects:
-      - { SPAWN_SWARM: { type: "ZOMBIE", count: 1, ttl: 0, owner: "activator", name: "§d§l{OWNER}'s Undead Minion", effects: "SPEED" } }
+      - { SPAWN_SWARM: { type: "ZOMBIE", count: 1, radius: 2.0, rise: 0.8, ttl: 0, owner: "activator", name: "§d§l{OWNER}'s Undead Minion", effects: "SPEED" } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self" } }
       - { VIEWER_HIDE: { duration: 40, viewer: "attacker", who: "@Self" } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
@@ -52,7 +55,7 @@ levels:
   3:
     chance: 3
     effects:
-      - { SPAWN_SWARM: { type: "ZOMBIE", count: 2, ttl: 0, owner: "activator", name: "§d§l{OWNER}'s Undead Minion", effects: "SPEED" } }
+      - { SPAWN_SWARM: { type: "ZOMBIE", count: 2, radius: 2.0, rise: 0.8, ttl: 0, owner: "activator", name: "§d§l{OWNER}'s Undead Minion", effects: "SPEED" } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self" } }
       - { VIEWER_HIDE: { duration: 60, viewer: "attacker", who: "@Self" } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
@@ -60,7 +63,7 @@ levels:
   4:
     chance: 4
     effects:
-      - { SPAWN_SWARM: { type: "ZOMBIE", count: 2, ttl: 0, owner: "activator", name: "§d§l{OWNER}'s Undead Minion", effects: "SPEED*2" } }
+      - { SPAWN_SWARM: { type: "ZOMBIE", count: 2, radius: 2.0, rise: 0.8, ttl: 0, owner: "activator", name: "§d§l{OWNER}'s Undead Minion", effects: "SPEED*2" } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self" } }
       - { VIEWER_HIDE: { duration: 60, viewer: "attacker", who: "@Self" } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
@@ -68,7 +71,7 @@ levels:
   5:
     chance: 4  # the jar's min(level, 4) clamp holds from here up
     effects:
-      - { SPAWN_SWARM: { type: "ZOMBIE", count: 3, ttl: 0, owner: "activator", name: "§d§l{OWNER}'s Undead Minion", effects: "SPEED*2,INCREASE_DAMAGE*3" } }
+      - { SPAWN_SWARM: { type: "ZOMBIE", count: 3, radius: 2.0, rise: 0.8, ttl: 0, owner: "activator", name: "§d§l{OWNER}'s Undead Minion", effects: "SPEED*2,INCREASE_DAMAGE*3" } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self" } }
       - { VIEWER_HIDE: { duration: 80, viewer: "attacker", who: "@Self" } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
@@ -76,7 +79,7 @@ levels:
   6:
     chance: 4
     effects:
-      - { SPAWN_SWARM: { type: "ZOMBIE", count: 3, ttl: 0, owner: "activator", name: "§d§l{OWNER}'s Undead Minion", effects: "SPEED*2,INCREASE_DAMAGE*3" } }
+      - { SPAWN_SWARM: { type: "ZOMBIE", count: 3, radius: 2.0, rise: 0.8, ttl: 0, owner: "activator", name: "§d§l{OWNER}'s Undead Minion", effects: "SPEED*2,INCREASE_DAMAGE*3" } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self" } }
       - { VIEWER_HIDE: { duration: 80, viewer: "attacker", who: "@Self" } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
@@ -84,7 +87,7 @@ levels:
   7:
     chance: 4
     effects:
-      - { SPAWN_SWARM: { type: "ZOMBIE", count: 4, ttl: 0, owner: "activator", name: "§d§l{OWNER}'s Undead Minion", effects: "SPEED*3,INCREASE_DAMAGE*3" } }
+      - { SPAWN_SWARM: { type: "ZOMBIE", count: 4, radius: 2.0, rise: 0.8, ttl: 0, owner: "activator", name: "§d§l{OWNER}'s Undead Minion", effects: "SPEED*3,INCREASE_DAMAGE*3" } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self" } }
       - { VIEWER_HIDE: { duration: 100, viewer: "attacker", who: "@Self" } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
@@ -92,7 +95,7 @@ levels:
   8:
     chance: 4
     effects:
-      - { SPAWN_SWARM: { type: "ZOMBIE", count: 4, ttl: 0, owner: "activator", name: "§d§l{OWNER}'s Undead Minion", effects: "SPEED*3,INCREASE_DAMAGE*3,FAST_DIGGING*3" } }
+      - { SPAWN_SWARM: { type: "ZOMBIE", count: 4, radius: 2.0, rise: 0.8, ttl: 0, owner: "activator", name: "§d§l{OWNER}'s Undead Minion", effects: "SPEED*3,INCREASE_DAMAGE*3,FAST_DIGGING*3" } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self" } }
       - { VIEWER_HIDE: { duration: 100, viewer: "attacker", who: "@Self" } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
@@ -100,7 +103,7 @@ levels:
   9:
     chance: 4
     effects:
-      - { SPAWN_SWARM: { type: "ZOMBIE", count: 5, ttl: 0, owner: "activator", name: "§d§l{OWNER}'s Undead Minion", effects: "SPEED*3,INCREASE_DAMAGE*3,FAST_DIGGING*3" } }
+      - { SPAWN_SWARM: { type: "ZOMBIE", count: 5, radius: 2.0, rise: 0.8, ttl: 0, owner: "activator", name: "§d§l{OWNER}'s Undead Minion", effects: "SPEED*3,INCREASE_DAMAGE*3,FAST_DIGGING*3" } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self" } }
       - { VIEWER_HIDE: { duration: 120, viewer: "attacker", who: "@Self" } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }
@@ -108,7 +111,7 @@ levels:
   10:
     chance: 4
     effects:
-      - { SPAWN_SWARM: { type: "ZOMBIE", count: 5, ttl: 0, owner: "activator", name: "§d§l{OWNER}'s Undead Minion", effects: "SPEED*3,INCREASE_DAMAGE*3,FAST_DIGGING*3" } }
+      - { SPAWN_SWARM: { type: "ZOMBIE", count: 5, radius: 2.0, rise: 0.8, ttl: 0, owner: "activator", name: "§d§l{OWNER}'s Undead Minion", effects: "SPEED*3,INCREASE_DAMAGE*3,FAST_DIGGING*3" } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 20, who: "@Self" } }
       - { VIEWER_HIDE: { duration: 120, viewer: "attacker", who: "@Self" } }
       - { PARTICLE: { particle: "SPELL_WITCH", count: 35, who: "@Self" } }

@@ -123,6 +123,10 @@ public record EngineStores(
      * shed an opponent-landed window (the monotonic tick keeps a surviving absolute expiry valid on rejoin). A
      * head trophy has no expiry at all — it waits for the death that spends it, and an armed book-rate charge
      * waits for the roll that spends it.
+     *
+     * <p>{@link SuppressionStore} is retained only for its ACTIVATOR-side windows. Its self-armed halves — the
+     * immunity chance and the defender-keyed windows — are dropped outright by {@link #quitSweep}, since both
+     * are re-derived from worn gear on rejoin and neither may outlive the armour that granted it.
      */
     public List<RetainedStore> quitRetained() {
         return List.of(cooldowns, teleblock, suppression, reflectMarks, outgoingDebuff, dotAmplify,
@@ -130,15 +134,18 @@ public record EngineStores(
     }
 
     /**
-     * The quit sweep: clear the {@link #quitVolatile} stores, drop the self-derived suppression immunity (windows
-     * survive), and evict only the {@link #quitRetained} stores' elapsed entries at {@code nowTicks}. A full clear
-     * is {@link #clearAll(UUID)}.
+     * The quit sweep: clear the {@link #quitVolatile} stores, drop the self-derived halves of suppression (the
+     * immunity and the defender-keyed windows; opponent-landed windows survive), and evict only the
+     * {@link #quitRetained} stores' elapsed entries at {@code nowTicks}. A full clear is {@link #clearAll(UUID)}.
      */
     public void quitSweep(UUID player, long nowTicks) {
         for (PlayerScoped store : quitVolatile()) {
             store.clear(player);
         }
-        suppression.clearImmunity(player); // self-state re-derived on rejoin; DISABLE_* windows survive below
+        // Both are self-state re-derived from worn gear on rejoin; the DISABLE_* windows an opponent landed
+        // survive below.
+        suppression.clearImmunity(player);
+        suppression.clearDefender(player);
         for (RetainedStore store : quitRetained()) {
             store.evictElapsed(player, nowTicks);
         }

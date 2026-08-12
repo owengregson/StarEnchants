@@ -12,8 +12,7 @@ type: heroic
 # The recorded material: the source's INK_SACK data 11, Dandelion Yellow dye. era: the 1.13 flattening split
 # the dyes into their own materials, so YELLOW_DYE is that item's modern spelling; on the 1.8.9 lane the name
 # does not exist and this surface carries no data value to ask for INK_SACK:11, so ItemFactory's legacy table
-# degrades it to GOLD_INGOT — the closest 1.8 yellow item, the gold form the source's heroic WEAPONS take, and
-# what this file carried as a port choice before the identity was recovered.
+# degrades it to GOLD_INGOT — the closest 1.8 yellow item, and the gold form the source's heroic WEAPONS take.
 material: YELLOW_DYE
 # Verbatim, and the missing space is real — the source's generic upgrade is named "Heroic ArmorUpgrade". Its
 # other name form is set-specific ("§6§lHeroic §6(§a§lRanger§6) §6§lUpgrade"), which this port has no use for:

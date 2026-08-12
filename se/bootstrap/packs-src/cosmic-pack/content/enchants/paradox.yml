@@ -25,9 +25,10 @@ no-souls-message: "§c§l** OUT OF SOULS **"
 # nearby", so the %nearbyallies% gate above IS the intended form.
 # The jar's ally box was horizontal-only with a vertical reach of radius+128; @Aoe is spherical and does not
 # replicate that asymmetry (noted, no ledger row).
-# Ally = faction ally/member both ways with neither in a duel, spectators excluded — the engine relation
-# layer. Soul discounts (Outposts / faction upgrades, including the top-rank no-discount quirk) are
-# environment gates and are not ported.
+# The jar's ally = faction ally/member both ways with neither in a duel, spectators excluded. The first half
+# is the engine relation layer (D-004); the spectator half is NOT — no selector filter reads gamemode, so a
+# spectating team-mate still counts toward `%nearbyallies%` (D-12-38, pack-wide). Soul discounts (Outposts /
+# faction upgrades, including the top-rank no-discount quirk) are environment gates and are not ported.
 # The jar printed the two soul lines only when the balance was a multiple of 100 or below 10; that throttle
 # is a lang-layer choice, so the lines ship unconditionally with the activation.
 # R-QC2 binds the five tokens. `{owner}` is the wearer, and on a DEFENSE pass the wearer IS the activating

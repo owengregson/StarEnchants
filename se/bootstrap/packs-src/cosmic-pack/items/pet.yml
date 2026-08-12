@@ -6,11 +6,14 @@
 # {DESCRIPTION} its ability body (which carries the family's own `§7§f§lAbility` / `§7§f§lCooldown` headers
 # and cooldown value line — those are per-pet here, not template text), {LEVEL} / {MAX_LEVEL} / {EXP} /
 # {EXP_NEXT} the stored progress, {EXP_BAR} the progress meter, {TIME_FORMATTED} the live bracket's cooldown.
-# HEAD TEXTURES (R-QC56) — the family reading every pet file cites rather than repeats. All 17 profiles were
-# recoverable after all: the `skinBlob` constructor argument of each enum constant carries the complete base64
-# blob, cross-checked byte-for-byte against the bytecode constant pool and against the codex's decoded profile
-# table (12-pets.md:352-369). The claim this note used to carry — that the codex held the profile but not the
-# base64 — was false in both halves, and the 13 shipped pets now author their own `head:` verbatim.
+# `{MAX_LEVEL}` is the one supplied token this template deliberately does NOT bind — the source printed a
+# pet's cap nowhere, and a `/ {MAX_LEVEL}` on the recorded tail would be an invented line (spec §6 R2). The
+# engine default and signature-pack bind it; here the cap shows in the EXP pair instead, which pins full at
+# the cap under a solid bar rather than climbing past its own denominator.
+# HEAD TEXTURES (R-QC56) — the family reading every pet file cites rather than repeats. All 17 profiles are
+# recoverable: the `skinBlob` constructor argument of each enum constant carries the complete base64 blob,
+# cross-checked byte-for-byte against the bytecode constant pool and against the codex's decoded profile
+# table (12-pets.md:352-369), and each of the 13 shipped pets authors its own `head:` verbatim.
 # The blob IS the whole identity. The jar built its GameProfile with `UUID.randomUUID()` and the lower-cased
 # enum name, so there is no player-name skull and no stable source UUID to port; the `profileId` inside a blob
 # belongs to the skin's AUTHOR (16 of 17 share one), and nothing reads it.
@@ -33,8 +36,8 @@ name: "{COLOR}&l{NAME}&7 [LVL {LEVEL}]"
 # THE BAR IS FIFTY SEGMENTS (R-QC65, closing ledger D-12-2). The jar drew 50 through an integer division that
 # rendered it always EMPTY below the cap and overflowing past 50 segments AT it (codex §A.5) — never the
 # proportional meter it was written to be. `{EXP_BAR}` is that meter: 50 segments, `§a|` filled and `§c|`
-# empty, proportional and clamped full at the cap. The port's earlier ten-slot approximation was a second
-# divergence stacked on the first and is retired — the COUNT was never a look, it was the bug.
+# empty, proportional and clamped full at the cap. The count is not a styling choice — fifty is the jar's own
+# number, and only the arithmetic that made it unreadable is corrected.
 # `{EXP}` / `{EXP_NEXT}` are comma-grouped (the recorded `#,###.##`), so a 56 250-point curve reads as one.
 lore-active:
   - "{DESCRIPTOR}"

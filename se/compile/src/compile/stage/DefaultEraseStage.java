@@ -7,6 +7,7 @@ import compile.model.FactMasks;
 import compile.model.Interner;
 import compile.model.Interners;
 import compile.model.ScopeKinds;
+import compile.model.SourceKind;
 import compile.model.SourceMap;
 import compile.model.StableKeyIndex;
 import schema.diag.DiagCode;
@@ -90,6 +91,7 @@ public final class DefaultEraseStage implements EraseStage {
         }
 
         Set<String> seenKeys = new HashSet<>();
+        List<LoweredAbility> kept = new ArrayList<>();
         List<Ability> abilities = new ArrayList<>();
         List<String> keysByDenseId = new ArrayList<>();
         Map<Integer, SourceMap.Entry> sourceEntries = new LinkedHashMap<>();
@@ -192,15 +194,74 @@ public final class DefaultEraseStage implements EraseStage {
                     la.chanceRebate());
 
             abilities.add(ability);
+            kept.add(la);
             keysByDenseId.add(la.stableKey());
             sourceEntries.put(la.defId(), new SourceMap.Entry(la.sourceKind(), la.stableKey(), la.source()));
         }
+
+        warnDeadCooldownBuckets(kept, diags);
 
         StableKeyIndex stableKeyIndex = new StableKeyIndex(keysByDenseId);
         SourceMap sourceMap = new SourceMap(sourceEntries);
         Interners interners = new Interners(worlds, triggers, suppress, cooldownScopes);
 
         return new ErasedContent(abilities.toArray(new Ability[0]), interners, stableKeyIndex, sourceMap);
+    }
+
+    /**
+     * Warn on every ability that is INERT by construction: {@code cooldown: 0} while a co-live sibling in the
+     * same ENCHANT-scope bucket arms a real one. Gate 6 is a fused check-and-arm and a zero duration makes it
+     * CHECK-ONLY — it writes no reservation of its own but still blocks on a live one, so such an ability is
+     * silenced for the whole of its sibling's window, which is exactly when it was meant to fire. Every block
+     * of one enchant shares the enchant's bucket by default, so an arm and the payload it exists to run are
+     * both the natural authoring shape and the natural dead one: this left Demonic Gateway's three IMPACT
+     * payloads inert behind their own 200-tick arm until each took {@code cooldown-scope: none}.
+     *
+     * <p>A cohort is only compared where both members can be live at once, which is what keeps the warning
+     * off legitimate ladders:
+     *
+     * <ul>
+     *   <li>the LEVEL joins the key — a non-stacking enchant contributes only its highest worn level (R-QC63,
+     *       {@code WornResolver}), so the common "cooldown appears at the top rung" ladder is not a collision;</li>
+     *   <li>the per-victim DIMENSION joins it — a {@code cooldown-per-victim} arm writes in the victim's own
+     *       dimension, which a coarse-bucket sibling never reads;</li>
+     *   <li>a pet's default {@code pet:<key>} bucket is skipped — it is taken by each BRACKET's first USE
+     *       ability ({@code PetDefReader}) and brackets are alternatives, never simultaneous. An explicitly
+     *       authored scope on a pet ability is still checked.</li>
+     * </ul>
+     *
+     * <p>A warning, not an error: a shared bucket with asymmetric cooldowns is legal (R-QC57) and nothing here
+     * can know two enchants naming one bucket are never worn together. Conservative in the other direction
+     * too — a {@code stacks: true} enchant really can collide across levels, and that pair is not reported.
+     */
+    private static void warnDeadCooldownBuckets(List<LoweredAbility> kept, Diagnostics diags) {
+        Map<String, String> armedBy = new LinkedHashMap<>();
+        for (LoweredAbility la : kept) {
+            if (la.cooldownTicks() > 0 && cohort(la) != null) {
+                armedBy.putIfAbsent(cohort(la), la.stableKey());
+            }
+        }
+        for (LoweredAbility la : kept) {
+            String cohort = la.cooldownTicks() > 0 ? null : cohort(la);
+            String armer = cohort == null ? null : armedBy.get(cohort);
+            if (armer == null || armer.equals(la.stableKey())) {
+                continue;
+            }
+            diags.warning(DiagCode.W_DEAD_COOLDOWN_BUCKET,
+                    "'" + la.stableKey() + "' has no cooldown but shares cooldown bucket '" + la.cdScopeEnchant()
+                            + "' with '" + armer + "', which arms one — it cannot fire while that window runs",
+                    la.source(),
+                    "give it 'cooldown-scope: none' to leave the bucket, or a scope name of its own");
+        }
+    }
+
+    /** The set of abilities that genuinely contend for one cooldown key, or {@code null} if this one cannot. */
+    private static String cohort(LoweredAbility la) {
+        String scope = la.cdScopeEnchant();
+        if (scope == null || (la.sourceKind() == SourceKind.PET && scope.equals(la.suppressKey()))) {
+            return null;
+        }
+        return scope + ' ' + la.level() + (la.cooldownPerVictim() ? " v" : "");
     }
 
     /**

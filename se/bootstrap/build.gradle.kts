@@ -130,6 +130,11 @@ tasks.named<Test>("test") {
     // the pack validation tests read the trees off the same walk.
     inputs.files(layout.projectDirectory.dir("packs-src"))
         .withPropertyName("shippedPackTrees").optional()
+    // The committed per-era handle vocabularies (javap'd Sound/Particle/Material constant lists) the era gates
+    // resolve against. Read off the same repo-relative walk, so a regenerated fixture must invalidate the
+    // cached run instead of being hidden FROM-CACHE — the same §M drift hole as the two above.
+    inputs.files(layout.projectDirectory.dir("test-fixtures"))
+        .withPropertyName("handleEraFixtures").optional()
 }
 
 // Stamp the build version into plugin.yml's ${version} placeholder, and fold the built config-pack

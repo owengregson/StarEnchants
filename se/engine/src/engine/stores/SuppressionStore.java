@@ -536,6 +536,20 @@ public final class SuppressionStore implements RetainedStore {
         immuneChance.remove(player);
     }
 
+    /**
+     * Drop {@code player}'s DEFENDER-keyed windows, leaving every activator-side suppression intact — the
+     * other self-state half of the quit sweep. A defender window is armed BY its holder, on their own behalf,
+     * from worn gear on a repeating cadence (the shipped arms are all {@code repeat: 20} under a 60-tick
+     * duration), so it re-establishes within a period of rejoining; retaining one could only let a holder log
+     * out, take the granting gear off and log back in still immune to what it paid for — the
+     * {@code ReboundStore} rule, that worn-derived state must not outlive its armour. Opponent-landed
+     * {@code DISABLE_*} windows are the opposite direction and stay retained.
+     */
+    public void clearDefender(UUID player) {
+        defenderByPlayer.remove(player);
+        defenderKindByPlayer.remove(player);
+    }
+
     /** Drop {@code player}'s elapsed suppression windows at {@code nowTicks}, keeping live ones; drop an emptied map. */
     @Override
     public void evictElapsed(UUID player, long nowTicks) {

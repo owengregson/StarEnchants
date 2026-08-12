@@ -117,6 +117,9 @@ public final class Aliases {
             // break (SoundType.ANVIL's break slot) and block.anvil.destroy the shatter (AnvilBlock fires it
             // after a fall), so DESTROY is the descendant and BREAK a different, lighter cue.
             Map.entry("ANVIL_BREAK", "BLOCK_ANVIL_DESTROY"),
+            // The third anvil constant, a plain rename either way: it completes the family, so the migrator can
+            // carry a 1.8 config's ANVIL_USE forward as well as name the reforge apply cue backward.
+            Map.entry("ANVIL_USE", "BLOCK_ANVIL_USE"),
             Map.entry("PISTON_EXTEND", "BLOCK_PISTON_EXTEND"),
             Map.entry("DRINK", "ENTITY_GENERIC_DRINK"),
             Map.entry("ZOMBIE_PIG_ANGRY", "ENTITY_ZOMBIFIED_PIGLIN_ANGRY"),

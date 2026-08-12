@@ -21,8 +21,9 @@ condition: "%damage% > 0"
 cooldown: 30  # the jar's 1500 ms attacker throttle (the counterpart's shape)
 cooldown-per-victim: true  # R-QC8, as cleave.yml — the bucket keys on the struck entity
 # The splash is centred on the VICTIM and never touches them: the jar searched from the victim and skipped
-# them, which `exclude=victim` reproduces, and AOE excludes the activator natively. Allies and spectators ride
-# the ENEMIES filter. Shape delta, values kept: the jar's `3.0 + 0.25L` is a bounding-box half-extent and
+# them, which `exclude=victim` reproduces, and AOE excludes the activator natively. Allies ride the ENEMIES
+# filter; spectators do NOT — no selector filter reads gamemode, so one standing in the splash is hit
+# (D-12-38, pack-wide). Shape delta, values kept: the jar's `3.0 + 0.25L` is a bounding-box half-extent and
 # AOE's is a sphere radius, so the corner reach differs slightly at the same figure (the counterpart records
 # the identical reading).
 # D-04-8, inherited: the jar's splash was attacker-less generic damage — armour-reduced, NO kill credit, and
