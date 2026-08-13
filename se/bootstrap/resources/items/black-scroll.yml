@@ -15,8 +15,12 @@ lore:
   - "&eApplies to: &r&f&n{KINDS}"
 # Item-group kinds this scroll may extract from: e.g. ARMOR, WEAPON, TOOL, ALL (any item).
 applies-to: [ARMOR, WEAPON, TOOL]
+# Exact, case-sensitive keys from content/tiers.yml. Enchant group: tags do not affect scroll eligibility.
+eligible-tiers: [common, uncommon, rare, epic, legendary, soul]
 # The drawn book's success rate is rolled in [min-convert, max-convert] (each 0–100) when the scroll is
 # minted, then clamped to config.yml books.max-success. Placeholders in the name/lore: {SUCCESS} = that rate,
 # {FAILURE} = its complement.
 min-convert: 50
 max-convert: 100
+sound: "entity.player.levelup"
+particles: [WITCH, ENCHANTED_HIT]

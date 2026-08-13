@@ -5,16 +5,23 @@ import java.util.Objects;
 import schema.spec.Ranges;
 
 /** Internal grouping of the SCROLL family (§I), which share item-data machinery; each member is authored in its own {@code items/} file. */
-public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmog, Holy holy, Nametag nametag,
-                            Godly godly) {
+public record ScrollsConfig(Black black, HeroicBlack heroicBlack, Randomizer randomizer, Transmog transmog,
+                            Holy holy, Nametag nametag, Godly godly) {
 
     public ScrollsConfig {
         Objects.requireNonNull(black, "black");
+        Objects.requireNonNull(heroicBlack, "heroicBlack");
         Objects.requireNonNull(randomizer, "randomizer");
         Objects.requireNonNull(transmog, "transmog");
         Objects.requireNonNull(holy, "holy");
         Objects.requireNonNull(nametag, "nametag");
         Objects.requireNonNull(godly, "godly");
+    }
+
+    /** Compatibility constructor for callers that only supplied the pre-heroic scroll family. */
+    public ScrollsConfig(Black black, Randomizer randomizer, Transmog transmog, Holy holy, Nametag nametag,
+                         Godly godly) {
+        this(black, defaults().heroicBlack(), randomizer, transmog, holy, nametag, godly);
     }
 
     /**
@@ -25,15 +32,50 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
      */
     public record Black(String material, String name, List<String> lore, int minConvert, int maxConvert,
                         /** Item-group kinds the scroll may extract from (e.g. {@code ARMOR}); {@code ALL} = any item. */
-                        List<String> appliesTo) {
+                        List<String> appliesTo,
+                        /** Exact registered tier IDs this scroll may extract; an empty list allows every registered tier. */
+                        List<String> eligibleTiers,
+                        SoundCue sound, List<String> particles) {
         public Black {
             Objects.requireNonNull(material, "material");
             Objects.requireNonNull(name, "name");
             lore = List.copyOf(lore);
             appliesTo = List.copyOf(appliesTo);
+            eligibleTiers = List.copyOf(eligibleTiers);
+            particles = List.copyOf(particles);
             Ranges.IntRange convert = Ranges.percentRange(minConvert, maxConvert);
             minConvert = convert.min(); // order the pair so [min, max] is always a valid range
             maxConvert = convert.max();
+        }
+
+        public Black(String material, String name, List<String> lore, int minConvert, int maxConvert,
+                     List<String> appliesTo) {
+            this(material, name, lore, minConvert, maxConvert, appliesTo,
+                    List.of("common", "uncommon", "rare", "epic", "legendary", "soul"), null, List.of());
+        }
+    }
+
+    /** Pack-configured higher-tier black scroll likeness and its extraction-tier policy. */
+    public record HeroicBlack(String material, String name, List<String> lore, int minConvert, int maxConvert,
+                              List<String> appliesTo, List<String> eligibleTiers, SoundCue sound,
+                              List<String> particles) {
+        public HeroicBlack {
+            Objects.requireNonNull(material, "material");
+            Objects.requireNonNull(name, "name");
+            lore = List.copyOf(lore);
+            appliesTo = List.copyOf(appliesTo);
+            eligibleTiers = List.copyOf(eligibleTiers);
+            particles = List.copyOf(particles);
+            Ranges.IntRange convert = Ranges.percentRange(minConvert, maxConvert);
+            minConvert = convert.min();
+            maxConvert = convert.max();
+        }
+
+        public HeroicBlack(String material, String name, List<String> lore, int minConvert, int maxConvert,
+                           List<String> appliesTo) {
+            this(material, name, lore, minConvert, maxConvert, appliesTo,
+                    List.of("common", "uncommon", "rare", "epic", "legendary", "soul", "mythic"),
+                    null, List.of());
         }
     }
 
@@ -132,6 +174,15 @@ public record ScrollsConfig(Black black, Randomizer randomizer, Transmog transmo
                                 "&eApplies to: &r&f&n{KINDS}"),
                         50,
                         100,
+                        List.of("ARMOR", "WEAPON", "TOOL")),
+                new HeroicBlack(
+                        "INK_SAC",
+                        "&d&lHeroic Black Scroll",
+                        List.of("&7Drag onto enchanted gear to", "&7extract one enchant into a book.",
+                                "", "&d&l(!) &dChance to extract higher-tier enchants.",
+                                "&eConversion: &f{MIN}%&7-&f{MAX}%"),
+                        10,
+                        35,
                         List.of("ARMOR", "WEAPON", "TOOL")),
                 new Randomizer(
                         "SUGAR",

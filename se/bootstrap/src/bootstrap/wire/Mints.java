@@ -180,7 +180,7 @@ final class Mints {
 
     /** {@code blackscroll} — the black scroll (scrolls). */
     static Mintable blackscroll(ScrollService scrolls) {
-        return Mint.type("blackscroll")
+        return Mint.type("blackscroll").aliases("black-scroll", "black_scroll", "bs")
                 .give((sender, target, args, io) -> {
                     ItemStack scroll;
                     if (args.length >= 4) {
@@ -209,6 +209,19 @@ final class Mints {
                     });
                 })
                 .tiles(50, library -> List.of(new MintCatalog.Entry("black scroll", scrolls::mintBlack)))
+                .build();
+    }
+
+    /** {@code heroicblackscroll} — the pack-configured higher-tier black scroll. */
+    static Mintable heroicblackscroll(ScrollService scrolls) {
+        return Mint.type("heroicblackscroll").aliases("heroic-black-scroll", "heroic_black_scroll", "heroic-bs")
+                .give((sender, target, args, io) -> io.deliver().to(sender, target,
+                        scrolls.mintHeroicBlack(), "command.give.heroicblackscroll", scrolls.heroicBlackName()))
+                .self((sender, args, io) -> Give.giveSimpleItem(io.messages(), sender,
+                        scrolls.mintHeroicBlack(), io.messages().format("command.give.heroicblackscroll",
+                                "SCROLL", scrolls.heroicBlackName())))
+                .tiles(55, library -> List.of(new MintCatalog.Entry(
+                        scrolls.heroicBlackName(), scrolls::mintHeroicBlack)))
                 .build();
     }
 

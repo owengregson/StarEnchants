@@ -709,7 +709,7 @@ settleable from source and should be replaced with the strings below.
   the same material-or-material test, so they share every apply path.
 - **decomposition:** none — one `type: dust` per pack. Gap: `ITEM_GRADES` (a second grade
   of an existing likeness with its own material/name/number band). Same shape as the
-  `HEROIC_GRADES` and heroic-black-scroll gaps; cluster them.
+  the remaining `HEROIC_GRADES` / `ITEM_GRADES` work; cluster them.
 
 ### Secret Dust (no pack likeness)
 
@@ -795,7 +795,7 @@ settleable from source and should be replaced with the strings below.
   `INK_SACK` on 1.8.9) is port-chosen; the recorded identity is plain `INK_SACK`.
 - **era:** `INK_SACK:0` → `INK_SAC`.
 
-### Heroic Black Scroll (no pack likeness)
+### Heroic Black Scroll (`items/heroic-black-scroll.yml`)
 
 - **codex:** `08-enchant-economy-items.md` §6.3, `16-item-builders.md` (black scroll)
 - **likeness — VERBATIM:** material `Material.INK_SACK` data `0`, **glowing**
@@ -815,10 +815,12 @@ settleable from source and should be replaced with the strings below.
   Resulting min ∈ `{7, 8, 9, 10}` (10 with p=0.7, each of 7/8/9 with p=0.1); max seed
   distribution `35`:21 %, `45`:35 %, `50`:9 %, `55`:14 %, `60`:15 %, `70`:6 %. The
   displayed upper bound is then a uniform draw in `[min, maxSeed]`.
-- **decomposition:** none — one black-scroll likeness per pack, and its band is a single
-  `[min-convert, max-convert]` rather than a per-item rolled band with a distinct
-  extraction eligibility. Gap: `ITEM_GRADES` (shared) plus
-  `EXTRACTION_ELIGIBILITY` (which enchant classes a given scroll grade may draw).
+- **decomposition:** `type: heroic-black-scroll` gives this grade its own pack-authored
+  name/lore, stamped per-item conversion band, and `eligible-tiers` policy. The Cosmic
+  pack ships the recorded Heroic name and permits Heroic but not Mastery extraction;
+  the Signature pack names the same mechanic Mythic and targets its `mythic` tier.
+  Remaining fidelity work: the source's weighted random band expansion and glowing
+  likeness are not yet expressed.
 - **era:** `INK_SACK` → `INK_SAC`; the glow flag is era-stable.
 
 ### Transmog Scroll (`items/transmog-scroll.yml`)

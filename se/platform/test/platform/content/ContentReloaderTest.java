@@ -85,6 +85,33 @@ class ContentReloaderTest {
     }
 
     @Test
+    void unknownEnchantTierKeepsThePreviousValidContentPublished(@TempDir Path root) throws IOException {
+        write(root, "enchants/good.yml", GOOD);
+        ContentHolder holder = new ContentHolder(LibraryLoader.load(root, compiler(), 0));
+        ContentReloader reloader = new ContentReloader(holder, ContentReloaderTest::compiler, root, 0);
+        write(root, "tiers.yml", """
+                default-tier: common
+                tiers:
+                  common: { color: "&7", weight: 1, glint: false }
+                """);
+        write(root, "enchants/bad-tier.yml", """
+                tier: future
+                trigger: ATTACK
+                levels:
+                  1: { chance: 100, effects: [{ HEAL: { amount: 2 } }] }
+                """);
+
+        ReloadResult[] result = new ReloadResult[1];
+        reloader.reload(r -> result[0] = r);
+
+        assertFalse(result[0].published());
+        assertTrue(result[0].diagnostics().stream().anyMatch(d -> d.is(schema.diag.DiagCode.E_LOAD_TIER_UNKNOWN)));
+        assertEquals(0, holder.snapshot().generation());
+        assertNotNull(holder.snapshot().byStableKey("enchants/good/1"));
+        assertNull(holder.snapshot().byStableKey("enchants/bad-tier/1"));
+    }
+
+    @Test
     void dryRunNeverPublishes(@TempDir Path root) throws IOException {
         ContentHolder holder = new ContentHolder(LibraryLoader.load(root, compiler(), 0));
         ContentReloader reloader = new ContentReloader(holder, ContentReloaderTest::compiler, root, 0);

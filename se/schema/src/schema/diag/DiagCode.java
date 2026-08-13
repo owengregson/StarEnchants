@@ -76,6 +76,7 @@ public enum DiagCode {
     W_CONFIG_BOOL,         // a config.yml boolean outside the canonical vocabulary — warned, fallback kept
     W_UNKNOWN_KEY,
     W_TIER_FOLDER_MISMATCH,
+    E_LOAD_TIER_UNKNOWN,   // an enchant's tier is not an exact key in content/tiers.yml
 
     // Set custom-enchant refs (§6.6) — a set piece's enchants: block.
     E_SET_ENCHANT_UNKNOWN, // names a custom enchant (enchants/<id>) the library doesn't define

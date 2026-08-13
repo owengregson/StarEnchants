@@ -32,7 +32,8 @@ final class Give {
         Scheduling.onEntity(target, () -> {
             Inventories.giveOrDrop(target, item);
             target.sendMessage(messages.format(targetMsgKey, "KEY", itemLabel, "KIND", itemLabel,
-                    "TIER", itemLabel, "LEVEL", "", "ID", itemLabel));
+                    "TIER", itemLabel, "LEVEL", "", "ID", itemLabel, "ITEM", itemLabel,
+                    "SCROLL", itemLabel));
         });
         if (!(sender instanceof Player p) || !p.getUniqueId().equals(target.getUniqueId())) {
             tell(sender, messages.format("command.give.delivered", "ITEM", itemLabel, "PLAYER", target.getName()));

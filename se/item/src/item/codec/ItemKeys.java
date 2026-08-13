@@ -21,6 +21,8 @@ public final class ItemKeys {
     private final String slotSuccess;
     private final String scroll;
     private final String scrollConvert;
+    private final String scrollHeroicMin;
+    private final String scrollHeroicMax;
     private final String unopened;
     private final String godlyTransmog;
     private final String appliedSlot;
@@ -47,6 +49,7 @@ public final class ItemKeys {
     private ItemKeys(String combat, String soul, String carrier, String guarded,
                      String crystalItem, String crystalExtractor, String heroicUpgrade,
                      String slotItem, String slotSuccess, String scroll, String scrollConvert,
+                     String scrollHeroicMin, String scrollHeroicMax,
                      String unopened, String godlyTransmog, String appliedSlot,
                      String trakGem, String trakBlocks, String trakMobs, String trakSouls, String trakFish,
                      String loreComposer, String useItem,
@@ -65,6 +68,8 @@ public final class ItemKeys {
         this.slotSuccess = slotSuccess;
         this.scroll = scroll;
         this.scrollConvert = scrollConvert;
+        this.scrollHeroicMin = scrollHeroicMin;
+        this.scrollHeroicMax = scrollHeroicMax;
         this.unopened = unopened;
         this.godlyTransmog = godlyTransmog;
         this.appliedSlot = appliedSlot;
@@ -91,7 +96,8 @@ public final class ItemKeys {
 
     public static ItemKeys of() {
         return new ItemKeys("combat", "soul", "carrier", "guarded", "crystalitem", "crystalextractor",
-                "heroicupgrade", "slotitem", "slotsuccess", "scroll", "scrollconvert", "unopened",
+                "heroicupgrade", "slotitem", "slotsuccess", "scroll", "scrollconvert", "scrollheroicmin_v1",
+                "scrollheroicmax_v1", "unopened",
                 "godlytransmog", "appliedslot", "trakgem", "trakblocks", "trakmobs", "traksouls", "trakfish",
                 "lorecomposer", "useitem", "pet", "petlevel", "petexp", "petexpfrac", "petfood", "petxpgate",
                 "maskitem",
@@ -146,6 +152,16 @@ public final class ItemKeys {
     /** The black scroll's rolled new-book conversion success rate (§I); paired with {@link #scroll()} on the scroll. */
     public String scrollConvert() {
         return scrollConvert;
+    }
+
+    /** Versioned Heroic Black Scroll conversion-range minimum (stored state, not lore). */
+    public String scrollHeroicMin() {
+        return scrollHeroicMin;
+    }
+
+    /** Versioned Heroic Black Scroll conversion-range maximum (stored state, not lore). */
+    public String scrollHeroicMax() {
+        return scrollHeroicMax;
     }
 
     public String unopened() {

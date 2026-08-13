@@ -18,9 +18,6 @@ lore:
 # config.yml books.max-success ceilings the result, as it does every randomised mint.
 min-convert: 51
 max-convert: 100
-# applies-to is left at the engine default (ARMOR/WEAPON/TOOL): the source restricts by REFUSAL, not by kind —
-# it declines equipped armour ("Please remove your armor before attempting to Black Scroll it!") and never
-# draws a mastery enchant, neither of which is a kind list (ITEM_REFUSAL_PREDICATE, matrix/13).
-# NOT EXPRESSED: the HEROIC grade of this scroll — a glowing `§d§lHeroic Black Scroll` on the same material,
-# with a per-item rolled [min, max] band and the right to draw heroic enchants. One black-scroll likeness per
-# pack, one band; ITEM_GRADES + EXTRACTION_ELIGIBILITY are declared in matrix/13 § Gap declarations.
+# applies-to stays at the engine default (ARMOR/WEAPON/TOOL). These are exact, case-sensitive tier keys from
+# content/tiers.yml; group: tags are independent. The list keeps both Heroic and Mastery off the plain grade.
+eligible-tiers: [common, uncommon, rare, epic, legendary, soul]

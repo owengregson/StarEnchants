@@ -15,6 +15,8 @@ import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import schema.diag.DiagCode;
 import schema.diag.Diagnostic;
 import schema.spec.D;
@@ -278,6 +280,27 @@ class ContentFormatTest {
         assertEquals("divine", lib.tierOf("enchants/x"));
         assertEquals("scrap", lib.tierOf("enchants/plain"));
         assertNotNull(lib.tiers().tier("divine"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"future", "Common"})
+    void undeclaredEnchantTierIsABlockingDiagnostic(String tier, @TempDir Path root) throws IOException {
+        write(root, "tiers.yml", """
+            default-tier: common
+            tiers:
+              common: { color: "&7", weight: 1, glint: false }
+            """);
+        write(root, "enchants/x.yml", """
+            tier: %s
+            trigger: ATTACK
+            levels:
+              1: { chance: 100, effects: [{ HEAL: { amount: 2 } }] }
+            """.formatted(tier));
+
+        Library lib = LibraryLoader.load(root, compiler(), 1);
+
+        assertTrue(lib.hasErrors(), () -> lib.diagnostics().toString());
+        assertTrue(hasCode(lib.diagnostics(), DiagCode.E_LOAD_TIER_UNKNOWN));
     }
 
     @Test

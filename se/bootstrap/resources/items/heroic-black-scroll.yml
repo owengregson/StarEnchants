@@ -1,0 +1,18 @@
+# Heroic Black Scroll — extracts one configured normal/soul/Heroic-tier enchant into the existing book pipeline.
+type: heroic-black-scroll
+
+material: INK_SAC
+name: "&d&lHeroic Black Scroll"
+lore:
+  - "&7Drag onto enchanted gear to"
+  - "&7extract one enchant into a book."
+  - ""
+  - "&d&l(!) &dChance to extract higher-tier enchants."
+  - "&eConversion: &f{MIN}%&7-&f{MAX}%"
+applies-to: [ARMOR, WEAPON, TOOL]
+# Exact, case-sensitive keys from content/tiers.yml. Enchant group: tags do not affect scroll eligibility.
+eligible-tiers: [common, uncommon, rare, epic, legendary, soul, mythic]
+min-convert: 10
+max-convert: 35
+sound: "entity.player.levelup"
+particles: [WITCH, ENCHANTED_HIT]

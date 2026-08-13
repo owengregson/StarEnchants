@@ -89,6 +89,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
             CommandInfo.of("gem", "[amount]", "Mint a soul gem to yourself (optionally pre-loaded with that many souls)."),
             CommandInfo.of("book", "<key> [level]", "Mint an enchant book to yourself."),
             CommandInfo.of("blackscroll", "", "Mint a black scroll (extracts a random enchant from gear to a book)."),
+            CommandInfo.of("heroicblackscroll", "", "Mint the configured higher-tier Black Scroll."),
             CommandInfo.of("randomizer", "", "Mint a randomizer scroll (rerolls a book's success chance)."),
             CommandInfo.of("transmog", "", "Mint a transmog scroll (re-skins an item's appearance)."),
             CommandInfo.of("godlytransmog", "", "Mint a godly transmog tool (reorder an item's enchant lore)."),
@@ -1272,7 +1273,7 @@ public final class SeCommand implements CommandExecutor, TabCompleter {
         List<String> present = new ArrayList<>();
         for (String key : List.of(keys.combat(), keys.soul(), keys.carrier(), keys.guarded(), keys.crystalItem(),
                 keys.crystalExtractor(), keys.heroicUpgrade(), keys.slotItem(), keys.slotSuccess(), keys.scroll(),
-                keys.scrollConvert(), keys.unopened(), keys.godlyTransmog(), keys.appliedSlot(), keys.trakGem(),
+                keys.scrollConvert(), keys.scrollHeroicMin(), keys.scrollHeroicMax(), keys.unopened(), keys.godlyTransmog(), keys.appliedSlot(), keys.trakGem(),
                 keys.trakBlocks(), keys.trakMobs(), keys.trakSouls(), keys.trakFish())) {
             if (store.read(held, key) != null
                     || store.hasByte(held, key) || store.hasInt(held, key)) {

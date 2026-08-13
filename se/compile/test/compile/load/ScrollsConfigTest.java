@@ -21,6 +21,8 @@ class ScrollsConfigTest {
         assertTrue(d.transmog().nameSuffix() != null);
         assertTrue(d.nametag().blacklist() != null);
         assertEquals(List.of("ARMOR", "WEAPON", "TOOL"), d.black().appliesTo(), "the black scroll extracts from armor, weapons, and tools");
+        assertTrue(d.heroicBlack().minConvert() <= d.heroicBlack().maxConvert());
+        assertEquals(List.of("ARMOR", "WEAPON", "TOOL"), d.heroicBlack().appliesTo());
         assertEquals(List.of("ALL"), d.holy().appliesTo(), "the holy white scroll protects any item");
     }
 
@@ -54,5 +56,14 @@ class ScrollsConfigTest {
         ScrollsConfig.Randomizer r = new ScrollsConfig.Randomizer("M", "n", List.of(), 120, -5);
         assertEquals(0, r.minPercent());
         assertEquals(100, r.maxPercent());
+    }
+
+    @Test
+    void heroicBlackCopiesTierPolicyAndCueState() {
+        ScrollsConfig.HeroicBlack h = new ScrollsConfig.HeroicBlack("M", "n", List.of(), 80, 20,
+                List.of("WEAPON"), List.of("mythic"), null, List.of("WITCH"));
+        assertEquals(20, h.minConvert());
+        assertEquals(80, h.maxConvert());
+        assertEquals(List.of("mythic"), h.eligibleTiers());
     }
 }

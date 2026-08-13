@@ -136,6 +136,23 @@ class ItemsLoaderTest {
     }
 
     @Test
+    void parsesHeroicBlackScrollTierPolicyAndRange(@TempDir Path dir) throws Exception {
+        Files.writeString(dir.resolve("heroic-black-scroll.yml"), """
+                type: heroic-black-scroll
+                name: "&5Ascended Extraction Scroll"
+                min-convert: 35
+                max-convert: 10
+                eligible-tiers: [common, heroic]
+                """);
+
+        ScrollsConfig.HeroicBlack heroic = ItemsLoader.load(dir).scrolls().orElseThrow().heroicBlack();
+        assertEquals("&5Ascended Extraction Scroll", heroic.name());
+        assertEquals(10, heroic.minConvert());
+        assertEquals(35, heroic.maxConvert());
+        assertEquals(List.of("common", "heroic"), heroic.eligibleTiers());
+    }
+
+    @Test
     void parsesTheHolyScrollCorruptionAllowanceAndItsThreeLines(@TempDir Path dir) throws Exception {
         Files.writeString(dir.resolve("holy-white-scroll.yml"), """
                 type: holy-white-scroll

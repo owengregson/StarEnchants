@@ -33,7 +33,9 @@ final class ScrollsModule {
 
     ScrollsModule(BootCore core, CarriersModule carriers, SoulsModule souls) {
         this.core = core;
-        ScrollCodec scrollCodec = new ScrollCodec(ItemKeys.of().scroll(), ItemKeys.of().scrollConvert(), core.store());
+        ItemKeys keys = ItemKeys.of();
+        ScrollCodec scrollCodec = new ScrollCodec(keys.scroll(), keys.scrollConvert(), keys.scrollHeroicMin(),
+                keys.scrollHeroicMax(), core.store());
         GodlyTransmogCodec godlyTransmogCodec = new GodlyTransmogCodec(ItemKeys.of().godlyTransmog(), core.store());
         this.scrolls = new ScrollService(scrollCodec, core.codec(), core.lore(), carriers.carriers, core.content(),
                 () -> core.items().config().scrollsOrDefault(), core.rolls(), core.messages(), godlyTransmogCodec,
@@ -55,7 +57,7 @@ final class ScrollsModule {
         // Hoisted so the physical godly-transmog gesture listener can open it bound to a clicked piece (§I/§K).
         this.transmogMenu = new GodlyTransmogMenu(core.content(), core.codec(), scrolls, core.caps(),
                 core.menusHolder()::config, core.hands(), core.vanillaEnchants());
-        this.mints = List.of(Mints.blackscroll(scrolls), Mints.randomizer(scrolls), Mints.transmog(scrolls),
+        this.mints = List.of(Mints.blackscroll(scrolls), Mints.heroicblackscroll(scrolls), Mints.randomizer(scrolls), Mints.transmog(scrolls),
                 Mints.godlytransmog(scrolls), Mints.holy(holyScrolls), Mints.nametag(nametags));
     }
 
@@ -78,7 +80,7 @@ final class ScrollsModule {
                 .menu(90, transmogMenu)
                 .pluginItem(stack -> scrolls.isScroll(stack) || scrolls.isGodlyTransmog(stack)
                         || holyScrolls.isHolyScroll(stack) || nametags.isNametag(stack))
-                .lang("scroll", "command.give.blackscroll", "command.give.randomizer", "command.give.transmog",
+                .lang("scroll", "command.give.blackscroll", "command.give.heroicblackscroll", "command.give.randomizer", "command.give.transmog",
                         "command.give.godlytransmog", "command.give.holy", "command.give.nametag")
                 .build();
     }

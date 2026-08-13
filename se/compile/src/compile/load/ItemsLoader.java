@@ -43,6 +43,7 @@ public final class ItemsLoader {
         Optional<ReforgeItemConfig> reforge = Optional.empty();
         // Scroll family: each member is its own file, assembled into one ScrollsConfig below (§I).
         Optional<ScrollsConfig.Black> black = Optional.empty();
+        Optional<ScrollsConfig.HeroicBlack> heroicBlack = Optional.empty();
         Optional<ScrollsConfig.Randomizer> randomizer = Optional.empty();
         Optional<ScrollsConfig.Transmog> transmog = Optional.empty();
         Optional<ScrollsConfig.Holy> holy = Optional.empty();
@@ -115,6 +116,14 @@ public final class ItemsLoader {
                                 root.source());
                     } else {
                         black = Optional.of(readBlack(root, diags));
+                    }
+                }
+                case "heroic-black-scroll", "heroic-black", "heroicblackscroll" -> {
+                    if (heroicBlack.isPresent()) {
+                        diags.warning(DiagCode.W_ITEM_DUP, "more than one heroic-black-scroll config (" + name + "); keeping the first",
+                                root.source());
+                    } else {
+                        heroicBlack = Optional.of(readHeroicBlack(root, diags));
                     }
                 }
                 case "randomizer-scroll", "randomizer" -> {
@@ -259,10 +268,11 @@ public final class ItemsLoader {
         // Present iff at least one scroll-family file was read; absent members fall back to ScrollsConfig.defaults().
         ScrollsConfig sd = ScrollsConfig.defaults();
         Optional<ScrollsConfig> scrolls;
-        if (black.isPresent() || randomizer.isPresent() || transmog.isPresent()
+        if (black.isPresent() || heroicBlack.isPresent() || randomizer.isPresent() || transmog.isPresent()
                 || holy.isPresent() || nametag.isPresent() || godly.isPresent()) {
             scrolls = Optional.of(new ScrollsConfig(
-                    black.orElseGet(sd::black), randomizer.orElseGet(sd::randomizer),
+                    black.orElseGet(sd::black), heroicBlack.orElseGet(sd::heroicBlack),
+                    randomizer.orElseGet(sd::randomizer),
                     transmog.orElseGet(sd::transmog), holy.orElseGet(sd::holy),
                     nametag.orElseGet(sd::nametag), godly.orElseGet(sd::godly)));
         } else {
@@ -357,7 +367,24 @@ public final class ItemsLoader {
                 root.has("lore") ? root.stringList("lore") : d.lore(),
                 parseInt(root.string("min-convert"), d.minConvert(), root, diags),
                 parseInt(root.string("max-convert"), d.maxConvert(), root, diags),
-                root.has("applies-to") ? root.stringList("applies-to") : d.appliesTo());
+                root.has("applies-to") ? root.stringList("applies-to") : d.appliesTo(),
+                root.has("eligible-tiers") ? root.stringList("eligible-tiers") : d.eligibleTiers(),
+                SoundCue.fromField(root, "sound", d.sound(), diags),
+                root.has("particles") ? root.stringList("particles") : d.particles());
+    }
+
+    private static ScrollsConfig.HeroicBlack readHeroicBlack(YamlNode root, Diagnostics diags) {
+        ScrollsConfig.HeroicBlack d = ScrollsConfig.defaults().heroicBlack();
+        return new ScrollsConfig.HeroicBlack(
+                orDefault(root.string("material"), d.material()),
+                orDefault(root.string("name"), d.name()),
+                root.has("lore") ? root.stringList("lore") : d.lore(),
+                parseInt(root.string("min-convert"), d.minConvert(), root, diags),
+                parseInt(root.string("max-convert"), d.maxConvert(), root, diags),
+                root.has("applies-to") ? root.stringList("applies-to") : d.appliesTo(),
+                root.has("eligible-tiers") ? root.stringList("eligible-tiers") : d.eligibleTiers(),
+                SoundCue.fromField(root, "sound", d.sound(), diags),
+                root.has("particles") ? root.stringList("particles") : d.particles());
     }
 
     private static ScrollsConfig.Randomizer readRandomizer(YamlNode root, Diagnostics diags) {

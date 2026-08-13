@@ -359,5 +359,7 @@ fail-open conditions). No `/ee`+`/ea` aliases, no Splodgebox watermark.
 2. Heroic reduction = entity/PvP only, configurable to all-causes.
 3. Two distinct save items: plain guard scroll (enchant-fail) **+** holy death scroll.
 4. Reference browser = full (effects + triggers + conditions + variables + selectors).
-5. Tier comes from the in-file `tier:` field; drop the `group:` field; flatten tier
-   subfolders (resolving the v2 subfolder-vs-field tension — per the parity-corrections memory).
+5. Tier comes from the in-file `tier:` field and must exactly match a key in
+   `content/tiers.yml`; it controls rarity, display, weighting, and tier-based item policies.
+   The independent `group:` field is an arbitrary author-controlled scoping tag used by
+   `DISABLE_GROUP` / `SUPPRESS scope: GROUP` and impact routing. A group need not match a tier.
