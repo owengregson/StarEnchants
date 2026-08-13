@@ -30,7 +30,7 @@ public record ScrollsConfig(Black black, HeroicBlack heroicBlack, Randomizer ran
      * scroll is minted (clamped to the global {@code books.max-success} ceiling) and stamped on the scroll so
      * its lore can show it. The book the scroll draws off the gear carries that success chance.
      */
-    public record Black(String material, String name, List<String> lore, int minConvert, int maxConvert,
+    public record Black(String material, boolean shiny, String name, List<String> lore, int minConvert, int maxConvert,
                         /** Item-group kinds the scroll may extract from (e.g. {@code ARMOR}); {@code ALL} = any item. */
                         List<String> appliesTo,
                         /** Exact registered tier IDs this scroll may extract; an empty list allows every registered tier. */
@@ -50,13 +50,19 @@ public record ScrollsConfig(Black black, HeroicBlack heroicBlack, Randomizer ran
 
         public Black(String material, String name, List<String> lore, int minConvert, int maxConvert,
                      List<String> appliesTo) {
-            this(material, name, lore, minConvert, maxConvert, appliesTo,
+            this(material, false, name, lore, minConvert, maxConvert, appliesTo,
                     List.of("common", "uncommon", "rare", "epic", "legendary", "soul"), null, List.of());
+        }
+
+        /** Compatibility constructor for callers predating the pack-owned glint flag. */
+        public Black(String material, String name, List<String> lore, int minConvert, int maxConvert,
+                     List<String> appliesTo, List<String> eligibleTiers, SoundCue sound, List<String> particles) {
+            this(material, false, name, lore, minConvert, maxConvert, appliesTo, eligibleTiers, sound, particles);
         }
     }
 
     /** Pack-configured higher-tier black scroll likeness and its extraction-tier policy. */
-    public record HeroicBlack(String material, String name, List<String> lore, int minConvert, int maxConvert,
+    public record HeroicBlack(String material, boolean shiny, String name, List<String> lore, int minConvert, int maxConvert,
                               List<String> appliesTo, List<String> eligibleTiers, SoundCue sound,
                               List<String> particles) {
         public HeroicBlack {
@@ -73,9 +79,16 @@ public record ScrollsConfig(Black black, HeroicBlack heroicBlack, Randomizer ran
 
         public HeroicBlack(String material, String name, List<String> lore, int minConvert, int maxConvert,
                            List<String> appliesTo) {
-            this(material, name, lore, minConvert, maxConvert, appliesTo,
+            this(material, true, name, lore, minConvert, maxConvert, appliesTo,
                     List.of("common", "uncommon", "rare", "epic", "legendary", "soul", "mythic"),
                     null, List.of());
+        }
+
+        /** Compatibility constructor for callers predating the pack-owned glint flag. */
+        public HeroicBlack(String material, String name, List<String> lore, int minConvert, int maxConvert,
+                           List<String> appliesTo, List<String> eligibleTiers, SoundCue sound,
+                           List<String> particles) {
+            this(material, true, name, lore, minConvert, maxConvert, appliesTo, eligibleTiers, sound, particles);
         }
     }
 

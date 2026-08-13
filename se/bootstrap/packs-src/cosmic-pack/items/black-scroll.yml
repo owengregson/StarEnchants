@@ -8,6 +8,7 @@ type: black-scroll
 # both eras mint the recorded item. (signature-pack's DRIED_KELP is a port choice that lands the same 1.8 item
 # from the other direction.)
 material: INK_SAC
+shiny: false
 name: "§f§lBlack Scroll"
 lore:
   - "§7Removes a random enchantment"

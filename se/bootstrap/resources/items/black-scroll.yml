@@ -6,6 +6,8 @@
 type: black-scroll
 
 material: INK_SAC
+# Whether the minted scroll carries a hidden-enchantment glint.
+shiny: false
 name: "&8Black Scroll"
 # {KINDS} expands to the grammatically-joined applies-to label.
 lore:
