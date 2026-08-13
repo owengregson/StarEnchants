@@ -18,25 +18,63 @@ import compile.load.Library;
 import compile.load.ScrollsConfig;
 import compile.load.SoundCue;
 import compile.load.TierRegistry;
+import engine.stores.BookRateStore;
 import feature.apply.FakeItemStateStore;
 import feature.carrier.CarrierService;
 import item.codec.CombatCodec;
 import item.codec.CombatState;
 import item.codec.ItemKeys;
 import item.codec.ScrollCodec;
+import item.mint.ItemFactory;
+import item.mint.VanillaEnchants;
 import item.render.LoreRenderer;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.junit.jupiter.api.Test;
 import platform.item.ItemGroups;
 import platform.lang.Messages;
 
 /** Service-level Heroic Black Scroll contract: range roll, state/lore mutation, and safe no-eligible refusal. */
 class ScrollServiceHeroicBlackTest {
+
+    @Test
+    void mintUsesConfiguredDriedKelpAndForcesHiddenGlintWhileRemainingAGuardedScroll() {
+        FakeItemStateStore store = new FakeItemStateStore();
+        ItemKeys keys = ItemKeys.of();
+        ScrollCodec scrolls = new ScrollCodec(keys.scroll(), keys.scrollConvert(), keys.scrollHeroicMin(),
+                keys.scrollHeroicMax(), store);
+        ItemStack icon = mock(ItemStack.class);
+        ItemMeta meta = mock(ItemMeta.class);
+        Enchantment unbreaking = mock(Enchantment.class);
+        when(icon.clone()).thenReturn(icon);
+        when(icon.getItemMeta()).thenReturn(meta);
+        ItemFactory.customItemResolver(token -> "DRIED_KELP".equals(token) ? icon : null);
+
+        try {
+            ScrollService service = new ScrollService(scrolls, new CombatCodec(keys.combat(), store),
+                    mock(LoreRenderer.class), mock(CarrierService.class), mock(ContentHolder.class),
+                    ScrollsConfig::defaults, new Random(1), Messages.defaults(), null, ItemGroups.standard(),
+                    new BookRateStore(), new VanillaEnchants(name -> unbreaking));
+
+            ItemStack minted = service.mintHeroicBlack();
+
+            assertSame(icon, minted, "the configured DRIED_KELP token is the minted likeness");
+            assertTrue(service.isScroll(minted), "the plugin-item guard recognizes it and blocks vanilla eating");
+            assertEquals(10, scrolls.heroicRangeOf(minted, 0, 0).min());
+            assertEquals(35, scrolls.heroicRangeOf(minted, 0, 0).max());
+            verify(icon).addUnsafeEnchantment(unbreaking, 1);
+            verify(meta).addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        } finally {
+            ItemFactory.customItemResolver(null);
+        }
+    }
 
     @Test
     void selectionUsesTierPolicyAndConfiguredNameWhilePreservingRangeLevelAndCodecBehavior() {

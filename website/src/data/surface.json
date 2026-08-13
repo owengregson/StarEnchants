@@ -61,7 +61,7 @@
     { "key": "enchant-book", "type": "enchant-book", "material": "ENCHANTED_BOOK", "name": "{TIER_COLOR}&l{ENCHANT} {LEVEL}" },
     { "key": "fishtrak", "type": "fishtrak", "material": "CLAY_BALL", "name": "{#b0b9d5}&lFishTrak Gem" },
     { "key": "godly-transmog", "type": "godly-transmog", "material": "NETHER_STAR", "name": "&5Godly Transmog" },
-    { "key": "heroic-black-scroll", "type": "heroic-black-scroll", "material": "INK_SAC", "name": "&d&lHeroic Black Scroll" },
+    { "key": "heroic-black-scroll", "type": "heroic-black-scroll", "material": "DRIED_KELP", "name": "&d&lHeroic Black Scroll" },
     { "key": "heroic", "type": "heroic", "material": "NETHERITE_SCRAP", "name": "&6&lHeroic Upgrade" },
     { "key": "holy-white-scroll", "type": "holy-white-scroll", "material": "TOTEM_OF_UNDYING", "name": "&fHoly White Scroll" },
     { "key": "mask", "type": "mask", "material": null, "name": "{COLOR}&l{NAME} Mask" },

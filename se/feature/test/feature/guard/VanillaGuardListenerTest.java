@@ -10,6 +10,7 @@ import feature.compat.Hands;
 import java.util.function.Predicate;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.Test;
 
@@ -47,5 +48,15 @@ class VanillaGuardListenerTest {
         guard.onPlace(place);
 
         verify(place, never()).setCancelled(anyBoolean()); // must not break ordinary block placement
+    }
+
+    @Test
+    void ediblePluginItemIsNeverConsumed() {
+        PlayerItemConsumeEvent consume = mock(PlayerItemConsumeEvent.class);
+        when(consume.getItem()).thenReturn(pluginItem);
+
+        guard.onConsume(consume);
+
+        verify(consume).setCancelled(true);
     }
 }

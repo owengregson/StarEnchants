@@ -9,10 +9,12 @@ import feature.apply.Rolls;
 import feature.apply.GestureOutcome;
 import feature.carrier.CarrierService;
 import feature.compat.Mats;
+import feature.menu.MenuIcons;
 import item.codec.CombatCodec;
 import item.codec.CombatState;
 import item.codec.ScrollCodec;
 import item.mint.ItemFactory;
+import item.mint.VanillaEnchants;
 import item.render.LoreRenderer;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -56,6 +58,7 @@ public final class ScrollService {
     private final item.codec.GodlyTransmogCodec godlyCodec; // null in tests that never mint the godly tool
     private final ItemGroups groups; // §I applies-to gate — the black scroll only extracts from the configured item kinds
     private final BookRateStore bookRates; // BOOK_RATE_MODIFIER's generate-site charge, spent at the extraction roll
+    private final VanillaEnchants vanilla; // higher-tier Black Scroll's forced, hidden glint
 
     /** {@code godlyCodec} enables minting the physical godly-transmog tool (null disables it). */
     public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
@@ -63,7 +66,7 @@ public final class ScrollService {
                          platform.lang.Messages messages, item.codec.GodlyTransmogCodec godlyCodec,
                          ItemGroups groups) {
         this(scrolls, combat, lore, carriers, content, config, random, messages, godlyCodec, groups,
-                new BookRateStore());
+                new BookRateStore(), VanillaEnchants.NONE);
     }
 
     /** The composition-root form: {@code bookRates} must be the engine aggregate's store, or a pet's armed
@@ -72,6 +75,16 @@ public final class ScrollService {
                          ContentHolder content, Supplier<ScrollsConfig> config, Random random,
                          platform.lang.Messages messages, item.codec.GodlyTransmogCodec godlyCodec,
                          ItemGroups groups, BookRateStore bookRates) {
+        this(scrolls, combat, lore, carriers, content, config, random, messages, godlyCodec, groups, bookRates,
+                VanillaEnchants.NONE);
+    }
+
+    /** Composition-root form with the cross-version vanilla-enchant resolver used for the higher-tier scroll's
+     *  forced, hidden glint. Older constructors remain inert for server-free tests. */
+    public ScrollService(ScrollCodec scrolls, CombatCodec combat, LoreRenderer lore, CarrierService carriers,
+                         ContentHolder content, Supplier<ScrollsConfig> config, Random random,
+                         platform.lang.Messages messages, item.codec.GodlyTransmogCodec godlyCodec,
+                         ItemGroups groups, BookRateStore bookRates, VanillaEnchants vanilla) {
         this.scrolls = Objects.requireNonNull(scrolls, "scrolls");
         this.combat = Objects.requireNonNull(combat, "combat");
         this.lore = Objects.requireNonNull(lore, "lore");
@@ -83,6 +96,7 @@ public final class ScrollService {
         this.godlyCodec = godlyCodec;
         this.groups = Objects.requireNonNull(groups, "groups");
         this.bookRates = Objects.requireNonNull(bookRates, "bookRates");
+        this.vanilla = Objects.requireNonNull(vanilla, "vanilla");
     }
 
     public boolean isScroll(ItemStack stack) {
@@ -134,9 +148,10 @@ public final class ScrollService {
         Ranges.IntRange range = Ranges.percentRange(minConvert, maxConvert);
         String kinds = ItemGroups.kindsLabel(cfg.appliesTo());
         ItemStack stack = ItemFactory.buildItem(
-                cfg.material(), Mats.or("INK_SAC", Material.PAPER),
+                cfg.material(), Mats.or("DRIED_KELP", Mats.or("INK_SAC", Material.PAPER)),
                 Tokens.sub(cfg.name(), "MIN", range.min(), "MAX", range.max(), "KINDS", kinds),
                 Tokens.subLines(cfg.lore(), "MIN", range.min(), "MAX", range.max(), "KINDS", kinds));
+        MenuIcons.glow(vanilla, stack); // visual likeness only; the resolver handles every supported era
         scrolls.mark(stack, HEROIC_BLACK);
         scrolls.markHeroicRange(stack, range.min(), range.max());
         return stack;

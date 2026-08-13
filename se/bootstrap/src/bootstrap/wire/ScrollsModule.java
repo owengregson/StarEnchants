@@ -37,9 +37,10 @@ final class ScrollsModule {
         ScrollCodec scrollCodec = new ScrollCodec(keys.scroll(), keys.scrollConvert(), keys.scrollHeroicMin(),
                 keys.scrollHeroicMax(), core.store());
         GodlyTransmogCodec godlyTransmogCodec = new GodlyTransmogCodec(ItemKeys.of().godlyTransmog(), core.store());
+        // BOOK_RATE_MODIFIER generate-site charge + cross-version higher-tier-scroll glint.
         this.scrolls = new ScrollService(scrollCodec, core.codec(), core.lore(), carriers.carriers, core.content(),
                 () -> core.items().config().scrollsOrDefault(), core.rolls(), core.messages(), godlyTransmogCodec,
-                core.itemGroups(), core.stores().bookRate()); // BOOK_RATE_MODIFIER generate-site charge
+                core.itemGroups(), core.stores().bookRate(), core.vanillaEnchants());
         // §4 route a holy-scroll re-render of a SOUL GEM through the soul re-render (holy-aware, keeps the gem's
         // count-bracket name + soul lore) instead of the gear composer (which would strip the bracket + soul lore).
         feature.soul.SoulService soulService = souls.souls();
