@@ -800,14 +800,20 @@ settleable from source and should be replaced with the strings below.
 - **codex:** `08-enchant-economy-items.md` §6.3, `16-item-builders.md` (black scroll)
 - **likeness — VERBATIM:** material `Material.INK_SACK` data `0`, **glowing**
   - name: `§d§lHeroic Black Scroll`
-  - lore, 5 lines (the visible tier word is pack-owned text; Signature uses `Mythic`):
+  - lore, 11 lines (the visible tier word is pack-owned text; Signature uses `Mythic`):
 
     ```text
-    §7Removes a random enchantment
-    §7from an item and converts
-    §7it into a §d{min}%-{max}%§7 success book.
 
-    §d§l(!) §dChance to extract Heroic Enchantments
+    §d{min}%-{max}% Success Rate
+
+    §eRemoves a random enchantment from your
+    §eitem and returns it to your inventory
+    §ewith the specified success rate.
+
+    §d§l(!) §dChance to extract Heroic enchantments
+
+    §eApplies to: §f§nArmor, Weapon, & Tool
+    §7Drag n' Drop on an item to apply.
     ```
 
   - data keys: `cosmicType = "heroicBlackscroll"`, `cosmicData = { min, max }`
