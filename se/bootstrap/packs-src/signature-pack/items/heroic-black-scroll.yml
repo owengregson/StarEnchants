@@ -5,11 +5,17 @@ type: heroic-black-scroll
 material: DRIED_KELP
 name: "&d&lMythic Black Scroll"
 lore:
-  - "&7Removes a random enchantment"
-  - "&7from an item and converts"
-  - "&7it into a &d{MIN}%-{MAX}%&7 success book."
   - ""
-  - "&d&l(!) &dChance to extract Mythic Enchantments"
+  - "&d{MIN}%-{MAX}% Success Rate"
+  - ""
+  - "&eRemoves a random enchantment from your"
+  - "&eitem and returns it to your inventory"
+  - "&ewith the specified success rate."
+  - ""
+  - "&d&l(!) &dChance to extract Mythic enchantments"
+  - ""
+  - "&eApplies to: &f&nArmor, Weapon, & Tool"
+  - "&7Drag n' Drop on an item to apply."
 applies-to: [ARMOR, WEAPON, TOOL]
 # Exact, case-sensitive keys from content/tiers.yml. Enchant group: tags do not affect scroll eligibility.
 eligible-tiers: [common, uncommon, rare, epic, legendary, soul, mythic]
