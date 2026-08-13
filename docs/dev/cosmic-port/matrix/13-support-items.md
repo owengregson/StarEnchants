@@ -800,13 +800,14 @@ settleable from source and should be replaced with the strings below.
 - **codex:** `08-enchant-economy-items.md` §6.3, `16-item-builders.md` (black scroll)
 - **likeness — VERBATIM:** material `Material.INK_SACK` data `0`, **glowing**
   - name: `§d§lHeroic Black Scroll`
-  - lore, 4 lines:
+  - lore, 5 lines (the visible tier word is pack-owned text; Signature uses `Mythic`):
 
     ```text
     §7Removes a random enchantment
     §7from an item and converts
     §7it into a §d{min}%-{max}%§7 success book.
-    §d§l(!)§d Chance to extract Heroic Enchantments
+
+    §d§l(!) §dChance to extract Heroic Enchantments
     ```
 
   - data keys: `cosmicType = "heroicBlackscroll"`, `cosmicData = { min, max }`
@@ -818,10 +819,11 @@ settleable from source and should be replaced with the strings below.
 - **decomposition:** `type: heroic-black-scroll` gives this grade its own pack-authored
   name/lore, stamped per-item conversion band, and `eligible-tiers` policy. The Cosmic
   pack ships the recorded Heroic name and permits Heroic but not Mastery extraction;
-  the Signature pack names the same mechanic Mythic and targets its `mythic` tier.
-  Remaining fidelity work: the source's weighted random band expansion and glowing
-  likeness are not yet expressed.
-- **era:** `INK_SACK` → `INK_SAC`; the glow flag is era-stable.
+  the Signature pack names the same mechanic Mythic and targets its `mythic` tier. Both
+  packs use `DRIED_KELP` for the modern item and force a hidden-enchantment glint; the
+  generic plugin-item guard suppresses dried kelp's vanilla eating behavior. Remaining
+  fidelity work: the source's weighted random band expansion is not yet expressed.
+- **era:** `DRIED_KELP` degrades to `INK_SACK` on 1.8.9; the glow flag is era-stable.
 
 ### Transmog Scroll (`items/transmog-scroll.yml`)
 

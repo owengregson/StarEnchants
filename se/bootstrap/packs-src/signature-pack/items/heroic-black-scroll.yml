@@ -1,15 +1,15 @@
 # Higher-tier Black Scroll. The type is the stable mechanic identifier; this pack owns the visible name.
 type: heroic-black-scroll
 
-material: INK_SAC
+# The generic plugin-item guard prevents the stamped scroll from being eaten. On 1.8.9 this degrades to INK_SACK.
+material: DRIED_KELP
 name: "&d&lMythic Black Scroll"
 lore:
+  - "&7Removes a random enchantment"
+  - "&7from an item and converts"
+  - "&7it into a &d{MIN}%-{MAX}%&7 success book."
   - ""
   - "&d&l(!) &dChance to extract Mythic Enchantments"
-  - "&eRemoves a random enchantment from your item and returns it to your inventory with a {MIN}%-{MAX}% success book."
-  - ""
-  - "&eApplies to: &r&f&n{KINDS}"
-  - "&7Drag n' Drop on an item to apply."
 applies-to: [ARMOR, WEAPON, TOOL]
 # Exact, case-sensitive keys from content/tiers.yml. Enchant group: tags do not affect scroll eligibility.
 eligible-tiers: [common, uncommon, rare, epic, legendary, soul, mythic]
