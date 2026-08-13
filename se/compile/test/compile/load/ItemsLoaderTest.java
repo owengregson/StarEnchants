@@ -110,6 +110,7 @@ class ItemsLoaderTest {
         Files.writeString(dir.resolve("black-scroll.yml"), """
                 type: black-scroll
                 material: COAL
+                shiny: true
                 name: "&8Void Scroll"
                 min-convert: 40
                 max-convert: 60
@@ -123,6 +124,7 @@ class ItemsLoaderTest {
 
         ScrollsConfig scrolls = ItemsLoader.load(dir).scrolls().orElseThrow();
         assertEquals("COAL", scrolls.black().material());
+        assertTrue(scrolls.black().shiny());
         assertEquals("&8Void Scroll", scrolls.black().name());
         assertEquals(40, scrolls.black().minConvert());
         assertEquals(60, scrolls.black().maxConvert());
@@ -140,6 +142,7 @@ class ItemsLoaderTest {
         Files.writeString(dir.resolve("heroic-black-scroll.yml"), """
                 type: heroic-black-scroll
                 name: "&5Ascended Extraction Scroll"
+                shiny: false
                 min-convert: 35
                 max-convert: 10
                 eligible-tiers: [common, heroic]
@@ -147,6 +150,7 @@ class ItemsLoaderTest {
 
         ScrollsConfig.HeroicBlack heroic = ItemsLoader.load(dir).scrolls().orElseThrow().heroicBlack();
         assertEquals("&5Ascended Extraction Scroll", heroic.name());
+        assertFalse(heroic.shiny());
         assertEquals(10, heroic.minConvert());
         assertEquals(35, heroic.maxConvert());
         assertEquals(List.of("common", "heroic"), heroic.eligibleTiers());

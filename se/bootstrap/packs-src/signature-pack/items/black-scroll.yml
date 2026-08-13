@@ -7,6 +7,7 @@ type: black-scroll
 
 # DRIED_KELP is 1.13+; the 1.8.9 lane degrades it to the ink sac (INK_SACK) via ItemFactory.LEGACY_FALLBACK.
 material: DRIED_KELP
+shiny: false
 name: "{#473f31}&lBlack Scroll"
 # {SUCCESS} = the drawn book's rolled success rate. Lines auto-wrap at config lore.item-wrap.
 lore:

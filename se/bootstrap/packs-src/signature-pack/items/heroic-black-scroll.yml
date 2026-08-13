@@ -3,6 +3,7 @@ type: heroic-black-scroll
 
 # The generic plugin-item guard prevents the stamped scroll from being eaten. On 1.8.9 this degrades to INK_SACK.
 material: DRIED_KELP
+shiny: true
 name: "&d&lMythic Black Scroll"
 lore:
   - ""

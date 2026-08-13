@@ -363,6 +363,7 @@ public final class ItemsLoader {
         ScrollsConfig.Black d = ScrollsConfig.defaults().black();
         return new ScrollsConfig.Black(
                 orDefault(root.string("material"), d.material()),
+                parseBool(root.string("shiny"), d.shiny(), root, diags),
                 orDefault(root.string("name"), d.name()),
                 root.has("lore") ? root.stringList("lore") : d.lore(),
                 parseInt(root.string("min-convert"), d.minConvert(), root, diags),
@@ -377,6 +378,7 @@ public final class ItemsLoader {
         ScrollsConfig.HeroicBlack d = ScrollsConfig.defaults().heroicBlack();
         return new ScrollsConfig.HeroicBlack(
                 orDefault(root.string("material"), d.material()),
+                parseBool(root.string("shiny"), d.shiny(), root, diags),
                 orDefault(root.string("name"), d.name()),
                 root.has("lore") ? root.stringList("lore") : d.lore(),
                 parseInt(root.string("min-convert"), d.minConvert(), root, diags),

@@ -138,6 +138,9 @@ public final class ScrollService {
                 cfg.material(), Mats.or("INK_SAC", Material.PAPER),
                 subConvert(cfg.name(), conv, kinds),
                 Tokens.subLines(cfg.lore(), "SUCCESS", conv, "FAILURE", 100 - conv, "KINDS", kinds));
+        if (cfg.shiny()) {
+            MenuIcons.glow(vanilla, stack); // cosmetic-only; unsupported servers gracefully leave it plain
+        }
         scrolls.mark(stack, BLACK);
         scrolls.markConvert(stack, conv);
         return stack;
@@ -151,7 +154,9 @@ public final class ScrollService {
                 cfg.material(), Mats.or("DRIED_KELP", Mats.or("INK_SAC", Material.PAPER)),
                 Tokens.sub(cfg.name(), "MIN", range.min(), "MAX", range.max(), "KINDS", kinds),
                 Tokens.subLines(cfg.lore(), "MIN", range.min(), "MAX", range.max(), "KINDS", kinds));
-        MenuIcons.glow(vanilla, stack); // visual likeness only; the resolver handles every supported era
+        if (cfg.shiny()) {
+            MenuIcons.glow(vanilla, stack); // cosmetic-only; unsupported servers gracefully leave it plain
+        }
         scrolls.mark(stack, HEROIC_BLACK);
         scrolls.markHeroicRange(stack, range.min(), range.max());
         return stack;

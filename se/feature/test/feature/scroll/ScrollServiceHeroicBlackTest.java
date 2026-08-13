@@ -77,6 +77,51 @@ class ScrollServiceHeroicBlackTest {
     }
 
     @Test
+    void eachScrollGlintFollowsItsOwnPackFlag() {
+        FakeItemStateStore store = new FakeItemStateStore();
+        ItemKeys keys = ItemKeys.of();
+        ScrollCodec scrolls = new ScrollCodec(keys.scroll(), keys.scrollConvert(), keys.scrollHeroicMin(),
+                keys.scrollHeroicMax(), store);
+        ItemStack normalIcon = mock(ItemStack.class);
+        ItemStack higherIcon = mock(ItemStack.class);
+        ItemMeta normalMeta = mock(ItemMeta.class);
+        Enchantment unbreaking = mock(Enchantment.class);
+        when(normalIcon.clone()).thenReturn(normalIcon);
+        when(higherIcon.clone()).thenReturn(higherIcon);
+        when(normalIcon.getItemMeta()).thenReturn(normalMeta);
+        ItemFactory.customItemResolver(token -> switch (token) {
+            case "COAL" -> normalIcon;
+            case "DRIED_KELP" -> higherIcon;
+            default -> null;
+        });
+
+        ScrollsConfig defaults = ScrollsConfig.defaults();
+        ScrollsConfig.Black normal = new ScrollsConfig.Black(
+                "COAL", true, "Black", List.of(), 10, 20,
+                List.of("WEAPON"), List.of("common"), null, List.of());
+        ScrollsConfig.HeroicBlack higher = new ScrollsConfig.HeroicBlack(
+                "DRIED_KELP", false, "Ascended", List.of(), 10, 35,
+                List.of("WEAPON"), List.of("mythic"), null, List.of());
+        ScrollsConfig config = new ScrollsConfig(normal, higher, defaults.randomizer(), defaults.transmog(),
+                defaults.holy(), defaults.nametag(), defaults.godly());
+
+        try {
+            ScrollService service = new ScrollService(scrolls, new CombatCodec(keys.combat(), store),
+                    mock(LoreRenderer.class), mock(CarrierService.class), mock(ContentHolder.class),
+                    () -> config, new Random(1), Messages.defaults(), null, ItemGroups.standard(),
+                    new BookRateStore(), new VanillaEnchants(name -> unbreaking));
+
+            assertSame(normalIcon, service.mintBlack());
+            assertSame(higherIcon, service.mintHeroicBlack());
+            verify(normalIcon).addUnsafeEnchantment(unbreaking, 1);
+            verify(normalMeta).addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            verify(higherIcon, never()).addUnsafeEnchantment(unbreaking, 1);
+        } finally {
+            ItemFactory.customItemResolver(null);
+        }
+    }
+
+    @Test
     void selectionUsesTierPolicyAndConfiguredNameWhilePreservingRangeLevelAndCodecBehavior() {
         FakeItemStateStore store = new FakeItemStateStore();
         ItemKeys keys = ItemKeys.of();

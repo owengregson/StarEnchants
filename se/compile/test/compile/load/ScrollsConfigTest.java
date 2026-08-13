@@ -1,6 +1,7 @@
 package compile.load;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -21,7 +22,9 @@ class ScrollsConfigTest {
         assertTrue(d.transmog().nameSuffix() != null);
         assertTrue(d.nametag().blacklist() != null);
         assertEquals(List.of("ARMOR", "WEAPON", "TOOL"), d.black().appliesTo(), "the black scroll extracts from armor, weapons, and tools");
+        assertFalse(d.black().shiny(), "the regular scroll is plain by default");
         assertTrue(d.heroicBlack().minConvert() <= d.heroicBlack().maxConvert());
+        assertTrue(d.heroicBlack().shiny(), "the higher-tier scroll glints by default");
         assertEquals(List.of("ARMOR", "WEAPON", "TOOL"), d.heroicBlack().appliesTo());
         assertEquals(List.of("ALL"), d.holy().appliesTo(), "the holy white scroll protects any item");
     }
