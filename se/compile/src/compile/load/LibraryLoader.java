@@ -178,10 +178,22 @@ public final class LibraryLoader {
             }
             defs.addAll(parsed.abilities());
         }
+        validateEnchantTiers(catalog, tiers, diags);
         validateRelationships(catalog, diags); // §G: requires/blacklist must name existing enchants
         validateSetEnchants(sets, catalog, diags); // §6.6: a set's custom enchant refs must exist (in range)
         Snapshot snapshot = compiler.compile(defs, generation, diags);
         return new Library(snapshot, catalog, crystals, sets, useItems, pets, masks, reforges, tiers, diags.all());
+    }
+
+    /** Reject an enchant tier that cannot be resolved through the pack's exact, case-sensitive registry. */
+    private static void validateEnchantTiers(List<EnchantDef> catalog, TierRegistry tiers, Diagnostics diags) {
+        for (EnchantDef def : catalog) {
+            if (!tiers.isTier(def.tier())) {
+                diags.error(DiagCode.E_LOAD_TIER_UNKNOWN,
+                        "enchant '" + def.key() + "' uses unregistered tier '" + def.tier() + "'",
+                        def.source(), "declare that exact tier key in content/tiers.yml or correct the enchant's tier");
+            }
+        }
     }
 
     /**

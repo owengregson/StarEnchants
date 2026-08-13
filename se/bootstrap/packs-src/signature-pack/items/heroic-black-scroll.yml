@@ -1,0 +1,19 @@
+# Higher-tier Black Scroll. The type is the stable mechanic identifier; this pack owns the visible name.
+type: heroic-black-scroll
+
+material: INK_SAC
+name: "&d&lMythic Black Scroll"
+lore:
+  - ""
+  - "&d&l(!) &dChance to extract Mythic Enchantments"
+  - "&eRemoves a random enchantment from your item and returns it to your inventory with a {MIN}%-{MAX}% success book."
+  - ""
+  - "&eApplies to: &r&f&n{KINDS}"
+  - "&7Drag n' Drop on an item to apply."
+applies-to: [ARMOR, WEAPON, TOOL]
+# Exact, case-sensitive keys from content/tiers.yml. Enchant group: tags do not affect scroll eligibility.
+eligible-tiers: [common, uncommon, rare, epic, legendary, soul, mythic]
+min-convert: 10
+max-convert: 35
+sound: "entity.player.levelup"
+particles: [WITCH, ENCHANTED_HIT]

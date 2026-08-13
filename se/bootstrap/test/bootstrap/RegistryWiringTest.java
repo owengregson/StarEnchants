@@ -110,15 +110,17 @@ class RegistryWiringTest {
 
     private static final Set<String> GOLDEN_GIVE_KEYS = Set.of("gem", "dust", "whitescroll", "book", "unopened",
             "useitem", "use-item", "crystal", "extractor", "heroic", "upgrade", "orb", "blackscroll", "randomizer",
-            "transmog", "godlytransmog", "holy", "nametag", "blocktrak", "mobtrak", "soultrak", "fishtrak", "set",
+            "black-scroll", "black_scroll", "bs", "heroicblackscroll", "heroic-black-scroll", "heroic_black_scroll",
+            "heroic-bs", "transmog", "godlytransmog", "holy", "nametag", "blocktrak", "mobtrak", "soultrak", "fishtrak", "set",
             "pet", "pets", "petfood", "pet-food", "mask", "masks", "reforge", "reforges");
 
     private static final Set<String> GOLDEN_SELF_MINTS = Set.of("gem", "crystal", "heroic", "orb", "book",
-            "blackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag", "dust", "whitescroll",
+            "blackscroll", "heroicblackscroll", "randomizer", "transmog", "godlytransmog", "holy", "nametag", "dust", "whitescroll",
             "unopened", "reforge");
 
     private static final List<String> GOLDEN_TILE_LABELS = List.of("soul gem", "slot expander", "heroic upgrade",
-            "item extractor", "black scroll", "randomizer scroll", "transmog scroll", "godly transmog",
+            "item extractor", "black scroll", compile.load.ScrollsConfig.defaults().heroicBlack().name(),
+            "randomizer scroll", "transmog scroll", "godly transmog",
             "holy white scroll", "item nametag", "success dust", "white scroll",
             "blocktrak gem", "mobtrak gem", "soultrak gem", "fishtrak gem", "pet food");
 
@@ -184,7 +186,7 @@ class RegistryWiringTest {
         when(core.effectRegistry()).thenReturn(() -> null);
         when(core.compilerFactory()).thenReturn(() -> null);
         when(core.content()).thenReturn(content);
-        when(core.items()).thenReturn(mock(compile.load.ItemsHolder.class));
+        when(core.items()).thenReturn(new compile.load.ItemsHolder(compile.load.ItemsConfig.empty()));
         when(core.master()).thenReturn(new MasterConfigHolder(MasterConfig.defaults()));
         when(core.messages()).thenReturn(mock(platform.lang.Messages.class));
         when(core.menusHolder()).thenReturn(mock(compile.load.MenusHolder.class));

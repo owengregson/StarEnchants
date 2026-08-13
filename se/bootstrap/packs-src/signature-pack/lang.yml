@@ -5,8 +5,8 @@
 # diff — rather than a full mirror — means a newly-shipped default message (a new command, a new item) is
 # inherited automatically instead of being silently dropped by a stale copy.
 #
-# signature-pack re-themes only the soul-gem strings as Cosmic-Enchants-style likenesses; everything else uses
-# the default English.
+# signature-pack re-themes its soul-gem strings; everything else uses the default English. Item names are
+# inserted into shared messages from each pack's items/*.yml configuration.
 
 # ── Soul gem (Cosmic-Enchants likeness) ────────────────────────────────────────────────────────────────
 command.soul.no-gem: "&c&l(!)&r &cThis item is not a soul gem!"
