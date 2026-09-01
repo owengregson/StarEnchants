@@ -57,7 +57,7 @@ jobs:
       # JDK 8 compiles + boots the 1.8 lane; JDK 17 runs Gradle + JvmDowngrader. Listed 8-then-17 so the LAST
       # (JAVA_HOME) is 17 (Gradle's toolchain needs it), while JAVA_HOME_8_X64 boots the downgraded jar.
       - name: Set up JDKs 8 + 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: |

@@ -81,7 +81,7 @@ jobs:
       # Listed so JAVA_HOME (the last) is 21 — Gradle's toolchain detection finds 17 — while JAVA_HOME_8_X64
       # boots the legacy (v52) half of the mega-jar on real 1.8.8. The Foojay resolver auto-provisions anything missing.
       - name: Set up JDKs 8 + 17 + 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: |
