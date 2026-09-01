@@ -25,7 +25,7 @@ jobs:
       # upper toolchain (1.20.5+). Install both so Gradle's toolchain detection
       # finds 17 (the Foojay resolver auto-provisions anything still missing).
       - name: Set up JDKs 17 + 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: |
@@ -58,7 +58,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Set up JDKs 17 + 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: |
